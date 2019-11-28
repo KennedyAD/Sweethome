@@ -780,7 +780,8 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
                              String key,
                              Object value) throws IOException {
     if (value != null) {
-      writer.write(key);
+      // Write key, escaping the characters : = and space
+      writer.write(key.replace(":", "\\:").replace("=", "\\=").replace(" ", "\\ "));
       writer.write("=");
       String s;
       if (value.getClass().isArray()) {
