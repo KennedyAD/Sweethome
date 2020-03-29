@@ -61,6 +61,7 @@ function HTMLCanvas3D(canvasId) {
     + "uniform vec4 planeT;"
     + "uniform mat3 textureCoordTransform;"
     + "uniform mat3 normalTransform;"
+    + "uniform bool ignoreNormal;"
     + "uniform bool backFaceNormalFlip;"
     + "uniform bool lightingEnabled;"
     + "uniform bool useTextures;"
@@ -82,10 +83,15 @@ function HTMLCanvas3D(canvasId) {
     + "    varTextureCoord = vec2(textureCoordTransform * vec3(varTextureCoord, 1));"
     + "  }"
     + "  if (lightingEnabled) {"
-    + "    vec3 normal = vertexNormal;"
-    + "    if (backFaceNormalFlip) {" 
-    + "      normal = -normal;"
-    +	"    }"
+    + "    vec3 normal;" 
+    + "    if (ignoreNormal) {"
+    + "      normal = vec3(1., 1., 1.);"
+    + "    } else {"
+    + "      normal = vertexNormal;"
+    + "      if (backFaceNormalFlip) {" 
+    + "        normal = -normal;"
+    + "      }"
+    + "    }"
     + "    varTransformedNormal = normalize(normalTransform * normal);"
     + "  }"
     + "}");
@@ -164,6 +170,7 @@ function HTMLCanvas3D(canvasId) {
   this.shaderProgram.planeT = this.gl.getUniformLocation(this.shaderProgram, "planeT");
   this.shaderProgram.textureCoordTransform = this.gl.getUniformLocation(this.shaderProgram, "textureCoordTransform");
   this.shaderProgram.normalTransform = this.gl.getUniformLocation(this.shaderProgram, "normalTransform");
+  this.shaderProgram.ignoreNormal = this.gl.getUniformLocation(this.shaderProgram, "ignoreNormal");
   this.shaderProgram.backFaceNormalFlip = this.gl.getUniformLocation(this.shaderProgram, "backFaceNormalFlip");
   this.shaderProgram.ambientColor = this.gl.getUniformLocation(this.shaderProgram, "ambientColor");
   this.shaderProgram.lightingEnabled = this.gl.getUniformLocation(this.shaderProgram, "lightingEnabled");
@@ -205,6 +212,8 @@ function HTMLCanvas3D(canvasId) {
   this.gl.uniform1i(this.shaderProgram.lightingEnabled, this.shaderLightingEnabled);
   this.shaderShininess = 1.;
   this.gl.uniform1f(this.shaderProgram.shininess, this.shaderShininess);
+  this.shaderIgnoreNormal = false;
+  this.gl.uniform1i(this.shaderProgram.ignoreNormal, this.shaderIgnoreNormal);
   this.shaderBackFaceNormalFlip = false;
   this.gl.uniform1i(this.shaderProgram.backFaceNormalFlip, this.shaderBackFaceNormalFlip);
   this.shaderTextureCoordinatesGenerated = false;
@@ -1046,6 +1055,11 @@ HTMLCanvas3D.prototype.drawGeometry = function(geometry, viewPlatformInvertedTra
       if (!mat3.exactEquals(this.shaderNormalTransform, this.geometryNormalTransform)) {
         mat3.copy(this.shaderNormalTransform, this.geometryNormalTransform);
         this.gl.uniformMatrix3fv(this.shaderProgram.normalTransform, false, this.shaderNormalTransform);
+      }
+      // Call uniform1i only if type of geometry changed from previous geometry
+      if (this.shaderIgnoreNormal !== (geometry.mode === this.gl.LINES)) {
+        this.shaderIgnoreNormal = geometry.mode === this.gl.LINES;
+        this.gl.uniform1i(this.shaderProgram.ignoreNormal, this.shaderIgnoreNormal);
       }
       // Call uniform1i only if backFaceNormalFlip changed from previous geometry
       if (this.shaderBackFaceNormalFlip !== geometry.backFaceNormalFlip) {
