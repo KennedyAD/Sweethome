@@ -491,6 +491,7 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
                 delete modelManager.loadingModelObservers [contentUrl];
                 modelManager.updateWindowPanesTransparency(model);
                 modelManager.updateDeformableModelHierarchy(model);
+                modelManager.replaceMultipleSharedShapes(model);
                 modelManager.loadedModelNodes [contentUrl] = model;
                 for (var i = 0; i < observers.length; i++) {
                   observers [i].modelUpdated(modelManager.cloneNode(model));
@@ -566,6 +567,7 @@ ModelManager.prototype.disposeGeometries = function(node) {
  * All the children and the attributes of the given node are duplicated except the geometries 
  * and the texture images of shapes.
  * @param {Node3D} node  the root of a model 
+ * @param {Array}  [clonedSharedGroups]
  */
 ModelManager.prototype.cloneNode = function(node, clonedSharedGroups) {
   if (clonedSharedGroups === undefined) {
@@ -901,6 +903,191 @@ ModelManager.prototype.isDeformed = function(node) {
     }
   }
   return false;
+}
+
+/**
+ * Replaces multiple shared shapes of the given <code>node</code> with one shape with transformed geometries.
+ * @param {BranchGroup3D} modelRoot
+ * @private
+ */
+ModelManager.prototype.replaceMultipleSharedShapes = function(modelRoot) {
+  var sharedShapes = [];
+  this.searchSharedShapes(modelRoot, sharedShapes, false);
+  for (var i = 0; i < sharedShapes.length; i++) {
+    if (sharedShapes [i].value > 1) {
+      var transformations = [];
+      var shape = sharedShapes [i].key;
+      this.searchShapeTransformations(modelRoot, shape, transformations, mat4.create());
+      // Replace shared shape by a unique shape with transformed geometries
+      var newShape = shape.clone();
+      var geometries = newShape.getGeometries();
+      for (var j = 0; j < geometries.length; j++) {
+        var newGeometry = this.getTransformedGeometry(geometries [j], transformations);
+        if (newGeometry === null) {
+          return;
+        }
+        newShape.setGeometry(newGeometry, j);
+      }
+      this.removeSharedShape(modelRoot, shape);
+      modelRoot.addChild(newShape);
+    }
+  }
+}
+
+/**
+ * Searches all the shapes which are shared among the children of the given <code>node</code>.
+ * @param {Node3D} node  a node
+ * @param {Array}  sharedShapes 
+ * @param {boolean} childOfSharedGroup
+ * @private
+ */
+ModelManager.prototype.searchSharedShapes = function(node, sharedShapes, childOfSharedGroup) {
+  if (node instanceof Group3D) {
+    var children = node.getChildren();
+    for (var i = 0; i < children.length; i++) {
+      this.searchSharedShapes(children [i], sharedShapes, childOfSharedGroup);
+    }
+  } else if (node instanceof Link3D) {
+    this.searchSharedShapes(node.getSharedGroup(), sharedShapes, true);
+  } else if (node instanceof Shape3D) {
+    if (childOfSharedGroup) {
+      for (var i = 0; i < sharedShapes.length; i++) {
+        if (sharedShapes [i].key === node) {
+          sharedShapes [i].value++;
+          return;
+        }
+      }
+      sharedShapes.push({key : node, value : 1});
+    }
+  }
+}
+
+/**
+ * Searches all the transformations applied to a shared <code>shape</code> child of the given <b>node</b>.
+ * @param {Node3D}  node  a node
+ * @param {Shape3D} shape 
+ * @param {mat4 []} transformations
+ * @param {mat4}    parentTransformations
+ */
+ModelManager.prototype.searchShapeTransformations = function(node, shape, transformations, parentTransformations) {
+  if (node instanceof Group3D) {
+    if (!(node instanceof TransformGroup3D)
+        || !this.isDeformed(node)) {
+      if (node instanceof TransformGroup3D) {
+        parentTransformations = mat4.clone(parentTransformations);
+        var transform = mat4.create();
+        node.getTransform(transform);
+        mat4.mul(parentTransformations, parentTransformations, transform);
+      }
+      var children = node.getChildren();
+      for (var i = 0; i < children.length; i++) {
+        this.searchShapeTransformations(children [i], shape, transformations, parentTransformations);
+      }
+    }
+  } else if (node instanceof Link3D) {
+    this.searchShapeTransformations(node.getSharedGroup(), shape, transformations, parentTransformations);
+  } else if (node === shape) {
+    transformations.push(parentTransformations);
+  }
+}
+
+/**
+ * Returns a new geometry where coordinates are transformed with the given transformations.
+ * @param {IndexedGeometryArray3D} geometry
+ * @param {mat4 []} transformations
+ * @returns {IndexedGeometryArray3D}
+ */
+ModelManager.prototype.getTransformedGeometry = function(geometry, transformations) {
+  var offsetIndex = 0;
+  var offsetVertex = 0;
+  var newVertexIndices = new Array(transformations.length * geometry.vertexIndices.length);
+  for (var i = 0; i < transformations.length; i++) {
+    for (var j = 0, n = geometry.vertexIndices.length; j < n; j++) {
+      newVertexIndices [offsetIndex + j] = offsetVertex + geometry.vertexIndices [j];
+    }
+    offsetIndex += geometry.vertexIndices.length;
+    offsetVertex += geometry.vertices.length;
+  }
+
+  var newTextureCoordinateIndices = new Array(transformations.length * geometry.textureCoordinateIndices.length);
+  offsetIndex = 0;
+  for (var i = 0; i < transformations.length; i++) {
+    for (var j = 0, n = geometry.textureCoordinateIndices.length; j < n; j++) {
+      newTextureCoordinateIndices [offsetIndex + j] = geometry.textureCoordinateIndices [j];
+    }
+    offsetIndex += geometry.textureCoordinateIndices.length;
+  }
+  
+  offsetVertex = 0;
+  var newVertices = new Array(transformations.length * geometry.vertices.length);
+  for (var i = 0; i < transformations.length; i++) {
+    for (var j = 0, n = geometry.vertices.length; j < n; j++) {
+      var vertex = vec3.clone(geometry.vertices [j]);
+      vec3.transformMat4(vertex, vertex, transformations [i]);
+      newVertices [offsetVertex + j] = vertex;
+    }
+    offsetVertex += geometry.vertices.length;
+  }
+
+  if (geometry instanceof IndexedLineArray3D) {
+    return new IndexedLineArray3D(newVertices, newVertexIndices, geometry.textureCoordinates, newTextureCoordinateIndices);
+  } else if (geometry instanceof IndexedTriangleArray3D) {
+    var newNormalIndices = new Array(transformations.length * geometry.normalIndices.length);
+    offsetIndex = 0;
+    var offsetNormal = 0;
+    for (var i = 0; i < transformations.length; i++) {
+      for (var j = 0, n = geometry.normalIndices.length; j < n; j++) {
+        newNormalIndices [offsetIndex + j] = offsetNormal + geometry.normalIndices [j];
+      }
+      offsetIndex += geometry.normalIndices.length;
+      offsetNormal += geometry.normals.length;
+    }
+    
+    var offsetNormal = 0;
+    var newNormals = new Array(transformations.length * geometry.normals.length);
+    for (var i = 0; i < transformations.length; i++) {
+      for (var j = 0, n = geometry.normals.length; j < n; j++) {
+        var normal = vec3.clone(geometry.normals [j]);
+        vec3.transformMat4(normal, normal, transformations [i]);
+        vec3.normalize(normal, normal);
+        newNormals [offsetNormal + j] = normal;
+      }
+      offsetNormal += geometry.normals.length;
+    }
+
+    return new IndexedTriangleArray3D(newVertices, newVertexIndices, geometry.textureCoordinates, newTextureCoordinateIndices, newNormals, newNormalIndices);
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Removes the shared shape from the children of the given <code>node</code>.
+ * @param {Node3D} node  a node
+ * @param {Shape3D} shape 
+ */
+ModelManager.prototype.removeSharedShape = function(node, shape) {
+  if (node instanceof Group3D) {
+    if (!(node instanceof TransformGroup3D)
+        || !this.isDeformed(node)) {
+      var children = node.getChildren();
+      for (var i = children.length - 1; i >= 0; i--) {
+        this.removeSharedShape(children [i], shape);
+      }
+      if (children.length === 0
+          && node.getParent() instanceof Group3D) {
+        node.getParent().removeChild(node);
+      }
+    }
+  } else if (node instanceof Link3D) {
+    var sharedGroup = node.getSharedGroup();
+    this.removeSharedShape(sharedGroup, shape);
+    if (sharedGroup.children.length == 0) {
+      node.getParent().removeChild(node);
+    }
+  } else if (node === shape) {
+    node.getParent().removeChild(node);
+  }
 }
 
 /**
