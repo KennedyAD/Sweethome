@@ -203,6 +203,15 @@ Shape3D.prototype.addGeometry = function(geometry3D) {
   }
 }
 
+Shape3D.prototype.setGeometry = function(geometry3D, index) {
+  this.geometries [index] = geometry3D;
+  // Clear bounds cache
+  this.bounds = null;
+  if (this.propertyChangeSupport !== undefined) {
+    this.propertyChangeSupport.firePropertyChange("GEOMETRY", removedGeometry3D, null);
+  }
+}
+
 Shape3D.prototype.removeGeometry = function(index) {
   var removedGeometry3D = this.geometries [index];
   this.geometries.splice(index, 1);
