@@ -78,7 +78,7 @@ import com.eteks.sweethome3d.tools.URLContent;
  * @author Emmanuel Puybaret
  */
 public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
-  private static final String [] IGNORED_EXTENSIONS = {".max", ".lwo", ".dxf"};
+  private static final String [] IGNORED_EXTENSIONS = {".gsm", ".max", ".lwo", ".dxf"};
   private static final Locale DEFAULT_LOCALE = new Locale("");
   private static final NumberFormat DECIMAL_FORMAT = new DecimalFormat("0.#####", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
