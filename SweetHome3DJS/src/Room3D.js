@@ -84,6 +84,10 @@ Room3D.prototype.update = function() {
 Room3D.prototype.updateRoomGeometry = function() {
   this.updateRoomPartGeometry(Room3D.FLOOR_PART, this.getUserData().getFloorTexture());
   this.updateRoomPartGeometry(Room3D.CEILING_PART, this.getUserData().getCeilingTexture());
+  var room = this.getUserData();
+  this.setPickable(this.home.getEnvironment().getWallsAlpha() == 0
+      || room.getLevel() == null 
+      || room.getLevel().getElevation() <= 0);
 }
 
 Room3D.prototype.updateRoomPartGeometry = function(roomPart, texture) {

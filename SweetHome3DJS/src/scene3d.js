@@ -143,6 +143,18 @@ Node3D.prototype.removePropertyChangeListener = function(property, listener) {
   }
 }
 
+Node3D.prototype.setPickable = function(pickable) {
+  this.pickable = pickable;
+}
+
+Node3D.prototype.isPickable = function() {
+  if (this.pickable !== undefined) {
+    return this.pickable;
+  } else {
+    return true;
+  }
+}
+
 Node3D.prototype.clone = function() {
   var clone = new Node3D();
   if (this.userData !== undefined) {
@@ -150,6 +162,9 @@ Node3D.prototype.clone = function() {
   }
   if (this.name !== undefined) {
     clone.name = this.name;
+  }
+  if (this.pickable !== undefined) {
+    clone.pickable = this.pickable;
   }
   return clone;
 }
@@ -260,18 +275,6 @@ Shape3D.prototype.setAppearance = function(appearance) {
   this.appearance = appearance;
 }
 
-Shape3D.prototype.setPickable = function(pickable) {
-  this.pickable = pickable;
-}
-
-Shape3D.prototype.isPickable = function() {
-  if (this.pickable !== undefined) {
-    return this.pickable;
-  } else {
-    return true;
-  }
-}
-
 Shape3D.prototype.clone = function() {
   var clone = new Shape3D(null, this.appearance);
   if (this.userData !== undefined) {
@@ -282,9 +285,6 @@ Shape3D.prototype.clone = function() {
   }
   clone.geometries = this.geometries;
   clone.bounds = this.bounds;
-  if (this.pickable !== undefined) {
-    clone.pickable = this.pickable;
-  }
   return clone;
 }
 
@@ -485,6 +485,13 @@ Group3D.prototype.removeChildrenListener = function(listener) {
   }
 } 
 
+Group3D.prototype.setPickable = function(pickable) {
+  Node3D.prototype.setPickable(this, pickable);
+  for (var i = 0; i < this.children.length; i++) {
+    this.children [i].setPickable(pickable);
+  }
+}
+
 Group3D.prototype.clone = function() {
   var clone = new Group3D();
   if (this.userData !== undefined) {
@@ -570,6 +577,11 @@ Link3D.prototype.getSharedGroup = function() {
 
 Link3D.prototype.setSharedGroup = function(sharedGroup) {
   this.sharedGroup = sharedGroup;
+}
+
+Link3D.prototype.setPickable = function(pickable) {
+  Node3D.prototype.setPickable(this, pickable);
+  this.sharedGroup.setPickable(pickable);
 }
 
 Link3D.prototype.clone = function() {
