@@ -85,6 +85,7 @@ Wall3D.prototype.update = function() {
 Wall3D.prototype.updateWallGeometry = function(waitDoorOrWindowModelsLoadingEnd) {
   this.updateWallSideGeometry(Wall3D.WALL_LEFT_SIDE, waitDoorOrWindowModelsLoadingEnd);
   this.updateWallSideGeometry(Wall3D.WALL_RIGHT_SIDE, waitDoorOrWindowModelsLoadingEnd);
+  this.setPickable(this.home.getEnvironment().getWallsAlpha() == 0);
 }
 
 Wall3D.prototype.updateWallSideGeometry = function(wallSide, waitDoorOrWindowModelsLoadingEnd) {
