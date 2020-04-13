@@ -639,7 +639,11 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
         }
       }
     document.addEventListener("visibilitychange", this.visibilityChanged);
-    document.getElementById(canvasId).focus();
+    var canvasBounds = canvas.getBoundingClientRect();
+    // Request focus if canvas is fully visible
+    if (canvasBounds.top >= 0 && canvasBounds.bottom <= self.innerHeight) {
+      canvas.focus();
+    }
   }
 }
 
