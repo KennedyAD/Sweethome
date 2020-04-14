@@ -821,7 +821,7 @@ UserPreferences.prototype.getRecentHomes = function() {
 UserPreferences.prototype.setRecentHomes = function(recentHomes) {
   if (recentHomes != this.recentHomes) {
     var oldRecentHomes = this.recentHomes;
-    this.recentHomes = new ArrayList<String>(recentHomes);
+    this.recentHomes = recentHomes.slice(0);
     this.propertyChangeSupport.firePropertyChange("RECENT_HOMES", 
         oldRecentHomes, this.getRecentHomes());
   }
@@ -911,7 +911,7 @@ UserPreferences.prototype.addAutoCompletionString = function(property, autoCompl
     if (propertyAutoCompletionStrings === undefined) {
       propertyAutoCompletionStrings = [];
     } else if (!propertyAutoCompletionStrings.contains(autoCompletionString)) {
-      propertyAutoCompletionStrings = new ArrayList<String>(propertyAutoCompletionStrings);
+      propertyAutoCompletionStrings = propertyAutoCompletionStrings.slice(0);
     } else {
       return;
     }
