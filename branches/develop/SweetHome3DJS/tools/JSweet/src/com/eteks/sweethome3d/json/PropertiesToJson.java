@@ -18,7 +18,7 @@ public class PropertiesToJson {
         "../SweetHome3D/src/com/eteks/sweethome3d/viewcontroller" };
     String[] supportedLanguages = { "", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
         "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW" };
-    String outputDirectory = "tools/json/generated";
+    String outputDirectory = "lib/generated";
     String outputName = "localization";
     new PropertiesToJson().convert(sourcePropertyDirectories, "package", outputDirectory, outputName,
         supportedLanguages);
@@ -46,7 +46,7 @@ public class PropertiesToJson {
         }
       }
       System.out.println("Writing " + properties.size() + " properties to " + outputFilePath + ".");
-      Files.write(outputFilePath, (new JSONObject(properties).toString() + "\n").getBytes(), StandardOpenOption.APPEND);
+      Files.write(outputFilePath, (new JSONObject(properties).toString(2) + "\n").getBytes("UTF-8"), StandardOpenOption.APPEND);
     }
 
   }
