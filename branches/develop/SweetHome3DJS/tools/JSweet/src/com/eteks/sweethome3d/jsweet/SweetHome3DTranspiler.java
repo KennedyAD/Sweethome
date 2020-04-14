@@ -12,7 +12,7 @@ public class SweetHome3DTranspiler {
   public static void main(String[] args) {
 
     System.setProperty("java.ext.dirs", "../SweetHome3D/lib");
-    System.setProperty("transpilationTarget", "SweetHome3DJSViewer");
+    //System.setProperty("transpilationTarget", "SweetHome3DJSViewer");
     JSweetCommandLineLauncher.main(new String[] { "-h", "-v", //
         "-b", //
         "--workingDir", "tools/JSweet/build/jsweet.tmp", //
