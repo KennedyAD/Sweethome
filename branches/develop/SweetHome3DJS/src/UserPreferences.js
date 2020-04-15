@@ -28,32 +28,30 @@
  */
 function UserPreferences() {
   this.propertyChangeSupport = new PropertyChangeSupport(this);
-  // TODO
-  // this.classResourceBundles = new HashMap<Class<?>, ResourceBundle>();
-  // this.resourceBundles = new HashMap<String, ResourceBundle>();
 
   this.supportedLanguages = UserPreferences.DEFAULT_SUPPORTED_LANGUAGES;
-  this.defaultCountry = navigator.language.substring(navigator.language.indexOf("_") + 1, navigator.language.length);    
-  var defaultLanguage = navigator.language.substring(0, navigator.language.indexOf("_"));
+  var navigatorLanguage = navigator.language;
+  this.defaultCountry = navigatorLanguage.substring(navigatorLanguage.indexOf("-") + 1, navigatorLanguage.length).toUpperCase();
+  var defaultLanguage = navigatorLanguage.substring(0, navigatorLanguage.indexOf("-"));
   // Find closest language among supported languages in Sweet Home 3D
   // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
   // unless their exact locale is supported as in Taiwan (zh_TW)
-  for (var i = 0; i < this.supportedLanguages; i++) {
-    var supportedLanguage = this.supportedLanguages [i];
+  for (var i = 0; i < this.supportedLanguages.length; i++) {
+    var supportedLanguage = this.supportedLanguages[i];
     if (supportedLanguage == defaultLanguage + "_" + this.defaultCountry) {
       this.language = supportedLanguage;
       break; // Found the exact supported language
-    } else if (this.language === null 
-               && supportedLanguage.indexOf(defaultLanguage) === 0) {
+    } else if (this.language === undefined
+      && supportedLanguage.indexOf(defaultLanguage) === 0) {
       this.language = supportedLanguage; // Found a supported language
     }
   }
   // If no language was found, let's use English by default
-  if (this.language === null) {
+  if (this.language === undefined) {
     this.language = "en";
   }
-  
-  this.resourceBundles = {};
+
+  this.resourceBundles = [];
   this.furnitureCatalog = null;
   this.texturesCatalog = null;
   this.patternsCatalog = null;
@@ -64,9 +62,9 @@ function UserPreferences() {
   this.observerCameraSelectedAtChange = true;
   this.navigationPanelVisible = true;
   this.magnetismEnabled = true;
-  this.rulersVisible    = true;
-  this.gridVisible      = true;
-  this.defaultFontName  = null;
+  this.rulersVisible = true;
+  this.gridVisible = true;
+  this.defaultFontName = null;
   this.furnitureViewedFromTop = true;
   this.furnitureModelIconSize = 128;
   this.roomFloorColoredOrTextured = true;
@@ -85,17 +83,16 @@ function UserPreferences() {
   this.homeExamples = [];
 }
 
-UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["en"]; 
+UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es", "fr", "it", "ja", "hu", "nl", "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"];
 
 UserPreferences.DEFAULT_TEXT_STYLE = new TextStyle(18);
 UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
-
 
 /**
  * Adds the <code>listener</code> in parameter to these preferences. 
  * The listener is a function that will receive in parameter an event of {@link PropertyChangeEvent} class.
  */
-UserPreferences.prototype.addPropertyChangeListener = function(property,  listener) {
+UserPreferences.prototype.addPropertyChangeListener = function(property, listener) {
   this.propertyChangeSupport.addPropertyChangeListener(property, listener);
 }
 
@@ -190,13 +187,10 @@ UserPreferences.prototype.getLanguage = function() {
  * @ignore 
  */
 UserPreferences.prototype.setLanguage = function(language) {
-  if (language != this.language
-      && this.isLanguageEditable()) {
+  if (language != this.language && this.isLanguageEditable()) {
     var oldLanguage = this.language;
     this.language = language;
-    // TODO
-    // this.classResourceBundles.clear();
-    // this.resourceBundles.clear();
+    this.resourceBundles = [];
     this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
   }
 }
@@ -254,123 +248,23 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  * @ignore
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-  
-  if (typeof resourceClass !== "string") {
-    var classResourceBundle = this.classResourceBundles [resourceClass];
-    if (classResourceBundle === null) {
-      try {      
-        classResourceBundle = this.getResourceBundle(resourceClass.constructor.name);
-        this.classResourceBundles [resourceClass.constructor.name] = classResourceBundle;
-      } catch (ex) {
-        try {
-          var className = resourceClass.constructor.name;
-          var lastIndex = className.lastIndexOf(".");
-          var resourceFamily;
-          if (lastIndex !== -1) {
-            resourceFamily = className.substring(0, lastIndex) + ".package";
-          } else {
-            resourceFamily = "package";
-          }
-          classResourceBundle = new PrefixedResourceBundle(getResourceBundle(resourceFamily), 
-              resourceClass.constructor.name + ".");
-          this.classResourceBundles [resourceClass.constructor.name] = classResourceBundle;
-        } catch (ex2) {
-          throw new IllegalArgumentException(
-              "Can't find resource bundle for " + resourceClass, ex);
-        }
-      }
-    } 
-    
-    return this.getBundleLocalizedString(classResourceBundle, resourceKey, resourceParameters);
-  } else {
-    var resourceFamily = resourceClass;
-    
-    try {      
-      var resourceBundle = this.getResourceBundle(resourceFamily);
-      return this.getBundleLocalizedString(resourceBundle, resourceKey, resourceParameters);
-    } catch (ex) {
-      throw new IllegalArgumentException(
-          "Can't find resource bundle for " + resourceFamily, ex);
-    }
-  }
-}
-
-/**
- * Returns a new resource bundle for the given <code>familyName</code> 
- * that matches current default locale. The search will be done
- * only among .properties files.
- * @throws IOException if no .properties file was found
- * @private
- */
-UserPreferences.prototype.getResourceBundle = function(resourceFamily) {
-  resourceFamily = resourceFamily.replace('.', '/');
-  var resourceBundle = this.resourceBundles.get(resourceFamily);
-  if (resourceBundle !== null) {
-    return resourceBundle;
-  }
-  var defaultLocale = this.language;
-  var language = defaultLocale.getLanguage();
-  var country = defaultLocale.getCountry();
-  var suffixes = [".properties",
-                  "_" + language + ".properties",
-                  "_" + language + "_" + country + ".properties"];
-  for (var i = 0; i < suffixes.length; i++) {
-    var suffix = suffixes [i];
-    var classLoaders = this.getResourceClassLoaders();
-    for (var j = 0; j < classLoaders.length; j++) {
-      var classLoader = classLoaders [j];
-      var input = classLoader.getResourceAsStream(resourceFamily + suffix);
-      if (input !== null) {
-        var parentResourceBundle = resourceBundle;
-        try {
-          resourceBundle = new PropertyResourceBundle(input);
-          resourceBundle.setParent(parentResourceBundle);
-          break;
-        } catch (ex) {
-          // May happen if the file contains some wrongly encoded characters
-          ex.printStackTrace();
-        } finally {
-          input.close();
-        }
+  if (this.resourceBundles.length == 0) {
+    var baseURL = "lib/generated/localization";
+    if (this.language) {
+      this.resourceBundles.push(loadJSON(baseURL + "_" + this.language + ".json"));
+      if (this.language.indexOf("_") > 0) {
+        this.resourceBundles.push(loadJSON(baseURL + "_" + this.language.split("_")[0] + ".json"));
       }
     }
+    this.resourceBundles.push(loadJSON(baseURL + ".json"));
   }
-  if (resourceBundle === null) {
-    throw new IOException("No available resource bundle for " + resourceFamily);
+  var key = resourceClass + "." + resourceKey;
+  for (var i = 0; i < this.resourceBundles.length; i++) {
+    if (this.resourceBundles[i] != null && this.resourceBundles[i][key]) {
+      return this.resourceBundles[i][key];
+    }
   }
-  this.resourceBundles.put(resourceFamily, resourceBundle);
-  return resourceBundle;
-}
-
-/**
- * Returns the string matching <code>resourceKey</code> for the given resource bundle.
- * @private
- */
-UserPreferences.prototype.getBundleLocalizedString = function(resourceBundle, resourceKey, resourceParameters) {
-  try {
-    var localizedString = resourceBundle.getString(resourceKey);
-    if (resourceParameters.length > 0) {
-      localizedString = String.format(localizedString, resourceParameters);
-    }      
-    return localizedString;
-  } catch (ex) {
-    throw new IllegalArgumentException("Unknown key " + resourceKey);
-  }
-}
-
-/**
- * Returns the class loaders through which localized strings returned by 
- * <code>getLocalizedString</code> might be loaded.
- * @throws UnsupportedOperationException Not implemented yet
- * @ignore
- */
-UserPreferences.prototype.getResourceClassLoaders = function() {
-  // TODO Implement ?
-  throw new UnsupportedOperationException("Not implemented yet");
-  
-  return DEFAULT_CLASS_LOADER;
+  throw new IllegalArgumentException("Can't find resource bundle for " + key);
 }
 
 /**
@@ -390,7 +284,7 @@ UserPreferences.prototype.getCurrency = function() {
 UserPreferences.prototype.setCurrency = function(currency) {
   this.currency = currency;
 }
-  
+
 /**
  * Returns <code>true</code> if the furniture catalog should be viewed in a tree.
  * @ignore
@@ -1011,35 +905,6 @@ UserPreferences.prototype.setHomeExamples = function(homeExamples) {
 UserPreferences.prototype.getHomeExamples = function() {
   return this.homeExamples;
 }
-
-/**
- * A resource bundle with a prefix added to resource key.
- */
-// TODO
-//private static class PrefixedResourceBundle extends ResourceBundle {
-//  private ResourceBundle resourceBundle;
-//  private var         keyPrefix;
-//
-//  public PrefixedResourceBundle(ResourceBundle resourceBundle, 
-//                                var keyPrefix) {
-//    this.resourceBundle = resourceBundle;
-//    this.keyPrefix = keyPrefix;
-//  }
-//  
-////  public Locale getLocale() {
-//    return this.resourceBundle.getLocale();
-//  }
-//  
-////  protected Object handleGetObject(String key) {
-//    key = this.keyPrefix + key;
-//    return this.resourceBundle.getObject(key);
-//  }    
-//
-////  public Enumeration<String> getKeys() {
-//    return this.resourceBundle.getKeys();
-//  }    
-//}
-
 
 /**
  * Default user preferences.

@@ -364,10 +364,22 @@ function displayHome(home, preferences) {
   var controller = new HomeController3D(home, preferences);
   new HomeComponent3D("canvas3D", home, preferences, null, controller);
 }
+
 function visitHome(home, preferences) {
   home.setCamera(home.getObserverCamera());
   var controller = new HomeController3D(home, preferences);
   new HomeComponent3D("canvas3D_2", home, preferences, null, controller);
+}
+
+function testLocalization() {
+  var preferences = new DefaultUserPreferences();
+  assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  preferences.setLanguage("it");
+  assertEquals("Unexpected resource value", "Licenza", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  preferences.setLanguage("zh");
+  assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  preferences.setLanguage("zh_CN");
+  assertEquals("Unexpected resource value", "版权", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
 }
 </script>
 
@@ -377,6 +389,7 @@ function visitHome(home, preferences) {
 		width="600" height="300" tabIndex="2"></canvas>
 
 <script type="text/javascript">
+testLocalization()
 var geomAvailable = typeof java.awt.geom.PathIterator !== "undefined";
 if (geomAvailable) {
   testGeom();

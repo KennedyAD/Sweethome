@@ -95,7 +95,7 @@ var System = {}
 
 System.arraycopy = function(srcPts, srcOff, dstPts, dstOff, size) {
   if (srcPts !== dstPts
-      || dstOff >= srcOff + size) {
+    || dstOff >= srcOff + size) {
     while (--size >= 0) {
       dstPts[dstOff++] = srcPts[srcOff++];
     }
@@ -148,7 +148,7 @@ PropertyChangeEvent.prototype.constructor = PropertyChangeEvent;
 PropertyChangeEvent.prototype.getPropertyName = function() {
   return this.propertyName;
 }
-  
+
 /**
  * Returns the new value of the property.
  */
@@ -187,9 +187,9 @@ PropertyChangeSupport.prototype.addPropertyChangeListener = function(propertyNam
   }
   if (listener) {
     if (propertyName) {
-      this.listeners.push({"listener":listener, "propertyName":propertyName});
+      this.listeners.push({ "listener": listener, "propertyName": propertyName });
     } else {
-      this.listeners.push({"listener":listener});
+      this.listeners.push({ "listener": listener });
     }
   }
 }
@@ -206,8 +206,8 @@ PropertyChangeSupport.prototype.removePropertyChangeListener = function(property
   }
   if (listener) {
     for (var i = this.listeners.length - 1; i >= 0; i--) {
-      if (this.listeners [i].propertyName == propertyName
-          && this.listeners [i].listener === listener) {
+      if (this.listeners[i].propertyName == propertyName
+        && this.listeners[i].listener === listener) {
         this.listeners.splice(i, 1);
       }
     }
@@ -223,9 +223,9 @@ PropertyChangeSupport.prototype.removePropertyChangeListener = function(property
 PropertyChangeSupport.prototype.getPropertyChangeListeners = function(propertyName) {
   var listeners = [];
   for (var i = this.listeners.length - 1; i >= 0; i--) {
-    if (this.listeners [i].propertyName == propertyName
-        && this.listeners [i].listener === listener) {
-      listeners.push(this.listeners [i]);
+    if (this.listeners[i].propertyName == propertyName
+      && this.listeners[i].listener === listener) {
+      listeners.push(this.listeners[i]);
     }
   }
   return listeners;
@@ -241,14 +241,28 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
   if (oldValue != newValue) {
     var ev = new PropertyChangeEvent(this.source, propertyName, oldValue, newValue);
     for (var i = 0; i < this.listeners.length; i++) {
-      if (!("propertyName" in this.listeners [i])
-          || this.listeners [i].propertyName == propertyName) {
-        if (typeof(this.listeners [i].listener) === "function") {
-          this.listeners [i].listener(ev);
+      if (!("propertyName" in this.listeners[i])
+        || this.listeners[i].propertyName == propertyName) {
+        if (typeof (this.listeners[i].listener) === "function") {
+          this.listeners[i].listener(ev);
         } else {
-          this.listeners [i].listener.propertyChange(ev);
+          this.listeners[i].listener.propertyChange(ev);
         }
       }
     }
   }
 }
+
+/**
+ * Loads a JSON resource from a url (synchronous).
+ * @param url {string}  the url of the JSON resource to be loaded
+ * @returns an object that corresponds to the loaded JSON
+ */
+function loadJSON(url) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, false);
+  xhr.responseType = 'json';
+  xhr.send();
+  return xhr.response;
+};
+
