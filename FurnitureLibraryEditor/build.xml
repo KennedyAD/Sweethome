@@ -24,6 +24,7 @@
       </extdirs>
       <classpath>
         <pathelement location="../SweetHome3D/libtest/AppleJavaExtensions.jar"/>
+        <pathelement location="../SweetHome3D/libtest/javaAwtDesktop.jar"/>
         <pathelement location="../SweetHome3D/libtest/jnlp.jar"/>
       </classpath>
     </javac>
