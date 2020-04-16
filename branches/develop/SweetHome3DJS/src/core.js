@@ -253,6 +253,10 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
   }
 }
 
+// =================================================================
+// Additional core utilities
+// =================================================================
+
 /**
  * Loads a JSON resource from a url (synchronous).
  * @param url {string}  the url of the JSON resource to be loaded
@@ -269,7 +273,7 @@ function loadJSON(url) {
 /**
  * Formats a string with the given args.
  * @param {string} formatString a string containing optional place holders (%s, %d)
- * @param {[*]} args an array of arguments to be applied to formatString
+ * @param {[*]|...*} args an array of arguments to be applied to formatString
  * @returns the formatted string
  */
 function format(formatString, args) {
