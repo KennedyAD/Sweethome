@@ -281,7 +281,6 @@ function format(formatString, args) {
     var result = "";
     var currentIndex = 0;
     var values = Array.isArray(args) ? args : Array.prototype.slice.call(arguments, 1);
-    console.log(values);
     var currentValueIndex = 0;
     while (currentValueIndex < values.length && (matchResult = placeHolders.exec(formatString)) !== null) {
       // TODO: support explicit position in place holders (%x$s)
