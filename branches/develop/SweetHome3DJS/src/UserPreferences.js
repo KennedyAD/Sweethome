@@ -261,7 +261,7 @@ UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceK
   var key = resourceClass + "." + resourceKey;
   for (var i = 0; i < this.resourceBundles.length; i++) {
     if (this.resourceBundles[i] != null && this.resourceBundles[i][key]) {
-      return this.resourceBundles[i][key];
+      return format(this.resourceBundles[i][key], resourceParameters);
     }
   }
   throw new IllegalArgumentException("Can't find resource bundle for " + key);

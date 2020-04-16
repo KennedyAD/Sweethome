@@ -374,12 +374,17 @@ function visitHome(home, preferences) {
 function testLocalization() {
   var preferences = new DefaultUserPreferences();
   assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  assertEquals("Unexpected resource value", "A × B", preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions", ["A", "B"]));
+  assertEquals("Unexpected resource value", "1x2 pixels - 3 - 4 frames/second", preferences.getLocalizedString("VideoPanel", "videoFormatComboBox.format", [1, 2, 3, 4]));
+  
   preferences.setLanguage("it");
   assertEquals("Unexpected resource value", "Licenza", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   preferences.setLanguage("zh");
   assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   preferences.setLanguage("zh_CN");
   assertEquals("Unexpected resource value", "版权", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+
+  
 }
 </script>
 

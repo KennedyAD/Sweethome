@@ -264,5 +264,33 @@ function loadJSON(url) {
   xhr.responseType = 'json';
   xhr.send();
   return xhr.response;
-};
+}
+
+/**
+ * Formats a string with the given args.
+ * @param {string} formatString a string containing optional place holders (%s, %d)
+ * @param {[*]} args an array of arguments to be applied to formatString
+ * @returns the formatted string
+ */
+function format(formatString, args) {
+  if(args === undefined || args.length === 0) {
+    return formatString;
+  } else {
+    var placeHolders = /%s|%d|%\d+\$s|%\d+\$d/g;
+    var matchResult;
+    var result = "";
+    var currentIndex = 0;
+    var values = args;
+    var currentValueIndex = 0;
+    while (currentValueIndex < values.length && (matchResult = placeHolders.exec(formatString)) !== null) {
+      // TODO: support explicit position in place holders (%x$s)
+      result += formatString.slice(currentIndex, placeHolders.lastIndex - matchResult[0].length);
+      result += values[currentValueIndex];
+      currentValueIndex++;
+      currentIndex = placeHolders.lastIndex;
+    }
+    result += formatString.slice(currentIndex);
+    return result;
+  }
+}
 
