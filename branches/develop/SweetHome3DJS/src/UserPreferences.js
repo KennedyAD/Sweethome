@@ -191,6 +191,8 @@ UserPreferences.prototype.setLanguage = function(language) {
     var oldLanguage = this.language;
     this.language = language;
     this.resourceBundles = [];
+    // make it accessible to other localized parts (e.g. LengthUnit)
+    Locale.setDefault(this.language);
     this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
   }
 }
@@ -249,22 +251,10 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
   if (this.resourceBundles.length == 0) {
-    var baseURL = "lib/generated/localization";
-    if (this.language) {
-      this.resourceBundles.push(loadJSON(baseURL + "_" + this.language + ".json"));
-      if (this.language.indexOf("_") > 0) {
-        this.resourceBundles.push(loadJSON(baseURL + "_" + this.language.split("_")[0] + ".json"));
-      }
-    }
-    this.resourceBundles.push(loadJSON(baseURL + ".json"));
+    this.resourceBundles = loadResourceBundles("lib/generated/localization", this.language);
   }
   var key = resourceClass + "." + resourceKey;
-  for (var i = 0; i < this.resourceBundles.length; i++) {
-    if (this.resourceBundles[i] != null && this.resourceBundles[i][key]) {
-      return format.apply(null, [this.resourceBundles[i][key]].concat(Array.prototype.slice.call(arguments, 2)));
-    }
-  }
-  throw new IllegalArgumentException("Can't find resource bundle for " + key);
+  return getStringFromKey.apply(null, [this.resourceBundles, key].concat(Array.prototype.slice.call(arguments, 2)));  
 }
 
 /**

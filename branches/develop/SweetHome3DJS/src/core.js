@@ -253,6 +253,45 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
   }
 }
 
+/**
+ * Format is a base class for formatting locale-sensitive
+ * information such as dates, messages, and numbers.
+ * Adapted from java.text.Format.
+ *
+ * @constructor
+ */
+function Format() {
+} 
+
+Format.prototype.format = function(object) {
+  return ""+object;
+}
+
+var Locale = {}
+
+/**
+ * Gets the default locale.
+ */
+Locale.getDefault = function() {
+  if (window && window.defaultLocaleLanguage) {
+    return window.defaultLocaleLanguage;
+  } else if (navigator && navigator.language && navigator.language.indexOf('-') >= 0) {
+    var locale = navigator.language.split('-');
+    return locale[0] + "_" + locale[1].toUpperCase();
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Sets the default locale.
+ */
+Locale.setDefault = function(language) {
+  if (window) {
+    window.defaultLocaleLanguage = language;
+  }
+}
+
 // =================================================================
 // Additional core utilities
 // =================================================================
@@ -273,7 +312,7 @@ function loadJSON(url) {
 /**
  * Formats a string with the given args.
  * @param {string} formatString a string containing optional place holders (%s, %d)
- * @param {[*]|...*} args an array of arguments to be applied to formatString
+ * @param {*[]|...*} args an array of arguments to be applied to formatString
  * @returns the formatted string
  */
 function format(formatString, args) {
@@ -296,5 +335,42 @@ function format(formatString, args) {
     result += formatString.slice(currentIndex);
     return result;
   }
+}
+
+/**
+ * Loads resource bundles for a given base URL and a given language.
+ *
+ * @param baseURL the base URL of the localized resource to be loaded
+ * @param language the language to be loaded (Java conventions)
+ * @returns an array of bundle objects, starting with the most specific localization to the default
+ */
+function loadResourceBundles(baseURL, language) {
+  var resourceBundles = [];
+  if (language) {
+    resourceBundles.push(loadJSON(baseURL + "_" + language + ".json"));
+    if (language.indexOf("_") > 0) {
+      resourceBundles.push(loadJSON(baseURL + "_" + language.split("_")[0] + ".json"));
+    }
+  }
+  resourceBundles.push(loadJSON(baseURL + ".json"));
+  return resourceBundles;  
+}
+
+/**
+ * Gets a string from an array of resource bundles, starting with the first bundle. 
+ * It returns the value associated with the given key, in the first bundle where it is found. 
+ *
+ * @param resourceBundles {Object[]} an array of bundle objects to look up the key into.
+ * @param key {string} the key to lookup
+ * @param parameters {...*} parameters for the formatting of the key
+ * @returns the value associated with the key (in the first bundle object that contains it)
+ */
+function getStringFromKey(resourceBundles, key, parameters) {
+  for (var i = 0; i < resourceBundles.length; i++) {
+    if (resourceBundles[i] != null && resourceBundles[i][key]) {
+      return format.apply(null, [resourceBundles[i][key]].concat(Array.prototype.slice.call(arguments, 2)));
+    }
+  }
+  throw new IllegalArgumentException("Can't find resource bundle for " + key);
 }
 
