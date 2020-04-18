@@ -29,28 +29,8 @@
 function UserPreferences() {
   this.propertyChangeSupport = new PropertyChangeSupport(this);
 
-  this.supportedLanguages = UserPreferences.DEFAULT_SUPPORTED_LANGUAGES;
-  var navigatorLanguage = navigator.language;
-  this.defaultCountry = navigatorLanguage.substring(navigatorLanguage.indexOf("-") + 1, navigatorLanguage.length).toUpperCase();
-  var defaultLanguage = navigatorLanguage.substring(0, navigatorLanguage.indexOf("-"));
-  // Find closest language among supported languages in Sweet Home 3D
-  // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
-  // unless their exact locale is supported as in Taiwan (zh_TW)
-  for (var i = 0; i < this.supportedLanguages.length; i++) {
-    var supportedLanguage = this.supportedLanguages[i];
-    if (supportedLanguage == defaultLanguage + "_" + this.defaultCountry) {
-      this.language = supportedLanguage;
-      break; // Found the exact supported language
-    } else if (this.language === undefined
-      && supportedLanguage.indexOf(defaultLanguage) === 0) {
-      this.language = supportedLanguage; // Found a supported language
-    }
-  }
-  // If no language was found, let's use English by default
-  if (this.language === undefined) {
-    this.language = "en";
-  }
-
+  this.initSupportedLanguages(UserPreferences.DEFAULT_SUPPORTED_LANGUAGES);
+  
   this.resourceBundles = [];
   this.furnitureCatalog = null;
   this.texturesCatalog = null;
@@ -87,6 +67,39 @@ UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es
 
 UserPreferences.DEFAULT_TEXT_STYLE = new TextStyle(18);
 UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
+
+/**
+ * Initializes the supportedLanguage property (and potentially the language property if it has to change)
+ * @private
+ */
+UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) {
+  this.supportedLanguages = supportedLanguages;
+  // We also initialize the language except if already set and within the supported languages
+  if(!this.language || this.supportedLanguages.indexOf(this.language) === -1) {
+    var navigatorLanguage = navigator.language;
+    this.defaultCountry = navigatorLanguage.substring(navigatorLanguage.indexOf("-") + 1, navigatorLanguage.length).toUpperCase();
+    var defaultLanguage = this.language ? this.language.substring(0, this.language.indexOf("_")) 
+        : navigatorLanguage.substring(0, navigatorLanguage.indexOf("-"));
+    // Find closest language among supported languages in Sweet Home 3D
+    // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
+    // unless their exact locale is supported as in Taiwan (zh_TW)
+    for (var i = 0; i < this.supportedLanguages.length; i++) {
+      var supportedLanguage = this.supportedLanguages[i];
+      if (supportedLanguage == defaultLanguage + "_" + this.defaultCountry) {
+        this.language = supportedLanguage;
+        break; // Found the exact supported language
+      } else if (this.language === undefined
+        && supportedLanguage.indexOf(defaultLanguage) === 0) {
+        this.language = supportedLanguage; // Found a supported language
+      }
+    }
+    // If no language was found, let's use English by default
+    if (this.language === undefined) {
+      this.language = "en";
+    }
+    Locale.setDefault(this.language);
+  }
+}
 
 /**
  * Adds the <code>listener</code> in parameter to these preferences. 
@@ -173,7 +186,6 @@ UserPreferences.prototype.setUnit = function(unit) {
 /**
  * Returns the preferred language to display information, noted with an ISO 639 code
  * that may be followed by an underscore and an ISO 3166 code.
- * @ignore 
  */
 UserPreferences.prototype.getLanguage = function() {
   return this.language;
@@ -184,7 +196,6 @@ UserPreferences.prototype.getLanguage = function() {
  * changes current default locale accordingly and notifies listeners of this change.
  * @param language an ISO 639 code that may be followed by an underscore and an ISO 3166 code
  *            (for example fr, de, it, en_US, zh_CN). 
- * @ignore 
  */
 UserPreferences.prototype.setLanguage = function(language) {
   if (language != this.language && this.isLanguageEditable()) {
@@ -208,7 +219,7 @@ UserPreferences.prototype.isLanguageEditable = function() {
 
 /**
  * Returns the array of default available languages in Sweet Home 3D.
- * @ignore 
+ * @returns an array of languages_countries ISO representations
  */
 UserPreferences.prototype.getDefaultSupportedLanguages = function() {
   return UserPreferences.DEFAULT_SUPPORTED_LANGUAGES.slice(0);
@@ -216,7 +227,6 @@ UserPreferences.prototype.getDefaultSupportedLanguages = function() {
 
 /**
  * Returns the array of available languages in Sweet Home 3D including languages in libraries.
- * @ignore 
  */
 UserPreferences.prototype.getSupportedLanguages = function() {
   return this.supportedLanguages.slice(0);
@@ -224,14 +234,16 @@ UserPreferences.prototype.getSupportedLanguages = function() {
 
 /**
  * Returns the array of available languages in Sweet Home 3D.
- * @ignore 
  */
 UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
   if (this.supportedLanguages != supportedLanguages) {
     var oldSupportedLanguages = this.supportedLanguages;
-    this.supportedLanguages = supportedLanguages.slice(0);
-    this.propertyChangeSupport.firePropertyChange("SUPPORTED_LANGUAGES", 
-        oldSupportedLanguages, supportedLanguages);
+    var oldLanguage = this.language;
+    this.initSupportedLanguages(supportedLanguages.slice(0));
+    this.propertyChangeSupport.firePropertyChange("SUPPORTED_LANGUAGES", oldSupportedLanguages, supportedLanguages);
+    if (oldLanguage != this.language) {
+      this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
+    }
   }
 }
 
@@ -246,8 +258,6 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  * the key prefixed by <code>resourceClass</code> name and a dot in a package.properties file 
  * in the folder matching the package of <code>resourceClass</code>. 
  * @throws IllegalArgumentException if no string for the given key can be found
- * @throws UnsupportedOperationException Not implemented yet
- * @ignore
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
   if (this.resourceBundles.length == 0) {
