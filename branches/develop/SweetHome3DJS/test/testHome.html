@@ -438,6 +438,13 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "1'11\u215b\"",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
 
+  assertEquals("Wrong conversion", "11\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
+  assertEquals("Wrong conversion", "23\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12)));
+  assertEquals("Wrong conversion", "23,125\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
+  
   // Test parsing
 //   assertEquals("Wrong parsing", 102, LengthUnit.CENTIMETER.getFormat().parseObject("102"));
 //   assertEquals("Wrong parsing", 102, LengthUnit.METER.getFormat().parseObject("1,02"));
