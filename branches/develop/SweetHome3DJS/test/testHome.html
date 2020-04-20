@@ -379,6 +379,7 @@ function visitHome(home, preferences) {
 
 function testLocalization() {
   var preferences = new DefaultUserPreferences();
+  preferences.setLanguage("en"); // Force English as default language
   assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   assertEquals("Unexpected resource value", "A × B", preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions", ["A", "B"]));
   assertEquals("Unexpected resource value", "A × B", preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions", "A", "B"));
@@ -437,6 +438,10 @@ function testLengthUnit() {
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12)));
   assertEquals("Wrong conversion", "1'11\u215b\"",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
+  assertEquals("Wrong conversion", "0'2\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(2 + 0.13)));
+  assertEquals("Wrong conversion", "1'0\u00bc\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(12 + 0.19)));
 
   assertEquals("Wrong conversion", "11\"",
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
