@@ -1,5 +1,5 @@
 /*
- * SweetHome3D.java 
+ * SweetHome3D.java
  *
  * Sweet Home 3D, Copyright (c) 2017 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
@@ -21,7 +21,7 @@ package def.sweethome3d;
 
 import java.text.Format;
 
-// Bridges to Sweet Home 3D JavaScript classes reimplemented in some src/*.js  
+// Bridges to Sweet Home 3D JavaScript classes reimplemented in some src/*.js
 
 class UserPreferences {
 }
@@ -46,28 +46,33 @@ class LengthUnit {
     public native static float centimeterToInch(float length);
 
     public native static float centimeterToFoot(float length);
-    
+
     public native static float inchToCentimeter(float length);
-    
+
     public native static float footToCentimeter(float length);
-    
-    public native Format getFormatWithUnit(); 
+
+    public native Format getFormatWithUnit();
 
     public native Format getFormat();
-    
+
     public native Format getAreaFormatWithUnit();
 
     public native String getName();
-    
+
     public native float getMagnetizedLength(float length, float maxDelta);
 
     public native float getMinimumLength();
-    
+
     public native float getMaximumLength();
-    
+
     public native float getMaximumElevation();
-    
+
     public native float centimeterToUnit(float length);
 
     public native float unitToCentimeter(float length);
+}
+
+class DefaultUserPreferences {
+  public DefaultUserPreferences(boolean readCatalogs, UserPreferences localizedPreferences) {
+  }
 }

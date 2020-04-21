@@ -20,6 +20,7 @@
 
 // Requires core.js
 //          LengthUnit.js
+//          URLContent.js
 
 /**
  * User preferences.
@@ -150,7 +151,6 @@ UserPreferences.prototype.setTexturesCatalog = function(catalog) {
 
 /**
  * Returns the patterns catalog available to fill plan areas. 
- * @ignore
  */
 UserPreferences.prototype.getPatternsCatalog = function() {
   return this.patternsCatalog;
@@ -906,16 +906,104 @@ UserPreferences.prototype.getHomeExamples = function() {
   return this.homeExamples;
 }
 
+
 /**
  * Default user preferences.
+ * @param {boolean} [readCatalogs]
+ * @param {UserPreferences} [localizedPreferences]
  * @constructor
  * @extends UserPreferences
  * @author Emmanuel Puybaret
  */
-function DefaultUserPreferences() {
+function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   UserPreferences.call(this);
+  
+  // Build default patterns catalog
+  var patterns = [];
+  patterns.push(new DefaultPatternTexture("foreground"));
+  patterns.push(new DefaultPatternTexture("reversedHatchUp"));
+  patterns.push(new DefaultPatternTexture("reversedHatchDown"));
+  patterns.push(new DefaultPatternTexture("reversedCrossHatch"));
+  patterns.push(new DefaultPatternTexture("background"));
+  patterns.push(new DefaultPatternTexture("hatchUp"));
+  patterns.push(new DefaultPatternTexture("hatchDown"));
+  patterns.push(new DefaultPatternTexture("crossHatch"));
+  var patternsCatalog = new PatternsCatalog(patterns);  
+  this.setPatternsCatalog(patternsCatalog);
+  
   this.setUnit(LengthUnit.CENTIMETER);
   this.setNavigationPanelVisible(false);
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
+
+
+/**
+ * Creates a pattern built from resources.
+ * @param {string} name
+ * @constructor
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+function DefaultPatternTexture(name) {
+  this.name = name;
+  this.image = new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png");
+}
+
+/**
+ * Returns the name of this texture.
+ * @return {string}
+ */
+DefaultPatternTexture.prototype.getName = function () {
+  return this.name;
+}
+
+/**
+ * Returns the creator of this texture.
+ * @return {string}
+ */
+DefaultPatternTexture.prototype.getCreator = function () {
+  return null;
+}
+
+/**
+ * Returns the content of the image used for this texture.
+ * @return {Object}
+ */
+DefaultPatternTexture.prototype.getImage = function () {
+  return this.image;
+}
+
+/**
+ * Returns the width of the image in centimeters.
+ * @return {number}
+ */
+DefaultPatternTexture.prototype.getWidth = function () {
+  return 10;
+}
+
+/**
+ * Returns the height of the image in centimeters.
+ * @return {number}
+ */
+DefaultPatternTexture.prototype.getHeight = function () {
+  return 10;
+}
+
+/**
+ * Returns <code>true</code> if the object in parameter is equal to this texture.
+ * @param {Object} obj
+ * @return {boolean}
+ */
+DefaultPatternTexture.prototype.equals = function (obj) {
+  if (obj === this) {
+    return true;
+  } else if (obj instanceof DefaultPatternTexture) {
+    var pattern = obj;
+    return pattern.name == this.name;
+  } else {
+    return false;
+  }
+}
+
+DefaultPatternTexture["__interfaces"] = ["com.eteks.sweethome3d.model.TextureImage"];

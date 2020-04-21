@@ -51,7 +51,7 @@ import org.jsweet.transpiler.model.VariableAccessElement;
 /**
  * This adapter tunes the JavaScript generation for some SweetHome3D
  * specificities.
- * 
+ *
  * @author Renaud Pawlak
  */
 public class SweetHome3DJSweetAdapter extends PrinterAdapter {
@@ -229,9 +229,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           return true;
         }
       }
-    case "com.eteks.sweethome3d.io.DefaultUserPreferences":
-      print("new UserPreferences()");
-      return true;
     }
     return super.substituteNewClass(newClass);
   }
