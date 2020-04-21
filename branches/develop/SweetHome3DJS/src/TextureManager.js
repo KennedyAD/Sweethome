@@ -238,18 +238,39 @@ TextureManager.prototype.getRotatedTextureHeight = function(texture) {
  */
 TextureManager.prototype.getErrorImage = function() {
   if (TextureManager.errorImage === undefined) {
-    // Create on the fly a red image of 2x2 pixels
-    var canvas = document.createElement('canvas');
-    canvas.width = 2;
-    canvas.height = 2;
-    var context = canvas.getContext('2d');
-    context.fillStyle = "#FF0000";
-    context.fillRect(0, 0, 2, 2);
-    var errorImageUrl = canvas.toDataURL();
-    var errorImage = new Image();
-    errorImage.url = errorImageUrl;
-    errorImage.src = errorImageUrl;
-    TextureManager.errorImage = errorImage;
+    TextureManager.errorImage = getColoredImage("#FF0000");
   }
   return TextureManager.errorImage;
+}
+
+/**
+ * Returns an image for wait purpose.
+ * @package
+ * @ignore
+ */
+TextureManager.prototype.getWaitImage = function() {
+  if (TextureManager.waitImage === undefined) {
+    TextureManager.waitImage = getColoredImage("#FFFFFF");
+  }
+  return TextureManager.errorImage;
+}
+
+/**
+ * Returns an image filled with a color.
+ * @param {string} color 
+ * @private
+ */
+TextureManager.prototype.getColoredImage = function(color) {
+  // Create on the fly a red image of 2x2 pixels
+  var canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 2;
+  var context = canvas.getContext('2d');
+  context.fillStyle = color;
+  context.fillRect(0, 0, 2, 2);
+  var coloredImageUrl = canvas.toDataURL();
+  var coloredImage = new Image();
+  coloredImage.url = coloredImageUrl;
+  coloredImage.src = coloredImageUrl;
+  return errorImage;
 }
