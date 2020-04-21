@@ -217,11 +217,16 @@ ZIPTools.isTranparentImage = function(imageData) {
 }
 
 /**
- * Returns the folder where a given Javascript .js file was read from.  
+ * Returns the folder where a given Javascript .js file was read from.
+ * @param {string} [script] the URL of a script used in the program  
  * @package
  * @ignore
  */
 ZIPTools.getScriptFolder = function(script) {
+  if (script === undefined) {
+    // Consider this script is always here because ZIPTools itself requires it
+    script = "jszip.min.js"; 
+  }
   var baseUrl = "http://www.sweethome3d.com/libjs/"; 
   // Search the base URL of this script
   var scripts = document.getElementsByTagName("script");      
