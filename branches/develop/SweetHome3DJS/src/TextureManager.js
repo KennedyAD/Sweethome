@@ -272,5 +272,5 @@ TextureManager.prototype.getColoredImage = function(color) {
   var coloredImage = new Image();
   coloredImage.url = coloredImageUrl;
   coloredImage.src = coloredImageUrl;
-  return errorImage;
+  return coloredImage;
 }
