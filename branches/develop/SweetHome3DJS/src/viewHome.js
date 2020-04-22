@@ -24,7 +24,7 @@
  * or an HTML string which content will replace the default navigation panel. 
  * @param {string} canvasId  the value of the id attribute of the 3D canvas 
  * @param {string} homeUrl the URL of the home to load and display
- * @param onError  callback called in case of error with an exception as parameter 
+ * @param onerror  callback called in case of error with an exception as parameter 
  * @param onprogression callback with (part, info, percentage) parameters called during the download of the home 
  *                      and the 3D models it displays.
  * @param {{roundsPerMinute: number, 
@@ -308,7 +308,7 @@ function hideHomeOverlay() {
  * Creates a component that loads and displays a home in a 3D canvas.
  * @param {string} canvasId  the value of the id attribute of the 3D canvas 
  * @param {string} homeUrl   the URL of the home to load and display
- * @param onError  callback called in case of error with an exception as parameter 
+ * @param onerror  callback called in case of error with an exception as parameter 
  * @param onprogression callback with (part, info, percentage) parameters called during the download of the home 
  *                      and the 3D models it displays.
  * @param {{roundsPerMinute: number, 
