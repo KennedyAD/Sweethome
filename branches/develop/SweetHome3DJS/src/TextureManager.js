@@ -238,7 +238,7 @@ TextureManager.prototype.getRotatedTextureHeight = function(texture) {
  */
 TextureManager.prototype.getErrorImage = function() {
   if (TextureManager.errorImage === undefined) {
-    TextureManager.errorImage = getColoredImage("#FF0000");
+    TextureManager.errorImage = this.getColoredImage("#FF0000");
   }
   return TextureManager.errorImage;
 }
@@ -250,7 +250,7 @@ TextureManager.prototype.getErrorImage = function() {
  */
 TextureManager.prototype.getWaitImage = function() {
   if (TextureManager.waitImage === undefined) {
-    TextureManager.waitImage = getColoredImage("#FFFFFF");
+    TextureManager.waitImage = this.getColoredImage("#FFFFFF");
   }
   return TextureManager.errorImage;
 }
