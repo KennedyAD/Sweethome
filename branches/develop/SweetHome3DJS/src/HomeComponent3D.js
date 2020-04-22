@@ -1378,8 +1378,6 @@ HomeComponent3D.prototype.updateBackgroundColorAndTexture = function(skyBackgrou
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-          },
-          progression : function(part, info, percentage) {
           } 
         });
   } else {
@@ -1405,8 +1403,6 @@ HomeComponent3D.prototype.updateBackgroundColorAndTexture = function(skyBackgrou
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-          },
-          progression : function(part, info, percentage) {
           }
         });
   } else {
@@ -1433,8 +1429,6 @@ HomeComponent3D.prototype.createGroundNode = function(groundOriginX, groundOrigi
             var boxAppearance = new Appearance3D();
             boxAppearance.setDiffuseColor(vec3.fromValues(1, 0, 0));
             structureGroup.addChild(new Box3D(1E7, 0, 1E7, boxAppearance));
-          },
-          progression : function() {
           }
         });
     

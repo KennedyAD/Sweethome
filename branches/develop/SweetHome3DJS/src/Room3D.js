@@ -684,8 +684,6 @@ Room3D.prototype.updateRoomPartAppearance = function(roomPartAppearance, roomPar
         },
         textureError : function(error) {
           return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-        },
-        progression : function(part, info, percentage) {
         }
       });
   }

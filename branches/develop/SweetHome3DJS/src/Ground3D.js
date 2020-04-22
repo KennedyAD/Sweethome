@@ -168,8 +168,6 @@ Ground3D.prototype.updateGround = function(waitTextureLoadingEnd, backgroundImag
         },
         textureError : function(error) {
           return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-        },
-        progression : function(part, info, percentage) {
         }
       });
   }

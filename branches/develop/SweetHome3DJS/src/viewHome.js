@@ -760,8 +760,6 @@ HomePreviewComponent.prototype.trackFurnitureModels = function(onprogression, ro
           },        
           modelError : function(ex) {
             this.modelUpdated();
-          },
-          progression : function() {
           }
         });
       };

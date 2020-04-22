@@ -439,13 +439,18 @@ ModelManager.prototype.getPieceOFFurnitureNormalizedModelTransformation = ModelM
 
 /**
  * Reads a 3D node from content with supported loaders
- * and notifies the loaded model to the given modelObserver once available
- * with its modelUpdated and modelError methods. 
+ * and notifies the loaded model to the given <code>modelObserver</code> once available
+ * with its <code>modelUpdated</code> and <code>modelError</code> methods. 
  * @param {URLContent} content an object containing a model
  * @param {boolean} [synchronous] optional parameter equal to false by default
  * @param {{modelUpdated, modelError, progression}} modelObserver  
- *           the observer that will be notified once the model is available
- *           or if an error happens
+ *            the observer containing <code>modelUpdated(model)</code>, <code>modelError(error)</code>, 
+ *            <code>progression(part, info, percentage)</code> optional methods that will be 
+ *            notified once the model is available or if an error happens,  
+ *            with <code>model<code> being an instance of <code>Node3D</code>, 
+ *            <code>error</code>, <code>part</code>, <code>info</code> strings 
+ *            and <code>percentage</code> a number.
+
  */
 ModelManager.prototype.loadModel = function(content, synchronous, modelObserver) {
   if (modelObserver === undefined) {
@@ -456,7 +461,9 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
   if (contentUrl in this.loadedModelNodes) {
     // Notify cached model to observer with a clone of the model
     var model = this.loadedModelNodes [contentUrl];
-    modelObserver.modelUpdated(this.cloneNode(model));
+    if (modelObserver.modelUpdated !== undefined) {
+      modelObserver.modelUpdated(this.cloneNode(model));
+    }
   } else {
     if (contentUrl in this.loadingModelObservers) {
       // If observers list exists, content model is already being loaded
@@ -479,7 +486,7 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
         }
       }
       var modelManager = this;
-      var modelObserver = {
+      var loadingModelObserver = {
           modelLoaderIndex : 0,
           modelLoaded : function(model) {
             var bounds = modelManager.getBounds(model);
@@ -494,7 +501,9 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
                 modelManager.replaceMultipleSharedShapes(model);
                 modelManager.loadedModelNodes [contentUrl] = model;
                 for (var i = 0; i < observers.length; i++) {
-                  observers [i].modelUpdated(modelManager.cloneNode(model));
+                  if (observers [i].modelUpdated !== undefined) {
+                    observers [i].modelUpdated(modelManager.cloneNode(model));
+                  }
                 }
               }
             } else if (++this.modelLoaderIndex < modelManager.modelLoaders.length) {
@@ -508,7 +517,9 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
             if (observers) {
               delete modelManager.loadingModelObservers [contentUrl];
               for (var i = 0; i < observers.length; i++) {
-                observers [i].modelError(err);
+                if (observers [i].modelError !== undefined) {
+                  observers [i].modelError(err);
+                }
               }
             }
           },
@@ -516,12 +527,14 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
             var observers = modelManager.loadingModelObservers [contentUrl];
             if (observers) {
               for (var i = 0; i < observers.length; i++) {
-                observers [i].progression(part, info, percentage);
+                if (observers [i].progression !== undefined) {
+                  observers [i].progression(part, info, percentage);
+                }
               } 
             }
           }
         };
-      modelManager.modelLoaders [0].load(contentUrl, synchronous, modelObserver);
+      modelManager.modelLoaders [0].load(contentUrl, synchronous, loadingModelObserver);
     }
   }
 }
