@@ -89,9 +89,8 @@ var FontMetrics = (function () {
  */
 var PlanComponent = (function () {
     function PlanComponent(canvasId, home, preferences, object3dFactory, controller) {
-        var _this = this;
-        this.painting = false;
-        this.paintingRequest = false;
+        //painting : boolean = false;
+        this.canvasNeededRepaint = false;
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = computedStyle.fontFamily + " " + computedStyle.fontStyle + " " + computedStyle.fontSize;
@@ -133,12 +132,6 @@ var PlanComponent = (function () {
         //setForeground(Color.BLACK);
         //setBackground(Color.WHITE);
         this.repaint();
-        setTimeout(function () {
-            if (_this.paintingRequest) {
-                console.error("<<painting request dequeued>>");
-                _this.repaint();
-            }
-        }, 500);
     }
     PlanComponent.__static_initialize = function () { if (!PlanComponent.__static_initialized) {
         PlanComponent.__static_initialized = true;
@@ -339,18 +332,19 @@ var PlanComponent = (function () {
         return new Graphics2D(this.canvas);
     };
     PlanComponent.prototype.repaint = function () {
-        if (!this.painting) {
-            var t = Date.now();
-            console.error("<<painting>>");
-            this.painting = true;
-            this.paintingRequest = false;
-            this.paintComponent(this.getGraphics());
-            this.painting = false;
-            console.error("<<end painting>> - " + (Date.now() - t));
-        }
-        else {
-            console.error("<<painting request queued>>");
-            this.paintingRequest = true;
+        var _this = this;
+        console.error("<<painting request>> - " + this.canvasNeededRepaint);
+        if (!this.canvasNeededRepaint) {
+            this.canvasNeededRepaint = true;
+            requestAnimationFrame(function () {
+                if (_this.canvasNeededRepaint) {
+                    console.error("<<painting>>");
+                    var t = Date.now();
+                    _this.canvasNeededRepaint = false;
+                    _this.paintComponent(_this.getGraphics());
+                    console.error("<<end painting>> - " + (Date.now() - t));
+                }
+            });
         }
     };
     PlanComponent.prototype.revalidate = function () {
@@ -3797,7 +3791,7 @@ var PlanComponent = (function () {
                 textureUpdated: function (texture) {
                     console.log("paintPieceOfFurnitureIcon: loaded " + piece.icon.getURL());
                     _this.furnitureIconsCache[piece.icon.getURL()] = texture;
-                    //this.repaint();
+                    _this.repaint();
                 },
                 textureError: function () {
                     console.error("icon not found: " + piece.icon.getURL());

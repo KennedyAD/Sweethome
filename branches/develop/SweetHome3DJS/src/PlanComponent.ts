@@ -561,34 +561,30 @@ class PlanComponent implements PlanView {
         //setForeground(Color.BLACK);
         //setBackground(Color.WHITE);
         this.repaint();
-        setTimeout(() => {
-          if (this.paintingRequest) {
-            console.error("<<painting request dequeued>>");
-            this.repaint();
-          }
-        }, 500);
     }
 
     getGraphics() : Graphics2D {
       return new Graphics2D(this.canvas);
     }
 
-    painting : boolean = false;
-    paintingRequest : boolean = false;
+    //painting : boolean = false;
+    canvasNeededRepaint : boolean = false;
 
     repaint() : void {
-      if(!this.painting) {
-        var t = Date.now();
-        console.error("<<painting>>");
-        this.painting = true;
-        this.paintingRequest = false;
-        this.paintComponent(this.getGraphics());
-        this.painting = false;
-        console.error("<<end painting>> - "+(Date.now() - t));
-      } else {
-        console.error("<<painting request queued>>");
-        this.paintingRequest = true;
-      }
+      console.error("<<painting request>> - "+this.canvasNeededRepaint);
+      if (!this.canvasNeededRepaint) {
+        this.canvasNeededRepaint = true;
+        requestAnimationFrame(
+          () => {
+            if (this.canvasNeededRepaint) {
+              console.error("<<painting>>");
+              var t = Date.now();
+              this.canvasNeededRepaint = false;
+              this.paintComponent(this.getGraphics()); 
+              console.error("<<end painting>> - " + (Date.now() - t));
+            }
+          });
+        }
     }
 
     revalidate() : void {
@@ -3546,7 +3542,7 @@ class PlanComponent implements PlanView {
             textureUpdated: (texture : HTMLImageElement) => {
               console.log("paintPieceOfFurnitureIcon: loaded "+piece.icon.getURL());
               this.furnitureIconsCache[piece.icon.getURL()] = texture;
-              //this.repaint();
+              this.repaint();
             },
             textureError : () => {
               console.error("icon not found: "+piece.icon.getURL());
