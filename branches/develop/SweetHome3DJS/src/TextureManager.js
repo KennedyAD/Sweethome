@@ -272,7 +272,7 @@ TextureManager.prototype.getWaitImage = function() {
   if (TextureManager.waitImage === undefined) {
     TextureManager.waitImage = this.getColoredImage("#FFFFFF");
   }
-  return TextureManager.errorImage;
+  return TextureManager.waitImage;
 }
 
 /**
