@@ -374,3 +374,52 @@ function getStringFromKey(resourceBundles, key, parameters) {
   throw new IllegalArgumentException("Can't find resource bundle for " + key);
 }
 
+/**
+ * Gets an object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
+ * @param map {*} the object holding the map
+ * @param key {string|*} the key to associate the value to (can be an object or a string)
+ * @returns {*} the value associated to the key (null if not found)
+ */
+function getFromMap(map, key) {
+  if(typeof key === 'string') {
+    return map[key] === undefined ? null : map[key];
+  } else {
+    if (map.entries == null) {
+      map.entries = []; 
+    }
+    for (var i = 0; i < map.entries.length; i++) {
+      if (map.entries[i].key.equals != null && map.entries[i].key.equals(key) || map.entries[i].key === key) {
+        return map.entries[i].value;
+      }
+    }
+    return null;
+  }  
+}
+
+/**
+ * Puts an object in a map object. When the given key is a string, the map object directly holds the 
+ * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
+ * @param map {*} the object holding the map
+ * @param key {string|*} the key to associate the value to (can be an object or a string)
+ * @param value {*} the value to be put
+ */
+function putToMap(map, key, value) {
+  if(typeof key === 'string') {
+    map[key] = value;
+  } else {
+    if (map.entries == null) {
+      map.entries = [];
+    }
+    for (var i = 0; i < map.entries.length; i++) {
+      if (map.entries[i].key.equals != null && map.entries[i].key.equals(key) || map.entries[i].key === key) {
+        map.entries[i].value = value;
+        return;
+      }
+    }
+    map.entries.push({ key: key, 
+                     value: value,
+                     getKey: function () { return this.key; }, 
+                     getValue: function () { return this.value; } 
+                   });
+  }
+}
