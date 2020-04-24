@@ -236,6 +236,10 @@ var Graphics2D = (function () {
         if (typeof paint === "string") {
             this.setColor(paint);
         }
+        else {
+            this.context.strokeStyle = paint;
+            this.context.fillStyle = paint;
+        }
     };
     Graphics2D.prototype.setStroke = function (s) {
         this.context.lineWidth = s.getLineWidth();

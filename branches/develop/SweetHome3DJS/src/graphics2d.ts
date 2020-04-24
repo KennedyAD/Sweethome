@@ -291,6 +291,9 @@ class Graphics2D {
   public setPaint(paint: string|CanvasPattern) {
     if(typeof paint === "string") {
       this.setColor(paint);
+    } else {
+     this.context.strokeStyle = paint;
+     this.context.fillStyle = paint;
     }
   }
 

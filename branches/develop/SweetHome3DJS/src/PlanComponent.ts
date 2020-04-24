@@ -38,9 +38,9 @@ declare class TextureManager {
 }
 
 declare class ShapeTools {
-  getStroke(thickness, capStyle, joinStyle, dashPattern, dashOffset);
-  getPolylineShape(points, curved, closedPath);  
-  getShape(points, closedPath, transform);
+  static getStroke(thickness, capStyle, joinStyle, dashPattern, dashOffset);
+  static getPolylineShape(points, curved, closedPath);  
+  static getShape(points, closedPath, transform);
 }
 
 declare namespace java.awt {
@@ -65,6 +65,10 @@ declare class OperatingSystem {
 declare function putToMap(map, key, value);
 declare function getFromMap(map, key);
 
+/** 
+ * This utility class allows to get the metrics of a given font. Note that this class will approximate 
+ * the metrics on older browsers where CanvasRenderingContext2D.measureText() is only partially implemented.
+ */
 class FontMetrics {
   context : CanvasRenderingContext2D;
   cached : boolean;
@@ -73,17 +77,30 @@ class FontMetrics {
   height : number;
   width : number;
   font : string;
-  
+
+  /**
+   * Builds a font metrics instance for the given font.
+   * @param font {string} the given font, in a CSS canvas-compatible representation
+   */  
   constructor(font : string) {
     this.font = font;
     this.cached = false;
   }
-  
-  getStringBounds(aString : string) {
+
+  /**
+   * Gets the bounds of the given string for this font metrics.
+   * @param aString {string} the string to get the bounds of
+   * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
+   */  
+  getStringBounds(aString : string) : java.awt.geom.Rectangle2D {
     this.compute(aString);
     return new java.awt.geom.Rectangle2D.Double(0, -this.ascent, this.width, this.height);
   }
   
+  /**
+   * Gets the font ascent.
+   * @returns {number} the font ascent
+   */  
   getAscent() : number {
     if(!this.cached) {
       this.compute("Llp");
@@ -91,6 +108,10 @@ class FontMetrics {
     return this.ascent;
   }
   
+  /**
+   * Gets the font descent.
+   * @returns {number} the font descent
+   */  
   getDescent() : number {
     if(!this.cached) {
       this.compute("Llp");
@@ -98,6 +119,10 @@ class FontMetrics {
     return this.descent;
   }
 
+  /**
+   * Gets the font height.
+   * @returns {number} the font height
+   */  
   getHeight() : number {
     if(!this.cached) {
       this.compute("Llp");
@@ -105,6 +130,12 @@ class FontMetrics {
     return this.height;
   }
   
+  /**
+   * Computes the various dimentions of the given string, for the current canvas and font.
+   * This function caches the results so that it can be fast accessed in other functions.
+   * @param aString {string} the string to compute the dimensions of
+   * @private
+   */
   private compute(aString : string) {
     if(!this.cached) {
       this.context = document.createElement("canvas").getContext("2d");
@@ -118,12 +149,12 @@ class FontMetrics {
       this.height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
       this.width = textMetrics.width;
     } else {
+      // height info is not available on old browsers, so we build an approx.
       var heightArray = this.context.font.split(' ');
-      var height = parseInt(height[heightArray.length - 1]);
+      this.height = parseInt(heightArray[heightArray.length - 1]);
       this.cached = true;
-      this.ascent = 0.77 * height;
-      this.descent = 0.23 * height;
-      this.height = height;
+      this.ascent = 0.77 * this.height;
+      this.descent = 0.23 * this.height;
       this.width = textMetrics.width;
     }
   }
@@ -2807,10 +2838,10 @@ class PlanComponent implements PlanView {
         let paintedWalls : Array<any>;
         let wallAreas : any;
         if(paintMode !== PlanComponent.PaintMode.CLIPBOARD) {
-            wallAreas = this.getWallAreas$();
+            wallAreas = this.getWallAreas();
         } else {
             paintedWalls = Home.getWallsSubList(selectedItems);
-            wallAreas = this.getWallAreas$java_util_Collection(this.getDrawableWallsInSelectedLevel(paintedWalls));
+            wallAreas = this.getWallAreas(this.getDrawableWallsInSelectedLevel(paintedWalls));
         }
         let wallPaintScale : number = paintMode === PlanComponent.PaintMode.PRINT?planScale / 72 * 150:planScale / this.resolutionScale;
         let oldComposite : string = null;
@@ -2931,7 +2962,7 @@ class PlanComponent implements PlanView {
         g2D.setPaint(foregroundColor);
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, PlanComponent.PaintMode.PAINT) / planScale));
         {
-            let array173 = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>this.getWallAreas$java_util_Collection(this.getDrawableWallsInSelectedLevel(walls)));
+            let array173 = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>this.getWallAreas(this.getDrawableWallsInSelectedLevel(walls)));
             for(let index172=0; index172 < array173.length; index172++) {
                 let area = array173[index172];
                 {
@@ -3008,13 +3039,6 @@ class PlanComponent implements PlanView {
         }
     }
 
-    getWallAreas$() : any {
-        if(this.wallAreasCache == null) {
-            this.wallAreasCache = this.getWallAreas$java_util_Collection(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
-        }
-        return this.wallAreasCache;
-    }
-
     /**
      * Returns the walls that belong to the selected level in home.
      * @param {Wall[]} walls
@@ -3034,22 +3058,32 @@ class PlanComponent implements PlanView {
         return wallsInSelectedLevel;
     }
 
-    public getWallAreas$java_util_Collection(walls : Array<any>) : any {
-        if(/* size */(<number>walls.length) === 0) {
-            return /* emptyMap */{};
+    /**
+     * Returns areas matching the union of <code>walls</code> shapes sorted by pattern.
+     * @param {Wall[]} walls
+     * @return {Object}
+     * @private
+     */
+    public getWallAreas(walls? : Wall[]) : any {
+      if(walls === undefined) {
+        if(this.wallAreasCache === undefined) {
+            return this.wallAreasCache = this.getWallAreas(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
+        } else {
+          return this.wallAreasCache;
+        }
+      } else {
+        if(walls.length === 0) {
+            return {};
         }
         let pattern : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(walls).next().getPattern();
         let samePattern : boolean = true;
-        for(let index175=0; index175 < walls.length; index175++) {
-            let wall = walls[index175];
-            {
-                if(pattern !== wall.getPattern()) {
-                    samePattern = false;
-                    break;
-                }
-            }
+        for(let i=0; i < walls.length; i++) {
+          if(pattern !== walls[i].getPattern()) {
+              samePattern = false;
+              break;
+          }
         }
-        let wallAreas : any = <any>({});
+        let wallAreas = {};
         if(samePattern) {
             /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>wallAreas, walls, this.getItemsArea(walls));
         } else {
@@ -3080,20 +3114,7 @@ class PlanComponent implements PlanView {
             }
         }
         return wallAreas;
-    }
-
-    /**
-     * Returns areas matching the union of <code>walls</code> shapes sorted by pattern.
-     * @param {Wall[]} walls
-     * @return {Object}
-     * @private
-     */
-    public getWallAreas(walls? : any) : any {
-        if(((walls != null && (walls instanceof Array)) || walls === null)) {
-            return <any>this.getWallAreas$java_util_Collection(walls);
-        } else if(walls === undefined) {
-            return <any>this.getWallAreas$();
-        } else throw new Error('invalid overload');
+      }
     }
 
     /**
@@ -3103,6 +3124,7 @@ class PlanComponent implements PlanView {
      * @private
      */
     getItemsArea(items : Array<any>) : java.awt.geom.Area {
+      // TODO: use forEach
         let itemsArea : java.awt.geom.Area = new java.awt.geom.Area();
         for(let index179=0; index179 < items.length; index179++) {
             let item = items[index179];
