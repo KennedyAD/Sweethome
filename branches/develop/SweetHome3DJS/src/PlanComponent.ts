@@ -710,14 +710,16 @@ class PlanComponent implements PlanView {
           }
         }
         
-        home.getFurniture().forEach(piece => {
-          piece.addPropertyChangeListener(furnitureChangeListener);
-          if(piece != null && piece instanceof HomeFurnitureGroup) {
-            piece.getAllFurniture().forEach(childPiece => {
-              childPiece.addPropertyChangeListener(furnitureChangeListener);
-            });
-          }
-        });
+        if(home.getFurniture() != null) {
+          home.getFurniture().forEach(piece => {
+            piece.addPropertyChangeListener(furnitureChangeListener);
+            if(piece != null && piece instanceof HomeFurnitureGroup) {
+              piece.getAllFurniture().forEach(childPiece => {
+                childPiece.addPropertyChangeListener(furnitureChangeListener);
+              });
+            }
+          });
+        }
         
         home.addFurnitureListener(ev => {
             let piece = ev.getItem();
@@ -739,6 +741,7 @@ class PlanComponent implements PlanView {
             this.sortedLevelFurniture = null;
             this.revalidate();
         });
+        
         let wallChangeListener : PropertyChangeListener = {
                   propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
@@ -759,15 +762,10 @@ class PlanComponent implements PlanView {
           }
         };
         
-        {
-            let array130 = home.getWalls();
-            for(let index129=0; index129 < array130.length; index129++) {
-                let wall = array130[index129];
-                {
-                    wall.addPropertyChangeListener(wallChangeListener);
-                }
-            }
-        }
+        if(home.getWalls() != null) home.getWalls().forEach(wall => {
+          wall.addPropertyChangeListener(wallChangeListener);
+        });
+        
         home.addWallsListener((ev : any) => {
             if(ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(wallChangeListener);
@@ -795,15 +793,8 @@ class PlanComponent implements PlanView {
           }
         }        
         
-        {
-            let array132 = home.getRooms();
-            for(let index131=0; index131 < array132.length; index131++) {
-                let room = array132[index131];
-                {
-                    room.addPropertyChangeListener(roomChangeListener);
-                }
-            }
-        }
+        if(home.getRooms() != null) home.getRooms().forEach(room => room.addPropertyChangeListener(roomChangeListener));
+        
         home.addRoomsListener((ev : any) => {
             if(ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(roomChangeListener);
@@ -815,6 +806,7 @@ class PlanComponent implements PlanView {
             this.otherLevelsRoomsCache = null;
             this.revalidate();
         });
+        
         let changeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => {
               let propertyName : string = ev.getPropertyName();
@@ -825,16 +817,9 @@ class PlanComponent implements PlanView {
               }
           }
         }
+
+        if(home.getPolylines() != null) home.getPolylines().forEach(polyline => polyline.addPropertyChangeListener(changeListener));
         
-        {
-            let array134 = home.getPolylines();
-            for(let index133=0; index133 < array134.length; index133++) {
-                let polyline = array134[index133];
-                {
-                    polyline.addPropertyChangeListener(changeListener);
-                }
-            }
-        }
         home.addPolylinesListener((ev : any) => {
             if(ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(changeListener);
@@ -843,19 +828,14 @@ class PlanComponent implements PlanView {
             }
             this.revalidate();
         });
+        
         let dimensionLineChangeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => this.revalidate()
         }
-        {
-            let array136 = home.getDimensionLines();
-            for(let index135=0; index135 < array136.length; index135++) {
-                let dimensionLine = array136[index135];
-                {
-                    dimensionLine.addPropertyChangeListener(dimensionLineChangeListener);
-                }
-            }
-        }
-        home.addDimensionLinesListener((ev : any) => {
+        
+        if(home.getDimensionLines() != null) home.getDimensionLines().forEach(dimensionLine => dimensionLine.addPropertyChangeListener(dimensionLineChangeListener));
+
+        home.addDimensionLinesListener(ev => {
             if(ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(dimensionLineChangeListener);
             } else if(ev.getType() === CollectionEvent.Type.DELETE) {
@@ -863,18 +843,13 @@ class PlanComponent implements PlanView {
             }
             this.revalidate();
         });
+
         let labelChangeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => this.revalidate()
         }
-        {
-            let array138 = home.getLabels();
-            for(let index137=0; index137 < array138.length; index137++) {
-                let label = array138[index137];
-                {
-                    label.addPropertyChangeListener(labelChangeListener);
-                }
-            }
-        }
+        
+        if(home.getLabels() != null) home.getLabels().forEach(label => label.addPropertyChangeListener(labelChangeListener));
+        
         home.addLabelsListener((ev : any) => {
             if(ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(labelChangeListener);
@@ -883,6 +858,7 @@ class PlanComponent implements PlanView {
             }
             this.revalidate();
         });
+        
         let levelChangeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
@@ -901,16 +877,8 @@ class PlanComponent implements PlanView {
             
           }
         }
+        if(home.getLevels() != null) home.getLevels().forEach(level => level.addPropertyChangeListener(levelChangeListener));
         
-        {
-            let array140 = home.getLevels();
-            for(let index139=0; index139 < array140.length; index139++) {
-                let level = array140[index139];
-                {
-                    level.addPropertyChangeListener(levelChangeListener);
-                }
-            }
-        }
         home.addLevelsListener((ev : any) => {
             let level : any = ev.getItem();
             if(ev.getType() === CollectionEvent.Type.ADD) {
@@ -920,12 +888,12 @@ class PlanComponent implements PlanView {
             }
             this.revalidate();
         });
-        home.addPropertyChangeListener("CAMERA", 
-        {
+        
+        home.addPropertyChangeListener("CAMERA", {
           propertyChange : (ev : PropertyChangeEvent) => this.revalidate()
         });
-        home.getObserverCamera().addPropertyChangeListener(
-          {
+        
+        home.getObserverCamera().addPropertyChangeListener({
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
             if("X" == propertyName || "Y" == propertyName || "FIELD_OF_VIEW" == propertyName || "YAW" == propertyName || "WIDTH" == propertyName || "DEPTH" == propertyName || "HEIGHT" == propertyName) {
@@ -933,8 +901,8 @@ class PlanComponent implements PlanView {
             }
           }
         });
-        home.getCompass().addPropertyChangeListener(
-        {
+        
+        home.getCompass().addPropertyChangeListener({
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
             if("X" == propertyName || "Y" == propertyName || "NORTH_DIRECTION" == propertyName || "DIAMETER" == propertyName || "VISIBLE" == propertyName) {
@@ -942,19 +910,18 @@ class PlanComponent implements PlanView {
             }
           }
         });
+        
         home.addSelectionListener({
           selectionChanged : (ev : any) => this.repaint() 
         });
-        home.addPropertyChangeListener("BACKGROUND_IMAGE", 
-          {
-             propertyChange : (ev : PropertyChangeEvent) => {
-              this.backgroundImageCache = null;
-              this.repaint();
-            }
-            
-          });
-        home.addPropertyChangeListener("SELECTED_LEVEL", 
-          {
+        
+        home.addPropertyChangeListener("BACKGROUND_IMAGE", {
+           propertyChange : (ev : PropertyChangeEvent) => {
+            this.backgroundImageCache = null;
+            this.repaint();
+          }
+        });
+        home.addPropertyChangeListener("SELECTED_LEVEL", {
              propertyChange : (ev : PropertyChangeEvent) => {
                 this.backgroundImageCache = null;
                 this.otherLevelsWallAreaCache = null;
@@ -967,8 +934,8 @@ class PlanComponent implements PlanView {
                 this.sortedLevelFurniture = null;
                 this.repaint();
             }
-            
           });
+          
         let preferencesListener : PlanComponent.UserPreferencesChangeListener = new PlanComponent.UserPreferencesChangeListener(this);
         preferences.addPropertyChangeListener("UNIT", preferencesListener);
         preferences.addPropertyChangeListener("LANGUAGE", preferencesListener);
@@ -3015,9 +2982,9 @@ class PlanComponent implements PlanView {
      * @private
      */
     public getWallAreas(walls? : Wall[]) : any {
-      if(walls === undefined) {
-        if(this.wallAreasCache === undefined) {
-            return this.wallAreasCache = this.getWallAreas(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
+      if(walls == null) {
+        if(this.wallAreasCache == null) {
+          return this.wallAreasCache = this.getWallAreas(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
         } else {
           return this.wallAreasCache;
         }

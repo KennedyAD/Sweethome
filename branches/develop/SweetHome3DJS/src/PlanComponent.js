@@ -480,14 +480,16 @@ var PlanComponent = (function () {
                 }
             }
         };
-        home.getFurniture().forEach(function (piece) {
-            piece.addPropertyChangeListener(furnitureChangeListener);
-            if (piece != null && piece instanceof HomeFurnitureGroup) {
-                piece.getAllFurniture().forEach(function (childPiece) {
-                    childPiece.addPropertyChangeListener(furnitureChangeListener);
-                });
-            }
-        });
+        if (home.getFurniture() != null) {
+            home.getFurniture().forEach(function (piece) {
+                piece.addPropertyChangeListener(furnitureChangeListener);
+                if (piece != null && piece instanceof HomeFurnitureGroup) {
+                    piece.getAllFurniture().forEach(function (childPiece) {
+                        childPiece.addPropertyChangeListener(furnitureChangeListener);
+                    });
+                }
+            });
+        }
         home.addFurnitureListener(function (ev) {
             var piece = ev.getItem();
             if (ev.getType() === CollectionEvent.Type.ADD) {
@@ -512,6 +514,7 @@ var PlanComponent = (function () {
         var wallChangeListener = {
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
+                console.log("XXXXXXXXXXXXX WALL CHANGED");
                 if ("X_START" == propertyName || "X_END" == propertyName || "Y_START" == propertyName || "Y_END" == propertyName || "WALL_AT_START" == propertyName || "WALL_AT_END" == propertyName || "THICKNESS" == propertyName || "ARC_EXTENT" == propertyName || "PATTERN" == propertyName) {
                     if (_this.home.isAllLevelsSelection()) {
                         _this.otherLevelsWallAreaCache = null;
@@ -529,15 +532,10 @@ var PlanComponent = (function () {
                 }
             }
         };
-        {
-            var array130 = home.getWalls();
-            for (var index129 = 0; index129 < array130.length; index129++) {
-                var wall = array130[index129];
-                {
-                    wall.addPropertyChangeListener(wallChangeListener);
-                }
-            }
-        }
+        if (home.getWalls() != null)
+            home.getWalls().forEach(function (wall) {
+                wall.addPropertyChangeListener(wallChangeListener);
+            });
         home.addWallsListener(function (ev) {
             if (ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(wallChangeListener);
@@ -565,15 +563,8 @@ var PlanComponent = (function () {
                 }
             }
         };
-        {
-            var array132 = home.getRooms();
-            for (var index131 = 0; index131 < array132.length; index131++) {
-                var room = array132[index131];
-                {
-                    room.addPropertyChangeListener(roomChangeListener);
-                }
-            }
-        }
+        if (home.getRooms() != null)
+            home.getRooms().forEach(function (room) { return room.addPropertyChangeListener(roomChangeListener); });
         home.addRoomsListener(function (ev) {
             if (ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(roomChangeListener);
@@ -597,15 +588,8 @@ var PlanComponent = (function () {
                 }
             }
         };
-        {
-            var array134 = home.getPolylines();
-            for (var index133 = 0; index133 < array134.length; index133++) {
-                var polyline = array134[index133];
-                {
-                    polyline.addPropertyChangeListener(changeListener);
-                }
-            }
-        }
+        if (home.getPolylines() != null)
+            home.getPolylines().forEach(function (polyline) { return polyline.addPropertyChangeListener(changeListener); });
         home.addPolylinesListener(function (ev) {
             if (ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(changeListener);
@@ -618,15 +602,8 @@ var PlanComponent = (function () {
         var dimensionLineChangeListener = {
             propertyChange: function (ev) { return _this.revalidate(); }
         };
-        {
-            var array136 = home.getDimensionLines();
-            for (var index135 = 0; index135 < array136.length; index135++) {
-                var dimensionLine = array136[index135];
-                {
-                    dimensionLine.addPropertyChangeListener(dimensionLineChangeListener);
-                }
-            }
-        }
+        if (home.getDimensionLines() != null)
+            home.getDimensionLines().forEach(function (dimensionLine) { return dimensionLine.addPropertyChangeListener(dimensionLineChangeListener); });
         home.addDimensionLinesListener(function (ev) {
             if (ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(dimensionLineChangeListener);
@@ -639,15 +616,8 @@ var PlanComponent = (function () {
         var labelChangeListener = {
             propertyChange: function (ev) { return _this.revalidate(); }
         };
-        {
-            var array138 = home.getLabels();
-            for (var index137 = 0; index137 < array138.length; index137++) {
-                var label = array138[index137];
-                {
-                    label.addPropertyChangeListener(labelChangeListener);
-                }
-            }
-        }
+        if (home.getLabels() != null)
+            home.getLabels().forEach(function (label) { return label.addPropertyChangeListener(labelChangeListener); });
         home.addLabelsListener(function (ev) {
             if (ev.getType() === CollectionEvent.Type.ADD) {
                 ev.getItem().addPropertyChangeListener(labelChangeListener);
@@ -674,15 +644,8 @@ var PlanComponent = (function () {
                 }
             }
         };
-        {
-            var array140 = home.getLevels();
-            for (var index139 = 0; index139 < array140.length; index139++) {
-                var level = array140[index139];
-                {
-                    level.addPropertyChangeListener(levelChangeListener);
-                }
-            }
-        }
+        if (home.getLevels() != null)
+            home.getLevels().forEach(function (level) { return level.addPropertyChangeListener(levelChangeListener); });
         home.addLevelsListener(function (ev) {
             var level = ev.getItem();
             if (ev.getType() === CollectionEvent.Type.ADD) {
@@ -2905,8 +2868,8 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.getWallAreas = function (walls) {
         var _this = this;
-        if (walls === undefined) {
-            if (this.wallAreasCache === undefined) {
+        if (walls == null) {
+            if (this.wallAreasCache == null) {
                 return this.wallAreasCache = this.getWallAreas(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
             }
             else {
