@@ -934,6 +934,7 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   this.setNavigationPanelVisible(false);
   this.setUnit(LengthUnit.CENTIMETER);
   this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
+  this.setNewWallPattern(this.getWallPattern());
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
