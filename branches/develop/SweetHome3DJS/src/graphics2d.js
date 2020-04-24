@@ -1,6 +1,7 @@
 var Graphics2D = (function () {
     function Graphics2D(canvas) {
         this.context = canvas.getContext("2d");
+        this.context.imageSmoothingEnabled = true;
         var computedStyle = window.getComputedStyle(canvas);
         this.color = computedStyle.color;
         this.background = computedStyle.background;

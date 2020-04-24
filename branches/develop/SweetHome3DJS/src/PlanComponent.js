@@ -3279,9 +3279,11 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintFurnitureOutline = function (g2D, items, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
+        var _this = this;
         var pieceBorderStroke = new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale);
         var pieceFrontBorderStroke = new java.awt.BasicStroke(4 * this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER);
         var furniture = Home.getFurnitureSubList(items);
+        var newFurniture = [];
         var furnitureGroupsArea = null;
         var furnitureGroupsStroke = new java.awt.BasicStroke(15 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_ROUND);
         var lastGroup = null;
@@ -3290,6 +3292,7 @@ var PlanComponent = (function () {
         for (var it = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(furniture); it.hasNext();) {
             {
                 var piece = it.next();
+                newFurniture.push(piece);
                 if (piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
                     var homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
                     if (homePieceOfFurniture !== piece) {
@@ -3313,9 +3316,6 @@ var PlanComponent = (function () {
                         lastGroup = homePieceOfFurniture;
                     }
                 }
-                else {
-                    it.remove();
-                }
             }
             ;
         }
@@ -3326,24 +3326,21 @@ var PlanComponent = (function () {
             g2D.fill(furnitureGroupsArea);
             g2D.setAlpha(oldComposite);
         }
-        for (var index186 = 0; index186 < furniture.length; index186++) {
-            var piece = furniture[index186];
-            {
-                var points = piece.getPoints();
-                var pieceShape = ShapeTools.getShape(points, true, null);
-                g2D.setPaint(selectionOutlinePaint);
-                g2D.setStroke(selectionOutlineStroke);
-                g2D.draw(pieceShape);
-                g2D.setPaint(foregroundColor);
-                g2D.setStroke(pieceBorderStroke);
-                g2D.draw(pieceShape);
-                g2D.setStroke(pieceFrontBorderStroke);
-                g2D.draw(new java.awt.geom.Line2D.Float(points[2][0], points[2][1], points[3][0], points[3][1]));
-                if (items.length === 1 && indicatorPaint != null) {
-                    this.paintPieceOFFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
-                }
+        newFurniture.forEach(function (piece) {
+            var points = piece.getPoints();
+            var pieceShape = ShapeTools.getShape(points, true, null);
+            g2D.setPaint(selectionOutlinePaint);
+            g2D.setStroke(selectionOutlineStroke);
+            g2D.draw(pieceShape);
+            g2D.setPaint(foregroundColor);
+            g2D.setStroke(pieceBorderStroke);
+            g2D.draw(pieceShape);
+            g2D.setStroke(pieceFrontBorderStroke);
+            g2D.draw(new java.awt.geom.Line2D.Float(points[2][0], points[2][1], points[3][0], points[3][1]));
+            if (items.length === 1 && indicatorPaint != null) {
+                _this.paintPieceOFFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
             }
-        }
+        });
     };
     /**
      * Returns <code>piece</code> if it belongs to home furniture or the group to which <code>piece</code> belongs.
@@ -3934,14 +3931,14 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintCompass = function (g2D, selectedItems, planScale, foregroundColor, paintMode) {
         var compass = this.home.getCompass();
-        if (compass.isVisible() && (paintMode !== PlanComponent.PaintMode.CLIPBOARD || (selectedItems.indexOf((compass)) >= 0))) {
+        if (compass.isVisible() && (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedItems.indexOf(compass) >= 0)) {
             var previousTransform = g2D.getTransform();
             g2D.translate(compass.getX(), compass.getY());
             g2D.rotate(compass.getNorthDirection());
             var diameter = compass.getDiameter();
             g2D.scale(diameter, diameter);
             g2D.setColor(foregroundColor);
-            //g2D.fill(PlanComponent.COMPASS);
+            g2D.fill(PlanComponent.COMPASS);
             g2D.setTransform(previousTransform);
         }
     };

@@ -3360,16 +3360,18 @@ class PlanComponent implements PlanView {
     paintFurnitureOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
         let pieceBorderStroke : java.awt.BasicStroke = new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale);
         let pieceFrontBorderStroke : java.awt.BasicStroke = new java.awt.BasicStroke(4 * this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER);
-        let furniture : Array<any> = Home.getFurnitureSubList(items);
+        let furniture = Home.getFurnitureSubList(items);
+        let newFurniture : Array<HomePieceOfFurniture> = [];
         let furnitureGroupsArea : java.awt.geom.Area = null;
         let furnitureGroupsStroke : java.awt.BasicStroke = new java.awt.BasicStroke(15 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_ROUND);
         let lastGroup : any = null;
         let furnitureInGroupsArea : java.awt.geom.Area = null;
         let homeFurniture : Array<any> = this.home.getFurniture();
         for(let it : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(furniture); it.hasNext(); ) {{
-            let piece : any = it.next();
+            let piece : HomePieceOfFurniture = it.next();
+            newFurniture.push(piece);
             if(piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
-                let homePieceOfFurniture : any = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
+                let homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
                 if(homePieceOfFurniture !== piece) {
                     let groupArea : java.awt.geom.Area = null;
                     if(lastGroup !== homePieceOfFurniture) {
@@ -3389,8 +3391,6 @@ class PlanComponent implements PlanView {
                     }
                     lastGroup = homePieceOfFurniture;
                 }
-            } else {
-                it.remove();
             }
         };}
         if(furnitureGroupsArea != null) {
@@ -3400,24 +3400,22 @@ class PlanComponent implements PlanView {
             g2D.fill(furnitureGroupsArea);
             g2D.setAlpha(oldComposite);
         }
-        for(let index186=0; index186 < furniture.length; index186++) {
-            let piece = furniture[index186];
-            {
-                let points : number[][] = piece.getPoints();
-                let pieceShape : java.awt.Shape = ShapeTools.getShape(points, true, null);
-                g2D.setPaint(selectionOutlinePaint);
-                g2D.setStroke(selectionOutlineStroke);
-                g2D.draw(pieceShape);
-                g2D.setPaint(foregroundColor);
-                g2D.setStroke(pieceBorderStroke);
-                g2D.draw(pieceShape);
-                g2D.setStroke(pieceFrontBorderStroke);
-                g2D.draw(new java.awt.geom.Line2D.Float(points[2][0], points[2][1], points[3][0], points[3][1]));
-                if(/* size */(<number>items.length) === 1 && indicatorPaint != null) {
-                    this.paintPieceOFFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
-                }
-            }
-        }
+        newFurniture.forEach(piece => {
+          let points : number[][] = piece.getPoints();
+          let pieceShape : java.awt.Shape = ShapeTools.getShape(points, true, null);
+          g2D.setPaint(selectionOutlinePaint);
+          g2D.setStroke(selectionOutlineStroke);
+          g2D.draw(pieceShape);
+          g2D.setPaint(foregroundColor);
+          g2D.setStroke(pieceBorderStroke);
+          g2D.draw(pieceShape);
+          g2D.setStroke(pieceFrontBorderStroke);
+          g2D.draw(new java.awt.geom.Line2D.Float(points[2][0], points[2][1], points[3][0], points[3][1]));
+          if(/* size */(<number>items.length) === 1 && indicatorPaint != null) {
+              this.paintPieceOFFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
+          }
+        });
+        
     }
 
     /**
@@ -3972,14 +3970,14 @@ class PlanComponent implements PlanView {
      */
     paintCompass(g2D : Graphics2D, selectedItems : Array<any>, planScale : number, foregroundColor : string, paintMode : PlanComponent.PaintMode) {
         let compass : any = this.home.getCompass();
-        if(compass.isVisible() && (paintMode !== PlanComponent.PaintMode.CLIPBOARD || /* contains */(selectedItems.indexOf(<any>(compass)) >= 0))) {
+        if(compass.isVisible() && (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedItems.indexOf(compass) >= 0)) {
             let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
             g2D.translate(compass.getX(), compass.getY());
             g2D.rotate(compass.getNorthDirection());
             let diameter : number = compass.getDiameter();
             g2D.scale(diameter, diameter);
             g2D.setColor(foregroundColor);
-            //g2D.fill(PlanComponent.COMPASS);
+            g2D.fill(PlanComponent.COMPASS);
             g2D.setTransform(previousTransform);
         }
     }

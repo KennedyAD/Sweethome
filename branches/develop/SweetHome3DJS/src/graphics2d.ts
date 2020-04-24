@@ -5,6 +5,7 @@ class Graphics2D {
 
   public constructor(canvas: HTMLCanvasElement) {
     this.context = canvas.getContext("2d");
+    this.context.imageSmoothingEnabled = true;
     var computedStyle = window.getComputedStyle(canvas);
     this.color = computedStyle.color;
     this.background = computedStyle.background;
