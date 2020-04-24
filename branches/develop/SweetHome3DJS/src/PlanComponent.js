@@ -514,7 +514,6 @@ var PlanComponent = (function () {
         var wallChangeListener = {
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                console.log("XXXXXXXXXXXXX WALL CHANGED");
                 if ("X_START" == propertyName || "X_END" == propertyName || "Y_START" == propertyName || "Y_END" == propertyName || "WALL_AT_START" == propertyName || "WALL_AT_END" == propertyName || "THICKNESS" == propertyName || "ARC_EXTENT" == propertyName || "PATTERN" == propertyName) {
                     if (_this.home.isAllLevelsSelection()) {
                         _this.otherLevelsWallAreaCache = null;
@@ -1738,7 +1737,7 @@ var PlanComponent = (function () {
         if (oldComposite.length === 7) {
             oldComposite += "FF";
         }
-        g2D.setColor(oldComposite.slice(0, 7) + (((1 - alpha) * 255) | 0).toString(16));
+        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
         return oldComposite;
     };
     /**

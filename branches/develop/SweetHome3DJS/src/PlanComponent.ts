@@ -1958,7 +1958,7 @@ class PlanComponent implements PlanView {
         if(oldComposite.length === 7) {
           oldComposite += "FF";
         }
-        g2D.setColor(oldComposite.slice(0, 7) + (((1 - alpha) * 255) | 0).toString(16));
+        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
         return oldComposite;
     }
 
