@@ -2188,13 +2188,13 @@ class PlanComponent implements PlanView {
         this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintFurniture(g2D, this.sortedLevelFurniture, selectedItems, planScale, backgroundColor, foregroundColor, this.getFurnitureOutlineColor(), paintMode, true);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        //this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, selectionOutlinePaint, selectionColor, planScale, foregroundColor, paintMode);
+        this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, selectionOutlinePaint, selectionColor, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        //this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
+        this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        //this.paintRoomsNameAndArea(g2D, selectedItems, planScale, foregroundColor, paintMode);
+        this.paintRoomsNameAndArea(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        //this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
+        this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
         //this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
         if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
