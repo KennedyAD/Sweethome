@@ -64,6 +64,8 @@ declare class OperatingSystem {
 
 declare function putToMap(map, key, value);
 declare function getFromMap(map, key);
+declare function valuesFromMap(map) : Array<any>;
+declare function sortArray(array, comparator) : void;
 
 /** 
  * This utility class allows to get the metrics of a given font. Note that this class will approximate 
@@ -643,11 +645,11 @@ class PlanComponent implements PlanView {
     }
     
     private getBackground() : string {
-      return Color.WHITE;
+      return "#FFFFFF";
     }
 
     private getForeground() : string {
-      return Color.BLACK;
+      return "#000000";
     }
 
     private setFont(font : string) {
@@ -670,11 +672,11 @@ class PlanComponent implements PlanView {
      * @param {PlanController} controller
      * @private
      */
-    addModelListeners(home : any, preferences : any, controller : any) {
+    addModelListeners(home : Home, preferences : UserPreferences, controller : PlanController) {
         let furnitureChangeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => {
-            if(this.furnitureTopViewIconKeys != null && (/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"MODEL_TRANSFORMATIONS",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"ROLL",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"PITCH",ev.getPropertyName())) || (/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"WIDTH_IN_PLAN",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"DEPTH_IN_PLAN",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"HEIGHT_IN_PLAN",ev.getPropertyName()))) && ((ev.getSource()).isHorizontallyRotated() || (ev.getSource()).getTexture() != null))) {
-                if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"HEIGHT_IN_PLAN",ev.getPropertyName()))) {
+            if(this.furnitureTopViewIconKeys != null && ("MODEL_TRANSFORMATIONS" == ev.getPropertyName() || "ROLL" == ev.getPropertyName() || "PITCH" == ev.getPropertyName() || "WIDTH_IN_PLAN" == ev.getPropertyName() || "DEPTH_IN_PLAN" == ev.getPropertyName() || "HEIGHT_IN_PLAN" == ev.getPropertyName()) && (ev.getSource().isHorizontallyRotated() || ev.getSource().getTexture() != null)) {
+                if("HEIGHT_IN_PLAN" == ev.getPropertyName()) {
                     this.sortedLevelFurniture = null;
                 }
                 if(!(ev.getSource() != null && ev.getSource() instanceof <any>HomeFurnitureGroup)) {
@@ -693,13 +695,13 @@ class PlanComponent implements PlanView {
                     }
                 }
                 this.revalidate();
-            } else if(this.furnitureTopViewIconKeys != null && (/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"COLOR",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"TEXTURE",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"MODEL_MATERIALS",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"SHININESS",ev.getPropertyName())))) {
+            } else if(this.furnitureTopViewIconKeys != null && ("COLOR" == ev.getPropertyName() || "TEXTURE" == ev.getPropertyName() || "MODEL_MATERIALS" == ev.getPropertyName() || "SHININESS" == ev.getPropertyName())) {
                 /* remove */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries.splice(i,1)[0]; } })(<any>this.furnitureTopViewIconKeys, ev.getSource());
                 this.repaint();
-            } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"ELEVATION",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"LEVEL",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"HEIGHT_IN_PLAN",ev.getPropertyName()))) {
+            } else if("ELEVATION" == ev.getPropertyName() || "LEVEL" == ev.getPropertyName() || "HEIGHT_IN_PLAN" == ev.getPropertyName()) {
                 this.sortedLevelFurniture = null;
                 this.repaint();
-            } else if(this.doorOrWindowWallThicknessAreasCache != null && /* containsKey */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return true; } return false; })(<any>this.doorOrWindowWallThicknessAreasCache, ev.getSource()) && (/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"WIDTH",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"DEPTH",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"ANGLE",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"MODEL_MIRRORED",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"MODEL_TRANSFORMATIONS",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"X",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"Y",ev.getPropertyName())) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"LEVEL",ev.getPropertyName())))) {
+            } else if(this.doorOrWindowWallThicknessAreasCache != null && /* containsKey */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return true; } return false; })(<any>this.doorOrWindowWallThicknessAreasCache, ev.getSource()) && ("WIDTH" == ev.getPropertyName() || "DEPTH" == ev.getPropertyName() || "ANGLE" == ev.getPropertyName() || "MODEL_MIRRORED" == ev.getPropertyName() || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() || "X" == ev.getPropertyName() || "Y" == ev.getPropertyName() || "LEVEL" == ev.getPropertyName())) {
                 /* remove */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries.splice(i,1)[0]; } })(<any>this.doorOrWindowWallThicknessAreasCache, ev.getSource());
                 this.revalidate();
             } else {
@@ -707,56 +709,31 @@ class PlanComponent implements PlanView {
             }
           }
         }
-
         
-        {
-            let array122 = home.getFurniture();
-            for(let index121=0; index121 < array122.length; index121++) {
-                let piece = array122[index121];
-                {
-                    piece.addPropertyChangeListener(furnitureChangeListener);
-                    if(piece != null && piece instanceof <any>HomeFurnitureGroup) {
-                        {
-                            let array124 = (piece).getAllFurniture();
-                            for(let index123=0; index123 < array124.length; index123++) {
-                                let childPiece = array124[index123];
-                                {
-                                    childPiece.addPropertyChangeListener(furnitureChangeListener);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        home.getFurniture().forEach(piece => {
+          piece.addPropertyChangeListener(furnitureChangeListener);
+          if(piece != null && piece instanceof HomeFurnitureGroup) {
+            piece.getAllFurniture().forEach(childPiece => {
+              childPiece.addPropertyChangeListener(furnitureChangeListener);
+            });
+          }
+        });
         
-        home.addFurnitureListener((ev : any) => {
-            let piece : any = ev.getItem();
+        home.addFurnitureListener(ev => {
+            let piece = ev.getItem();
             if(ev.getType() === CollectionEvent.Type.ADD) {
                 piece.addPropertyChangeListener(furnitureChangeListener);
-                if(piece != null && piece instanceof <any>HomeFurnitureGroup) {
-                    {
-                        let array126 = (piece).getAllFurniture();
-                        for(let index125=0; index125 < array126.length; index125++) {
-                            let childPiece = array126[index125];
-                            {
-                                childPiece.addPropertyChangeListener(furnitureChangeListener);
-                            }
-                        }
-                    }
+                if(piece != null && piece instanceof HomeFurnitureGroup) {
+                  piece.getAllFurniture().forEach(childPiece => {
+                    childPiece.addPropertyChangeListener(furnitureChangeListener);
+                  });
                 }
             } else if(ev.getType() === CollectionEvent.Type.DELETE) {
                 piece.removePropertyChangeListener(furnitureChangeListener);
-                if(piece != null && piece instanceof <any>HomeFurnitureGroup) {
-                    {
-                        let array128 = (piece).getAllFurniture();
-                        for(let index127=0; index127 < array128.length; index127++) {
-                            let childPiece = array128[index127];
-                            {
-                                childPiece.removePropertyChangeListener(furnitureChangeListener);
-                            }
-                        }
-                    }
+                if(piece != null && piece instanceof HomeFurnitureGroup) {
+                  piece.getAllFurniture().forEach(childPiece => {
+                    childPiece.removePropertyChangeListener(furnitureChangeListener);
+                  });
                 }
             }
             this.sortedLevelFurniture = null;
@@ -765,7 +742,7 @@ class PlanComponent implements PlanView {
         let wallChangeListener : PropertyChangeListener = {
                   propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
-            if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"X_START",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"X_END",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"Y_START",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"Y_END",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"WALL_AT_START",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"WALL_AT_END",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"THICKNESS",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"ARC_EXTENT",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"PATTERN",propertyName))) {
+            if("X_START" == propertyName || "X_END" == propertyName || "Y_START" == propertyName || "Y_END" == propertyName || "WALL_AT_START" == propertyName || "WALL_AT_END" == propertyName || "THICKNESS" == propertyName || "ARC_EXTENT" == propertyName || "PATTERN" == propertyName) {
                 if(this.home.isAllLevelsSelection()) {
                     this.otherLevelsWallAreaCache = null;
                     this.otherLevelsWallsCache = null;
@@ -773,7 +750,7 @@ class PlanComponent implements PlanView {
                 this.wallAreasCache = null;
                 this.doorOrWindowWallThicknessAreasCache = null;
                 this.revalidate();
-            } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"LEVEL",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"HEIGHT",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"HEIGHT_AT_END",propertyName))) {
+            } else if("LEVEL" == propertyName || "HEIGHT" == propertyName || "HEIGHT_AT_END" == propertyName) {
                 this.otherLevelsWallAreaCache = null;
                 this.otherLevelsWallsCache = null;
                 this.wallAreasCache = null;
@@ -807,12 +784,12 @@ class PlanComponent implements PlanView {
         let roomChangeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
-            if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"POINTS",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"NAME",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"NAME_X_OFFSET",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"NAME_Y_OFFSET",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"NAME_STYLE",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"NAME_ANGLE",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"AREA_VISIBLE",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"AREA_X_OFFSET",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"AREA_Y_OFFSET",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"AREA_STYLE",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"AREA_ANGLE",propertyName))) {
+            if("POINTS" == propertyName || "NAME" == propertyName || "NAME_X_OFFSET" == propertyName || "NAME_Y_OFFSET" == propertyName || "NAME_STYLE" == propertyName || "NAME_ANGLE" == propertyName || "AREA_VISIBLE" == propertyName || "AREA_X_OFFSET" == propertyName || "AREA_Y_OFFSET" == propertyName || "AREA_STYLE" == propertyName || "AREA_ANGLE" == propertyName) {
                 this.sortedLevelRooms = null;
                 this.otherLevelsRoomAreaCache = null;
                 this.otherLevelsRoomsCache = null;
                 this.revalidate();
-            } else if(this.preferences.isRoomFloorColoredOrTextured() && (/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"FLOOR_COLOR",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"FLOOR_TEXTURE",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"FLOOR_VISIBLE",propertyName)))) {
+            } else if(this.preferences.isRoomFloorColoredOrTextured() && ("FLOOR_COLOR" == propertyName || "FLOOR_TEXTURE" == propertyName || "FLOOR_VISIBLE" == propertyName)) {
                 this.repaint();
             }
           }
@@ -841,7 +818,7 @@ class PlanComponent implements PlanView {
         let changeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => {
               let propertyName : string = ev.getPropertyName();
-              if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"COLOR",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"DASH_STYLE",propertyName))) {
+              if("COLOR" == propertyName || "DASH_STYLE" == propertyName) {
                   this.repaint();
               } else {
                   this.revalidate();
@@ -909,10 +886,7 @@ class PlanComponent implements PlanView {
         let levelChangeListener : PropertyChangeListener = {
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
-            if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"BACKGROUND_IMAGE",propertyName))) {
-                this.backgroundImageCache = null;
-                this.revalidate();
-            } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"ELEVATION",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"ELEVATION_INDEX",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"VIEWABLE",propertyName))) {
+            if("BACKGROUND_IMAGE" == propertyName || "ELEVATION" == propertyName || "ELEVATION_INDEX" == propertyName || "VIEWABLE" == propertyName) {
                 this.backgroundImageCache = null;
                 this.otherLevelsWallAreaCache = null;
                 this.otherLevelsWallsCache = null;
@@ -954,7 +928,7 @@ class PlanComponent implements PlanView {
           {
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
-            if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"X",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"Y",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"FIELD_OF_VIEW",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"YAW",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"WIDTH",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"DEPTH",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"HEIGHT",propertyName))) {
+            if("X" == propertyName || "Y" == propertyName || "FIELD_OF_VIEW" == propertyName || "YAW" == propertyName || "WIDTH" == propertyName || "DEPTH" == propertyName || "HEIGHT" == propertyName) {
                 this.revalidate();
             }
           }
@@ -963,7 +937,7 @@ class PlanComponent implements PlanView {
         {
           propertyChange : (ev : PropertyChangeEvent) => {
             let propertyName : string = ev.getPropertyName();
-            if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"X",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"Y",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"NORTH_DIRECTION",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"DIAMETER",propertyName)) || /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(/* name */"VISIBLE",propertyName))) {
+            if("X" == propertyName || "Y" == propertyName || "NORTH_DIRECTION" == propertyName || "DIAMETER" == propertyName || "VISIBLE" == propertyName) {
                 this.revalidate();
             }
           }
@@ -1838,7 +1812,7 @@ class PlanComponent implements PlanView {
         if(mode === PlanComponent.PaintMode.PAINT) {
             return this.getForeground();
         } else {
-            return Color.BLACK;
+            return "#000000";
         }
     }
 
@@ -1851,7 +1825,7 @@ class PlanComponent implements PlanView {
         if(mode === PlanComponent.PaintMode.PAINT) {
             return this.getBackground();
         } else {
-            return Color.WHITE;
+            return "#FFFFFF";
         }
     }
 
@@ -1993,7 +1967,7 @@ class PlanComponent implements PlanView {
             }
             if(!/* isEmpty */(this.otherLevelsRoomsCache.length == 0)) {
                 let oldComposite : string = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
-                g2D.setPaint(Color.GRAY);
+                g2D.setPaint("#808080");
                 g2D.fill(this.otherLevelsRoomAreaCache);
                 g2D.setComposite(oldComposite);
             }
@@ -2264,13 +2238,13 @@ class PlanComponent implements PlanView {
         this.checkCurrentThreadIsntInterrupted(paintMode);
         console.log("painting labels");
         //this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
-//        if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
-//          console.log("painting outline");
-//            this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-//            this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-//            this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-//            this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-//        }
+        if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
+          console.log("painting outline");
+          //this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+          this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+          this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+          this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+        }
     }
 
     /**
@@ -2297,7 +2271,7 @@ class PlanComponent implements PlanView {
      */
     getFurnitureOutlineColor() : string {
         //return <string>new String((this.getForeground().getRGB() & 16777215) | 1426063360, true);
-        return Color.BLACK;
+        return "#808080";
     }
 
     /**
@@ -2311,26 +2285,19 @@ class PlanComponent implements PlanView {
      */
     paintRooms(g2D : Graphics2D, selectedItems : Array<any>, planScale : number, foregroundColor : string, paintMode : PlanComponent.PaintMode) {
         if(this.sortedLevelRooms == null) {
-            this.sortedLevelRooms = <any>([]);
-            {
-                let array162 = this.home.getRooms();
-                for(let index161=0; index161 < array162.length; index161++) {
-                    let room = array162[index161];
-                    {
-                        if(this.isViewableAtSelectedLevel(room)) {
-                            /* add */(this.sortedLevelRooms.push(room)>0);
-                        }
-                    }
-                }
-            }
-            /* sort */((l,c) => { if((<any>c).compare) l.sort((e1,e2)=>(<any>c).compare(e1,e2)); else l.sort(<any>c); })(this.sortedLevelRooms,new PlanComponent.PlanComponent$23(this));
+            this.sortedLevelRooms = [];
+            this.home.getRooms().forEach(room => {
+              if(this.isViewableAtSelectedLevel(room)) {
+                  this.sortedLevelRooms.push(room);
+              }
+            });
+            sortArray(this.sortedLevelRooms, new PlanComponent.PlanComponent$23(this));
         }
-        let defaultFillPaint : string = paintMode === PlanComponent.PaintMode.PRINT?Color.WHITE:Color.GRAY;
+        let defaultFillPaint : string = paintMode === PlanComponent.PaintMode.PRINT?"#000000":"#808080";
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Room, paintMode) / planScale));
-        for(let index163=0; index163 < this.sortedLevelRooms.length; index163++) {
-            let room = this.sortedLevelRooms[index163];
-            {
-                let selectedRoom : boolean = /* contains */(selectedItems.indexOf(<any>(room)) >= 0);
+        for(let i=0; i < this.sortedLevelRooms.length; i++) {
+            let room = this.sortedLevelRooms[i];
+                let selectedRoom : boolean = selectedItems.indexOf(room) >= 0;
                 if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
                     g2D.setPaint(defaultFillPaint);
                     let textureAngle : number = 0;
@@ -2341,7 +2308,7 @@ class PlanComponent implements PlanView {
                             let floorTexture : any = room.getFloorTexture();
                             if(floorTexture != null) {
                                 if(this.floorTextureImagesCache == null) {
-                                    this.floorTextureImagesCache = <any>({});
+                                    this.floorTextureImagesCache = {};
                                 }
                                 let textureImage : HTMLImageElement = this.floorTextureImagesCache[floorTexture.getImage().getURL()];
                                 if(textureImage == null) {
@@ -2350,7 +2317,6 @@ class PlanComponent implements PlanView {
 //                                    console.info("====> "+textureImage);
                                     this.floorTextureImagesCache[floorTexture.getImage().getURL()] = textureImage;
                                     let waitForTexture : boolean = paintMode !== PlanComponent.PaintMode.PAINT;
-//                                    if(PlanComponent.isTextureManagerAvailable()) {
                                         TextureManager.getInstance().loadTexture(floorTexture.getImage(), waitForTexture, {
                                           textureUpdated : (texture : HTMLImageElement) => {
                                              this.floorTextureImagesCache[floorTexture.getImage().getURL()] = texture;
@@ -2364,21 +2330,6 @@ class PlanComponent implements PlanView {
                                           },
                                           progression : () => {}
                                         });
-//                                    } else {
-//                                        let textureIcon : javax.swing.Icon = IconManager.getInstance().getIcon(floorTexture.getImage(), waitForTexture?null:this);
-//                                        if(IconManager.getInstance().isWaitIcon(textureIcon)) {
-//                                            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>this.floorTextureImagesCache, floorTexture, PlanComponent.WAIT_TEXTURE_IMAGE);
-//                                        } else if(IconManager.getInstance().isErrorIcon(textureIcon)) {
-//                                            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>this.floorTextureImagesCache, floorTexture, PlanComponent.ERROR_TEXTURE_IMAGE);
-//                                        } else {
-//                                            let textureIconImage : java.awt.image.BufferedImage = new java.awt.image.BufferedImage(textureIcon.getIconWidth(), textureIcon.getIconHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
-//                                            let g2DIcon : Graphics2D = <Graphics2D>textureIconImage.getGraphics();
-//                                            textureIcon.paintIcon(this, g2DIcon, 0, 0);
-//                                            g2DIcon.dispose();
-//                                            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>this.floorTextureImagesCache, floorTexture, textureIconImage);
-//                                        }
-//                                    }
-//                                    textureImage = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>this.floorTextureImagesCache, floorTexture);
                                 }
                                 let textureWidth : number = floorTexture.getWidth();
                                 let textureHeight : number = floorTexture.getHeight();
@@ -2405,7 +2356,6 @@ class PlanComponent implements PlanView {
                     g2D.draw(roomShape);
                     g2D.rotate(-textureAngle, 0, 0);
                 }
-            }
         }
     }
 
@@ -3061,7 +3011,7 @@ class PlanComponent implements PlanView {
     /**
      * Returns areas matching the union of <code>walls</code> shapes sorted by pattern.
      * @param {Wall[]} walls
-     * @return {Object}
+     * @return {Object} Map<Collection<Wall>, Area>
      * @private
      */
     public getWallAreas(walls? : Wall[]) : any {
@@ -3087,22 +3037,19 @@ class PlanComponent implements PlanView {
         if(samePattern) {
             /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>wallAreas, walls, this.getItemsArea(walls));
         } else {
-            let sortedWalls : any = <any>({});
-            for(let index176=0; index176 < walls.length; index176++) {
-                let wall = walls[index176];
-                {
-                    let wallPattern : any = wall.getPattern();
-                    if(wallPattern == null) {
-                        wallPattern = this.preferences.getWallPattern();
-                    }
-                    let patternWalls : Array<any> = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>sortedWalls, wallPattern);
-                    if(patternWalls == null) {
-                        patternWalls = <any>([]);
-                        /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>sortedWalls, wallPattern, patternWalls);
-                    }
-                    /* add */(patternWalls.push(wall)>0);
-                }
-            }
+            let sortedWalls = {};
+            walls.forEach(wall => {
+              let wallPattern : any = wall.getPattern();
+              if(wallPattern == null) {
+                  wallPattern = this.preferences.getWallPattern();
+              }
+              let patternWalls : Array<any> = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>sortedWalls, wallPattern);
+              if(patternWalls == null) {
+                  patternWalls = <any>([]);
+                  /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>sortedWalls, wallPattern, patternWalls);
+              }
+              patternWalls.push(wall);
+            });
             {
                 let array178 = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>sortedWalls);
                 for(let index177=0; index177 < array178.length; index177++) {
@@ -3124,14 +3071,8 @@ class PlanComponent implements PlanView {
      * @private
      */
     getItemsArea(items : Array<any>) : java.awt.geom.Area {
-      // TODO: use forEach
         let itemsArea : java.awt.geom.Area = new java.awt.geom.Area();
-        for(let index179=0; index179 < items.length; index179++) {
-            let item = items[index179];
-            {
-                itemsArea.add(new java.awt.geom.Area(ShapeTools.getShape(item.getPoints(), true, null)));
-            }
-        }
+        items.forEach(item => itemsArea.add(new java.awt.geom.Area(ShapeTools.getShape(item.getPoints(), true, null))));
         return itemsArea;
     }
 

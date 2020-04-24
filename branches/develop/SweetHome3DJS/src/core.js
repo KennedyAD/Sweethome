@@ -423,3 +423,23 @@ function putToMap(map, key, value) {
                    });
   }
 }
+
+function valuesFromMap(map) {
+  let r = [];
+  if(map.entries === undefined) {
+    Object.getOwnPropertyNames(map).forEach(function(p) { r.push(map[p]); });
+  } else {
+    map.entries.forEach(function(e) { r.push(e.value); });
+  }
+  return r;
+}
+
+function sortArray(array, comparator) { 
+  if(comparator.compare) {
+    array.sort(function(e1, e2) {
+      return comparator.compare(e1,e2);
+    });
+  } else {
+   array.sort(comparator);  
+  }
+}

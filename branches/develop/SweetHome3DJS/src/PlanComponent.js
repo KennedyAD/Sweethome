@@ -397,10 +397,10 @@ var PlanComponent = (function () {
         // TODO
     };
     PlanComponent.prototype.getBackground = function () {
-        return Color.WHITE;
+        return "#FFFFFF";
     };
     PlanComponent.prototype.getForeground = function () {
-        return Color.BLACK;
+        return "#000000";
     };
     PlanComponent.prototype.setFont = function (font) {
         this.font = font;
@@ -423,43 +423,8 @@ var PlanComponent = (function () {
         var _this = this;
         var furnitureChangeListener = {
             propertyChange: function (ev) {
-                if (_this.furnitureTopViewIconKeys != null && ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "MODEL_TRANSFORMATIONS", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "ROLL", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "PITCH", ev.getPropertyName()) || ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "WIDTH_IN_PLAN", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "DEPTH_IN_PLAN", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "HEIGHT_IN_PLAN", ev.getPropertyName())) && ((ev.getSource()).isHorizontallyRotated() || (ev.getSource()).getTexture() != null))) {
-                    if ((function (o1, o2) { if (o1 && o1.equals) {
-                        return o1.equals(o2);
-                    }
-                    else {
-                        return o1 === o2;
-                    } })(/* name */ "HEIGHT_IN_PLAN", ev.getPropertyName())) {
+                if (_this.furnitureTopViewIconKeys != null && ("MODEL_TRANSFORMATIONS" == ev.getPropertyName() || "ROLL" == ev.getPropertyName() || "PITCH" == ev.getPropertyName() || "WIDTH_IN_PLAN" == ev.getPropertyName() || "DEPTH_IN_PLAN" == ev.getPropertyName() || "HEIGHT_IN_PLAN" == ev.getPropertyName()) && (ev.getSource().isHorizontallyRotated() || ev.getSource().getTexture() != null)) {
+                    if ("HEIGHT_IN_PLAN" == ev.getPropertyName()) {
                         _this.sortedLevelFurniture = null;
                     }
                     if (!(ev.getSource() != null && ev.getSource() instanceof HomeFurnitureGroup)) {
@@ -486,27 +451,7 @@ var PlanComponent = (function () {
                     }
                     _this.revalidate();
                 }
-                else if (_this.furnitureTopViewIconKeys != null && ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "COLOR", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "TEXTURE", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "MODEL_MATERIALS", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "SHININESS", ev.getPropertyName()))) {
+                else if (_this.furnitureTopViewIconKeys != null && ("COLOR" == ev.getPropertyName() || "TEXTURE" == ev.getPropertyName() || "MODEL_MATERIALS" == ev.getPropertyName() || "SHININESS" == ev.getPropertyName())) {
                     /* remove */ (function (m, k) { if (m.entries == null)
                         m.entries = []; for (var i = 0; i < m.entries.length; i++)
                         if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
@@ -514,22 +459,7 @@ var PlanComponent = (function () {
                         } })(_this.furnitureTopViewIconKeys, ev.getSource());
                     _this.repaint();
                 }
-                else if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "ELEVATION", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "LEVEL", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "HEIGHT_IN_PLAN", ev.getPropertyName())) {
+                else if ("ELEVATION" == ev.getPropertyName() || "LEVEL" == ev.getPropertyName() || "HEIGHT_IN_PLAN" == ev.getPropertyName()) {
                     _this.sortedLevelFurniture = null;
                     _this.repaint();
                 }
@@ -537,47 +467,7 @@ var PlanComponent = (function () {
                     m.entries = []; for (var i = 0; i < m.entries.length; i++)
                     if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
                         return true;
-                    } return false; })(_this.doorOrWindowWallThicknessAreasCache, ev.getSource()) && ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "WIDTH", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "DEPTH", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "ANGLE", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "MODEL_MIRRORED", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "MODEL_TRANSFORMATIONS", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "X", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "Y", ev.getPropertyName()) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "LEVEL", ev.getPropertyName()))) {
+                    } return false; })(_this.doorOrWindowWallThicknessAreasCache, ev.getSource()) && ("WIDTH" == ev.getPropertyName() || "DEPTH" == ev.getPropertyName() || "ANGLE" == ev.getPropertyName() || "MODEL_MIRRORED" == ev.getPropertyName() || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() || "X" == ev.getPropertyName() || "Y" == ev.getPropertyName() || "LEVEL" == ev.getPropertyName())) {
                     /* remove */ (function (m, k) { if (m.entries == null)
                         m.entries = []; for (var i = 0; i < m.entries.length; i++)
                         if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
@@ -590,54 +480,30 @@ var PlanComponent = (function () {
                 }
             }
         };
-        {
-            var array122 = home.getFurniture();
-            for (var index121 = 0; index121 < array122.length; index121++) {
-                var piece = array122[index121];
-                {
-                    piece.addPropertyChangeListener(furnitureChangeListener);
-                    if (piece != null && piece instanceof HomeFurnitureGroup) {
-                        {
-                            var array124 = (piece).getAllFurniture();
-                            for (var index123 = 0; index123 < array124.length; index123++) {
-                                var childPiece = array124[index123];
-                                {
-                                    childPiece.addPropertyChangeListener(furnitureChangeListener);
-                                }
-                            }
-                        }
-                    }
-                }
+        home.getFurniture().forEach(function (piece) {
+            piece.addPropertyChangeListener(furnitureChangeListener);
+            if (piece != null && piece instanceof HomeFurnitureGroup) {
+                piece.getAllFurniture().forEach(function (childPiece) {
+                    childPiece.addPropertyChangeListener(furnitureChangeListener);
+                });
             }
-        }
+        });
         home.addFurnitureListener(function (ev) {
             var piece = ev.getItem();
             if (ev.getType() === CollectionEvent.Type.ADD) {
                 piece.addPropertyChangeListener(furnitureChangeListener);
                 if (piece != null && piece instanceof HomeFurnitureGroup) {
-                    {
-                        var array126 = (piece).getAllFurniture();
-                        for (var index125 = 0; index125 < array126.length; index125++) {
-                            var childPiece = array126[index125];
-                            {
-                                childPiece.addPropertyChangeListener(furnitureChangeListener);
-                            }
-                        }
-                    }
+                    piece.getAllFurniture().forEach(function (childPiece) {
+                        childPiece.addPropertyChangeListener(furnitureChangeListener);
+                    });
                 }
             }
             else if (ev.getType() === CollectionEvent.Type.DELETE) {
                 piece.removePropertyChangeListener(furnitureChangeListener);
                 if (piece != null && piece instanceof HomeFurnitureGroup) {
-                    {
-                        var array128 = (piece).getAllFurniture();
-                        for (var index127 = 0; index127 < array128.length; index127++) {
-                            var childPiece = array128[index127];
-                            {
-                                childPiece.removePropertyChangeListener(furnitureChangeListener);
-                            }
-                        }
-                    }
+                    piece.getAllFurniture().forEach(function (childPiece) {
+                        childPiece.removePropertyChangeListener(furnitureChangeListener);
+                    });
                 }
             }
             _this.sortedLevelFurniture = null;
@@ -646,52 +512,7 @@ var PlanComponent = (function () {
         var wallChangeListener = {
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "X_START", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "X_END", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "Y_START", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "Y_END", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "WALL_AT_START", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "WALL_AT_END", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "THICKNESS", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "ARC_EXTENT", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "PATTERN", propertyName)) {
+                if ("X_START" == propertyName || "X_END" == propertyName || "Y_START" == propertyName || "Y_END" == propertyName || "WALL_AT_START" == propertyName || "WALL_AT_END" == propertyName || "THICKNESS" == propertyName || "ARC_EXTENT" == propertyName || "PATTERN" == propertyName) {
                     if (_this.home.isAllLevelsSelection()) {
                         _this.otherLevelsWallAreaCache = null;
                         _this.otherLevelsWallsCache = null;
@@ -700,22 +521,7 @@ var PlanComponent = (function () {
                     _this.doorOrWindowWallThicknessAreasCache = null;
                     _this.revalidate();
                 }
-                else if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "LEVEL", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "HEIGHT", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "HEIGHT_AT_END", propertyName)) {
+                else if ("LEVEL" == propertyName || "HEIGHT" == propertyName || "HEIGHT_AT_END" == propertyName) {
                     _this.otherLevelsWallAreaCache = null;
                     _this.otherLevelsWallsCache = null;
                     _this.wallAreasCache = null;
@@ -748,83 +554,13 @@ var PlanComponent = (function () {
         var roomChangeListener = {
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "POINTS", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "NAME", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "NAME_X_OFFSET", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "NAME_Y_OFFSET", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "NAME_STYLE", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "NAME_ANGLE", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "AREA_VISIBLE", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "AREA_X_OFFSET", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "AREA_Y_OFFSET", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "AREA_STYLE", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "AREA_ANGLE", propertyName)) {
+                if ("POINTS" == propertyName || "NAME" == propertyName || "NAME_X_OFFSET" == propertyName || "NAME_Y_OFFSET" == propertyName || "NAME_STYLE" == propertyName || "NAME_ANGLE" == propertyName || "AREA_VISIBLE" == propertyName || "AREA_X_OFFSET" == propertyName || "AREA_Y_OFFSET" == propertyName || "AREA_STYLE" == propertyName || "AREA_ANGLE" == propertyName) {
                     _this.sortedLevelRooms = null;
                     _this.otherLevelsRoomAreaCache = null;
                     _this.otherLevelsRoomsCache = null;
                     _this.revalidate();
                 }
-                else if (_this.preferences.isRoomFloorColoredOrTextured() && ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "FLOOR_COLOR", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "FLOOR_TEXTURE", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "FLOOR_VISIBLE", propertyName))) {
+                else if (_this.preferences.isRoomFloorColoredOrTextured() && ("FLOOR_COLOR" == propertyName || "FLOOR_TEXTURE" == propertyName || "FLOOR_VISIBLE" == propertyName)) {
                     _this.repaint();
                 }
             }
@@ -853,17 +589,7 @@ var PlanComponent = (function () {
         var changeListener = {
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "COLOR", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "DASH_STYLE", propertyName)) {
+                if ("COLOR" == propertyName || "DASH_STYLE" == propertyName) {
                     _this.repaint();
                 }
                 else {
@@ -934,31 +660,7 @@ var PlanComponent = (function () {
         var levelChangeListener = {
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "BACKGROUND_IMAGE", propertyName)) {
-                    _this.backgroundImageCache = null;
-                    _this.revalidate();
-                }
-                else if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "ELEVATION", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "ELEVATION_INDEX", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "VIEWABLE", propertyName)) {
+                if ("BACKGROUND_IMAGE" == propertyName || "ELEVATION" == propertyName || "ELEVATION_INDEX" == propertyName || "VIEWABLE" == propertyName) {
                     _this.backgroundImageCache = null;
                     _this.otherLevelsWallAreaCache = null;
                     _this.otherLevelsWallsCache = null;
@@ -997,42 +699,7 @@ var PlanComponent = (function () {
         home.getObserverCamera().addPropertyChangeListener({
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "X", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "Y", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "FIELD_OF_VIEW", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "YAW", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "WIDTH", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "DEPTH", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "HEIGHT", propertyName)) {
+                if ("X" == propertyName || "Y" == propertyName || "FIELD_OF_VIEW" == propertyName || "YAW" == propertyName || "WIDTH" == propertyName || "DEPTH" == propertyName || "HEIGHT" == propertyName) {
                     _this.revalidate();
                 }
             }
@@ -1040,32 +707,7 @@ var PlanComponent = (function () {
         home.getCompass().addPropertyChangeListener({
             propertyChange: function (ev) {
                 var propertyName = ev.getPropertyName();
-                if ((function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "X", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "Y", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "NORTH_DIRECTION", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "DIAMETER", propertyName) || (function (o1, o2) { if (o1 && o1.equals) {
-                    return o1.equals(o2);
-                }
-                else {
-                    return o1 === o2;
-                } })(/* name */ "VISIBLE", propertyName)) {
+                if ("X" == propertyName || "Y" == propertyName || "NORTH_DIRECTION" == propertyName || "DIAMETER" == propertyName || "VISIBLE" == propertyName) {
                     _this.revalidate();
                 }
             }
@@ -1940,7 +1582,7 @@ var PlanComponent = (function () {
             return this.getForeground();
         }
         else {
-            return Color.BLACK;
+            return "#000000";
         }
     };
     /**
@@ -1953,7 +1595,7 @@ var PlanComponent = (function () {
             return this.getBackground();
         }
         else {
-            return Color.WHITE;
+            return "#FFFFFF";
         }
     };
     /**
@@ -2110,7 +1752,7 @@ var PlanComponent = (function () {
             }
             if (!(this.otherLevelsRoomsCache.length == 0)) {
                 var oldComposite = this.setTransparency(g2D, this.preferences.isGridVisible() ? 0.2 : 0.1);
-                g2D.setPaint(Color.GRAY);
+                g2D.setPaint("#808080");
                 g2D.fill(this.otherLevelsRoomAreaCache);
                 g2D.setComposite(oldComposite);
             }
@@ -2400,13 +2042,13 @@ var PlanComponent = (function () {
         this.checkCurrentThreadIsntInterrupted(paintMode);
         console.log("painting labels");
         //this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
-        //        if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
-        //          console.log("painting outline");
-        //            this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-        //            this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-        //            this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-        //            this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
-        //        }
+        if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
+            console.log("painting outline");
+            //this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+            this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+            this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+            this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+        }
     };
     /**
      * Returns the color used to draw selection outlines.
@@ -2430,7 +2072,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.getFurnitureOutlineColor = function () {
         //return <string>new String((this.getForeground().getRGB() & 16777215) | 1426063360, true);
-        return Color.BLACK;
+        return "#808080";
     };
     /**
      * Paints rooms.
@@ -2444,94 +2086,82 @@ var PlanComponent = (function () {
     PlanComponent.prototype.paintRooms = function (g2D, selectedItems, planScale, foregroundColor, paintMode) {
         var _this = this;
         if (this.sortedLevelRooms == null) {
-            this.sortedLevelRooms = ([]);
-            {
-                var array162 = this.home.getRooms();
-                for (var index161 = 0; index161 < array162.length; index161++) {
-                    var room = array162[index161];
-                    {
-                        if (this.isViewableAtSelectedLevel(room)) {
-                            /* add */ (this.sortedLevelRooms.push(room) > 0);
-                        }
-                    }
+            this.sortedLevelRooms = [];
+            this.home.getRooms().forEach(function (room) {
+                if (_this.isViewableAtSelectedLevel(room)) {
+                    _this.sortedLevelRooms.push(room);
                 }
-            }
-            /* sort */ (function (l, c) { if (c.compare)
-                l.sort(function (e1, e2) { return c.compare(e1, e2); });
-            else
-                l.sort(c); })(this.sortedLevelRooms, new PlanComponent.PlanComponent$23(this));
+            });
+            sortArray(this.sortedLevelRooms, new PlanComponent.PlanComponent$23(this));
         }
-        var defaultFillPaint = paintMode === PlanComponent.PaintMode.PRINT ? Color.WHITE : Color.GRAY;
+        var defaultFillPaint = paintMode === PlanComponent.PaintMode.PRINT ? "#000000" : "#808080";
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Room, paintMode) / planScale));
-        var _loop_1 = function(index163) {
-            var room = this_1.sortedLevelRooms[index163];
-            {
-                var selectedRoom = (selectedItems.indexOf((room)) >= 0);
-                if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
-                    g2D.setPaint(defaultFillPaint);
-                    var textureAngle = 0;
-                    if (this_1.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
-                        if (room.getFloorColor() != null) {
-                            g2D.setPaint(room.getFloorColor());
-                        }
-                        else {
-                            var floorTexture_1 = room.getFloorTexture();
-                            if (floorTexture_1 != null) {
-                                if (this_1.floorTextureImagesCache == null) {
-                                    this_1.floorTextureImagesCache = ({});
-                                }
-                                var textureImage = this_1.floorTextureImagesCache[floorTexture_1.getImage().getURL()];
-                                if (textureImage == null) {
-                                    console.error(" -> loading texture : " + floorTexture_1.getImage().getURL());
-                                    textureImage = PlanComponent.WAIT_TEXTURE_IMAGE;
-                                    //                                    console.info("====> "+textureImage);
-                                    this_1.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = textureImage;
-                                    var waitForTexture_1 = paintMode !== PlanComponent.PaintMode.PAINT;
-                                    //                                    if(PlanComponent.isTextureManagerAvailable()) {
-                                    TextureManager.getInstance().loadTexture(floorTexture_1.getImage(), waitForTexture_1, {
-                                        textureUpdated: function (texture) {
-                                            _this.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = texture;
-                                            console.error(" -> recieved texture : " + floorTexture_1.getImage().getURL());
-                                            if (!waitForTexture_1) {
-                                                _this.repaint();
-                                            }
-                                        },
-                                        textureError: function () {
-                                            _this.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = PlanComponent.ERROR_TEXTURE_IMAGE;
-                                        },
-                                        progression: function () { }
-                                    });
-                                }
-                                var textureWidth = floorTexture_1.getWidth();
-                                var textureHeight = floorTexture_1.getHeight();
-                                if (textureWidth === -1 || textureHeight === -1) {
-                                    textureWidth = 100;
-                                    textureHeight = 100;
-                                }
-                                var textureScale = floorTexture_1.getScale();
-                                textureAngle = floorTexture_1.getAngle();
-                                var cosAngle = Math.cos(textureAngle);
-                                var sinAngle = Math.sin(textureAngle);
-                                //g2D.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Double(floorTexture.getXOffset() * textureWidth * textureScale * cosAngle - floorTexture.getYOffset() * textureHeight * textureScale * sinAngle, -floorTexture.getXOffset() * textureWidth * textureScale * sinAngle - floorTexture.getYOffset() * textureHeight * textureScale * cosAngle, textureWidth * textureScale, textureHeight * textureScale)));
-                                g2D.setPaint(g2D.createPattern(textureImage));
+        var _loop_1 = function(i) {
+            var room = this_1.sortedLevelRooms[i];
+            var selectedRoom = selectedItems.indexOf(room) >= 0;
+            if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
+                g2D.setPaint(defaultFillPaint);
+                var textureAngle = 0;
+                if (this_1.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
+                    if (room.getFloorColor() != null) {
+                        g2D.setPaint(room.getFloorColor());
+                    }
+                    else {
+                        var floorTexture_1 = room.getFloorTexture();
+                        if (floorTexture_1 != null) {
+                            if (this_1.floorTextureImagesCache == null) {
+                                this_1.floorTextureImagesCache = {};
                             }
+                            var textureImage = this_1.floorTextureImagesCache[floorTexture_1.getImage().getURL()];
+                            if (textureImage == null) {
+                                console.error(" -> loading texture : " + floorTexture_1.getImage().getURL());
+                                textureImage = PlanComponent.WAIT_TEXTURE_IMAGE;
+                                //                                    console.info("====> "+textureImage);
+                                this_1.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = textureImage;
+                                var waitForTexture_1 = paintMode !== PlanComponent.PaintMode.PAINT;
+                                TextureManager.getInstance().loadTexture(floorTexture_1.getImage(), waitForTexture_1, {
+                                    textureUpdated: function (texture) {
+                                        _this.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = texture;
+                                        console.error(" -> recieved texture : " + floorTexture_1.getImage().getURL());
+                                        if (!waitForTexture_1) {
+                                            _this.repaint();
+                                        }
+                                    },
+                                    textureError: function () {
+                                        _this.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = PlanComponent.ERROR_TEXTURE_IMAGE;
+                                    },
+                                    progression: function () { }
+                                });
+                            }
+                            var textureWidth = floorTexture_1.getWidth();
+                            var textureHeight = floorTexture_1.getHeight();
+                            if (textureWidth === -1 || textureHeight === -1) {
+                                textureWidth = 100;
+                                textureHeight = 100;
+                            }
+                            var textureScale = floorTexture_1.getScale();
+                            textureAngle = floorTexture_1.getAngle();
+                            var cosAngle = Math.cos(textureAngle);
+                            var sinAngle = Math.sin(textureAngle);
+                            //g2D.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Double(floorTexture.getXOffset() * textureWidth * textureScale * cosAngle - floorTexture.getYOffset() * textureHeight * textureScale * sinAngle, -floorTexture.getXOffset() * textureWidth * textureScale * sinAngle - floorTexture.getYOffset() * textureHeight * textureScale * cosAngle, textureWidth * textureScale, textureHeight * textureScale)));
+                            g2D.setPaint(g2D.createPattern(textureImage));
                         }
                     }
-                    var oldComposite = this_1.setTransparency(g2D, 0.75);
-                    g2D.rotate(textureAngle, 0, 0);
-                    var rotation = textureAngle !== 0 ? java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0) : null;
-                    var roomShape = ShapeTools.getShape(room.getPoints(), true, rotation);
-                    this_1.fillShape(g2D, roomShape, paintMode);
-                    g2D.setComposite(oldComposite);
-                    g2D.setPaint(foregroundColor);
-                    g2D.draw(roomShape);
-                    g2D.rotate(-textureAngle, 0, 0);
                 }
+                var oldComposite = this_1.setTransparency(g2D, 0.75);
+                g2D.rotate(textureAngle, 0, 0);
+                var rotation = textureAngle !== 0 ? java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0) : null;
+                var roomShape = ShapeTools.getShape(room.getPoints(), true, rotation);
+                this_1.fillShape(g2D, roomShape, paintMode);
+                g2D.setComposite(oldComposite);
+                g2D.setPaint(foregroundColor);
+                g2D.draw(roomShape);
+                g2D.rotate(-textureAngle, 0, 0);
             }
         };
         var this_1 = this;
-        for (var index163 = 0; index163 < this.sortedLevelRooms.length; index163++) {
-            _loop_1(index163);
+        for (var i = 0; i < this.sortedLevelRooms.length; i++) {
+            _loop_1(i);
         }
     };
     /**
@@ -3270,10 +2900,11 @@ var PlanComponent = (function () {
     /**
      * Returns areas matching the union of <code>walls</code> shapes sorted by pattern.
      * @param {Wall[]} walls
-     * @return {Object}
+     * @return {Object} Map<Collection<Wall>, Area>
      * @private
      */
     PlanComponent.prototype.getWallAreas = function (walls) {
+        var _this = this;
         if (walls === undefined) {
             if (this.wallAreasCache === undefined) {
                 return this.wallAreasCache = this.getWallAreas(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
@@ -3304,35 +2935,32 @@ var PlanComponent = (function () {
                     } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(wallAreas, walls, this.getItemsArea(walls));
             }
             else {
-                var sortedWalls = ({});
-                for (var index176 = 0; index176 < walls.length; index176++) {
-                    var wall = walls[index176];
-                    {
-                        var wallPattern = wall.getPattern();
-                        if (wallPattern == null) {
-                            wallPattern = this.preferences.getWallPattern();
-                        }
-                        var patternWalls = (function (m, k) { if (m.entries == null)
+                var sortedWalls_1 = {};
+                walls.forEach(function (wall) {
+                    var wallPattern = wall.getPattern();
+                    if (wallPattern == null) {
+                        wallPattern = _this.preferences.getWallPattern();
+                    }
+                    var patternWalls = (function (m, k) { if (m.entries == null)
+                        m.entries = []; for (var i = 0; i < m.entries.length; i++)
+                        if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
+                            return m.entries[i].value;
+                        } return null; })(sortedWalls_1, wallPattern);
+                    if (patternWalls == null) {
+                        patternWalls = ([]);
+                        /* put */ (function (m, k, v) { if (m.entries == null)
                             m.entries = []; for (var i = 0; i < m.entries.length; i++)
                             if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                                return m.entries[i].value;
-                            } return null; })(sortedWalls, wallPattern);
-                        if (patternWalls == null) {
-                            patternWalls = ([]);
-                            /* put */ (function (m, k, v) { if (m.entries == null)
-                                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                                    m.entries[i].value = v;
-                                    return;
-                                } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(sortedWalls, wallPattern, patternWalls);
-                        }
-                        /* add */ (patternWalls.push(wall) > 0);
+                                m.entries[i].value = v;
+                                return;
+                            } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(sortedWalls_1, wallPattern, patternWalls);
                     }
-                }
+                    patternWalls.push(wall);
+                });
                 {
                     var array178 = (function (m) { var r = []; if (m.entries == null)
                         m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                        r.push(m.entries[i].value); return r; })(sortedWalls);
+                        r.push(m.entries[i].value); return r; })(sortedWalls_1);
                     for (var index177 = 0; index177 < array178.length; index177++) {
                         var patternWalls = array178[index177];
                         {
@@ -3356,14 +2984,8 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.getItemsArea = function (items) {
-        // TODO: use forEach
         var itemsArea = new java.awt.geom.Area();
-        for (var index179 = 0; index179 < items.length; index179++) {
-            var item = items[index179];
-            {
-                itemsArea.add(new java.awt.geom.Area(ShapeTools.getShape(item.getPoints(), true, null)));
-            }
-        }
+        items.forEach(function (item) { return itemsArea.add(new java.awt.geom.Area(ShapeTools.getShape(item.getPoints(), true, null))); });
         return itemsArea;
     };
     /**

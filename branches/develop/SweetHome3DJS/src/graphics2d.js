@@ -249,69 +249,78 @@ var Graphics2D = (function () {
     };
     return Graphics2D;
 }());
-/* Generated from Java with JSweet 1.2.0-SNAPSHOT - http://www.jsweet.org */
-var java;
-(function (java) {
-    var awt;
-    (function (awt) {
-        var Image = (function () {
-            function Image(src) {
-                this.source = document.createElement("img");
-                this.source.src = src;
-            }
-            Image.prototype.getWidth = function (observer) {
-                var _this = this;
-                if (((observer != null && (observer["__interfaces"] != null && observer["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0 || observer.constructor != null && observer.constructor["__interfaces"] != null && observer.constructor["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0)) || observer === null)) {
-                    var __args = Array.prototype.slice.call(arguments);
-                    return (function () {
-                        return (_this.source.width | 0);
-                    })();
-                }
-                else
-                    throw new Error('invalid overload');
-            };
-            Image.prototype.getHeight = function (observer) {
-                var _this = this;
-                if (((observer != null && (observer["__interfaces"] != null && observer["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0 || observer.constructor != null && observer.constructor["__interfaces"] != null && observer.constructor["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0)) || observer === null)) {
-                    var __args = Array.prototype.slice.call(arguments);
-                    return (function () {
-                        return (_this.source.height | 0);
-                    })();
-                }
-                else
-                    throw new Error('invalid overload');
-            };
-            Image.prototype.flush = function () {
-            };
-            /**
-             * Use the default image-scaling algorithm.
-             *
-             * @since JDK1.1
-             */
-            Image.SCALE_DEFAULT = 1;
-            /**
-             * Choose an image-scaling algorithm that gives higher priority to scaling
-             * speed than smoothness of the scaled image.
-             *
-             * @since JDK1.1
-             */
-            Image.SCALE_FAST = 2;
-            Image.SCALE_SMOOTH = 4;
-            Image.SCALE_REPLICATE = 8;
-            Image.SCALE_AREA_AVERAGING = 16;
-            return Image;
-        }());
-        awt.Image = Image;
-        Image["__class"] = "java.awt.Image";
-    })(awt = java.awt || (java.awt = {}));
-})(java || (java = {}));
-// TODO: remove - we have these in JS
-var Color = (function () {
-    function Color() {
-    }
-    Color.WHITE = "#FFFFFF";
-    Color.BLACK = "#000000";
-    Color.GRAY = "#808080";
-    Color.RED = "#FF0000";
-    return Color;
-}());
+//namespace java.awt {
+//  export interface Paint { }
+//
+//  export interface Stroke { }
+//}
+//
+//namespace java.awt.image {
+//    /**
+//     * RenderedImage is a common interface for objects which contain
+//     * or can produce image data in the form of Rasters.  The image
+//     * data may be stored/produced as a single tile or a regular array
+//     * of tiles.
+//     */
+//    export interface RenderedImage {
+//        getWidth(observer? : any) : any;
+//
+//        getHeight(observer? : any) : any;
+//    }
+//}
+///* Generated from Java with JSweet 1.2.0-SNAPSHOT - http://www.jsweet.org */
+//namespace java.awt {
+//    export class Image {
+//        public constructor(src : string) {
+//            this.source = document.createElement("img");
+//            this.source.src = src;
+//        }
+//
+//        public getWidth(observer? : any) : any {
+//            if(((observer != null && (observer["__interfaces"] != null && observer["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0 || observer.constructor != null && observer.constructor["__interfaces"] != null && observer.constructor["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0)) || observer === null)) {
+//                let __args = Array.prototype.slice.call(arguments);
+//                return <any>(() => {
+//                    return (<number>this.source.width|0);
+//                })();
+//            } else throw new Error('invalid overload');
+//        }
+//
+//        public getHeight(observer? : any) : any {
+//            if(((observer != null && (observer["__interfaces"] != null && observer["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0 || observer.constructor != null && observer.constructor["__interfaces"] != null && observer.constructor["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0)) || observer === null)) {
+//                let __args = Array.prototype.slice.call(arguments);
+//                return <any>(() => {
+//                    return (<number>this.source.height|0);
+//                })();
+//            } else throw new Error('invalid overload');
+//        }
+//
+//        public source : HTMLImageElement;
+//
+//        /**
+//         * Use the default image-scaling algorithm.
+//         * 
+//         * @since JDK1.1
+//         */
+//        public static SCALE_DEFAULT : number = 1;
+//
+//        /**
+//         * Choose an image-scaling algorithm that gives higher priority to scaling
+//         * speed than smoothness of the scaled image.
+//         * 
+//         * @since JDK1.1
+//         */
+//        public static SCALE_FAST : number = 2;
+//
+//        public static SCALE_SMOOTH : number = 4;
+//
+//        public static SCALE_REPLICATE : number = 8;
+//
+//        public static SCALE_AREA_AVERAGING : number = 16;
+//
+//        public flush() {
+//        }
+//    }
+//    Image["__class"] = "java.awt.Image";
+//
+//}
+//
