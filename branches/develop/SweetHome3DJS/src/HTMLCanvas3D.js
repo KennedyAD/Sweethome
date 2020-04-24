@@ -23,7 +23,8 @@
 
 /**
  * Creates a canvas 3D bound to HTML canvas with the given id.
- * @param {string}  canvasId  the value of the id attribute of the canvas bound to this component
+ * @param {string|HTMLCanvasElement}  canvasId  the value of the id attribute of the canvas bound 
+ *                     to this component or the canvas itself
  * @constructor
  * @author Emmanuel Puybaret
  */
@@ -36,9 +37,12 @@ function HTMLCanvas3D(canvasId) {
   this.fieldOfView = Math.PI * 45 / 180;
   this.frontClipDistance = 0.1;
   this.backClipDistance = 100; 
+  this.projectionPolicy = HTMLCanvas3D.PERSPECTIVE_PROJECTION;
   
   // Initialize WebGL
-  this.canvas = document.getElementById(canvasId);
+  this.canvas = typeof canvasId === 'string' 
+     ? document.getElementById(canvasId)
+     : canvasId;
   this.gl = this.canvas.getContext("webgl");
   if (!this.gl) {
     this.gl = this.canvas.getContext("experimental-webgl");
@@ -233,6 +237,9 @@ HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT = 16;
 HTMLCanvas3D.VEC4_DEFAULT_PLANE_S = vec4.fromValues(1, 0, 0, 0);
 HTMLCanvas3D.VEC4_DEFAULT_PLANE_T = vec4.fromValues(0, 1, 0, 0);
 HTMLCanvas3D.MAT3_IDENTITY = mat3.create();
+
+HTMLCanvas3D.PARALLEL_PROJECTION = 0;
+HTMLCanvas3D.PERSPECTIVE_PROJECTION = 1; 
 
 /**
  * Returns a shader from the given source code.
@@ -876,7 +883,10 @@ HTMLCanvas3D.prototype.prepareBuffer = function(data, indices) {
  */
 HTMLCanvas3D.prototype.drawScene = function() {
   this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
-  this.gl.clearColor(0.9, 0.9, 0.9, 1.0);
+  var backgroundColor = getComputedStyle(this.canvas).backgroundColor;
+  // Parse R G B components
+  backgroundColor = backgroundColor.substring(4, backgroundColor.length - 1).replace(/ /g, '').split(',');
+  this.gl.clearColor(backgroundColor [0] / 256., backgroundColor [1] / 256., backgroundColor [2] / 256., 1.0);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
   
   // Set lights
@@ -915,8 +925,13 @@ HTMLCanvas3D.prototype.drawScene = function() {
   var verticalFieldOfView = 2 * Math.atan(this.viewportHeight / this.viewportWidth * Math.tan(this.fieldOfView / 2));
   // First draw background geometries (contained in a unit sphere)
   var projectionTransform = mat4.create();
-  mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight, 
-                   0.001, 1.0);
+  if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
+    mat4.ortho(projectionTransform, -this.viewportWidth /128, this.viewportWidth /128, -this.viewportHeight /128, this.viewportHeight /128, 
+        0.001, 1.0);
+  } else {
+    mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight, 
+        0.001, 1.0);
+  }
   this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
   // Translate to center
   var backgroundTransform = mat4.clone(this.viewPlatformTransform);
@@ -931,8 +946,13 @@ HTMLCanvas3D.prototype.drawScene = function() {
 
   // Reset depth buffer to draw the scene above background
   this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
-  mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight,  
-                   this.frontClipDistance, this.backClipDistance); 
+  if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
+    mat4.ortho(projectionTransform, -this.viewportWidth / 256, this.viewportWidth / 256, -this.viewportHeight / 256, this.viewportHeight / 256,   
+        this.frontClipDistance, this.backClipDistance);
+  } else {
+    mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight,  
+        this.frontClipDistance, this.backClipDistance);
+  }
   this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
 
   // Second draw opaque geometries
@@ -1229,7 +1249,15 @@ HTMLCanvas3D.prototype.clearGeometries = function(geometries) {
   }
   geometries.length = 0;
 }
-  
+
+/**
+ * Sets the projection policy of this canvas.
+ * @param {number} projectionPolicy PARALLEL_PROJECTION or PERSPECTIVE_PROJECTION 
+ */
+HTMLCanvas3D.prototype.setProjectionPolicy = function(projectionPolicy) {
+  this.projectionPolicy = projectionPolicy;
+}
+
 /**
  * Sets whether shininess should be taken into account by the shader or not.
  */
@@ -1279,8 +1307,13 @@ HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
     // Convert horizontal field of view to vertical
     var projectionTransform = mat4.create();
     var verticalFieldOfView = 2 * Math.atan(this.canvas.height / this.canvas.width * Math.tan(this.fieldOfView / 2));
-    mat4.perspective(projectionTransform, verticalFieldOfView, this.canvas.width / this.canvas.height,  
-        this.frontClipDistance, this.backClipDistance); 
+    if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
+      mat4.ortho(projectionTransform, -this.canvas.width / 256, this.canvas.width / 256, -this.canvas.height / 256, this.canvas.height / 256,  
+          this.frontClipDistance, this.backClipDistance);
+    } else {
+      mat4.perspective(projectionTransform, verticalFieldOfView, this.canvas.width / this.canvas.height,  
+          this.frontClipDistance, this.backClipDistance);
+    }
     this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
     
     // Draw not background and opaque geometries without light and textures
