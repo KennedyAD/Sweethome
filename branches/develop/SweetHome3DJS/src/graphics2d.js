@@ -122,10 +122,17 @@ var Graphics2D = (function () {
         return true;
     };
     Graphics2D.prototype.getClip = function () {
-        return this.clip;
+        return this._clip;
     };
     Graphics2D.prototype.setClip = function (clip) {
-        this.clip = clip;
+        this._clip = clip;
+        if (clip != null) {
+            this.createPathFromShape(clip);
+            this.context.clip();
+        }
+    };
+    Graphics2D.prototype.clip = function (clip) {
+        this._clip = clip;
         if (clip != null) {
             this.createPathFromShape(clip);
             this.context.clip();
@@ -184,6 +191,12 @@ var Graphics2D = (function () {
     };
     Graphics2D.prototype.setComposite = function (c) {
         this.setColor(c);
+    };
+    Graphics2D.prototype.setAlpha = function (alpha) {
+        this.context.globalAlpha = alpha;
+    };
+    Graphics2D.prototype.getAlpha = function () {
+        return this.context.globalAlpha;
     };
     Graphics2D.prototype.rotate = function (theta, x, y) {
         if (typeof x === 'number' && typeof y === 'number') {

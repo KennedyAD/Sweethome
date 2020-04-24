@@ -144,14 +144,22 @@ class Graphics2D {
     return true;
   }
 
-  clip: java.awt.Shape;
+  _clip: java.awt.Shape;
 
   public getClip(): java.awt.Shape {
-    return this.clip;
+    return this._clip;
   }
 
   public setClip(clip: java.awt.Shape) {
-    this.clip = clip;
+    this._clip = clip;
+    if (clip != null) {
+      this.createPathFromShape(clip);
+      this.context.clip();
+    }
+  }
+
+  public clip(clip: java.awt.Shape) {
+    this._clip = clip;
     if (clip != null) {
       this.createPathFromShape(clip);
       this.context.clip();
@@ -223,6 +231,14 @@ class Graphics2D {
 
   public setComposite(c : string) {
     this.setColor(c);
+  }
+
+  public setAlpha(alpha : number) {
+    this.context.globalAlpha = alpha;
+  }
+  
+  public getAlpha() : number {
+    return this.context.globalAlpha;
   }
 
   public rotate(theta: number, x?: number, y?: number): any {

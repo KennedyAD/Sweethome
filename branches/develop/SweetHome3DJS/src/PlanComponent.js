@@ -364,16 +364,14 @@ var PlanComponent = (function () {
     };
     PlanComponent.prototype.repaint = function () {
         var _this = this;
-        console.error("<<painting request>> - " + this.canvasNeededRepaint);
         if (!this.canvasNeededRepaint) {
             this.canvasNeededRepaint = true;
             requestAnimationFrame(function () {
                 if (_this.canvasNeededRepaint) {
-                    console.error("<<painting>>");
+                    //console.error("<<painting>>");
                     var t = Date.now();
                     _this.canvasNeededRepaint = false;
                     _this.paintComponent(_this.getGraphics());
-                    console.error("<<end painting>> - " + (Date.now() - t));
                 }
             });
         }
@@ -1357,7 +1355,6 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g
      */
     PlanComponent.prototype.paintComponent = function (g2D) {
-        console.log("painting component");
         if (this.backgroundPainted) {
             this.paintBackground(g2D, this.getBackgroundColor(PlanComponent.PaintMode.PAINT));
         }
@@ -1526,7 +1523,7 @@ var PlanComponent = (function () {
                 }
                 g2D.drawImage(this.backgroundImageCache != null ? this.backgroundImageCache : this.readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory_1), 0, 0, this);
                 if (!prepareBackgroundImageWithAlphaInMemory_1) {
-                    g2D.setComposite(oldComposite);
+                    g2D.setAlpha(oldComposite);
                 }
                 g2D.setTransform(previousTransform);
             }
@@ -1716,12 +1713,12 @@ var PlanComponent = (function () {
                 var oldComposite = this.setTransparency(g2D, this.preferences.isGridVisible() ? 0.2 : 0.1);
                 g2D.setPaint("#808080");
                 g2D.fill(this.otherLevelsRoomAreaCache);
-                g2D.setComposite(oldComposite);
+                g2D.setAlpha(oldComposite);
             }
             if (!(this.otherLevelsWallsCache.length == 0)) {
                 var oldComposite = this.setTransparency(g2D, this.preferences.isGridVisible() ? 0.2 : 0.1);
                 this.fillAndDrawWallsArea(g2D, this.otherLevelsWallAreaCache, planScale, this.getWallPaint(g2D, planScale, backgroundColor, foregroundColor, this.preferences.getNewWallPattern()), foregroundColor, PlanComponent.PaintMode.PAINT);
-                g2D.setComposite(oldComposite);
+                g2D.setAlpha(oldComposite);
             }
         }
     };
@@ -1733,12 +1730,14 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.setTransparency = function (g2D, alpha) {
-        var oldComposite = g2D.getColor();
-        if (oldComposite.length === 7) {
-            oldComposite += "FF";
-        }
-        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
-        return oldComposite;
+        var oldAlpha = g2D.getAlpha();
+        //        if(oldComposite.length === 7) {
+        //          oldComposite += "FF";
+        //        }
+        //        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
+        //        return oldComposite;
+        g2D.setAlpha(alpha);
+        return oldAlpha;
     };
     /**
      * Paints background grid lines.
@@ -1978,34 +1977,25 @@ var PlanComponent = (function () {
         var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
-        console.log("painting compass");
+        //console.log("painting home elements");
         this.paintCompass(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting rooms");
         this.paintRooms(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting walls");
         this.paintWalls(g2D, selectedItems, planScale, backgroundColor, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting furniture");
         this.paintFurniture(g2D, this.sortedLevelFurniture, selectedItems, planScale, backgroundColor, foregroundColor, this.getFurnitureOutlineColor(), paintMode, true);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting polylines");
         //this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, selectionOutlinePaint, selectionColor, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting dimension lines");
         //this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting room names");
         //this.paintRoomsNameAndArea(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting furniture name");
         //this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting labels");
         //this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
         if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
-            console.log("painting outline");
             //this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
             this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
             this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
@@ -2066,7 +2056,7 @@ var PlanComponent = (function () {
                 var textureAngle = 0;
                 if (this_1.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                     if (room.getFloorColor() != null) {
-                        g2D.setPaint(room.getFloorColor());
+                        g2D.setPaint((room.getFloorColor() & 0xFFFFFF).toString(16));
                     }
                     else {
                         var floorTexture_1 = room.getFloorTexture();
@@ -2115,7 +2105,7 @@ var PlanComponent = (function () {
                 var rotation = textureAngle !== 0 ? java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0) : null;
                 var roomShape = ShapeTools.getShape(room.getPoints(), true, rotation);
                 this_1.fillShape(g2D, roomShape, paintMode);
-                g2D.setComposite(oldComposite);
+                g2D.setAlpha(oldComposite);
                 g2D.setPaint(foregroundColor);
                 g2D.draw(roomShape);
                 g2D.rotate(-textureAngle, 0, 0);
@@ -2658,7 +2648,7 @@ var PlanComponent = (function () {
             }
         }
         if (oldComposite != null) {
-            g2D.setComposite(oldComposite);
+            g2D.setAlpha(oldComposite);
         }
     };
     /**
@@ -3334,7 +3324,7 @@ var PlanComponent = (function () {
             var oldComposite = this.setTransparency(g2D, 0.6);
             g2D.setPaint(selectionOutlinePaint);
             g2D.fill(furnitureGroupsArea);
-            g2D.setComposite(oldComposite);
+            g2D.setAlpha(oldComposite);
         }
         for (var index186 = 0; index186 < furniture.length; index186++) {
             var piece = furniture[index186];
@@ -3387,7 +3377,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintPieceOfFurnitureIcon = function (g2D, piece, pieceShape2D, planScale, backgroundColor) {
         var _this = this;
-        if (this.furnitureIconsCache === undefined) {
+        if (this.furnitureIconsCache == null) {
             this.furnitureIconsCache = {};
         }
         var image = this.furnitureIconsCache[piece.icon.getURL()];
@@ -3406,8 +3396,36 @@ var PlanComponent = (function () {
                 }
             });
         }
+        // Fill piece area
+        g2D.setPaint(backgroundColor);
+        g2D.fill(pieceShape2D);
+        //let previousClip : java.awt.Shape = g2D.getClip();
+        // Clip icon drawing into piece shape
+        //g2D.clip(pieceShape2D);
+        var previousTransform = g2D.getTransform();
+        // Translate to piece center
         var bounds = pieceShape2D.getBounds2D();
-        g2D.drawImageWithSize(image, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        g2D.translate(bounds.getCenterX(), bounds.getCenterY());
+        var pieceDepth = piece.getDepthInPlan();
+        if (piece instanceof HomeDoorOrWindow) {
+            pieceDepth *= piece.getWallThickness();
+        }
+        // Scale icon to fit in its area
+        var minDimension = Math.min(piece.getWidthInPlan(), pieceDepth);
+        var iconScale = Math.min(1 / planScale, minDimension / image.height);
+        // If piece model is mirrored, inverse x scale
+        if (piece.isModelMirrored()) {
+            g2D.scale(-iconScale, iconScale);
+        }
+        else {
+            g2D.scale(iconScale, iconScale);
+        }
+        // Paint piece icon
+        g2D.drawImage(image, -image.width / 2, -image.height / 2);
+        //icon.paintIcon(this, g2D, -icon.getIconWidth() / 2, -icon.getIconHeight() / 2);
+        // Revert g2D transformation to previous value
+        g2D.setTransform(previousTransform);
+        //g2D.setClip(previousClip);
     };
     /**
      * Paints <code>piece</code> top icon with <code>g2D</code>.
@@ -3779,7 +3797,7 @@ var PlanComponent = (function () {
                         var fontRenderContext = g2D.getFontRenderContext();
                         var textLayout = new java.awt.font.TextLayout(lengthText, font, fontRenderContext);
                         g2D.draw(textLayout.getOutline(new java.awt.geom.AffineTransform()));
-                        g2D.setComposite(oldComposite);
+                        g2D.setAlpha(oldComposite);
                         g2D.setPaint(foregroundColor);
                     }
                     g2D.setFont(font);

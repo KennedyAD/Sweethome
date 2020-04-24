@@ -190,7 +190,7 @@ class PlanComponent implements PlanView {
 
     /*private*/ home : Home;
 
-    /*private*/ preferences : any;
+    /*private*/ preferences : UserPreferences;
 
     /*private*/ object3dFactory : any;
 
@@ -250,7 +250,7 @@ class PlanComponent implements PlanView {
 
     /*private*/ sortedLevelFurniture : Array<any>;
 
-    /*private*/ sortedLevelRooms : Array<any>;
+    /*private*/ sortedLevelRooms : Array<Room>;
 
     /*private*/ fonts : any;
 
@@ -604,17 +604,16 @@ class PlanComponent implements PlanView {
     canvasNeededRepaint : boolean = false;
 
     repaint() : void {
-      console.error("<<painting request>> - "+this.canvasNeededRepaint);
       if (!this.canvasNeededRepaint) {
         this.canvasNeededRepaint = true;
         requestAnimationFrame(
           () => {
             if (this.canvasNeededRepaint) {
-              console.error("<<painting>>");
+              //console.error("<<painting>>");
               var t = Date.now();
               this.canvasNeededRepaint = false;
               this.paintComponent(this.getGraphics()); 
-              console.error("<<end painting>> - " + (Date.now() - t));
+              //console.error("<<end painting>> - " + (Date.now() - t));
             }
           });
         }
@@ -1592,7 +1591,6 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g
      */
     paintComponent(g2D : Graphics2D) {
-      console.log("painting component");
         if(this.backgroundPainted) {
             this.paintBackground(g2D, this.getBackgroundColor(PlanComponent.PaintMode.PAINT));
         }
@@ -1755,13 +1753,13 @@ class PlanComponent implements PlanView {
                 g2D.translate(-backgroundImage.getXOrigin(), -backgroundImage.getYOrigin());
                 let backgroundImageScale : number = backgroundImage.getScale();
                 g2D.scale(backgroundImageScale, backgroundImageScale);
-                let oldComposite : java.awt.Composite = null;
+                let oldComposite : number = null;
                 if(!prepareBackgroundImageWithAlphaInMemory) {
                     oldComposite = this.setTransparency(g2D, 0.7);
                 }
                 g2D.drawImage(this.backgroundImageCache != null?this.backgroundImageCache:this.readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory), 0, 0, this);
                 if(!prepareBackgroundImageWithAlphaInMemory) {
-                    g2D.setComposite(oldComposite);
+                    g2D.setAlpha(oldComposite);
                 }
                 g2D.setTransform(previousTransform);
             }
@@ -1933,15 +1931,15 @@ class PlanComponent implements PlanView {
                 }
             }
             if(!/* isEmpty */(this.otherLevelsRoomsCache.length == 0)) {
-                let oldComposite : string = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
+                let oldComposite : number = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
                 g2D.setPaint("#808080");
                 g2D.fill(this.otherLevelsRoomAreaCache);
-                g2D.setComposite(oldComposite);
+                g2D.setAlpha(oldComposite);
             }
             if(!/* isEmpty */(this.otherLevelsWallsCache.length == 0)) {
-                let oldComposite : string = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
+                let oldComposite : number = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
                 this.fillAndDrawWallsArea(g2D, this.otherLevelsWallAreaCache, planScale, this.getWallPaint(g2D, planScale, backgroundColor, foregroundColor, this.preferences.getNewWallPattern()), foregroundColor, PlanComponent.PaintMode.PAINT);
-                g2D.setComposite(oldComposite);
+                g2D.setAlpha(oldComposite);
             }
         }
     }
@@ -1953,13 +1951,15 @@ class PlanComponent implements PlanView {
      * @return {Object}
      * @private
      */
-    setTransparency(g2D : Graphics2D, alpha : number) : string {
-        let oldComposite : string = g2D.getColor();
-        if(oldComposite.length === 7) {
-          oldComposite += "FF";
-        }
-        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
-        return oldComposite;
+    setTransparency(g2D : Graphics2D, alpha : number) : number {
+        let oldAlpha : number = g2D.getAlpha();
+//        if(oldComposite.length === 7) {
+//          oldComposite += "FF";
+//        }
+//        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
+//        return oldComposite;
+      g2D.setAlpha(alpha);
+      return oldAlpha;
     }
 
     /**
@@ -2179,34 +2179,25 @@ class PlanComponent implements PlanView {
         let selectionOutlineStroke : java.awt.Stroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         let dimensionLinesSelectionOutlineStroke : java.awt.Stroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         let locationFeedbackStroke : java.awt.Stroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
-        console.log("painting compass");
+        //console.log("painting home elements");
         this.paintCompass(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting rooms");
         this.paintRooms(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting walls");
         this.paintWalls(g2D, selectedItems, planScale, backgroundColor, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting furniture");
         this.paintFurniture(g2D, this.sortedLevelFurniture, selectedItems, planScale, backgroundColor, foregroundColor, this.getFurnitureOutlineColor(), paintMode, true);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting polylines");
         //this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, selectionOutlinePaint, selectionColor, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting dimension lines");
         //this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting room names");
         //this.paintRoomsNameAndArea(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting furniture name");
         //this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        console.log("painting labels");
         //this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
         if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
-          console.log("painting outline");
           //this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
           this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
           this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
@@ -2270,7 +2261,7 @@ class PlanComponent implements PlanView {
                     let textureAngle : number = 0;
                     if(this.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                         if(room.getFloorColor() != null) {
-                            g2D.setPaint(room.getFloorColor());
+                            g2D.setPaint((room.getFloorColor() & 0xFFFFFF).toString(16));
                         } else {
                             let floorTexture : any = room.getFloorTexture();
                             if(floorTexture != null) {
@@ -2318,7 +2309,7 @@ class PlanComponent implements PlanView {
                     let rotation : java.awt.geom.AffineTransform = textureAngle !== 0?java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0):null;
                     let roomShape : java.awt.Shape = ShapeTools.getShape(room.getPoints(), true, rotation);
                     this.fillShape(g2D, roomShape, paintMode);
-                    g2D.setComposite(oldComposite);
+                    g2D.setAlpha(oldComposite);
                     g2D.setPaint(foregroundColor);
                     g2D.draw(roomShape);
                     g2D.rotate(-textureAngle, 0, 0);
@@ -2761,7 +2752,7 @@ class PlanComponent implements PlanView {
             wallAreas = this.getWallAreas(this.getDrawableWallsInSelectedLevel(paintedWalls));
         }
         let wallPaintScale : number = paintMode === PlanComponent.PaintMode.PRINT?planScale / 72 * 150:planScale / this.resolutionScale;
-        let oldComposite : string = null;
+        let oldComposite : number = null;
         if(paintMode === PlanComponent.PaintMode.PAINT && this.backgroundPainted && this.backgroundImageCache != null && this.wallsDoorsOrWindowsModification) {
             oldComposite = this.setTransparency(g2D, 0.5);
         }
@@ -2776,7 +2767,7 @@ class PlanComponent implements PlanView {
             }
         }
         if(oldComposite != null) {
-            g2D.setComposite(oldComposite);
+            g2D.setAlpha(oldComposite);
         }
     }
 
@@ -3404,10 +3395,10 @@ class PlanComponent implements PlanView {
         };}
         if(furnitureGroupsArea != null) {
             furnitureGroupsArea.subtract(furnitureInGroupsArea);
-            let oldComposite : java.awt.Composite = this.setTransparency(g2D, 0.6);
+            let oldComposite : number = this.setTransparency(g2D, 0.6);
             g2D.setPaint(selectionOutlinePaint);
             g2D.fill(furnitureGroupsArea);
-            g2D.setComposite(oldComposite);
+            g2D.setAlpha(oldComposite);
         }
         for(let index186=0; index186 < furniture.length; index186++) {
             let piece = furniture[index186];
@@ -3461,27 +3452,57 @@ class PlanComponent implements PlanView {
      * @private
      */
     public paintPieceOfFurnitureIcon(g2D : Graphics2D, piece : HomePieceOfFurniture, pieceShape2D? : java.awt.geom.GeneralPath, planScale? : any, backgroundColor? : any) : any {
-      if(this.furnitureIconsCache === undefined) {
+      if(this.furnitureIconsCache == null) {
         this.furnitureIconsCache = {};
       }
-        var image = this.furnitureIconsCache[piece.icon.getURL()];
-        if(image == null) {
-          image = TextureManager.getInstance().getWaitImage();
-          console.log("paintPieceOfFurnitureIcon: loading "+piece.icon.getURL());
-          TextureManager.getInstance().loadTexture(piece.icon, {
-            textureUpdated: (texture : HTMLImageElement) => {
-              console.log("paintPieceOfFurnitureIcon: loaded "+piece.icon.getURL());
-              this.furnitureIconsCache[piece.icon.getURL()] = texture;
-              this.repaint();
-            },
-            textureError : () => {
-              console.error("icon not found: "+piece.icon.getURL());
-              this.furnitureIconsCache[piece.icon.getURL()] = TextureManager.getInstance().getErrorImage();
-            }
-          });
-        }
-        var bounds = pieceShape2D.getBounds2D(); 
-        g2D.drawImageWithSize(image, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+      var image : HTMLImageElement = this.furnitureIconsCache[piece.icon.getURL()];
+      if(image == null) {
+        image = TextureManager.getInstance().getWaitImage();
+        console.log("paintPieceOfFurnitureIcon: loading "+piece.icon.getURL());
+        TextureManager.getInstance().loadTexture(piece.icon, {
+          textureUpdated: (texture : HTMLImageElement) => {
+            console.log("paintPieceOfFurnitureIcon: loaded "+piece.icon.getURL());
+            this.furnitureIconsCache[piece.icon.getURL()] = texture;
+            this.repaint();
+          },
+          textureError : () => {
+            console.error("icon not found: "+piece.icon.getURL());
+            this.furnitureIconsCache[piece.icon.getURL()] = TextureManager.getInstance().getErrorImage();
+          }
+        });
+      }
+        
+      // Fill piece area
+      g2D.setPaint(backgroundColor);
+      g2D.fill(pieceShape2D);
+  
+      //let previousClip : java.awt.Shape = g2D.getClip();
+      // Clip icon drawing into piece shape
+      //g2D.clip(pieceShape2D);
+      let previousTransform = g2D.getTransform();
+      // Translate to piece center
+      let bounds = pieceShape2D.getBounds2D();
+      g2D.translate(bounds.getCenterX(), bounds.getCenterY());
+      let pieceDepth = piece.getDepthInPlan();
+      if (piece instanceof HomeDoorOrWindow) {
+        pieceDepth *= piece.getWallThickness();
+      }
+      // Scale icon to fit in its area
+      let minDimension = Math.min(piece.getWidthInPlan(), pieceDepth);
+      let iconScale = Math.min(1 / planScale, minDimension / image.height);
+      // If piece model is mirrored, inverse x scale
+      if (piece.isModelMirrored()) {
+        g2D.scale(-iconScale, iconScale);
+      } else {
+        g2D.scale(iconScale, iconScale);
+      }
+      // Paint piece icon
+      g2D.drawImage(image, -image.width / 2, -image.height / 2);
+      //icon.paintIcon(this, g2D, -icon.getIconWidth() / 2, -icon.getIconHeight() / 2);
+      // Revert g2D transformation to previous value
+      g2D.setTransform(previousTransform);
+      //g2D.setClip(previousClip);
+      
     }
 
     /**
@@ -3808,12 +3829,12 @@ class PlanComponent implements PlanView {
                     g2D.translate((dimensionLineLength - <number>lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0?-lengthFontMetrics.getDescent() - 1:fontAscent + 1);
                     if(feedback) {
                         g2D.setPaint(backgroundColor);
-                        let oldComposite : java.awt.Composite = this.setTransparency(g2D, 0.7);
+                        let oldComposite : number = this.setTransparency(g2D, 0.7);
                         g2D.setStroke(new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
                         let fontRenderContext : java.awt.font.FontRenderContext = g2D.getFontRenderContext();
                         let textLayout : java.awt.font.TextLayout = new java.awt.font.TextLayout(lengthText, font, fontRenderContext);
                         g2D.draw(textLayout.getOutline(new java.awt.geom.AffineTransform()));
-                        g2D.setComposite(oldComposite);
+                        g2D.setAlpha(oldComposite);
                         g2D.setPaint(foregroundColor);
                     }
                     g2D.setFont(font);
