@@ -110,7 +110,7 @@ var FontMetrics = (function () {
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
  * @param {UserPreferences} preferences user preferences to retrieve used unit, grid visibility...
- * @param {Object} object3dFactory a factory able to create 3D objects from <code>home</code> furniture.
+ * @param {Object} [object3dFactory] a factory able to create 3D objects from <code>home</code> furniture.
  * The {@link Object3DFactory#createObject3D(Home, Selectable, boolean) createObject3D} of
  * this factory is expected to return an instance of {@link Object3DBranch} in current implementation.
  * @param {PlanController} controller the optional controller used to manage home items modification
@@ -120,6 +120,10 @@ var FontMetrics = (function () {
  */
 var PlanComponent = (function () {
     function PlanComponent(canvasId, home, preferences, object3dFactory, controller) {
+        if (controller === undefined) {
+          controller = object3dFactory;
+          object3dFactory = new Object3DBranchFactory();
+        }
         //painting : boolean = false;
         this.canvasNeededRepaint = false;
         this.canvas = document.getElementById(canvasId);
@@ -5960,3 +5964,231 @@ var PlanComponent;
     SetEditionActivatedAction["__interfaces"] = ["java.util.EventListener", "java.lang.Cloneable", "java.awt.event.ActionListener", "javax.swing.Action", "java.io.Serializable"];
 })(PlanComponent || (PlanComponent = {}));
 PlanComponent.__static_initialize();
+
+
+/**
+ * A proxy for the furniture icon seen from top.
+ * @param {Image} icon
+ * @constructor
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon = function(icon) {
+  this.icon = icon;
+}
+
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.getIconWidth = function() {
+  return this.icon.width;
+}
+
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.getIconHeight = function() {
+  return this.icon.height;
+}
+
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.paintIcon = function(c, g, x, y) {
+  g.drawImage(this.icon, x, y);
+}
+
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.isWaitIcon = function() {
+  return this.icon === TextureManager.getInstance().getWaitImage();
+}
+
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.isErrorIcon = function() {
+  return this.icon === TextureManager.getInstance().getErrorImage();
+}
+
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.setIcon = function(icon) {
+  this.icon = icon;
+}
+
+
+/**
+ * Creates a top view icon proxy for a <code>piece</code> of furniture.
+ * @param {HomePieceOfFurniture} piece an object containing a 3D content
+ * @param {Object} object3dFactory a factory with a <code>createObject3D(home, item, waitForLoading)</code> method
+ * @param {Object} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+ *          be read immediately in the current thread.
+ * @param {number} iconSize the size in pixels of the generated icon
+ * @constructor
+ * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+ */
+PlanComponent.PieceOfFurnitureModelIcon = function(piece, object3dFactory, waitingComponent, iconSize) {
+  PlanComponent.PieceOfFurnitureTopViewIcon.call(this, TextureManager.getInstance().getWaitImage());
+  var _this = this;
+  ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
+      modelUpdated : function(modelRoot) {
+        var normalizedPiece = piece.clone();
+        if (normalizedPiece.isResizable()) {
+            normalizedPiece.setModelMirrored(false);
+        }
+        var pieceWidth = normalizedPiece.getWidthInPlan();
+        var pieceDepth = normalizedPiece.getDepthInPlan();
+        var pieceHeight = normalizedPiece.getHeightInPlan();
+        normalizedPiece.setX(0);
+        normalizedPiece.setY(0);
+        normalizedPiece.setElevation(-pieceHeight / 2);
+        normalizedPiece.setLevel(null);
+        normalizedPiece.setAngle(0);
+        if (waitingComponent !== null) {
+          var _this = this;
+          var updater = function() {
+              _this.setIcon(_this.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
+                  pieceWidth, pieceDepth, pieceHeight, iconSize));
+              waitingComponent.repaint();
+            };
+          setTimeout(updater, 0);
+        } else {
+          _this.setIcon(_this.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
+              pieceWidth, pieceDepth, pieceHeight, iconSize));
+        }            
+      },        
+      modelError : function(ex) {
+        // In case of problem use a default red box
+        _this.setIcon(TextureManager.getInstance().getErrorImage());            
+        if (waitingComponent !== null) {
+          waitingComponent.repaint();
+        }
+      }
+    });
+}
+PlanComponent.PieceOfFurnitureModelIcon.prototype = Object.create(PlanComponent.PieceOfFurnitureTopViewIcon.prototype);
+PlanComponent.PieceOfFurnitureModelIcon.prototype.constructor = PlanComponent.PieceOfFurnitureModelIcon;
+    
+/**
+ * Returns the branch group bound to a universe and a canvas for the given
+ * resolution.
+ * @param {number} iconSize
+ * @return {BranchGroup3D}
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function (iconSize) {
+  if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+    var canvas = document.createElement("canvas");
+    canvas.width = iconSize + "px";
+    canvas.height = iconSize + "px";
+    canvas.style.backgroundColor = "rgb(256, 256, 256)";
+    var canvas3D  = new HTMLCanvas3D(canvas);
+    
+    var rotation = mat4.create();
+    mat4.fromXRotation(rotation, -Math.PI / 2);
+    var transform = mat4.create();
+    mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
+    mat4.mul(transform, transform, rotation);
+    canvas3D.setViewPlatformTransform(transform);
+    canvas3D.setProjectionPolicy(javax.media.j3d.View.PARALLEL_PROJECTION);
+
+    var sceneRoot = new BranchGroup3D();
+    sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
+    var lights = [
+        new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)),         
+        new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)), 
+        new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)), 
+        new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))] 
+    for (var i = 0; i < lights.length; i++) {
+      sceneRoot.addChild(lights [i]);
+    }
+    canvas3D.setScene(sceneRoot);
+    PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
+  } else {
+    if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
+      PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
+      PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
+      return this.getSceneRoot(iconSize);
+    }
+  }
+  return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getSceneRoot();
+}
+
+/**
+ * Returns an icon created and scaled from piece model content.
+ * @param {Object3DBranch} pieceNode
+ * @param {number} pieceWidth
+ * @param {number} pieceDepth
+ * @param {number} pieceHeight
+ * @param {number} iconSize
+ * @return {Object}
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon.prototype.createIcon = function (pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize) {
+  var scaleTransform = mat4.create();
+  mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
+  var modelTransformGroup = new TransformGroup3D();
+  modelTransformGroup.setTransform(scaleTransform);
+  modelTransformGroup.addChild(pieceNode);
+  var model = new BranchGroup3D();
+  model.addChild(modelTransformGroup);
+  var sceneRoot = this.getSceneRoot(iconSize);
+  sceneRoot.addChild(model);
+  var canvas3D = PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
+  canvas3D.drawScene();
+  
+  var offscreenCanvas = document.createElement("canvas");
+  offscreenCanvas.width = canvas3D.getCanvas().width;
+  offscreenCanvas.height = canvas3D.getCanvas().height;
+  var context = offscreenCanvas.getContext("2d");
+  context.drawImage(canvas3D.getCanvas(), 0, 0);
+  var imageWithWhiteBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+  canvas3D.getCanvas().style.backgroundColor = "rgb(0, 0, 0)";
+  canvas3D.drawScene();
+  context.drawImage(canvas3D.getCanvas(), 0, 0);
+  var imageWithBlackBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+  for (var i = 0; i < imageWithBlackBackgoundPixels.length; i += 4) {
+    if (imageWithBlackBackgoundPixels[i] !== imageWithWhiteBackgoundPixels[i] 
+        && imageWithBlackBackgoundPixels[i + 1] !== imageWithWhiteBackgoundPixels[i + 1] 
+        && imageWithBlackBackgoundPixels[i + 2] !== imageWithWhiteBackgoundPixels[i + 2] 
+        && imageWithBlackBackgoundPixels[i] === 0
+        && imageWithBlackBackgoundPixels[i + 1] === 0
+        && imageWithBlackBackgoundPixels[i + 2] === 0
+        && imageWithWhiteBackgoundPixels[i] === 0xFF
+        && imageWithWhiteBackgoundPixels[i + 1] === 0xFF
+        && imageWithWhiteBackgoundPixels[i + 2] === 0xFF) {
+      imageWithWhiteBackgoundPixels[i + 3] = 0; // Make pixel transparent
+    }
+  }
+  
+  context.putImageData(imageWithWhiteBackgoundPixels, 0, 0);
+  var image = new Image();
+  image.src = offscreenCanvas.toDataURL();
+  sceneRoot.removeChild(model);
+  return image;
+}
+
+/**
+ * Returns the size of the given piece computed from its vertices.
+ * @param {HomePieceOfFurniture} piece
+ * @param {Object} object3dFactory
+ * @return {Array}
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
+  var horizontalRotation = mat4.create();
+  if (piece.getPitch() !== 0) {
+    mat4.fromXRotation(horizontalRotation, -piece.getPitch());
+  }
+  if (piece.getRoll() !== 0) {
+    var rollRotation = mat4.create();
+    mat4.fromZRotation(rollRotation, -piece.getRoll());
+    mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
+  }
+  
+  // Compute bounds of a piece centered at the origin and rotated around the target horizontal angle
+  piece = piece.clone();
+  piece.setX(0);
+  piece.setY(0);
+  piece.setElevation(-piece.getHeight() / 2);
+  piece.setLevel(null);
+  piece.setAngle(0);
+  piece.setRoll(0);
+  piece.setPitch(0);
+  piece.setWidthInPlan(piece.getWidth());
+  piece.setDepthInPlan(piece.getDepth());
+  piece.setHeightInPlan(piece.getHeight());
+  var bounds = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
+  var lower = vec3.create();
+  bounds.getLower(lower);
+  var upper = vec3.create();
+  bounds.getUpper(upper);
+  return [Math.max(0.001, (upper[0] - lower[0])), 
+          Math.max(0.001, (upper[2] - lower[2])), 
+          Math.max(0.001, (upper[1] - lower[1]))];
+}
