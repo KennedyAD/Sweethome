@@ -884,9 +884,10 @@ HTMLCanvas3D.prototype.prepareBuffer = function(data, indices) {
 HTMLCanvas3D.prototype.drawScene = function() {
   this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
   var backgroundColor = getComputedStyle(this.canvas).backgroundColor;
-  // Parse R G B components
+  // Parse R G B [A] components
   backgroundColor = backgroundColor.substring(4, backgroundColor.length - 1).replace(/ /g, '').split(',');
-  this.gl.clearColor(backgroundColor [0] / 256., backgroundColor [1] / 256., backgroundColor [2] / 256., 1.0);
+  this.gl.clearColor(backgroundColor [0] / 256., backgroundColor [1] / 256., backgroundColor [2] / 256., 
+      backgroundColor.length === 4 ? backgroundColor [3] : 1.);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
   
   // Set lights
