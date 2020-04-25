@@ -319,6 +319,13 @@ HTMLCanvas3D.prototype.setViewPlatformTransform = function(viewPlatformTransform
  */
 HTMLCanvas3D.prototype.updateViewportSize = function() {
   var canvasBounds = this.canvas.getBoundingClientRect();
+  var visible = canvasBounds.width !== 0
+      && canvasBounds.height !== 0;
+  if (!visible) {
+    // May happen for offscreen or invisible canvas
+    canvasBounds.width = this.canvas.width;
+    canvasBounds.height = this.canvas.height;
+  }
   if (this.viewportWidth != canvasBounds.width
       || this.viewportHeight != canvasBounds.height) {
     this.viewportWidth = canvasBounds.width;
@@ -328,7 +335,9 @@ HTMLCanvas3D.prototype.updateViewportSize = function() {
       this.gl.deleteFramebuffer(this.pickingFrameBuffer);
       delete this.pickingFrameBuffer;
     }
-    this.repaint();
+    if (visible) {
+      this.repaint();
+    }
   }
 }
 
@@ -343,17 +352,17 @@ HTMLCanvas3D.prototype.setScene = function(scene, onprogression) {
   var lights = [];
   var sceneGeometryCount = this.countDisplayedGeometries(scene);
   this.prepareScene(scene, sceneGeometries, backgroundGeometries, false, [], lights, mat4.create(), onprogression, sceneGeometryCount);
-  this.scene = scene;
   
+  this.scene = scene;
+  this.sceneGeometries = sceneGeometries;
+  this.backgroundGeometries = backgroundGeometries;
+  this.lights = lights;
   var canvas3D = this;
   setTimeout(
       function() {
         if (onprogression !== undefined) {
           onprogression(ModelLoader.BINDING_MODEL, "", 1);
         }
-        canvas3D.sceneGeometries = sceneGeometries;
-        canvas3D.backgroundGeometries = backgroundGeometries;
-        canvas3D.lights = lights;
         canvas3D.drawScene();
       }, 0);
 }
@@ -884,6 +893,9 @@ HTMLCanvas3D.prototype.prepareBuffer = function(data, indices) {
 HTMLCanvas3D.prototype.drawScene = function() {
   this.gl.viewport(0, 0, this.viewportWidth, this.viewportHeight);
   var backgroundColor = getComputedStyle(this.canvas).backgroundColor;
+  if (backgroundColor == "") {
+    backgroundColor = this.canvas.style.backgroundColor;
+  }
   // Parse R G B [A] components
   backgroundColor = backgroundColor.substring(4, backgroundColor.length - 1).replace(/ /g, '').split(',');
   this.gl.clearColor(backgroundColor [0] / 256., backgroundColor [1] / 256., backgroundColor [2] / 256., 
