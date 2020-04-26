@@ -25,10 +25,11 @@
  * Creates a canvas 3D bound to HTML canvas with the given id.
  * @param {string|HTMLCanvasElement}  canvasId  the value of the id attribute of the canvas bound 
  *                     to this component or the canvas itself
+ * @param {boolean} [offscreen]  
  * @constructor
  * @author Emmanuel Puybaret
  */
-function HTMLCanvas3D(canvasId) {
+function HTMLCanvas3D(canvasId, offscreen) {
   this.scene = null;
   this.textures = [];
   this.sceneGeometries = [];
@@ -38,6 +39,7 @@ function HTMLCanvas3D(canvasId) {
   this.frontClipDistance = 0.1;
   this.backClipDistance = 100; 
   this.projectionPolicy = HTMLCanvas3D.PERSPECTIVE_PROJECTION;
+  this.offscreen = offscreen === true;
   
   // Initialize WebGL
   this.canvas = typeof canvasId === 'string' 
@@ -357,14 +359,21 @@ HTMLCanvas3D.prototype.setScene = function(scene, onprogression) {
   this.sceneGeometries = sceneGeometries;
   this.backgroundGeometries = backgroundGeometries;
   this.lights = lights;
-  var canvas3D = this;
-  setTimeout(
-      function() {
+    
+  if (this.offscreen) {
+    this.canvasNeededRepaint = true;
+    if (onprogression !== undefined) {
+      onprogression(ModelLoader.BINDING_MODEL, "", 1);
+    }
+  } else {
+    var canvas3D = this;
+    setTimeout(function() {
         if (onprogression !== undefined) {
           onprogression(ModelLoader.BINDING_MODEL, "", 1);
         }
         canvas3D.drawScene();
       }, 0);
+  }
 }
 
 /**
@@ -1209,16 +1218,32 @@ HTMLCanvas3D.prototype.getFramesPerSecond = function() {
 HTMLCanvas3D.prototype.repaint = function() {
   if (!this.canvasNeededRepaint) {
     this.canvasNeededRepaint = true;
-    var canvas3D = this;
-    requestAnimationFrame(
-        function () {
-          if (canvas3D.canvasNeededRepaint) {
-            canvas3D.drawScene(); 
-            canvas3D.canvasNeededRepaint = false;
-            canvas3D.pickingFrameBufferNeededRepaint = true;
-          }
-        });
+    if (!this.offscreen) {
+      var canvas3D = this;
+      requestAnimationFrame(
+          function () {
+            if (canvas3D.canvasNeededRepaint) {
+              canvas3D.drawScene(); 
+              canvas3D.canvasNeededRepaint = false;
+              canvas3D.pickingFrameBufferNeededRepaint = true;
+            }
+          });
+    }
   }
+}
+
+/**
+ * Returns an image of canvas content.
+ * @return {Image}
+ */
+HTMLCanvas3D.prototype.getImage = function() {
+  if (this.canvasNeededRepaint) {
+    this.drawScene();
+    this.canvasNeededRepaint = false;
+  }
+  var image = new Image();
+  image.src = this.canvas.toDataURL();
+  return image;
 }
 
 /**
