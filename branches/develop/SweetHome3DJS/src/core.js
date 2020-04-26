@@ -304,9 +304,14 @@ Locale.setDefault = function(language) {
 function loadJSON(url) {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, false);
-  xhr.responseType = 'json';
+  // it is not allowed to change response type for a synchronous XHR
+  // xhr.responseType = 'json';
   xhr.send();
-  return xhr.response;
+  if(xhr.responseText) {
+    return JSON.parse(xhr.responseText);
+  } else {
+    return undefined;
+  }
 }
 
 /**
