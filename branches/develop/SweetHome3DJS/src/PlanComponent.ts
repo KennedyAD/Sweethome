@@ -32,15 +32,20 @@ declare class TextureManager {
     static getInstance() : TextureManager;
     getErrorImage() : HTMLImageElement;
     getWaitImage() : HTMLImageElement;
+    getColoredImage(string) : HTMLImageElement;
     loadTexture(content, angle, synchronous, textureObserver);
     loadTexture(content, synchronous, textureObserver);
     loadTexture(content, textureObserver);
 }
 
+declare class ModelManager {
+    static getInstance() : ModelManager;
+}
+
 declare class ShapeTools {
   static getStroke(thickness, capStyle, joinStyle, dashPattern, dashOffset);
-  static getPolylineShape(points, curved, closedPath);  
-  static getShape(points, closedPath, transform);
+  static getPolylineShape(points, curved?, closedPath?);  
+  static getShape(points, closedPath?, transform?);
 }
 
 declare namespace java.awt {
@@ -167,7 +172,7 @@ class FontMetrics {
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
  * @param {UserPreferences} preferences user preferences to retrieve used unit, grid visibility...
- * @param {Object} object3dFactory a factory able to create 3D objects from <code>home</code> furniture.
+ * @param {Object} [object3dFactory] a factory able to create 3D objects from <code>home</code> furniture.
  * The {@link Object3DFactory#createObject3D(Home, Selectable, boolean) createObject3D} of
  * this factory is expected to return an instance of {@link Object3DBranch} in current implementation.
  * @param {PlanController} controller the optional controller used to manage home items modification
@@ -359,6 +364,8 @@ class PlanComponent implements PlanView {
     static ERROR_TEXTURE_IMAGE : HTMLImageElement = null;
 
     static WAIT_TEXTURE_IMAGE : HTMLImageElement = null;
+    
+    static WEBGL_AVAILABLE = true;
 
     static  __static_initializer_0() {
         PlanComponent.POINT_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
@@ -550,9 +557,17 @@ class PlanComponent implements PlanView {
         PlanComponent.ARROW.lineTo(-5, 2);
         PlanComponent.ERROR_TEXTURE_IMAGE = TextureManager.getInstance().getErrorImage();
         PlanComponent.WAIT_TEXTURE_IMAGE = TextureManager.getInstance().getWaitImage();
+        let canvas = document.createElement("canvas");
+        let gl = <any>canvas.getContext("webgl");
+        if (!gl) {
+          gl = <any>canvas.getContext("experimental-webgl");
+          if (!gl) {
+            PlanComponent.WEBGL_AVAILABLE = false;
+          }
+        }
     }
 
-    public constructor(canvasId : string, home : Home, preferences? : any, object3dFactory? : any, controller : PlanController) {
+    public constructor(canvasId : string, home : Home, preferences? : any, object3dFactory? : any, controller? : PlanController) {
         this.canvas = <HTMLCanvasElement>document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = computedStyle.fontFamily + " " + computedStyle.fontStyle + " " + computedStyle.fontSize;
@@ -563,15 +578,10 @@ class PlanComponent implements PlanView {
         this.planBoundsCacheValid = false;
         this.home = home;
         this.preferences = preferences;
-        /*if (object3dFactory == null) {
-          var gl = <any>this.canvas.getContext("webgl");
-          if (!gl) {
-            gl = this.canvas.getContext("experimental-webgl");
-          }
-          if (gl) {
-            //object3dFactory = new Object3DBranchFactory();
-          }
-        }*/
+        if (controller == null) {
+          controller = object3dFactory;
+          object3dFactory = new Object3DBranchFactory();
+        }
         this.object3dFactory = object3dFactory;
         this.setOpaque(true);
         this.addModelListeners(home, preferences, controller);
@@ -3083,71 +3093,63 @@ class PlanComponent implements PlanView {
         if(!/* isEmpty */(furniture.length == 0)) {
             let pieceBorderStroke : java.awt.BasicStroke = new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, paintMode) / planScale);
             let allFurnitureViewedFromTop : boolean = null;
-            for(let index180=0; index180 < furniture.length; index180++) {
-                let piece = furniture[index180];
-                {
-                    if(piece.isVisible()) {
-                        let selectedPiece : boolean = /* contains */(selectedItems.indexOf(<any>(piece)) >= 0);
-                        if(piece != null && piece instanceof <any>HomeFurnitureGroup) {
-                            let groupFurniture : Array<any> = (piece).getFurniture();
-                            let emptyList : Array<any> = /* emptyList */[];
-                            this.paintFurniture(g2D, groupFurniture, selectedPiece?groupFurniture:emptyList, planScale, backgroundColor, foregroundColor, furnitureOutlineColor, paintMode, paintIcon);
-                        } else if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedPiece) {
-                            let pieceShape : java.awt.Shape = ShapeTools.getShape(piece.getPoints(), true, null);
-                            let pieceShape2D : java.awt.Shape;
-                            if(piece != null && piece instanceof <any>HomeDoorOrWindow) {
-                                let doorOrWindow : any = piece;
-                                pieceShape2D = this.getDoorOrWindowWallPartShape(doorOrWindow);
-                                if(this.draggedItemsFeedback == null || !/* contains */(this.draggedItemsFeedback.indexOf(<any>(piece)) >= 0)) {
-                                    this.paintDoorOrWindowWallThicknessArea(g2D, doorOrWindow, planScale, backgroundColor, foregroundColor, paintMode);
-                                }
-                                this.paintDoorOrWindowSashes(g2D, doorOrWindow, planScale, foregroundColor, paintMode);
-                            } else {
-                                pieceShape2D = pieceShape;
+            for(let i=0; i < furniture.length; i++) {
+                let piece = furniture[i];
+                if(piece.isVisible()) {
+                    let selectedPiece : boolean = /* contains */(selectedItems.indexOf(<any>(piece)) >= 0);
+                    if(piece != null && piece instanceof <any>HomeFurnitureGroup) {
+                        let groupFurniture : Array<any> = (piece).getFurniture();
+                        let emptyList : Array<any> = /* emptyList */[];
+                        this.paintFurniture(g2D, groupFurniture, selectedPiece?groupFurniture:emptyList, planScale, backgroundColor, foregroundColor, furnitureOutlineColor, paintMode, paintIcon);
+                    } else if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedPiece) {
+                        let pieceShape : java.awt.Shape = ShapeTools.getShape(piece.getPoints(), true, null);
+                        let pieceShape2D : java.awt.Shape;
+                        if(piece != null && piece instanceof HomeDoorOrWindow) {
+                            let doorOrWindow : any = piece;
+                            pieceShape2D = this.getDoorOrWindowWallPartShape(doorOrWindow);
+                            if(this.draggedItemsFeedback == null || !/* contains */(this.draggedItemsFeedback.indexOf(<any>(piece)) >= 0)) {
+                                this.paintDoorOrWindowWallThicknessArea(g2D, doorOrWindow, planScale, backgroundColor, foregroundColor, paintMode);
                             }
-                            let viewedFromTop : boolean;
-                            if(this.preferences.isFurnitureViewedFromTop()) {
-                                if(piece.getPlanIcon() != null || (piece != null && piece instanceof <any>HomeDoorOrWindow)) {
-                                    viewedFromTop = true;
-                                } else {
-                                    if(allFurnitureViewedFromTop == null) {
-                                        try {
-                                            allFurnitureViewedFromTop = !javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.no3D") && Component3DManager.getInstance().isOffScreenImageSupported();
-                                        } catch(ex) {
-                                            allFurnitureViewedFromTop = false;
-                                        };
-                                    }
-                                    viewedFromTop = /* booleanValue */allFurnitureViewedFromTop;
-                                }
+                            this.paintDoorOrWindowSashes(g2D, doorOrWindow, planScale, foregroundColor, paintMode);
+                        } else {
+                            pieceShape2D = pieceShape;
+                        }
+                        let viewedFromTop : boolean;
+                        if(this.preferences.isFurnitureViewedFromTop()) {
+                            if(piece.getPlanIcon() != null || (piece != null && piece instanceof HomeDoorOrWindow)) {
+                                viewedFromTop = true;
                             } else {
-                                viewedFromTop = false;
+                              allFurnitureViewedFromTop = PlanComponent.WEBGL_AVAILABLE;
+                              viewedFromTop = allFurnitureViewedFromTop;
                             }
-                            if(paintIcon && viewedFromTop) {
-                                if(piece != null && piece instanceof <any>HomeDoorOrWindow) {
-                                    g2D.setPaint(backgroundColor);
-                                    g2D.fill(pieceShape2D);
-                                    g2D.setPaint(foregroundColor);
-                                    g2D.setStroke(pieceBorderStroke);
-                                    g2D.draw(pieceShape2D);
-                                } else {
-                                    this.paintPieceOfFurnitureTop(g2D, piece, pieceShape2D, pieceBorderStroke, planScale, backgroundColor, foregroundColor, paintMode);
-                                }
-                                if(paintMode === PlanComponent.PaintMode.PAINT) {
-                                    g2D.setStroke(pieceBorderStroke);
-                                    g2D.setPaint(furnitureOutlineColor);
-                                    g2D.draw(pieceShape);
-                                }
-                            } else {
-                                if(paintIcon) {
-                                    this.paintPieceOfFurnitureIcon(g2D, piece, pieceShape2D, planScale, backgroundColor, paintMode);
-                                }
+                        } else {
+                            viewedFromTop = false;
+                        }
+                        if(paintIcon && viewedFromTop) {
+                            if(piece != null && piece instanceof HomeDoorOrWindow) {
+                                g2D.setPaint(backgroundColor);
+                                g2D.fill(pieceShape2D);
                                 g2D.setPaint(foregroundColor);
                                 g2D.setStroke(pieceBorderStroke);
                                 g2D.draw(pieceShape2D);
-                                if((piece != null && piece instanceof <any>HomeDoorOrWindow) && paintMode === PlanComponent.PaintMode.PAINT) {
-                                    g2D.setPaint(furnitureOutlineColor);
-                                    g2D.draw(pieceShape);
-                                }
+                            } else {
+                                this.paintPieceOfFurnitureTop(g2D, piece, pieceShape2D, pieceBorderStroke, planScale, backgroundColor, foregroundColor, paintMode);
+                            }
+                            if(paintMode === PlanComponent.PaintMode.PAINT) {
+                                g2D.setStroke(pieceBorderStroke);
+                                g2D.setPaint(furnitureOutlineColor);
+                                g2D.draw(pieceShape);
+                            }
+                        } else {
+                            if(paintIcon) {
+                                this.paintPieceOfFurnitureIcon(g2D, piece, null, pieceShape2D, planScale, backgroundColor, paintMode);
+                            }
+                            g2D.setPaint(foregroundColor);
+                            g2D.setStroke(pieceBorderStroke);
+                            g2D.draw(pieceShape2D);
+                            if((piece != null && piece instanceof HomeDoorOrWindow) && paintMode === PlanComponent.PaintMode.PAINT) {
+                                g2D.setPaint(furnitureOutlineColor);
+                                g2D.draw(pieceShape);
                             }
                         }
                     }
@@ -3443,31 +3445,34 @@ class PlanComponent implements PlanView {
      * Paints <code>icon</code> with <code>g2D</code>.
      * @param {Graphics2D} g2D
      * @param {HomePieceOfFurniture} piece
-     * @param {Object} icon
+     * @param {PlanComponent.PieceOfFurnitureTopViewIcon} icon
      * @param {Object} pieceShape2D
      * @param {number} planScale
      * @param {string} backgroundColor
      * @private
      */
-    public paintPieceOfFurnitureIcon(g2D : Graphics2D, piece : HomePieceOfFurniture, pieceShape2D? : java.awt.geom.GeneralPath, planScale? : any, backgroundColor? : any) : any {
-      if(this.furnitureIconsCache == null) {
-        this.furnitureIconsCache = {};
-      }
-      var image : HTMLImageElement = this.furnitureIconsCache[piece.icon.getURL()];
-      if(image == null) {
-        image = TextureManager.getInstance().getWaitImage();
-        console.log("paintPieceOfFurnitureIcon: loading "+piece.icon.getURL());
-        TextureManager.getInstance().loadTexture(piece.icon, {
-          textureUpdated: (texture : HTMLImageElement) => {
-            console.log("paintPieceOfFurnitureIcon: loaded "+piece.icon.getURL());
-            this.furnitureIconsCache[piece.icon.getURL()] = texture;
-            this.repaint();
-          },
-          textureError : () => {
-            console.error("icon not found: "+piece.icon.getURL());
-            this.furnitureIconsCache[piece.icon.getURL()] = TextureManager.getInstance().getErrorImage();
-          }
-        });
+    public paintPieceOfFurnitureIcon(g2D : Graphics2D, piece : HomePieceOfFurniture, icon :  PlanComponent.PieceOfFurnitureTopViewIcon, pieceShape2D : java.awt.geom.GeneralPath, planScale? : any, backgroundColor? : any) : any {
+      if(icon == null) {
+        if(this.furnitureIconsCache == null) {
+          this.furnitureIconsCache = {};
+        }
+        let image : HTMLImageElement = this.furnitureIconsCache[piece.icon.getURL()];
+        if(image == null) {
+          image = TextureManager.getInstance().getWaitImage();
+          console.log("paintPieceOfFurnitureIcon: loading "+piece.icon.getURL());
+          TextureManager.getInstance().loadTexture(piece.icon, {
+            textureUpdated: (texture : HTMLImageElement) => {
+              console.log("paintPieceOfFurnitureIcon: loaded "+piece.icon.getURL());
+              this.furnitureIconsCache[piece.icon.getURL()] = texture;
+              this.repaint();
+            },
+            textureError : () => {
+              console.error("icon not found: "+piece.icon.getURL());
+              this.furnitureIconsCache[piece.icon.getURL()] = TextureManager.getInstance().getErrorImage();
+            }
+          });
+        }
+        icon = new PlanComponent.PieceOfFurnitureTopViewIcon(image);
       }
         
       // Fill piece area
@@ -3487,7 +3492,7 @@ class PlanComponent implements PlanView {
       }
       // Scale icon to fit in its area
       let minDimension = Math.min(piece.getWidthInPlan(), pieceDepth);
-      let iconScale = Math.min(1 / planScale, minDimension / image.height);
+      let iconScale = Math.min(1 / planScale, minDimension / icon.getIconHeight());
       // If piece model is mirrored, inverse x scale
       if (piece.isModelMirrored()) {
         g2D.scale(-iconScale, iconScale);
@@ -3495,8 +3500,8 @@ class PlanComponent implements PlanView {
         g2D.scale(iconScale, iconScale);
       }
       // Paint piece icon
-      g2D.drawImage(image, -image.width / 2, -image.height / 2);
-      //icon.paintIcon(this, g2D, -icon.getIconWidth() / 2, -icon.getIconHeight() / 2);
+      //g2D.drawImage(image, -image.width / 2, -image.height / 2);
+      icon.paintIcon(g2D, -icon.getIconWidth() / 2, -icon.getIconHeight() / 2);
       // Revert g2D transformation to previous value
       g2D.setTransform(previousTransform);
       //g2D.setClip(previousClip);
@@ -3568,7 +3573,7 @@ class PlanComponent implements PlanView {
             } else {
                 g2D.scale(piece.getWidthInPlan() / icon.getIconWidth(), pieceDepth / icon.getIconHeight());
             }
-            icon.paintIcon(this, g2D, (-icon.getIconWidth() / 2|0), (-icon.getIconHeight() / 2|0));
+            icon.paintIcon(g2D, (-icon.getIconWidth() / 2|0), (-icon.getIconHeight() / 2|0));
             g2D.setTransform(previousTransform);
         }
     }
@@ -5234,352 +5239,279 @@ namespace PlanComponent {
     HomePieceOfFurnitureTopViewIconKey["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.HomePieceOfFurnitureTopViewIconKey";
 
 
-    export abstract class PieceOfFurnitureTopViewIcon {
-      constructor(icon : any) {}
-    }
+//    export abstract class PieceOfFurnitureTopViewIcon {
+//      constructor(icon : any) {}
+//    }
 
-    /**
-     * Creates a plan icon proxy for a <code>piece</code> of furniture.
-     * @param {HomePieceOfFurniture} piece an object containing a plan icon content
-     * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-     * be read immediately in the current thread.
-     * @class
-     * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-     */
-    export class PieceOfFurniturePlanIcon extends PlanComponent.PieceOfFurnitureTopViewIcon {
-        pieceWidth : number;
-
-        pieceDepth : number;
-
-        pieceColor : number;
-
-        pieceTexture : any;
-        
-        image : HTMLImageElement;
-
-        public constructor(piece : any) {
-            super(piece.getPlanIcon());
-            this.pieceWidth = piece.getWidth();
-            this.pieceDepth = piece.getDepth();
-            this.pieceColor = piece.getColor();
-            this.pieceTexture = piece.getTexture();
-        }
-
-        /**
-         * 
-         * @param {Graphics2D} g
-         * @param {number} x
-         * @param {number} y
-         */
-        public paintIcon(g : Graphics2D, x : number, y : number) {
-            if(this.image != PlanComponent.WAIT_TEXTURE_IMAGE && this.image != PlanComponent.ERROR_TEXTURE_IMAGE) {
-                if(this.pieceColor != null) {
-                  this.image = TextureManager.getInstance().getColoredImage(this.pieceColor);
-                  this.pieceColor = null;
-                } else if(this.pieceTexture != null) {
-                        TextureManager.getInstance().loadTexture(this.pieceTexture.getImage(), true, {
-                          textureUpdated : (textureImage : HTMLImageElement) => {
-                            this.image = textureImage;
-                          },
-                          textureError : (error) => {
-                            this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
-                          } 
-                        });
-                    this.pieceTexture = null;
-                }
-            }
-            g.drawImage(this.image, x, y);
-        }
-
-//        setTexturedIcon(c : java.awt.Component, textureImage : java.awt.image.BufferedImage, angle : number) {
-//            let image : java.awt.image.BufferedImage = new java.awt.image.BufferedImage(this.getIconWidth(), this.getIconHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
-//            let imageGraphics : Graphics2D = <Graphics2D>image.getGraphics();
-//            imageGraphics.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
-//            PlanComponent.PieceOfFurniturePlanIcon.super.paintIcon(c, imageGraphics, 0, 0);
-//            imageGraphics.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Float(0, 0, -this.getIconWidth() / this.pieceWidth * this.pieceTexture.getWidth(), -this.getIconHeight() / this.pieceDepth * this.pieceTexture.getHeight())));
-//            imageGraphics.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_IN));
-//            imageGraphics.rotate(angle);
-//            let maxDimension : number = Math.max(image.getWidth(), image.getHeight());
-//            imageGraphics.fill(new java.awt.geom.Rectangle2D.Float(-maxDimension, -maxDimension, 3 * maxDimension, 3 * maxDimension));
-//            imageGraphics.fillRect(0, 0, this.getIconWidth(), this.getIconHeight());
-//            imageGraphics.dispose();
-//            this.setIcon(new javax.swing.ImageIcon(image));
+//    export namespace PieceOfFurniturePlanIcon {
+//
+//        export class PieceOfFurniturePlanIcon$0 {
+//            public __parent: any;
+//            public filterRGB(x : number, y : number, argb : number) : number {
+//                let alpha : number = argb & -16777216;
+//                let red : number = (argb & 16711680) >> 16;
+//                let green : number = (argb & 65280) >> 8;
+//                let blue : number = argb & 255;
+//                let brightness : number = ((red + red + red + green + green + green + green + blue) >> 4) + 127;
+//                red = ((this.colorRed * brightness / 255|0)) & 16711680;
+//                green = ((this.colorGreen * brightness / 255|0)) & 65280;
+//                blue = ((this.colorBlue * brightness / 255|0)) & 255;
+//                return alpha | red | green | blue;
+//            }
+//
+//            constructor(__parent: any, private colorRed: any, private colorGreen: any, private colorBlue: any) {
+//                this.__parent = __parent;
+//                (() => {
+//                    this.canFilterIndexColorModel = true;
+//                })();
+//            }
 //        }
-    }
-    PieceOfFurniturePlanIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurniturePlanIcon";
-    PieceOfFurniturePlanIcon["__interfaces"] = ["javax.swing.Icon"];
+//        PieceOfFurniturePlanIcon$0["__interfaces"] = ["java.lang.Cloneable","java.awt.image.ImageConsumer"];
+//
+//
+//    }
 
 
-
-    export namespace PieceOfFurniturePlanIcon {
-
-        export class PieceOfFurniturePlanIcon$0 {
-            public __parent: any;
-            public filterRGB(x : number, y : number, argb : number) : number {
-                let alpha : number = argb & -16777216;
-                let red : number = (argb & 16711680) >> 16;
-                let green : number = (argb & 65280) >> 8;
-                let blue : number = argb & 255;
-                let brightness : number = ((red + red + red + green + green + green + green + blue) >> 4) + 127;
-                red = ((this.colorRed * brightness / 255|0)) & 16711680;
-                green = ((this.colorGreen * brightness / 255|0)) & 65280;
-                blue = ((this.colorBlue * brightness / 255|0)) & 255;
-                return alpha | red | green | blue;
-            }
-
-            constructor(__parent: any, private colorRed: any, private colorGreen: any, private colorBlue: any) {
-                this.__parent = __parent;
-                (() => {
-                    this.canFilterIndexColorModel = true;
-                })();
-            }
-        }
-        PieceOfFurniturePlanIcon$0["__interfaces"] = ["java.lang.Cloneable","java.awt.image.ImageConsumer"];
-
-
-    }
-
-
-    /**
-     * Creates a top view icon proxy for a <code>piece</code> of furniture.
-     * @param {HomePieceOfFurniture} piece an object containing a 3D content
-     * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-     * be read immediately in the current thread.
-     * @param {number} iconSize the size in pixels of the generated icon
-     * @param {Object} object3dFactory
-     * @class
-     * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-     */
-    export class PieceOfFurnitureModelIcon extends PlanComponent.PieceOfFurnitureTopViewIcon {
-        static sceneRoot : BranchGroup3D = null;
-
-        static iconsCreationExecutor : java.util.concurrent.ExecutorService = null;
-
-        public constructor(piece : any, object3dFactory : any, waitingComponent : java.awt.Component, iconSize : number) {
-            super(IconManager.getInstance().getWaitIcon());
-            ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent == null, new PieceOfFurnitureModelIcon.PieceOfFurnitureModelIcon$0(this, piece, waitingComponent, object3dFactory, iconSize));
-        }
-
-        /**
-         * Returns the branch group bound to a universe and a canvas for the given resolution.
-         * @param {number} iconSize
-         * @return {BranchGroup3D}
-         * @private
-         */
-        getSceneRoot(iconSize : number) : BranchGroup3D {
-            if(PieceOfFurnitureModelIcon.sceneRoot == null) {
-                let canvas3D : javax.media.j3d.Canvas3D = Component3DManager.getInstance().getOffScreenCanvas3D(iconSize, iconSize);
-                let universe : com.sun.j3d.utils.universe.SimpleUniverse = new com.sun.j3d.utils.universe.SimpleUniverse(canvas3D);
-                let viewingPlatform : com.sun.j3d.utils.universe.ViewingPlatform = universe.getViewingPlatform();
-                let viewPlatformTransform : TransformGroup3D = viewingPlatform.getViewPlatformTransform();
-                let rotation : mat4 = mat4.create();
-                mat4.fromXRotation(rotation, -Math.PI / 2);
-                let transform : mat4 = mat4.create();
-                mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
-                mat4.mul(transform, transform, rotation);
-                viewPlatformTransform.setTransform(transform);
-                let viewer : com.sun.j3d.utils.universe.Viewer = viewingPlatform.getViewers()[0];
-                let view : javax.media.j3d.View = viewer.getView();
-                view.setProjectionPolicy(javax.media.j3d.View.PARALLEL_PROJECTION);
-                PieceOfFurnitureModelIcon.sceneRoot = new BranchGroup3D();
-                PieceOfFurnitureModelIcon.sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
-                let background : javax.media.j3d.Background = new javax.media.j3d.Background(1.1, 1.1, 1.1);
-                background.setCapability(javax.media.j3d.Background.ALLOW_COLOR_WRITE);
-                background.setApplicationBounds(new javax.media.j3d.BoundingBox(vec3.fromValues(-1.1, -1.1, -1.1), vec3.fromValues(1.1, 1.1, 1.1)));
-                PieceOfFurnitureModelIcon.sceneRoot.addChild(background);
-                let lights : javax.media.j3d.Light[] = [new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)), new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)), new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)), new javax.media.j3d.AmbientLight(new javax.vecmath.Color3f(0.2, 0.2, 0.2))];
-                for(let index212=0; index212 < lights.length; index212++) {
-                    let light = lights[index212];
-                    {
-                        light.setInfluencingBounds(new javax.media.j3d.BoundingBox(vec3.fromValues(-1.1, -1.1, -1.1), vec3.fromValues(1.1, 1.1, 1.1)));
-                        PieceOfFurnitureModelIcon.sceneRoot.addChild(light);
-                    }
-                }
-                universe.addBranchGraph(PieceOfFurnitureModelIcon.sceneRoot);
-            } else {
-                let universe : com.sun.j3d.utils.universe.SimpleUniverse = <com.sun.j3d.utils.universe.SimpleUniverse>PieceOfFurnitureModelIcon.sceneRoot.getLocale().getVirtualUniverse();
-                let canvas3D : javax.media.j3d.Canvas3D = universe.getCanvas();
-                if(canvas3D.getWidth() !== iconSize) {
-                    universe.cleanup();
-                    PieceOfFurnitureModelIcon.sceneRoot = null;
-                    return this.getSceneRoot(iconSize);
-                }
-            }
-            return PieceOfFurnitureModelIcon.sceneRoot;
-        }
-
-        /**
-         * Returns an icon created and scaled from piece model content.
-         * @param {Object3DBranch} pieceNode
-         * @param {number} pieceWidth
-         * @param {number} pieceDepth
-         * @param {number} pieceHeight
-         * @param {number} iconSize
-         * @return {Object}
-         * @private
-         */
-        createIcon(pieceNode : any, pieceWidth : number, pieceDepth : number, pieceHeight : number, iconSize : number) : javax.swing.Icon {
-            let scaleTransform : mat4 = mat4.create();
-            mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
-            let modelTransformGroup : TransformGroup3D = new TransformGroup3D();
-            modelTransformGroup.setTransform(scaleTransform);
-            modelTransformGroup.addChild(pieceNode);
-            this.cloneTexture(pieceNode, <any>(new java.util.IdentityHashMap<Object, Object>()));
-            let model : BranchGroup3D = new BranchGroup3D();
-            model.addChild(modelTransformGroup);
-            let sceneRoot : BranchGroup3D = this.getSceneRoot(iconSize);
-            sceneRoot.addChild(model);
-            let background : javax.media.j3d.Background = <javax.media.j3d.Background>sceneRoot.getChild(0);
-            background.setColor(1, 1, 1);
-            let canvas3D : javax.media.j3d.Canvas3D = (<com.sun.j3d.utils.universe.SimpleUniverse>sceneRoot.getLocale().getVirtualUniverse()).getCanvas();
-            canvas3D.renderOffScreenBuffer();
-            canvas3D.waitForOffScreenRendering();
-            let imageWithWhiteBackgound : java.awt.image.BufferedImage = canvas3D.getOffScreenBuffer().getImage();
-            let imageWithWhiteBackgoundPixels : number[] = this.getImagePixels(imageWithWhiteBackgound);
-            background.setColor(0, 0, 0);
-            canvas3D.renderOffScreenBuffer();
-            canvas3D.waitForOffScreenRendering();
-            let imageWithBlackBackgound : java.awt.image.BufferedImage = canvas3D.getOffScreenBuffer().getImage();
-            let imageWithBlackBackgoundPixels : number[] = this.getImagePixels(imageWithBlackBackgound);
-            for(let i : number = 0; i < imageWithBlackBackgoundPixels.length; i++) {{
-                if(imageWithBlackBackgoundPixels[i] !== imageWithWhiteBackgoundPixels[i] && imageWithBlackBackgoundPixels[i] === -16777216 && imageWithWhiteBackgoundPixels[i] === -1) {
-                    imageWithWhiteBackgoundPixels[i] = 0;
-                }
-            };}
-            sceneRoot.removeChild(model);
-            return new javax.swing.ImageIcon(java.awt.Toolkit.getDefaultToolkit().createImage(new java.awt.image.MemoryImageSource(imageWithWhiteBackgound.getWidth(), imageWithWhiteBackgound.getHeight(), imageWithWhiteBackgoundPixels, 0, imageWithWhiteBackgound.getWidth())));
-        }
-
-        /**
-         * Replace the textures set on node shapes by clones.
-         * @param {Node3D} node
-         * @param {Object} replacedTextures
-         * @private
-         */
-        cloneTexture(node : Node3D, replacedTextures : any) {
-            if(node != null && node instanceof <any>Group3D) {
-                let enumeration : any = (<Group3D>node).getAllChildren();
-                while((enumeration.hasMoreElements())) {{
-                    this.cloneTexture(<any>enumeration.nextElement(), replacedTextures);
-                }};
-            } else if(node != null && node instanceof <any>Link3D) {
-                this.cloneTexture((<Link3D>node).getSharedGroup(), replacedTextures);
-            } else if(node != null && node instanceof <any>Shape3D) {
-                let appearance : Appearance3D = (<Shape3D>node).getAppearance();
-                if(appearance != null) {
-                    let texture : Object = appearance.getTexture();
-                    if(texture != null) {
-                        let replacedTexture : Object = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>replacedTextures, texture);
-                        if(replacedTexture == null) {
-                            replacedTexture = <Object>texture.cloneNodeComponent(false);
-                            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>replacedTextures, texture, replacedTexture);
-                        }
-                        appearance.setTextureImage(replacedTexture);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Returns the pixels of the given <code>image</code>.
-         * @param {java.awt.image.BufferedImage} image
-         * @return {Array}
-         * @private
-         */
-        getImagePixels(image : java.awt.image.BufferedImage) : number[] {
-            if(image.getType() === java.awt.image.BufferedImage.TYPE_INT_RGB || image.getType() === java.awt.image.BufferedImage.TYPE_INT_ARGB) {
-                return <number[]>image.getRaster().getDataElements(0, 0, image.getWidth(), image.getHeight(), null);
-            } else {
-                return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-            }
-        }
-
-        /**
-         * Returns the size of the given piece computed from its vertices.
-         * @param {HomePieceOfFurniture} piece
-         * @param {Object} object3dFactory
-         * @return {Array}
-         * @private
-         */
-        static computePieceOfFurnitureSizeInPlan(piece : any, object3dFactory : any) : number[] {
-            let horizontalRotation : mat4 = mat4.create();
-            if(piece.getPitch() !== 0) {
-                mat4.fromXRotation(horizontalRotation, -piece.getPitch());
-            }
-            if(piece.getRoll() !== 0) {
-                let rollRotation : mat4 = mat4.create();
-                mat4.fromZRotation(rollRotation, -piece.getRoll());
-                mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
-            }
-            piece = /* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(piece);
-            piece.setX(0);
-            piece.setY(0);
-            piece.setElevation(-piece.getHeight() / 2);
-            piece.setLevel(null);
-            piece.setAngle(0);
-            piece.setRoll(0);
-            piece.setPitch(0);
-            piece.setWidthInPlan(piece.getWidth());
-            piece.setDepthInPlan(piece.getDepth());
-            piece.setHeightInPlan(piece.getHeight());
-            let bounds : javax.media.j3d.BoundingBox = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
-            let lower : javax.vecmath.Point3d = vec3.fromValues();
-            bounds.getLower(lower);
-            let upper : javax.vecmath.Point3d = vec3.fromValues();
-            bounds.getUpper(upper);
-            return [Math.max(0.001, <number>(upper[0] - lower[0])), Math.max(0.001, <number>(upper[2] - lower[2])), Math.max(0.001, <number>(upper[1] - lower[1]))];
-        }
-    }
-    PieceOfFurnitureModelIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurnitureModelIcon";
-    PieceOfFurnitureModelIcon["__interfaces"] = ["javax.swing.Icon"];
-
-
-
-    export namespace PieceOfFurnitureModelIcon {
-
-        export class PieceOfFurnitureModelIcon$0 implements ModelManager.ModelObserver {
-            public __parent: any;
-            public modelUpdated(modelNode : BranchGroup3D) {
-                let normalizedPiece : any = /* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(this.piece);
-                if(normalizedPiece.isResizable()) {
-                    normalizedPiece.setModelMirrored(false);
-                }
-                let pieceWidth : number = normalizedPiece.getWidthInPlan();
-                let pieceDepth : number = normalizedPiece.getDepthInPlan();
-                let pieceHeight : number = normalizedPiece.getHeightInPlan();
-                normalizedPiece.setX(0);
-                normalizedPiece.setY(0);
-                normalizedPiece.setElevation(-pieceHeight / 2);
-                normalizedPiece.setLevel(null);
-                normalizedPiece.setAngle(0);
-                if(this.waitingComponent != null) {
-                    if(PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor == null) {
-                        PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
-                    }
-                    PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor.execute(() => {
-                        this.__parent.setIcon(this.__parent.createIcon(this.object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, this.iconSize));
-                        this.waitingComponent.repaint();
-                    });
-                } else {
-                    this.__parent.setIcon(this.__parent.createIcon(this.object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, this.iconSize));
-                }
-            }
-
-            public modelError(ex : Error) {
-                this.__parent.setIcon(IconManager.getInstance().getErrorIcon());
-                if(this.waitingComponent != null) {
-                    this.waitingComponent.repaint();
-                }
-            }
-
-            constructor(__parent: any, private piece: any, private waitingComponent: any, private object3dFactory: any, private iconSize: any) {
-                this.__parent = __parent;
-            }
-        }
-        PieceOfFurnitureModelIcon$0["__interfaces"] = ["com.eteks.sweethome3d.j3d.ModelManager.ModelObserver"];
-
-
-    }
+//    /**
+//     * Creates a top view icon proxy for a <code>piece</code> of furniture.
+//     * @param {HomePieceOfFurniture} piece an object containing a 3D content
+//     * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+//     * be read immediately in the current thread.
+//     * @param {number} iconSize the size in pixels of the generated icon
+//     * @param {Object} object3dFactory
+//     * @class
+//     * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+//     */
+//    export class PieceOfFurnitureModelIcon extends PlanComponent.PieceOfFurnitureTopViewIcon {
+//        static sceneRoot : BranchGroup3D = null;
+//
+//        static iconsCreationExecutor : java.util.concurrent.ExecutorService = null;
+//
+//        public constructor(piece : any, object3dFactory : any, waitingComponent : java.awt.Component, iconSize : number) {
+//            super(IconManager.getInstance().getWaitIcon());
+//            ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent == null, new PieceOfFurnitureModelIcon.PieceOfFurnitureModelIcon$0(this, piece, waitingComponent, object3dFactory, iconSize));
+//        }
+//
+//        /**
+//         * Returns the branch group bound to a universe and a canvas for the given resolution.
+//         * @param {number} iconSize
+//         * @return {BranchGroup3D}
+//         * @private
+//         */
+//        getSceneRoot(iconSize : number) : BranchGroup3D {
+//            if(PieceOfFurnitureModelIcon.sceneRoot == null) {
+//                let canvas3D : javax.media.j3d.Canvas3D = Component3DManager.getInstance().getOffScreenCanvas3D(iconSize, iconSize);
+//                let universe : com.sun.j3d.utils.universe.SimpleUniverse = new com.sun.j3d.utils.universe.SimpleUniverse(canvas3D);
+//                let viewingPlatform : com.sun.j3d.utils.universe.ViewingPlatform = universe.getViewingPlatform();
+//                let viewPlatformTransform : TransformGroup3D = viewingPlatform.getViewPlatformTransform();
+//                let rotation : mat4 = mat4.create();
+//                mat4.fromXRotation(rotation, -Math.PI / 2);
+//                let transform : mat4 = mat4.create();
+//                mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
+//                mat4.mul(transform, transform, rotation);
+//                viewPlatformTransform.setTransform(transform);
+//                let viewer : com.sun.j3d.utils.universe.Viewer = viewingPlatform.getViewers()[0];
+//                let view : javax.media.j3d.View = viewer.getView();
+//                view.setProjectionPolicy(javax.media.j3d.View.PARALLEL_PROJECTION);
+//                PieceOfFurnitureModelIcon.sceneRoot = new BranchGroup3D();
+//                PieceOfFurnitureModelIcon.sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
+//                let background : javax.media.j3d.Background = new javax.media.j3d.Background(1.1, 1.1, 1.1);
+//                background.setCapability(javax.media.j3d.Background.ALLOW_COLOR_WRITE);
+//                background.setApplicationBounds(new javax.media.j3d.BoundingBox(vec3.fromValues(-1.1, -1.1, -1.1), vec3.fromValues(1.1, 1.1, 1.1)));
+//                PieceOfFurnitureModelIcon.sceneRoot.addChild(background);
+//                let lights : javax.media.j3d.Light[] = [new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)), new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)), new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)), new javax.media.j3d.AmbientLight(new javax.vecmath.Color3f(0.2, 0.2, 0.2))];
+//                for(let index212=0; index212 < lights.length; index212++) {
+//                    let light = lights[index212];
+//                    {
+//                        light.setInfluencingBounds(new javax.media.j3d.BoundingBox(vec3.fromValues(-1.1, -1.1, -1.1), vec3.fromValues(1.1, 1.1, 1.1)));
+//                        PieceOfFurnitureModelIcon.sceneRoot.addChild(light);
+//                    }
+//                }
+//                universe.addBranchGraph(PieceOfFurnitureModelIcon.sceneRoot);
+//            } else {
+//                let universe : com.sun.j3d.utils.universe.SimpleUniverse = <com.sun.j3d.utils.universe.SimpleUniverse>PieceOfFurnitureModelIcon.sceneRoot.getLocale().getVirtualUniverse();
+//                let canvas3D : javax.media.j3d.Canvas3D = universe.getCanvas();
+//                if(canvas3D.getWidth() !== iconSize) {
+//                    universe.cleanup();
+//                    PieceOfFurnitureModelIcon.sceneRoot = null;
+//                    return this.getSceneRoot(iconSize);
+//                }
+//            }
+//            return PieceOfFurnitureModelIcon.sceneRoot;
+//        }
+//
+//        /**
+//         * Returns an icon created and scaled from piece model content.
+//         * @param {Object3DBranch} pieceNode
+//         * @param {number} pieceWidth
+//         * @param {number} pieceDepth
+//         * @param {number} pieceHeight
+//         * @param {number} iconSize
+//         * @return {Object}
+//         * @private
+//         */
+//        createIcon(pieceNode : any, pieceWidth : number, pieceDepth : number, pieceHeight : number, iconSize : number) : javax.swing.Icon {
+//            let scaleTransform : mat4 = mat4.create();
+//            mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
+//            let modelTransformGroup : TransformGroup3D = new TransformGroup3D();
+//            modelTransformGroup.setTransform(scaleTransform);
+//            modelTransformGroup.addChild(pieceNode);
+//            this.cloneTexture(pieceNode, <any>(new java.util.IdentityHashMap<Object, Object>()));
+//            let model : BranchGroup3D = new BranchGroup3D();
+//            model.addChild(modelTransformGroup);
+//            let sceneRoot : BranchGroup3D = this.getSceneRoot(iconSize);
+//            sceneRoot.addChild(model);
+//            let background : javax.media.j3d.Background = <javax.media.j3d.Background>sceneRoot.getChild(0);
+//            background.setColor(1, 1, 1);
+//            let canvas3D : javax.media.j3d.Canvas3D = (<com.sun.j3d.utils.universe.SimpleUniverse>sceneRoot.getLocale().getVirtualUniverse()).getCanvas();
+//            canvas3D.renderOffScreenBuffer();
+//            canvas3D.waitForOffScreenRendering();
+//            let imageWithWhiteBackgound : java.awt.image.BufferedImage = canvas3D.getOffScreenBuffer().getImage();
+//            let imageWithWhiteBackgoundPixels : number[] = this.getImagePixels(imageWithWhiteBackgound);
+//            background.setColor(0, 0, 0);
+//            canvas3D.renderOffScreenBuffer();
+//            canvas3D.waitForOffScreenRendering();
+//            let imageWithBlackBackgound : java.awt.image.BufferedImage = canvas3D.getOffScreenBuffer().getImage();
+//            let imageWithBlackBackgoundPixels : number[] = this.getImagePixels(imageWithBlackBackgound);
+//            for(let i : number = 0; i < imageWithBlackBackgoundPixels.length; i++) {{
+//                if(imageWithBlackBackgoundPixels[i] !== imageWithWhiteBackgoundPixels[i] && imageWithBlackBackgoundPixels[i] === -16777216 && imageWithWhiteBackgoundPixels[i] === -1) {
+//                    imageWithWhiteBackgoundPixels[i] = 0;
+//                }
+//            };}
+//            sceneRoot.removeChild(model);
+//            return new javax.swing.ImageIcon(java.awt.Toolkit.getDefaultToolkit().createImage(new java.awt.image.MemoryImageSource(imageWithWhiteBackgound.getWidth(), imageWithWhiteBackgound.getHeight(), imageWithWhiteBackgoundPixels, 0, imageWithWhiteBackgound.getWidth())));
+//        }
+//
+//        /**
+//         * Replace the textures set on node shapes by clones.
+//         * @param {Node3D} node
+//         * @param {Object} replacedTextures
+//         * @private
+//         */
+//        cloneTexture(node : Node3D, replacedTextures : any) {
+//            if(node != null && node instanceof <any>Group3D) {
+//                let enumeration : any = (<Group3D>node).getAllChildren();
+//                while((enumeration.hasMoreElements())) {{
+//                    this.cloneTexture(<any>enumeration.nextElement(), replacedTextures);
+//                }};
+//            } else if(node != null && node instanceof <any>Link3D) {
+//                this.cloneTexture((<Link3D>node).getSharedGroup(), replacedTextures);
+//            } else if(node != null && node instanceof <any>Shape3D) {
+//                let appearance : Appearance3D = (<Shape3D>node).getAppearance();
+//                if(appearance != null) {
+//                    let texture : Object = appearance.getTexture();
+//                    if(texture != null) {
+//                        let replacedTexture : Object = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>replacedTextures, texture);
+//                        if(replacedTexture == null) {
+//                            replacedTexture = <Object>texture.cloneNodeComponent(false);
+//                            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>replacedTextures, texture, replacedTexture);
+//                        }
+//                        appearance.setTextureImage(replacedTexture);
+//                    }
+//                }
+//            }
+//        }
+//
+//        /**
+//         * Returns the pixels of the given <code>image</code>.
+//         * @param {java.awt.image.BufferedImage} image
+//         * @return {Array}
+//         * @private
+//         */
+//        getImagePixels(image : java.awt.image.BufferedImage) : number[] {
+//            if(image.getType() === java.awt.image.BufferedImage.TYPE_INT_RGB || image.getType() === java.awt.image.BufferedImage.TYPE_INT_ARGB) {
+//                return <number[]>image.getRaster().getDataElements(0, 0, image.getWidth(), image.getHeight(), null);
+//            } else {
+//                return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+//            }
+//        }
+//
+//        /**
+//         * Returns the size of the given piece computed from its vertices.
+//         * @param {HomePieceOfFurniture} piece
+//         * @param {Object} object3dFactory
+//         * @return {Array}
+//         * @private
+//         */
+//        static computePieceOfFurnitureSizeInPlan(piece : any, object3dFactory : any) : number[] {
+//            let horizontalRotation : mat4 = mat4.create();
+//            if(piece.getPitch() !== 0) {
+//                mat4.fromXRotation(horizontalRotation, -piece.getPitch());
+//            }
+//            if(piece.getRoll() !== 0) {
+//                let rollRotation : mat4 = mat4.create();
+//                mat4.fromZRotation(rollRotation, -piece.getRoll());
+//                mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
+//            }
+//            piece = /* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(piece);
+//            piece.setX(0);
+//            piece.setY(0);
+//            piece.setElevation(-piece.getHeight() / 2);
+//            piece.setLevel(null);
+//            piece.setAngle(0);
+//            piece.setRoll(0);
+//            piece.setPitch(0);
+//            piece.setWidthInPlan(piece.getWidth());
+//            piece.setDepthInPlan(piece.getDepth());
+//            piece.setHeightInPlan(piece.getHeight());
+//            let bounds : javax.media.j3d.BoundingBox = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
+//            let lower : javax.vecmath.Point3d = vec3.fromValues();
+//            bounds.getLower(lower);
+//            let upper : javax.vecmath.Point3d = vec3.fromValues();
+//            bounds.getUpper(upper);
+//            return [Math.max(0.001, <number>(upper[0] - lower[0])), Math.max(0.001, <number>(upper[2] - lower[2])), Math.max(0.001, <number>(upper[1] - lower[1]))];
+//        }
+//    }
+//    PieceOfFurnitureModelIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurnitureModelIcon";
+//    PieceOfFurnitureModelIcon["__interfaces"] = ["javax.swing.Icon"];
+//
+//
+//
+//    export namespace PieceOfFurnitureModelIcon {
+//
+//        export class PieceOfFurnitureModelIcon$0 implements ModelManager.ModelObserver {
+//            public __parent: any;
+//            public modelUpdated(modelNode : BranchGroup3D) {
+//                let normalizedPiece : any = /* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(this.piece);
+//                if(normalizedPiece.isResizable()) {
+//                    normalizedPiece.setModelMirrored(false);
+//                }
+//                let pieceWidth : number = normalizedPiece.getWidthInPlan();
+//                let pieceDepth : number = normalizedPiece.getDepthInPlan();
+//                let pieceHeight : number = normalizedPiece.getHeightInPlan();
+//                normalizedPiece.setX(0);
+//                normalizedPiece.setY(0);
+//                normalizedPiece.setElevation(-pieceHeight / 2);
+//                normalizedPiece.setLevel(null);
+//                normalizedPiece.setAngle(0);
+//                if(this.waitingComponent != null) {
+//                    if(PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor == null) {
+//                        PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+//                    }
+//                    PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor.execute(() => {
+//                        this.__parent.setIcon(this.__parent.createIcon(this.object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, this.iconSize));
+//                        this.waitingComponent.repaint();
+//                    });
+//                } else {
+//                    this.__parent.setIcon(this.__parent.createIcon(this.object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, this.iconSize));
+//                }
+//            }
+//
+//            public modelError(ex : Error) {
+//                this.__parent.setIcon(IconManager.getInstance().getErrorIcon());
+//                if(this.waitingComponent != null) {
+//                    this.waitingComponent.repaint();
+//                }
+//            }
+//
+//            constructor(__parent: any, private piece: any, private waitingComponent: any, private object3dFactory: any, private iconSize: any) {
+//                this.__parent = __parent;
+//            }
+//        }
+//        PieceOfFurnitureModelIcon$0["__interfaces"] = ["com.eteks.sweethome3d.j3d.ModelManager.ModelObserver"];
+//
+//
+//    }
 
 
     export class PlanComponent$14 {
@@ -6009,10 +5941,311 @@ namespace PlanComponent {
     SetEditionActivatedAction["__class"] = "SetEditionActivatedAction";
     SetEditionActivatedAction["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
 
+  // =======================================================
 
+   /**
+    * A proxy for the furniture icon seen from top.
+    * @param {Image} icon
+    * @constructor
+    */
+    export class PieceOfFurnitureTopViewIcon {
+      
+      
+      constructor(protected image : HTMLImageElement) {
+      }
+
+      getIconWidth() {
+        return this.image.width;
+      }
+
+      getIconHeight() {
+        return this.image.height;
+      }
+
+      paintIcon(g : Graphics2D, x : number, y : number) {
+        g.drawImage(this.image, x, y);
+      }
+
+      isWaitIcon() {
+        return this.image === TextureManager.getInstance().getWaitImage();
+      }
+
+      isErrorIcon() {
+        return this.image === TextureManager.getInstance().getErrorImage();
+      }
+
+      setIcon(image : HTMLImageElement) {
+        this.image = image;
+      }
+    }
+    
+    
+    /**
+     * Creates a top view icon proxy for a <code>piece</code> of furniture.
+     * @param {HomePieceOfFurniture} piece an object containing a 3D content
+     * @param {Object} object3dFactory a factory with a <code>createObject3D(home, item, waitForLoading)</code> method
+     * @param {Object} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+     *          be read immediately in the current thread.
+     * @param {number} iconSize the size in pixels of the generated icon
+     * @constructor
+     * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+     */
+    export class PieceOfFurnitureModelIcon extends PieceOfFurnitureTopViewIcon {
+      constructor(piece : PieceOfFurniture, object3dFactory, waitingComponent, iconSize) {
+        super(TextureManager.getInstance().getWaitImage());
+        ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
+            modelUpdated : (modelRoot) => {
+              var normalizedPiece = piece.clone();
+              if (normalizedPiece.isResizable()) {
+                  normalizedPiece.setModelMirrored(false);
+              }
+              var pieceWidth = normalizedPiece.getWidthInPlan();
+              var pieceDepth = normalizedPiece.getDepthInPlan();
+              var pieceHeight = normalizedPiece.getHeightInPlan();
+              normalizedPiece.setX(0);
+              normalizedPiece.setY(0);
+              normalizedPiece.setElevation(-pieceHeight / 2);
+              normalizedPiece.setLevel(null);
+              normalizedPiece.setAngle(0);
+              if (waitingComponent !== null) {
+                var updater = () => {
+                    this.setIcon(this.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
+                        pieceWidth, pieceDepth, pieceHeight, iconSize));
+                    waitingComponent.repaint();
+                  };
+                setTimeout(updater, 0);
+              } else {
+                this.setIcon(this.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
+                    pieceWidth, pieceDepth, pieceHeight, iconSize));
+              }            
+            },        
+            modelError : (ex) => {
+              // In case of problem use a default red box
+              this.setIcon(TextureManager.getInstance().getErrorImage());            
+              if (waitingComponent !== null) {
+                waitingComponent.repaint();
+              }
+            }
+        });
+      }
+      
+      /**
+       * Returns the branch group bound to a universe and a canvas for the given
+       * resolution.
+       * @param {number} iconSize
+       * @return {BranchGroup3D}
+       * @private
+       */
+      getSceneRoot(iconSize : number) {
+        if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+          var canvas = document.createElement("canvas");
+          canvas.width = iconSize;
+          canvas.height = iconSize;
+          canvas.style.backgroundColor = "rgb(256, 256, 256)";
+          var canvas3D  = new HTMLCanvas3D(canvas);
+          
+          var rotation = mat4.create();
+          mat4.fromXRotation(rotation, -Math.PI / 2);
+          var transform = mat4.create();
+          mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
+          mat4.mul(transform, transform, rotation);
+          canvas3D.setViewPlatformTransform(transform);
+          canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
+      
+          var sceneRoot = new BranchGroup3D();
+          sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
+          var lights = [
+              new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)),         
+              new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)), 
+              new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)), 
+              new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))] 
+          for (var i = 0; i < lights.length; i++) {
+            sceneRoot.addChild(lights [i]);
+          }
+          canvas3D.setScene(sceneRoot);
+          PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
+        } else {
+          if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
+            PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
+            PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
+            return this.getSceneRoot(iconSize);
+          }
+        }
+        return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
+      }
+  
+      /**
+       * Returns an icon created and scaled from piece model content.
+       * @param {Object3DBranch} pieceNode
+       * @param {number} pieceWidth
+       * @param {number} pieceDepth
+       * @param {number} pieceHeight
+       * @param {number} iconSize
+       * @return {Object}
+       * @private
+       */
+      createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize) {
+        var scaleTransform = mat4.create();
+        mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
+        var modelTransformGroup = new TransformGroup3D();
+        modelTransformGroup.setTransform(scaleTransform);
+        modelTransformGroup.addChild(pieceNode);
+        var model = new BranchGroup3D();
+        model.addChild(modelTransformGroup);
+        var sceneRoot = this.getSceneRoot(iconSize);
+        sceneRoot.addChild(model);
+        var canvas3D = PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
+        canvas3D.drawScene();
+        
+        var offscreenCanvas = document.createElement("canvas");
+        offscreenCanvas.width = canvas3D.getCanvas().width;
+        offscreenCanvas.height = canvas3D.getCanvas().height;
+        var context = offscreenCanvas.getContext("2d");
+        context.drawImage(canvas3D.getCanvas(), 0, 0);
+        var imageWithWhiteBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      
+        canvas3D.getCanvas().style.backgroundColor = "rgb(0, 0, 0)";
+        canvas3D.drawScene();
+        context.drawImage(canvas3D.getCanvas(), 0, 0);
+        var imageWithBlackBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      
+        for (var i = 0; i < imageWithBlackBackgoundPixels.length; i += 4) {
+          if (imageWithBlackBackgoundPixels[i] !== imageWithWhiteBackgoundPixels[i] 
+              && imageWithBlackBackgoundPixels[i + 1] !== imageWithWhiteBackgoundPixels[i + 1] 
+              && imageWithBlackBackgoundPixels[i + 2] !== imageWithWhiteBackgoundPixels[i + 2] 
+              && imageWithBlackBackgoundPixels[i] === 0
+              && imageWithBlackBackgoundPixels[i + 1] === 0
+              && imageWithBlackBackgoundPixels[i + 2] === 0
+              && imageWithWhiteBackgoundPixels[i] === 0xFF
+              && imageWithWhiteBackgoundPixels[i + 1] === 0xFF
+              && imageWithWhiteBackgoundPixels[i + 2] === 0xFF) {
+            imageWithWhiteBackgoundPixels[i + 3] = 0; // Make pixel transparent
+          }
+        }
+        
+        context.putImageData(imageWithWhiteBackgoundPixels, 0, 0);
+        var image = new Image();
+        image.src = offscreenCanvas.toDataURL();
+        sceneRoot.removeChild(model);
+        return image;
+      }
+  
+      /**
+       * Returns the size of the given piece computed from its vertices.
+       * @param {HomePieceOfFurniture} piece
+       * @param {Object} object3dFactory
+       * @return {Array}
+       * @private
+       */
+      computePieceOfFurnitureSizeInPlan(piece, object3dFactory) {
+        var horizontalRotation = mat4.create();
+        if (piece.getPitch() !== 0) {
+          mat4.fromXRotation(horizontalRotation, -piece.getPitch());
+        }
+        if (piece.getRoll() !== 0) {
+          var rollRotation = mat4.create();
+          mat4.fromZRotation(rollRotation, -piece.getRoll());
+          mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
+        }
+        
+        // Compute bounds of a piece centered at the origin and rotated around the target horizontal angle
+        piece = piece.clone();
+        piece.setX(0);
+        piece.setY(0);
+        piece.setElevation(-piece.getHeight() / 2);
+        piece.setLevel(null);
+        piece.setAngle(0);
+        piece.setRoll(0);
+        piece.setPitch(0);
+        piece.setWidthInPlan(piece.getWidth());
+        piece.setDepthInPlan(piece.getDepth());
+        piece.setHeightInPlan(piece.getHeight());
+        var bounds = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
+        var lower = vec3.create();
+        bounds.getLower(lower);
+        var upper = vec3.create();
+        bounds.getUpper(upper);
+        return [Math.max(0.001, (upper[0] - lower[0])), 
+                Math.max(0.001, (upper[2] - lower[2])), 
+                Math.max(0.001, (upper[1] - lower[1]))];
+      }
+    }
+    
+    /**
+     * Creates a plan icon proxy for a <code>piece</code> of furniture.
+     * @param {HomePieceOfFurniture} piece an object containing a plan icon content
+     * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+     * be read immediately in the current thread.
+     * @class
+     * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+     */
+    export class PieceOfFurniturePlanIcon extends PlanComponent.PieceOfFurnitureTopViewIcon {
+//        pieceWidth : number;
+//
+//        pieceDepth : number;
+//
+//        pieceColor : number;
+//
+//        pieceTexture : TextureImage;
+        
+        public constructor(piece : PieceOfFurniture, waitingComponent : { repaint : () => void }) {
+            super(null);
+//            this.pieceWidth = piece.getWidth();
+//            this.pieceDepth = piece.getDepth();
+//            this.pieceColor = piece.getColor();
+//            this.pieceTexture = piece.getTexture();
+            if(this.image != PlanComponent.WAIT_TEXTURE_IMAGE && this.image != PlanComponent.ERROR_TEXTURE_IMAGE) {
+                if(piece.getPlanIcon() != null) {
+                  this.image = PlanComponent.WAIT_TEXTURE_IMAGE;
+                  TextureManager.getInstance().loadTexture(piece.getPlanIcon(), true, {
+                    textureUpdated : (textureImage : HTMLImageElement) => {
+                      this.image = textureImage;
+                      waitingComponent.repaint();
+                    },
+                    textureError : (error) => {
+                      this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
+                      waitingComponent.repaint();
+                    } 
+                  });
+                } else if(piece.getColor() != null) {
+                  this.image = TextureManager.getInstance().getColoredImage(piece.getColor());
+                  //this.pieceColor = null;
+                } else if(piece.getTexture() != null) {
+                  this.image = PlanComponent.WAIT_TEXTURE_IMAGE;
+                  TextureManager.getInstance().loadTexture(piece.getTexture().getImage(), true, {
+                    textureUpdated : (textureImage : HTMLImageElement) => {
+                      this.image = textureImage;
+                      waitingComponent.repaint();
+                    },
+                    textureError : (error) => {
+                      this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
+                      waitingComponent.repaint();
+                    } 
+                  });
+                }
+            }
+        }
+
+//        setTexturedIcon(c : java.awt.Component, textureImage : java.awt.image.BufferedImage, angle : number) {
+//            let image : java.awt.image.BufferedImage = new java.awt.image.BufferedImage(this.getIconWidth(), this.getIconHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
+//            let imageGraphics : Graphics2D = <Graphics2D>image.getGraphics();
+//            imageGraphics.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+//            PlanComponent.PieceOfFurniturePlanIcon.super.paintIcon(c, imageGraphics, 0, 0);
+//            imageGraphics.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Float(0, 0, -this.getIconWidth() / this.pieceWidth * this.pieceTexture.getWidth(), -this.getIconHeight() / this.pieceDepth * this.pieceTexture.getHeight())));
+//            imageGraphics.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_IN));
+//            imageGraphics.rotate(angle);
+//            let maxDimension : number = Math.max(image.getWidth(), image.getHeight());
+//            imageGraphics.fill(new java.awt.geom.Rectangle2D.Float(-maxDimension, -maxDimension, 3 * maxDimension, 3 * maxDimension));
+//            imageGraphics.fillRect(0, 0, this.getIconWidth(), this.getIconHeight());
+//            imageGraphics.dispose();
+//            this.setIcon(new javax.swing.ImageIcon(image));
+//        }
+    }
+    PieceOfFurniturePlanIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurniturePlanIcon";
+    PieceOfFurniturePlanIcon["__interfaces"] = ["javax.swing.Icon"];
+
+    
 }
-
-
 
 
 PlanComponent.__static_initialize();
