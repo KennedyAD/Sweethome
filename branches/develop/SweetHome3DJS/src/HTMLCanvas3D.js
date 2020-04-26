@@ -1234,8 +1234,8 @@ HTMLCanvas3D.prototype.repaint = function() {
 
 /**
  * Creates an image of canvas content and calls <code>imageObserver</code> once it's ready.
- * @param {Object} [imageObserver] the observer that will receive the icon as parameter
- * @return {Image} the image of the canvas
+ * @param {Object} [imageObserver] the observer that will receive the image as parameter
+ * @return {Image} the image of the canvas or <code>undefined</code> if <code>imageObserver</code> exists
  */
 HTMLCanvas3D.prototype.getImage = function(imageObserver) {
   if (imageObserver) {
