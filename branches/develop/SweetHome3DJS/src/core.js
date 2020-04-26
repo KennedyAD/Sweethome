@@ -308,7 +308,11 @@ function loadJSON(url) {
   // xhr.responseType = 'json';
   xhr.send();
   if(xhr.responseText) {
-    return JSON.parse(xhr.responseText);
+    try {
+      return JSON.parse(xhr.responseText);
+    } catch(e) {
+      return undefined;
+    }
   } else {
     return undefined;
   }
