@@ -939,8 +939,7 @@ HTMLCanvas3D.prototype.drawScene = function() {
   // First draw background geometries (contained in a unit sphere)
   var projectionTransform = mat4.create();
   if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
-    mat4.ortho(projectionTransform, -this.viewportWidth /128, this.viewportWidth /128, -this.viewportHeight /128, this.viewportHeight /128, 
-        0.001, 1.0);
+    mat4.ortho(projectionTransform, -1, 1, -1, 1, 0.001, 1.0);
   } else {
     mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight, 
         0.001, 1.0);
@@ -960,8 +959,7 @@ HTMLCanvas3D.prototype.drawScene = function() {
   // Reset depth buffer to draw the scene above background
   this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
   if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
-    mat4.ortho(projectionTransform, -this.viewportWidth / 256, this.viewportWidth / 256, -this.viewportHeight / 256, this.viewportHeight / 256,   
-        this.frontClipDistance, this.backClipDistance);
+    mat4.ortho(projectionTransform, -1, 1, -1, 1, this.frontClipDistance, this.backClipDistance);
   } else {
     mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight,  
         this.frontClipDistance, this.backClipDistance);
@@ -1321,8 +1319,7 @@ HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
     var projectionTransform = mat4.create();
     var verticalFieldOfView = 2 * Math.atan(this.canvas.height / this.canvas.width * Math.tan(this.fieldOfView / 2));
     if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
-      mat4.ortho(projectionTransform, -this.canvas.width / 256, this.canvas.width / 256, -this.canvas.height / 256, this.canvas.height / 256,  
-          this.frontClipDistance, this.backClipDistance);
+      mat4.ortho(projectionTransform, -1, 1, -1, 1, this.frontClipDistance, this.backClipDistance);
     } else {
       mat4.perspective(projectionTransform, verticalFieldOfView, this.canvas.width / this.canvas.height,  
           this.frontClipDistance, this.backClipDistance);
