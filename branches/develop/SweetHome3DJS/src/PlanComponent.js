@@ -960,7 +960,7 @@ var PlanComponent = (function () {
         if(this.isPreferredSizeSet()) {
             return super.getPreferredSize();
         } else {
-            let insets : java.awt.Insets = this.getInsets();
+            let insets = this.getInsets();
             let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
             return new java.awt.Dimension(Math.round((<number>planBounds.getWidth() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.left + insets.right, Math.round((<number>planBounds.getHeight() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.top + insets.bottom);
         }
@@ -971,6 +971,7 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.getPlanBounds = function () {
+        var _this = this;
         if (!this.planBoundsCacheValid) {
             if (this.planBoundsCache == null) {
                 this.planBoundsCache = new java.awt.geom.Rectangle2D.Float(0, 0, 1000, 1000);
@@ -981,19 +982,13 @@ var PlanComponent = (function () {
                     this.planBoundsCache.add(-backgroundImage.getXOrigin(), -backgroundImage.getYOrigin());
                     this.planBoundsCache.add(this.backgroundImageCache.width * backgroundImage.getScale() - backgroundImage.getXOrigin(), this.backgroundImageCache.height * backgroundImage.getScale() - backgroundImage.getYOrigin());
                 }
-                {
-                    var array144 = this.home.getLevels();
-                    for (var index143 = 0; index143 < array144.length; index143++) {
-                        var level = array144[index143];
-                        {
-                            var levelBackgroundImage = level.getBackgroundImage();
-                            if (levelBackgroundImage != null) {
-                                this.planBoundsCache.add(-levelBackgroundImage.getXOrigin(), -levelBackgroundImage.getYOrigin());
-                                this.planBoundsCache.add(this.backgroundImageCache.width * levelBackgroundImage.getScale() - levelBackgroundImage.getXOrigin(), this.backgroundImageCache.height * levelBackgroundImage.getScale() - levelBackgroundImage.getYOrigin());
-                            }
-                        }
+                this.home.getLevels().forEach(function (level) {
+                    var levelBackgroundImage = level.getBackgroundImage();
+                    if (levelBackgroundImage != null) {
+                        _this.planBoundsCache.add(-levelBackgroundImage.getXOrigin(), -levelBackgroundImage.getYOrigin());
+                        _this.planBoundsCache.add(_this.backgroundImageCache.width * levelBackgroundImage.getScale() - levelBackgroundImage.getXOrigin(), _this.backgroundImageCache.height * levelBackgroundImage.getScale() - levelBackgroundImage.getYOrigin());
                     }
-                }
+                });
             }
             var g = this.getGraphics();
             if (g != null) {
@@ -1003,15 +998,7 @@ var PlanComponent = (function () {
             if (homeItemsBounds != null) {
                 this.planBoundsCache.add(homeItemsBounds);
             }
-            {
-                var array146 = this.home.getObserverCamera().getPoints();
-                for (var index145 = 0; index145 < array146.length; index145++) {
-                    var point = array146[index145];
-                    {
-                        this.planBoundsCache.add(point[0], point[1]);
-                    }
-                }
-            }
+            this.home.getObserverCamera().getPoints().forEach(function (point) { return _this.planBoundsCache.add(point[0], point[1]); });
             this.planBoundsCacheValid = true;
         }
         return this.planBoundsCache;
@@ -1033,15 +1020,13 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.getItemsBounds = function (g, items) {
         var itemsBounds = null;
-        for (var index147 = 0; index147 < items.length; index147++) {
-            var item = items[index147];
-            {
-                if (itemsBounds == null) {
-                    itemsBounds = this.getItemBounds(g, item);
-                }
-                else {
-                    itemsBounds.add(this.getItemBounds(g, item));
-                }
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (itemsBounds == null) {
+                itemsBounds = this.getItemBounds(g, item);
+            }
+            else {
+                itemsBounds.add(this.getItemBounds(g, item));
             }
         }
         return itemsBounds;
@@ -1186,15 +1171,7 @@ var PlanComponent = (function () {
         if (style == null) {
             style = this.preferences.getDefaultTextStyle(selectableClass);
         }
-        {
-            var array151 = this.getTextBounds(text, style, x, y, angle);
-            for (var index150 = 0; index150 < array151.length; index150++) {
-                var points = array151[index150];
-                {
-                    bounds.add(points[0], points[1]);
-                }
-            }
-        }
+        this.getTextBounds(text, style, x, y, angle).forEach(function (points) { return bounds.add(points[0], points[1]); });
     };
     /**
      * Returns the coordinates of the bounding rectangle of the <code>text</code> centered at
@@ -1361,12 +1338,13 @@ var PlanComponent = (function () {
         if (this.backgroundPainted) {
             this.paintBackground(g2D, this.getBackgroundColor(PlanComponent.PaintMode.PAINT));
         }
+        var insets = this.getInsets();
         g2D.setTransform(new java.awt.geom.AffineTransform());
         g2D.clear();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
         var paintScale = this.getScale();
-        g2D.translate((PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
+        g2D.translate(insets.left + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, insets.top + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         try {
@@ -1956,24 +1934,20 @@ var PlanComponent = (function () {
      * @param {PlanComponent.PaintMode} paintMode
      */
     PlanComponent.prototype.paintHomeItems = function (g2D, planScale, backgroundColor, foregroundColor, paintMode) {
+        var _this = this;
         var selectedItems = this.home.getSelectedItems();
         if (this.sortedLevelFurniture == null) {
-            this.sortedLevelFurniture = ([]);
-            {
-                var array160 = this.home.getFurniture();
-                for (var index159 = 0; index159 < array160.length; index159++) {
-                    var piece = array160[index159];
-                    {
-                        if (this.isViewableAtSelectedLevel(piece)) {
-                            /* add */ (this.sortedLevelFurniture.push(piece) > 0);
-                        }
-                    }
+            this.sortedLevelFurniture = [];
+            this.home.getFurniture().forEach(function (piece) {
+                if (_this.isViewableAtSelectedLevel(piece)) {
+                    _this.sortedLevelFurniture.push(piece);
                 }
-            }
-            /* sort */ (function (l, c) { if (c.compare)
-                l.sort(function (e1, e2) { return c.compare(e1, e2); });
-            else
-                l.sort(c); })(this.sortedLevelFurniture, new PlanComponent.PlanComponent$22(this));
+            });
+            sortArray(this.sortedLevelFurniture, {
+                compare: function (piece1, piece2) {
+                    return (piece1.getGroundElevation() - piece2.getGroundElevation());
+                }
+            });
         }
         var selectionColor = this.getSelectionColor();
         var selectionOutlinePaint = selectionColor + "80"; // add alpha
@@ -2047,7 +2021,19 @@ var PlanComponent = (function () {
                     _this.sortedLevelRooms.push(room);
                 }
             });
-            sortArray(this.sortedLevelRooms, new PlanComponent.PlanComponent$23(this));
+            sortArray(this.sortedLevelRooms, {
+                compare: function (room1, room2) {
+                    if (room1.isFloorVisible() === room2.isFloorVisible() && room1.isCeilingVisible() === room2.isCeilingVisible()) {
+                        return 0;
+                    }
+                    else if (!room2.isFloorVisible() || room2.isCeilingVisible()) {
+                        return 1;
+                    }
+                    else {
+                        return -1;
+                    }
+                }
+            });
         }
         var defaultFillPaint = paintMode === PlanComponent.PaintMode.PRINT ? "#000000" : "#808080";
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Room, paintMode) / planScale));
@@ -5210,276 +5196,6 @@ var PlanComponent;
     }());
     PlanComponent.HomePieceOfFurnitureTopViewIconKey = HomePieceOfFurnitureTopViewIconKey;
     HomePieceOfFurnitureTopViewIconKey["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.HomePieceOfFurnitureTopViewIconKey";
-    //    export abstract class PieceOfFurnitureTopViewIcon {
-    //      constructor(icon : any) {}
-    //    }
-    //    export namespace PieceOfFurniturePlanIcon {
-    //
-    //        export class PieceOfFurniturePlanIcon$0 {
-    //            public __parent: any;
-    //            public filterRGB(x : number, y : number, argb : number) : number {
-    //                let alpha : number = argb & -16777216;
-    //                let red : number = (argb & 16711680) >> 16;
-    //                let green : number = (argb & 65280) >> 8;
-    //                let blue : number = argb & 255;
-    //                let brightness : number = ((red + red + red + green + green + green + green + blue) >> 4) + 127;
-    //                red = ((this.colorRed * brightness / 255|0)) & 16711680;
-    //                green = ((this.colorGreen * brightness / 255|0)) & 65280;
-    //                blue = ((this.colorBlue * brightness / 255|0)) & 255;
-    //                return alpha | red | green | blue;
-    //            }
-    //
-    //            constructor(__parent: any, private colorRed: any, private colorGreen: any, private colorBlue: any) {
-    //                this.__parent = __parent;
-    //                (() => {
-    //                    this.canFilterIndexColorModel = true;
-    //                })();
-    //            }
-    //        }
-    //        PieceOfFurniturePlanIcon$0["__interfaces"] = ["java.lang.Cloneable","java.awt.image.ImageConsumer"];
-    //
-    //
-    //    }
-    //    /**
-    //     * Creates a top view icon proxy for a <code>piece</code> of furniture.
-    //     * @param {HomePieceOfFurniture} piece an object containing a 3D content
-    //     * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-    //     * be read immediately in the current thread.
-    //     * @param {number} iconSize the size in pixels of the generated icon
-    //     * @param {Object} object3dFactory
-    //     * @class
-    //     * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-    //     */
-    //    export class PieceOfFurnitureModelIcon extends PlanComponent.PieceOfFurnitureTopViewIcon {
-    //        static sceneRoot : BranchGroup3D = null;
-    //
-    //        static iconsCreationExecutor : java.util.concurrent.ExecutorService = null;
-    //
-    //        public constructor(piece : any, object3dFactory : any, waitingComponent : java.awt.Component, iconSize : number) {
-    //            super(IconManager.getInstance().getWaitIcon());
-    //            ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent == null, new PieceOfFurnitureModelIcon.PieceOfFurnitureModelIcon$0(this, piece, waitingComponent, object3dFactory, iconSize));
-    //        }
-    //
-    //        /**
-    //         * Returns the branch group bound to a universe and a canvas for the given resolution.
-    //         * @param {number} iconSize
-    //         * @return {BranchGroup3D}
-    //         * @private
-    //         */
-    //        getSceneRoot(iconSize : number) : BranchGroup3D {
-    //            if(PieceOfFurnitureModelIcon.sceneRoot == null) {
-    //                let canvas3D : javax.media.j3d.Canvas3D = Component3DManager.getInstance().getOffScreenCanvas3D(iconSize, iconSize);
-    //                let universe : com.sun.j3d.utils.universe.SimpleUniverse = new com.sun.j3d.utils.universe.SimpleUniverse(canvas3D);
-    //                let viewingPlatform : com.sun.j3d.utils.universe.ViewingPlatform = universe.getViewingPlatform();
-    //                let viewPlatformTransform : TransformGroup3D = viewingPlatform.getViewPlatformTransform();
-    //                let rotation : mat4 = mat4.create();
-    //                mat4.fromXRotation(rotation, -Math.PI / 2);
-    //                let transform : mat4 = mat4.create();
-    //                mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
-    //                mat4.mul(transform, transform, rotation);
-    //                viewPlatformTransform.setTransform(transform);
-    //                let viewer : com.sun.j3d.utils.universe.Viewer = viewingPlatform.getViewers()[0];
-    //                let view : javax.media.j3d.View = viewer.getView();
-    //                view.setProjectionPolicy(javax.media.j3d.View.PARALLEL_PROJECTION);
-    //                PieceOfFurnitureModelIcon.sceneRoot = new BranchGroup3D();
-    //                PieceOfFurnitureModelIcon.sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
-    //                let background : javax.media.j3d.Background = new javax.media.j3d.Background(1.1, 1.1, 1.1);
-    //                background.setCapability(javax.media.j3d.Background.ALLOW_COLOR_WRITE);
-    //                background.setApplicationBounds(new javax.media.j3d.BoundingBox(vec3.fromValues(-1.1, -1.1, -1.1), vec3.fromValues(1.1, 1.1, 1.1)));
-    //                PieceOfFurnitureModelIcon.sceneRoot.addChild(background);
-    //                let lights : javax.media.j3d.Light[] = [new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)), new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)), new javax.media.j3d.DirectionalLight(new javax.vecmath.Color3f(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)), new javax.media.j3d.AmbientLight(new javax.vecmath.Color3f(0.2, 0.2, 0.2))];
-    //                for(let index212=0; index212 < lights.length; index212++) {
-    //                    let light = lights[index212];
-    //                    {
-    //                        light.setInfluencingBounds(new javax.media.j3d.BoundingBox(vec3.fromValues(-1.1, -1.1, -1.1), vec3.fromValues(1.1, 1.1, 1.1)));
-    //                        PieceOfFurnitureModelIcon.sceneRoot.addChild(light);
-    //                    }
-    //                }
-    //                universe.addBranchGraph(PieceOfFurnitureModelIcon.sceneRoot);
-    //            } else {
-    //                let universe : com.sun.j3d.utils.universe.SimpleUniverse = <com.sun.j3d.utils.universe.SimpleUniverse>PieceOfFurnitureModelIcon.sceneRoot.getLocale().getVirtualUniverse();
-    //                let canvas3D : javax.media.j3d.Canvas3D = universe.getCanvas();
-    //                if(canvas3D.getWidth() !== iconSize) {
-    //                    universe.cleanup();
-    //                    PieceOfFurnitureModelIcon.sceneRoot = null;
-    //                    return this.getSceneRoot(iconSize);
-    //                }
-    //            }
-    //            return PieceOfFurnitureModelIcon.sceneRoot;
-    //        }
-    //
-    //        /**
-    //         * Returns an icon created and scaled from piece model content.
-    //         * @param {Object3DBranch} pieceNode
-    //         * @param {number} pieceWidth
-    //         * @param {number} pieceDepth
-    //         * @param {number} pieceHeight
-    //         * @param {number} iconSize
-    //         * @return {Object}
-    //         * @private
-    //         */
-    //        createIcon(pieceNode : any, pieceWidth : number, pieceDepth : number, pieceHeight : number, iconSize : number) : javax.swing.Icon {
-    //            let scaleTransform : mat4 = mat4.create();
-    //            mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
-    //            let modelTransformGroup : TransformGroup3D = new TransformGroup3D();
-    //            modelTransformGroup.setTransform(scaleTransform);
-    //            modelTransformGroup.addChild(pieceNode);
-    //            this.cloneTexture(pieceNode, <any>(new java.util.IdentityHashMap<Object, Object>()));
-    //            let model : BranchGroup3D = new BranchGroup3D();
-    //            model.addChild(modelTransformGroup);
-    //            let sceneRoot : BranchGroup3D = this.getSceneRoot(iconSize);
-    //            sceneRoot.addChild(model);
-    //            let background : javax.media.j3d.Background = <javax.media.j3d.Background>sceneRoot.getChild(0);
-    //            background.setColor(1, 1, 1);
-    //            let canvas3D : javax.media.j3d.Canvas3D = (<com.sun.j3d.utils.universe.SimpleUniverse>sceneRoot.getLocale().getVirtualUniverse()).getCanvas();
-    //            canvas3D.renderOffScreenBuffer();
-    //            canvas3D.waitForOffScreenRendering();
-    //            let imageWithWhiteBackgound : java.awt.image.BufferedImage = canvas3D.getOffScreenBuffer().getImage();
-    //            let imageWithWhiteBackgoundPixels : number[] = this.getImagePixels(imageWithWhiteBackgound);
-    //            background.setColor(0, 0, 0);
-    //            canvas3D.renderOffScreenBuffer();
-    //            canvas3D.waitForOffScreenRendering();
-    //            let imageWithBlackBackgound : java.awt.image.BufferedImage = canvas3D.getOffScreenBuffer().getImage();
-    //            let imageWithBlackBackgoundPixels : number[] = this.getImagePixels(imageWithBlackBackgound);
-    //            for(let i : number = 0; i < imageWithBlackBackgoundPixels.length; i++) {{
-    //                if(imageWithBlackBackgoundPixels[i] !== imageWithWhiteBackgoundPixels[i] && imageWithBlackBackgoundPixels[i] === -16777216 && imageWithWhiteBackgoundPixels[i] === -1) {
-    //                    imageWithWhiteBackgoundPixels[i] = 0;
-    //                }
-    //            };}
-    //            sceneRoot.removeChild(model);
-    //            return new javax.swing.ImageIcon(java.awt.Toolkit.getDefaultToolkit().createImage(new java.awt.image.MemoryImageSource(imageWithWhiteBackgound.getWidth(), imageWithWhiteBackgound.getHeight(), imageWithWhiteBackgoundPixels, 0, imageWithWhiteBackgound.getWidth())));
-    //        }
-    //
-    //        /**
-    //         * Replace the textures set on node shapes by clones.
-    //         * @param {Node3D} node
-    //         * @param {Object} replacedTextures
-    //         * @private
-    //         */
-    //        cloneTexture(node : Node3D, replacedTextures : any) {
-    //            if(node != null && node instanceof <any>Group3D) {
-    //                let enumeration : any = (<Group3D>node).getAllChildren();
-    //                while((enumeration.hasMoreElements())) {{
-    //                    this.cloneTexture(<any>enumeration.nextElement(), replacedTextures);
-    //                }};
-    //            } else if(node != null && node instanceof <any>Link3D) {
-    //                this.cloneTexture((<Link3D>node).getSharedGroup(), replacedTextures);
-    //            } else if(node != null && node instanceof <any>Shape3D) {
-    //                let appearance : Appearance3D = (<Shape3D>node).getAppearance();
-    //                if(appearance != null) {
-    //                    let texture : Object = appearance.getTexture();
-    //                    if(texture != null) {
-    //                        let replacedTexture : Object = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>replacedTextures, texture);
-    //                        if(replacedTexture == null) {
-    //                            replacedTexture = <Object>texture.cloneNodeComponent(false);
-    //                            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>replacedTextures, texture, replacedTexture);
-    //                        }
-    //                        appearance.setTextureImage(replacedTexture);
-    //                    }
-    //                }
-    //            }
-    //        }
-    //
-    //        /**
-    //         * Returns the pixels of the given <code>image</code>.
-    //         * @param {java.awt.image.BufferedImage} image
-    //         * @return {Array}
-    //         * @private
-    //         */
-    //        getImagePixels(image : java.awt.image.BufferedImage) : number[] {
-    //            if(image.getType() === java.awt.image.BufferedImage.TYPE_INT_RGB || image.getType() === java.awt.image.BufferedImage.TYPE_INT_ARGB) {
-    //                return <number[]>image.getRaster().getDataElements(0, 0, image.getWidth(), image.getHeight(), null);
-    //            } else {
-    //                return image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-    //            }
-    //        }
-    //
-    //        /**
-    //         * Returns the size of the given piece computed from its vertices.
-    //         * @param {HomePieceOfFurniture} piece
-    //         * @param {Object} object3dFactory
-    //         * @return {Array}
-    //         * @private
-    //         */
-    //        static computePieceOfFurnitureSizeInPlan(piece : any, object3dFactory : any) : number[] {
-    //            let horizontalRotation : mat4 = mat4.create();
-    //            if(piece.getPitch() !== 0) {
-    //                mat4.fromXRotation(horizontalRotation, -piece.getPitch());
-    //            }
-    //            if(piece.getRoll() !== 0) {
-    //                let rollRotation : mat4 = mat4.create();
-    //                mat4.fromZRotation(rollRotation, -piece.getRoll());
-    //                mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
-    //            }
-    //            piece = /* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(piece);
-    //            piece.setX(0);
-    //            piece.setY(0);
-    //            piece.setElevation(-piece.getHeight() / 2);
-    //            piece.setLevel(null);
-    //            piece.setAngle(0);
-    //            piece.setRoll(0);
-    //            piece.setPitch(0);
-    //            piece.setWidthInPlan(piece.getWidth());
-    //            piece.setDepthInPlan(piece.getDepth());
-    //            piece.setHeightInPlan(piece.getHeight());
-    //            let bounds : javax.media.j3d.BoundingBox = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
-    //            let lower : javax.vecmath.Point3d = vec3.fromValues();
-    //            bounds.getLower(lower);
-    //            let upper : javax.vecmath.Point3d = vec3.fromValues();
-    //            bounds.getUpper(upper);
-    //            return [Math.max(0.001, <number>(upper[0] - lower[0])), Math.max(0.001, <number>(upper[2] - lower[2])), Math.max(0.001, <number>(upper[1] - lower[1]))];
-    //        }
-    //    }
-    //    PieceOfFurnitureModelIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurnitureModelIcon";
-    //    PieceOfFurnitureModelIcon["__interfaces"] = ["javax.swing.Icon"];
-    //
-    //
-    //
-    //    export namespace PieceOfFurnitureModelIcon {
-    //
-    //        export class PieceOfFurnitureModelIcon$0 implements ModelManager.ModelObserver {
-    //            public __parent: any;
-    //            public modelUpdated(modelNode : BranchGroup3D) {
-    //                let normalizedPiece : any = /* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(this.piece);
-    //                if(normalizedPiece.isResizable()) {
-    //                    normalizedPiece.setModelMirrored(false);
-    //                }
-    //                let pieceWidth : number = normalizedPiece.getWidthInPlan();
-    //                let pieceDepth : number = normalizedPiece.getDepthInPlan();
-    //                let pieceHeight : number = normalizedPiece.getHeightInPlan();
-    //                normalizedPiece.setX(0);
-    //                normalizedPiece.setY(0);
-    //                normalizedPiece.setElevation(-pieceHeight / 2);
-    //                normalizedPiece.setLevel(null);
-    //                normalizedPiece.setAngle(0);
-    //                if(this.waitingComponent != null) {
-    //                    if(PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor == null) {
-    //                        PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
-    //                    }
-    //                    PlanComponent.PieceOfFurnitureModelIcon.iconsCreationExecutor.execute(() => {
-    //                        this.__parent.setIcon(this.__parent.createIcon(this.object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, this.iconSize));
-    //                        this.waitingComponent.repaint();
-    //                    });
-    //                } else {
-    //                    this.__parent.setIcon(this.__parent.createIcon(this.object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, this.iconSize));
-    //                }
-    //            }
-    //
-    //            public modelError(ex : Error) {
-    //                this.__parent.setIcon(IconManager.getInstance().getErrorIcon());
-    //                if(this.waitingComponent != null) {
-    //                    this.waitingComponent.repaint();
-    //                }
-    //            }
-    //
-    //            constructor(__parent: any, private piece: any, private waitingComponent: any, private object3dFactory: any, private iconSize: any) {
-    //                this.__parent = __parent;
-    //            }
-    //        }
-    //        PieceOfFurnitureModelIcon$0["__interfaces"] = ["com.eteks.sweethome3d.j3d.ModelManager.ModelObserver"];
-    //
-    //
-    //    }
     var PlanComponent$14 = (function () {
         function PlanComponent$14(__parent, controller) {
             this.controller = controller;
@@ -5643,36 +5359,6 @@ var PlanComponent;
     }());
     PlanComponent.PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
     PlanComponent$21["__interfaces"] = ["java.util.EventListener", "javax.swing.event.DocumentListener"];
-    var PlanComponent$22 = (function () {
-        function PlanComponent$22(__parent) {
-            this.__parent = __parent;
-        }
-        PlanComponent$22.prototype.compare = function (piece1, piece2) {
-            return (piece1.getGroundElevation() - piece2.getGroundElevation());
-        };
-        return PlanComponent$22;
-    }());
-    PlanComponent.PlanComponent$22 = PlanComponent$22;
-    PlanComponent$22["__interfaces"] = ["java.util.Comparator"];
-    var PlanComponent$23 = (function () {
-        function PlanComponent$23(__parent) {
-            this.__parent = __parent;
-        }
-        PlanComponent$23.prototype.compare = function (room1, room2) {
-            if (room1.isFloorVisible() === room2.isFloorVisible() && room1.isCeilingVisible() === room2.isCeilingVisible()) {
-                return 0;
-            }
-            else if (!room2.isFloorVisible() || room2.isCeilingVisible()) {
-                return 1;
-            }
-            else {
-                return -1;
-            }
-        };
-        return PlanComponent$23;
-    }());
-    PlanComponent.PlanComponent$23 = PlanComponent$23;
-    PlanComponent$23["__interfaces"] = ["java.util.Comparator"];
     var PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = (function () {
         function PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/(__parent) {
             _super.call(this);
