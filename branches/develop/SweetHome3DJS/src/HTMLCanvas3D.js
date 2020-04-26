@@ -1233,10 +1233,31 @@ HTMLCanvas3D.prototype.repaint = function() {
 }
 
 /**
- * Returns an image of canvas content.
- * @return {Image}
+ * Creates an image of canvas content and calls <code>imageObserver</code> once it's ready.
+ * @param {Object} [imageObserver] the observer that will receive the icon as parameter
+ * @return {Image} the image of the canvas
  */
-HTMLCanvas3D.prototype.getImage = function() {
+HTMLCanvas3D.prototype.getImage = function(imageObserver) {
+  if (imageObserver) {
+    var canvas3D = this;
+    var updater = function() {
+        // Wait for the end of texture images loading 
+        for (var i = 0; i < canvas3D.textures.length; i++) {
+          if (canvas3D.textures [i].image.width === 0) {
+            setTimeout(updater, 0);
+            return;
+          }
+        }
+        canvas3D.drawScene();
+        var image = new Image();
+        image.src = canvas3D.canvas.toDataURL();
+        imageObserver(image);
+      }
+    updater();
+    return undefined;
+  }  
+  
+  // Return image with possible missing texture images
   if (this.canvasNeededRepaint) {
     this.drawScene();
     this.canvasNeededRepaint = false;
