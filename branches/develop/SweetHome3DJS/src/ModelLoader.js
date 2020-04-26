@@ -126,7 +126,7 @@ ModelLoader.prototype.parseModelEntry = function(modelEntry, zip, zipUrl, synchr
     var modelContext = {};
     this.parseDependencies(modelContent, modelEntry.name, zip, modelContext);
     var scene = this.parseEntryScene(modelContent, modelEntry.name, zip, modelContext, null, loadingModelObserver.progression);
-    this.loadTextureImages(scene, {}, zip, zipUrl, synchronous);
+    this.loadTextureImages(scene, {}, zip, zipUrl, true);
     loadingModelObserver.modelLoaded(scene);
   } else {
     var parsedEntry = {modelEntry : modelEntry, 
@@ -160,7 +160,7 @@ ModelLoader.prototype.parseNextWaitingEntry = function() {
             function() {
               loader.parseEntryScene(modelContent, modelEntryName, parsedEntry.zip, modelContext,
                   function(scene) {
-                      loader.loadTextureImages(scene, {}, parsedEntry.zip, parsedEntry.zipUrl);
+                      loader.loadTextureImages(scene, {}, parsedEntry.zip, parsedEntry.zipUrl, true);
                       parsedEntry.loadingModelObserver.modelLoaded(scene);
                       loader.parserBusy = false;
                       loader.parseNextWaitingEntry();
