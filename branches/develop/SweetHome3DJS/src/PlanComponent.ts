@@ -5781,7 +5781,7 @@ namespace PlanComponent {
         context.drawImage(canvas3D.getCanvas(), 0, 0);
         var imageWithWhiteBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       
-        canvas3D.getCanvas().style.backgroundColor = "rgb(0, 0, 0)";
+        canvas3D.getCanvas().style.backgroundColor = "rgba(0, 0, 0, 0)";
         canvas3D.drawScene();
         context.drawImage(canvas3D.getCanvas(), 0, 0);
         var imageWithBlackBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
