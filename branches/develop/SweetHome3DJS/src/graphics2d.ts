@@ -195,7 +195,7 @@ class Graphics2D {
   }
 
   public drawString(str: string, x: number, y: number) {
-    this.context.strokeText(str, x, y);
+    this.context.fillText(str, x, y);
   }
 
   public fillArc(x: number, y: number, width: number, height: number, startAngle: number, arcAngle: number) {

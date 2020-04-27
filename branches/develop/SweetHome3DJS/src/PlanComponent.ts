@@ -5625,8 +5625,9 @@ namespace PlanComponent {
     export class PieceOfFurnitureModelIcon extends PieceOfFurnitureTopViewIcon {
       constructor(piece : PieceOfFurniture, object3dFactory, waitingComponent, iconSize) {
         super(TextureManager.getInstance().getWaitImage());
+        var modelIcon = this;
         ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
-            modelUpdated : (modelRoot) => {
+            modelUpdated : function(modelRoot) {
               var normalizedPiece = piece.clone();
               if (normalizedPiece.isResizable()) {
                   normalizedPiece.setModelMirrored(false);
@@ -5640,26 +5641,29 @@ namespace PlanComponent {
               normalizedPiece.setLevel(null);
               normalizedPiece.setAngle(0);
               if (waitingComponent !== null) {
-                var updater = () => {
-                    this.setIcon(this.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
-                        pieceWidth, pieceDepth, pieceHeight, iconSize));
-                    waitingComponent.repaint();
+                var updater = function() {
+                  modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
+                      pieceWidth, pieceDepth, pieceHeight, iconSize, 
+                      function(icon) {
+                        modelIcon.setIcon(icon);
+                        waitingComponent.repaint();
+                      });
                   };
                 setTimeout(updater, 0);
               } else {
-                this.setIcon(this.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
+                modelIcon.setIcon(modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true),
                     pieceWidth, pieceDepth, pieceHeight, iconSize));
-              }            
+              }             
             },        
-            modelError : (ex) => {
+            modelError : function(ex) {
               // In case of problem use a default red box
-              this.setIcon(TextureManager.getInstance().getErrorImage());            
+              modelIcon.setIcon(TextureManager.getInstance().getErrorImage());            
               if (waitingComponent !== null) {
                 waitingComponent.repaint();
               }
             }
-        });
-      }
+          });
+        }
       
       /**
        * Returns the branch group bound to a universe and a canvas for the given
@@ -5673,7 +5677,7 @@ namespace PlanComponent {
           var canvas = document.createElement("canvas");
           canvas.width = iconSize;
           canvas.height = iconSize;
-          canvas.style.backgroundColor = "rgb(256, 256, 256)";
+          canvas.style.backgroundColor = "rgba(255, 255, 255, 0)";
           var canvas3D  = new HTMLCanvas3D(canvas);
           
           var rotation = mat4.create();
@@ -5716,7 +5720,7 @@ namespace PlanComponent {
        * @return {Object}
        * @private
        */
-      createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize) {
+      createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver?) {
         var scaleTransform = mat4.create();
         mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
         var modelTransformGroup = new TransformGroup3D();
@@ -5726,40 +5730,18 @@ namespace PlanComponent {
         model.addChild(modelTransformGroup);
         var sceneRoot = this.getSceneRoot(iconSize);
         sceneRoot.addChild(model);
-        var canvas3D = PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
-        canvas3D.drawScene();
-        
-        var offscreenCanvas = document.createElement("canvas");
-        offscreenCanvas.width = canvas3D.getCanvas().width;
-        offscreenCanvas.height = canvas3D.getCanvas().height;
-        var context = offscreenCanvas.getContext("2d");
-        context.drawImage(canvas3D.getCanvas(), 0, 0);
-        var imageWithWhiteBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      
-        canvas3D.getCanvas().style.backgroundColor = "rgba(0, 0, 0, 0)";
-        canvas3D.drawScene();
-        context.drawImage(canvas3D.getCanvas(), 0, 0);
-        var imageWithBlackBackgoundPixels = context.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      
-        for (var i = 0; i < imageWithBlackBackgoundPixels.length; i += 4) {
-          if (imageWithBlackBackgoundPixels[i] !== imageWithWhiteBackgoundPixels[i] 
-              && imageWithBlackBackgoundPixels[i + 1] !== imageWithWhiteBackgoundPixels[i + 1] 
-              && imageWithBlackBackgoundPixels[i + 2] !== imageWithWhiteBackgoundPixels[i + 2] 
-              && imageWithBlackBackgoundPixels[i] === 0
-              && imageWithBlackBackgoundPixels[i + 1] === 0
-              && imageWithBlackBackgoundPixels[i + 2] === 0
-              && imageWithWhiteBackgoundPixels[i] === 0xFF
-              && imageWithWhiteBackgoundPixels[i + 1] === 0xFF
-              && imageWithWhiteBackgoundPixels[i + 2] === 0xFF) {
-            imageWithWhiteBackgoundPixels[i + 3] = 0; // Make pixel transparent
-          }
+        if (iconObserver) {
+          PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage(
+              function(icon) {
+                iconObserver(icon);
+                sceneRoot.removeChild(model);
+              });
+          return undefined;
+        } else {
+          var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
+          sceneRoot.removeChild(model);
+          return icon;
         }
-        
-        context.putImageData(imageWithWhiteBackgoundPixels, 0, 0);
-        var image = new Image();
-        image.src = offscreenCanvas.toDataURL();
-        sceneRoot.removeChild(model);
-        return image;
       }
   
       /**

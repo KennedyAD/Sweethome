@@ -164,7 +164,7 @@ var Graphics2D = (function () {
         this.context.translate(x, y);
     };
     Graphics2D.prototype.drawString = function (str, x, y) {
-        this.context.strokeText(str, x, y);
+        this.context.fillText(str, x, y);
     };
     Graphics2D.prototype.fillArc = function (x, y, width, height, startAngle, arcAngle) {
         this.context.beginPath();
