@@ -155,10 +155,21 @@ class FontMetrics {
       this.descent = textMetrics.fontBoundingBoxDescent;
       this.height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
       this.width = textMetrics.width;
+    } else if(textMetrics.actualBoundingBoxAscent) {
+      this.cached = true;
+      this.ascent = textMetrics.actualBoundingBoxAscent;
+      this.descent = textMetrics.actualBoundingBoxDescent;
+      this.height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+      this.width = textMetrics.width;
     } else {
       // height info is not available on old browsers, so we build an approx.
+      // TODO: use a font utility instead
       var heightArray = this.context.font.split(' ');
-      this.height = parseInt(heightArray[heightArray.length - 1]);
+      heightArray.forEach(height => {
+        if(height.slice(height.length - 2) == "px") {
+          this.height = parseInt(height);
+        }
+      });
       this.cached = true;
       this.ascent = 0.77 * this.height;
       this.descent = 0.23 * this.height;
