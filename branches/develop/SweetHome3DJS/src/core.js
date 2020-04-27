@@ -302,18 +302,14 @@ Locale.setDefault = function(language) {
  * @returns an object that corresponds to the loaded JSON
  */
 function loadJSON(url) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, false);
-  // it is not allowed to change response type for a synchronous XHR
-  // xhr.responseType = 'json';
-  xhr.send();
-  if(xhr.responseText) {
-    try {
-      return JSON.parse(xhr.responseText);
-    } catch(e) {
-      return undefined;
-    }
-  } else {
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    // it is not allowed to change response type for a synchronous XHR
+    // xhr.responseType = 'json';
+    xhr.send();
+    return JSON.parse(xhr.responseText);
+  } catch(e) {
     return undefined;
   }
 }
