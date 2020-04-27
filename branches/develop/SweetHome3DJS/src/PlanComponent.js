@@ -124,7 +124,7 @@ var PlanComponent = (function () {
         this.canvasNeededRepaint = false;
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
-        this.font = computedStyle.fontFamily + " " + computedStyle.fontStyle + " " + computedStyle.fontSize;
+        this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
         this.resolutionScale = 1.0;
         this.scale = 0.5 * this.resolutionScale;
         this.selectedItemsOutlinePainted = true;
@@ -1265,12 +1265,12 @@ var PlanComponent = (function () {
                     fontName = this.preferences.getDefaultFontName();
                 }
                 if (fontName == null) {
-                    fontName = this.font.split(' ')[0];
+                    fontName = this.font.split(' ')[this.font.split(' ').length - 1];
                 }
-                defaultFont = fontName + " " + fontStyle + " 1";
+                defaultFont = fontStyle + " 10px " + fontName;
             }
             var fontArray = defaultFont.split(' ');
-            font = fontArray[0] + " " + fontStyle + " " + textStyle.getFontSize();
+            font = fontStyle + " " + textStyle.getFontSize() + "px " + fontArray[fontArray.length - 1];
             putToMap(this.fonts, textStyle, font);
         }
         return font;
@@ -2142,32 +2142,30 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintRoomsNameAndArea = function (g2D, selectedItems, planScale, foregroundColor, paintMode) {
+        var _this = this;
         g2D.setPaint(foregroundColor);
         var previousFont = g2D.getFont();
-        for (var index164 = 0; index164 < this.sortedLevelRooms.length; index164++) {
-            var room = this.sortedLevelRooms[index164];
-            {
-                var selectedRoom = (selectedItems.indexOf((room)) >= 0);
-                if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
-                    var xRoomCenter = room.getXCenter();
-                    var yRoomCenter = room.getYCenter();
-                    var name_1 = room.getName();
-                    if (name_1 != null) {
-                        name_1 = name_1.trim();
-                        if (name_1.length > 0) {
-                            this.paintText(g2D, room.constructor, name_1, room.getNameStyle(), null, xRoomCenter + room.getNameXOffset(), yRoomCenter + room.getNameYOffset(), room.getNameAngle(), previousFont);
-                        }
+        this.sortedLevelRooms.forEach(function (room) {
+            var selectedRoom = (selectedItems.indexOf((room)) >= 0);
+            if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
+                var xRoomCenter = room.getXCenter();
+                var yRoomCenter = room.getYCenter();
+                var name_1 = room.getName();
+                if (name_1 != null) {
+                    name_1 = name_1.trim();
+                    if (name_1.length > 0) {
+                        _this.paintText(g2D, room.constructor, name_1, room.getNameStyle(), null, xRoomCenter + room.getNameXOffset(), yRoomCenter + room.getNameYOffset(), room.getNameAngle(), previousFont);
                     }
-                    if (room.isAreaVisible()) {
-                        var area = room.getArea();
-                        if (area > 0.01) {
-                            var areaText = this.preferences.getLengthUnit().getAreaFormatWithUnit().format(area);
-                            this.paintText(g2D, room.constructor, areaText, room.getAreaStyle(), null, xRoomCenter + room.getAreaXOffset(), yRoomCenter + room.getAreaYOffset(), room.getAreaAngle(), previousFont);
-                        }
+                }
+                if (room.isAreaVisible()) {
+                    var area = room.getArea();
+                    if (area > 0.01) {
+                        var areaText = _this.preferences.getLengthUnit().getAreaFormatWithUnit().format(area);
+                        _this.paintText(g2D, room.constructor, areaText, room.getAreaStyle(), null, xRoomCenter + room.getAreaXOffset(), yRoomCenter + room.getAreaYOffset(), room.getAreaAngle(), previousFont);
                     }
                 }
             }
-        }
+        });
         g2D.setFont(previousFont);
     };
     /**
@@ -2197,7 +2195,7 @@ var PlanComponent = (function () {
         var textWidth = -3.4028235E38;
         for (var i = 0; i < lines.length; i++) {
             {
-                lineWidths[i] = fontMetrics.getStringBounds(lines[i], g2D).getWidth();
+                lineWidths[i] = fontMetrics.getStringBounds(lines[i]).getWidth();
                 textWidth = Math.max(lineWidths[i], textWidth);
             }
             ;
@@ -3692,72 +3690,70 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintDimensionLines = function (g2D, dimensionLines, selectedItems, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, extensionLineStroke, planScale, backgroundColor, foregroundColor, paintMode, feedback) {
+        var _this = this;
         if (paintMode === PlanComponent.PaintMode.CLIPBOARD) {
             dimensionLines = Home.getDimensionLinesSubList(selectedItems);
         }
         g2D.setPaint(foregroundColor);
         var dimensionLineStroke = new java.awt.BasicStroke(this.getStrokeWidth(DimensionLine, paintMode) / planScale);
         var previousFont = g2D.getFont();
-        for (var index191 = 0; index191 < dimensionLines.length; index191++) {
-            var dimensionLine = dimensionLines[index191];
-            {
-                if (this.isViewableAtSelectedLevel(dimensionLine)) {
-                    var previousTransform = g2D.getTransform();
-                    var angle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), dimensionLine.getXEnd() - dimensionLine.getXStart());
-                    var dimensionLineLength = dimensionLine.getLength();
-                    g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
-                    g2D.rotate(angle);
-                    g2D.translate(0, dimensionLine.getOffset());
-                    if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && (selectedItems.indexOf((dimensionLine)) >= 0)) {
-                        g2D.setPaint(selectionOutlinePaint);
-                        g2D.setStroke(selectionOutlineStroke);
-                        g2D.draw(new java.awt.geom.Line2D.Float(0, 0, dimensionLineLength, 0));
-                        g2D.draw(PlanComponent.DIMENSION_LINE_END);
-                        g2D.translate(dimensionLineLength, 0);
-                        g2D.draw(PlanComponent.DIMENSION_LINE_END);
-                        g2D.translate(-dimensionLineLength, 0);
-                        g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLine.getOffset(), 0, -5));
-                        g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLine.getOffset(), dimensionLineLength, -5));
-                        g2D.setPaint(foregroundColor);
-                    }
-                    g2D.setStroke(dimensionLineStroke);
+        dimensionLines.forEach(function (dimensionLine) {
+            if (_this.isViewableAtSelectedLevel(dimensionLine)) {
+                var previousTransform = g2D.getTransform();
+                var angle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), dimensionLine.getXEnd() - dimensionLine.getXStart());
+                var dimensionLineLength = dimensionLine.getLength();
+                g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
+                g2D.rotate(angle);
+                g2D.translate(0, dimensionLine.getOffset());
+                if (paintMode === PlanComponent.PaintMode.PAINT && _this.selectedItemsOutlinePainted && (selectedItems.indexOf((dimensionLine)) >= 0)) {
+                    g2D.setPaint(selectionOutlinePaint);
+                    g2D.setStroke(selectionOutlineStroke);
                     g2D.draw(new java.awt.geom.Line2D.Float(0, 0, dimensionLineLength, 0));
                     g2D.draw(PlanComponent.DIMENSION_LINE_END);
                     g2D.translate(dimensionLineLength, 0);
                     g2D.draw(PlanComponent.DIMENSION_LINE_END);
                     g2D.translate(-dimensionLineLength, 0);
-                    g2D.setStroke(extensionLineStroke);
                     g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLine.getOffset(), 0, -5));
                     g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLine.getOffset(), dimensionLineLength, -5));
-                    var lengthText = this.preferences.getLengthUnit().getFormat().format(dimensionLineLength);
-                    var lengthStyle = dimensionLine.getLengthStyle();
-                    if (lengthStyle == null) {
-                        lengthStyle = this.preferences.getDefaultTextStyle(dimensionLine.constructor);
-                    }
-                    if (feedback && this.getFont() != null) {
-                        lengthStyle = lengthStyle.deriveStyle(this.getFont().getSize() / this.getScale());
-                    }
-                    var font = this.getFont(previousFont, lengthStyle);
-                    var lengthFontMetrics = this.getFontMetrics(font, lengthStyle);
-                    var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText, g2D);
-                    var fontAscent = lengthFontMetrics.getAscent();
-                    g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : fontAscent + 1);
-                    if (feedback) {
-                        g2D.setPaint(backgroundColor);
-                        var oldComposite = this.setTransparency(g2D, 0.7);
-                        g2D.setStroke(new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
-                        var fontRenderContext = g2D.getFontRenderContext();
-                        var textLayout = new java.awt.font.TextLayout(lengthText, font, fontRenderContext);
-                        g2D.draw(textLayout.getOutline(new java.awt.geom.AffineTransform()));
-                        g2D.setAlpha(oldComposite);
-                        g2D.setPaint(foregroundColor);
-                    }
-                    g2D.setFont(font);
-                    g2D.drawString(lengthText, 0, 0);
-                    g2D.setTransform(previousTransform);
+                    g2D.setPaint(foregroundColor);
                 }
+                g2D.setStroke(dimensionLineStroke);
+                g2D.draw(new java.awt.geom.Line2D.Float(0, 0, dimensionLineLength, 0));
+                g2D.draw(PlanComponent.DIMENSION_LINE_END);
+                g2D.translate(dimensionLineLength, 0);
+                g2D.draw(PlanComponent.DIMENSION_LINE_END);
+                g2D.translate(-dimensionLineLength, 0);
+                g2D.setStroke(extensionLineStroke);
+                g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLine.getOffset(), 0, -5));
+                g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLine.getOffset(), dimensionLineLength, -5));
+                var lengthText = _this.preferences.getLengthUnit().getFormat().format(dimensionLineLength);
+                var lengthStyle = dimensionLine.getLengthStyle();
+                if (lengthStyle == null) {
+                    lengthStyle = _this.preferences.getDefaultTextStyle(dimensionLine.constructor);
+                }
+                if (feedback && _this.getFont() != null) {
+                    lengthStyle = lengthStyle.deriveStyle(_this.getFont().getSize() / _this.getScale());
+                }
+                var font = _this.getFont(previousFont, lengthStyle);
+                var lengthFontMetrics = _this.getFontMetrics(font, lengthStyle);
+                var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText, g2D);
+                var fontAscent = lengthFontMetrics.getAscent();
+                g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : fontAscent + 1);
+                if (feedback) {
+                    g2D.setPaint(backgroundColor);
+                    var oldComposite = _this.setTransparency(g2D, 0.7);
+                    g2D.setStroke(new java.awt.BasicStroke(4 / planScale * _this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
+                    var fontRenderContext = g2D.getFontRenderContext();
+                    var textLayout = new java.awt.font.TextLayout(lengthText, font, fontRenderContext);
+                    g2D.draw(textLayout.getOutline(new java.awt.geom.AffineTransform()));
+                    g2D.setAlpha(oldComposite);
+                    g2D.setPaint(foregroundColor);
+                }
+                g2D.setFont(font);
+                g2D.drawString(lengthText, 0, 0);
+                g2D.setTransform(previousTransform);
             }
-        }
+        });
         g2D.setFont(previousFont);
         if (selectedItems.length === 1 && (selectedItems[0] != null && selectedItems[0] instanceof DimensionLine) && paintMode === PlanComponent.PaintMode.PAINT && indicatorPaint != null) {
             this.paintDimensionLineResizeIndicator(g2D, /* get */ selectedItems[0], indicatorPaint, planScale);

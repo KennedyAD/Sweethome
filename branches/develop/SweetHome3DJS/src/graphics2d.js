@@ -218,11 +218,10 @@ var Graphics2D = (function () {
     Graphics2D.prototype.dispose = function () {
     };
     Graphics2D.prototype.setFont = function (font) {
-        this.font = font;
         this.context.font = font;
     };
     Graphics2D.prototype.getFont = function () {
-        return this.font;
+        return this.context.font;
     };
     Graphics2D.prototype.setBackground = function (color) {
         this.background = color;

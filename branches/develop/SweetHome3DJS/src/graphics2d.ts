@@ -263,15 +263,12 @@ class Graphics2D {
   public dispose() {
   }
 
-  font: string;
-
   public setFont(font: string) {
-    this.font = font;
     this.context.font = font;
   }
 
   public getFont(): string {
-    return this.font;
+    return this.context.font;
   }
 
   background: string;
