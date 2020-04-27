@@ -1585,74 +1585,56 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintOtherLevels = function (g2D, planScale, backgroundColor, foregroundColor) {
+        var _this = this;
         var levels = this.home.getLevels();
         var selectedLevel = this.home.getSelectedLevel();
-        if (levels.length > 1 && selectedLevel != null) {
-            var level0 = levels[0].getElevation() === selectedLevel.getElevation();
-            var otherLevels = null;
+        if (levels.length && selectedLevel != null) {
+            var level0_1 = levels[0].getElevation() === selectedLevel.getElevation();
+            var otherLevels_1 = null;
             if (this.otherLevelsRoomsCache == null || this.otherLevelsWallsCache == null) {
                 var selectedLevelIndex = levels.indexOf(selectedLevel);
-                otherLevels = ([]);
-                if (level0) {
+                otherLevels_1 = [];
+                if (level0_1) {
                     var nextElevationLevelIndex = selectedLevelIndex;
-                    while ((++nextElevationLevelIndex < levels.length && levels[nextElevationLevelIndex].getElevation() === selectedLevel.getElevation())) {
-                        {
-                        }
-                    }
-                    ;
+                    while (++nextElevationLevelIndex < levels.length && levels[nextElevationLevelIndex].getElevation() === selectedLevel.getElevation())
+                        ;
                     if (nextElevationLevelIndex < levels.length) {
                         var nextLevel = levels[nextElevationLevelIndex];
                         var nextElevation = nextLevel.getElevation();
                         do {
-                            {
-                                if (nextLevel.isViewable()) {
-                                    /* add */ (otherLevels.push(nextLevel) > 0);
-                                }
+                            if (nextLevel.isViewable()) {
+                                otherLevels_1.push(nextLevel);
                             }
-                        } while ((++nextElevationLevelIndex < levels.length && (nextLevel = levels[nextElevationLevelIndex]).getElevation() === nextElevation));
+                        } while (++nextElevationLevelIndex < levels.length && (nextLevel = levels[nextElevationLevelIndex]).getElevation() === nextElevation);
                     }
                 }
                 else {
                     var previousElevationLevelIndex = selectedLevelIndex;
-                    while ((--previousElevationLevelIndex >= 0 && levels[previousElevationLevelIndex].getElevation() === selectedLevel.getElevation())) {
-                        {
-                        }
-                    }
-                    ;
+                    while (--previousElevationLevelIndex >= 0 && levels[previousElevationLevelIndex].getElevation() === selectedLevel.getElevation())
+                        ;
                     if (previousElevationLevelIndex >= 0) {
                         var previousLevel = levels[previousElevationLevelIndex];
                         var previousElevation = previousLevel.getElevation();
                         do {
-                            {
-                                if (previousLevel.isViewable()) {
-                                    /* add */ (otherLevels.push(previousLevel) > 0);
-                                }
+                            if (previousLevel.isViewable()) {
+                                otherLevels_1.push(previousLevel);
                             }
-                        } while ((--previousElevationLevelIndex >= 0 && (previousLevel = levels[previousElevationLevelIndex]).getElevation() === previousElevation));
+                        } while (--previousElevationLevelIndex >= 0 && (previousLevel = levels[previousElevationLevelIndex]).getElevation() === previousElevation);
                     }
                 }
                 if (this.otherLevelsRoomsCache == null) {
-                    if (!(otherLevels.length == 0)) {
-                        var otherLevelsRooms = ([]);
-                        {
-                            var array154 = this.home.getRooms();
-                            for (var index153 = 0; index153 < array154.length; index153++) {
-                                var room = array154[index153];
-                                {
-                                    for (var index155 = 0; index155 < otherLevels.length; index155++) {
-                                        var otherLevel = otherLevels[index155];
-                                        {
-                                            if (room.getLevel() === otherLevel && (level0 && room.isFloorVisible() || !level0 && room.isCeilingVisible())) {
-                                                /* add */ (otherLevelsRooms.push(room) > 0);
-                                            }
-                                        }
-                                    }
+                    if (otherLevels_1.length !== 0) {
+                        var otherLevelsRooms_1 = [];
+                        this.home.getRooms().forEach(function (room) {
+                            otherLevels_1.forEach(function (otherLevel) {
+                                if (room.getLevel() === otherLevel && (level0_1 && room.isFloorVisible() || !level0_1 && room.isCeilingVisible())) {
+                                    otherLevelsRooms_1.push(room);
                                 }
-                            }
-                        }
-                        if (otherLevelsRooms.length > 0) {
-                            this.otherLevelsRoomAreaCache = this.getItemsArea(otherLevelsRooms);
-                            this.otherLevelsRoomsCache = otherLevelsRooms;
+                            });
+                        });
+                        if (otherLevelsRooms_1.length > 0) {
+                            this.otherLevelsRoomAreaCache = this.getItemsArea(otherLevelsRooms_1);
+                            this.otherLevelsRoomsCache = otherLevelsRooms_1;
                         }
                     }
                     if (this.otherLevelsRoomsCache == null) {
@@ -1660,29 +1642,20 @@ var PlanComponent = (function () {
                     }
                 }
                 if (this.otherLevelsWallsCache == null) {
-                    if (!(otherLevels.length == 0)) {
-                        var otherLevelswalls = ([]);
-                        {
-                            var array157 = this.home.getWalls();
-                            for (var index156 = 0; index156 < array157.length; index156++) {
-                                var wall = array157[index156];
-                                {
-                                    if (!this.isViewableAtSelectedLevel(wall)) {
-                                        for (var index158 = 0; index158 < otherLevels.length; index158++) {
-                                            var otherLevel = otherLevels[index158];
-                                            {
-                                                if (wall.getLevel() === otherLevel) {
-                                                    /* add */ (otherLevelswalls.push(wall) > 0);
-                                                }
-                                            }
-                                        }
+                    if (otherLevels_1.length !== 0) {
+                        var otherLevelswalls_1 = [];
+                        this.home.getWalls().forEach(function (wall) {
+                            if (!_this.isViewableAtSelectedLevel(wall)) {
+                                otherLevels_1.forEach(function (otherLevel) {
+                                    if (wall.getLevel() === otherLevel) {
+                                        otherLevelswalls_1.push(wall);
                                     }
-                                }
+                                });
                             }
-                        }
-                        if (otherLevelswalls.length > 0) {
-                            this.otherLevelsWallAreaCache = this.getItemsArea(otherLevelswalls);
-                            this.otherLevelsWallsCache = otherLevelswalls;
+                        });
+                        if (otherLevelswalls_1.length > 0) {
+                            this.otherLevelsWallAreaCache = this.getItemsArea(otherLevelswalls_1);
+                            this.otherLevelsWallsCache = otherLevelswalls_1;
                         }
                     }
                 }
@@ -1690,13 +1663,13 @@ var PlanComponent = (function () {
                     this.otherLevelsWallsCache = [];
                 }
             }
-            if (!(this.otherLevelsRoomsCache.length == 0)) {
+            if (this.otherLevelsRoomsCache.length !== 0) {
                 var oldComposite = this.setTransparency(g2D, this.preferences.isGridVisible() ? 0.2 : 0.1);
                 g2D.setPaint("#808080");
                 g2D.fill(this.otherLevelsRoomAreaCache);
                 g2D.setAlpha(oldComposite);
             }
-            if (!(this.otherLevelsWallsCache.length == 0)) {
+            if (this.otherLevelsWallsCache.length !== 0) {
                 var oldComposite = this.setTransparency(g2D, this.preferences.isGridVisible() ? 0.2 : 0.1);
                 this.fillAndDrawWallsArea(g2D, this.otherLevelsWallAreaCache, planScale, this.getWallPaint(g2D, planScale, backgroundColor, foregroundColor, this.preferences.getNewWallPattern()), foregroundColor, PlanComponent.PaintMode.PAINT);
                 g2D.setAlpha(oldComposite);
@@ -2278,7 +2251,7 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
@@ -2663,7 +2636,7 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
@@ -3251,7 +3224,7 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
@@ -3708,9 +3681,9 @@ var PlanComponent = (function () {
      * @param {DimensionLine[]} dimensionLines
      * @param {*[]} selectedItems
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
-     * @param {string} extensionLineStroke
+     * @param {java.awt.BasicStroke} extensionLineStroke
      * @param {number} planScale
      * @param {string} backgroundColor
      * @param {string} foregroundColor
@@ -3834,7 +3807,7 @@ var PlanComponent = (function () {
      * @param {Label[]} labels
      * @param {*[]} selectedItems
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
@@ -3929,7 +3902,7 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
@@ -3982,10 +3955,10 @@ var PlanComponent = (function () {
      * @param {java.awt.geom.Point2D} locationFeedback
      * @param {boolean} showPointFeedback
      * @param {string|CanvasPattern} feedbackPaint
-     * @param {string} feedbackStroke
+     * @param {java.awt.BasicStroke} feedbackStroke
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
     PlanComponent.prototype.paintWallAlignmentFeedback = function (g2D, alignedWall, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
@@ -4094,7 +4067,7 @@ var PlanComponent = (function () {
      * @param {string|CanvasPattern} feedbackPaint
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
     PlanComponent.prototype.paintPointFeedback = function (g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke) {
@@ -4127,10 +4100,10 @@ var PlanComponent = (function () {
      * @param {java.awt.geom.Point2D} locationFeedback
      * @param {boolean} showPointFeedback
      * @param {string|CanvasPattern} feedbackPaint
-     * @param {string} feedbackStroke
+     * @param {java.awt.BasicStroke} feedbackStroke
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
     PlanComponent.prototype.paintRoomAlignmentFeedback = function (g2D, alignedRoom, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
@@ -4225,128 +4198,96 @@ var PlanComponent = (function () {
      * @param {java.awt.geom.Point2D} locationFeedback
      * @param {boolean} showPointFeedback
      * @param {string|CanvasPattern} feedbackPaint
-     * @param {string} feedbackStroke
+     * @param {java.awt.BasicStroke} feedbackStroke
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
     PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function (g2D, alignedDimensionLine, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
+        var _this = this;
         if (locationFeedback != null) {
-            var margin = 0.5 / planScale;
-            var x = locationFeedback.getX();
-            var y = locationFeedback.getY();
-            var deltaXToClosestObject = Infinity;
-            var deltaYToClosestObject = Infinity;
-            {
-                var array201 = this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache);
-                for (var index200 = 0; index200 < array201.length; index200++) {
-                    var room = array201[index200];
-                    {
-                        var roomPoints = room.getPoints();
-                        for (var i = 0; i < roomPoints.length; i++) {
-                            {
-                                if (Math.abs(x - roomPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints[i][1])) {
-                                    deltaYToClosestObject = y - roomPoints[i][1];
-                                }
-                                if (Math.abs(y - roomPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints[i][0])) {
-                                    deltaXToClosestObject = x - roomPoints[i][0];
-                                }
-                            }
-                            ;
+            var margin_1 = 0.5 / planScale;
+            var x_1 = locationFeedback.getX();
+            var y_1 = locationFeedback.getY();
+            var deltaXToClosestObject_1 = Infinity;
+            var deltaYToClosestObject_1 = Infinity;
+            this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(function (room) {
+                var roomPoints = room.getPoints();
+                for (var i = 0; i < roomPoints.length; i++) {
+                    if (Math.abs(x_1 - roomPoints[i][0]) < margin_1 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - roomPoints[i][1])) {
+                        deltaYToClosestObject_1 = y_1 - roomPoints[i][1];
+                    }
+                    if (Math.abs(y_1 - roomPoints[i][1]) < margin_1 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - roomPoints[i][0])) {
+                        deltaXToClosestObject_1 = x_1 - roomPoints[i][0];
+                    }
+                }
+            });
+            this.home.getDimensionLines().forEach(function (dimensionLine) {
+                if (_this.isViewableAtSelectedLevel(dimensionLine) && dimensionLine !== alignedDimensionLine) {
+                    if (Math.abs(x_1 - dimensionLine.getXStart()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
+                        if (Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - dimensionLine.getYStart())) {
+                            deltaYToClosestObject_1 = y_1 - dimensionLine.getYStart();
+                        }
+                    }
+                    else if (Math.abs(x_1 - dimensionLine.getXEnd()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
+                        if (Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - dimensionLine.getYEnd())) {
+                            deltaYToClosestObject_1 = y_1 - dimensionLine.getYEnd();
+                        }
+                    }
+                    if (Math.abs(y_1 - dimensionLine.getYStart()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
+                        if (Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - dimensionLine.getXStart())) {
+                            deltaXToClosestObject_1 = x_1 - dimensionLine.getXStart();
+                        }
+                    }
+                    else if (Math.abs(y_1 - dimensionLine.getYEnd()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
+                        if (Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - dimensionLine.getXEnd())) {
+                            deltaXToClosestObject_1 = x_1 - dimensionLine.getXEnd();
                         }
                     }
                 }
-            }
-            {
-                var array203 = this.home.getDimensionLines();
-                for (var index202 = 0; index202 < array203.length; index202++) {
-                    var dimensionLine = array203[index202];
-                    {
-                        if (this.isViewableAtSelectedLevel(dimensionLine) && dimensionLine !== alignedDimensionLine) {
-                            if (Math.abs(x - dimensionLine.getXStart()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
-                                if (Math.abs(deltaYToClosestObject) > Math.abs(y - dimensionLine.getYStart())) {
-                                    deltaYToClosestObject = y - dimensionLine.getYStart();
-                                }
-                            }
-                            else if (Math.abs(x - dimensionLine.getXEnd()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
-                                if (Math.abs(deltaYToClosestObject) > Math.abs(y - dimensionLine.getYEnd())) {
-                                    deltaYToClosestObject = y - dimensionLine.getYEnd();
-                                }
-                            }
-                            if (Math.abs(y - dimensionLine.getYStart()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
-                                if (Math.abs(deltaXToClosestObject) > Math.abs(x - dimensionLine.getXStart())) {
-                                    deltaXToClosestObject = x - dimensionLine.getXStart();
-                                }
-                            }
-                            else if (Math.abs(y - dimensionLine.getYEnd()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
-                                if (Math.abs(deltaXToClosestObject) > Math.abs(x - dimensionLine.getXEnd())) {
-                                    deltaXToClosestObject = x - dimensionLine.getXEnd();
-                                }
-                            }
+            });
+            this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(function (wall) {
+                var wallPoints = wall.getPoints();
+                wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
+                for (var i = 0; i < wallPoints.length; i++) {
+                    if (Math.abs(x_1 - wallPoints[i][0]) < margin_1 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - wallPoints[i][1])) {
+                        deltaYToClosestObject_1 = y_1 - wallPoints[i][1];
+                    }
+                    if (Math.abs(y_1 - wallPoints[i][1]) < margin_1 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - wallPoints[i][0])) {
+                        deltaXToClosestObject_1 = x_1 - wallPoints[i][0];
+                    }
+                }
+            });
+            this.home.getFurniture().forEach(function (piece) {
+                if (piece.isVisible() && _this.isViewableAtSelectedLevel(piece)) {
+                    var piecePoints = piece.getPoints();
+                    for (var i = 0; i < piecePoints.length; i++) {
+                        if (Math.abs(x_1 - piecePoints[i][0]) < margin_1 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - piecePoints[i][1])) {
+                            deltaYToClosestObject_1 = y_1 - piecePoints[i][1];
+                        }
+                        if (Math.abs(y_1 - piecePoints[i][1]) < margin_1 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - piecePoints[i][0])) {
+                            deltaXToClosestObject_1 = x_1 - piecePoints[i][0];
                         }
                     }
                 }
-            }
-            {
-                var array205 = this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache);
-                for (var index204 = 0; index204 < array205.length; index204++) {
-                    var wall = array205[index204];
-                    {
-                        var wallPoints = wall.getPoints();
-                        wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
-                        for (var i = 0; i < wallPoints.length; i++) {
-                            {
-                                if (Math.abs(x - wallPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints[i][1])) {
-                                    deltaYToClosestObject = y - wallPoints[i][1];
-                                }
-                                if (Math.abs(y - wallPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints[i][0])) {
-                                    deltaXToClosestObject = x - wallPoints[i][0];
-                                }
-                            }
-                            ;
-                        }
-                    }
-                }
-            }
-            {
-                var array207 = this.home.getFurniture();
-                for (var index206 = 0; index206 < array207.length; index206++) {
-                    var piece = array207[index206];
-                    {
-                        if (piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
-                            var piecePoints = piece.getPoints();
-                            for (var i = 0; i < piecePoints.length; i++) {
-                                {
-                                    if (Math.abs(x - piecePoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - piecePoints[i][1])) {
-                                        deltaYToClosestObject = y - piecePoints[i][1];
-                                    }
-                                    if (Math.abs(y - piecePoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - piecePoints[i][0])) {
-                                        deltaXToClosestObject = x - piecePoints[i][0];
-                                    }
-                                }
-                                ;
-                            }
-                        }
-                    }
-                }
-            }
+            });
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
-            if (deltaXToClosestObject !== Infinity) {
-                if (deltaXToClosestObject > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x + 25 / planScale, y, x - deltaXToClosestObject - 25 / planScale, y));
+            if (deltaXToClosestObject_1 !== Infinity) {
+                if (deltaXToClosestObject_1 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1 + 25 / planScale, y_1, x_1 - deltaXToClosestObject_1 - 25 / planScale, y_1));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x - 25 / planScale, y, x - deltaXToClosestObject + 25 / planScale, y));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1 - 25 / planScale, y_1, x_1 - deltaXToClosestObject_1 + 25 / planScale, y_1));
                 }
             }
-            if (deltaYToClosestObject !== Infinity) {
-                if (deltaYToClosestObject > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, x, y - deltaYToClosestObject - 25 / planScale));
+            if (deltaYToClosestObject_1 !== Infinity) {
+                if (deltaYToClosestObject_1 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1, y_1 + 25 / planScale, x_1, y_1 - deltaYToClosestObject_1 - 25 / planScale));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, x, y - deltaYToClosestObject + 25 / planScale));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1, y_1 - 25 / planScale, x_1, y_1 - deltaYToClosestObject_1 + 25 / planScale));
                 }
             }
             if (showPointFeedback) {
@@ -4405,7 +4346,7 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g2D
      * @param {*[]} selectedItems
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.Stroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} backgroundColor

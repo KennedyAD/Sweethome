@@ -385,7 +385,7 @@ function getStringFromKey(resourceBundles, key, parameters) {
 
 /**
  * Gets an object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
- * @param map {*} the object holding the map
+ * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)
  * @returns {*} the value associated to the key (null if not found)
  */
@@ -408,7 +408,7 @@ function getFromMap(map, key) {
 /**
  * Puts an object in a map object. When the given key is a string, the map object directly holds the 
  * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
- * @param map {*} the object holding the map
+ * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)
  * @param value {*} the value to be put
  */
@@ -433,6 +433,11 @@ function putToMap(map, key, value) {
   }
 }
 
+/**
+ * Gets all the values put in a map opbject, as an array.
+ * @param map {Object} the map containing the values
+ * @returns {Array} the values (no specific order)
+ */
 function valuesFromMap(map) {
   let r = [];
   if(map.entries === undefined) {
@@ -443,6 +448,12 @@ function valuesFromMap(map) {
   return r;
 }
 
+/**
+ * Sorts an array with a comparator object or function. The comparator object must provide a <code>compare(Object, Object)</code> 
+ * function, otherwise it is expected to be a comparison function.
+ * @param array {Array} an array to be sorted (in-place sort)
+ * @param comparator {Object|function} an object providing a <code>compare(Object, Object)</code>, or simply a function
+ */
 function sortArray(array, comparator) { 
   if(comparator.compare) {
     array.sort(function(e1, e2) {

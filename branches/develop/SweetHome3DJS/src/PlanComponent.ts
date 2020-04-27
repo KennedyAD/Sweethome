@@ -1823,107 +1823,87 @@ class PlanComponent implements PlanView {
      * @private
      */
     paintOtherLevels(g2D : Graphics2D, planScale : number, backgroundColor : string, foregroundColor : string) {
-        let levels : Array<any> = this.home.getLevels();
-        let selectedLevel : any = this.home.getSelectedLevel();
-        if(/* size */(<number>levels.length) > 1 && selectedLevel != null) {
-            let level0 : boolean = /* get */levels[0].getElevation() === selectedLevel.getElevation();
-            let otherLevels : Array<any> = null;
+        let levels : Level[] = this.home.getLevels();
+        let selectedLevel : Level = this.home.getSelectedLevel();
+        if(levels.length && selectedLevel != null) {
+            let level0 : boolean = levels[0].getElevation() === selectedLevel.getElevation();
+            let otherLevels : Level[] = null;
             if(this.otherLevelsRoomsCache == null || this.otherLevelsWallsCache == null) {
                 let selectedLevelIndex : number = levels.indexOf(selectedLevel);
-                otherLevels = <any>([]);
+                otherLevels = [];
                 if(level0) {
                     let nextElevationLevelIndex : number = selectedLevelIndex;
-                    while((++nextElevationLevelIndex < /* size */(<number>levels.length) && /* get */levels[nextElevationLevelIndex].getElevation() === selectedLevel.getElevation())) {{
-                    }};
-                    if(nextElevationLevelIndex < /* size */(<number>levels.length)) {
-                        let nextLevel : any = /* get */levels[nextElevationLevelIndex];
+                    while(++nextElevationLevelIndex < levels.length && levels[nextElevationLevelIndex].getElevation() === selectedLevel.getElevation());
+                    if(nextElevationLevelIndex < levels.length) {
+                        let nextLevel : Level = levels[nextElevationLevelIndex];
                         let nextElevation : number = nextLevel.getElevation();
-                        do {{
+                        do {
                             if(nextLevel.isViewable()) {
-                                /* add */(otherLevels.push(nextLevel)>0);
+                                otherLevels.push(nextLevel);
                             }
-                        }} while((++nextElevationLevelIndex < /* size */(<number>levels.length) && (nextLevel = /* get */levels[nextElevationLevelIndex]).getElevation() === nextElevation));
+                        } while(++nextElevationLevelIndex < levels.length && (nextLevel = levels[nextElevationLevelIndex]).getElevation() === nextElevation);
                     }
                 } else {
                     let previousElevationLevelIndex : number = selectedLevelIndex;
-                    while((--previousElevationLevelIndex >= 0 && /* get */levels[previousElevationLevelIndex].getElevation() === selectedLevel.getElevation())) {{
-                    }};
+                    while(--previousElevationLevelIndex >= 0 && levels[previousElevationLevelIndex].getElevation() === selectedLevel.getElevation());
                     if(previousElevationLevelIndex >= 0) {
-                        let previousLevel : any = /* get */levels[previousElevationLevelIndex];
+                        let previousLevel : Level = levels[previousElevationLevelIndex];
                         let previousElevation : number = previousLevel.getElevation();
-                        do {{
+                        do {
                             if(previousLevel.isViewable()) {
-                                /* add */(otherLevels.push(previousLevel)>0);
+                                otherLevels.push(previousLevel);
                             }
-                        }} while((--previousElevationLevelIndex >= 0 && (previousLevel = /* get */levels[previousElevationLevelIndex]).getElevation() === previousElevation));
+                        } while(--previousElevationLevelIndex >= 0 && (previousLevel = levels[previousElevationLevelIndex]).getElevation() === previousElevation);
                     }
                 }
                 if(this.otherLevelsRoomsCache == null) {
-                    if(!/* isEmpty */(otherLevels.length == 0)) {
-                        let otherLevelsRooms : Array<any> = <any>([]);
-                        {
-                            let array154 = this.home.getRooms();
-                            for(let index153=0; index153 < array154.length; index153++) {
-                                let room = array154[index153];
-                                {
-                                    for(let index155=0; index155 < otherLevels.length; index155++) {
-                                        let otherLevel = otherLevels[index155];
-                                        {
-                                            if(room.getLevel() === otherLevel && (level0 && room.isFloorVisible() || !level0 && room.isCeilingVisible())) {
-                                                /* add */(otherLevelsRooms.push(room)>0);
-                                            }
-                                        }
-                                    }
-                                }
+                    if(otherLevels.length !== 0) {
+                        let otherLevelsRooms : Room[] = [];
+                        this.home.getRooms().forEach(room => {
+                          otherLevels.forEach(otherLevel => {
+                            if(room.getLevel() === otherLevel && (level0 && room.isFloorVisible() || !level0 && room.isCeilingVisible())) {
+                              otherLevelsRooms.push(room);
                             }
-                        }
-                        if(/* size */(<number>otherLevelsRooms.length) > 0) {
+                          });
+                        });
+                        if(otherLevelsRooms.length > 0) {
                             this.otherLevelsRoomAreaCache = this.getItemsArea(otherLevelsRooms);
                             this.otherLevelsRoomsCache = otherLevelsRooms;
                         }
                     }
                     if(this.otherLevelsRoomsCache == null) {
-                        this.otherLevelsRoomsCache = /* emptyList */[];
+                        this.otherLevelsRoomsCache = [];
                     }
                 }
                 if(this.otherLevelsWallsCache == null) {
-                    if(!/* isEmpty */(otherLevels.length == 0)) {
-                        let otherLevelswalls : Array<any> = <any>([]);
-                        {
-                            let array157 = this.home.getWalls();
-                            for(let index156=0; index156 < array157.length; index156++) {
-                                let wall = array157[index156];
-                                {
-                                    if(!this.isViewableAtSelectedLevel(wall)) {
-                                        for(let index158=0; index158 < otherLevels.length; index158++) {
-                                            let otherLevel = otherLevels[index158];
-                                            {
-                                                if(wall.getLevel() === otherLevel) {
-                                                    /* add */(otherLevelswalls.push(wall)>0);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if(/* size */(<number>otherLevelswalls.length) > 0) {
+                    if(otherLevels.length !== 0) {
+                        let otherLevelswalls = [];
+                        this.home.getWalls().forEach(wall => {
+                          if(!this.isViewableAtSelectedLevel(wall)) {
+                            otherLevels.forEach(otherLevel => {
+                              if(wall.getLevel() === otherLevel) {
+                                  otherLevelswalls.push(wall);
+                              }
+                            });                            
+                          }
+                        });
+                        if(otherLevelswalls.length > 0) {
                             this.otherLevelsWallAreaCache = this.getItemsArea(otherLevelswalls);
                             this.otherLevelsWallsCache = otherLevelswalls;
                         }
                     }
                 }
                 if(this.otherLevelsWallsCache == null) {
-                    this.otherLevelsWallsCache = /* emptyList */[];
+                    this.otherLevelsWallsCache = [];
                 }
             }
-            if(!/* isEmpty */(this.otherLevelsRoomsCache.length == 0)) {
+            if(this.otherLevelsRoomsCache.length !== 0) {
                 let oldComposite : number = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
                 g2D.setPaint("#808080");
                 g2D.fill(this.otherLevelsRoomAreaCache);
                 g2D.setAlpha(oldComposite);
             }
-            if(!/* isEmpty */(this.otherLevelsWallsCache.length == 0)) {
+            if(this.otherLevelsWallsCache.length !== 0) {
                 let oldComposite : number = this.setTransparency(g2D, this.preferences.isGridVisible()?0.2:0.1);
                 this.fillAndDrawWallsArea(g2D, this.otherLevelsWallAreaCache, planScale, this.getWallPaint(g2D, planScale, backgroundColor, foregroundColor, this.preferences.getNewWallPattern()), foregroundColor, PlanComponent.PaintMode.PAINT);
                 g2D.setAlpha(oldComposite);
@@ -2095,7 +2075,7 @@ class PlanComponent implements PlanView {
         }
         this.paintHomeItems(g2D, planScale, backgroundColor, foregroundColor, paintMode);
         if(paintMode === PlanComponent.PaintMode.PAINT) {
-            let selectedItems : Array<any> = this.home.getSelectedItems();
+            let selectedItems : Selectable[] = this.home.getSelectedItems();
             let selectionColor : string = this.getSelectionColor();
             let furnitureOutlineColor : string = this.getFurnitureOutlineColor();
             let selectionOutlinePaint : string = selectionColor+"80"; // add alpha
@@ -2120,7 +2100,7 @@ class PlanComponent implements PlanView {
                 this.paintAngleFeedback(g2D, this.centerAngleFeedback, this.point1AngleFeedback, this.point2AngleFeedback, planScale, selectionColor);
             }
             if(this.dimensionLinesFeedback != null) {
-                let emptySelection : Array<any> = /* emptyList */[];
+                let emptySelection : Selectable[] = [];
                 this.paintDimensionLines(g2D, this.dimensionLinesFeedback, emptySelection, null, null, null, locationFeedbackStroke, planScale, backgroundColor, selectionColor, paintMode, true);
             }
             if(this.draggedItemsFeedback != null) {
@@ -2158,13 +2138,12 @@ class PlanComponent implements PlanView {
                 return (piece1.getGroundElevation() - piece2.getGroundElevation());
              }
             });
-            ///* sort */((l,c) => { if((<any>c).compare) l.sort((e1,e2)=>(<any>c).compare(e1,e2)); else l.sort(<any>c); })(this.sortedLevelFurniture,new PlanComponent.PlanComponent$22(this));
         }
         let selectionColor : string = this.getSelectionColor();
         let selectionOutlinePaint : string = selectionColor+"80"; // add alpha
-        let selectionOutlineStroke : java.awt.Stroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
-        let dimensionLinesSelectionOutlineStroke : java.awt.Stroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
-        let locationFeedbackStroke : java.awt.Stroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
+        let selectionOutlineStroke : java.awt.BasicStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
+        let dimensionLinesSelectionOutlineStroke : java.awt.BasicStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
+        let locationFeedbackStroke : java.awt.BasicStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
         //console.log("painting home elements");
         this.paintCompass(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
@@ -2473,13 +2452,13 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
      * @private
      */
-    paintRoomsOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
+    paintRoomsOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
         let rooms : Array<any> = Home.getRoomsSubList(items);
         let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
         let scaleInverse : number = 1 / planScale;
@@ -2791,13 +2770,13 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
      * @private
      */
-    paintWallsOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
+    paintWallsOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
         let scaleInverse : number = 1 / planScale;
         let walls : Array<any> = Home.getWallsSubList(items);
         let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
@@ -3339,13 +3318,13 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
      * @private
      */
-    paintFurnitureOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
+    paintFurnitureOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
         let pieceBorderStroke : java.awt.BasicStroke = new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale);
         let pieceFrontBorderStroke : java.awt.BasicStroke = new java.awt.BasicStroke(4 * this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER);
         let furniture = Home.getFurnitureSubList(items);
@@ -3755,9 +3734,9 @@ class PlanComponent implements PlanView {
      * @param {DimensionLine[]} dimensionLines
      * @param {*[]} selectedItems
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
-     * @param {string} extensionLineStroke
+     * @param {java.awt.BasicStroke} extensionLineStroke
      * @param {number} planScale
      * @param {string} backgroundColor
      * @param {string} foregroundColor
@@ -3765,7 +3744,7 @@ class PlanComponent implements PlanView {
      * @param {boolean} feedback
      * @private
      */
-    paintDimensionLines(g2D : Graphics2D, dimensionLines : Array<any>, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, extensionLineStroke : java.awt.Stroke, planScale : number, backgroundColor : string, foregroundColor : string, paintMode : PlanComponent.PaintMode, feedback : boolean) {
+    paintDimensionLines(g2D : Graphics2D, dimensionLines : Array<any>, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, extensionLineStroke : java.awt.BasicStroke, planScale : number, backgroundColor : string, foregroundColor : string, paintMode : PlanComponent.PaintMode, feedback : boolean) {
         if(paintMode === PlanComponent.PaintMode.CLIPBOARD) {
             dimensionLines = Home.getDimensionLinesSubList(selectedItems);
         }
@@ -3883,14 +3862,14 @@ class PlanComponent implements PlanView {
      * @param {Label[]} labels
      * @param {*[]} selectedItems
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
      * @param {PlanComponent.PaintMode} paintMode
      * @private
      */
-    paintLabels(g2D : Graphics2D, labels : Array<any>, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string, paintMode : PlanComponent.PaintMode) {
+    paintLabels(g2D : Graphics2D, labels : Array<any>, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string, paintMode : PlanComponent.PaintMode) {
         let previousFont : string = g2D.getFont();
         for(let index192=0; index192 < labels.length; index192++) {
             let label = labels[index192];
@@ -3978,13 +3957,13 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g2D
      * @param {*[]} items
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.BasicStroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} foregroundColor
      * @private
      */
-    paintCompassOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
+    paintCompassOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
         let compass : any = this.home.getCompass();
         if(/* contains */(items.indexOf(<any>(compass)) >= 0) && compass.isVisible()) {
             let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
@@ -4033,13 +4012,13 @@ class PlanComponent implements PlanView {
      * @param {java.awt.geom.Point2D} locationFeedback
      * @param {boolean} showPointFeedback
      * @param {string|CanvasPattern} feedbackPaint
-     * @param {string} feedbackStroke
+     * @param {java.awt.BasicStroke} feedbackStroke
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
-    paintWallAlignmentFeedback(g2D : Graphics2D, alignedWall : any, locationFeedback : java.awt.geom.Point2D, showPointFeedback : boolean, feedbackPaint : string|CanvasPattern, feedbackStroke : java.awt.Stroke, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.Stroke) {
+    paintWallAlignmentFeedback(g2D : Graphics2D, alignedWall : any, locationFeedback : java.awt.geom.Point2D, showPointFeedback : boolean, feedbackPaint : string|CanvasPattern, feedbackStroke : java.awt.BasicStroke, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.BasicStroke) {
         if(locationFeedback != null) {
             let margin : number = 0.5 / planScale;
             let x : number = <number>locationFeedback.getX();
@@ -4140,10 +4119,10 @@ class PlanComponent implements PlanView {
      * @param {string|CanvasPattern} feedbackPaint
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
-    paintPointFeedback(g2D : Graphics2D, locationFeedback : java.awt.geom.Point2D, feedbackPaint : string|CanvasPattern, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.Stroke) {
+    paintPointFeedback(g2D : Graphics2D, locationFeedback : java.awt.geom.Point2D, feedbackPaint : string|CanvasPattern, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.BasicStroke) {
         g2D.setPaint(pointPaint);
         g2D.setStroke(pointStroke);
         let circle : java.awt.geom.Ellipse2D.Float = new java.awt.geom.Ellipse2D.Float(<number>locationFeedback.getX() - 10.0 / planScale, <number>locationFeedback.getY() - 10.0 / planScale, 20.0 / planScale, 20.0 / planScale);
@@ -4175,13 +4154,13 @@ class PlanComponent implements PlanView {
      * @param {java.awt.geom.Point2D} locationFeedback
      * @param {boolean} showPointFeedback
      * @param {string|CanvasPattern} feedbackPaint
-     * @param {string} feedbackStroke
+     * @param {java.awt.BasicStroke} feedbackStroke
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
-    paintRoomAlignmentFeedback(g2D : Graphics2D, alignedRoom : any, locationFeedback : java.awt.geom.Point2D, showPointFeedback : boolean, feedbackPaint : string|CanvasPattern, feedbackStroke : java.awt.Stroke, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.Stroke) {
+    paintRoomAlignmentFeedback(g2D : Graphics2D, alignedRoom : any, locationFeedback : java.awt.geom.Point2D, showPointFeedback : boolean, feedbackPaint : string|CanvasPattern, feedbackStroke : java.awt.BasicStroke, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.BasicStroke) {
         if(locationFeedback != null) {
             let margin : number = 0.5 / planScale;
             let x : number = <number>locationFeedback.getX();
@@ -4263,101 +4242,77 @@ class PlanComponent implements PlanView {
      * @param {java.awt.geom.Point2D} locationFeedback
      * @param {boolean} showPointFeedback
      * @param {string|CanvasPattern} feedbackPaint
-     * @param {string} feedbackStroke
+     * @param {java.awt.BasicStroke} feedbackStroke
      * @param {number} planScale
      * @param {string|CanvasPattern} pointPaint
-     * @param {string} pointStroke
+     * @param {java.awt.BasicStroke} pointStroke
      * @private
      */
-    paintDimensionLineAlignmentFeedback(g2D : Graphics2D, alignedDimensionLine : any, locationFeedback : java.awt.geom.Point2D, showPointFeedback : boolean, feedbackPaint : string|CanvasPattern, feedbackStroke : java.awt.Stroke, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.Stroke) {
+    paintDimensionLineAlignmentFeedback(g2D : Graphics2D, alignedDimensionLine : any, locationFeedback : java.awt.geom.Point2D, showPointFeedback : boolean, feedbackPaint : string|CanvasPattern, feedbackStroke : java.awt.BasicStroke, planScale : number, pointPaint : string|CanvasPattern, pointStroke : java.awt.BasicStroke) {
         if(locationFeedback != null) {
             let margin : number = 0.5 / planScale;
-            let x : number = <number>locationFeedback.getX();
-            let y : number = <number>locationFeedback.getY();
+            let x : number = locationFeedback.getX();
+            let y : number = locationFeedback.getY();
             let deltaXToClosestObject : number = Infinity;
             let deltaYToClosestObject : number = Infinity;
-            {
-                let array201 = this.getViewedItems<any>(this.home.getRooms(), this.otherLevelsRoomsCache);
-                for(let index200=0; index200 < array201.length; index200++) {
-                    let room = array201[index200];
-                    {
-                        let roomPoints : number[][] = room.getPoints();
-                        for(let i : number = 0; i < roomPoints.length; i++) {{
-                            if(Math.abs(x - roomPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints[i][1])) {
-                                deltaYToClosestObject = y - roomPoints[i][1];
-                            }
-                            if(Math.abs(y - roomPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints[i][0])) {
-                                deltaXToClosestObject = x - roomPoints[i][0];
-                            }
-                        };}
+            this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(room => {
+              let roomPoints : number[][] = room.getPoints();
+              for(let i : number = 0; i < roomPoints.length; i++) {
+                  if(Math.abs(x - roomPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints[i][1])) {
+                      deltaYToClosestObject = y - roomPoints[i][1];
+                  }
+                  if(Math.abs(y - roomPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints[i][0])) {
+                      deltaXToClosestObject = x - roomPoints[i][0];
+                  }
+              }
+            });
+            this.home.getDimensionLines().forEach(dimensionLine => {
+                if(this.isViewableAtSelectedLevel(dimensionLine) && dimensionLine !== alignedDimensionLine) {
+                    if(Math.abs(x - dimensionLine.getXStart()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
+                        if(Math.abs(deltaYToClosestObject) > Math.abs(y - dimensionLine.getYStart())) {
+                            deltaYToClosestObject = y - dimensionLine.getYStart();
+                        }
+                    } else if(Math.abs(x - dimensionLine.getXEnd()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
+                        if(Math.abs(deltaYToClosestObject) > Math.abs(y - dimensionLine.getYEnd())) {
+                            deltaYToClosestObject = y - dimensionLine.getYEnd();
+                        }
                     }
-                }
-            }
-            {
-                let array203 = this.home.getDimensionLines();
-                for(let index202=0; index202 < array203.length; index202++) {
-                    let dimensionLine = array203[index202];
-                    {
-                        if(this.isViewableAtSelectedLevel(dimensionLine) && dimensionLine !== alignedDimensionLine) {
-                            if(Math.abs(x - dimensionLine.getXStart()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
-                                if(Math.abs(deltaYToClosestObject) > Math.abs(y - dimensionLine.getYStart())) {
-                                    deltaYToClosestObject = y - dimensionLine.getYStart();
-                                }
-                            } else if(Math.abs(x - dimensionLine.getXEnd()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
-                                if(Math.abs(deltaYToClosestObject) > Math.abs(y - dimensionLine.getYEnd())) {
-                                    deltaYToClosestObject = y - dimensionLine.getYEnd();
-                                }
-                            }
-                            if(Math.abs(y - dimensionLine.getYStart()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
-                                if(Math.abs(deltaXToClosestObject) > Math.abs(x - dimensionLine.getXStart())) {
-                                    deltaXToClosestObject = x - dimensionLine.getXStart();
-                                }
-                            } else if(Math.abs(y - dimensionLine.getYEnd()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
-                                if(Math.abs(deltaXToClosestObject) > Math.abs(x - dimensionLine.getXEnd())) {
-                                    deltaXToClosestObject = x - dimensionLine.getXEnd();
-                                }
-                            }
+                    if(Math.abs(y - dimensionLine.getYStart()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
+                        if(Math.abs(deltaXToClosestObject) > Math.abs(x - dimensionLine.getXStart())) {
+                            deltaXToClosestObject = x - dimensionLine.getXStart();
+                        }
+                    } else if(Math.abs(y - dimensionLine.getYEnd()) < margin && (alignedDimensionLine == null || !this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
+                        if(Math.abs(deltaXToClosestObject) > Math.abs(x - dimensionLine.getXEnd())) {
+                            deltaXToClosestObject = x - dimensionLine.getXEnd();
                         }
                     }
                 }
-            }
-            {
-                let array205 = this.getViewedItems<any>(this.home.getWalls(), this.otherLevelsWallsCache);
-                for(let index204=0; index204 < array205.length; index204++) {
-                    let wall = array205[index204];
-                    {
-                        let wallPoints : number[][] = wall.getPoints();
-                        wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2|0) - 1], wallPoints[(wallPoints.length / 2|0)], wallPoints[wallPoints.length - 1]];
-                        for(let i : number = 0; i < wallPoints.length; i++) {{
-                            if(Math.abs(x - wallPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints[i][1])) {
-                                deltaYToClosestObject = y - wallPoints[i][1];
-                            }
-                            if(Math.abs(y - wallPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints[i][0])) {
-                                deltaXToClosestObject = x - wallPoints[i][0];
-                            }
-                        };}
+            });
+            this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(wall => {
+                let wallPoints : number[][] = wall.getPoints();
+                wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2|0) - 1], wallPoints[(wallPoints.length / 2|0)], wallPoints[wallPoints.length - 1]];
+                for(let i : number = 0; i < wallPoints.length; i++) {
+                    if(Math.abs(x - wallPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints[i][1])) {
+                        deltaYToClosestObject = y - wallPoints[i][1];
+                    }
+                    if(Math.abs(y - wallPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints[i][0])) {
+                        deltaXToClosestObject = x - wallPoints[i][0];
                     }
                 }
-            }
-            {
-                let array207 = this.home.getFurniture();
-                for(let index206=0; index206 < array207.length; index206++) {
-                    let piece = array207[index206];
-                    {
-                        if(piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
-                            let piecePoints : number[][] = piece.getPoints();
-                            for(let i : number = 0; i < piecePoints.length; i++) {{
-                                if(Math.abs(x - piecePoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - piecePoints[i][1])) {
-                                    deltaYToClosestObject = y - piecePoints[i][1];
-                                }
-                                if(Math.abs(y - piecePoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - piecePoints[i][0])) {
-                                    deltaXToClosestObject = x - piecePoints[i][0];
-                                }
-                            };}
-                        }
-                    }
-                }
-            }
+            });
+            this.home.getFurniture().forEach(piece => {
+              if(piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
+                  let piecePoints : number[][] = piece.getPoints();
+                  for(let i : number = 0; i < piecePoints.length; i++) {
+                      if(Math.abs(x - piecePoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - piecePoints[i][1])) {
+                          deltaYToClosestObject = y - piecePoints[i][1];
+                      }
+                      if(Math.abs(y - piecePoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - piecePoints[i][0])) {
+                          deltaXToClosestObject = x - piecePoints[i][0];
+                      }
+                  }
+              }
+            });
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
             if(deltaXToClosestObject !== Infinity) {
@@ -4433,14 +4388,14 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g2D
      * @param {*[]} selectedItems
      * @param {string|CanvasPattern} selectionOutlinePaint
-     * @param {string} selectionOutlineStroke
+     * @param {java.awt.Stroke} selectionOutlineStroke
      * @param {string|CanvasPattern} indicatorPaint
      * @param {number} planScale
      * @param {string} backgroundColor
      * @param {string} foregroundColor
      * @private
      */
-    paintCamera(g2D : Graphics2D, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.Stroke, indicatorPaint : string|CanvasPattern, planScale : number, backgroundColor : string, foregroundColor : string) {
+    paintCamera(g2D : Graphics2D, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, backgroundColor : string, foregroundColor : string) {
         let camera : any = this.home.getObserverCamera();
         if(camera === this.home.getCamera()) {
             let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
