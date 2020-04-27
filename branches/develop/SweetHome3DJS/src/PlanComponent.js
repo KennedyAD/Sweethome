@@ -2231,7 +2231,7 @@ var PlanComponent = (function () {
                 g2D.translate(translationX, 0);
                 if (outlineColor != null) {
                     var defaultColor = g2D.getColor();
-                    g2D.setColor(new String(outlineColor));
+                    g2D.setColor("#" + outlineColor.toString(16));
                     g2D.drawStringOutline(line, 0, 0);
                     g2D.setColor(defaultColor);
                 }
