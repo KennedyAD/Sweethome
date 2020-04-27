@@ -2433,8 +2433,7 @@ class PlanComponent implements PlanView {
             if(outlineColor != null) {
                 let defaultColor : string = g2D.getColor();
                 g2D.setColor(<string>new String(outlineColor));
-                let textLayout : java.awt.font.TextLayout = new java.awt.font.TextLayout(line, font, g2D.getFontRenderContext());
-                g2D.draw(textLayout.getOutline(null));
+                g2D.drawStringOutline(line, 0, 0);
                 g2D.setColor(defaultColor);
             }
             g2D.drawString(line, 0, 0);

@@ -163,6 +163,9 @@ var Graphics2D = (function () {
     Graphics2D.prototype.translate = function (x, y) {
         this.context.translate(x, y);
     };
+    Graphics2D.prototype.drawStringOutline = function (str, x, y) {
+        this.context.strokeText(str, x, y);
+    };
     Graphics2D.prototype.drawString = function (str, x, y) {
         this.context.fillText(str, x, y);
     };

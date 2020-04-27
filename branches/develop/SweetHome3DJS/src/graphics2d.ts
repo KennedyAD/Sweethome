@@ -194,6 +194,10 @@ class Graphics2D {
     this.context.translate(x, y);
   }
 
+  public drawStringOutline(str: string, x: number, y: number) {
+    this.context.strokeText(str, x, y);
+  }
+
   public drawString(str: string, x: number, y: number) {
     this.context.fillText(str, x, y);
   }
