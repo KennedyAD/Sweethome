@@ -2,10 +2,13 @@
 class Graphics2D {
 
   public context : CanvasRenderingContext2D;
+  private _transform : java.awt.geom.AffineTransform;
 
   public constructor(canvas: HTMLCanvasElement) {
     this.context = canvas.getContext("2d");
     this.context.imageSmoothingEnabled = true;
+    this._transform = new java.awt.geom.AffineTransform(1., 0., 0., 1., 0., 0.);
+    this.context.setTransform(1, 0, 0, 1, 0, 0);
     var computedStyle = window.getComputedStyle(canvas);
     this.color = computedStyle.color;
     this.background = computedStyle.background;
@@ -191,6 +194,7 @@ class Graphics2D {
   }*/
 
   public translate(x: number, y: number): any {
+    this._transform.translate(x, y);
     this.context.translate(x, y);
   }
 
@@ -248,19 +252,23 @@ class Graphics2D {
 
   public rotate(theta: number, x?: number, y?: number): any {
     if (typeof x === 'number' && typeof y === 'number') {
+        this._transform.rotate(theta, x, y); 
         this.context.translate(-x, -y);
         this.context.rotate(theta);
         this.context.translate(x, y);
     } else {
+      this._transform.rotate(theta); 
       this.context.rotate(theta);
     }
   }
 
   public scale(sx: number, sy: number) {
+    this._transform.scale(sx, sy);
     this.context.scale(sx, sy);
   }
 
   public shear(shx: number, shy: number) {
+    this._transform.shear(shx, shy);
     this.context.transform(0, shx, shy, 0, 0, 0);
   }
 
@@ -287,15 +295,16 @@ class Graphics2D {
   }
 
   public setTransform(transform: java.awt.geom.AffineTransform) {
+    this._transform.setTransform(transform);
     this.context.setTransform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
   }
 
   public getTransform(): java.awt.geom.AffineTransform {
-    var t = this.context.getTransform();
-    return new java.awt.geom.AffineTransform(t.m11, t.m21, t.m12, t.m22, t.m13, t.m23);
+    return new java.awt.geom.AffineTransform(this._transform);
   }
 
   public transform(transform: java.awt.geom.AffineTransform) {
+    this._transform.concatenate(transform);
     this.context.transform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
   }
 

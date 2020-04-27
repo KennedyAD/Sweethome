@@ -2,7 +2,7 @@ var Graphics2D = (function () {
     function Graphics2D(canvas) {
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = true;
-        this.transform = new java.awt.geom.AffineTransform(1., 0., 0., 1., 0., 0.);
+        this._transform = new java.awt.geom.AffineTransform(1., 0., 0., 1., 0., 0.);
         this.context.setTransform(1, 0, 0, 1, 0, 0);
         var computedStyle = window.getComputedStyle(canvas);
         this.color = computedStyle.color;
@@ -163,7 +163,7 @@ var Graphics2D = (function () {
       return this.clip.getBounds();
     }*/
     Graphics2D.prototype.translate = function (x, y) {
-        this.transform.translate(x, y);
+        this._transform.translate(x, y);
         this.context.translate(x, y);
     };
     Graphics2D.prototype.drawStringOutline = function (str, x, y) {
@@ -207,22 +207,22 @@ var Graphics2D = (function () {
     };
     Graphics2D.prototype.rotate = function (theta, x, y) {
         if (typeof x === 'number' && typeof y === 'number') {
-            this.transform.rotate(theta, x, y); 
+            this._transform.rotate(theta, x, y);
             this.context.translate(-x, -y);
             this.context.rotate(theta);
             this.context.translate(x, y);
         }
         else {
-            this.transform.rotate(theta); 
+            this._transform.rotate(theta);
             this.context.rotate(theta);
         }
     };
     Graphics2D.prototype.scale = function (sx, sy) {
-        this.transform.scale(sx, sy);
+        this._transform.scale(sx, sy);
         this.context.scale(sx, sy);
     };
     Graphics2D.prototype.shear = function (shx, shy) {
-        this.transform.shear(shx, shy);
+        this._transform.shear(shx, shy);
         this.context.transform(0, shx, shy, 0, 0, 0);
     };
     Graphics2D.prototype.dispose = function () {
@@ -241,15 +241,14 @@ var Graphics2D = (function () {
         return this.background;
     };
     Graphics2D.prototype.setTransform = function (transform) {
-        this.transform.setTransform(transform);
+        this._transform.setTransform(transform);
         this.context.setTransform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
     };
     Graphics2D.prototype.getTransform = function () {
-        // var t = this.context.getTransform();
-        return new java.awt.geom.AffineTransform(this.transform);
+        return new java.awt.geom.AffineTransform(this._transform);
     };
     Graphics2D.prototype.transform = function (transform) {
-        this.transform.concatenate(transform);
+        this._transform.concatenate(transform);
         this.context.transform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
     };
     Graphics2D.prototype.setPaintMode = function () {
