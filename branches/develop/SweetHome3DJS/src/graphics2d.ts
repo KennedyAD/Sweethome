@@ -583,3 +583,13 @@ class Font {
     return [this.style, this.size, this.family].join(' ');
   }
 }
+
+/**
+ * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000. 
+ * Note that the alpha content is ignored.
+ * @param color {number}
+ * @returns a CSS string
+ */
+function intToColorString(color : number) {
+    return "#" + (color & 0xFFFFFF).toString(16);
+}

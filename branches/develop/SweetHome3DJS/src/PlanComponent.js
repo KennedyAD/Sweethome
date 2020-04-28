@@ -1932,9 +1932,11 @@ var PlanComponent = (function () {
             if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
                 g2D.setPaint(defaultFillPaint);
                 var textureAngle = 0;
+                var textureScaleX = 1;
+                var textureScaleY = 1;
                 if (this_1.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                     if (room.getFloorColor() != null) {
-                        g2D.setPaint((room.getFloorColor() & 0xFFFFFF).toString(16));
+                        g2D.setPaint(intToColorString(room.getFloorColor()));
                     }
                     else {
                         var floorTexture_1 = room.getFloorTexture();
@@ -1970,22 +1972,28 @@ var PlanComponent = (function () {
                                 textureHeight = 100;
                             }
                             var textureScale = floorTexture_1.getScale();
+                            textureScaleX = textureImage.width / (textureWidth * textureScale);
+                            textureScaleY = textureImage.height / (textureHeight * textureScale);
                             textureAngle = floorTexture_1.getAngle();
-                            var cosAngle = Math.cos(textureAngle);
-                            var sinAngle = Math.sin(textureAngle);
+                            //let cosAngle : number = Math.cos(textureAngle);
+                            //let sinAngle : number = Math.sin(textureAngle);
                             //g2D.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Double(floorTexture.getXOffset() * textureWidth * textureScale * cosAngle - floorTexture.getYOffset() * textureHeight * textureScale * sinAngle, -floorTexture.getXOffset() * textureWidth * textureScale * sinAngle - floorTexture.getYOffset() * textureHeight * textureScale * cosAngle, textureWidth * textureScale, textureHeight * textureScale)));
+                            //g2D.rotate(textureAngle);
                             g2D.setPaint(g2D.createPattern(textureImage));
                         }
                     }
                 }
                 var oldComposite = this_1.setTransparency(g2D, 0.75);
                 g2D.rotate(textureAngle, 0, 0);
-                var rotation = textureAngle !== 0 ? java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0) : null;
-                var roomShape = ShapeTools.getShape(room.getPoints(), true, rotation);
+                g2D.scale(1 / textureScaleX, 1 / textureScaleY);
+                var transform = java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0);
+                transform.scale(textureScaleX, textureScaleY);
+                var roomShape = ShapeTools.getShape(room.getPoints(), true, transform);
                 this_1.fillShape(g2D, roomShape, paintMode);
                 g2D.setAlpha(oldComposite);
                 g2D.setPaint(foregroundColor);
                 g2D.draw(roomShape);
+                g2D.scale(textureScaleX, textureScaleY);
                 g2D.rotate(-textureAngle, 0, 0);
             }
         };
@@ -3745,7 +3753,7 @@ var PlanComponent = (function () {
                             labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
                         }
                         var color = label.getColor();
-                        g2D.setPaint(color != null ? new String(color) : foregroundColor);
+                        g2D.setPaint(color != null ? intToColorString(color) : foregroundColor);
                         this.paintText(g2D, label.constructor, labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
                         if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
                             g2D.setPaint(selectionOutlinePaint);
