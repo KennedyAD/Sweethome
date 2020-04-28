@@ -72,113 +72,6 @@ declare function getFromMap(map, key);
 declare function valuesFromMap(map) : Array<any>;
 declare function sortArray(array, comparator) : void;
 
-/** 
- * This utility class allows to get the metrics of a given font. Note that this class will approximate 
- * the metrics on older browsers where CanvasRenderingContext2D.measureText() is only partially implemented.
- */
-class FontMetrics {
-  context : CanvasRenderingContext2D;
-  cached : boolean;
-  ascent : number;
-  descent : number;
-  height : number;
-  width : number;
-  font : string;
-
-  /**
-   * Builds a font metrics instance for the given font.
-   * @param font {string} the given font, in a CSS canvas-compatible representation
-   */  
-  constructor(font : string) {
-    this.font = font;
-    this.cached = false;
-  }
-
-  /**
-   * Gets the bounds of the given string for this font metrics.
-   * @param aString {string} the string to get the bounds of
-   * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
-   */  
-  getStringBounds(aString : string) : java.awt.geom.Rectangle2D {
-    this.compute(aString);
-    return new java.awt.geom.Rectangle2D.Double(0, -this.ascent, this.width, this.height);
-  }
-  
-  /**
-   * Gets the font ascent.
-   * @returns {number} the font ascent
-   */  
-  getAscent() : number {
-    if(!this.cached) {
-      this.compute("Llp");
-    }
-    return this.ascent;
-  }
-  
-  /**
-   * Gets the font descent.
-   * @returns {number} the font descent
-   */  
-  getDescent() : number {
-    if(!this.cached) {
-      this.compute("Llp");
-    }
-    return this.descent;
-  }
-
-  /**
-   * Gets the font height.
-   * @returns {number} the font height
-   */  
-  getHeight() : number {
-    if(!this.cached) {
-      this.compute("Llp");
-    }
-    return this.height;
-  }
-  
-  /**
-   * Computes the various dimentions of the given string, for the current canvas and font.
-   * This function caches the results so that it can be fast accessed in other functions.
-   * @param aString {string} the string to compute the dimensions of
-   * @private
-   */
-  private compute(aString : string) {
-    if(!this.cached) {
-      this.context = document.createElement("canvas").getContext("2d");
-      this.context.font = this.font;
-    }
-    var textMetrics = this.context.measureText(aString);
-    if (textMetrics.fontBoundingBoxAscent) {
-      this.cached = true;
-      this.ascent = textMetrics.fontBoundingBoxAscent;
-      this.descent = textMetrics.fontBoundingBoxDescent;
-      this.height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
-      this.width = textMetrics.width;
-    } else if(textMetrics.actualBoundingBoxAscent) {
-      this.cached = true;
-      this.ascent = textMetrics.actualBoundingBoxAscent;
-      this.descent = textMetrics.actualBoundingBoxDescent;
-      this.height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-      this.width = textMetrics.width;
-    } else {
-      // height info is not available on old browsers, so we build an approx.
-      // TODO: use a font utility instead
-      var heightArray = this.context.font.split(' ');
-      heightArray.forEach(height => {
-        if(height.slice(height.length - 2) == "px") {
-          this.height = parseInt(height);
-        }
-      });
-      this.cached = true;
-      this.ascent = 0.77 * this.height;
-      this.descent = 0.23 * this.height;
-      this.width = textMetrics.width;
-    }
-  }
-  
-}
-
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
@@ -1512,12 +1405,11 @@ class PlanComponent implements PlanView {
                     fontName = this.preferences.getDefaultFontName();
                 }
                 if(fontName == null) {
-                    fontName = this.font.split(' ')[this.font.split(' ').length - 1];
+                    fontName = new Font(this.font).family;
                 }
-                defaultFont = fontStyle + " 10px " + fontName;
+                defaultFont = new Font([fontStyle, "10px", fontName]).toString();
             }
-            var fontArray = defaultFont.split(' ');
-            font = fontStyle + " " + textStyle.getFontSize() + "px " + fontArray[fontArray.length - 1];
+            font = new Font([fontStyle, textStyle.getFontSize() + "px", new Font(defaultFont).family]).toString();
             putToMap(this.fonts, textStyle, font);
         }
         return font;
@@ -2172,9 +2064,9 @@ class PlanComponent implements PlanView {
         this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
         this.checkCurrentThreadIsntInterrupted(paintMode);
-        //this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
+        this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
         if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
-          //this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
+          this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
           this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
           this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
           this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
@@ -3890,7 +3782,7 @@ class PlanComponent implements PlanView {
                             labelStyle = this.preferences.getDefaultTextStyle((<any>label.constructor));
                         }
                         if(labelStyle.getFontName() == null && this.getFont() != null) {
-                            labelStyle = labelStyle.deriveStyle(this.getFont().getFontName());
+                            labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
                         }
                         let color : number = label.getColor();
                         g2D.setPaint(color != null?<string>new String(color):foregroundColor);

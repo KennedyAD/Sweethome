@@ -1,4 +1,31 @@
+/*
+ * DO NOT MODIFY: this source code has been automatically generated from Java
+ *                with JSweet (http://www.jsweet.org)
+ *
+ * Sweet Home 3D, Copyright (c) 2017 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+/**
+ * This class is a wrapper that implements 2D drawing functions on a canvas.
+ */
 var Graphics2D = (function () {
+    /**
+     * Creates a new instance wrapping the given HTML canvas.
+     * @constructor
+     */
     function Graphics2D(canvas) {
         this.context = canvas.getContext("2d");
         this.context.imageSmoothingEnabled = true;
@@ -8,41 +35,17 @@ var Graphics2D = (function () {
         this.color = computedStyle.color;
         this.background = computedStyle.background;
     }
-    Graphics2D.prototype.create = function () {
-        return this;
-    };
+    /**
+     * Clears the canvas.
+     */
     Graphics2D.prototype.clear = function () {
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
     };
+    /**
+     * Gets the wrapped canvas context.
+     */
     Graphics2D.prototype.getContext = function () {
         return this.context;
-    };
-    Graphics2D.prototype.clearRect = function (x, y, width, height) {
-        this.context.clearRect(x, y, width, height);
-    };
-    Graphics2D.prototype.drawArc = function (x, y, width, height, startAngle, arcAngle) {
-        this.context.beginPath();
-        this.context["ellipse"](x - (width / 2 | 0), y - (height / 2 | 0), (width / 2 | 0), (height / 2 | 0), 0, /* toRadians */ (function (x) { return x * Math.PI / 180; })(startAngle), /* toRadians */ (function (x) { return x * Math.PI / 180; })(startAngle) + (function (x) { return x * Math.PI / 180; })(arcAngle));
-        this.context.stroke();
-    };
-    Graphics2D.prototype.drawLine = function (x1, y1, x2, y2) {
-        this.context.beginPath();
-        this.context.moveTo(x1, y1);
-        this.context.lineTo(x2, y2);
-        this.context.stroke();
-    };
-    Graphics2D.prototype.drawOval = function (x, y, width, height) {
-        this.context.beginPath();
-        this.context["ellipse"](x - (width / 2 | 0), y - (height / 2 | 0), (width / 2 | 0), (height / 2 | 0), 0, 0, Math.PI * 2);
-        this.context.stroke();
-    };
-    Graphics2D.prototype.drawRoundRect = function (x, y, width, height, arcWidth, arcHeight) {
-        this.drawRect(x, y, width, height);
-    };
-    Graphics2D.prototype.drawRect = function (x, y, width, height) {
-        this.context.beginPath();
-        this.context.rect(x, y, width, height);
-        this.context.stroke();
     };
     /*public getClipBounds(r?: any): any {
       if (((r != null && r instanceof java.awt.Rectangle) || r === null)) {
@@ -58,27 +61,21 @@ var Graphics2D = (function () {
         return <any>this.getClipBounds$();
       } else throw new Error('invalid overload');
     }*/
-    Graphics2D.prototype.draw3DRect = function (x, y, width, height, raised) {
-        this.drawRect(x, y, width, height);
-    };
     /*public hitClip(x: number, y: number, width: number, height: number): boolean {
       return this.clip.getBounds().intersects(x, y, width, height);
     }*/
-    Graphics2D.prototype.drawPolyline = function (xPoints, yPoints, nPoints) {
-        this.context.beginPath();
-        if (nPoints <= 0) {
-            return;
-        }
-        this.context.moveTo(xPoints[0], yPoints[0]);
-        for (var i = 0; i < nPoints; i++) {
-            this.context.lineTo(xPoints[i], yPoints[i]);
-        }
+    /**
+     * Draws a shape on the canvas using the current stroke.
+     * @param shape {java.awt.Shape} the shape to be drawn
+     */
+    Graphics2D.prototype.draw = function (shape) {
+        this.createPathFromShape(shape);
         this.context.stroke();
     };
-    Graphics2D.prototype.draw = function (s) {
-        this.createPathFromShape(s);
-        this.context.stroke();
-    };
+    /**
+     * @param shape {java.awt.Shape} the shape to create a path from
+     * @private
+     */
     Graphics2D.prototype.createPathFromShape = function (s) {
         this.context.beginPath();
         var it = s.getPathIterator(java.awt.geom.AffineTransform.getTranslateInstance(0, 0));
@@ -108,25 +105,49 @@ var Graphics2D = (function () {
         }
         ;
     };
+    /**
+     * Fills a shape on the canvas using the current paint.
+     * @param shape {java.awt.Shape} the shape to be filled
+     */
     Graphics2D.prototype.fill = function (s) {
         this.createPathFromShape(s);
         this.context.fill();
     };
-    Graphics2D.prototype.drawImage = function (img, x, y, bgcolor, observer) {
+    /**
+     * Draws an image on the canvas.
+     * @param img {HTMLImageElement} the image to be drawn
+     * @param x {number}
+     * @param y {number}
+     * @param [bgcolor] {string}
+     */
+    Graphics2D.prototype.drawImage = function (img, x, y, bgcolor) {
         this.context.drawImage(img, x, y);
         return true;
     };
-    Graphics2D.prototype.drawImageWithSize = function (img, x, y, width, height, bgcolor, observer) {
+    /**
+     * Draws an image on the canvas.
+     * @param img {HTMLImageElement} the image to be drawn
+     * @param x {number}
+     * @param y {number}
+     * @param width {number}
+     * @param height {number}
+     * @param [bgcolor] {string}
+     */
+    Graphics2D.prototype.drawImageWithSize = function (img, x, y, width, height, bgcolor) {
         this.context.drawImage(img, x, y, width, height);
         return true;
     };
-    Graphics2D.prototype.drawImageFromSource = function (img, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, bgcolor, observer) {
-        this.context.drawImage(img, Math.min(sx1, sx2), Math.min(sy1, sy2), Math.abs(sx2 - sx1), Math.abs(sy2 - sy1), Math.min(dx1, dx2), Math.min(dy1, dy2), Math.abs(dx2 - dx1), Math.abs(dy2 - dy1));
-        return true;
-    };
+    /**
+     * Gets the current clip.
+     * @returns {java.awt.Shape} the clip as a shape
+     */
     Graphics2D.prototype.getClip = function () {
         return this._clip;
     };
+    /**
+     * Sets the current clip.
+     * @param clip {java.awt.Shape} the clip as a shape
+     */
     Graphics2D.prototype.setClip = function (clip) {
         this._clip = clip;
         if (clip != null) {
@@ -134,6 +155,10 @@ var Graphics2D = (function () {
             this.context.clip();
         }
     };
+    /**
+     * Adds the given clip to the current clip.
+     * @param clip {java.awt.Shape} the added clip as a shape
+     */
     Graphics2D.prototype.clip = function (clip) {
         this._clip = clip;
         if (clip != null) {
@@ -151,6 +176,13 @@ var Graphics2D = (function () {
         return <any>this.setClip$java_awt_Shape(x);
       } else throw new Error('invalid overload');
     }*/
+    /**
+     * Sets the current clip as a rectangle region.
+     * @param x {number}
+     * @param y {number}
+     * @param width {number}
+     * @param height {number}
+     */
     Graphics2D.prototype.clipRect = function (x, y, width, height) {
         if (this.clip == null) {
             this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
@@ -159,52 +191,81 @@ var Graphics2D = (function () {
             this.setClip(this.clip.getBounds2D().createIntersection(new java.awt.geom.Rectangle2D.Double(x, y, width, height)));
         }
     };
-    /*public getClipBounds$(): java.awt.Rectangle {
-      return this.clip.getBounds();
-    }*/
+    /**
+     * Translates the canvas transform matrix.
+     * @param x {number}
+     * @param y {number}
+     */
     Graphics2D.prototype.translate = function (x, y) {
         this._transform.translate(x, y);
         this.context.translate(x, y);
     };
+    /**
+     * Draws a string outline with the current stroke.
+     * @param str {string}
+     * @param x {number}
+     * @param y {number}
+     */
     Graphics2D.prototype.drawStringOutline = function (str, x, y) {
         this.context.strokeText(str, x, y);
     };
+    /**
+     * Draws a string with the current paint.
+     * @param str {string}
+     * @param x {number}
+     * @param y {number}
+     */
     Graphics2D.prototype.drawString = function (str, x, y) {
         this.context.fillText(str, x, y);
     };
-    Graphics2D.prototype.fillArc = function (x, y, width, height, startAngle, arcAngle) {
-        this.context.beginPath();
-        this.context["ellipse"](x - (width / 2 | 0), y - (height / 2 | 0), (width / 2 | 0), (height / 2 | 0), 0, /* toRadians */ (function (x) { return x * Math.PI / 180; })(startAngle), /* toRadians */ (function (x) { return x * Math.PI / 180; })(startAngle) + (function (x) { return x * Math.PI / 180; })(arcAngle));
-        this.context.fill();
-    };
-    Graphics2D.prototype.fillOval = function (x, y, width, height) {
-        this.context.beginPath();
-        this.context["ellipse"](x - (width / 2 | 0), y - (height / 2 | 0), (width / 2 | 0), (height / 2 | 0), 0, 0, Math.PI * 2);
-        this.context.fill();
-    };
+    /**
+     * Fills the given rectangular region with the current paint.
+     * @param x {number}
+     * @param y {number}
+     * @param width {number}
+     * @param height {number}
+     */
     Graphics2D.prototype.fillRect = function (x, y, width, height) {
         this.context.fillRect(x, y, width, height);
     };
-    Graphics2D.prototype.fillRoundRect = function (x, y, width, height, arcWidth, arcHeight) {
-        this.fillRect(x, y, width, height);
+    /**
+     * Sets the current stroke and fill style as a CSS style.
+     * @param color {string} a CSS style
+     */
+    Graphics2D.prototype.setColor = function (color) {
+        this.color = color;
+        this.context.strokeStyle = color;
+        this.context.fillStyle = color;
     };
-    Graphics2D.prototype.setColor = function (c) {
-        this.color = c;
-        this.context.strokeStyle = c;
-        this.context.fillStyle = c;
-    };
+    /**
+     * Gets the current color.
+     */
     Graphics2D.prototype.getColor = function () {
         return this.color;
     };
     Graphics2D.prototype.setComposite = function (c) {
         this.setColor(c);
     };
+    /**
+     * Sets the alpha component for all subsequent drawing and fill operations.
+     * @param alpha {number}
+     */
     Graphics2D.prototype.setAlpha = function (alpha) {
         this.context.globalAlpha = alpha;
     };
+    /**
+     * Gets the alpha component of the canvas.
+     * @returns {number}
+     */
     Graphics2D.prototype.getAlpha = function () {
         return this.context.globalAlpha;
     };
+    /**
+     * Rotates the canvas current transform matrix.
+     * @param theta {number} the rotation angle
+     * @param [x] {number} the rotation origin (x)
+     * @param [y] {number} the rotation origin (y)
+     */
     Graphics2D.prototype.rotate = function (theta, x, y) {
         if (typeof x === 'number' && typeof y === 'number') {
             this._transform.rotate(theta, x, y);
@@ -217,45 +278,94 @@ var Graphics2D = (function () {
             this.context.rotate(theta);
         }
     };
+    /**
+     * Scales the canvas current transform matrix.
+     * @param sx {number} the x scale factor
+     * @param sy {number} the y scale factor
+     */
     Graphics2D.prototype.scale = function (sx, sy) {
         this._transform.scale(sx, sy);
         this.context.scale(sx, sy);
     };
+    /**
+     * Shears the canvas current transform matrix.
+     * @param shx {number} the x shear factor
+     * @param shy {number} the y shear factor
+     */
     Graphics2D.prototype.shear = function (shx, shy) {
         this._transform.shear(shx, shy);
         this.context.transform(0, shx, shy, 0, 0, 0);
     };
+    /**
+     * @ignore
+     */
     Graphics2D.prototype.dispose = function () {
     };
+    /**
+     * Sets the current font.
+     * @param font {string} a CSS font descriptor
+     */
     Graphics2D.prototype.setFont = function (font) {
         this.context.font = font;
     };
+    /**
+     * Gets the current font.
+     * @returns {string} a CSS font descriptor
+     */
     Graphics2D.prototype.getFont = function () {
         return this.context.font;
     };
+    /**
+     * Sets the fill style as a color.
+     * @param color {string} a CSS color descriptor
+     */
     Graphics2D.prototype.setBackground = function (color) {
         this.background = color;
         this.context.fillStyle = color;
     };
+    /**
+     * Gets the fill style.
+     * @returns {string} a CSS color descriptor
+     */
     Graphics2D.prototype.getBackground = function () {
         return this.background;
     };
+    /**
+     * Sets (overrides) the current transform matrix.
+     * @param transform {java.awt.geom.AffineTransform} the new transform matrix
+     */
     Graphics2D.prototype.setTransform = function (transform) {
         this._transform.setTransform(transform);
         this.context.setTransform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
     };
+    /**
+     * Gets the current transform matrix.
+     * @returns {java.awt.geom.AffineTransform} the current transform matrix
+     */
     Graphics2D.prototype.getTransform = function () {
         return new java.awt.geom.AffineTransform(this._transform);
     };
+    /**
+     * Applies the given transform matrix to the current transform matrix.
+     * @param transform {java.awt.geom.AffineTransform} the transform matrix to be applied
+     */
     Graphics2D.prototype.transform = function (transform) {
         this._transform.concatenate(transform);
         this.context.transform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
     };
     Graphics2D.prototype.setPaintMode = function () {
     };
+    /**
+     * Gets the current paint.
+     * @returns {string|CanvasPattern}
+     */
     Graphics2D.prototype.getPaint = function () {
         return this.color;
     };
+    /**
+     * Sets the current paint.
+     * @param paint {string|CanvasPattern}
+     */
     Graphics2D.prototype.setPaint = function (paint) {
         if (typeof paint === "string") {
             this.setColor(paint);
@@ -265,86 +375,150 @@ var Graphics2D = (function () {
             this.context.fillStyle = paint;
         }
     };
+    /**
+     * Sets the current stroke.
+     */
     Graphics2D.prototype.setStroke = function (s) {
         this.context.lineWidth = s.getLineWidth();
     };
+    /**
+     * Creates a pattern from an image.
+     * @param image {HTMLImageElement}
+     * @returns CanvasPattern
+     */
     Graphics2D.prototype.createPattern = function (image) {
         return this.context.createPattern(image, 'repeat');
     };
     return Graphics2D;
 }());
-//namespace java.awt {
-//  export interface Paint { }
-//
-//  export interface Stroke { }
-//}
-//
-//namespace java.awt.image {
-//    /**
-//     * RenderedImage is a common interface for objects which contain
-//     * or can produce image data in the form of Rasters.  The image
-//     * data may be stored/produced as a single tile or a regular array
-//     * of tiles.
-//     */
-//    export interface RenderedImage {
-//        getWidth(observer? : any) : any;
-//
-//        getHeight(observer? : any) : any;
-//    }
-//}
-///* Generated from Java with JSweet 1.2.0-SNAPSHOT - http://www.jsweet.org */
-//namespace java.awt {
-//    export class Image {
-//        public constructor(src : string) {
-//            this.source = document.createElement("img");
-//            this.source.src = src;
-//        }
-//
-//        public getWidth(observer? : any) : any {
-//            if(((observer != null && (observer["__interfaces"] != null && observer["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0 || observer.constructor != null && observer.constructor["__interfaces"] != null && observer.constructor["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0)) || observer === null)) {
-//                let __args = Array.prototype.slice.call(arguments);
-//                return <any>(() => {
-//                    return (<number>this.source.width|0);
-//                })();
-//            } else throw new Error('invalid overload');
-//        }
-//
-//        public getHeight(observer? : any) : any {
-//            if(((observer != null && (observer["__interfaces"] != null && observer["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0 || observer.constructor != null && observer.constructor["__interfaces"] != null && observer.constructor["__interfaces"].indexOf("java.awt.image.ImageObserver") >= 0)) || observer === null)) {
-//                let __args = Array.prototype.slice.call(arguments);
-//                return <any>(() => {
-//                    return (<number>this.source.height|0);
-//                })();
-//            } else throw new Error('invalid overload');
-//        }
-//
-//        public source : HTMLImageElement;
-//
-//        /**
-//         * Use the default image-scaling algorithm.
-//         * 
-//         * @since JDK1.1
-//         */
-//        public static SCALE_DEFAULT : number = 1;
-//
-//        /**
-//         * Choose an image-scaling algorithm that gives higher priority to scaling
-//         * speed than smoothness of the scaled image.
-//         * 
-//         * @since JDK1.1
-//         */
-//        public static SCALE_FAST : number = 2;
-//
-//        public static SCALE_SMOOTH : number = 4;
-//
-//        public static SCALE_REPLICATE : number = 8;
-//
-//        public static SCALE_AREA_AVERAGING : number = 16;
-//
-//        public flush() {
-//        }
-//    }
-//    Image["__class"] = "java.awt.Image";
-//
-//}
-//
+/**
+ * This utility class allows to get the metrics of a given font. Note that this class will approximate
+ * the metrics on older browsers where CanvasRenderingContext2D.measureText() is only partially implemented.
+ */
+var FontMetrics = (function () {
+    /**
+     * Builds a font metrics instance for the given font.
+     * @param font {string} the given font, in a CSS canvas-compatible representation
+     */
+    function FontMetrics(font) {
+        this.font = font;
+        this.cached = false;
+    }
+    /**
+     * Gets the bounds of the given string for this font metrics.
+     * @param aString {string} the string to get the bounds of
+     * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
+     */
+    FontMetrics.prototype.getStringBounds = function (aString) {
+        this.compute(aString);
+        return new java.awt.geom.Rectangle2D.Double(0, -this.ascent, this.width, this.height);
+    };
+    /**
+     * Gets the font ascent.
+     * @returns {number} the font ascent
+     */
+    FontMetrics.prototype.getAscent = function () {
+        if (!this.cached) {
+            this.compute("Llp");
+        }
+        return this.ascent;
+    };
+    /**
+     * Gets the font descent.
+     * @returns {number} the font descent
+     */
+    FontMetrics.prototype.getDescent = function () {
+        if (!this.cached) {
+            this.compute("Llp");
+        }
+        return this.descent;
+    };
+    /**
+     * Gets the font height.
+     * @returns {number} the font height
+     */
+    FontMetrics.prototype.getHeight = function () {
+        if (!this.cached) {
+            this.compute("Llp");
+        }
+        return this.height;
+    };
+    /**
+     * Computes the various dimentions of the given string, for the current canvas and font.
+     * This function caches the results so that it can be fast accessed in other functions.
+     * @param aString {string} the string to compute the dimensions of
+     * @private
+     */
+    FontMetrics.prototype.compute = function (aString) {
+        var _this = this;
+        if (!this.cached) {
+            this.context = document.createElement("canvas").getContext("2d");
+            this.context.font = this.font;
+        }
+        var textMetrics = this.context.measureText(aString);
+        if (textMetrics.fontBoundingBoxAscent) {
+            this.cached = true;
+            this.ascent = textMetrics.fontBoundingBoxAscent;
+            this.descent = textMetrics.fontBoundingBoxDescent;
+            this.height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
+            this.width = textMetrics.width;
+        }
+        else if (textMetrics.actualBoundingBoxAscent) {
+            this.cached = true;
+            this.ascent = textMetrics.actualBoundingBoxAscent;
+            this.descent = textMetrics.actualBoundingBoxDescent;
+            this.height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+            this.width = textMetrics.width;
+        }
+        else {
+            // height info is not available on old browsers, so we build an approx.
+            // TODO: use a font utility instead
+            var heightArray = this.context.font.split(' ');
+            heightArray.forEach(function (height) {
+                if (height.slice(height.length - 2) == "px") {
+                    _this.height = parseInt(height);
+                }
+            });
+            this.cached = true;
+            this.ascent = 0.77 * this.height;
+            this.descent = 0.23 * this.height;
+            this.width = textMetrics.width;
+        }
+    };
+    return FontMetrics;
+}());
+/**
+ * A font utility class.
+ */
+var Font = (function () {
+    /**
+     * Creates a new font from a CSS font descriptor.
+     * @param cssFontDecriptor {string|string[]} the font descriptor as a CSS string or an array [style, size, family]
+     */
+    function Font(cssFontDecriptor) {
+        // font desciptors are normalized by the browser using the getComputedStyle function
+        if (!Font.element) {
+            Font.element = document.createElement('span');
+            Font.element.style.display = 'none';
+            document.body.append(Font.element);
+        }
+        if (typeof cssFontDecriptor == 'string') {
+            Font.element.style.font = cssFontDecriptor;
+        }
+        else if (Array.isArray(cssFontDecriptor)) {
+            Font.element.style.font = cssFontDecriptor.join(' ');
+        }
+        var styles = window.getComputedStyle(Font.element);
+        this.size = styles.fontSize;
+        this.family = styles.fontFamily;
+        this.style = styles.fontStyle;
+    }
+    /**
+     * Returns the font as a CSS string.
+     * @returns {string}
+     */
+    Font.prototype.toString = function () {
+        return [this.style, this.size, this.family].join(' ');
+    };
+    return Font;
+}());
