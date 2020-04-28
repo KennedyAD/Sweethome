@@ -2208,10 +2208,11 @@ class PlanComponent implements PlanView {
                       g2D.translate(-textureOffsetX, -textureOffsetY);
                       g2D.rotate(-textureAngle, 0, 0);
                       g2D.scale(1 / textureScaleX, 1 / textureScaleY);
+                      roomShape = ShapeTools.getShape(room.getPoints(), true);
                     }
                     g2D.setAlpha(oldComposite);
                     g2D.setPaint(foregroundColor);
-                    g2D.draw(ShapeTools.getShape(room.getPoints(), true));
+                    g2D.draw(roomShape);
                 }
         }
     }
