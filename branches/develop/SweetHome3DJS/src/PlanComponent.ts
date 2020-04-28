@@ -2139,11 +2139,12 @@ class PlanComponent implements PlanView {
                     let textureAngle : number = 0;
                     let textureScaleX : number = 1;
                     let textureScaleY : number = 1;
+                    let floorTexture : HomeTexture = null;
                     if(this.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                         if(room.getFloorColor() != null) {
                             g2D.setPaint(intToColorString(room.getFloorColor()));
                         } else {
-                            let floorTexture : any = room.getFloorTexture();
+                            floorTexture = room.getFloorTexture();
                             if(floorTexture != null) {
                                 if(this.floorTextureImagesCache == null) {
                                     this.floorTextureImagesCache = {};
@@ -2189,17 +2190,22 @@ class PlanComponent implements PlanView {
                         }
                     }
                     let oldComposite = this.setTransparency(g2D, 0.75);
-                    g2D.rotate(textureAngle, 0, 0);
-                    g2D.scale(1 / textureScaleX, 1 / textureScaleY);
-                    let transform : java.awt.geom.AffineTransform = java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0);
-                    transform.scale(textureScaleX, textureScaleY);
+                    let transform : java.awt.geom.AffineTransform = null;
+                    if(floorTexture != null) {
+                      g2D.rotate(textureAngle, 0, 0);
+                      g2D.scale(1 / textureScaleX, 1 / textureScaleY);
+                      transform = java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0);
+                      transform.scale(textureScaleX, textureScaleY);
+                    }
                     let roomShape : java.awt.Shape = ShapeTools.getShape(room.getPoints(), true, transform);
                     this.fillShape(g2D, roomShape, paintMode);
                     g2D.setAlpha(oldComposite);
                     g2D.setPaint(foregroundColor);
                     g2D.draw(roomShape);
-                    g2D.scale(textureScaleX, textureScaleY);
-                    g2D.rotate(-textureAngle, 0, 0);
+                    if(floorTexture != null) {
+                      g2D.scale(textureScaleX, textureScaleY);
+                      g2D.rotate(-textureAngle, 0, 0);
+                    }
                 }
         }
     }
