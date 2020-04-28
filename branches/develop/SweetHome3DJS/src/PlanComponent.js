@@ -1932,6 +1932,8 @@ var PlanComponent = (function () {
             if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedRoom) {
                 g2D.setPaint(defaultFillPaint);
                 var textureAngle = 0;
+                var textureOffsetX = 0;
+                var textureOffsetY = 0;
                 var textureScaleX = 1;
                 var textureScaleY = 1;
                 var floorTexture_1 = null;
@@ -1973,11 +1975,14 @@ var PlanComponent = (function () {
                                 textureHeight = 100;
                             }
                             var textureScale = floorTexture_1.getScale();
-                            textureScaleX = textureImage.width / (textureWidth * textureScale);
-                            textureScaleY = textureImage.height / (textureHeight * textureScale);
+                            textureScaleX = (textureWidth * textureScale) / textureImage.width;
+                            textureScaleY = (textureHeight * textureScale) / textureImage.height;
                             textureAngle = floorTexture_1.getAngle();
-                            //let cosAngle : number = Math.cos(textureAngle);
-                            //let sinAngle : number = Math.sin(textureAngle);
+                            var cosAngle = Math.cos(textureAngle);
+                            var sinAngle = Math.sin(textureAngle);
+                            textureOffsetX = (floorTexture_1.getXOffset() * textureImage.width * cosAngle - floorTexture_1.getYOffset() * textureImage.height * sinAngle);
+                            textureOffsetY = (-floorTexture_1.getXOffset() * textureImage.width * sinAngle - floorTexture_1.getYOffset() * textureImage.height * cosAngle);
+                            console.log(textureScaleX + " " + textureOffsetX + " " + textureOffsetY);
                             //g2D.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Double(floorTexture.getXOffset() * textureWidth * textureScale * cosAngle - floorTexture.getYOffset() * textureHeight * textureScale * sinAngle, -floorTexture.getXOffset() * textureWidth * textureScale * sinAngle - floorTexture.getYOffset() * textureHeight * textureScale * cosAngle, textureWidth * textureScale, textureHeight * textureScale)));
                             //g2D.rotate(textureAngle);
                             g2D.setPaint(g2D.createPattern(textureImage));
@@ -1986,21 +1991,24 @@ var PlanComponent = (function () {
                 }
                 var oldComposite = this_1.setTransparency(g2D, 0.75);
                 var transform = null;
-                if (floorTexture_1 != null) {
+                if (floorTexture_1 !== null) {
+                    g2D.scale(textureScaleX, textureScaleY);
                     g2D.rotate(textureAngle, 0, 0);
-                    g2D.scale(1 / textureScaleX, 1 / textureScaleY);
-                    transform = java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0);
-                    transform.scale(textureScaleX, textureScaleY);
+                    g2D.translate(textureOffsetX, textureOffsetY);
+                    transform = java.awt.geom.AffineTransform.getTranslateInstance(-textureOffsetX, -textureOffsetY);
+                    transform.rotate(-textureAngle, 0, 0);
+                    transform.scale(1 / textureScaleX, 1 / textureScaleY);
                 }
                 var roomShape = ShapeTools.getShape(room.getPoints(), true, transform);
                 this_1.fillShape(g2D, roomShape, paintMode);
+                if (floorTexture_1 != null) {
+                  g2D.translate(-textureOffsetX, -textureOffsetY);
+                  g2D.rotate(-textureAngle, 0, 0);
+                  g2D.scale(1 / textureScaleX, 1 / textureScaleY);
+                }
                 g2D.setAlpha(oldComposite);
                 g2D.setPaint(foregroundColor);
                 g2D.draw(roomShape);
-                if (floorTexture_1 != null) {
-                    g2D.scale(textureScaleX, textureScaleY);
-                    g2D.rotate(-textureAngle, 0, 0);
-                }
             }
         };
         var this_1 = this;
