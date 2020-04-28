@@ -2139,6 +2139,8 @@ class PlanComponent implements PlanView {
                     let textureAngle : number = 0;
                     let textureScaleX : number = 1;
                     let textureScaleY : number = 1;
+                    let textureOffsetX = 0;
+                    let textureOffsetY = 0;
                     let floorTexture : HomeTexture = null;
                     if(this.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                         if(room.getFloorColor() != null) {
@@ -2158,7 +2160,7 @@ class PlanComponent implements PlanView {
                                     let waitForTexture : boolean = paintMode !== PlanComponent.PaintMode.PAINT;
                                         TextureManager.getInstance().loadTexture(floorTexture.getImage(), waitForTexture, {
                                           textureUpdated : (texture : HTMLImageElement) => {
-                                             this.floorTextureImagesCache[floorTexture.getImage().getURL()] = texture;
+                                            this.floorTextureImagesCache[floorTexture.getImage().getURL()] = texture;
                                             console.error(" -> recieved texture : " + floorTexture.getImage().getURL());
                                             if(!waitForTexture) {
                                                 this.repaint();
@@ -2177,35 +2179,39 @@ class PlanComponent implements PlanView {
                                     textureHeight = 100;
                                 }
                                 let textureScale = floorTexture.getScale();
-                                textureScaleX = textureImage.width / (textureWidth * textureScale);
-                                textureScaleY = textureImage.height / (textureHeight * textureScale);
+                                textureScaleX = (textureWidth * textureScale) / textureImage.width;
+                                textureScaleY = (textureHeight * textureScale) / textureImage.height;
                                 textureAngle = floorTexture.getAngle();
-                                //let cosAngle : number = Math.cos(textureAngle);
-                                //let sinAngle : number = Math.sin(textureAngle);
+                                let cosAngle = Math.cos(textureAngle);
+                                let sinAngle = Math.sin(textureAngle);
+                                textureOffsetX = (floorTexture.getXOffset() * textureImage.width * cosAngle - floorTexture.getYOffset() * textureImage.height * sinAngle);
+                                textureOffsetY = (-floorTexture.getXOffset() * textureImage.width * sinAngle - floorTexture.getYOffset() * textureImage.height * cosAngle);
                                 //g2D.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Double(floorTexture.getXOffset() * textureWidth * textureScale * cosAngle - floorTexture.getYOffset() * textureHeight * textureScale * sinAngle, -floorTexture.getXOffset() * textureWidth * textureScale * sinAngle - floorTexture.getYOffset() * textureHeight * textureScale * cosAngle, textureWidth * textureScale, textureHeight * textureScale)));
                                 //g2D.rotate(textureAngle);
                                 g2D.setPaint(g2D.createPattern(textureImage));
-                                //g2D.scale(textureScale * textureWidth, textureScale * textureHeight);
                             }
                         }
                     }
                     let oldComposite = this.setTransparency(g2D, 0.75);
                     let transform : java.awt.geom.AffineTransform = null;
                     if(floorTexture != null) {
+                      g2D.scale(textureScaleX, textureScaleY);
                       g2D.rotate(textureAngle, 0, 0);
-                      g2D.scale(1 / textureScaleX, 1 / textureScaleY);
-                      transform = java.awt.geom.AffineTransform.getRotateInstance(-textureAngle, 0, 0);
-                      transform.scale(textureScaleX, textureScaleY);
+                      g2D.translate(textureOffsetX, textureOffsetY);
+                      transform = java.awt.geom.AffineTransform.getTranslateInstance(-textureOffsetX, -textureOffsetY);
+                      transform.rotate(-textureAngle, 0, 0);
+                      transform.scale(1 / textureScaleX, 1 / textureScaleY);
                     }
                     let roomShape : java.awt.Shape = ShapeTools.getShape(room.getPoints(), true, transform);
                     this.fillShape(g2D, roomShape, paintMode);
+                    if(floorTexture != null) {
+                      g2D.translate(-textureOffsetX, -textureOffsetY);
+                      g2D.rotate(-textureAngle, 0, 0);
+                      g2D.scale(1 / textureScaleX, 1 / textureScaleY);
+                    }
                     g2D.setAlpha(oldComposite);
                     g2D.setPaint(foregroundColor);
-                    g2D.draw(roomShape);
-                    if(floorTexture != null) {
-                      g2D.scale(textureScaleX, textureScaleY);
-                      g2D.rotate(-textureAngle, 0, 0);
-                    }
+                    g2D.draw(ShapeTools.getShape(room.getPoints(), true));
                 }
         }
     }
