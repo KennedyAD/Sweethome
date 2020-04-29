@@ -88,6 +88,27 @@ TextureManager.prototype.loadTexture = function(content, angle, synchronous, tex
     if (textureObserver.textureUpdated !== undefined) {
       textureObserver.textureUpdated(this.loadedTextureImages [contentUrl]);
     }
+  } else if (synchronous) {
+    var textureManager = this;
+    this.load(contentUrl, synchronous, {
+        textureLoaded : function(textureImage) {
+          // Note that angle is managed with appearance#setTextureTransform
+          textureManager.loadedTextureImages [contentUrl] = textureImage;
+          if (textureObserver.textureUpdated !== undefined) {
+            textureObserver.textureUpdated(textureImage);
+          }
+        },
+        textureError : function(error) {
+          if (textureObserver.textureError !== undefined) {
+            textureObserver.textureError(error);
+          }
+        },
+        progression : function(part, info, percentage) {
+          if (textureObserver.progression !== undefined) {
+            textureObserver.progression(part, info, percentage);
+          }
+        }
+      });
   } else {
     if (contentUrl in this.loadingTextureObservers) {
       // If observers list exists, content texture is already being loaded
@@ -99,43 +120,42 @@ TextureManager.prototype.loadTexture = function(content, angle, synchronous, tex
       observers.push(textureObserver);
       this.loadingTextureObservers [contentUrl] = observers;
       var textureManager = this;
-      this.load(contentUrl, synchronous,
-          {
-            textureLoaded : function(textureImage) {
-              var observers = textureManager.loadingTextureObservers [contentUrl];
-              if (observers) {
-                delete textureManager.loadingTextureObservers [contentUrl];
-                // Note that angle is managed with appearance#setTextureTransform
-                textureManager.loadedTextureImages [contentUrl] = textureImage;
-                for (var i = 0; i < observers.length; i++) {
-                  if (observers [i].textureUpdated !== undefined) {
-                    observers [i].textureUpdated(textureImage);
-                  }
+      this.load(contentUrl, synchronous, {
+          textureLoaded : function(textureImage) {
+            var observers = textureManager.loadingTextureObservers [contentUrl];
+            if (observers) {
+              delete textureManager.loadingTextureObservers [contentUrl];
+              // Note that angle is managed with appearance#setTextureTransform
+              textureManager.loadedTextureImages [contentUrl] = textureImage;
+              for (var i = 0; i < observers.length; i++) {
+                if (observers [i].textureUpdated !== undefined) {
+                  observers [i].textureUpdated(textureImage);
                 }
-              }
-            },
-            textureError : function(error) {
-              var observers = textureManager.loadingTextureObservers [contentUrl];
-              if (observers) {
-                delete textureManager.loadingTextureObservers [contentUrl];
-                for (var i = 0; i < observers.length; i++) {
-                  if (observers [i].textureError !== undefined) {
-                    observers [i].textureError(error);
-                  }
-                }
-              }
-            },
-            progression : function(part, info, percentage) {
-              var observers = textureManager.loadingTextureObservers [contentUrl];
-              if (observers) {
-                for (var i = 0; i < observers.length; i++) {
-                  if (observers [i].progression !== undefined) {
-                    observers [i].progression(part, info, percentage);
-                  }
-                } 
               }
             }
-          });
+          },
+          textureError : function(error) {
+            var observers = textureManager.loadingTextureObservers [contentUrl];
+            if (observers) {
+              delete textureManager.loadingTextureObservers [contentUrl];
+              for (var i = 0; i < observers.length; i++) {
+                if (observers [i].textureError !== undefined) {
+                  observers [i].textureError(error);
+                }
+              }
+            }
+          },
+          progression : function(part, info, percentage) {
+            var observers = textureManager.loadingTextureObservers [contentUrl];
+            if (observers) {
+              for (var i = 0; i < observers.length; i++) {
+                if (observers [i].progression !== undefined) {
+                  observers [i].progression(part, info, percentage);
+                }
+              } 
+            }
+          }
+        });
     }
   }
 }

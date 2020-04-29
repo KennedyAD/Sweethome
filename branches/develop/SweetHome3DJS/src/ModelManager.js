@@ -464,6 +464,26 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
     if (modelObserver.modelUpdated !== undefined) {
       modelObserver.modelUpdated(this.cloneNode(model));
     }
+  } else if (synchronous) {
+    var modelManager = this;
+    this.load(content, synchronous, {
+        modelLoaded : function(loadedModel) {
+          modelManager.loadedModelNodes [contentUrl] = loadedModel;
+          if (modelObserver.modelUpdated !== undefined) {
+            modelObserver.modelUpdated(modelManager.cloneNode(loadedModel));
+          }
+        },
+        modelError : function(err) {
+          if (modelObserver.modelError !== undefined) {
+            modelObserver.modelError(err);
+          }
+        },
+        progression : function(part, info, percentage) {
+          if (modelObserver.progression !== undefined) {
+            modelObserver.progression(part, info, percentage);
+          }
+        }
+      });
   } else {
     if (contentUrl in this.loadingModelObservers) {
       // If observers list exists, content model is already being loaded
@@ -474,43 +494,19 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
       var observers = [];
       observers.push(modelObserver);
       this.loadingModelObservers [contentUrl] = observers;
-      if (!this.modelLoaders) {
-        // As model loaders are reentrant, use the same loaders for multiple loading
-        this.modelLoaders = [new OBJLoader()];
-        // Optional loaders
-        if (typeof DAELoader !== "undefined") {
-          this.modelLoaders.push(new DAELoader());
-        }
-        if (typeof Max3DSLoader !== "undefined") {
-          this.modelLoaders.push(new Max3DSLoader());
-        }
-      }
+      
       var modelManager = this;
-      var loadingModelObserver = {
-          modelLoaderIndex : 0,
-          modelLoaded : function(model) {
-            var bounds = modelManager.getBounds(model);
-            var lower = vec3.create();
-            bounds.getLower(lower);
-            if (lower [0] !== Infinity) {
+      this.load(content, synchronous, {
+          modelLoaded : function(loadedModel) {
+            modelManager.loadedModelNodes [contentUrl] = loadedModel;
               var observers = modelManager.loadingModelObservers [contentUrl];
               if (observers) {
-                delete modelManager.loadingModelObservers [contentUrl];
-                modelManager.updateWindowPanesTransparency(model);
-                modelManager.updateDeformableModelHierarchy(model);
-                modelManager.replaceMultipleSharedShapes(model);
-                modelManager.loadedModelNodes [contentUrl] = model;
                 for (var i = 0; i < observers.length; i++) {
                   if (observers [i].modelUpdated !== undefined) {
-                    observers [i].modelUpdated(modelManager.cloneNode(model));
+                    observers [i].modelUpdated(modelManager.cloneNode(loadedModel));
                   }
                 }
               }
-            } else if (++this.modelLoaderIndex < modelManager.modelLoaders.length) {
-              modelManager.modelLoaders [this.modelLoaderIndex].load(contentUrl, synchronous, this);
-            } else {
-              this.modelError("Unsupported 3D format");
-            }
           },
           modelError : function(err) {
             var observers = modelManager.loadingModelObservers [contentUrl];
@@ -533,8 +529,7 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
               } 
             }
           }
-        };
-      modelManager.modelLoaders [0].load(contentUrl, synchronous, loadingModelObserver);
+        });
     }
   }
 }
@@ -627,6 +622,56 @@ ModelManager.prototype.cloneNode = function(node, clonedSharedGroups) {
 }
 
 /**
+ * Returns the node loaded synchronously from <code>content</code> with supported loaders.
+ * @param {URLContent} content an object containing a model
+ * @param {boolean} [synchronous] optional parameter equal to false by default
+ * @param {{modelLoaded, modelError, progression}} modelObserver  
+ *           the observer that will be notified once the model is available
+ *           or if an error happens
+ * @private
+ */
+ModelManager.prototype.load = function(content, synchronous, modelObserver) {
+  var contentUrl = content.getURL();
+  if (!this.modelLoaders) {
+    // As model loaders are reentrant, use the same loaders for multiple loading
+    this.modelLoaders = [new OBJLoader()];
+    // Optional loaders
+    if (typeof DAELoader !== "undefined") {
+      this.modelLoaders.push(new DAELoader());
+    }
+    if (typeof Max3DSLoader !== "undefined") {
+      this.modelLoaders.push(new Max3DSLoader());
+    }
+  }
+  var modelManager = this;
+  var modelLoadingObserver = {
+      modelLoaderIndex : 0,
+      modelLoaded : function(model) {
+        var bounds = modelManager.getBounds(model);
+        var lower = vec3.create();
+        bounds.getLower(lower);
+        if (lower [0] !== Infinity) {
+          modelManager.updateWindowPanesTransparency(model);
+          modelManager.updateDeformableModelHierarchy(model);
+          modelManager.replaceMultipleSharedShapes(model);
+          modelObserver.modelLoaded(model);
+        } else if (++this.modelLoaderIndex < modelManager.modelLoaders.length) {
+          modelManager.modelLoaders [this.modelLoaderIndex].load(contentUrl, synchronous, this);
+        } else {
+          this.modelError("Unsupported 3D format");
+        }
+      },
+      modelError : function(err) {
+        modelObserver.modelError(err);
+      },
+      progression : function(part, info, percentage) {
+        modelObserver.progression(part, info, percentage);
+      }
+    };
+  modelManager.modelLoaders [0].load(contentUrl, synchronous, modelLoadingObserver);
+}
+
+  /**
  * Updates the transparency of window panes shapes.
  * @private
  */
