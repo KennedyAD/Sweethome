@@ -449,7 +449,7 @@ class Graphics2D {
  * the metrics on older browsers where CanvasRenderingContext2D.measureText() is only partially implemented.
  */
 class FontMetrics {
-  context : CanvasRenderingContext2D;
+  static context : CanvasRenderingContext2D;
   cached : boolean;
   ascent : number;
   descent : number;
@@ -518,11 +518,11 @@ class FontMetrics {
    * @private
    */
   private compute(aString : string) {
-    if(!this.context) {
-      this.context = document.createElement("canvas").getContext("2d");
-      this.context.font = this.font;
+    if(!FontMetrics.context) {
+      FontMetrics.context = document.createElement("canvas").getContext("2d");
     }
-    var textMetrics = this.context.measureText(aString);
+    FontMetrics.context.font = this.font;
+    var textMetrics = FontMetrics.context.measureText(aString);
     if (textMetrics.fontBoundingBoxAscent) {
       this.cached = true;
       this.ascent = textMetrics.fontBoundingBoxAscent;
@@ -539,7 +539,7 @@ class FontMetrics {
       // height info is not available on old browsers, so we build an approx.
       // TODO: use a font utility instead
       this.approximated = true;
-      var heightArray = this.context.font.split(' ');
+      var heightArray = FontMetrics.context.font.split(' ');
       heightArray.forEach(height => {
         if(height.slice(height.length - 2) == "px") {
           this.height = parseInt(height);
@@ -573,10 +573,14 @@ class Font {
    */
   public style : string;
   /**
-   * Creates a new font from a CSS font descriptor.
-   * @param cssFontDecriptor {string|string[]} the font descriptor as a CSS string or an array [style, size, family]
+   * The browser-normalized font style of the given CSS font descriptor.
    */
-  constructor(cssFontDecriptor : string|string[]) {
+  public weight : string;
+  /**
+   * Creates a new font from a CSS font descriptor.
+   * @param cssFontDecriptor {string|Object} the font descriptor as a CSS string or an object {style, size, family, weight}
+   */
+  constructor(cssFontDecriptor : string|{style : string, weight : string, size : string, family: string}) {
     // font desciptors are normalized by the browser using the getComputedStyle function
     if(!Font.element) {
       Font.element = document.createElement('span');
@@ -585,15 +589,25 @@ class Font {
     }
     if(typeof cssFontDecriptor == 'string') {
       Font.element.style.font = cssFontDecriptor;
-    } else if(Array.isArray(cssFontDecriptor)) {
-      Font.element.style.fontStyle = cssFontDecriptor[0];
-      Font.element.style.fontSize = cssFontDecriptor[1];
-      Font.element.style.fontFamily = cssFontDecriptor[2];
+    } else {
+      if(cssFontDecriptor.style) {
+        Font.element.style.fontStyle = cssFontDecriptor.style;
+      }
+      if(cssFontDecriptor.size) {
+        Font.element.style.fontSize = cssFontDecriptor.size;
+      }
+      if(cssFontDecriptor.family) {
+        Font.element.style.fontFamily = cssFontDecriptor.family;
+      }
+      if(cssFontDecriptor.weight) {
+        Font.element.style.fontWeight = cssFontDecriptor.weight;
+      }
     }
     this.computedStyle = window.getComputedStyle(Font.element);
     this.size = this.computedStyle.fontSize;
     this.family = this.computedStyle.fontFamily;
     this.style = this.computedStyle.fontStyle;
+    this.weight = this.computedStyle.fontWeight;
   }
   
   /**
@@ -601,7 +615,7 @@ class Font {
    * @returns {string}
    */
   toString() : string {
-    return [this.style, this.size, this.family].join(' '); //this.family.indexOf(' ') > -1?"'" + this.family + "'" : this.family].join(' ');
+    return [this.style, this.weight, this.size, this.family].join(' '); //this.family.indexOf(' ') > -1?"'" + this.family + "'" : this.family].join(' ');
   }
 }
 

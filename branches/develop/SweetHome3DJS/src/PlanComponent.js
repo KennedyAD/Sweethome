@@ -1170,11 +1170,12 @@ var PlanComponent = (function () {
         var font = getFromMap(this.fonts, textStyle);
         if (font == null) {
             var fontStyle = 'normal';
+            var fontWeight = 'normal';
             if (textStyle.isBold()) {
-                fontStyle = 'bold';
+                fontWeight = 'bold';
             }
             if (textStyle.isItalic()) {
-                fontStyle += ' italic';
+                fontStyle = 'italic';
             }
             if (defaultFont == null || this.preferences.getDefaultFontName() != null || textStyle.getFontName() != null) {
                 var fontName = textStyle.getFontName();
@@ -1184,9 +1185,9 @@ var PlanComponent = (function () {
                 if (fontName == null) {
                     fontName = new Font(this.font).family;
                 }
-                defaultFont = new Font([fontStyle, "10px", fontName]).toString();
+                defaultFont = new Font({ style: fontStyle, weight: fontWeight, size: "10px", family: fontName }).toString();
             }
-            font = new Font([fontStyle, textStyle.getFontSize() + "px", new Font(defaultFont).family]).toString();
+            font = new Font({ style: fontStyle, weight: fontWeight, size: textStyle.getFontSize() + "px", family: new Font(defaultFont).family }).toString();
             putToMap(this.fonts, textStyle, font);
         }
         return font;
@@ -3520,9 +3521,9 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintPolylines = function (g2D, polylines, selectedItems, selectionOutlinePaint, indicatorPaint, planScale, foregroundColor, paintMode) {
-        var _this = this;
-        polylines.forEach(function (polyline) {
-            if (_this.isViewableAtSelectedLevel(polyline)) {
+        for (var i = 0; i < polylines.length; i++) {
+            var polyline = polylines[i];
+            if (this.isViewableAtSelectedLevel(polyline)) {
                 var selected = (selectedItems.indexOf((polyline)) >= 0);
                 if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
                     g2D.setPaint(intToColorString(polyline.getColor()));
@@ -3553,23 +3554,23 @@ var PlanComponent = (function () {
                     var angleAtStart = Math.atan2(firstPoint[1] - secondPoint[1], firstPoint[0] - secondPoint[0]);
                     var angleAtEnd = Math.atan2(lastPoint[1] - beforeLastPoint[1], lastPoint[0] - beforeLastPoint[0]);
                     var arrowDelta = polyline.getCapStyle() !== Polyline.CapStyle.BUTT ? thickness / 2 : 0;
-                    _this.paintArrow(g2D, firstPoint, angleAtStart, polyline.getStartArrowStyle(), thickness, arrowDelta);
-                    _this.paintArrow(g2D, lastPoint, angleAtEnd, polyline.getEndArrowStyle(), thickness, arrowDelta);
+                    this.paintArrow(g2D, firstPoint, angleAtStart, polyline.getStartArrowStyle(), thickness, arrowDelta);
+                    this.paintArrow(g2D, lastPoint, angleAtEnd, polyline.getEndArrowStyle(), thickness, arrowDelta);
                     if (selected && paintMode === PlanComponent.PaintMode.PAINT) {
                         g2D.setPaint(selectionOutlinePaint);
                         g2D.setStroke(SwingTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
                         g2D.draw(polylineShape);
                         if (selectedItems.length === 1 && indicatorPaint != null) {
                             var selectedPolyline = selectedItems[0];
-                            if (_this.isViewableAtSelectedLevel(selectedPolyline)) {
+                            if (this.isViewableAtSelectedLevel(selectedPolyline)) {
                                 g2D.setPaint(indicatorPaint);
-                                _this.paintPointsResizeIndicators(g2D, selectedPolyline, indicatorPaint, planScale, selectedPolyline.isClosedPath(), angleAtStart, angleAtEnd, false);
+                                this.paintPointsResizeIndicators(g2D, selectedPolyline, indicatorPaint, planScale, selectedPolyline.isClosedPath(), angleAtStart, angleAtEnd, false);
                             }
                         }
                     }
                 }
             }
-        });
+        }
     };
     /**
      * Paints polyline arrow at the given point and orientation.
