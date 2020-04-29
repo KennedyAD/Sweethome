@@ -381,6 +381,12 @@ var Graphics2D = (function () {
      */
     Graphics2D.prototype.setStroke = function (s) {
         this.context.lineWidth = s.getLineWidth();
+        if (s.getDashArray() != null) {
+            this.context.setLineDash(s.getDashArray());
+        }
+        else {
+            this.context.setLineDash([]);
+        }
     };
     /**
      * Creates a pattern from an image.

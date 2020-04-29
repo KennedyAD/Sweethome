@@ -426,6 +426,11 @@ class Graphics2D {
    */
   public setStroke(s: java.awt.BasicStroke) {
     this.context.lineWidth = s.getLineWidth();
+    if(s.getDashArray() != null) {
+      this.context.setLineDash(s.getDashArray());
+    } else {
+      this.context.setLineDash([]);
+    }
   }
   
   /**

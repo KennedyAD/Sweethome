@@ -43,7 +43,7 @@ declare class ModelManager {
 }
 
 declare class ShapeTools {
-  static getStroke(thickness, capStyle, joinStyle, dashPattern, dashOffset);
+  static getStroke(thickness, capStyle, joinStyle, dashPattern, dashOffset) : java.awt.BasicStroke;
   static getPolylineShape(points, curved?, closedPath?);  
   static getShape(points, closedPath?, transform?);
 }
@@ -51,8 +51,12 @@ declare class ShapeTools {
 declare namespace java.awt {
   class BasicStroke {
     constructor(thickness : number, strokeCapStyle?, strokeJoinStyle?, unkown?, dashPattern?, dashPhase?);
-    
     getLineWidth() : number;
+    getDashArray() : number[];
+    getDashPhase() : number;
+    getEndCap() : number;
+    getLineJoin() : number;
+    getMiterLimit() : number; 
     static CAP_ROUND : number;
     static CAP_SQUARE : number;
     static CAP_BUTT : number;
@@ -3561,55 +3565,52 @@ class PlanComponent implements PlanView {
      * @private
      */
     paintPolylines(g2D : Graphics2D, polylines : Array<any>, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string, paintMode : PlanComponent.PaintMode) {
-        for(let index190=0; index190 < polylines.length; index190++) {
-            let polyline = polylines[index190];
-            {
-                if(this.isViewableAtSelectedLevel(polyline)) {
-                    let selected : boolean = /* contains */(selectedItems.indexOf(<any>(polyline)) >= 0);
-                    if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
-                        g2D.setPaint(<string>new String(polyline.getColor()));
-                        let thickness : number = polyline.getThickness();
-                        g2D.setStroke(ShapeTools.getStroke(thickness, polyline.getCapStyle(), polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset()));
-                        let polylineShape : java.awt.Shape = ShapeTools.getPolylineShape(polyline.getPoints(), polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath());
-                        g2D.draw(polylineShape);
-                        let firstPoint : number[] = null;
-                        let secondPoint : number[] = null;
-                        let beforeLastPoint : number[] = null;
-                        let lastPoint : number[] = null;
-                        for(let it : java.awt.geom.PathIterator = polylineShape.getPathIterator(null, 0.5); !it.isDone(); it.next()) {{
-                            let pathPoint : number[] = [0, 0];
-                            if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                                if(firstPoint == null) {
-                                    firstPoint = pathPoint;
-                                } else if(secondPoint == null) {
-                                    secondPoint = pathPoint;
-                                }
-                                beforeLastPoint = lastPoint;
-                                lastPoint = pathPoint;
+        polylines.forEach(polyline => {
+            if(this.isViewableAtSelectedLevel(polyline)) {
+                let selected : boolean = /* contains */(selectedItems.indexOf(<any>(polyline)) >= 0);
+                if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
+                    g2D.setPaint(intToColorString(polyline.getColor()));
+                    let thickness : number = polyline.getThickness();
+                    g2D.setStroke(ShapeTools.getStroke(thickness, polyline.getCapStyle(), polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset()));
+                    let polylineShape : java.awt.Shape = ShapeTools.getPolylineShape(polyline.getPoints(), polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath());
+                    g2D.draw(polylineShape);
+                    let firstPoint : number[] = null;
+                    let secondPoint : number[] = null;
+                    let beforeLastPoint : number[] = null;
+                    let lastPoint : number[] = null;
+                    for(let it : java.awt.geom.PathIterator = polylineShape.getPathIterator(null, 0.5); !it.isDone(); it.next()) {{
+                        let pathPoint : number[] = [0, 0];
+                        if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+                            if(firstPoint == null) {
+                                firstPoint = pathPoint;
+                            } else if(secondPoint == null) {
+                                secondPoint = pathPoint;
                             }
-                        };}
-                        let angleAtStart : number = <number>Math.atan2(firstPoint[1] - secondPoint[1], firstPoint[0] - secondPoint[0]);
-                        let angleAtEnd : number = <number>Math.atan2(lastPoint[1] - beforeLastPoint[1], lastPoint[0] - beforeLastPoint[0]);
-                        let arrowDelta : number = polyline.getCapStyle() !== Polyline.CapStyle.BUTT?thickness / 2:0;
-                        this.paintArrow(g2D, firstPoint, angleAtStart, polyline.getStartArrowStyle(), thickness, arrowDelta);
-                        this.paintArrow(g2D, lastPoint, angleAtEnd, polyline.getEndArrowStyle(), thickness, arrowDelta);
-                        if(selected && paintMode === PlanComponent.PaintMode.PAINT) {
-                            g2D.setPaint(selectionOutlinePaint);
-                            g2D.setStroke(SwingTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
-                            g2D.draw(polylineShape);
-                            if(/* size */(<number>selectedItems.length) === 1 && indicatorPaint != null) {
-                                let selectedPolyline : any = /* get */selectedItems[0];
-                                if(this.isViewableAtSelectedLevel(selectedPolyline)) {
-                                    g2D.setPaint(indicatorPaint);
-                                    this.paintPointsResizeIndicators(g2D, selectedPolyline, indicatorPaint, planScale, selectedPolyline.isClosedPath(), angleAtStart, angleAtEnd, false);
-                                }
+                            beforeLastPoint = lastPoint;
+                            lastPoint = pathPoint;
+                        }
+                    };}
+                    let angleAtStart : number = <number>Math.atan2(firstPoint[1] - secondPoint[1], firstPoint[0] - secondPoint[0]);
+                    let angleAtEnd : number = <number>Math.atan2(lastPoint[1] - beforeLastPoint[1], lastPoint[0] - beforeLastPoint[0]);
+                    let arrowDelta : number = polyline.getCapStyle() !== Polyline.CapStyle.BUTT?thickness / 2:0;
+                    this.paintArrow(g2D, firstPoint, angleAtStart, polyline.getStartArrowStyle(), thickness, arrowDelta);
+                    this.paintArrow(g2D, lastPoint, angleAtEnd, polyline.getEndArrowStyle(), thickness, arrowDelta);
+                    if(selected && paintMode === PlanComponent.PaintMode.PAINT) {
+                        g2D.setPaint(selectionOutlinePaint);
+                        g2D.setStroke(SwingTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
+                        g2D.draw(polylineShape);
+                        if(/* size */(<number>selectedItems.length) === 1 && indicatorPaint != null) {
+                            let selectedPolyline : any = /* get */selectedItems[0];
+                            if(this.isViewableAtSelectedLevel(selectedPolyline)) {
+                                g2D.setPaint(indicatorPaint);
+                                this.paintPointsResizeIndicators(g2D, selectedPolyline, indicatorPaint, planScale, selectedPolyline.isClosedPath(), angleAtStart, angleAtEnd, false);
                             }
                         }
                     }
                 }
             }
-        }
-    }
+        });
+     }
 
     /**
      * Paints polyline arrow at the given point and orientation.
