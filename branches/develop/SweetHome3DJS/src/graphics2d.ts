@@ -37,6 +37,7 @@ class Graphics2D {
     this._transform = new java.awt.geom.AffineTransform(1., 0., 0., 1., 0., 0.);
     this.context.setTransform(1, 0, 0, 1, 0, 0);
     var computedStyle = window.getComputedStyle(canvas);
+    this.context.font = computedStyle.font;
     this.color = computedStyle.color;
     this.background = computedStyle.background;
   }
@@ -450,6 +451,7 @@ class FontMetrics {
   height : number;
   width : number;
   font : string;
+  approximated : boolean = false;
 
   /**
    * Builds a font metrics instance for the given font.
@@ -467,6 +469,7 @@ class FontMetrics {
    */  
   getStringBounds(aString : string) : java.awt.geom.Rectangle2D {
     this.compute(aString);
+    this.cached = false;
     return new java.awt.geom.Rectangle2D.Double(0, -this.ascent, this.width, this.height);
   }
   
@@ -510,7 +513,7 @@ class FontMetrics {
    * @private
    */
   private compute(aString : string) {
-    if(!this.cached) {
+    if(!this.context) {
       this.context = document.createElement("canvas").getContext("2d");
       this.context.font = this.font;
     }
@@ -519,17 +522,18 @@ class FontMetrics {
       this.cached = true;
       this.ascent = textMetrics.fontBoundingBoxAscent;
       this.descent = textMetrics.fontBoundingBoxDescent;
-      this.height = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent;
+      this.height = this.ascent + this.descent;
       this.width = textMetrics.width;
     } else if(textMetrics.actualBoundingBoxAscent) {
       this.cached = true;
       this.ascent = textMetrics.actualBoundingBoxAscent;
       this.descent = textMetrics.actualBoundingBoxDescent;
-      this.height = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+      this.height = this.ascent + this.descent;
       this.width = textMetrics.width;
     } else {
       // height info is not available on old browsers, so we build an approx.
       // TODO: use a font utility instead
+      this.approximated = true;
       var heightArray = this.context.font.split(' ');
       heightArray.forEach(height => {
         if(height.slice(height.length - 2) == "px") {
@@ -549,10 +553,20 @@ class FontMetrics {
  * A font utility class.
  */
 class Font {
-  static element : HTMLElement;
-  size : string;
-  family : string;
-  style : string;
+  private static element : HTMLElement;
+  private computedStyle : CSSStyleDeclaration;
+  /**
+   * The browser-normalized font size of the given CSS font descriptor.
+   */
+  public size : string;
+  /**
+   * The browser-normalized font family of the given CSS font descriptor.
+   */
+  public family : string;
+  /**
+   * The browser-normalized font style of the given CSS font descriptor.
+   */
+  public style : string;
   /**
    * Creates a new font from a CSS font descriptor.
    * @param cssFontDecriptor {string|string[]} the font descriptor as a CSS string or an array [style, size, family]
@@ -567,20 +581,22 @@ class Font {
     if(typeof cssFontDecriptor == 'string') {
       Font.element.style.font = cssFontDecriptor;
     } else if(Array.isArray(cssFontDecriptor)) {
-      Font.element.style.font = cssFontDecriptor.join(' ');
+      Font.element.style.fontStyle = cssFontDecriptor[0];
+      Font.element.style.fontSize = cssFontDecriptor[1];
+      Font.element.style.fontFamily = cssFontDecriptor[2];
     }
-    let styles = window.getComputedStyle(Font.element);
-    this.size = styles.fontSize;
-    this.family = styles.fontFamily;
-    this.style = styles.fontStyle;
+    this.computedStyle = window.getComputedStyle(Font.element);
+    this.size = this.computedStyle.fontSize;
+    this.family = this.computedStyle.fontFamily;
+    this.style = this.computedStyle.fontStyle;
   }
   
   /**
-   * Returns the font as a CSS string.
+   * Returns the font as a browser-normalized CSS string.
    * @returns {string}
    */
   toString() : string {
-    return [this.style, this.size, this.family].join(' ');
+    return [this.style, this.size, this.family].join(' '); //this.family.indexOf(' ') > -1?"'" + this.family + "'" : this.family].join(' ');
   }
 }
 
@@ -591,5 +607,5 @@ class Font {
  * @returns a CSS string
  */
 function intToColorString(color : number) {
-    return "#" + (color & 0xFFFFFF).toString(16);
+    return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
 }
