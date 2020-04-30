@@ -329,12 +329,12 @@ function testHome(geomAvailable) {
           piece4.setRoll(Math.PI / 6);
           home.addPieceOfFurniture(group);
           
-          if (animate) {
-            var thicknessDelta = 0.5;
-            var lengthDelta = -5;
-            var elevationDelta = -5;
-            var dashOffsetDelta = 0.05;
-            setInterval(function() {
+          var thicknessDelta = 0.5;
+          var lengthDelta = -5;
+          var elevationDelta = -5;
+          var dashOffsetDelta = 0.05;
+          setInterval(function() {
+              if (animate) {
                 // Make piece blink
                 piece.setVisible(!piece.isVisible());
                 // Change wall and room color
@@ -342,8 +342,10 @@ function testHome(geomAvailable) {
                   room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
                   // Update label with current time
                 label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
-              }, 500);
-            setInterval(function() {
+              }
+            }, 500);
+          setInterval(function() {
+              if (animate) {
                 // Change objects location
                 wall1.setThickness(wall1.getThickness() + thicknessDelta);
                 if (wall1.getThickness() > 10 || wall1.getThickness() < 1) {
@@ -361,8 +363,8 @@ function testHome(geomAvailable) {
                 if (polyline.getDashOffset() >= 100 || polyline.getDashOffset() <= 0) {
                   dashOffsetDelta = -dashOffsetDelta;
                 }
-              }, 100);
-          }
+              }
+            }, 100);
           
           // View a clone of the home in the second canvas
           visitHome(home.clone(), preferences);
