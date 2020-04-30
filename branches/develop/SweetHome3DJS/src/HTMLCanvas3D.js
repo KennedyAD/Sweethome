@@ -320,7 +320,13 @@ HTMLCanvas3D.prototype.setViewPlatformTransform = function(viewPlatformTransform
  * @ignore
  */
 HTMLCanvas3D.prototype.updateViewportSize = function() {
-  var canvasBounds = this.canvas.getBoundingClientRect();
+  var canvasBounds;
+  try {
+    canvasBounds = this.canvas.getBoundingClientRect();
+  } catch (ex) {
+    // May happen with IE for a canvas not in DOM
+    canvasBounds = {width : this.canvas.width, height : this.canvas.height};
+  }
   var visible = canvasBounds.width !== 0
       && canvasBounds.height !== 0;
   if (!visible) {
@@ -1256,8 +1262,14 @@ HTMLCanvas3D.prototype.getImage = function() {
     this.drawScene();
     this.canvasNeededRepaint = false;
   }
+  
+  var canvas2D = document.createElement("canvas");
+  canvas2D.width = this.canvas.width;
+  canvas2D.height = this.canvas.height;
+  canvas2D.getContext("2d").drawImage(this.canvas, 0, 0);
+  
   var image = new Image();
-  image.src = this.canvas.toDataURL();
+  image.src = canvas2D.toDataURL();
   return image;
 }
 
