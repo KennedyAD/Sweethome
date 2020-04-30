@@ -4897,22 +4897,21 @@ var PlanComponent;
                 switch ((property)) {
                     case "LANGUAGE":
                     case "UNIT":
-                        {
-                            var array211 = (function (m) { if (m.entries == null)
-                                m.entries = []; return m.entries; })(planComponent.toolTipEditableTextFields);
-                            for (var index210 = 0; index210 < array211.length; index210++) {
-                                var toolTipTextFieldEntry = array211[index210];
-                                {
-                                    PlanComponent.updateToolTipTextFieldFormatterFactory(toolTipTextFieldEntry.getValue(), toolTipTextFieldEntry.getKey(), preferences);
-                                }
-                            }
-                        }
-                        if (planComponent.horizontalRuler != null) {
-                            planComponent.horizontalRuler.repaint();
-                        }
-                        if (planComponent.verticalRuler != null) {
-                            planComponent.verticalRuler.repaint();
-                        }
+                        //                    {
+                        //                        let array211 = /* entrySet */((m) => { if(m.entries==null) m.entries=[]; return m.entries; })(<any>planComponent.toolTipEditableTextFields);
+                        //                        for(let index210=0; index210 < array211.length; index210++) {
+                        //                            let toolTipTextFieldEntry = array211[index210];
+                        //                            {
+                        //                                PlanComponent.updateToolTipTextFieldFormatterFactory(toolTipTextFieldEntry.getValue(), toolTipTextFieldEntry.getKey(), preferences);
+                        //                            }
+                        //                        }
+                        //                    }
+                        //                    if(planComponent.horizontalRuler != null) {
+                        //                        planComponent.horizontalRuler.repaint();
+                        //                    }
+                        //                    if(planComponent.verticalRuler != null) {
+                        //                        planComponent.verticalRuler.repaint();
+                        //                    }
                         break;
                     case "DEFAULT_FONT_NAME":
                         planComponent.fonts = null;

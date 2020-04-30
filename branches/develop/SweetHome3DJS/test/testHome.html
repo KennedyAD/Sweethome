@@ -421,6 +421,8 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.23));
   assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.2));
   assertEquals("Wrong conversion", "1.00", LengthUnit.METER.getFormat().format(100));
+
+  assertEquals("Wrong conversion", "95 sq ft", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
   
   Locale.setDefault("fr_FR");
   // Test formats without unit
@@ -474,6 +476,8 @@ function testLengthUnit() {
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
   assertEquals("Wrong conversion", "0,05\"",
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
+  
+  assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
   
   // Test parsing
 //   assertEquals("Wrong parsing", 102, LengthUnit.CENTIMETER.getFormat().parseObject("102"));

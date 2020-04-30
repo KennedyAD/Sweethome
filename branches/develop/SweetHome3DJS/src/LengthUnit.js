@@ -626,18 +626,16 @@ InchFormat.prototype.format = function(number) {
 //        }
 //      };
 /** @private */
-function SquareFootAreaFormatWithUnit(groupingSeparator, decimalSeparator, unit) {
+function SquareFootAreaFormatWithUnit(formatLocale, unit) {
   Format.call(this);
-  this.groupingSeparator = groupingSeparator;
-  this.decimalSeparator = decimalSeparator;
+  this.formatLocale = formatLocale;
   this.unit = unit;
 }
 SquareFootAreaFormatWithUnit.prototype = Object.create(Format.prototype);
 SquareFootAreaFormatWithUnit.prototype.constructor = SquareFootAreaFormatWithUnit;
 
 SquareFootAreaFormatWithUnit.prototype.format = function(number) {
-  var formattedNumber = (number / 929.0304).toLocaleString("en", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
-  formattedNumber = formattedNumber.replace(".", "#").replace(",", this.groupingSeparator).replace("#", this.decimalSeparator).replace(' ', '\u00a0');
+  var formattedNumber = (number / 929.0304).toLocaleString(this.formatLocale.replace("_", "-"), { maximumFractionDigits: 0, minimumFractionDigits: 0 });
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
 
