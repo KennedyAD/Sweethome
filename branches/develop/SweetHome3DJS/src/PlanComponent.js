@@ -1402,7 +1402,7 @@ var PlanComponent = (function () {
             var backgroundImageScale = backgroundImage.getScale();
             g2D.scale(backgroundImageScale, backgroundImageScale);
             var oldAlpha = this.setTransparency(g2D, 0.7);
-            g2D.drawImage(this.backgroundImageCache != null ? this.backgroundImageCache : this.readBackgroundImage(backgroundImage.getImage(), true), 0, 0);
+            g2D.drawImage(this.backgroundImageCache != null ? this.backgroundImageCache : this.readBackgroundImage(backgroundImage.getImage()), 0, 0);
             g2D.setAlpha(oldAlpha);
             g2D.setTransform(previousTransform);
             return true;
@@ -1438,39 +1438,21 @@ var PlanComponent = (function () {
     /**
      * Returns the image contained in <code>imageContent</code> or an empty image if reading failed.
      * @param {Content} imageContent
-     * @param {boolean} prepareBackgroundImageWithAlpha
      * @return {HTMLImageElement}
      * @private
      */
-    PlanComponent.prototype.readBackgroundImage = function (imageContent, prepareBackgroundImageWithAlpha) {
+    PlanComponent.prototype.readBackgroundImage = function (imageContent) {
         var _this = this;
         if (this.backgroundImageCache != PlanComponent.WAIT_TEXTURE_IMAGE && this.backgroundImageCache != PlanComponent.ERROR_TEXTURE_IMAGE) {
             this.backgroundImageCache = PlanComponent.WAIT_TEXTURE_IMAGE;
             TextureManager.getInstance().loadTexture(imageContent, {
                 textureUpdated: function (texture) {
-                    if (prepareBackgroundImageWithAlpha) {
-                        // modify the image to add a transparent color
-                        var canvas = document.createElement("canvas");
-                        canvas.width = texture.width;
-                        canvas.height = texture.height;
-                        var ctx = canvas.getContext("2d");
-                        ctx.drawImage(texture, 0, 0);
-                        var imageData = ctx.getImageData(0, 0, texture.width, texture.height).data;
-                        for (var i = 0; i < imageData.length; i += 4) {
-                            // change alpha color is close enough to bg color
-                            // TODO: use bg color instead of white??
-                            if (Math.abs(imageData[i] - 0xFF) + Math.abs(imageData[i + 1] - 0xFF) + Math.abs(imageData[i + 2] - 0xFF) < 30) {
-                                imageData[i + 3] = 0;
-                            }
-                        }
-                        ctx.putImageData(new ImageData(imageData, texture.width, texture.height), 0, 0);
-                        texture.src = canvas.toDataURL("image/png");
-                    }
                     _this.backgroundImageCache = texture;
                     _this.repaint();
                 },
                 textureError: function () {
                     _this.backgroundImageCache = PlanComponent.ERROR_TEXTURE_IMAGE;
+                    _this.repaint();
                 }
             });
         }
