@@ -1380,7 +1380,6 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintBackgroundImage = function (g2D, paintMode) {
-        var _this = this;
         var selectedLevel = this.home.getSelectedLevel();
         var backgroundImageLevel = null;
         if (selectedLevel != null) {
@@ -1398,33 +1397,14 @@ var PlanComponent = (function () {
         }
         var backgroundImage = backgroundImageLevel == null ? this.home.getBackgroundImage() : backgroundImageLevel.getBackgroundImage();
         if (backgroundImage != null && backgroundImage.isVisible()) {
-            var prepareBackgroundImageWithAlphaInMemory_1 = com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX();
-            if (this.backgroundImageCache == null && paintMode === PlanComponent.PaintMode.PAINT) {
-                if (PlanComponent.backgroundImageLoader == null) {
-                    PlanComponent.backgroundImageLoader = java.util.concurrent.Executors.newSingleThreadExecutor();
-                }
-                PlanComponent.backgroundImageLoader.execute(function () {
-                    if (_this.backgroundImageCache == null) {
-                        _this.backgroundImageCache = _this.readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory_1);
-                        _this.revalidate();
-                    }
-                });
-            }
-            else {
-                var previousTransform = g2D.getTransform();
-                g2D.translate(-backgroundImage.getXOrigin(), -backgroundImage.getYOrigin());
-                var backgroundImageScale = backgroundImage.getScale();
-                g2D.scale(backgroundImageScale, backgroundImageScale);
-                var oldComposite = null;
-                if (!prepareBackgroundImageWithAlphaInMemory_1) {
-                    oldComposite = this.setTransparency(g2D, 0.7);
-                }
-                g2D.drawImage(this.backgroundImageCache != null ? this.backgroundImageCache : this.readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory_1), 0, 0, this);
-                if (!prepareBackgroundImageWithAlphaInMemory_1) {
-                    g2D.setAlpha(oldComposite);
-                }
-                g2D.setTransform(previousTransform);
-            }
+            var previousTransform = g2D.getTransform();
+            g2D.translate(-backgroundImage.getXOrigin(), -backgroundImage.getYOrigin());
+            var backgroundImageScale = backgroundImage.getScale();
+            g2D.scale(backgroundImageScale, backgroundImageScale);
+            var oldAlpha = this.setTransparency(g2D, 0.7);
+            g2D.drawImage(this.backgroundImageCache != null ? this.backgroundImageCache : this.readBackgroundImage(backgroundImage.getImage(), true), 0, 0);
+            g2D.setAlpha(oldAlpha);
+            g2D.setTransform(previousTransform);
             return true;
         }
         return false;
@@ -1457,41 +1437,44 @@ var PlanComponent = (function () {
     };
     /**
      * Returns the image contained in <code>imageContent</code> or an empty image if reading failed.
-     * @param {Object} imageContent
+     * @param {Content} imageContent
      * @param {boolean} prepareBackgroundImageWithAlpha
      * @return {HTMLImageElement}
      * @private
      */
     PlanComponent.prototype.readBackgroundImage = function (imageContent, prepareBackgroundImageWithAlpha) {
-        var contentStream = null;
-        try {
-            try {
-                contentStream = null /*erased method imageContent.openStream*/;
-                var image = javax.imageio.ImageIO.read(contentStream);
-                if (prepareBackgroundImageWithAlpha) {
-                    var backgroundImage = new java.awt.image.BufferedImage(image.getWidth(), image.getHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                    var g2D = backgroundImage.getGraphics();
-                    g2D.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.7));
-                    g2D.drawRenderedImage(image, null);
-                    g2D.dispose();
-                    return backgroundImage;
+        var _this = this;
+        if (this.backgroundImageCache != PlanComponent.WAIT_TEXTURE_IMAGE && this.backgroundImageCache != PlanComponent.ERROR_TEXTURE_IMAGE) {
+            this.backgroundImageCache = PlanComponent.WAIT_TEXTURE_IMAGE;
+            TextureManager.getInstance().loadTexture(imageContent, {
+                textureUpdated: function (texture) {
+                    if (prepareBackgroundImageWithAlpha) {
+                        // modify the image to add a transparent color
+                        var canvas = document.createElement("canvas");
+                        canvas.width = texture.width;
+                        canvas.height = texture.height;
+                        var ctx = canvas.getContext("2d");
+                        ctx.drawImage(texture, 0, 0);
+                        var imageData = ctx.getImageData(0, 0, texture.width, texture.height).data;
+                        for (var i = 0; i < imageData.length; i += 4) {
+                            // change alpha color is close enough to bg color
+                            // TODO: use bg color instead of white??
+                            if (Math.abs(imageData[i] - 0xFF) + Math.abs(imageData[i + 1] - 0xFF) + Math.abs(imageData[i + 2] - 0xFF) < 30) {
+                                imageData[i + 3] = 0;
+                            }
+                        }
+                        ctx.putImageData(new ImageData(imageData, texture.width, texture.height), 0, 0);
+                        texture.src = canvas.toDataURL("image/png");
+                    }
+                    _this.backgroundImageCache = texture;
+                    _this.repaint();
+                },
+                textureError: function () {
+                    _this.backgroundImageCache = PlanComponent.ERROR_TEXTURE_IMAGE;
                 }
-                else {
-                    return image;
-                }
-            }
-            finally {
-                if (contentStream != null) {
-                    /* close */ ;
-                }
-                ;
-            }
-            ;
+            });
         }
-        catch (ex) {
-            return new java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-        }
-        ;
+        return this.backgroundImageCache;
     };
     /**
      * Paints walls and rooms of lower levels or upper levels to help the user draw in the selected level.

@@ -1618,46 +1618,28 @@ class PlanComponent implements PlanView {
      * @private
      */
     paintBackgroundImage(g2D : Graphics2D, paintMode : PlanComponent.PaintMode) : boolean {
-        let selectedLevel : any = this.home.getSelectedLevel();
-        let backgroundImageLevel : any = null;
+        let selectedLevel = this.home.getSelectedLevel();
+        let backgroundImageLevel : Level = null;
         if(selectedLevel != null) {
-            let levels : Array<any> = this.home.getLevels();
-            for(let i : number = /* size */(<number>levels.length) - 1; i >= 0; i--) {{
-                let level : any = /* get */levels[i];
+            let levels = this.home.getLevels();
+            for(let i : number = levels.length - 1; i >= 0; i--) {{
+                let level = levels[i];
                 if(level.getElevation() === selectedLevel.getElevation() && level.getElevationIndex() <= selectedLevel.getElevationIndex() && level.isViewable() && level.getBackgroundImage() != null && level.getBackgroundImage().isVisible()) {
                     backgroundImageLevel = level;
                     break;
                 }
             };}
         }
-        let backgroundImage : any = backgroundImageLevel == null?this.home.getBackgroundImage():backgroundImageLevel.getBackgroundImage();
+        let backgroundImage = backgroundImageLevel == null?this.home.getBackgroundImage():backgroundImageLevel.getBackgroundImage();
         if(backgroundImage != null && backgroundImage.isVisible()) {
-            let prepareBackgroundImageWithAlphaInMemory : boolean = com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX();
-            if(this.backgroundImageCache == null && paintMode === PlanComponent.PaintMode.PAINT) {
-                if(PlanComponent.backgroundImageLoader == null) {
-                    PlanComponent.backgroundImageLoader = java.util.concurrent.Executors.newSingleThreadExecutor();
-                }
-                PlanComponent.backgroundImageLoader.execute(() => {
-                    if(this.backgroundImageCache == null) {
-                        this.backgroundImageCache = this.readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory);
-                        this.revalidate();
-                    }
-                });
-            } else {
-                let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
-                g2D.translate(-backgroundImage.getXOrigin(), -backgroundImage.getYOrigin());
-                let backgroundImageScale : number = backgroundImage.getScale();
-                g2D.scale(backgroundImageScale, backgroundImageScale);
-                let oldComposite : number = null;
-                if(!prepareBackgroundImageWithAlphaInMemory) {
-                    oldComposite = this.setTransparency(g2D, 0.7);
-                }
-                g2D.drawImage(this.backgroundImageCache != null?this.backgroundImageCache:this.readBackgroundImage(backgroundImage.getImage(), prepareBackgroundImageWithAlphaInMemory), 0, 0, this);
-                if(!prepareBackgroundImageWithAlphaInMemory) {
-                    g2D.setAlpha(oldComposite);
-                }
-                g2D.setTransform(previousTransform);
-            }
+            let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
+            g2D.translate(-backgroundImage.getXOrigin(), -backgroundImage.getYOrigin());
+            let backgroundImageScale = backgroundImage.getScale();
+            g2D.scale(backgroundImageScale, backgroundImageScale);
+            let oldAlpha = this.setTransparency(g2D, 0.7);
+            g2D.drawImage(this.backgroundImageCache != null?this.backgroundImageCache:this.readBackgroundImage(backgroundImage.getImage(), true), 0, 0);
+            g2D.setAlpha(oldAlpha);
+            g2D.setTransform(previousTransform);
             return true;
         }
         return false;
@@ -1691,35 +1673,43 @@ class PlanComponent implements PlanView {
 
     /**
      * Returns the image contained in <code>imageContent</code> or an empty image if reading failed.
-     * @param {Object} imageContent
+     * @param {Content} imageContent
      * @param {boolean} prepareBackgroundImageWithAlpha
      * @return {HTMLImageElement}
      * @private
      */
-    readBackgroundImage(imageContent : any, prepareBackgroundImageWithAlpha : boolean) : HTMLImageElement {
-        let contentStream : { str: string, cursor: number } = null;
-        try {
-            try {
-                contentStream = null/*erased method imageContent.openStream*/;
-                let image : HTMLImageElement = javax.imageio.ImageIO.read(contentStream);
-                if(prepareBackgroundImageWithAlpha) {
-                    let backgroundImage : HTMLImageElement = new java.awt.image.BufferedImage(image.getWidth(), image.getHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                    let g2D : Graphics2D = <Graphics2D>backgroundImage.getGraphics();
-                    g2D.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.7));
-                    g2D.drawRenderedImage(image, null);
-                    g2D.dispose();
-                    return backgroundImage;
-                } else {
-                    return image;
-                }
-            } finally {
-                if(contentStream != null) {
-                    /* close */;
-                };
-            };
-        } catch(ex) {
-            return new java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-        };
+    readBackgroundImage(imageContent : Content, prepareBackgroundImageWithAlpha? : boolean) : HTMLImageElement {
+      if(this.backgroundImageCache != PlanComponent.WAIT_TEXTURE_IMAGE && this.backgroundImageCache != PlanComponent.ERROR_TEXTURE_IMAGE) {
+        this.backgroundImageCache = PlanComponent.WAIT_TEXTURE_IMAGE;
+        TextureManager.getInstance().loadTexture(imageContent, {
+          textureUpdated : (texture : HTMLImageElement) => {
+            if(prepareBackgroundImageWithAlpha) {
+              // modify the image to add a transparent color
+              var canvas = document.createElement("canvas");
+              canvas.width = texture.width;
+              canvas.height = texture.height;
+              var ctx = canvas.getContext("2d");
+              ctx.drawImage(texture, 0, 0);
+              var imageData = ctx.getImageData(0, 0, texture.width, texture.height).data;
+              for(var i=0; i < imageData.length; i+=4) {
+                  // change alpha color is close enough to bg color
+                  // TODO: use bg color instead of white??
+                  if(Math.abs(imageData[i] - 0xFF) + Math.abs(imageData[i + 1] - 0xFF) + Math.abs(imageData[i + 2] - 0xFF) < 30) {
+                    imageData[i + 3] = 0;
+                  }
+              }
+              ctx.putImageData(new ImageData(imageData, texture.width, texture.height), 0, 0);
+              texture.src = canvas.toDataURL("image/png");
+            }
+            this.backgroundImageCache = texture;
+            this.repaint();
+          },
+          textureError : () => {
+            this.backgroundImageCache = PlanComponent.ERROR_TEXTURE_IMAGE;
+          }
+        });
+      }
+      return this.backgroundImageCache;
     }
 
     /**
