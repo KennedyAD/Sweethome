@@ -42,6 +42,10 @@ var PlanComponent = (function () {
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
+        this.canvas.width = this.canvas.width * 2;
+        this.canvas.height = this.canvas.height * 2;
+        this.canvas.style.width = "" + (this.canvas.width / 2) + "px";
+        this.canvas.style.height = "" + (this.canvas.height / 2) + "px";
         this.resolutionScale = 1.0;
         this.scale = 0.5 * this.resolutionScale;
         this.selectedItemsOutlinePainted = true;
@@ -1260,7 +1264,7 @@ var PlanComponent = (function () {
         var insets = this.getInsets();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
-        var paintScale = this.getScale();
+        var paintScale = this.getScale() * 2;
         g2D.translate(insets.left + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, insets.top + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
