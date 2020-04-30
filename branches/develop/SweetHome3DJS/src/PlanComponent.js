@@ -319,10 +319,10 @@ var PlanComponent = (function () {
         // TODO
     };
     PlanComponent.prototype.getBackground = function () {
-        return "#FFFFFF";
+        return styleToColorString(window.getComputedStyle(this.canvas).background);
     };
     PlanComponent.prototype.getForeground = function () {
-        return "#000000";
+        return styleToColorString(window.getComputedStyle(this.canvas).color);
     };
     PlanComponent.prototype.setFont = function (font) {
         this.font = font;

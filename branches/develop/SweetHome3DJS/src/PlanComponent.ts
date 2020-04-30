@@ -566,11 +566,11 @@ class PlanComponent implements PlanView {
     }
     
     private getBackground() : string {
-      return "#FFFFFF";
+      return styleToColorString(window.getComputedStyle(this.canvas).background);
     }
 
     private getForeground() : string {
-      return "#000000";
+      return styleToColorString(window.getComputedStyle(this.canvas).color);
     }
 
     private setFont(font : string) {

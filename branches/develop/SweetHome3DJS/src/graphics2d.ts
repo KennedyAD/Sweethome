@@ -628,3 +628,20 @@ class Font {
 function intToColorString(color : number) {
     return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
 }
+
+/**
+ * Returns an hexadecimal color string from a computed style.
+ */
+function styleToColorString(style : string) {
+  let prefix = "rgb(";
+  let index = style.indexOf(prefix);
+  if (index < 0) {
+    prefix = "rgba(";
+    index = style.indexOf(prefix);    
+  }
+  if(index >= 0) {
+    let array = style.slice(prefix.length, style.indexOf(")")).split(",");
+    return intToColorString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2])); 
+  }
+  return "";
+}

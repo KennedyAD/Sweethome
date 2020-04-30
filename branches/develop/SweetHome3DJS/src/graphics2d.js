@@ -553,3 +553,19 @@ var Font = (function () {
 function intToColorString(color) {
     return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
 }
+/**
+ * Returns an hexadecimal color string from a computed style.
+ */
+function styleToColorString(style) {
+    var prefix = "rgb(";
+    var index = style.indexOf(prefix);
+    if (index < 0) {
+        prefix = "rgba(";
+        index = style.indexOf(prefix);
+    }
+    if (index >= 0) {
+        var array = style.slice(prefix.length, style.indexOf(")")).split(",");
+        return intToColorString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
+    }
+    return "";
+}
