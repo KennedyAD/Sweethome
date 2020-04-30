@@ -60,11 +60,13 @@
 </head>
 <body>
 <script type="text/javascript">
+var animate = true;
+
 function assertEquals(message, expected, actual) {
   if (typeof expected === "number"
-    	  && Math.abs(actual - expected) > 1E-5
+          && Math.abs(actual - expected) > 1E-5
       || typeof expected !== "number"
-	       && expected != actual) {
+           && expected != actual) {
     var report = message + ": " + actual + " not equal to " + expected;
     console.log(report);
     console.trace();
@@ -230,7 +232,7 @@ function testGeom() {
   points = getAreaPoints(area2);
   assertTrue("Wrong distance between points", Math.abs(points[2][0] - points[0][0]) < 100);
   
-  console.log("End of testGeom");	      
+  console.log("End of testGeom");          
 }
 
 /**
@@ -260,7 +262,7 @@ function testHome(geomAvailable) {
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   assertEquals("Wrong number of pieces in group", 2, group.getFurniture().length);
   if (geomAvailable) {
-  	assertEquals("Wrong width", 150 + 50 * Math.sqrt(2), group.getWidth());
+      assertEquals("Wrong width", 150 + 50 * Math.sqrt(2), group.getWidth());
   }
   home.deletePieceOfFurniture(piece);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
@@ -290,89 +292,91 @@ function testHome(geomAvailable) {
   
   new HomeRecorder().readHome("test/resources/HomeTest.sh3d", 
       {
-	    homeLoaded: function(home) {
- 	      assertTrue("No furniture", home.getFurniture().length > 0);
+        homeLoaded: function(home) {
+           assertTrue("No furniture", home.getFurniture().length > 0);
           var preferences = new DefaultUserPreferences();
-	      displayHome(home, preferences);
-		  // Add objects to home and make them blink	  
-		  home.addPieceOfFurniture(piece);
-		  piece.setX(-150);
-		  piece.setY(250);
-	      home.addWall(wall1);
-	      home.addWall(wall2);
-	      home.addRoom(room);
-	      home.addLabel(label);
-	      home.addPolyline(polyline);
-		  var movedObjects = [wall1, wall2, room, label, polyline];
-		  for (var i = 0; i < movedObjects.length; i++) {
-		    movedObjects [i].move(-250, -550);
-		  }
-	      
-	      // Create a group with smaller objects placed on top of piece
-	      var piece3 = piece.clone();
-	      piece3.setColor(0xFFFF0000);
-	      var piece4 = piece.clone();
-	      piece4.setColor(0xFF0000FF);
-	      piece4.setElevation(piece3.getHeight());
-	      piece4.setWidth(piece3.getWidth() / 2);
-	      piece4.setDepth(piece3.getDepth() / 2);
-	      piece4.setHeight(piece3.getHeight() / 2);
-	      var group = new HomeFurnitureGroup([piece3, piece4], 0, false, "Group");
-	      group.setElevation(piece.getHeight());
-	      group.setWidth(group.getWidth() / 2);
-	      group.setDepth(group.getDepth() / 2);
-	      group.setHeight(group.getHeight() / 2);
-	      group.setAngle(Math.PI / 4);
-	      piece4.setPitch(Math.PI / 6);
-	      piece4.setRoll(Math.PI / 6);
-	      home.addPieceOfFurniture(group);
-	      
-	      var thicknessDelta = 0.5;
-	      var lengthDelta = -5;
-	      var elevationDelta = -5;
-	      var dashOffsetDelta = 0.05;
-	      setInterval(function() {
-	          // Make piece blink
-	          piece.setVisible(!piece.isVisible());
-	          // Change wall and room color
-	  	      wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
-	  	      room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
-	  	      // Update label with current time
-	  	      label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
-	        }, 500);
-	      setInterval(function() {
-	          // Change objects location
-	  	      wall1.setThickness(wall1.getThickness() + thicknessDelta);
-	  	      if (wall1.getThickness() > 10 || wall1.getThickness() < 1) {
-	  	        thicknessDelta = -thicknessDelta;
-	  	      }
-	  	      wall2.setXEnd(wall2.getXEnd() + lengthDelta);
-	  	      if (wall2.getLength() >= 140 || wall2.getLength() < 20) {
-	  	        lengthDelta = -lengthDelta;
-	  	      }
-	  	      label.setElevation(label.getElevation() + elevationDelta);
-	  	      if (label.getElevation() >= 100 || label.getElevation() < 10) {
-	  	        elevationDelta = -elevationDelta;
-	  	      }
-	  	      polyline.setDashOffset(polyline.getDashOffset() + dashOffsetDelta);
-	  	      if (polyline.getDashOffset() >= 100 || polyline.getDashOffset() <= 0) {
-	  	        dashOffsetDelta = -dashOffsetDelta;
-	  	      }
-	        }, 100);
-	      
-	      // View a clone of the home in the second canvas
-	      visitHome(home.clone(), preferences);
-	      displayPlan(home, preferences);
-	      
-	      console.log("End of testHome");	      
-	    },
-	    homeError: function(err) {
-	      console.error(err);
-	      //alert(err);
-	    },
-	    progression: function(part, info, percentage) {
-	    }
-	  });
+          displayHome(home, preferences);
+          // Add objects to home and make them blink      
+          home.addPieceOfFurniture(piece);
+          piece.setX(-150);
+          piece.setY(250);
+          home.addWall(wall1);
+          home.addWall(wall2);
+          home.addRoom(room);
+          home.addLabel(label);
+          home.addPolyline(polyline);
+          var movedObjects = [wall1, wall2, room, label, polyline];
+          for (var i = 0; i < movedObjects.length; i++) {
+            movedObjects [i].move(-250, -550);
+          }
+          
+          // Create a group with smaller objects placed on top of piece
+          var piece3 = piece.clone();
+          piece3.setColor(0xFFFF0000);
+          var piece4 = piece.clone();
+          piece4.setColor(0xFF0000FF);
+          piece4.setElevation(piece3.getHeight());
+          piece4.setWidth(piece3.getWidth() / 2);
+          piece4.setDepth(piece3.getDepth() / 2);
+          piece4.setHeight(piece3.getHeight() / 2);
+          var group = new HomeFurnitureGroup([piece3, piece4], 0, false, "Group");
+          group.setElevation(piece.getHeight());
+          group.setWidth(group.getWidth() / 2);
+          group.setDepth(group.getDepth() / 2);
+          group.setHeight(group.getHeight() / 2);
+          group.setAngle(Math.PI / 4);
+          piece4.setPitch(Math.PI / 6);
+          piece4.setRoll(Math.PI / 6);
+          home.addPieceOfFurniture(group);
+          
+          if (animate) {
+            var thicknessDelta = 0.5;
+            var lengthDelta = -5;
+            var elevationDelta = -5;
+            var dashOffsetDelta = 0.05;
+            setInterval(function() {
+                // Make piece blink
+                piece.setVisible(!piece.isVisible());
+                // Change wall and room color
+                  wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
+                  room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
+                  // Update label with current time
+                label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
+              }, 500);
+            setInterval(function() {
+                // Change objects location
+                wall1.setThickness(wall1.getThickness() + thicknessDelta);
+                if (wall1.getThickness() > 10 || wall1.getThickness() < 1) {
+                  thicknessDelta = -thicknessDelta;
+                }
+                wall2.setXEnd(wall2.getXEnd() + lengthDelta);
+                if (wall2.getLength() >= 140 || wall2.getLength() < 20) {
+                  lengthDelta = -lengthDelta;
+                }
+                label.setElevation(label.getElevation() + elevationDelta);
+                if (label.getElevation() >= 100 || label.getElevation() < 10) {
+                  elevationDelta = -elevationDelta;
+                }
+                polyline.setDashOffset(Math.max(polyline.getDashOffset() + dashOffsetDelta, 0));
+                if (polyline.getDashOffset() >= 100 || polyline.getDashOffset() <= 0) {
+                  dashOffsetDelta = -dashOffsetDelta;
+                }
+              }, 100);
+          }
+          
+          // View a clone of the home in the second canvas
+          visitHome(home.clone(), preferences);
+          displayPlan(home, preferences);
+          
+          console.log("End of testHome");          
+        },
+        homeError: function(err) {
+          console.error(err);
+          //alert(err);
+        },
+        progression: function(part, info, percentage) {
+        }
+      });
 }
 
 function displayHome(home, preferences) {
@@ -562,11 +566,11 @@ function testLengthUnit() {
 </script>
 
 <canvas id="canvas3D" style="background-color: #CCCCCC; border: 1px solid gray;" 
-		width="600" height="400" tabIndex="1"></canvas>
+        width="600" height="400" tabIndex="1"></canvas>
 <canvas id="canvas2D" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif"         
-		width="600" height="400" tabIndex="2"></canvas>
+        width="600" height="400" tabIndex="2"></canvas>
 <canvas id="canvas3D_2" style="background-color: #CCCCCC; border: 1px solid gray;" 
-		width="600" height="300" tabIndex="3"></canvas>
+        width="600" height="300" tabIndex="3"></canvas>
 
 <script type="text/javascript">
 testLocalization();
