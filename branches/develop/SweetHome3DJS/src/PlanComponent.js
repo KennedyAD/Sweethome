@@ -5516,7 +5516,7 @@ var PlanComponent;
             return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
         };
         /**
-         * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready 
+         * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready
          * or returns the icon itself if <code>iconObserver</code> is not given.
          * @param {Object3DBranch} pieceNode
          * @param {number} pieceWidth
@@ -5536,22 +5536,22 @@ var PlanComponent;
             var model = new BranchGroup3D();
             model.addChild(modelTransformGroup);
             var sceneRoot = this.getSceneRoot(iconSize);
-  
             if (iconObserver) {
-               var iconGeneration = function() {
-                   sceneRoot.addChild(model);
-                   var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
-                   if (loadingCompleted) {
-                     iconObserver(PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage());
-                   }
-                   sceneRoot.removeChild(model);
-                   if (!loadingCompleted) {
-                     setTimeout(iconGeneration, 0);
-                   }
-                 };
-               iconGeneration();
-               return undefined;
-             } else {
+                var iconGeneration = function () {
+                    sceneRoot.addChild(model);
+                    var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
+                    if (loadingCompleted) {
+                        iconObserver(PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage());
+                    }
+                    sceneRoot.removeChild(model);
+                    if (!loadingCompleted) {
+                        setTimeout(iconGeneration, 0);
+                    }
+                };
+                iconGeneration();
+                return undefined;
+            }
+            else {
                 sceneRoot.addChild(model);
                 var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
                 sceneRoot.removeChild(model);

@@ -5603,17 +5603,19 @@ namespace PlanComponent {
         return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
       }
   
-      /**
-       * Returns an icon created and scaled from piece model content.
-       * @param {Object3DBranch} pieceNode
-       * @param {number} pieceWidth
-       * @param {number} pieceDepth
-       * @param {number} pieceHeight
-       * @param {number} iconSize
-       * @return {Object}
-       * @private
-       */
-      createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver?) {
+        /**
+         * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready 
+         * or returns the icon itself if <code>iconObserver</code> is not given.
+         * @param {Object3DBranch} pieceNode
+         * @param {number} pieceWidth
+         * @param {number} pieceDepth
+         * @param {number} pieceHeight
+         * @param {number} iconSize
+         * @param {Object} [iconObserver] a function that will receive the icon as parameter
+         * @return {Image} the icon or <code>undefined</code> if <code>iconObserver</code> exists
+         * @private
+         */
+        createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver?) {
         var scaleTransform = mat4.create();
         mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
         var modelTransformGroup = new TransformGroup3D();
@@ -5622,15 +5624,23 @@ namespace PlanComponent {
         var model = new BranchGroup3D();
         model.addChild(modelTransformGroup);
         var sceneRoot = this.getSceneRoot(iconSize);
-        sceneRoot.addChild(model);
+        
         if (iconObserver) {
-          PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage(
-              function(icon) {
-                iconObserver(icon);
-                sceneRoot.removeChild(model);
-              });
-          return undefined;
-        } else {
+         var iconGeneration = function() {
+             sceneRoot.addChild(model);
+             var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
+             if (loadingCompleted) {
+               iconObserver(PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage());
+             }
+             sceneRoot.removeChild(model);
+             if (!loadingCompleted) {
+               setTimeout(iconGeneration, 0);
+             }
+           };
+         iconGeneration();
+         return undefined;
+       } else {
+          sceneRoot.addChild(model);
           var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
           sceneRoot.removeChild(model);
           return icon;
