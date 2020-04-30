@@ -1485,12 +1485,12 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g
      */
     paintComponent(g2D : Graphics2D) {
+        g2D.setTransform(new java.awt.geom.AffineTransform());
+        g2D.clear();
         if(this.backgroundPainted) {
             this.paintBackground(g2D, this.getBackgroundColor(PlanComponent.PaintMode.PAINT));
         }
         let insets = this.getInsets();
-        g2D.setTransform(new java.awt.geom.AffineTransform());
-        g2D.clear();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
         let paintScale : number = this.getScale();

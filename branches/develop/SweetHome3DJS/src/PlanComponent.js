@@ -1252,12 +1252,12 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g
      */
     PlanComponent.prototype.paintComponent = function (g2D) {
+        g2D.setTransform(new java.awt.geom.AffineTransform());
+        g2D.clear();
         if (this.backgroundPainted) {
             this.paintBackground(g2D, this.getBackgroundColor(PlanComponent.PaintMode.PAINT));
         }
         var insets = this.getInsets();
-        g2D.setTransform(new java.awt.geom.AffineTransform());
-        g2D.clear();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
         var paintScale = this.getScale();
