@@ -1263,13 +1263,8 @@ HTMLCanvas3D.prototype.getImage = function() {
     this.canvasNeededRepaint = false;
   }
   
-  var canvas2D = document.createElement("canvas");
-  canvas2D.width = this.canvas.width;
-  canvas2D.height = this.canvas.height;
-  canvas2D.getContext("2d").drawImage(this.canvas, 0, 0);
-  
   var image = new Image();
-  image.src = canvas2D.toDataURL();
+  image.src = this.canvas.toDataURL();
   return image;
 }
 
