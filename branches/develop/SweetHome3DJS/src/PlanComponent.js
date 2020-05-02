@@ -42,10 +42,10 @@ var PlanComponent = (function () {
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
-        this.canvas.width = this.canvas.width * 2;
-        this.canvas.height = this.canvas.height * 2;
-        this.canvas.style.width = "" + (this.canvas.width / 2) + "px";
-        this.canvas.style.height = "" + (this.canvas.height / 2) + "px";
+        this.canvas.width = this.canvas.width * PlanComponent.RETINA_SCALE_FACTOR;
+        this.canvas.height = this.canvas.height * PlanComponent.RETINA_SCALE_FACTOR;
+        this.canvas.style.width = "" + (this.canvas.width / PlanComponent.RETINA_SCALE_FACTOR) + "px";
+        this.canvas.style.height = "" + (this.canvas.height / PlanComponent.RETINA_SCALE_FACTOR) + "px";
         this.resolutionScale = 1.0;
         this.scale = 0.5 * this.resolutionScale;
         this.selectedItemsOutlinePainted = true;
@@ -284,7 +284,10 @@ var PlanComponent = (function () {
         }
     };
     PlanComponent.prototype.getGraphics = function () {
-        return new Graphics2D(this.canvas);
+        if (!this.graphics) {
+            this.graphics = new Graphics2D(this.canvas);
+        }
+        return this.graphics;
     };
     PlanComponent.prototype.repaint = function () {
         var _this = this;
@@ -1106,6 +1109,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.getTextBounds = function (text, style, x, y, angle) {
         var fontMetrics = this.getFontMetrics(this.getFont(), style);
+        //let fontMetrics : FontMetrics = this.getFontMetrics(this.getFont(), style);
         var textBounds = null;
         var lines = text.split("\n");
         var g = this.getGraphics();
@@ -1264,7 +1268,7 @@ var PlanComponent = (function () {
         var insets = this.getInsets();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
-        var paintScale = this.getScale() * 2;
+        var paintScale = this.getScale() * PlanComponent.RETINA_SCALE_FACTOR;
         g2D.translate(insets.left + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, insets.top + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
@@ -3717,56 +3721,54 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintLabels = function (g2D, labels, selectedItems, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor, paintMode) {
         var previousFont = g2D.getFont();
-        for (var index192 = 0; index192 < labels.length; index192++) {
-            var label = labels[index192];
-            {
-                if (this.isViewableAtSelectedLevel(label)) {
-                    var selectedLabel = (selectedItems.indexOf((label)) >= 0);
-                    if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedLabel) {
-                        var labelText = label.getText();
-                        var xLabel = label.getX();
-                        var yLabel = label.getY();
-                        var labelAngle = label.getAngle();
-                        var labelStyle = label.getStyle();
-                        if (labelStyle == null) {
-                            labelStyle = this.preferences.getDefaultTextStyle(label.constructor);
-                        }
-                        if (labelStyle.getFontName() == null && this.getFont() != null) {
-                            labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
-                        }
-                        var color = label.getColor();
-                        g2D.setPaint(color != null ? intToColorString(color) : foregroundColor);
-                        this.paintText(g2D, label.constructor, labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
-                        if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
-                            g2D.setPaint(selectionOutlinePaint);
-                            g2D.setStroke(selectionOutlineStroke);
-                            var textBounds = this.getTextBounds(labelText, labelStyle, xLabel, yLabel, labelAngle);
-                            g2D.draw(ShapeTools.getShape(textBounds, true, null));
-                            g2D.setPaint(foregroundColor);
-                            if (indicatorPaint != null && selectedItems.length === 1 && selectedItems[0] === label) {
-                                this.paintTextIndicators(g2D, label.constructor, this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
-                                if (this.resizeIndicatorVisible && label.getPitch() != null) {
-                                    var elevationIndicator = this.getIndicator(label, PlanComponent.IndicatorType.ELEVATE);
-                                    if (elevationIndicator != null) {
-                                        var previousTransform = g2D.getTransform();
-                                        if (labelStyle.getAlignment() === TextStyle.Alignment.LEFT) {
-                                            g2D.translate(textBounds[3][0], textBounds[3][1]);
-                                        }
-                                        else if (labelStyle.getAlignment() === TextStyle.Alignment.RIGHT) {
-                                            g2D.translate(textBounds[2][0], textBounds[2][1]);
-                                        }
-                                        else {
-                                            g2D.translate((textBounds[2][0] + textBounds[3][0]) / 2, (textBounds[2][1] + textBounds[3][1]) / 2);
-                                        }
-                                        var scaleInverse = 1 / planScale * this.resolutionScale;
-                                        g2D.scale(scaleInverse, scaleInverse);
-                                        g2D.rotate(label.getAngle());
-                                        g2D.draw(PlanComponent.ELEVATION_POINT_INDICATOR);
-                                        g2D.translate(0, 10.0);
-                                        g2D.rotate(-label.getAngle());
-                                        g2D.draw(elevationIndicator);
-                                        g2D.setTransform(previousTransform);
+        for (var i = 0; i < labels.length; i++) {
+            var label = labels[i];
+            if (this.isViewableAtSelectedLevel(label)) {
+                var selectedLabel = (selectedItems.indexOf((label)) >= 0);
+                if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedLabel) {
+                    var labelText = label.getText();
+                    var xLabel = label.getX();
+                    var yLabel = label.getY();
+                    var labelAngle = label.getAngle();
+                    var labelStyle = label.getStyle();
+                    if (labelStyle == null) {
+                        labelStyle = this.preferences.getDefaultTextStyle(label.constructor);
+                    }
+                    if (labelStyle.getFontName() == null && this.getFont() != null) {
+                        labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
+                    }
+                    var color = label.getColor();
+                    g2D.setPaint(color != null ? intToColorString(color) : foregroundColor);
+                    this.paintText(g2D, label.constructor, labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
+                    if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
+                        g2D.setPaint(selectionOutlinePaint);
+                        g2D.setStroke(selectionOutlineStroke);
+                        var textBounds = this.getTextBounds(labelText, labelStyle, xLabel, yLabel, labelAngle);
+                        g2D.draw(ShapeTools.getShape(textBounds, true, null));
+                        g2D.setPaint(foregroundColor);
+                        if (indicatorPaint != null && selectedItems.length === 1 && selectedItems[0] === label) {
+                            this.paintTextIndicators(g2D, label.constructor, this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
+                            if (this.resizeIndicatorVisible && label.getPitch() != null) {
+                                var elevationIndicator = this.getIndicator(label, PlanComponent.IndicatorType.ELEVATE);
+                                if (elevationIndicator != null) {
+                                    var previousTransform = g2D.getTransform();
+                                    if (labelStyle.getAlignment() === TextStyle.Alignment.LEFT) {
+                                        g2D.translate(textBounds[3][0], textBounds[3][1]);
                                     }
+                                    else if (labelStyle.getAlignment() === TextStyle.Alignment.RIGHT) {
+                                        g2D.translate(textBounds[2][0], textBounds[2][1]);
+                                    }
+                                    else {
+                                        g2D.translate((textBounds[2][0] + textBounds[3][0]) / 2, (textBounds[2][1] + textBounds[3][1]) / 2);
+                                    }
+                                    var scaleInverse = 1 / planScale * this.resolutionScale;
+                                    g2D.scale(scaleInverse, scaleInverse);
+                                    g2D.rotate(label.getAngle());
+                                    g2D.draw(PlanComponent.ELEVATION_POINT_INDICATOR);
+                                    g2D.translate(0, 10.0);
+                                    g2D.rotate(-label.getAngle());
+                                    g2D.draw(elevationIndicator);
+                                    g2D.setTransform(previousTransform);
                                 }
                             }
                         }
@@ -4801,6 +4803,7 @@ var PlanComponent = (function () {
     PlanComponent.ERROR_TEXTURE_IMAGE = null;
     PlanComponent.WAIT_TEXTURE_IMAGE = null;
     PlanComponent.WEBGL_AVAILABLE = true;
+    PlanComponent.RETINA_SCALE_FACTOR = 2;
     return PlanComponent;
 }());
 PlanComponent["__class"] = "com.eteks.sweethome3d.swing.PlanComponent";

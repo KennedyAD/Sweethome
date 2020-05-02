@@ -97,6 +97,8 @@ class PlanComponent implements PlanView {
     canvas : HTMLCanvasElement;
     //context : CanvasRenderingContext2D;
 
+    graphics : Graphics2D;
+
     font : string;
     
     mouseListener : any;
@@ -274,6 +276,8 @@ class PlanComponent implements PlanView {
     static WAIT_TEXTURE_IMAGE : HTMLImageElement = null;
     
     static WEBGL_AVAILABLE = true;
+    
+    static RETINA_SCALE_FACTOR : number = 2;
 
     static  __static_initializer_0() {
         PlanComponent.POINT_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
@@ -479,10 +483,10 @@ class PlanComponent implements PlanView {
         this.canvas = <HTMLCanvasElement>document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
-        this.canvas.width = this.canvas.width * 2;
-        this.canvas.height = this.canvas.height * 2;
-        this.canvas.style.width = "" + (this.canvas.width/2) +"px";
-        this.canvas.style.height = "" + (this.canvas.height/2) +"px";
+        this.canvas.width = this.canvas.width * PlanComponent.RETINA_SCALE_FACTOR;
+        this.canvas.height = this.canvas.height * PlanComponent.RETINA_SCALE_FACTOR;
+        this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+        this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
         this.resolutionScale = 1.0;
         this.scale = 0.5 * this.resolutionScale;
         this.selectedItemsOutlinePainted = true;
@@ -519,7 +523,10 @@ class PlanComponent implements PlanView {
     }
 
     getGraphics() : Graphics2D {
-      return new Graphics2D(this.canvas);
+      if(!this.graphics) {
+        this.graphics = new Graphics2D(this.canvas);
+      }
+      return this.graphics;
     }
 
     //painting : boolean = false;
@@ -1339,11 +1346,12 @@ class PlanComponent implements PlanView {
      * @param {number} angle
      * @return {Array}
      */
-    public getTextBounds(text : string, style : any, x : number, y : number, angle : number) : number[][] {
+    public getTextBounds(text : string, style : TextStyle, x : number, y : number, angle : number) : number[][] {
         let fontMetrics : FontMetrics = this.getFontMetrics(this.getFont(), style);
+        //let fontMetrics : FontMetrics = this.getFontMetrics(this.getFont(), style);
         let textBounds : java.awt.geom.Rectangle2D = null;
         let lines : string[] = text.split("\n");
-        let g : Graphics2D = <Graphics2D>this.getGraphics();
+        let g = this.getGraphics();
         if(g != null) {
             this.setRenderingHints(g);
         }
@@ -1497,7 +1505,7 @@ class PlanComponent implements PlanView {
         let insets = this.getInsets();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        let paintScale : number = this.getScale() * 2;
+        let paintScale : number = this.getScale() * PlanComponent.RETINA_SCALE_FACTOR;
         g2D.translate(insets.left + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, insets.top + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
@@ -3768,54 +3776,52 @@ class PlanComponent implements PlanView {
      */
     paintLabels(g2D : Graphics2D, labels : Array<any>, selectedItems : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string, paintMode : PlanComponent.PaintMode) {
         let previousFont : string = g2D.getFont();
-        for(let index192=0; index192 < labels.length; index192++) {
-            let label = labels[index192];
-            {
-                if(this.isViewableAtSelectedLevel(label)) {
-                    let selectedLabel : boolean = /* contains */(selectedItems.indexOf(<any>(label)) >= 0);
-                    if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedLabel) {
-                        let labelText : string = label.getText();
-                        let xLabel : number = label.getX();
-                        let yLabel : number = label.getY();
-                        let labelAngle : number = label.getAngle();
-                        let labelStyle : any = label.getStyle();
-                        if(labelStyle == null) {
-                            labelStyle = this.preferences.getDefaultTextStyle((<any>label.constructor));
-                        }
-                        if(labelStyle.getFontName() == null && this.getFont() != null) {
-                            labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
-                        }
-                        let color : number = label.getColor();
-                        g2D.setPaint(color != null?intToColorString(color):foregroundColor);
-                        this.paintText(g2D, (<any>label.constructor), labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
-                        if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
-                            g2D.setPaint(selectionOutlinePaint);
-                            g2D.setStroke(selectionOutlineStroke);
-                            let textBounds : number[][] = this.getTextBounds(labelText, labelStyle, xLabel, yLabel, labelAngle);
-                            g2D.draw(ShapeTools.getShape(textBounds, true, null));
-                            g2D.setPaint(foregroundColor);
-                            if(indicatorPaint != null && /* size */(<number>selectedItems.length) === 1 && /* get */selectedItems[0] === label) {
-                                this.paintTextIndicators(g2D, (<any>label.constructor), this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
-                                if(this.resizeIndicatorVisible && label.getPitch() != null) {
-                                    let elevationIndicator : java.awt.Shape = this.getIndicator(label, PlanComponent.IndicatorType.ELEVATE);
-                                    if(elevationIndicator != null) {
-                                        let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
-                                        if(labelStyle.getAlignment() === TextStyle.Alignment.LEFT) {
-                                            g2D.translate(textBounds[3][0], textBounds[3][1]);
-                                        } else if(labelStyle.getAlignment() === TextStyle.Alignment.RIGHT) {
-                                            g2D.translate(textBounds[2][0], textBounds[2][1]);
-                                        } else {
-                                            g2D.translate((textBounds[2][0] + textBounds[3][0]) / 2, (textBounds[2][1] + textBounds[3][1]) / 2);
-                                        }
-                                        let scaleInverse : number = 1 / planScale * this.resolutionScale;
-                                        g2D.scale(scaleInverse, scaleInverse);
-                                        g2D.rotate(label.getAngle());
-                                        g2D.draw(PlanComponent.ELEVATION_POINT_INDICATOR);
-                                        g2D.translate(0, 10.0);
-                                        g2D.rotate(-label.getAngle());
-                                        g2D.draw(elevationIndicator);
-                                        g2D.setTransform(previousTransform);
+        for(let i=0; i < labels.length; i++) {
+            let label = labels[i];
+            if(this.isViewableAtSelectedLevel(label)) {
+                let selectedLabel : boolean = /* contains */(selectedItems.indexOf(<any>(label)) >= 0);
+                if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedLabel) {
+                    let labelText : string = label.getText();
+                    let xLabel : number = label.getX();
+                    let yLabel : number = label.getY();
+                    let labelAngle : number = label.getAngle();
+                    let labelStyle : any = label.getStyle();
+                    if(labelStyle == null) {
+                        labelStyle = this.preferences.getDefaultTextStyle((<any>label.constructor));
+                    }
+                    if(labelStyle.getFontName() == null && this.getFont() != null) {
+                        labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
+                    }
+                    let color : number = label.getColor();
+                    g2D.setPaint(color != null?intToColorString(color):foregroundColor);
+                    this.paintText(g2D, (<any>label.constructor), labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
+                    if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
+                        g2D.setPaint(selectionOutlinePaint);
+                        g2D.setStroke(selectionOutlineStroke);
+                        let textBounds : number[][] = this.getTextBounds(labelText, labelStyle, xLabel, yLabel, labelAngle);
+                        g2D.draw(ShapeTools.getShape(textBounds, true, null));
+                        g2D.setPaint(foregroundColor);
+                        if(indicatorPaint != null && /* size */(<number>selectedItems.length) === 1 && /* get */selectedItems[0] === label) {
+                            this.paintTextIndicators(g2D, (<any>label.constructor), this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
+                            if(this.resizeIndicatorVisible && label.getPitch() != null) {
+                                let elevationIndicator : java.awt.Shape = this.getIndicator(label, PlanComponent.IndicatorType.ELEVATE);
+                                if(elevationIndicator != null) {
+                                    let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
+                                    if(labelStyle.getAlignment() === TextStyle.Alignment.LEFT) {
+                                        g2D.translate(textBounds[3][0], textBounds[3][1]);
+                                    } else if(labelStyle.getAlignment() === TextStyle.Alignment.RIGHT) {
+                                        g2D.translate(textBounds[2][0], textBounds[2][1]);
+                                    } else {
+                                        g2D.translate((textBounds[2][0] + textBounds[3][0]) / 2, (textBounds[2][1] + textBounds[3][1]) / 2);
                                     }
+                                    let scaleInverse : number = 1 / planScale * this.resolutionScale;
+                                    g2D.scale(scaleInverse, scaleInverse);
+                                    g2D.rotate(label.getAngle());
+                                    g2D.draw(PlanComponent.ELEVATION_POINT_INDICATOR);
+                                    g2D.translate(0, 10.0);
+                                    g2D.rotate(-label.getAngle());
+                                    g2D.draw(elevationIndicator);
+                                    g2D.setTransform(previousTransform);
                                 }
                             }
                         }
