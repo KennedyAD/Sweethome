@@ -1961,7 +1961,7 @@ class PlanComponent implements PlanView {
             if(paintMode === PlanComponent.PaintMode.PAINT) {
                 this.paintOtherLevels(g2D, planScale, backgroundColor, foregroundColor);
                 if(this.preferences.isGridVisible()) {
-                    this.paintGrid(g2D, planScale);
+                    this.paintGrid(g2D, planScale / PlanComponent.RETINA_SCALE_FACTOR);
                 }
             }
         }
