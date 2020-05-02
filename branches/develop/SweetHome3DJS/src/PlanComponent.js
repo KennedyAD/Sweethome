@@ -3531,7 +3531,7 @@ var PlanComponent = (function () {
                     this.paintArrow(g2D, lastPoint, angleAtEnd, polyline.getEndArrowStyle(), thickness, arrowDelta);
                     if (selected && paintMode === PlanComponent.PaintMode.PAINT) {
                         g2D.setPaint(selectionOutlinePaint);
-                        g2D.setStroke(SwingTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
+                        g2D.setStroke(ShapeTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
                         g2D.draw(polylineShape);
                         if (selectedItems.length === 1 && indicatorPaint != null) {
                             var selectedPolyline = selectedItems[0];

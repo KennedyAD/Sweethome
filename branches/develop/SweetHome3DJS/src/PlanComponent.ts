@@ -3583,7 +3583,7 @@ class PlanComponent implements PlanView {
                   this.paintArrow(g2D, lastPoint, angleAtEnd, polyline.getEndArrowStyle(), thickness, arrowDelta);
                   if(selected && paintMode === PlanComponent.PaintMode.PAINT) {
                       g2D.setPaint(selectionOutlinePaint);
-                      g2D.setStroke(SwingTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
+                      g2D.setStroke(ShapeTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
                       g2D.draw(polylineShape);
                       if(/* size */(<number>selectedItems.length) === 1 && indicatorPaint != null) {
                           let selectedPolyline : any = /* get */selectedItems[0];
