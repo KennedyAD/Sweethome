@@ -97,6 +97,8 @@ class PlanComponent implements PlanView {
     canvas : HTMLCanvasElement;
     //context : CanvasRenderingContext2D;
 
+    viewPort : HTMLDivElement;
+    
     graphics : Graphics2D;
 
     font : string;
@@ -483,12 +485,19 @@ class PlanComponent implements PlanView {
         this.canvas = <HTMLCanvasElement>document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
-        this.canvas.width = this.canvas.width * PlanComponent.RETINA_SCALE_FACTOR;
-        this.canvas.height = this.canvas.height * PlanComponent.RETINA_SCALE_FACTOR;
-        this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
-        this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+        
+        this.viewPort = document.createElement("div");
+        this.viewPort.style.width = ""+this.canvas.width+"px";
+        this.viewPort.style.height = ""+this.canvas.height+"px";
+        this.viewPort.style.overflow = "scroll";
+        
+        this.canvas.parentElement.replaceChild(this.viewPort, this.canvas);
+        this.viewPort.appendChild(this.canvas);
+        this.viewPort.onscroll = () => {
+          this.repaint();
+        };
+        
         this.resolutionScale = 1.0;
-        this.scale = 0.5 * this.resolutionScale;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
         this.planBoundsCacheValid = false;
@@ -519,7 +528,7 @@ class PlanComponent implements PlanView {
         this.patternImagesCache = <any>({});
         //setForeground(Color.BLACK);
         //setBackground(Color.WHITE);
-        this.repaint();
+        this.setScale(1 * this.resolutionScale);
     }
 
     getGraphics() : Graphics2D {
@@ -1134,15 +1143,12 @@ class PlanComponent implements PlanView {
      * Returns the preferred size of this component.
      * @return {java.awt.Dimension}
      */
-    /*public getPreferredSize() : java.awt.Dimension {
-        if(this.isPreferredSizeSet()) {
-            return super.getPreferredSize();
-        } else {
-            let insets = this.getInsets();
-            let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-            return new java.awt.Dimension(Math.round((<number>planBounds.getWidth() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.left + insets.right, Math.round((<number>planBounds.getHeight() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.top + insets.bottom);
-        }
-    }*/
+    public getPreferredSize() : { width : number, height : number } {
+        let insets = this.getInsets();
+        let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
+        return { width : Math.round((planBounds.getWidth() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.left + insets.right, 
+                 height : Math.round((planBounds.getHeight() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.top + insets.bottom };
+    }
 
     /**
      * Returns the bounds of the plan displayed by this component.
@@ -1202,10 +1208,11 @@ class PlanComponent implements PlanView {
         let itemsBounds : java.awt.geom.Rectangle2D = null;
         for(let i=0; i < items.length; i++) {
             let item = items[i];
+            let itemBounds = this.getItemBounds(g, item);
             if(itemsBounds == null) {
-                itemsBounds = this.getItemBounds(g, item);
+                itemsBounds = itemBounds;
             } else {
-                itemsBounds.add(this.getItemBounds(g, item));
+                itemsBounds.add(itemBounds);
             }
         }
         return itemsBounds;
@@ -1497,6 +1504,12 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g
      */
     paintComponent(g2D : Graphics2D) {
+		        g2D.getContext().save();
+        //console.info("CLIPING"+[this.viewPort.scrollLeft, this.viewPort.scrollTop, this.viewPort.clientWidth, this.viewPort.clientHeight]);
+        g2D.clipRect(this.viewPort.scrollLeft * PlanComponent.RETINA_SCALE_FACTOR, 
+          this.viewPort.scrollTop * PlanComponent.RETINA_SCALE_FACTOR, 
+          this.viewPort.clientWidth * PlanComponent.RETINA_SCALE_FACTOR, 
+          this.viewPort.clientHeight * PlanComponent.RETINA_SCALE_FACTOR);
         g2D.setTransform(new java.awt.geom.AffineTransform());
         g2D.clear();
         if(this.backgroundPainted) {
@@ -1510,10 +1523,13 @@ class PlanComponent implements PlanView {
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         try {
+            g2D.setColor("#FF0000");
+            g2D.draw(planBounds);
             this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
         } catch(ex) {
           console.error(ex);
         };
+        g2D.getContext().restore();
         g2D.dispose();
     }
 
@@ -4490,26 +4506,51 @@ class PlanComponent implements PlanView {
      */
     public setScale(scale : number) {
         if(this.scale !== scale) {
-            let parent : javax.swing.JViewport = null;
-            let viewRectangle : java.awt.Rectangle = null;
-            let xViewCenterPosition : number = 0;
-            let yViewCenterPosition : number = 0;
-            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
-                parent = <javax.swing.JViewport>this.getParent();
-                viewRectangle = parent.getViewRect();
-                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
-                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
-            }
+//            let parent : javax.swing.JViewport = null;
+//            let viewRectangle : java.awt.Rectangle = null;
+//            let xViewCenterPosition : number = 0;
+//            let yViewCenterPosition : number = 0;
+//            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
+//                parent = <javax.swing.JViewport>this.getParent();
+//                viewRectangle = this.viewPort.parent.getViewRect();
+//                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
+//                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
+//            }
+            
+//            this.canvas.width = this.viewPort.clientWidth * PlanComponent.RETINA_SCALE_FACTOR * scale;
+//            this.canvas.height = this.viewPort.clientHeight * PlanComponent.RETINA_SCALE_FACTOR * scale;
+//            this.canvas.style.width = "" + (this.canvas.width/(PlanComponent.RETINA_SCALE_FACTOR*scale)) +"px";
+//            this.canvas.style.height = "" + (this.canvas.height/(PlanComponent.RETINA_SCALE_FACTOR*scale)) +"px";
+//              
+//            this.canvas.width *= (scale/this.scale);
+//            this.canvas.height *= (scale/this.scale);
+//            this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+//            this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+
+//        this.canvas.width = this.canvas.width * PlanComponent.RETINA_SCALE_FACTOR;
+//        this.canvas.height = this.canvas.height * PlanComponent.RETINA_SCALE_FACTOR;
+//        this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+//        this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+        
+
             this.scale = scale;
+            
+            let size = this.getPreferredSize();
+            this.canvas.width = size.width * PlanComponent.RETINA_SCALE_FACTOR;
+            this.canvas.height = size.height * PlanComponent.RETINA_SCALE_FACTOR;
+            this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
+            this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
             this.revalidate();
-            if(parent != null && parent instanceof <any>javax.swing.JViewport) {
-                let viewSize : java.awt.Dimension = parent.getViewSize();
-                let viewWidth : number = this.convertXPixelToModel(viewRectangle.x + viewRectangle.width) - this.convertXPixelToModel(viewRectangle.x);
-                let xViewLocation : number = Math.max(0, Math.min(this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2), viewSize.width - viewRectangle.x));
-                let viewHeight : number = this.convertYPixelToModel(viewRectangle.y + viewRectangle.height) - this.convertYPixelToModel(viewRectangle.y);
-                let yViewLocation : number = Math.max(0, Math.min(this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2), viewSize.height - viewRectangle.y));
-                parent.setViewPosition(new java.awt.Point(xViewLocation, yViewLocation));
-            }
+            
+            
+//            if(parent != null && parent instanceof <any>javax.swing.JViewport) {
+//                let viewSize : java.awt.Dimension = parent.getViewSize();
+//                let viewWidth : number = this.convertXPixelToModel(viewRectangle.x + viewRectangle.width) - this.convertXPixelToModel(viewRectangle.x);
+//                let xViewLocation : number = Math.max(0, Math.min(this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2), viewSize.width - viewRectangle.x));
+//                let viewHeight : number = this.convertYPixelToModel(viewRectangle.y + viewRectangle.height) - this.convertYPixelToModel(viewRectangle.y);
+//                let yViewLocation : number = Math.max(0, Math.min(this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2), viewSize.height - viewRectangle.y));
+//                parent.setViewPosition(new java.awt.Point(xViewLocation, yViewLocation));
+//            }
         }
     }
 

@@ -205,11 +205,12 @@ class Graphics2D {
    * @param height {number}
    */
   public clipRect(x: number, y: number, width: number, height: number) {
-    if (this.clip == null) {
       this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
-    } else {
-      this.setClip(this.clip.getBounds2D().createIntersection(new java.awt.geom.Rectangle2D.Double(x, y, width, height)));
-    }
+//    if (this._clip == null) {
+//      this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
+//    } else {
+//      this.setClip(this.clip.getBounds2D().createIntersection(new java.awt.geom.Rectangle2D.Double(x, y, width, height)));
+//    }
   }
 
   /**

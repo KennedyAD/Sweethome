@@ -185,12 +185,12 @@ var Graphics2D = (function () {
      * @param height {number}
      */
     Graphics2D.prototype.clipRect = function (x, y, width, height) {
-        if (this.clip == null) {
-            this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
-        }
-        else {
-            this.setClip(this.clip.getBounds2D().createIntersection(new java.awt.geom.Rectangle2D.Double(x, y, width, height)));
-        }
+        this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
+        //    if (this._clip == null) {
+        //      this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
+        //    } else {
+        //      this.setClip(this.clip.getBounds2D().createIntersection(new java.awt.geom.Rectangle2D.Double(x, y, width, height)));
+        //    }
     };
     /**
      * Translates the canvas transform matrix.
