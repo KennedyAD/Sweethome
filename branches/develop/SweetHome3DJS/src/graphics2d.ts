@@ -586,7 +586,7 @@ class Font {
     if(!Font.element) {
       Font.element = document.createElement('span');
       Font.element.style.display = 'none';
-      document.body.append(Font.element);
+      document.body.appendChild(Font.element);
     }
     if(typeof cssFontDecriptor == 'string') {
       Font.element.style.font = cssFontDecriptor;
