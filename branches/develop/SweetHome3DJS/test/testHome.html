@@ -335,8 +335,12 @@ function testHome(geomAvailable) {
           var dashOffsetDelta = 0.05;
           setInterval(function() {
               if (animate) {
-                // Make piece blink
-                piece.setVisible(!piece.isVisible());
+                // Remove / add piece to make it blink and test GC for objects handling
+                if (home.getFurniture().indexOf(piece) >= 0) {
+                  home.deletePieceOfFurniture(piece);
+                } else {
+                  home.addPieceOfFurniture(piece);
+                }
                 // Change wall and room color
                 wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
                 room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);

@@ -468,7 +468,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
             },
             childRemoved : function(ev) {
               canvas3D.removeDisplayedItems(ev.child, background ? backgroundGeometries : sceneGeometries, lights);
-              // TODO Should remove listeners on deleted item
+              // TODO Should remove listeners on the children of deleted item ?
               canvas3D.repaint();
             }
           });
