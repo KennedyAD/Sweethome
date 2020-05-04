@@ -43,16 +43,28 @@ var PlanComponent = (function () {
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
-        this.viewPort = document.createElement("div");
-        this.viewPort.style.width = "" + this.canvas.width + "px";
-        this.viewPort.style.height = "" + this.canvas.height + "px";
-        this.viewPort.style.overflow = "scroll";
-        this.canvas.parentElement.replaceChild(this.viewPort, this.canvas);
-        this.viewPort.appendChild(this.canvas);
-        this.viewPort.onscroll = function () {
+        this.scrollPane = document.createElement("div");
+        this.scrollPane.style.width = "" + this.canvas.width + "px";
+        this.scrollPane.style.height = "" + this.canvas.height + "px";
+        this.scrollPane.style.overflow = "scroll";
+        this.view = document.createElement("div");
+        this.view.style.width = "" + this.canvas.width + "px";
+        this.view.style.height = "" + this.canvas.height + "px";
+        this.canvas.parentElement.replaceChild(this.scrollPane, this.canvas);
+        this.scrollPane.appendChild(this.canvas);
+        this.scrollPane.appendChild(this.view);
+        this.canvas.style.position = "fixed";
+        this.canvas.style.left = "0px";
+        this.canvas.style.top = "0px";
+        this.scrollPane.onscroll = function () {
             _this.repaint();
         };
-        this.resolutionScale = 1.0;
+        var forceCanvasPosition = function () {
+            _this.canvas.style.transform = "translate(" + _this.scrollPane.getBoundingClientRect().left + "px, " + _this.scrollPane.getBoundingClientRect().top + "px)";
+        };
+        window.addEventListener("scroll", forceCanvasPosition);
+        forceCanvasPosition();
+        this.resolutionScale = PlanComponent.RETINA_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
         this.planBoundsCacheValid = false;
@@ -83,7 +95,7 @@ var PlanComponent = (function () {
         this.patternImagesCache = ({});
         //setForeground(Color.BLACK);
         //setBackground(Color.WHITE);
-        this.setScale(1 * this.resolutionScale);
+        this.setScale(1);
     }
     PlanComponent.__static_initialize = function () { if (!PlanComponent.__static_initialized) {
         PlanComponent.__static_initialized = true;
@@ -315,10 +327,10 @@ var PlanComponent = (function () {
         return true;
     };
     PlanComponent.prototype.getWidth = function () {
-        return this.canvas.width;
+        return this.view.clientWidth;
     };
     PlanComponent.prototype.getHeight = function () {
-        return this.canvas.height;
+        return this.view.clientHeight;
     };
     PlanComponent.prototype.setToolTipFeedback = function (s, x, y) {
         // TODO
@@ -882,7 +894,7 @@ var PlanComponent = (function () {
         actionMap.put(PlanComponent.ActionType.DEACTIVATE_EDITIION, new PlanComponent.SetEditionActivatedAction(this, false));*/
     };
     /**
-     * Returns the preferred size of this component.
+     * Returns the preferred size of this component in actual screen pixels size.
      * @return {java.awt.Dimension}
      */
     PlanComponent.prototype.getPreferredSize = function () {
@@ -1263,9 +1275,12 @@ var PlanComponent = (function () {
      * @param {Graphics2D} g
      */
     PlanComponent.prototype.paintComponent = function (g2D) {
-        g2D.getContext().save();
-        //console.info("CLIPING"+[this.viewPort.scrollLeft, this.viewPort.scrollTop, this.viewPort.clientWidth, this.viewPort.clientHeight]);
-        g2D.clipRect(this.viewPort.scrollLeft * PlanComponent.RETINA_SCALE_FACTOR, this.viewPort.scrollTop * PlanComponent.RETINA_SCALE_FACTOR, this.viewPort.clientWidth * PlanComponent.RETINA_SCALE_FACTOR, this.viewPort.clientHeight * PlanComponent.RETINA_SCALE_FACTOR);
+        //		    g2D.getContext().save();
+        //        //console.info("CLIPING"+[this.scrollPane.scrollLeft, this.scrollPane.scrollTop, this.scrollPane.clientWidth, this.scrollPane.clientHeight]);
+        //        g2D.clipRect(this.scrollPane.scrollLeft * PlanComponent.RETINA_SCALE_FACTOR, 
+        //          this.scrollPane.scrollTop * PlanComponent.RETINA_SCALE_FACTOR, 
+        //          this.scrollPane.clientWidth * PlanComponent.RETINA_SCALE_FACTOR, 
+        //          this.scrollPane.clientHeight * PlanComponent.RETINA_SCALE_FACTOR);
         g2D.setTransform(new java.awt.geom.AffineTransform());
         g2D.clear();
         if (this.backgroundPainted) {
@@ -1274,8 +1289,8 @@ var PlanComponent = (function () {
         var insets = this.getInsets();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
-        var paintScale = this.getScale() * PlanComponent.RETINA_SCALE_FACTOR;
-        g2D.translate(insets.left + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, insets.top + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
+        var paintScale = this.getPaintScale();
+        g2D.translate(-(this.scrollPane.scrollLeft + insets.left) * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, -(this.scrollPane.scrollTop + insets.top) * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         try {
@@ -1287,7 +1302,7 @@ var PlanComponent = (function () {
             console.error(ex);
         }
         ;
-        g2D.getContext().restore();
+        //        g2D.getContext().restore();
         g2D.dispose();
     };
     /**
@@ -1386,7 +1401,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.paintBackground = function (g2D, backgroundColor) {
         if (this.isOpaque()) {
             g2D.setColor(backgroundColor);
-            g2D.fillRect(0, 0, this.getWidth(), this.getHeight());
+            g2D.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
     };
     /**
@@ -1615,8 +1630,8 @@ var PlanComponent = (function () {
         //        } else {
         xMin = planBounds.getMinX() - PlanComponent.MARGIN;
         yMin = planBounds.getMinY() - PlanComponent.MARGIN;
-        xMax = this.convertXPixelToModel(this.getWidth());
-        yMax = this.convertYPixelToModel(this.getHeight());
+        xMax = this.convertXPixelToModel(Math.max(this.getWidth(), this.scrollPane.clientWidth));
+        yMax = this.convertYPixelToModel(Math.max(this.getHeight(), this.scrollPane.clientHeight));
         //        }
         //        let useGridImage : boolean = false;
         //        try {
@@ -1748,7 +1763,7 @@ var PlanComponent = (function () {
             if (paintMode === PlanComponent.PaintMode.PAINT) {
                 this.paintOtherLevels(g2D, planScale, backgroundColor, foregroundColor);
                 if (this.preferences.isGridVisible()) {
-                    this.paintGrid(g2D, planScale / PlanComponent.RETINA_SCALE_FACTOR);
+                    this.paintGrid(g2D, planScale / this.resolutionScale);
                 }
             }
         }
@@ -3650,7 +3665,7 @@ var PlanComponent = (function () {
                     lengthStyle = _this.preferences.getDefaultTextStyle(dimensionLine.constructor);
                 }
                 if (feedback && _this.getFont() != null) {
-                    lengthStyle = lengthStyle.deriveStyle(_this.getFont().getSize() / _this.getScale());
+                    lengthStyle = lengthStyle.deriveStyle(_this.getFont().getSize() / _this.getPaintScale());
                 }
                 var font = _this.getFont(previousFont, lengthStyle);
                 var lengthFontMetrics = _this.getFontMetrics(font, lengthStyle);
@@ -4425,7 +4440,7 @@ var PlanComponent = (function () {
      * @param {number} y
      */
     PlanComponent.prototype.makePointVisible = function (x, y) {
-        this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, 1 / this.getScale(), 1 / this.getScale())));
+        this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, 1 / this.getPaintScale(), 1 / this.getPaintScale())));
     };
     /**
      * Moves the view from (dx, dy) unit in the scrolling zone it belongs to.
@@ -4436,11 +4451,18 @@ var PlanComponent = (function () {
         if (this.getParent() != null && this.getParent() instanceof javax.swing.JViewport) {
             var viewport = this.getParent();
             var viewRectangle = viewport.getViewRect();
-            viewRectangle.translate(Math.round(dx * this.getScale()), Math.round(dy * this.getScale()));
+            viewRectangle.translate(Math.round(dx * this.getPaintScale()), Math.round(dy * this.getPaintScale()));
             viewRectangle.x = Math.min(Math.max(0, viewRectangle.x), this.getWidth() - viewRectangle.width);
             viewRectangle.y = Math.min(Math.max(0, viewRectangle.y), this.getHeight() - viewRectangle.height);
             viewport.setViewPosition(viewRectangle.getLocation());
         }
+    };
+    /**
+     * Returns the actual paint scale (including potential resolution scale) used to display the plan.
+     * @return {number}
+     */
+    PlanComponent.prototype.getPaintScale = function () {
+        return this.scale * this.resolutionScale;
     };
     /**
      * Returns the scale used to display the plan.
@@ -4463,29 +4485,18 @@ var PlanComponent = (function () {
             //            let yViewCenterPosition : number = 0;
             //            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
             //                parent = <javax.swing.JViewport>this.getParent();
-            //                viewRectangle = this.viewPort.parent.getViewRect();
+            //                viewRectangle = this.scrollPane.parent.getViewRect();
             //                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
             //                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
             //            }
-            //            this.canvas.width = this.viewPort.clientWidth * PlanComponent.RETINA_SCALE_FACTOR * scale;
-            //            this.canvas.height = this.viewPort.clientHeight * PlanComponent.RETINA_SCALE_FACTOR * scale;
-            //            this.canvas.style.width = "" + (this.canvas.width/(PlanComponent.RETINA_SCALE_FACTOR*scale)) +"px";
-            //            this.canvas.style.height = "" + (this.canvas.height/(PlanComponent.RETINA_SCALE_FACTOR*scale)) +"px";
-            //              
-            //            this.canvas.width *= (scale/this.scale);
-            //            this.canvas.height *= (scale/this.scale);
-            //            this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
-            //            this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
-            //        this.canvas.width = this.canvas.width * PlanComponent.RETINA_SCALE_FACTOR;
-            //        this.canvas.height = this.canvas.height * PlanComponent.RETINA_SCALE_FACTOR;
-            //        this.canvas.style.width = "" + (this.canvas.width/PlanComponent.RETINA_SCALE_FACTOR) +"px";
-            //        this.canvas.style.height = "" + (this.canvas.height/PlanComponent.RETINA_SCALE_FACTOR) +"px";
             this.scale = scale;
             var size = this.getPreferredSize();
-            this.canvas.width = size.width * PlanComponent.RETINA_SCALE_FACTOR;
-            this.canvas.height = size.height * PlanComponent.RETINA_SCALE_FACTOR;
-            this.canvas.style.width = "" + (this.canvas.width / PlanComponent.RETINA_SCALE_FACTOR) + "px";
-            this.canvas.style.height = "" + (this.canvas.height / PlanComponent.RETINA_SCALE_FACTOR) + "px";
+            this.view.style.width = "" + (size.width) + "px";
+            this.view.style.height = "" + (size.height) + "px";
+            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+            this.canvas.style.width = "" + (this.scrollPane.clientWidth) + "px";
+            this.canvas.style.height = "" + (this.scrollPane.clientHeight) + "px";
             this.revalidate();
         }
     };
@@ -4497,7 +4508,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXPixelToModel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (x - insets.left) / this.getScale() - PlanComponent.MARGIN + planBounds.getMinX();
+        return (x - insets.left + this.view.scrollLeft) / this.getScale() - PlanComponent.MARGIN + planBounds.getMinX();
     };
     /**
      * Returns <code>y</code> converted in model coordinates space.
@@ -4507,7 +4518,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYPixelToModel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (y - insets.top) / this.getScale() - PlanComponent.MARGIN + planBounds.getMinY();
+        return (y - insets.top + this.view.scrollTop) / this.getScale() - PlanComponent.MARGIN + planBounds.getMinY();
     };
     /**
      * Returns <code>x</code> converted in view coordinates space.
@@ -4518,7 +4529,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXModelToPixel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (Math.round((x - planBounds.getMinX() + PlanComponent.MARGIN) * this.getScale()) | 0) + insets.left;
+        return (Math.round((x - planBounds.getMinX() + PlanComponent.MARGIN) * this.getScale()) | 0) + insets.left - this.view.scrollLeft;
     };
     /**
      * Returns <code>y</code> converted in view coordinates space.
@@ -4529,7 +4540,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYModelToPixel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (Math.round((y - planBounds.getMinY() + PlanComponent.MARGIN) * this.getScale()) | 0) + insets.top;
+        return (Math.round((y - planBounds.getMinY() + PlanComponent.MARGIN) * this.getPaintScale()) | 0) + insets.top - this.view.scrollTop;
     };
     /**
      * Returns <code>x</code> converted in screen coordinates space.
@@ -4556,7 +4567,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.getPixelLength = function () {
-        return 1 / this.getScale();
+        return 1 / this.getPaintScale();
     };
     /**
      * Returns the bounds of <code>shape</code> in pixels coordinates space.
@@ -4566,7 +4577,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.getShapePixelBounds = function (shape) {
         var shapeBounds = shape.getBounds2D();
-        return new java.awt.Rectangle(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), (Math.round(shapeBounds.getWidth() * this.getScale()) | 0), (Math.round(shapeBounds.getHeight() * this.getScale()) | 0));
+        return new java.awt.Rectangle(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), (Math.round(shapeBounds.getWidth() * this.getPaintScale()) | 0), (Math.round(shapeBounds.getHeight() * this.getPaintScale()) | 0));
     };
     /**
      * Sets the cursor of this component.
