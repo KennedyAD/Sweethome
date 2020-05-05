@@ -347,7 +347,7 @@ var PlanComponent = (function () {
         // TODO
     };
     PlanComponent.prototype.getBackground = function () {
-        return styleToColorString(window.getComputedStyle(this.canvas).background);
+        return styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
     };
     PlanComponent.prototype.getForeground = function () {
         return styleToColorString(window.getComputedStyle(this.canvas).color);

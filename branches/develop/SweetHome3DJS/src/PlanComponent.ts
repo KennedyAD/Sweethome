@@ -605,7 +605,7 @@ class PlanComponent implements PlanView {
     }
     
     private getBackground() : string {
-      return styleToColorString(window.getComputedStyle(this.canvas).background);
+      return styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
     }
 
     private getForeground() : string {
