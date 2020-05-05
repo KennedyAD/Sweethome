@@ -38,7 +38,6 @@ var __extends = (this && this.__extends) || function (d, b) {
 var PlanComponent = (function () {
     function PlanComponent(canvasId, home, preferences, object3dFactory, controller) {
         var _this = this;
-        this.drawPlanBounds = false;
         //painting : boolean = false;
         this.canvasNeededRepaint = false;
         this.canvas = document.getElementById(canvasId);
@@ -1296,17 +1295,12 @@ var PlanComponent = (function () {
         g2D.translate(-(this.scrollPane.scrollLeft + insets.left) * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, -(this.scrollPane.scrollTop + insets.top) * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
-        try {
-            if (this.drawPlanBounds) {
-                g2D.setColor("#FF0000");
-                g2D.draw(planBounds);
-            }
-            this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
+        // for debugging only
+        if (this.drawPlanBounds) {
+            g2D.setColor("#FF0000");
+            g2D.draw(planBounds);
         }
-        catch (ex) {
-            console.error(ex);
-        }
-        ;
+        this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
         g2D.dispose();
     };
     /**
@@ -1379,14 +1373,6 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.exportData = function (out, formatType, settings) {
         throw new UnsupportedOperationException("Unsupported format " + formatType);
-    };
-    /**
-     * Throws an <code>InterruptedRecorderException</code> exception if current thread
-     * is interrupted and <code>paintMode</code> is equal to <code>PaintMode.EXPORT</code>.
-     * @param {PlanComponent.PaintMode} paintMode
-     * @private
-     */
-    PlanComponent.prototype.checkCurrentThreadIsntInterrupted = function (paintMode) {
     };
     /**
      * Sets rendering hints used to paint plan.
@@ -1847,21 +1833,13 @@ var PlanComponent = (function () {
         var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
         //console.log("painting home elements");
         this.paintCompass(g2D, selectedItems, planScale, foregroundColor, paintMode);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintRooms(g2D, selectedItems, planScale, foregroundColor, paintMode);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintWalls(g2D, selectedItems, planScale, backgroundColor, foregroundColor, paintMode);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintFurniture(g2D, this.sortedLevelFurniture, selectedItems, planScale, backgroundColor, foregroundColor, this.getFurnitureOutlineColor(), paintMode, true);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, selectionOutlinePaint, selectionColor, planScale, foregroundColor, paintMode);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintRoomsNameAndArea(g2D, selectedItems, planScale, foregroundColor, paintMode);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
-        this.checkCurrentThreadIsntInterrupted(paintMode);
         this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, planScale, foregroundColor, paintMode);
         if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted) {
             this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, foregroundColor);
@@ -5013,7 +4991,6 @@ var PlanComponent;
             exportG2D.setProperties(properties);
             exportG2D.startExport();
             exportG2D.translate(-svgItemBounds.getMinX() + extraMargin, -svgItemBounds.getMinY() + extraMargin);
-            planComponent.checkCurrentThreadIsntInterrupted(PlanComponent.PaintMode.EXPORT);
             planComponent.paintContent(exportG2D, svgScale, PlanComponent.PaintMode.EXPORT);
             exportG2D.endExport();
         };
