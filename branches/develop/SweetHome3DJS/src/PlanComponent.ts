@@ -490,6 +490,7 @@ class PlanComponent implements PlanView {
         let container = document.createElement("div");
         container.style.width = ""+this.canvas.width+"px";
         container.style.height = ""+this.canvas.height+"px";
+        // TODO: copy canvas style to container?
         container.style.position = "relative";
         
         this.scrollPane = document.createElement("div");
@@ -2555,7 +2556,7 @@ class PlanComponent implements PlanView {
         if(this.resizeIndicatorVisible && room.getName() != null && room.getName().trim().length > 0) {
             let xName : number = room.getXCenter() + room.getNameXOffset();
             let yName : number = room.getYCenter() + room.getNameYOffset();
-            this.paintTextIndicators(g2D, (<any>room.constructor), this.getLineCount(room.getName()), room.getNameStyle(), xName, yName, room.getNameAngle(), indicatorPaint, planScale);
+            this.paintTextIndicators(g2D, room, this.getLineCount(room.getName()), room.getNameStyle(), xName, yName, room.getNameAngle(), indicatorPaint, planScale);
         }
     }
 
@@ -2571,14 +2572,14 @@ class PlanComponent implements PlanView {
         if(this.resizeIndicatorVisible && room.isAreaVisible() && room.getArea() > 0.01) {
             let xArea : number = room.getXCenter() + room.getAreaXOffset();
             let yArea : number = room.getYCenter() + room.getAreaYOffset();
-            this.paintTextIndicators(g2D, (<any>room.constructor), 1, room.getAreaStyle(), xArea, yArea, room.getAreaAngle(), indicatorPaint, planScale);
+            this.paintTextIndicators(g2D, room, 1, room.getAreaStyle(), xArea, yArea, room.getAreaAngle(), indicatorPaint, planScale);
         }
     }
 
     /**
      * Paints text location and angle indicators at the given coordinates.
      * @param {Graphics2D} g2D
-     * @param {Object} selectableClass
+     * @param {Object} selectableObject
      * @param {number} lineCount
      * @param {TextStyle} style
      * @param {number} x
@@ -2588,7 +2589,7 @@ class PlanComponent implements PlanView {
      * @param {number} planScale
      * @private
      */
-    paintTextIndicators(g2D : Graphics2D, selectableClass : any, lineCount : number, style : any, x : number, y : number, angle : number, indicatorPaint : string|CanvasPattern, planScale : number) {
+    paintTextIndicators(g2D : Graphics2D, selectableObject : any, lineCount : number, style : any, x : number, y : number, angle : number, indicatorPaint : string|CanvasPattern, planScale : number) {
         if(this.resizeIndicatorVisible) {
             g2D.setPaint(indicatorPaint);
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
@@ -2597,19 +2598,19 @@ class PlanComponent implements PlanView {
             g2D.translate(x, y);
             g2D.rotate(angle);
             g2D.scale(scaleInverse, scaleInverse);
-            if(selectableClass instanceof Label) {
+            if(selectableObject instanceof Label) {
                 g2D.draw(PlanComponent.LABEL_CENTER_INDICATOR);
             } else {
                 g2D.draw(this.getIndicator(null, PlanComponent.IndicatorType.MOVE_TEXT));
             }
             if(style == null) {
-                style = this.preferences.getDefaultTextStyle(selectableClass);
+                style = this.preferences.getDefaultTextStyle(selectableObject);
             }
             let fontMetrics : FontMetrics = this.getFontMetrics(g2D.getFont(), style);
             g2D.setTransform(previousTransform);
             g2D.translate(x, y);
             g2D.rotate(angle);
-            g2D.translate(0, -fontMetrics.getHeight() * (lineCount - 1) - fontMetrics.getAscent() * (selectableClass instanceof Label?1:0.85));
+            g2D.translate(0, -fontMetrics.getHeight() * (lineCount - 1) - fontMetrics.getAscent() * (selectableObject instanceof Label?1:0.85));
             g2D.scale(scaleInverse, scaleInverse);
             g2D.draw(this.getIndicator(null, PlanComponent.IndicatorType.ROTATE_TEXT));
             g2D.setTransform(previousTransform);
@@ -3552,7 +3553,7 @@ class PlanComponent implements PlanView {
             if(piece.isNameVisible() && piece.getName().trim().length > 0) {
                 let xName : number = piece.getX() + piece.getNameXOffset();
                 let yName : number = piece.getY() + piece.getNameYOffset();
-                this.paintTextIndicators(g2D, (<any>piece.constructor), this.getLineCount(piece.getName()), piece.getNameStyle(), xName, yName, piece.getNameAngle(), indicatorPaint, planScale);
+                this.paintTextIndicators(g2D, piece, this.getLineCount(piece.getName()), piece.getNameStyle(), xName, yName, piece.getNameAngle(), indicatorPaint, planScale);
             }
         }
     }
@@ -3822,7 +3823,7 @@ class PlanComponent implements PlanView {
                         g2D.draw(ShapeTools.getShape(textBounds, true, null));
                         g2D.setPaint(foregroundColor);
                         if(indicatorPaint != null && /* size */(<number>selectedItems.length) === 1 && /* get */selectedItems[0] === label) {
-                            this.paintTextIndicators(g2D, (<any>label.constructor), this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
+                            this.paintTextIndicators(g2D, label, this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
                             if(this.resizeIndicatorVisible && label.getPitch() != null) {
                                 let elevationIndicator : java.awt.Shape = this.getIndicator(label, PlanComponent.IndicatorType.ELEVATE);
                                 if(elevationIndicator != null) {
@@ -5646,8 +5647,8 @@ namespace PlanComponent {
           PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
         } else {
           if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
-            PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
             PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
+            PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
             return this.getSceneRoot(iconSize);
           }
         }
