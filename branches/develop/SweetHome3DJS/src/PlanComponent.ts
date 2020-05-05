@@ -486,10 +486,16 @@ class PlanComponent implements PlanView {
         this.canvas = <HTMLCanvasElement>document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
+
+        let container = document.createElement("div");
+        container.style.width = ""+this.canvas.width+"px";
+        container.style.height = ""+this.canvas.height+"px";
+        container.style.position = "relative";
         
         this.scrollPane = document.createElement("div");
         this.scrollPane.style.width = ""+this.canvas.width+"px";
         this.scrollPane.style.height = ""+this.canvas.height+"px";
+        
         if(this.canvas.style.overflow) {
           this.scrollPane.style.overflow = this.canvas.style.overflow;
         } else {
@@ -500,20 +506,19 @@ class PlanComponent implements PlanView {
         this.view.style.width = ""+this.canvas.width+"px";
         this.view.style.height = ""+this.canvas.height+"px";
        
-        this.canvas.parentElement.replaceChild(this.scrollPane, this.canvas);
-        this.scrollPane.appendChild(this.canvas);
+        this.canvas.parentElement.replaceChild(container, this.canvas);
+        container.appendChild(this.scrollPane);
+        container.appendChild(this.canvas);
         this.scrollPane.appendChild(this.view);
-        this.canvas.style.position = "fixed";
+        this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
         this.canvas.style.top = "0px";
+        this.scrollPane.style.position = "absolute";
+        this.scrollPane.style.left = "0px";
+        this.scrollPane.style.top = "0px";
         this.scrollPane.onscroll = () => {
           this.repaint();
         };
-        let forceCanvasPosition = () => {
-          this.canvas.style.transform = "translate("+this.scrollPane.getBoundingClientRect().left+"px, "+this.scrollPane.getBoundingClientRect().top+"px)";
-        }
-        window.addEventListener("scroll", forceCanvasPosition);
-        forceCanvasPosition();
         
         this.resolutionScale = PlanComponent.RETINA_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
@@ -4504,14 +4509,13 @@ class PlanComponent implements PlanView {
      * @param {number} dy
      */
     public moveView(dx : number, dy : number) {
-        if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
-            let viewport : javax.swing.JViewport = <javax.swing.JViewport>this.getParent();
-            let viewRectangle : java.awt.Rectangle = viewport.getViewRect();
-            viewRectangle.translate(Math.round(dx * this.getPaintScale()), Math.round(dy * this.getPaintScale()));
-            viewRectangle.x = Math.min(Math.max(0, viewRectangle.x), this.getWidth() - viewRectangle.width);
-            viewRectangle.y = Math.min(Math.max(0, viewRectangle.y), this.getHeight() - viewRectangle.height);
-            viewport.setViewPosition(viewRectangle.getLocation());
-        }
+      let x0 = this.convertXModelToPixel(0);
+      let y0 = this.convertYModelToPixel(0);
+      let x1 = this.convertXModelToPixel(dx);
+      let y1 = this.convertYModelToPixel(dy);
+      this.scrollPane.scrollLeft += x1 - x0;
+      this.scrollPane.scrollTop += y1 - y0;
+      this.repaint();
     }
 
     /**

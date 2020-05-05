@@ -43,6 +43,10 @@ var PlanComponent = (function () {
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
+        var container = document.createElement("div");
+        container.style.width = "" + this.canvas.width + "px";
+        container.style.height = "" + this.canvas.height + "px";
+        container.style.position = "relative";
         this.scrollPane = document.createElement("div");
         this.scrollPane.style.width = "" + this.canvas.width + "px";
         this.scrollPane.style.height = "" + this.canvas.height + "px";
@@ -55,20 +59,19 @@ var PlanComponent = (function () {
         this.view = document.createElement("div");
         this.view.style.width = "" + this.canvas.width + "px";
         this.view.style.height = "" + this.canvas.height + "px";
-        this.canvas.parentElement.replaceChild(this.scrollPane, this.canvas);
-        this.scrollPane.appendChild(this.canvas);
+        this.canvas.parentElement.replaceChild(container, this.canvas);
+        container.appendChild(this.scrollPane);
+        container.appendChild(this.canvas);
         this.scrollPane.appendChild(this.view);
-        this.canvas.style.position = "fixed";
+        this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
         this.canvas.style.top = "0px";
+        this.scrollPane.style.position = "absolute";
+        this.scrollPane.style.left = "0px";
+        this.scrollPane.style.top = "0px";
         this.scrollPane.onscroll = function () {
             _this.repaint();
         };
-        var forceCanvasPosition = function () {
-            _this.canvas.style.transform = "translate(" + _this.scrollPane.getBoundingClientRect().left + "px, " + _this.scrollPane.getBoundingClientRect().top + "px)";
-        };
-        window.addEventListener("scroll", forceCanvasPosition);
-        forceCanvasPosition();
         this.resolutionScale = PlanComponent.RETINA_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
@@ -4458,14 +4461,13 @@ var PlanComponent = (function () {
      * @param {number} dy
      */
     PlanComponent.prototype.moveView = function (dx, dy) {
-        if (this.getParent() != null && this.getParent() instanceof javax.swing.JViewport) {
-            var viewport = this.getParent();
-            var viewRectangle = viewport.getViewRect();
-            viewRectangle.translate(Math.round(dx * this.getPaintScale()), Math.round(dy * this.getPaintScale()));
-            viewRectangle.x = Math.min(Math.max(0, viewRectangle.x), this.getWidth() - viewRectangle.width);
-            viewRectangle.y = Math.min(Math.max(0, viewRectangle.y), this.getHeight() - viewRectangle.height);
-            viewport.setViewPosition(viewRectangle.getLocation());
-        }
+        var x0 = this.convertXModelToPixel(0);
+        var y0 = this.convertYModelToPixel(0);
+        var x1 = this.convertXModelToPixel(dx);
+        var y1 = this.convertYModelToPixel(dy);
+        this.scrollPane.scrollLeft += x1 - x0;
+        this.scrollPane.scrollTop += y1 - y0;
+        this.repaint();
     };
     /**
      * Returns the actual paint scale (including potential resolution scale) used to display the plan.
