@@ -1527,12 +1527,6 @@ class PlanComponent implements PlanView {
      * @param {Graphics2D} g
      */
     paintComponent(g2D : Graphics2D) {
-//		    g2D.getContext().save();
-//        //console.info("CLIPING"+[this.scrollPane.scrollLeft, this.scrollPane.scrollTop, this.scrollPane.clientWidth, this.scrollPane.clientHeight]);
-//        g2D.clipRect(this.scrollPane.scrollLeft * PlanComponent.RETINA_SCALE_FACTOR, 
-//          this.scrollPane.scrollTop * PlanComponent.RETINA_SCALE_FACTOR, 
-//          this.scrollPane.clientWidth * PlanComponent.RETINA_SCALE_FACTOR, 
-//          this.scrollPane.clientHeight * PlanComponent.RETINA_SCALE_FACTOR);
         g2D.setTransform(new java.awt.geom.AffineTransform());
         g2D.clear();
         if(this.backgroundPainted) {
@@ -1547,13 +1541,10 @@ class PlanComponent implements PlanView {
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         try {
-            g2D.setColor("#FF0000");
-            g2D.draw(planBounds);
             this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
         } catch(ex) {
           console.error(ex);
         };
-//        g2D.getContext().restore();
         g2D.dispose();
     }
 
