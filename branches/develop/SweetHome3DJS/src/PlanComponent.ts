@@ -490,7 +490,11 @@ class PlanComponent implements PlanView {
         this.scrollPane = document.createElement("div");
         this.scrollPane.style.width = ""+this.canvas.width+"px";
         this.scrollPane.style.height = ""+this.canvas.height+"px";
-        this.scrollPane.style.overflow = "scroll";
+        if(this.canvas.style.overflow) {
+          this.scrollPane.style.overflow = this.canvas.style.overflow;
+        } else {
+          this.scrollPane.style.overflow = "scroll";
+        }
 
         this.view = document.createElement("div");
         this.view.style.width = ""+this.canvas.width+"px";
