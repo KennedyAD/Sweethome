@@ -38,6 +38,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var PlanComponent = (function () {
     function PlanComponent(canvasId, home, preferences, object3dFactory, controller) {
         var _this = this;
+        this.drawPlanBounds = false;
         //painting : boolean = false;
         this.canvasNeededRepaint = false;
         this.canvas = document.getElementById(canvasId);
@@ -1296,6 +1297,10 @@ var PlanComponent = (function () {
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         try {
+            if (this.drawPlanBounds) {
+                g2D.setColor("#FF0000");
+                g2D.draw(planBounds);
+            }
             this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
         }
         catch (ex) {

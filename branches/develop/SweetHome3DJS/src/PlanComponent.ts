@@ -105,6 +105,8 @@ class PlanComponent implements PlanView {
     font : string;
     
     mouseListener : any;
+    
+    drawPlanBounds : boolean = false;
 
     /*private*/ home : Home;
 
@@ -1541,6 +1543,10 @@ class PlanComponent implements PlanView {
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         try {
+            if(this.drawPlanBounds) {
+              g2D.setColor("#FF0000");
+              g2D.draw(planBounds);
+            }
             this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
         } catch(ex) {
           console.error(ex);
