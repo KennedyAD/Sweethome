@@ -2698,11 +2698,16 @@ class PlanComponent implements PlanView {
      * @private
      */
     fillAndDrawWallsArea(g2D : Graphics2D, area : java.awt.geom.Area, planScale : number, fillPaint : string|CanvasPattern, drawPaint : string|CanvasPattern, paintMode : PlanComponent.PaintMode) {
-        g2D.setPaint(fillPaint);
-        this.fillShape(g2D, area, paintMode);
-        g2D.setPaint(drawPaint);
-        g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, paintMode) / planScale));
-        g2D.draw(area);
+      g2D.setPaint(fillPaint);
+      var patternScale = this.resolutionScale / planScale;
+      g2D.scale(patternScale, patternScale);
+      var filledArea = area.clone();
+      filledArea.transform(java.awt.geom.AffineTransform.getScaleInstance(1 / patternScale, 1 / patternScale));
+      this.fillShape(g2D, filledArea, paintMode);
+      g2D.scale(1 / patternScale, 1 / patternScale);
+      g2D.setPaint(drawPaint);
+      g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, paintMode) / planScale));
+      g2D.draw(area);
     }
 
     /**
