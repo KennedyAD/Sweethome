@@ -1866,7 +1866,7 @@ var PlanComponent = (function () {
             planComponent.view.style.color = "Highlight";
             PlanComponent.DEFAULT_SELECTION_COLOR = styleToColorString(window.getComputedStyle(planComponent.view).color);
             if (PlanComponent.DEFAULT_SELECTION_COLOR == "") {
-                PlanComponent.DEFAULT_SELECTION_COLOR = "#000080";
+                PlanComponent.DEFAULT_SELECTION_COLOR = "#0042E0";
             }
         }
         return PlanComponent.DEFAULT_SELECTION_COLOR;
