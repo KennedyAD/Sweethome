@@ -331,8 +331,7 @@ HTMLCanvas3D.prototype.updateViewportSize = function() {
       && canvasBounds.height !== 0;
   if (!visible) {
     // May happen for offscreen or invisible canvas
-    canvasBounds.width = this.canvas.width;
-    canvasBounds.height = this.canvas.height;
+    canvasBounds = {width : this.canvas.width, height : this.canvas.height};
   }
   if (this.viewportWidth != canvasBounds.width
       || this.viewportHeight != canvasBounds.height) {
