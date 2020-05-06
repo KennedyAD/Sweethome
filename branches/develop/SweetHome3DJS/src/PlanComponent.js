@@ -332,12 +332,15 @@ var PlanComponent = (function () {
     PlanComponent.prototype.revalidate = function () {
         this.repaint();
     };
+    /** @private */
     PlanComponent.prototype.isOpaque = function () {
         return true;
     };
+    /** @private */
     PlanComponent.prototype.getWidth = function () {
         return this.view.clientWidth;
     };
+    /** @private */
     PlanComponent.prototype.getHeight = function () {
         return this.view.clientHeight;
     };
@@ -347,18 +350,39 @@ var PlanComponent = (function () {
     PlanComponent.prototype.setOpaque = function (opaque) {
         // TODO
     };
+    /** @private */
     PlanComponent.prototype.getBackground = function () {
-        return styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
+        if (this.background == null) {
+            this.background = styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
+        }
+        return this.background;
     };
+    /** @private */
     PlanComponent.prototype.getForeground = function () {
-        return styleToColorString(window.getComputedStyle(this.canvas).color);
+        if (this.foreground == null) {
+            this.foreground = styleToColorString(window.getComputedStyle(this.canvas).color);
+        }
+        return this.foreground;
     };
+    /** @private */
+    PlanComponent.prototype.getGridColor = function () {
+        if (this.gridColor == null) {
+            // compute the gray color in between background and foreground colors
+            var background = styleToColor(window.getComputedStyle(this.canvas).backgroundColor);
+            var foreground = styleToColor(window.getComputedStyle(this.canvas).color);
+            var gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
+            this.gridColor = intToColorString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
+        }
+        return this.gridColor;
+    };
+    /** @private */
     PlanComponent.prototype.setFont = function (font) {
         this.font = font;
     };
     PlanComponent.prototype.getParent = function () {
         return null;
     };
+    /** @private */
     PlanComponent.prototype.getInsets = function () {
         return { top: 0, bottom: 0, left: 0, right: 0 };
     };
@@ -1657,7 +1681,7 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintGridLines = function (g2D, gridScale, xMin, xMax, yMin, yMax, gridSize, mainGridSize) {
-        g2D.setColor("#808080");
+        g2D.setColor(this.getGridColor());
         g2D.setStroke(new java.awt.BasicStroke(0.5 / gridScale));
         for (var x = ((xMin / gridSize) | 0) * gridSize; x < xMax; x += gridSize) {
             {

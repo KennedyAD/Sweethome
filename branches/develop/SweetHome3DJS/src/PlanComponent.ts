@@ -587,14 +587,17 @@ class PlanComponent implements PlanView {
       this.repaint();
     }
 
+    /** @private */
     private isOpaque() : boolean {
         return true;
     }
 
+    /** @private */
     private getWidth() {
         return this.view.clientWidth;
     }
 
+    /** @private */
     private getHeight() {
         return this.view.clientHeight;
     }
@@ -607,14 +610,35 @@ class PlanComponent implements PlanView {
       // TODO
     }
     
+    /** @private */
     private getBackground() : string {
-      return styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
+      if((<any>this).background == null) {
+        (<any>this).background = styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
+      }
+      return (<any>this).background;
     }
 
+    /** @private */
     private getForeground() : string {
-      return styleToColorString(window.getComputedStyle(this.canvas).color);
+      if((<any>this).foreground == null) {
+        (<any>this).foreground = styleToColorString(window.getComputedStyle(this.canvas).color);
+      }
+      return (<any>this).foreground;
     }
 
+    /** @private */
+    private getGridColor() {
+      if((<any>this).gridColor == null) {
+        // compute the gray color in between background and foreground colors
+        let background = styleToColor(window.getComputedStyle(this.canvas).backgroundColor);
+        let foreground = styleToColor(window.getComputedStyle(this.canvas).color);
+        let gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
+        (<any>this).gridColor = intToColorString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
+      }
+      return (<any>this).gridColor; 
+    }
+
+    /** @private */
     private setFont(font : string) {
       this.font = font;
     }
@@ -623,6 +647,7 @@ class PlanComponent implements PlanView {
       return null;
     }
     
+    /** @private */
     private getInsets() : { top : number, bottom : number, left : number, right : number } {
       return { top: 0, bottom: 0, left: 0, right: 0 };
     }
@@ -1907,7 +1932,7 @@ class PlanComponent implements PlanView {
      * @private
      */
     paintGridLines(g2D : Graphics2D, gridScale : number, xMin : number, xMax : number, yMin : number, yMax : number, gridSize : number, mainGridSize : number) {
-        g2D.setColor("#808080");
+        g2D.setColor(this.getGridColor());
         g2D.setStroke(new java.awt.BasicStroke(0.5 / gridScale));
         for(let x : number = (<number>(xMin / gridSize)|0) * gridSize; x < xMax; x += gridSize) {{
             g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));

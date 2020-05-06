@@ -548,13 +548,15 @@ var Font = (function () {
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000.
  * Note that the alpha content is ignored.
  * @param color {number}
- * @returns a CSS string
+ * @returns {string} a CSS string
  */
 function intToColorString(color) {
     return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
 }
 /**
- * Returns an hexadecimal color string from a computed style.
+ * Returns an hexadecimal color string from a computed style (no alpha).
+ * @param {string} a style containing a color as rgb(...) or rgba(...)
+ * @returns {string} the color as a string or an empty string if the given style was not parseable
  */
 function styleToColorString(style) {
     var prefix = "rgb(";
@@ -568,4 +570,22 @@ function styleToColorString(style) {
         return intToColorString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
     }
     return "";
+}
+/**
+ * Returns a color from a computed style (no alpha).
+ * @param {string} a style containing a color as rgb(...) or rgba(...)
+ * @returns {number} the color as an integer or -1 if the given style was not parseable
+ */
+function styleToColor(style) {
+    var prefix = "rgb(";
+    var index = style.indexOf(prefix);
+    if (index < 0) {
+        prefix = "rgba(";
+        index = style.indexOf(prefix);
+    }
+    if (index >= 0) {
+        var array = style.slice(prefix.length, style.indexOf(")")).split(",");
+        return (parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]);
+    }
+    return -1;
 }
