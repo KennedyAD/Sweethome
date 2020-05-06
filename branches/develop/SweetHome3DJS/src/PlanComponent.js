@@ -1901,8 +1901,7 @@ var PlanComponent = (function () {
      * @return {string}
      */
     PlanComponent.prototype.getFurnitureOutlineColor = function () {
-        //return <string>new String((this.getForeground().getRGB() & 16777215) | 1426063360, true);
-        return "#808080";
+        return this.getForeground() + "55";
     };
     /**
      * Paints rooms.
