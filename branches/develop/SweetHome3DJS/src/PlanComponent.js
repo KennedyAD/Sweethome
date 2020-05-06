@@ -1858,11 +1858,18 @@ var PlanComponent = (function () {
     };
     /**
      * Returns the default color used to draw selection outlines.
-     * @param {javax.swing.JComponent} planComponent
+     * @param {PlanComponent} planComponent
      * @return {string}
      */
     PlanComponent.getDefaultSelectionColor = function (planComponent) {
-        return "#000080";
+        if (PlanComponent.DEFAULT_SELECTION_COLOR == null) {
+            planComponent.view.style.color = "Highlight";
+            PlanComponent.DEFAULT_SELECTION_COLOR = styleToColorString(window.getComputedStyle(planComponent.view).color);
+            if (PlanComponent.DEFAULT_SELECTION_COLOR == "") {
+                PlanComponent.DEFAULT_SELECTION_COLOR = "#000080";
+            }
+        }
+        return PlanComponent.DEFAULT_SELECTION_COLOR;
     };
     /**
      * Returns the color used to draw furniture outline of

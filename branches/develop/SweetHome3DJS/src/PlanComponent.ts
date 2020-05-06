@@ -281,6 +281,8 @@ class PlanComponent implements PlanView {
     static WEBGL_AVAILABLE = true;
     
     static RETINA_SCALE_FACTOR : number = 2;
+    
+    static DEFAULT_SELECTION_COLOR : string;
 
     static  __static_initializer_0() {
         PlanComponent.POINT_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
@@ -2088,11 +2090,18 @@ class PlanComponent implements PlanView {
 
     /**
      * Returns the default color used to draw selection outlines.
-     * @param {javax.swing.JComponent} planComponent
+     * @param {PlanComponent} planComponent
      * @return {string}
      */
     static getDefaultSelectionColor(planComponent : PlanComponent) : string {
-        return "#000080";
+      if(PlanComponent.DEFAULT_SELECTION_COLOR == null) {
+        planComponent.view.style.color = "Highlight";
+        PlanComponent.DEFAULT_SELECTION_COLOR = styleToColorString(window.getComputedStyle(planComponent.view).color);
+        if(PlanComponent.DEFAULT_SELECTION_COLOR == "") {
+          PlanComponent.DEFAULT_SELECTION_COLOR = "#000080";
+        }
+      }
+      return PlanComponent.DEFAULT_SELECTION_COLOR;
     }
 
     /**
