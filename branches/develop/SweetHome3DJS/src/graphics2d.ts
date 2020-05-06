@@ -555,25 +555,20 @@ class FontMetrics {
       this.descent = textMetrics.fontBoundingBoxDescent;
       this.height = this.ascent + this.descent;
       this.width = textMetrics.width;
-    } else if(textMetrics.actualBoundingBoxAscent) {
-      this.cached = true;
-      this.ascent = textMetrics.actualBoundingBoxAscent;
-      this.descent = textMetrics.actualBoundingBoxDescent;
-      this.height = this.ascent + this.descent;
-      this.width = textMetrics.width;
     } else {
       // height info is not available on old browsers, so we build an approx.
       // TODO: use a font utility instead
-      this.approximated = true;
-      var heightArray = FontMetrics.context.font.split(' ');
-      heightArray.forEach(height => {
-        if(height.slice(height.length - 2) == "px") {
-          this.height = parseInt(height);
+      if(!this.approximated) {
+        this.approximated = true;
+        let font = new Font(this.font);
+        this.height = parseInt(font.size);
+        if(["Times", "Serif", "Helvetica"].indexOf(font.family) === -1) {
+          this.height *= 1.18;
         }
-      });
-      this.cached = true;
-      this.ascent = 0.77 * this.height;
-      this.descent = 0.23 * this.height;
+        this.descent = 0.23 * this.height;
+        this.ascent = this.height - this.descent;
+        this.cached = true;
+      }
       this.width = textMetrics.width;
     }
   }
