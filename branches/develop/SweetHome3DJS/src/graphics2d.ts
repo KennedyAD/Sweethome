@@ -426,12 +426,37 @@ class Graphics2D {
    * Sets the current stroke.
    */
   public setStroke(s: java.awt.BasicStroke) {
-    this.context.lineWidth = s.getLineWidth();
-    if(s.getDashArray() != null) {
-      this.context.setLineDash(s.getDashArray());
-    } else {
-      this.context.setLineDash([]);
-    }
+      this.context.lineWidth = s.getLineWidth();
+      if (s.getDashArray() != null) {
+          this.context.setLineDash(s.getDashArray());
+          this.context.lineDashOffset = s.getDashPhase();
+      }
+      else {
+          this.context.setLineDash([]);
+      }
+      switch (s.getLineJoin()) {
+      case java.awt.BasicStroke.JOIN_BEVEL:
+        this.context.lineJoin = "bevel";
+        break;
+      case java.awt.BasicStroke.JOIN_MITER:
+        this.context.lineJoin = "miter";
+        break;
+      case java.awt.BasicStroke.JOIN_ROUND:
+        this.context.lineJoin = "round";
+        break;
+      }
+      switch (s.getEndCap()) {
+      case java.awt.BasicStroke.CAP_BUTT:
+        this.context.lineCap = "butt";
+        break;
+      case java.awt.BasicStroke.CAP_ROUND:
+        this.context.lineCap = "round";
+        break;
+      case java.awt.BasicStroke.CAP_SQUARE:
+        this.context.lineCap = "square";
+        break;
+      }
+      this.context.miterLimit = s.getMiterLimit();
   }
   
   /**
