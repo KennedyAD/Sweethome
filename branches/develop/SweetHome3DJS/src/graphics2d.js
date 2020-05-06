@@ -497,7 +497,6 @@ var FontMetrics = (function () {
         }
         else {
             // height info is not available on old browsers, so we build an approx.
-            // TODO: use a font utility instead
             if (!this.approximated) {
                 this.approximated = true;
                 var font = new Font(this.font);
@@ -590,7 +589,7 @@ function styleToColorString(style) {
 }
 /**
  * Returns a color from a computed style (no alpha).
- * @param {string} a style containing a color as rgb(...) or rgba(...)
+ * @param {string} style a style containing a color as rgb(...) or rgba(...)
  * @returns {number} the color as an integer or -1 if the given style was not parseable
  */
 function styleToColor(style) {
@@ -603,6 +602,18 @@ function styleToColor(style) {
     if (index >= 0) {
         var array = style.slice(prefix.length, style.indexOf(")")).split(",");
         return (parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]);
+    }
+    return -1;
+}
+/**
+ * Returns a color from a color string (no alpha).
+ * @param {string} colorString color string under the format #RRGGBB
+ * @returns {number} the color as an integer or -1 if the given string was not parseable
+ */
+function stringToColor(colorString) {
+    if (colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
+        colorString = colorString.slice(1);
+        return (parseInt(colorString.slice(0, 2), 16) << 16) + (parseInt(colorString.slice(2, 4), 16) << 8) + parseInt(colorString.slice(4, 6), 16);
     }
     return -1;
 }

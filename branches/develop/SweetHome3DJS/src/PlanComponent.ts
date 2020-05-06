@@ -552,8 +552,6 @@ class PlanComponent implements PlanView {
         this.panningCursor = 'col-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
         this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
         this.patternImagesCache = <any>({});
-        //setForeground(Color.BLACK);
-        //setBackground(Color.WHITE);
         this.setScale(1);
     }
 
@@ -564,7 +562,6 @@ class PlanComponent implements PlanView {
       return this.graphics;
     }
 
-    //painting : boolean = false;
     canvasNeededRepaint : boolean = false;
 
     repaint() : void {
@@ -2973,6 +2970,43 @@ class PlanComponent implements PlanView {
         return itemsArea;
     }
 
+    /** 
+     * Modifies the pattern image to substitute the transparent color with backgroundColor and the black color with the foregroundColor.
+     * @param {HTMLImageElement} image the orginal pattern image (black over transparent background)
+     * @param {string} foregroundColor the foreground color
+     * @param {string} backgroundColor the background color
+     * @returns {HTMLImageElement} the final pattern image with the substituted colors
+     * @private
+     */
+    private makePatternImage(image : HTMLImageElement, foregroundColor : string, backgroundColor : string) : HTMLImageElement {
+        let canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0);
+        let imageData = ctx.getImageData(0, 0, image.width, image.height).data;
+        let bgColor = stringToColor(backgroundColor);
+        let fgColor = stringToColor(foregroundColor);
+        for(let i=0; i < imageData.length; i+=4) {
+            if(imageData[i + 3] < 10) {
+              // change transparent color
+              imageData[i] = bgColor & 0xFF0000;
+              imageData[i + 1] = bgColor & 0xFF00;
+              imageData[i + 2] = bgColor & 0xFF;
+              imageData[i + 3] = 0xFF;
+            } else if(imageData[i] + imageData[i + 1] + imageData[i + 2] < 10) {
+              // change black color
+              imageData[i] = fgColor & 0xFF0000;
+              imageData[i + 1] = fgColor & 0xFF00;
+              imageData[i + 2] = fgColor & 0xFF;
+              imageData[i + 3] = 0xFF;
+            }
+        }
+        ctx.putImageData(new ImageData(imageData, image.width, image.height), 0, 0);
+        image.src = canvas.toDataURL("image/png");
+        return image;
+    }
+
     /**
      * Returns the <code>Paint</code> object used to fill walls.
      * @param {Graphics2D} g2D
@@ -2990,7 +3024,7 @@ class PlanComponent implements PlanView {
             this.patternImagesCache[wallPattern.getImage().getURL()] = patternImage;
             TextureManager.getInstance().loadTexture(wallPattern.getImage(), false, {
               textureUpdated : (image : HTMLImageElement) => {
-                this.patternImagesCache[wallPattern.getImage().getURL()] = image;
+                this.patternImagesCache[wallPattern.getImage().getURL()] = this.makePatternImage(image, this.getForeground(), this.getBackground());
                 this.repaint();
               },
               textureError : () => {

@@ -38,7 +38,6 @@ var __extends = (this && this.__extends) || function (d, b) {
 var PlanComponent = (function () {
     function PlanComponent(canvasId, home, preferences, object3dFactory, controller) {
         var _this = this;
-        //painting : boolean = false;
         this.canvasNeededRepaint = false;
         this.canvas = document.getElementById(canvasId);
         var computedStyle = window.getComputedStyle(this.canvas);
@@ -102,8 +101,6 @@ var PlanComponent = (function () {
         this.panningCursor = 'col-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
         this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
         this.patternImagesCache = ({});
-        //setForeground(Color.BLACK);
-        //setBackground(Color.WHITE);
         this.setScale(1);
     }
     PlanComponent.__static_initialize = function () { if (!PlanComponent.__static_initialized) {
@@ -2854,6 +2851,43 @@ var PlanComponent = (function () {
         return itemsArea;
     };
     /**
+     * Modifies the pattern image to substitute the transparent color with backgroundColor and the black color with the foregroundColor.
+     * @param {HTMLImageElement} image the orginal pattern image (black over transparent background)
+     * @param {string} foregroundColor the foreground color
+     * @param {string} backgroundColor the background color
+     * @returns {HTMLImageElement} the final pattern image with the substituted colors
+     * @private
+     */
+    PlanComponent.prototype.makePatternImage = function (image, foregroundColor, backgroundColor) {
+        var canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0);
+        var imageData = ctx.getImageData(0, 0, image.width, image.height).data;
+        var bgColor = stringToColor(backgroundColor);
+        var fgColor = stringToColor(foregroundColor);
+        for (var i = 0; i < imageData.length; i += 4) {
+            if (imageData[i + 3] < 10) {
+                // change transparent color
+                imageData[i] = bgColor & 0xFF0000;
+                imageData[i + 1] = bgColor & 0xFF00;
+                imageData[i + 2] = bgColor & 0xFF;
+                imageData[i + 3] = 0xFF;
+            }
+            else if (imageData[i] + imageData[i + 1] + imageData[i + 2] < 10) {
+                // change black color
+                imageData[i] = fgColor & 0xFF0000;
+                imageData[i + 1] = fgColor & 0xFF00;
+                imageData[i + 2] = fgColor & 0xFF;
+                imageData[i + 3] = 0xFF;
+            }
+        }
+        ctx.putImageData(new ImageData(imageData, image.width, image.height), 0, 0);
+        image.src = canvas.toDataURL("image/png");
+        return image;
+    };
+    /**
      * Returns the <code>Paint</code> object used to fill walls.
      * @param {Graphics2D} g2D
      * @param {number} planScale
@@ -2871,7 +2905,7 @@ var PlanComponent = (function () {
             this.patternImagesCache[wallPattern.getImage().getURL()] = patternImage;
             TextureManager.getInstance().loadTexture(wallPattern.getImage(), false, {
                 textureUpdated: function (image) {
-                    _this.patternImagesCache[wallPattern.getImage().getURL()] = image;
+                    _this.patternImagesCache[wallPattern.getImage().getURL()] = _this.makePatternImage(image, _this.getForeground(), _this.getBackground());
                     _this.repaint();
                 },
                 textureError: function () {
