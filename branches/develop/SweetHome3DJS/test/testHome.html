@@ -425,17 +425,18 @@ function testLengthUnit() {
   Locale.setDefault("en_US");
   assertEquals("Wrong conversion", "102", LengthUnit.CENTIMETER.getFormat().format(102));
   assertEquals("Wrong conversion", "1.02", LengthUnit.METER.getFormat().format(102));
-  if (!navigator.userAgent.match(/Version\/(8|9).* Safari/)) {
-    assertEquals("Wrong conversion", "1,020", LengthUnit.MILLIMETER.getFormat().format(102));
-    // TODO Decimals count should work under Safari 8 and 9
-    assertEquals("Wrong conversion", "102.2", LengthUnit.CENTIMETER.getFormat().format(102.23));
-    assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.23));
-  }
+  assertEquals("Wrong conversion", "1,020", LengthUnit.MILLIMETER.getFormat().format(102));
+  assertEquals("Wrong conversion", "1,023,456", LengthUnit.MILLIMETER.getFormat().format(102345.6));
+  assertEquals("Wrong conversion", "-1,023,457", LengthUnit.MILLIMETER.getFormat().format(-102345.66));
+  assertEquals("Wrong conversion", "102.2", LengthUnit.CENTIMETER.getFormat().format(102.23));
+  assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.23));
   assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.2));
-  if (!navigator.userAgent.match(/Version\/(8|9).* Safari/)) {
-    assertEquals("Wrong conversion", "1.00", LengthUnit.METER.getFormat().format(100));
-    assertEquals("Wrong conversion", "95 sq ft", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
-  }
+  assertEquals("Wrong conversion", "-1.022", LengthUnit.METER.getFormat().format(-102.2));
+  assertEquals("Wrong conversion", "1.00", LengthUnit.METER.getFormat().format(100));
+  assertEquals("Wrong conversion", "0.93", LengthUnit.METER.getFormat().format(93));
+  assertEquals("Wrong conversion", "0.935", LengthUnit.METER.getFormat().format(93.489));
+  assertEquals("Wrong conversion", "-0.934", LengthUnit.METER.getFormat().format(-93.449));
+  assertEquals("Wrong conversion", "95 sq ft", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
 
   
   Locale.setDefault("fr_FR");
@@ -443,9 +444,7 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "102", LengthUnit.CENTIMETER.getFormat().format(102));
   assertEquals("Wrong conversion", "1,02", LengthUnit.METER.getFormat().format(102));
   // \u00a0 is a no-break space
-  if (!navigator.userAgent.match(/Version\/(8|9).* Safari/)) {
-    assertEquals("Wrong conversion", "1\u00a0020", LengthUnit.MILLIMETER.getFormat().format(102));
-  }
+  assertEquals("Wrong conversion", "1\u00a0020", LengthUnit.MILLIMETER.getFormat().format(102));
   
   assertEquals("Wrong conversion", "0'11\"",
       LengthUnit.INCH.getFormat().format(LengthUnit.inchToCentimeter(11)));
@@ -465,10 +464,8 @@ function testLengthUnit() {
   // Test formats with unit
   assertEquals("Wrong conversion", "102 cm", LengthUnit.CENTIMETER.getFormatWithUnit().format(102));
   assertEquals("Wrong conversion", "1,02 m", LengthUnit.METER.getFormatWithUnit().format(102));
-  if (!navigator.userAgent.match(/Version\/(8|9).* Safari/)) {
-    // \u00a0 is a no-break space
-    assertEquals("Wrong conversion", "1\u00a0020 mm", LengthUnit.MILLIMETER.getFormatWithUnit().format(102));
-  }
+  // \u00a0 is a no-break space
+  assertEquals("Wrong conversion", "1\u00a0020 mm", LengthUnit.MILLIMETER.getFormatWithUnit().format(102));
   assertEquals("Wrong conversion", "0'11\"",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
   assertEquals("Wrong conversion", "1'11\"",
@@ -495,9 +492,7 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "0,05\"",
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
   
-  if (!navigator.userAgent.match(/Version\/(8|9).* Safari/)) {
-    assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
-  }
+  assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
   
   // Test parsing
 //   assertEquals("Wrong parsing", 102, LengthUnit.CENTIMETER.getFormat().parseObject("102"));
@@ -583,9 +578,9 @@ function testLengthUnit() {
 
 <canvas id="canvas3D" style="background-color: #CCCCCC; border: 1px solid gray;" 
         width="600" height="400" tabIndex="1"></canvas>
-<canvas id="canvas2D" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif"         
+<canvas id="canvas2D" style="background-color: #0055AA; border: 1px solid gray; font-family: sans-serif; color: #CCCC77"         
         width="600" height="400" tabIndex="2"></canvas>
-<canvas id="canvas3D_2" style="background-color: #CCCCCC; border: 1px solid gray;" 
+<canvas id="canvas3D_2" style="background-color: #CCCCCC; border: 1px solid gray" 
         width="600" height="300" tabIndex="3"></canvas>
 
 <script type="text/javascript">
