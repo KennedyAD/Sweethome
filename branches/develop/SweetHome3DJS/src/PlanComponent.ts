@@ -2188,15 +2188,12 @@ class PlanComponent implements PlanView {
                                 }
                                 let textureImage : HTMLImageElement = this.floorTextureImagesCache[floorTexture.getImage().getURL()];
                                 if(textureImage == null) {
-                                    console.error(" -> loading texture : " + floorTexture.getImage().getURL());
                                     textureImage = PlanComponent.WAIT_TEXTURE_IMAGE;
-//                                    console.info("====> "+textureImage);
                                     this.floorTextureImagesCache[floorTexture.getImage().getURL()] = textureImage;
                                     let waitForTexture : boolean = paintMode !== PlanComponent.PaintMode.PAINT;
                                         TextureManager.getInstance().loadTexture(floorTexture.getImage(), waitForTexture, {
                                           textureUpdated : (texture : HTMLImageElement) => {
                                             this.floorTextureImagesCache[floorTexture.getImage().getURL()] = texture;
-                                            console.error(" -> recieved texture : " + floorTexture.getImage().getURL());
                                             if(!waitForTexture) {
                                                 this.repaint();
                                             }
@@ -2919,7 +2916,7 @@ class PlanComponent implements PlanView {
         if(walls.length === 0) {
             return {};
         }
-        let pattern : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(walls).next().getPattern();
+        let pattern = walls[0].getPattern();
         let samePattern : boolean = true;
         for(let i=0; i < walls.length; i++) {
           if(pattern !== walls[i].getPattern()) {
@@ -3422,16 +3419,14 @@ class PlanComponent implements PlanView {
         let image : HTMLImageElement = this.furnitureIconsCache[piece.icon.getURL()];
         if(image == null) {
           image = TextureManager.getInstance().getWaitImage();
-          console.log("paintPieceOfFurnitureIcon: loading "+piece.icon.getURL());
           TextureManager.getInstance().loadTexture(piece.icon, {
             textureUpdated: (texture : HTMLImageElement) => {
-              console.log("paintPieceOfFurnitureIcon: loaded "+piece.icon.getURL());
               this.furnitureIconsCache[piece.icon.getURL()] = texture;
               this.repaint();
             },
             textureError : () => {
-              console.error("icon not found: "+piece.icon.getURL());
               this.furnitureIconsCache[piece.icon.getURL()] = TextureManager.getInstance().getErrorImage();
+              this.repaint();
             }
           });
         }

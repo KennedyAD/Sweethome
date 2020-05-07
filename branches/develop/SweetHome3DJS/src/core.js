@@ -435,7 +435,7 @@ function putToMap(map, key, value) {
  * @returns {Array} the values (no specific order)
  */
 function valuesFromMap(map) {
-  let r = [];
+  var r = [];
   if(map.entries === undefined) {
     Object.getOwnPropertyNames(map).forEach(function(p) { r.push(map[p]); });
   } else {

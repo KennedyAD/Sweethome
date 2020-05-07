@@ -635,7 +635,15 @@ class Font {
    * @returns {string}
    */
   toString() : string {
-    return [this.style, this.weight, this.size, this.family].join(' '); //this.family.indexOf(' ') > -1?"'" + this.family + "'" : this.family].join(' ');
+    var font = '';
+    if (this.weight != 'normal') {
+      font = this.weight + ' ';
+    }
+    if (this.style != 'normal') {
+      font += this.style + ' ';
+    }
+    font += this.size + ' ' + this.family;
+    return font;
   }
 }
 
