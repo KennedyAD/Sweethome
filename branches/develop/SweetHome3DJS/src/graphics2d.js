@@ -67,14 +67,14 @@ var Graphics2D = (function () {
     }*/
     /**
      * Draws a shape on the canvas using the current stroke.
-     * @param shape {java.awt.Shape} the shape to be drawn
+     * @param {java.awt.Shape} shape the shape to be drawn
      */
     Graphics2D.prototype.draw = function (shape) {
         this.createPathFromShape(shape);
         this.context.stroke();
     };
     /**
-     * @param shape {java.awt.Shape} the shape to create a path from
+     * @param {java.awt.Shape} shape the shape to create a path from
      * @private
      */
     Graphics2D.prototype.createPathFromShape = function (s) {
@@ -108,7 +108,7 @@ var Graphics2D = (function () {
     };
     /**
      * Fills a shape on the canvas using the current paint.
-     * @param shape {java.awt.Shape} the shape to be filled
+     * @param {java.awt.Shape} shape the shape to be filled
      */
     Graphics2D.prototype.fill = function (s) {
         this.createPathFromShape(s);
@@ -116,10 +116,10 @@ var Graphics2D = (function () {
     };
     /**
      * Draws an image on the canvas.
-     * @param img {HTMLImageElement} the image to be drawn
-     * @param x {number}
-     * @param y {number}
-     * @param [bgcolor] {string}
+     * @param {HTMLImageElement} img the image to be drawn
+     * @param {number} x
+     * @param {number} y
+     * @param {string} [bgcolor]
      */
     Graphics2D.prototype.drawImage = function (img, x, y, bgcolor) {
         this.context.drawImage(img, x, y);
@@ -127,12 +127,12 @@ var Graphics2D = (function () {
     };
     /**
      * Draws an image on the canvas.
-     * @param img {HTMLImageElement} the image to be drawn
-     * @param x {number}
-     * @param y {number}
-     * @param width {number}
-     * @param height {number}
-     * @param [bgcolor] {string}
+     * @param {HTMLImageElement} img the image to be drawn
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
+     * @param {string} [bgcolor]
      */
     Graphics2D.prototype.drawImageWithSize = function (img, x, y, width, height, bgcolor) {
         this.context.drawImage(img, x, y, width, height);
@@ -147,7 +147,7 @@ var Graphics2D = (function () {
     };
     /**
      * Sets the current clip.
-     * @param clip {java.awt.Shape} the clip as a shape
+     * @param {java.awt.Shape} clip the clip as a shape
      */
     Graphics2D.prototype.setClip = function (clip) {
         this._clip = clip;
@@ -158,7 +158,7 @@ var Graphics2D = (function () {
     };
     /**
      * Adds the given clip to the current clip.
-     * @param clip {java.awt.Shape} the added clip as a shape
+     * @param {java.awt.Shape} clip the added clip as a shape
      */
     Graphics2D.prototype.clip = function (clip) {
         this._clip = clip;
@@ -179,10 +179,10 @@ var Graphics2D = (function () {
     }*/
     /**
      * Sets the current clip as a rectangle region.
-     * @param x {number}
-     * @param y {number}
-     * @param width {number}
-     * @param height {number}
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
      */
     Graphics2D.prototype.clipRect = function (x, y, width, height) {
         this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
@@ -194,8 +194,8 @@ var Graphics2D = (function () {
     };
     /**
      * Translates the canvas transform matrix.
-     * @param x {number}
-     * @param y {number}
+     * @param {number} x
+     * @param {number} y
      */
     Graphics2D.prototype.translate = function (x, y) {
         this._transform.translate(x, y);
@@ -203,35 +203,35 @@ var Graphics2D = (function () {
     };
     /**
      * Draws a string outline with the current stroke.
-     * @param str {string}
-     * @param x {number}
-     * @param y {number}
+     * @param {string} str
+     * @param {number} x
+     * @param {number} y
      */
     Graphics2D.prototype.drawStringOutline = function (str, x, y) {
         this.context.strokeText(str, x, y);
     };
     /**
      * Draws a string with the current paint.
-     * @param str {string}
-     * @param x {number}
-     * @param y {number}
+     * @param {string} str
+     * @param {number} x
+     * @param {number} y
      */
     Graphics2D.prototype.drawString = function (str, x, y) {
         this.context.fillText(str, x, y);
     };
     /**
      * Fills the given rectangular region with the current paint.
-     * @param x {number}
-     * @param y {number}
-     * @param width {number}
-     * @param height {number}
+     * @param {number} x
+     * @param {number} y
+     * @param {number} width
+     * @param {number} height
      */
     Graphics2D.prototype.fillRect = function (x, y, width, height) {
         this.context.fillRect(x, y, width, height);
     };
     /**
      * Sets the current stroke and fill style as a CSS style.
-     * @param color {string} a CSS style
+     * @param {string} color a CSS style
      */
     Graphics2D.prototype.setColor = function (color) {
         this.color = color;
@@ -249,7 +249,7 @@ var Graphics2D = (function () {
     };
     /**
      * Sets the alpha component for all subsequent drawing and fill operations.
-     * @param alpha {number}
+     * @param {number} alpha
      */
     Graphics2D.prototype.setAlpha = function (alpha) {
         this.context.globalAlpha = alpha;
@@ -263,9 +263,9 @@ var Graphics2D = (function () {
     };
     /**
      * Rotates the canvas current transform matrix.
-     * @param theta {number} the rotation angle
-     * @param [x] {number} the rotation origin (x)
-     * @param [y] {number} the rotation origin (y)
+     * @param {number} theta the rotation angle
+     * @param {number} [x] the rotation origin (x)
+     * @param {number} [y] the rotation origin (y)
      */
     Graphics2D.prototype.rotate = function (theta, x, y) {
         if (typeof x === 'number' && typeof y === 'number') {
@@ -281,8 +281,8 @@ var Graphics2D = (function () {
     };
     /**
      * Scales the canvas current transform matrix.
-     * @param sx {number} the x scale factor
-     * @param sy {number} the y scale factor
+     * @param {number} sx the x scale factor
+     * @param {number} sy the y scale factor
      */
     Graphics2D.prototype.scale = function (sx, sy) {
         this._transform.scale(sx, sy);
@@ -290,8 +290,8 @@ var Graphics2D = (function () {
     };
     /**
      * Shears the canvas current transform matrix.
-     * @param shx {number} the x shear factor
-     * @param shy {number} the y shear factor
+     * @param {number} shx the x shear factor
+     * @param {number} shy the y shear factor
      */
     Graphics2D.prototype.shear = function (shx, shy) {
         this._transform.shear(shx, shy);
@@ -304,7 +304,7 @@ var Graphics2D = (function () {
     };
     /**
      * Sets the current font.
-     * @param font {string} a CSS font descriptor
+     * @param {string} font a CSS font descriptor
      */
     Graphics2D.prototype.setFont = function (font) {
         this.context.font = font;
@@ -318,7 +318,7 @@ var Graphics2D = (function () {
     };
     /**
      * Sets the fill style as a color.
-     * @param color {string} a CSS color descriptor
+     * @param {string} color a CSS color descriptor
      */
     Graphics2D.prototype.setBackground = function (color) {
         this.background = color;
@@ -333,7 +333,7 @@ var Graphics2D = (function () {
     };
     /**
      * Sets (overrides) the current transform matrix.
-     * @param transform {java.awt.geom.AffineTransform} the new transform matrix
+     * @param {java.awt.geom.AffineTransform} transform the new transform matrix
      */
     Graphics2D.prototype.setTransform = function (transform) {
         this._transform.setTransform(transform);
@@ -348,7 +348,7 @@ var Graphics2D = (function () {
     };
     /**
      * Applies the given transform matrix to the current transform matrix.
-     * @param transform {java.awt.geom.AffineTransform} the transform matrix to be applied
+     * @param {java.awt.geom.AffineTransform} transform the transform matrix to be applied
      */
     Graphics2D.prototype.transform = function (transform) {
         this._transform.concatenate(transform);
@@ -365,7 +365,7 @@ var Graphics2D = (function () {
     };
     /**
      * Sets the current paint.
-     * @param paint {string|CanvasPattern}
+     * @param {string|CanvasPattern} paint
      */
     Graphics2D.prototype.setPaint = function (paint) {
         if (typeof paint === "string") {
@@ -414,7 +414,7 @@ var Graphics2D = (function () {
     };
     /**
      * Creates a pattern from an image.
-     * @param image {HTMLImageElement}
+     * @param {HTMLImageElement} image
      * @returns CanvasPattern
      */
     Graphics2D.prototype.createPattern = function (image) {
@@ -429,7 +429,7 @@ var Graphics2D = (function () {
 var FontMetrics = (function () {
     /**
      * Builds a font metrics instance for the given font.
-     * @param font {string} the given font, in a CSS canvas-compatible representation
+     * @param {string} font the given font, in a CSS canvas-compatible representation
      */
     function FontMetrics(font) {
         this.approximated = false;
@@ -438,7 +438,7 @@ var FontMetrics = (function () {
     }
     /**
      * Gets the bounds of the given string for this font metrics.
-     * @param aString {string} the string to get the bounds of
+     * @param {string} aString the string to get the bounds of
      * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
      */
     FontMetrics.prototype.getStringBounds = function (aString) {
@@ -479,7 +479,7 @@ var FontMetrics = (function () {
     /**
      * Computes the various dimentions of the given string, for the current canvas and font.
      * This function caches the results so that it can be fast accessed in other functions.
-     * @param aString {string} the string to compute the dimensions of
+     * @param {string} aString the string to compute the dimensions of
      * @private
      */
     FontMetrics.prototype.compute = function (aString) {
@@ -571,7 +571,7 @@ var Font = (function () {
 /**
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000.
  * Note that the alpha content is ignored.
- * @param color {number}
+ * @param {number} color
  * @returns {string} a CSS string
  */
 function intToColorString(color) {

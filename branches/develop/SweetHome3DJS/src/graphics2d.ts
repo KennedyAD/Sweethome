@@ -77,7 +77,7 @@ class Graphics2D {
 
   /**
    * Draws a shape on the canvas using the current stroke.
-   * @param shape {java.awt.Shape} the shape to be drawn
+   * @param {java.awt.Shape} shape the shape to be drawn
    */   
   public draw(shape: java.awt.Shape) {
     this.createPathFromShape(shape);
@@ -85,7 +85,7 @@ class Graphics2D {
   }
 
   /**
-   * @param shape {java.awt.Shape} the shape to create a path from
+   * @param {java.awt.Shape} shape the shape to create a path from
    * @private
    */
   private createPathFromShape(s: java.awt.Shape) {
@@ -119,7 +119,7 @@ class Graphics2D {
 
   /**
    * Fills a shape on the canvas using the current paint.
-   * @param shape {java.awt.Shape} the shape to be filled
+   * @param {java.awt.Shape} shape the shape to be filled
    */   
   public fill(s: java.awt.Shape) {
     this.createPathFromShape(s);
@@ -128,10 +128,10 @@ class Graphics2D {
 
   /**
    * Draws an image on the canvas.
-   * @param img {HTMLImageElement} the image to be drawn
-   * @param x {number}
-   * @param y {number}
-   * @param [bgcolor] {string}
+   * @param {HTMLImageElement} img the image to be drawn
+   * @param {number} x
+   * @param {number} y
+   * @param {string} [bgcolor]
    */   
   public drawImage(img: HTMLImageElement, x: number, y: number, bgcolor?: string): boolean {
     this.context.drawImage(img, x, y);
@@ -140,12 +140,12 @@ class Graphics2D {
 
   /**
    * Draws an image on the canvas.
-   * @param img {HTMLImageElement} the image to be drawn
-   * @param x {number}
-   * @param y {number}
-   * @param width {number}
-   * @param height {number}
-   * @param [bgcolor] {string}
+   * @param {HTMLImageElement} img the image to be drawn
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
+   * @param {string} [bgcolor]
    */   
   public drawImageWithSize(img: HTMLImageElement, x: number, y: number, width: number, height: number, bgcolor?: string): boolean {
     this.context.drawImage(img, x, y, width, height);
@@ -164,7 +164,7 @@ class Graphics2D {
 
   /**
    * Sets the current clip.
-   * @param clip {java.awt.Shape} the clip as a shape 
+   * @param {java.awt.Shape} clip the clip as a shape 
    */
   public setClip(clip: java.awt.Shape) {
     this._clip = clip;
@@ -176,7 +176,7 @@ class Graphics2D {
 
   /**
    * Adds the given clip to the current clip.
-   * @param clip {java.awt.Shape} the added clip as a shape 
+   * @param {java.awt.Shape} clip the added clip as a shape 
    */
   public clip(clip: java.awt.Shape) {
     this._clip = clip;
@@ -199,10 +199,10 @@ class Graphics2D {
 
   /**
    * Sets the current clip as a rectangle region.
-   * @param x {number}
-   * @param y {number}
-   * @param width {number}
-   * @param height {number}
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
    */
   public clipRect(x: number, y: number, width: number, height: number) {
       this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
@@ -215,8 +215,8 @@ class Graphics2D {
 
   /**
    * Translates the canvas transform matrix.
-   * @param x {number}
-   * @param y {number}
+   * @param {number} x
+   * @param {number} y
    */
   public translate(x: number, y: number) {
     this._transform.translate(x, y);
@@ -225,9 +225,9 @@ class Graphics2D {
 
   /**
    * Draws a string outline with the current stroke.
-   * @param str {string}
-   * @param x {number}
-   * @param y {number}
+   * @param {string} str
+   * @param {number} x
+   * @param {number} y
    */
   public drawStringOutline(str: string, x: number, y: number) {
     this.context.strokeText(str, x, y);
@@ -235,9 +235,9 @@ class Graphics2D {
 
   /**
    * Draws a string with the current paint.
-   * @param str {string}
-   * @param x {number}
-   * @param y {number}
+   * @param {string} str
+   * @param {number} x
+   * @param {number} y
    */
   public drawString(str: string, x: number, y: number) {
     this.context.fillText(str, x, y);
@@ -245,10 +245,10 @@ class Graphics2D {
 
   /**
    * Fills the given rectangular region with the current paint.
-   * @param x {number}
-   * @param y {number}
-   * @param width {number}
-   * @param height {number}
+   * @param {number} x
+   * @param {number} y
+   * @param {number} width
+   * @param {number} height
    */
   public fillRect(x: number, y: number, width: number, height: number) {
     this.context.fillRect(x, y, width, height);
@@ -258,7 +258,7 @@ class Graphics2D {
 
   /**
    * Sets the current stroke and fill style as a CSS style.
-   * @param color {string} a CSS style
+   * @param {string} color a CSS style
    */
   public setColor(color: string) {
     this.color = color;
@@ -279,7 +279,7 @@ class Graphics2D {
 
   /**
    * Sets the alpha component for all subsequent drawing and fill operations.
-   * @param alpha {number}
+   * @param {number} alpha
    */
   public setAlpha(alpha : number) {
     this.context.globalAlpha = alpha;
@@ -295,9 +295,9 @@ class Graphics2D {
 
   /**
    * Rotates the canvas current transform matrix.
-   * @param theta {number} the rotation angle
-   * @param [x] {number} the rotation origin (x)
-   * @param [y] {number} the rotation origin (y)
+   * @param {number} theta the rotation angle
+   * @param {number} [x] the rotation origin (x)
+   * @param {number} [y] the rotation origin (y)
    */
   public rotate(theta: number, x?: number, y?: number): any {
     if (typeof x === 'number' && typeof y === 'number') {
@@ -313,8 +313,8 @@ class Graphics2D {
 
   /**
    * Scales the canvas current transform matrix.
-   * @param sx {number} the x scale factor
-   * @param sy {number} the y scale factor
+   * @param {number} sx the x scale factor
+   * @param {number} sy the y scale factor
    */
   public scale(sx: number, sy: number) {
     this._transform.scale(sx, sy);
@@ -323,8 +323,8 @@ class Graphics2D {
 
   /**
    * Shears the canvas current transform matrix.
-   * @param shx {number} the x shear factor
-   * @param shy {number} the y shear factor
+   * @param {number} shx the x shear factor
+   * @param {number} shy the y shear factor
    */
   public shear(shx: number, shy: number) {
     this._transform.shear(shx, shy);
@@ -339,7 +339,7 @@ class Graphics2D {
 
   /**
    * Sets the current font.
-   * @param font {string} a CSS font descriptor
+   * @param {string} font a CSS font descriptor
    */
   public setFont(font: string) {
     this.context.font = font;
@@ -357,7 +357,7 @@ class Graphics2D {
 
   /**
    * Sets the fill style as a color.
-   * @param color {string} a CSS color descriptor
+   * @param {string} color a CSS color descriptor
    */
   public setBackground(color: string) {
     this.background = color;
@@ -374,7 +374,7 @@ class Graphics2D {
 
   /**
    * Sets (overrides) the current transform matrix.
-   * @param transform {java.awt.geom.AffineTransform} the new transform matrix
+   * @param {java.awt.geom.AffineTransform} transform the new transform matrix
    */
   public setTransform(transform: java.awt.geom.AffineTransform) {
     this._transform.setTransform(transform);
@@ -391,7 +391,7 @@ class Graphics2D {
 
   /**
    * Applies the given transform matrix to the current transform matrix.
-   * @param transform {java.awt.geom.AffineTransform} the transform matrix to be applied
+   * @param {java.awt.geom.AffineTransform} transform the transform matrix to be applied
    */
   public transform(transform: java.awt.geom.AffineTransform) {
     this._transform.concatenate(transform);
@@ -411,7 +411,7 @@ class Graphics2D {
 
   /**
    * Sets the current paint.
-   * @param paint {string|CanvasPattern}
+   * @param {string|CanvasPattern} paint 
    */
   public setPaint(paint: string|CanvasPattern) {
     if(typeof paint === "string") {
@@ -461,7 +461,7 @@ class Graphics2D {
   
   /**
    * Creates a pattern from an image.
-   * @param image {HTMLImageElement} 
+   * @param {HTMLImageElement} image 
    * @returns CanvasPattern
    */
   public createPattern(image : HTMLImageElement) : CanvasPattern {
@@ -486,7 +486,7 @@ class FontMetrics {
 
   /**
    * Builds a font metrics instance for the given font.
-   * @param font {string} the given font, in a CSS canvas-compatible representation
+   * @param {string} font the given font, in a CSS canvas-compatible representation
    */  
   constructor(font : string) {
     this.font = font;
@@ -495,7 +495,7 @@ class FontMetrics {
 
   /**
    * Gets the bounds of the given string for this font metrics.
-   * @param aString {string} the string to get the bounds of
+   * @param {string} aString the string to get the bounds of
    * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
    */  
   getStringBounds(aString : string) : java.awt.geom.Rectangle2D {
@@ -540,7 +540,7 @@ class FontMetrics {
   /**
    * Computes the various dimentions of the given string, for the current canvas and font.
    * This function caches the results so that it can be fast accessed in other functions.
-   * @param aString {string} the string to compute the dimensions of
+   * @param {string} aString the string to compute the dimensions of
    * @private
    */
   private compute(aString : string) {
@@ -650,7 +650,7 @@ class Font {
 /**
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000. 
  * Note that the alpha content is ignored.
- * @param color {number}
+ * @param {number} color 
  * @returns {string} a CSS string
  */
 function intToColorString(color : number) {
