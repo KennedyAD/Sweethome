@@ -5770,66 +5770,21 @@ namespace PlanComponent {
      * @extends PlanComponent.PieceOfFurnitureTopViewIcon
      */
     export class PieceOfFurniturePlanIcon extends PlanComponent.PieceOfFurnitureTopViewIcon {
-//        pieceWidth : number;
-//
-//        pieceDepth : number;
-//
-//        pieceColor : number;
-//
-//        pieceTexture : TextureImage;
         
         public constructor(piece : PieceOfFurniture, waitingComponent : { repaint : () => void }) {
-            super(null);
-//            this.pieceWidth = piece.getWidth();
-//            this.pieceDepth = piece.getDepth();
-//            this.pieceColor = piece.getColor();
-//            this.pieceTexture = piece.getTexture();
-            if(this.image != PlanComponent.WAIT_TEXTURE_IMAGE && this.image != PlanComponent.ERROR_TEXTURE_IMAGE) {
-                if(piece.getPlanIcon() != null) {
-                  this.image = PlanComponent.WAIT_TEXTURE_IMAGE;
-                  TextureManager.getInstance().loadTexture(piece.getPlanIcon(), true, {
-                    textureUpdated : (textureImage : HTMLImageElement) => {
-                      this.image = textureImage;
-                      waitingComponent.repaint();
-                    },
-                    textureError : (error) => {
-                      this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
-                      waitingComponent.repaint();
-                    } 
-                  });
-                } else if(piece.getColor() != null) {
-                  this.image = TextureManager.getInstance().getColoredImage(piece.getColor());
-                  //this.pieceColor = null;
-                } else if(piece.getTexture() != null) {
-                  this.image = PlanComponent.WAIT_TEXTURE_IMAGE;
-                  TextureManager.getInstance().loadTexture(piece.getTexture().getImage(), true, {
-                    textureUpdated : (textureImage : HTMLImageElement) => {
-                      this.image = textureImage;
-                      waitingComponent.repaint();
-                    },
-                    textureError : (error) => {
-                      this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
-                      waitingComponent.repaint();
-                    } 
-                  });
+           super(TextureManager.getInstance().getWaitImage());
+           TextureManager.getInstance().loadTexture(piece.getPlanIcon(), false, {
+                textureUpdated: (textureImage) => {
+                    this.setIcon(textureImage);
+                    waitingComponent.repaint();
+                },
+                textureError: (error) => {
+                    this.setIcon(TextureManager.getInstance().getErrorImage());
+                    waitingComponent.repaint();
                 }
-            }
+            });
         }
 
-//        setTexturedIcon(c : java.awt.Component, textureImage : java.awt.image.BufferedImage, angle : number) {
-//            let image : java.awt.image.BufferedImage = new java.awt.image.BufferedImage(this.getIconWidth(), this.getIconHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
-//            let imageGraphics : Graphics2D = <Graphics2D>image.getGraphics();
-//            imageGraphics.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
-//            PlanComponent.PieceOfFurniturePlanIcon.super.paintIcon(c, imageGraphics, 0, 0);
-//            imageGraphics.setPaint(new java.awt.TexturePaint(textureImage, new java.awt.geom.Rectangle2D.Float(0, 0, -this.getIconWidth() / this.pieceWidth * this.pieceTexture.getWidth(), -this.getIconHeight() / this.pieceDepth * this.pieceTexture.getHeight())));
-//            imageGraphics.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_IN));
-//            imageGraphics.rotate(angle);
-//            let maxDimension : number = Math.max(image.getWidth(), image.getHeight());
-//            imageGraphics.fill(new java.awt.geom.Rectangle2D.Float(-maxDimension, -maxDimension, 3 * maxDimension, 3 * maxDimension));
-//            imageGraphics.fillRect(0, 0, this.getIconWidth(), this.getIconHeight());
-//            imageGraphics.dispose();
-//            this.setIcon(new javax.swing.ImageIcon(image));
-//        }
     }
     PieceOfFurniturePlanIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurniturePlanIcon";
     PieceOfFurniturePlanIcon["__interfaces"] = ["javax.swing.Icon"];

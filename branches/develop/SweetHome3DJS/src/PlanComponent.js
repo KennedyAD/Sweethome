@@ -5469,51 +5469,19 @@ var PlanComponent;
      */
     var PieceOfFurniturePlanIcon = (function (_super) {
         __extends(PieceOfFurniturePlanIcon, _super);
-        //        pieceWidth : number;
-        //
-        //        pieceDepth : number;
-        //
-        //        pieceColor : number;
-        //
-        //        pieceTexture : TextureImage;
         function PieceOfFurniturePlanIcon(piece, waitingComponent) {
             var _this = this;
-            _super.call(this, null);
-            //            this.pieceWidth = piece.getWidth();
-            //            this.pieceDepth = piece.getDepth();
-            //            this.pieceColor = piece.getColor();
-            //            this.pieceTexture = piece.getTexture();
-            if (this.image != PlanComponent.WAIT_TEXTURE_IMAGE && this.image != PlanComponent.ERROR_TEXTURE_IMAGE) {
-                if (piece.getPlanIcon() != null) {
-                    this.image = PlanComponent.WAIT_TEXTURE_IMAGE;
-                    TextureManager.getInstance().loadTexture(piece.getPlanIcon(), true, {
-                        textureUpdated: function (textureImage) {
-                            _this.image = textureImage;
-                            waitingComponent.repaint();
-                        },
-                        textureError: function (error) {
-                            _this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
-                            waitingComponent.repaint();
-                        }
-                    });
+            _super.call(this, TextureManager.getInstance().getWaitImage());
+            TextureManager.getInstance().loadTexture(piece.getPlanIcon(), false, {
+                textureUpdated: function (textureImage) {
+                    _this.setIcon(textureImage);
+                    waitingComponent.repaint();
+                },
+                textureError: function (error) {
+                    _this.setIcon(TextureManager.getInstance().getErrorImage());
+                    waitingComponent.repaint();
                 }
-                else if (piece.getColor() != null) {
-                    this.image = TextureManager.getInstance().getColoredImage(piece.getColor());
-                }
-                else if (piece.getTexture() != null) {
-                    this.image = PlanComponent.WAIT_TEXTURE_IMAGE;
-                    TextureManager.getInstance().loadTexture(piece.getTexture().getImage(), true, {
-                        textureUpdated: function (textureImage) {
-                            _this.image = textureImage;
-                            waitingComponent.repaint();
-                        },
-                        textureError: function (error) {
-                            _this.image = PlanComponent.ERROR_TEXTURE_IMAGE;
-                            waitingComponent.repaint();
-                        }
-                    });
-                }
-            }
+            });
         }
         return PieceOfFurniturePlanIcon;
     }(PlanComponent.PieceOfFurnitureTopViewIcon));
