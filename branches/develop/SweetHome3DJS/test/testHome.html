@@ -293,7 +293,7 @@ function testHome(geomAvailable) {
   new HomeRecorder().readHome("test/resources/HomeTest.sh3d", 
       {
         homeLoaded: function(home) {
-           assertTrue("No furniture", home.getFurniture().length > 0);
+          assertTrue("No furniture", home.getFurniture().length > 0);
           var preferences = new DefaultUserPreferences();
           displayHome(home, preferences);
           // Add objects to home and make them blink      
@@ -342,6 +342,8 @@ function testHome(geomAvailable) {
                   home.addPieceOfFurniture(piece);
                 }
                 // Change wall and room color
+                var patterns = preferences.getPatternsCatalog().getPatterns();
+                wall1.setPattern(patterns [(patterns.indexOf(wall1.getPattern()) + 1) % patterns.length])                
                 wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
                 room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
                 // Update label with current time
@@ -352,7 +354,7 @@ function testHome(geomAvailable) {
               if (animate) {
                 // Change objects location
                 wall1.setThickness(wall1.getThickness() + thicknessDelta);
-                if (wall1.getThickness() > 10 || wall1.getThickness() < 1) {
+                if (wall1.getThickness() > 15 || wall1.getThickness() < 1) {
                   thicknessDelta = -thicknessDelta;
                 }
                 wall2.setXEnd(wall2.getXEnd() + lengthDelta);
