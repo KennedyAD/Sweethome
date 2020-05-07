@@ -1007,13 +1007,11 @@ var PlanComponent = (function () {
      * @return {java.awt.geom.Rectangle2D}
      */
     PlanComponent.prototype.getItemBounds = function (g, item) {
+        var _this = this;
         var points = item.getPoints();
         var itemBounds = new java.awt.geom.Rectangle2D.Float(points[0][0], points[0][1], 0, 0);
         for (var i = 1; i < points.length; i++) {
-            {
-                itemBounds.add(points[i][0], points[i][1]);
-            }
-            ;
+            itemBounds.add(points[i][0], points[i][1]);
         }
         var componentFont;
         if (g != null) {
@@ -1044,19 +1042,13 @@ var PlanComponent = (function () {
         }
         else if (item != null && item instanceof HomePieceOfFurniture) {
             if (item != null && item instanceof HomeDoorOrWindow) {
-                var doorOrWindow = item;
-                {
-                    var array149 = doorOrWindow.getSashes();
-                    for (var index148 = 0; index148 < array149.length; index148++) {
-                        var sash = array149[index148];
-                        {
-                            itemBounds.add(this.getDoorOrWindowSashShape(doorOrWindow, sash).getBounds2D());
-                        }
-                    }
-                }
+                var doorOrWindow_1 = item;
+                doorOrWindow_1.getSashes().forEach(function (sash) {
+                    itemBounds.add(_this.getDoorOrWindowSashShape(doorOrWindow_1, sash).getBounds2D());
+                });
             }
             else if (item != null && item instanceof HomeFurnitureGroup) {
-                itemBounds.add(this.getItemsBounds(g, (item).getFurniture()));
+                itemBounds.add(this.getItemsBounds(g, item.getFurniture()));
             }
             var piece = item;
             var pieceName = piece.getName();
@@ -1081,35 +1073,26 @@ var PlanComponent = (function () {
             transform.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : lengthFontMetrics.getAscent() + 1);
             var lengthTextBoundsPath = new java.awt.geom.GeneralPath(lengthTextBounds);
             for (var it = lengthTextBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
-                {
-                    var pathPoint = [0, 0];
-                    if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                        itemBounds.add(pathPoint[0], pathPoint[1]);
-                    }
+                var pathPoint = [0, 0];
+                if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+                    itemBounds.add(pathPoint[0], pathPoint[1]);
                 }
-                ;
             }
             transform.setToTranslation(dimensionLine.getXStart(), dimensionLine.getYStart());
             transform.rotate(angle);
             transform.translate(0, dimensionLine.getOffset());
             for (var it = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {
-                {
-                    var pathPoint = [0, 0];
-                    if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                        itemBounds.add(pathPoint[0], pathPoint[1]);
-                    }
+                var pathPoint = [0, 0];
+                if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+                    itemBounds.add(pathPoint[0], pathPoint[1]);
                 }
-                ;
             }
             transform.translate(dimensionLineLength, 0);
             for (var it = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {
-                {
-                    var pathPoint = [0, 0];
-                    if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                        itemBounds.add(pathPoint[0], pathPoint[1]);
-                    }
+                var pathPoint = [0, 0];
+                if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+                    itemBounds.add(pathPoint[0], pathPoint[1]);
                 }
-                ;
             }
         }
         else if (item != null && item instanceof Label) {
@@ -1162,13 +1145,10 @@ var PlanComponent = (function () {
             this.setRenderingHints(g);
         }
         for (var i = 0; i < lines.length; i++) {
-            {
-                var lineBounds = fontMetrics.getStringBounds(lines[i]);
-                if (textBounds == null || textBounds.getWidth() < lineBounds.getWidth()) {
-                    textBounds = lineBounds;
-                }
+            var lineBounds = fontMetrics.getStringBounds(lines[i]);
+            if (textBounds == null || textBounds.getWidth() < lineBounds.getWidth()) {
+                textBounds = lineBounds;
             }
-            ;
         }
         var textWidth = textBounds.getWidth();
         var shiftX;
@@ -1194,15 +1174,12 @@ var PlanComponent = (function () {
             transform.rotate(angle);
             transform.translate(shiftX, 0);
             var textBoundsPath = new java.awt.geom.GeneralPath(textBounds);
-            var textPoints = ([]);
+            var textPoints = [];
             for (var it = textBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
-                {
-                    var pathPoint = [0, 0];
-                    if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                        /* add */ (textPoints.push(pathPoint) > 0);
-                    }
+                var pathPoint = [0, 0];
+                if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+                    textPoints.push(pathPoint);
                 }
-                ;
             }
             return textPoints.slice(0);
         }
@@ -1429,14 +1406,11 @@ var PlanComponent = (function () {
         if (selectedLevel != null) {
             var levels = this.home.getLevels();
             for (var i = levels.length - 1; i >= 0; i--) {
-                {
-                    var level = levels[i];
-                    if (level.getElevation() === selectedLevel.getElevation() && level.getElevationIndex() <= selectedLevel.getElevationIndex() && level.isViewable() && level.getBackgroundImage() != null && level.getBackgroundImage().isVisible()) {
-                        backgroundImageLevel = level;
-                        break;
-                    }
+                var level = levels[i];
+                if (level.getElevation() === selectedLevel.getElevation() && level.getElevationIndex() <= selectedLevel.getElevationIndex() && level.isViewable() && level.getBackgroundImage() != null && level.getBackgroundImage().isVisible()) {
+                    backgroundImageLevel = level;
+                    break;
                 }
-                ;
             }
         }
         var backgroundImage = backgroundImageLevel == null ? this.home.getBackgroundImage() : backgroundImageLevel.getBackgroundImage();
@@ -1681,30 +1655,18 @@ var PlanComponent = (function () {
         g2D.setColor(this.getGridColor());
         g2D.setStroke(new java.awt.BasicStroke(0.5 / gridScale));
         for (var x = ((xMin / gridSize) | 0) * gridSize; x < xMax; x += gridSize) {
-            {
-                g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));
-            }
-            ;
+            g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));
         }
         for (var y = ((yMin / gridSize) | 0) * gridSize; y < yMax; y += gridSize) {
-            {
-                g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
-            }
-            ;
+            g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
         }
         if (mainGridSize !== gridSize) {
             g2D.setStroke(new java.awt.BasicStroke(1.5 / gridScale, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_BEVEL));
             for (var x = ((xMin / mainGridSize) | 0) * mainGridSize; x < xMax; x += mainGridSize) {
-                {
-                    g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));
-                }
-                ;
+                g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));
             }
             for (var y = ((yMin / mainGridSize) | 0) * mainGridSize; y < yMax; y += mainGridSize) {
-                {
-                    g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
-                }
-                ;
+                g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
             }
         }
     };
@@ -1726,10 +1688,7 @@ var PlanComponent = (function () {
         }
         var mainGridSize = mainGridSizes[0];
         for (var i = 1; i < mainGridSizes.length && mainGridSize * gridScale < 50; i++) {
-            {
-                mainGridSize = mainGridSizes[i];
-            }
-            ;
+            mainGridSize = mainGridSizes[i];
         }
         return mainGridSize;
     };
@@ -1751,10 +1710,7 @@ var PlanComponent = (function () {
         }
         var gridSize = gridSizes[0];
         for (var i = 1; i < gridSizes.length && gridSize * gridScale < 10; i++) {
-            {
-                gridSize = gridSizes[i];
-            }
-            ;
+            gridSize = gridSizes[i];
         }
         return gridSize;
     };
@@ -1957,15 +1913,12 @@ var PlanComponent = (function () {
                             }
                             var textureImage = this_1.floorTextureImagesCache[floorTexture_1.getImage().getURL()];
                             if (textureImage == null) {
-                                console.error(" -> loading texture : " + floorTexture_1.getImage().getURL());
                                 textureImage = PlanComponent.WAIT_TEXTURE_IMAGE;
-                                //                                    console.info("====> "+textureImage);
                                 this_1.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = textureImage;
                                 var waitForTexture_1 = paintMode !== PlanComponent.PaintMode.PAINT;
                                 TextureManager.getInstance().loadTexture(floorTexture_1.getImage(), waitForTexture_1, {
                                     textureUpdated: function (texture) {
                                         _this.floorTextureImagesCache[floorTexture_1.getImage().getURL()] = texture;
-                                        console.error(" -> recieved texture : " + floorTexture_1.getImage().getURL());
                                         if (!waitForTexture_1) {
                                             _this.repaint();
                                         }
@@ -2048,17 +2001,11 @@ var PlanComponent = (function () {
                 firstY -= anchorRect.getHeight();
             }
             for (var x = firstX; x < shapeBounds.getMaxX(); x += anchorRect.getWidth()) {
-                {
-                    for (var y = firstY; y < shapeBounds.getMaxY(); y += anchorRect.getHeight()) {
-                        {
-                            var transform = java.awt.geom.AffineTransform.getTranslateInstance(x, y);
-                            transform.concatenate(java.awt.geom.AffineTransform.getScaleInstance(anchorRect.getWidth() / image.getWidth(), anchorRect.getHeight() / image.getHeight()));
-                            g2D.drawRenderedImage(image, transform);
-                        }
-                        ;
-                    }
+                for (var y = firstY; y < shapeBounds.getMaxY(); y += anchorRect.getHeight()) {
+                    var transform = java.awt.geom.AffineTransform.getTranslateInstance(x, y);
+                    transform.concatenate(java.awt.geom.AffineTransform.getScaleInstance(anchorRect.getWidth() / image.getWidth(), anchorRect.getHeight() / image.getHeight()));
+                    g2D.drawRenderedImage(image, transform);
                 }
-                ;
             }
             g2D.setClip(clip);
         }
@@ -2140,11 +2087,8 @@ var PlanComponent = (function () {
             a.push(0); return a; })(lines.length);
         var textWidth = -3.4028235E38;
         for (var i = 0; i < lines.length; i++) {
-            {
-                lineWidths[i] = fontMetrics.getStringBounds(lines[i]).getWidth();
-                textWidth = Math.max(lineWidths[i], textWidth);
-            }
-            ;
+            lineWidths[i] = fontMetrics.getStringBounds(lines[i]).getWidth();
+            textWidth = Math.max(lineWidths[i], textWidth);
         }
         var stroke = null;
         var font;
@@ -2159,32 +2103,29 @@ var PlanComponent = (function () {
         }
         g2D.setFont(font);
         for (var i = lines.length - 1; i >= 0; i--) {
-            {
-                var line = lines[i];
-                var translationX = void 0;
-                if (style.getAlignment() === TextStyle.Alignment.LEFT) {
-                    translationX = 0;
-                }
-                else if (style.getAlignment() === TextStyle.Alignment.RIGHT) {
-                    translationX = -lineWidths[i];
-                }
-                else {
-                    translationX = -lineWidths[i] / 2;
-                }
-                if (outlineColor != null) {
-                    translationX += stroke.getLineWidth() / 2;
-                }
-                g2D.translate(translationX, 0);
-                if (outlineColor != null) {
-                    var defaultColor = g2D.getColor();
-                    g2D.setColor(intToColorString(outlineColor));
-                    g2D.drawStringOutline(line, 0, 0);
-                    g2D.setColor(defaultColor);
-                }
-                g2D.drawString(line, 0, 0);
-                g2D.translate(-translationX, -fontMetrics.getHeight());
+            var line = lines[i];
+            var translationX = void 0;
+            if (style.getAlignment() === TextStyle.Alignment.LEFT) {
+                translationX = 0;
             }
-            ;
+            else if (style.getAlignment() === TextStyle.Alignment.RIGHT) {
+                translationX = -lineWidths[i];
+            }
+            else {
+                translationX = -lineWidths[i] / 2;
+            }
+            if (outlineColor != null) {
+                translationX += stroke.getLineWidth() / 2;
+            }
+            g2D.translate(translationX, 0);
+            if (outlineColor != null) {
+                var defaultColor = g2D.getColor();
+                g2D.setColor(intToColorString(outlineColor));
+                g2D.drawStringOutline(line, 0, 0);
+                g2D.setColor(defaultColor);
+            }
+            g2D.drawString(line, 0, 0);
+            g2D.translate(-translationX, -fontMetrics.getHeight());
         }
         g2D.setTransform(previousTransform);
     };
@@ -2204,44 +2145,34 @@ var PlanComponent = (function () {
         var rooms = Home.getRoomsSubList(items);
         var previousTransform = g2D.getTransform();
         var scaleInverse = 1 / planScale;
-        for (var index165 = 0; index165 < rooms.length; index165++) {
-            var room = rooms[index165];
-            {
-                if (this.isViewableAtSelectedLevel(room)) {
-                    g2D.setPaint(selectionOutlinePaint);
-                    g2D.setStroke(selectionOutlineStroke);
-                    g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
-                    if (indicatorPaint != null) {
-                        g2D.setPaint(indicatorPaint);
-                        {
-                            var array167 = room.getPoints();
-                            for (var index166 = 0; index166 < array167.length; index166++) {
-                                var point = array167[index166];
-                                {
-                                    g2D.translate(point[0], point[1]);
-                                    g2D.scale(scaleInverse, scaleInverse);
-                                    g2D.setStroke(PlanComponent.POINT_STROKE);
-                                    g2D.fill(PlanComponent.WALL_POINT);
-                                    g2D.setTransform(previousTransform);
-                                }
-                            }
-                        }
-                    }
+        for (var i = 0; i < rooms.length; i++) {
+            var room = rooms[i];
+            if (this.isViewableAtSelectedLevel(room)) {
+                g2D.setPaint(selectionOutlinePaint);
+                g2D.setStroke(selectionOutlineStroke);
+                g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
+                if (indicatorPaint != null) {
+                    g2D.setPaint(indicatorPaint);
+                    room.getPoints().forEach(function (point) {
+                        g2D.translate(point[0], point[1]);
+                        g2D.scale(scaleInverse, scaleInverse);
+                        g2D.setStroke(PlanComponent.POINT_STROKE);
+                        g2D.fill(PlanComponent.WALL_POINT);
+                        g2D.setTransform(previousTransform);
+                    });
                 }
             }
         }
         g2D.setPaint(foregroundColor);
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Room, PlanComponent.PaintMode.PAINT) / planScale));
-        for (var index168 = 0; index168 < rooms.length; index168++) {
-            var room = rooms[index168];
-            {
-                if (this.isViewableAtSelectedLevel(room)) {
-                    g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
-                }
+        for (var i = 0; i < rooms.length; i++) {
+            var room = rooms[i];
+            if (this.isViewableAtSelectedLevel(room)) {
+                g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
             }
         }
         if (items.length === 1 && rooms.length === 1 && indicatorPaint != null) {
-            var selectedRoom = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(rooms).next();
+            var selectedRoom = rooms[0];
             if (this.isViewableAtSelectedLevel(selectedRoom)) {
                 g2D.setPaint(indicatorPaint);
                 this.paintPointsResizeIndicators(g2D, selectedRoom, indicatorPaint, planScale, true, 0, 0, true);
@@ -2271,36 +2202,33 @@ var PlanComponent = (function () {
             var points = item.getPoints();
             var resizeIndicator = this.getIndicator(item, PlanComponent.IndicatorType.RESIZE);
             for (var i = 0; i < points.length; i++) {
-                {
-                    var point = points[i];
-                    g2D.translate(point[0], point[1]);
-                    g2D.scale(scaleInverse, scaleInverse);
-                    var previousPoint = i === 0 ? points[points.length - 1] : points[i - 1];
-                    var nextPoint = i === points.length - 1 ? points[0] : points[i + 1];
-                    var angle = void 0;
-                    if (closedPath || (i > 0 && i < points.length - 1)) {
-                        var distance1 = java.awt.geom.Point2D.distance(previousPoint[0], previousPoint[1], point[0], point[1]);
-                        var xNormal1 = (point[1] - previousPoint[1]) / distance1;
-                        var yNormal1 = (previousPoint[0] - point[0]) / distance1;
-                        var distance2 = java.awt.geom.Point2D.distance(nextPoint[0], nextPoint[1], point[0], point[1]);
-                        var xNormal2 = (nextPoint[1] - point[1]) / distance2;
-                        var yNormal2 = (point[0] - nextPoint[0]) / distance2;
-                        angle = Math.atan2(yNormal1 + yNormal2, xNormal1 + xNormal2);
-                        if (orientateIndicatorOutsideShape && item.containsPoint(point[0] + Math.cos(angle), point[1] + Math.sin(angle), 0.001) || !orientateIndicatorOutsideShape && (xNormal1 * yNormal2 - yNormal1 * xNormal2) < 0) {
-                            angle += Math.PI;
-                        }
+                var point = points[i];
+                g2D.translate(point[0], point[1]);
+                g2D.scale(scaleInverse, scaleInverse);
+                var previousPoint = i === 0 ? points[points.length - 1] : points[i - 1];
+                var nextPoint = i === points.length - 1 ? points[0] : points[i + 1];
+                var angle = void 0;
+                if (closedPath || (i > 0 && i < points.length - 1)) {
+                    var distance1 = java.awt.geom.Point2D.distance(previousPoint[0], previousPoint[1], point[0], point[1]);
+                    var xNormal1 = (point[1] - previousPoint[1]) / distance1;
+                    var yNormal1 = (previousPoint[0] - point[0]) / distance1;
+                    var distance2 = java.awt.geom.Point2D.distance(nextPoint[0], nextPoint[1], point[0], point[1]);
+                    var xNormal2 = (nextPoint[1] - point[1]) / distance2;
+                    var yNormal2 = (point[0] - nextPoint[0]) / distance2;
+                    angle = Math.atan2(yNormal1 + yNormal2, xNormal1 + xNormal2);
+                    if (orientateIndicatorOutsideShape && item.containsPoint(point[0] + Math.cos(angle), point[1] + Math.sin(angle), 0.001) || !orientateIndicatorOutsideShape && (xNormal1 * yNormal2 - yNormal1 * xNormal2) < 0) {
+                        angle += Math.PI;
                     }
-                    else if (i === 0) {
-                        angle = angleAtStart;
-                    }
-                    else {
-                        angle = angleAtEnd;
-                    }
-                    g2D.rotate(angle);
-                    g2D.draw(resizeIndicator);
-                    g2D.setTransform(previousTransform);
                 }
-                ;
+                else if (i === 0) {
+                    angle = angleAtStart;
+                }
+                else {
+                    angle = angleAtEnd;
+                }
+                g2D.rotate(angle);
+                g2D.draw(resizeIndicator);
+                g2D.setTransform(previousTransform);
             }
         }
     };
@@ -2311,12 +2239,7 @@ var PlanComponent = (function () {
      * @return {Object}
      */
     PlanComponent.prototype.getIndicator = function (item, indicatorType) {
-        if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.RESIZE, indicatorType)) {
+        if (PlanComponent.IndicatorType.RESIZE === indicatorType) {
             if (item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_RESIZE_INDICATOR;
             }
@@ -2327,12 +2250,7 @@ var PlanComponent = (function () {
                 return PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.ROTATE, indicatorType)) {
+        else if (PlanComponent.IndicatorType.ROTATE === indicatorType) {
             if (item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_ROTATION_INDICATOR;
             }
@@ -2343,12 +2261,7 @@ var PlanComponent = (function () {
                 return PlanComponent.CAMERA_YAW_ROTATION_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.ELEVATE, indicatorType)) {
+        else if (PlanComponent.IndicatorType.ELEVATE === indicatorType) {
             if (item != null && item instanceof Camera) {
                 return PlanComponent.CAMERA_ELEVATION_INDICATOR;
             }
@@ -2356,48 +2269,23 @@ var PlanComponent = (function () {
                 return PlanComponent.ELEVATION_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.RESIZE_HEIGHT, indicatorType)) {
+        else if (PlanComponent.IndicatorType.RESIZE_HEIGHT === indicatorType) {
             if (item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_HEIGHT_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.CHANGE_POWER, indicatorType)) {
+        else if (PlanComponent.IndicatorType.CHANGE_POWER === indicatorType) {
             if (item != null && item instanceof HomeLight) {
                 return PlanComponent.LIGHT_POWER_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.MOVE_TEXT, indicatorType)) {
+        else if (PlanComponent.IndicatorType.MOVE_TEXT === indicatorType) {
             return PlanComponent.TEXT_LOCATION_INDICATOR;
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.ROTATE_TEXT, indicatorType)) {
+        else if (PlanComponent.IndicatorType.ROTATE_TEXT === indicatorType) {
             return PlanComponent.TEXT_ANGLE_INDICATOR;
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.ROTATE_PITCH, indicatorType)) {
+        else if (PlanComponent.IndicatorType.ROTATE_PITCH === indicatorType) {
             if (item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR;
             }
@@ -2405,22 +2293,12 @@ var PlanComponent = (function () {
                 return PlanComponent.CAMERA_PITCH_ROTATION_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.ROTATE_ROLL, indicatorType)) {
+        else if (PlanComponent.IndicatorType.ROTATE_ROLL === indicatorType) {
             if (item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_ROLL_ROTATION_INDICATOR;
             }
         }
-        else if ((function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-        }
-        else {
-            return o1 === o2;
-        } })(PlanComponent.IndicatorType.ARC_EXTENT, indicatorType)) {
+        else if (PlanComponent.IndicatorType.ARC_EXTENT === indicatorType) {
             if (item != null && item instanceof Wall) {
                 return PlanComponent.WALL_ARC_EXTENT_INDICATOR;
             }
@@ -2507,12 +2385,9 @@ var PlanComponent = (function () {
     PlanComponent.prototype.getLineCount = function (text) {
         var lineCount = 1;
         for (var i = 0, n = text.length; i < n; i++) {
-            {
-                if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(text.charAt(i)) == '\n'.charCodeAt(0)) {
-                    lineCount++;
-                }
+            if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(text.charAt(i)) == '\n'.charCodeAt(0)) {
+                lineCount++;
             }
-            ;
         }
         return lineCount;
     };
@@ -2594,86 +2469,80 @@ var PlanComponent = (function () {
         var scaleInverse = 1 / planScale;
         var walls = Home.getWallsSubList(items);
         var previousTransform = g2D.getTransform();
-        for (var index171 = 0; index171 < walls.length; index171++) {
-            var wall = walls[index171];
-            {
-                if (this.isViewableAtSelectedLevel(wall)) {
-                    g2D.setPaint(selectionOutlinePaint);
-                    g2D.setStroke(selectionOutlineStroke);
-                    g2D.draw(ShapeTools.getShape(wall.getPoints(), true, null));
-                    if (indicatorPaint != null) {
-                        g2D.translate(wall.getXStart(), wall.getYStart());
-                        g2D.scale(scaleInverse, scaleInverse);
-                        g2D.setPaint(indicatorPaint);
-                        g2D.setStroke(PlanComponent.POINT_STROKE);
-                        g2D.fill(PlanComponent.WALL_POINT);
-                        var arcExtent = wall.getArcExtent();
-                        var indicatorAngle = void 0;
-                        var distanceAtScale = void 0;
-                        var xArcCircleCenter = 0;
-                        var yArcCircleCenter = 0;
-                        var arcCircleRadius = 0;
-                        var startPointToEndPointDistance = wall.getStartPointToEndPointDistance();
-                        var wallAngle = Math.atan2(wall.getYEnd() - wall.getYStart(), wall.getXEnd() - wall.getXStart());
-                        if (arcExtent != null && arcExtent !== 0) {
-                            xArcCircleCenter = wall.getXArcCircleCenter();
-                            yArcCircleCenter = wall.getYArcCircleCenter();
-                            arcCircleRadius = java.awt.geom.Point2D.distance(wall.getXStart(), wall.getYStart(), xArcCircleCenter, yArcCircleCenter);
-                            distanceAtScale = arcCircleRadius * Math.abs(arcExtent) * planScale;
-                            indicatorAngle = Math.atan2(yArcCircleCenter - wall.getYStart(), xArcCircleCenter - wall.getXStart()) + (arcExtent > 0 ? -Math.PI / 2 : Math.PI / 2);
-                        }
-                        else {
-                            distanceAtScale = startPointToEndPointDistance * planScale;
-                            indicatorAngle = wallAngle;
-                        }
-                        if (distanceAtScale < 30) {
-                            g2D.rotate(wallAngle);
-                            if (arcExtent != null) {
-                                var wallToStartPointArcCircleCenterAngle = Math.abs(arcExtent) > Math.PI ? -(Math.PI + arcExtent) / 2 : (Math.PI - arcExtent) / 2;
-                                var arcCircleCenterToWallDistance = (Math.tan(wallToStartPointArcCircleCenterAngle) * startPointToEndPointDistance / 2);
-                                g2D.translate(startPointToEndPointDistance * planScale / 2, (arcCircleCenterToWallDistance - arcCircleRadius * (Math.abs(wallAngle) > Math.PI / 2 ? -1 : 1)) * planScale);
-                            }
-                            else {
-                                g2D.translate(distanceAtScale / 2, 0);
-                            }
-                        }
-                        else {
-                            g2D.rotate(indicatorAngle);
-                            g2D.translate(8, 0);
-                        }
-                        g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
-                        g2D.setTransform(previousTransform);
-                        g2D.translate(wall.getXEnd(), wall.getYEnd());
-                        g2D.scale(scaleInverse, scaleInverse);
-                        g2D.fill(PlanComponent.WALL_POINT);
-                        if (distanceAtScale >= 30) {
-                            if (arcExtent != null) {
-                                indicatorAngle += arcExtent;
-                            }
-                            g2D.rotate(indicatorAngle);
-                            g2D.translate(-10, 0);
-                            g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
-                        }
-                        g2D.setTransform(previousTransform);
+        for (var i = 0; i < walls.length; i++) {
+            var wall = walls[i];
+            if (this.isViewableAtSelectedLevel(wall)) {
+                g2D.setPaint(selectionOutlinePaint);
+                g2D.setStroke(selectionOutlineStroke);
+                g2D.draw(ShapeTools.getShape(wall.getPoints(), true, null));
+                if (indicatorPaint != null) {
+                    g2D.translate(wall.getXStart(), wall.getYStart());
+                    g2D.scale(scaleInverse, scaleInverse);
+                    g2D.setPaint(indicatorPaint);
+                    g2D.setStroke(PlanComponent.POINT_STROKE);
+                    g2D.fill(PlanComponent.WALL_POINT);
+                    var arcExtent = wall.getArcExtent();
+                    var indicatorAngle = void 0;
+                    var distanceAtScale = void 0;
+                    var xArcCircleCenter = 0;
+                    var yArcCircleCenter = 0;
+                    var arcCircleRadius = 0;
+                    var startPointToEndPointDistance = wall.getStartPointToEndPointDistance();
+                    var wallAngle = Math.atan2(wall.getYEnd() - wall.getYStart(), wall.getXEnd() - wall.getXStart());
+                    if (arcExtent != null && arcExtent !== 0) {
+                        xArcCircleCenter = wall.getXArcCircleCenter();
+                        yArcCircleCenter = wall.getYArcCircleCenter();
+                        arcCircleRadius = java.awt.geom.Point2D.distance(wall.getXStart(), wall.getYStart(), xArcCircleCenter, yArcCircleCenter);
+                        distanceAtScale = arcCircleRadius * Math.abs(arcExtent) * planScale;
+                        indicatorAngle = Math.atan2(yArcCircleCenter - wall.getYStart(), xArcCircleCenter - wall.getXStart()) + (arcExtent > 0 ? -Math.PI / 2 : Math.PI / 2);
                     }
+                    else {
+                        distanceAtScale = startPointToEndPointDistance * planScale;
+                        indicatorAngle = wallAngle;
+                    }
+                    if (distanceAtScale < 30) {
+                        g2D.rotate(wallAngle);
+                        if (arcExtent != null) {
+                            var wallToStartPointArcCircleCenterAngle = Math.abs(arcExtent) > Math.PI ? -(Math.PI + arcExtent) / 2 : (Math.PI - arcExtent) / 2;
+                            var arcCircleCenterToWallDistance = (Math.tan(wallToStartPointArcCircleCenterAngle) * startPointToEndPointDistance / 2);
+                            g2D.translate(startPointToEndPointDistance * planScale / 2, (arcCircleCenterToWallDistance - arcCircleRadius * (Math.abs(wallAngle) > Math.PI / 2 ? -1 : 1)) * planScale);
+                        }
+                        else {
+                            g2D.translate(distanceAtScale / 2, 0);
+                        }
+                    }
+                    else {
+                        g2D.rotate(indicatorAngle);
+                        g2D.translate(8, 0);
+                    }
+                    g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
+                    g2D.setTransform(previousTransform);
+                    g2D.translate(wall.getXEnd(), wall.getYEnd());
+                    g2D.scale(scaleInverse, scaleInverse);
+                    g2D.fill(PlanComponent.WALL_POINT);
+                    if (distanceAtScale >= 30) {
+                        if (arcExtent != null) {
+                            indicatorAngle += arcExtent;
+                        }
+                        g2D.rotate(indicatorAngle);
+                        g2D.translate(-10, 0);
+                        g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
+                    }
+                    g2D.setTransform(previousTransform);
                 }
             }
         }
         g2D.setPaint(foregroundColor);
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, PlanComponent.PaintMode.PAINT) / planScale));
-        {
-            var array173 = (function (m) { var r = []; if (m.entries == null)
-                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                r.push(m.entries[i].value); return r; })(this.getWallAreas(this.getDrawableWallsInSelectedLevel(walls)));
-            for (var index172 = 0; index172 < array173.length; index172++) {
-                var area = array173[index172];
-                {
-                    g2D.draw(area);
-                }
-            }
+        var entries = (function (m) { var r = []; if (m.entries == null)
+            m.entries = []; for (var i = 0; i < m.entries.length; i++)
+            r.push(m.entries[i].value); return r; })(this.getWallAreas(this.getDrawableWallsInSelectedLevel(walls)));
+        for (var i = 0; i < entries.length; i++) {
+            var area = entries[i];
+            g2D.draw(area);
         }
         if (items.length === 1 && walls.length === 1 && indicatorPaint != null) {
-            var wall = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(walls).next();
+            var wall = walls[0];
             if (this.isViewableAtSelectedLevel(wall)) {
                 this.paintWallResizeIndicators(g2D, wall, indicatorPaint, planScale);
             }
@@ -2748,13 +2617,11 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.getDrawableWallsInSelectedLevel = function (walls) {
-        var wallsInSelectedLevel = ([]);
-        for (var index174 = 0; index174 < walls.length; index174++) {
-            var wall = walls[index174];
-            {
-                if (this.isViewableAtSelectedLevel(wall)) {
-                    /* add */ (wallsInSelectedLevel.push(wall) > 0);
-                }
+        var wallsInSelectedLevel = [];
+        for (var i = 0; i < walls.length; i++) {
+            var wall = walls[i];
+            if (this.isViewableAtSelectedLevel(wall)) {
+                wallsInSelectedLevel.push(wall);
             }
         }
         return wallsInSelectedLevel;
@@ -2779,7 +2646,7 @@ var PlanComponent = (function () {
             if (walls.length === 0) {
                 return {};
             }
-            var pattern = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(walls).next().getPattern();
+            var pattern = walls[0].getPattern();
             var samePattern = true;
             for (var i = 0; i < walls.length; i++) {
                 if (pattern !== walls[i].getPattern()) {
@@ -2789,12 +2656,7 @@ var PlanComponent = (function () {
             }
             var wallAreas = {};
             if (samePattern) {
-                /* put */ (function (m, k, v) { if (m.entries == null)
-                    m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                    if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                        m.entries[i].value = v;
-                        return;
-                    } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(wallAreas, walls, this.getItemsArea(walls));
+                putToMap(wallAreas, walls, this.getItemsArea(walls));
             }
             else {
                 var sortedWalls_1 = {};
@@ -2803,19 +2665,10 @@ var PlanComponent = (function () {
                     if (wallPattern == null) {
                         wallPattern = _this.preferences.getWallPattern();
                     }
-                    var patternWalls = (function (m, k) { if (m.entries == null)
-                        m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                        if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                            return m.entries[i].value;
-                        } return null; })(sortedWalls_1, wallPattern);
+                    var patternWalls = getFromMap(sortedWalls_1, wallPattern);
                     if (patternWalls == null) {
                         patternWalls = ([]);
-                        /* put */ (function (m, k, v) { if (m.entries == null)
-                            m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                            if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                                m.entries[i].value = v;
-                                return;
-                            } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(sortedWalls_1, wallPattern, patternWalls);
+                        putToMap(sortedWalls_1, wallPattern, patternWalls);
                     }
                     patternWalls.push(wall);
                 });
@@ -2826,12 +2679,7 @@ var PlanComponent = (function () {
                     for (var index177 = 0; index177 < array178.length; index177++) {
                         var patternWalls = array178[index177];
                         {
-                            /* put */ (function (m, k, v) { if (m.entries == null)
-                                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                                    m.entries[i].value = v;
-                                    return;
-                                } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(wallAreas, patternWalls, this.getItemsArea(patternWalls));
+                            putToMap(wallAreas, patternWalls, this.getItemsArea(patternWalls));
                         }
                     }
                 }
@@ -3067,11 +2915,7 @@ var PlanComponent = (function () {
         if (doorOrWindow.isWallCutOutOnBothSides()) {
             var doorOrWindowWallArea = null;
             if (this.doorOrWindowWallThicknessAreasCache != null) {
-                doorOrWindowWallArea = (function (m, k) { if (m.entries == null)
-                    m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                    if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                        return m.entries[i].value;
-                    } return null; })(this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
+                doorOrWindowWallArea = getFromMap(this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
             }
             if (doorOrWindowWallArea == null) {
                 var doorOrWindowRectangle = this.getDoorOrWindowRectangle(doorOrWindow, false);
@@ -3107,12 +2951,7 @@ var PlanComponent = (function () {
             if (this.doorOrWindowWallThicknessAreasCache == null) {
                 this.doorOrWindowWallThicknessAreasCache = ({});
             }
-            /* put */ (function (m, k, v) { if (m.entries == null)
-                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                    m.entries[i].value = v;
-                    return;
-                } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
+            putToMap(this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
             g2D.setPaint(backgroundColor);
             g2D.fill(doorOrWindowWallArea);
             g2D.setPaint(foregroundColor);
@@ -3227,34 +3066,31 @@ var PlanComponent = (function () {
         var furnitureInGroupsArea = null;
         var homeFurniture = this.home.getFurniture();
         for (var it = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(furniture); it.hasNext();) {
-            {
-                var piece = it.next();
-                newFurniture.push(piece);
-                if (piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
-                    var homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
-                    if (homePieceOfFurniture !== piece) {
-                        var groupArea = null;
-                        if (lastGroup !== homePieceOfFurniture) {
-                            var groupShape = ShapeTools.getShape(homePieceOfFurniture.getPoints(), true, null);
-                            groupArea = new java.awt.geom.Area(groupShape);
-                            groupArea.add(new java.awt.geom.Area(furnitureGroupsStroke.createStrokedShape(groupShape)));
-                        }
-                        var pieceArea = new java.awt.geom.Area(ShapeTools.getShape(piece.getPoints(), true, null));
-                        if (furnitureGroupsArea == null) {
-                            furnitureGroupsArea = groupArea;
-                            furnitureInGroupsArea = pieceArea;
-                        }
-                        else {
-                            if (lastGroup !== homePieceOfFurniture) {
-                                furnitureGroupsArea.add(groupArea);
-                            }
-                            furnitureInGroupsArea.add(pieceArea);
-                        }
-                        lastGroup = homePieceOfFurniture;
+            var piece = it.next();
+            newFurniture.push(piece);
+            if (piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
+                var homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
+                if (homePieceOfFurniture !== piece) {
+                    var groupArea = null;
+                    if (lastGroup !== homePieceOfFurniture) {
+                        var groupShape = ShapeTools.getShape(homePieceOfFurniture.getPoints(), true, null);
+                        groupArea = new java.awt.geom.Area(groupShape);
+                        groupArea.add(new java.awt.geom.Area(furnitureGroupsStroke.createStrokedShape(groupShape)));
                     }
+                    var pieceArea = new java.awt.geom.Area(ShapeTools.getShape(piece.getPoints(), true, null));
+                    if (furnitureGroupsArea == null) {
+                        furnitureGroupsArea = groupArea;
+                        furnitureInGroupsArea = pieceArea;
+                    }
+                    else {
+                        if (lastGroup !== homePieceOfFurniture) {
+                            furnitureGroupsArea.add(groupArea);
+                        }
+                        furnitureInGroupsArea.add(pieceArea);
+                    }
+                    lastGroup = homePieceOfFurniture;
                 }
             }
-            ;
         }
         if (furnitureGroupsArea != null) {
             furnitureGroupsArea.subtract(furnitureInGroupsArea);
@@ -3318,16 +3154,14 @@ var PlanComponent = (function () {
             var image = this.furnitureIconsCache[piece.icon.getURL()];
             if (image == null) {
                 image = TextureManager.getInstance().getWaitImage();
-                console.log("paintPieceOfFurnitureIcon: loading " + piece.icon.getURL());
                 TextureManager.getInstance().loadTexture(piece.icon, {
                     textureUpdated: function (texture) {
-                        console.log("paintPieceOfFurnitureIcon: loaded " + piece.icon.getURL());
                         _this.furnitureIconsCache[piece.icon.getURL()] = texture;
                         _this.repaint();
                     },
                     textureError: function () {
-                        console.error("icon not found: " + piece.icon.getURL());
                         _this.furnitureIconsCache[piece.icon.getURL()] = TextureManager.getInstance().getErrorImage();
+                        _this.repaint();
                     }
                 });
             }
@@ -3381,11 +3215,7 @@ var PlanComponent = (function () {
             this.furnitureTopViewIconKeys = ({});
             this.furnitureTopViewIconsCache = ({});
         }
-        var topViewIconKey = (function (m, k) { if (m.entries == null)
-            m.entries = []; for (var i = 0; i < m.entries.length; i++)
-            if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                return m.entries[i].value;
-            } return null; })(this.furnitureTopViewIconKeys, piece);
+        var topViewIconKey = getFromMap(this.furnitureTopViewIconKeys, piece);
         var icon;
         if (topViewIconKey == null) {
             topViewIconKey = new PlanComponent.HomePieceOfFurnitureTopViewIconKey(/* clone */ /* clone */ (function (o) { if (o.clone != undefined) {
@@ -3399,11 +3229,7 @@ var PlanComponent = (function () {
                 }
                 return clone;
             } })(piece));
-            icon = (function (m, k) { if (m.entries == null)
-                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                    return m.entries[i].value;
-                } return null; })(this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = getFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
             if (icon == null || icon.isWaitIcon() && paintMode !== PlanComponent.PaintMode.PAINT) {
                 var waitingComponent = paintMode === PlanComponent.PaintMode.PAINT ? this : null;
                 if (piece.getPlanIcon() != null) {
@@ -3412,12 +3238,7 @@ var PlanComponent = (function () {
                 else {
                     icon = new PlanComponent.PieceOfFurnitureModelIcon(piece, this.object3dFactory, waitingComponent, this.preferences.getFurnitureModelIconSize());
                 }
-                /* put */ (function (m, k, v) { if (m.entries == null)
-                    m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                    if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                        m.entries[i].value = v;
-                        return;
-                    } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(this.furnitureTopViewIconsCache, topViewIconKey, icon);
+                putToMap(this.furnitureTopViewIconsCache, topViewIconKey, icon);
             }
             else {
                 {
@@ -3435,19 +3256,10 @@ var PlanComponent = (function () {
                     }
                 }
             }
-            /* put */ (function (m, k, v) { if (m.entries == null)
-                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                    m.entries[i].value = v;
-                    return;
-                } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(this.furnitureTopViewIconKeys, piece, topViewIconKey);
+            putToMap(this.furnitureTopViewIconKeys, piece, topViewIconKey);
         }
         else {
-            icon = (function (m, k) { if (m.entries == null)
-                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                    return m.entries[i].value;
-                } return null; })(this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = getFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
         }
         if (icon.isWaitIcon() || icon.isErrorIcon()) {
             this.paintPieceOfFurnitureIcon(g2D, piece, icon, pieceShape2D, planScale, backgroundColor);
@@ -3585,20 +3397,17 @@ var PlanComponent = (function () {
                     var beforeLastPoint = null;
                     var lastPoint = null;
                     for (var it = polylineShape.getPathIterator(null, 0.5); !it.isDone(); it.next()) {
-                        {
-                            var pathPoint = [0, 0];
-                            if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                                if (firstPoint == null) {
-                                    firstPoint = pathPoint;
-                                }
-                                else if (secondPoint == null) {
-                                    secondPoint = pathPoint;
-                                }
-                                beforeLastPoint = lastPoint;
-                                lastPoint = pathPoint;
+                        var pathPoint = [0, 0];
+                        if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+                            if (firstPoint == null) {
+                                firstPoint = pathPoint;
                             }
+                            else if (secondPoint == null) {
+                                secondPoint = pathPoint;
+                            }
+                            beforeLastPoint = lastPoint;
+                            lastPoint = pathPoint;
                         }
-                        ;
                     }
                     var angleAtStart = Math.atan2(firstPoint[1] - secondPoint[1], firstPoint[0] - secondPoint[0]);
                     var angleAtEnd = Math.atan2(lastPoint[1] - beforeLastPoint[1], lastPoint[0] - beforeLastPoint[0]);
@@ -3889,7 +3698,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintCompassOutline = function (g2D, items, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
         var compass = this.home.getCompass();
-        if ((items.indexOf((compass)) >= 0) && compass.isVisible()) {
+        if ((items.indexOf(compass) >= 0) && compass.isVisible()) {
             var previousTransform = g2D.getTransform();
             g2D.translate(compass.getX(), compass.getY());
             g2D.rotate(compass.getNorthDirection());
@@ -3941,75 +3750,67 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.paintWallAlignmentFeedback = function (g2D, alignedWall, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
+        var _this = this;
         if (locationFeedback != null) {
-            var margin = 0.5 / planScale;
-            var x = locationFeedback.getX();
-            var y = locationFeedback.getY();
-            var deltaXToClosestWall = Infinity;
-            var deltaYToClosestWall = Infinity;
-            {
-                var array194 = this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache);
-                for (var index193 = 0; index193 < array194.length; index193++) {
-                    var wall = array194[index193];
-                    {
-                        if (wall !== alignedWall) {
-                            if (Math.abs(x - wall.getXStart()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
-                                if (Math.abs(deltaYToClosestWall) > Math.abs(y - wall.getYStart())) {
-                                    deltaYToClosestWall = y - wall.getYStart();
-                                }
+            var margin_1 = 0.5 / planScale;
+            var x_1 = locationFeedback.getX();
+            var y_1 = locationFeedback.getY();
+            var deltaXToClosestWall_1 = Infinity;
+            var deltaYToClosestWall_1 = Infinity;
+            this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(function (wall) {
+                if (wall !== alignedWall) {
+                    if (Math.abs(x_1 - wall.getXStart()) < margin_1 && (alignedWall == null || !_this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
+                        if (Math.abs(deltaYToClosestWall_1) > Math.abs(y_1 - wall.getYStart())) {
+                            deltaYToClosestWall_1 = y_1 - wall.getYStart();
+                        }
+                    }
+                    else if (Math.abs(x_1 - wall.getXEnd()) < margin_1 && (alignedWall == null || !_this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
+                        if (Math.abs(deltaYToClosestWall_1) > Math.abs(y_1 - wall.getYEnd())) {
+                            deltaYToClosestWall_1 = y_1 - wall.getYEnd();
+                        }
+                    }
+                    if (Math.abs(y_1 - wall.getYStart()) < margin_1 && (alignedWall == null || !_this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
+                        if (Math.abs(deltaXToClosestWall_1) > Math.abs(x_1 - wall.getXStart())) {
+                            deltaXToClosestWall_1 = x_1 - wall.getXStart();
+                        }
+                    }
+                    else if (Math.abs(y_1 - wall.getYEnd()) < margin_1 && (alignedWall == null || !_this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
+                        if (Math.abs(deltaXToClosestWall_1) > Math.abs(x_1 - wall.getXEnd())) {
+                            deltaXToClosestWall_1 = x_1 - wall.getXEnd();
+                        }
+                    }
+                    var wallPoints = wall.getPoints();
+                    wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
+                    for (var i = 0; i < wallPoints.length; i++) {
+                        if (Math.abs(x_1 - wallPoints[i][0]) < margin_1 && (alignedWall == null || !_this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
+                            if (Math.abs(deltaYToClosestWall_1) > Math.abs(y_1 - wallPoints[i][1])) {
+                                deltaYToClosestWall_1 = y_1 - wallPoints[i][1];
                             }
-                            else if (Math.abs(x - wall.getXEnd()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
-                                if (Math.abs(deltaYToClosestWall) > Math.abs(y - wall.getYEnd())) {
-                                    deltaYToClosestWall = y - wall.getYEnd();
-                                }
-                            }
-                            if (Math.abs(y - wall.getYStart()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
-                                if (Math.abs(deltaXToClosestWall) > Math.abs(x - wall.getXStart())) {
-                                    deltaXToClosestWall = x - wall.getXStart();
-                                }
-                            }
-                            else if (Math.abs(y - wall.getYEnd()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
-                                if (Math.abs(deltaXToClosestWall) > Math.abs(x - wall.getXEnd())) {
-                                    deltaXToClosestWall = x - wall.getXEnd();
-                                }
-                            }
-                            var wallPoints = wall.getPoints();
-                            wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
-                            for (var i = 0; i < wallPoints.length; i++) {
-                                {
-                                    if (Math.abs(x - wallPoints[i][0]) < margin && (alignedWall == null || !this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
-                                        if (Math.abs(deltaYToClosestWall) > Math.abs(y - wallPoints[i][1])) {
-                                            deltaYToClosestWall = y - wallPoints[i][1];
-                                        }
-                                    }
-                                    if (Math.abs(y - wallPoints[i][1]) < margin && (alignedWall == null || !this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
-                                        if (Math.abs(deltaXToClosestWall) > Math.abs(x - wallPoints[i][0])) {
-                                            deltaXToClosestWall = x - wallPoints[i][0];
-                                        }
-                                    }
-                                }
-                                ;
+                        }
+                        if (Math.abs(y_1 - wallPoints[i][1]) < margin_1 && (alignedWall == null || !_this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
+                            if (Math.abs(deltaXToClosestWall_1) > Math.abs(x_1 - wallPoints[i][0])) {
+                                deltaXToClosestWall_1 = x_1 - wallPoints[i][0];
                             }
                         }
                     }
                 }
-            }
+            });
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
-            if (deltaXToClosestWall !== Infinity) {
-                if (deltaXToClosestWall > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x + 25 / planScale, y, x - deltaXToClosestWall - 25 / planScale, y));
+            if (deltaXToClosestWall_1 !== Infinity) {
+                if (deltaXToClosestWall_1 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1 + 25 / planScale, y_1, x_1 - deltaXToClosestWall_1 - 25 / planScale, y_1));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x - 25 / planScale, y, x - deltaXToClosestWall + 25 / planScale, y));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1 - 25 / planScale, y_1, x_1 - deltaXToClosestWall_1 + 25 / planScale, y_1));
                 }
             }
-            if (deltaYToClosestWall !== Infinity) {
-                if (deltaYToClosestWall > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, x, y - deltaYToClosestWall - 25 / planScale));
+            if (deltaYToClosestWall_1 !== Infinity) {
+                if (deltaYToClosestWall_1 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1, y_1 + 25 / planScale, x_1, y_1 - deltaYToClosestWall_1 - 25 / planScale));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, x, y - deltaYToClosestWall + 25 / planScale));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_1, y_1 - 25 / planScale, x_1, y_1 - deltaYToClosestWall_1 + 25 / planScale));
                 }
             }
             if (showPointFeedback) {
@@ -4025,16 +3826,14 @@ var PlanComponent = (function () {
      * @private
      */
     PlanComponent.prototype.getViewedItems = function (homeItems, otherLevelItems) {
-        var viewedWalls = ([]);
+        var viewedWalls = [];
         if (otherLevelItems != null) {
-            /* addAll */ (function (l1, l2) { return l1.push.apply(l1, l2); })(viewedWalls, otherLevelItems);
+            viewedWalls.push.apply(viewedWalls, otherLevelItems);
         }
-        for (var index195 = 0; index195 < homeItems.length; index195++) {
-            var wall = homeItems[index195];
-            {
-                if (this.isViewableAtSelectedLevel(wall)) {
-                    /* add */ (viewedWalls.push(wall) > 0);
-                }
+        for (var i = 0; i < homeItems.length; i++) {
+            var wall = homeItems[i];
+            if (this.isViewableAtSelectedLevel(wall)) {
+                viewedWalls.push(wall);
             }
         }
         return viewedWalls;
@@ -4087,82 +3886,61 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintRoomAlignmentFeedback = function (g2D, alignedRoom, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
         if (locationFeedback != null) {
-            var margin = 0.5 / planScale;
-            var x = locationFeedback.getX();
-            var y = locationFeedback.getY();
-            var deltaXToClosestObject = Infinity;
-            var deltaYToClosestObject = Infinity;
-            {
-                var array197 = this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache);
-                for (var index196 = 0; index196 < array197.length; index196++) {
-                    var room = array197[index196];
-                    {
-                        var roomPoints = room.getPoints();
-                        var editedPointIndex = -1;
-                        if (room === alignedRoom) {
-                            for (var i = 0; i < roomPoints.length; i++) {
-                                {
-                                    if (roomPoints[i][0] === x && roomPoints[i][1] === y) {
-                                        editedPointIndex = i;
-                                        break;
-                                    }
-                                }
-                                ;
-                            }
-                        }
-                        for (var i = 0; i < roomPoints.length; i++) {
-                            {
-                                if (editedPointIndex === -1 || (i !== editedPointIndex && roomPoints.length > 2)) {
-                                    if (Math.abs(x - roomPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints[i][1])) {
-                                        deltaYToClosestObject = y - roomPoints[i][1];
-                                    }
-                                    if (Math.abs(y - roomPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints[i][0])) {
-                                        deltaXToClosestObject = x - roomPoints[i][0];
-                                    }
-                                }
-                            }
-                            ;
+            var margin_2 = 0.5 / planScale;
+            var x_2 = locationFeedback.getX();
+            var y_2 = locationFeedback.getY();
+            var deltaXToClosestObject_1 = Infinity;
+            var deltaYToClosestObject_1 = Infinity;
+            this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(function (room) {
+                var roomPoints = room.getPoints();
+                var editedPointIndex = -1;
+                if (room === alignedRoom) {
+                    for (var i = 0; i < roomPoints.length; i++) {
+                        if (roomPoints[i][0] === x_2 && roomPoints[i][1] === y_2) {
+                            editedPointIndex = i;
+                            break;
                         }
                     }
                 }
-            }
-            {
-                var array199 = this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache);
-                for (var index198 = 0; index198 < array199.length; index198++) {
-                    var wall = array199[index198];
-                    {
-                        var wallPoints = wall.getPoints();
-                        wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
-                        for (var i = 0; i < wallPoints.length; i++) {
-                            {
-                                if (Math.abs(x - wallPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints[i][1])) {
-                                    deltaYToClosestObject = y - wallPoints[i][1];
-                                }
-                                if (Math.abs(y - wallPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints[i][0])) {
-                                    deltaXToClosestObject = x - wallPoints[i][0];
-                                }
-                            }
-                            ;
+                for (var i = 0; i < roomPoints.length; i++) {
+                    if (editedPointIndex === -1 || (i !== editedPointIndex && roomPoints.length > 2)) {
+                        if (Math.abs(x_2 - roomPoints[i][0]) < margin_2 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_2 - roomPoints[i][1])) {
+                            deltaYToClosestObject_1 = y_2 - roomPoints[i][1];
+                        }
+                        if (Math.abs(y_2 - roomPoints[i][1]) < margin_2 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_2 - roomPoints[i][0])) {
+                            deltaXToClosestObject_1 = x_2 - roomPoints[i][0];
                         }
                     }
                 }
-            }
+            });
+            this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(function (wall) {
+                var wallPoints = wall.getPoints();
+                wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
+                for (var i = 0; i < wallPoints.length; i++) {
+                    if (Math.abs(x_2 - wallPoints[i][0]) < margin_2 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_2 - wallPoints[i][1])) {
+                        deltaYToClosestObject_1 = y_2 - wallPoints[i][1];
+                    }
+                    if (Math.abs(y_2 - wallPoints[i][1]) < margin_2 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_2 - wallPoints[i][0])) {
+                        deltaXToClosestObject_1 = x_2 - wallPoints[i][0];
+                    }
+                }
+            });
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
-            if (deltaXToClosestObject !== Infinity) {
-                if (deltaXToClosestObject > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x + 25 / planScale, y, x - deltaXToClosestObject - 25 / planScale, y));
+            if (deltaXToClosestObject_1 !== Infinity) {
+                if (deltaXToClosestObject_1 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_2 + 25 / planScale, y_2, x_2 - deltaXToClosestObject_1 - 25 / planScale, y_2));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x - 25 / planScale, y, x - deltaXToClosestObject + 25 / planScale, y));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_2 - 25 / planScale, y_2, x_2 - deltaXToClosestObject_1 + 25 / planScale, y_2));
                 }
             }
-            if (deltaYToClosestObject !== Infinity) {
-                if (deltaYToClosestObject > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, x, y - deltaYToClosestObject - 25 / planScale));
+            if (deltaYToClosestObject_1 !== Infinity) {
+                if (deltaYToClosestObject_1 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_2, y_2 + 25 / planScale, x_2, y_2 - deltaYToClosestObject_1 - 25 / planScale));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, x, y - deltaYToClosestObject + 25 / planScale));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_2, y_2 - 25 / planScale, x_2, y_2 - deltaYToClosestObject_1 + 25 / planScale));
                 }
             }
             if (showPointFeedback) {
@@ -4186,42 +3964,42 @@ var PlanComponent = (function () {
     PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function (g2D, alignedDimensionLine, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
         var _this = this;
         if (locationFeedback != null) {
-            var margin_1 = 0.5 / planScale;
-            var x_1 = locationFeedback.getX();
-            var y_1 = locationFeedback.getY();
-            var deltaXToClosestObject_1 = Infinity;
-            var deltaYToClosestObject_1 = Infinity;
+            var margin_3 = 0.5 / planScale;
+            var x_3 = locationFeedback.getX();
+            var y_3 = locationFeedback.getY();
+            var deltaXToClosestObject_2 = Infinity;
+            var deltaYToClosestObject_2 = Infinity;
             this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(function (room) {
                 var roomPoints = room.getPoints();
                 for (var i = 0; i < roomPoints.length; i++) {
-                    if (Math.abs(x_1 - roomPoints[i][0]) < margin_1 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - roomPoints[i][1])) {
-                        deltaYToClosestObject_1 = y_1 - roomPoints[i][1];
+                    if (Math.abs(x_3 - roomPoints[i][0]) < margin_3 && Math.abs(deltaYToClosestObject_2) > Math.abs(y_3 - roomPoints[i][1])) {
+                        deltaYToClosestObject_2 = y_3 - roomPoints[i][1];
                     }
-                    if (Math.abs(y_1 - roomPoints[i][1]) < margin_1 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - roomPoints[i][0])) {
-                        deltaXToClosestObject_1 = x_1 - roomPoints[i][0];
+                    if (Math.abs(y_3 - roomPoints[i][1]) < margin_3 && Math.abs(deltaXToClosestObject_2) > Math.abs(x_3 - roomPoints[i][0])) {
+                        deltaXToClosestObject_2 = x_3 - roomPoints[i][0];
                     }
                 }
             });
             this.home.getDimensionLines().forEach(function (dimensionLine) {
                 if (_this.isViewableAtSelectedLevel(dimensionLine) && dimensionLine !== alignedDimensionLine) {
-                    if (Math.abs(x_1 - dimensionLine.getXStart()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
-                        if (Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - dimensionLine.getYStart())) {
-                            deltaYToClosestObject_1 = y_1 - dimensionLine.getYStart();
+                    if (Math.abs(x_3 - dimensionLine.getXStart()) < margin_3 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
+                        if (Math.abs(deltaYToClosestObject_2) > Math.abs(y_3 - dimensionLine.getYStart())) {
+                            deltaYToClosestObject_2 = y_3 - dimensionLine.getYStart();
                         }
                     }
-                    else if (Math.abs(x_1 - dimensionLine.getXEnd()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
-                        if (Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - dimensionLine.getYEnd())) {
-                            deltaYToClosestObject_1 = y_1 - dimensionLine.getYEnd();
+                    else if (Math.abs(x_3 - dimensionLine.getXEnd()) < margin_3 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
+                        if (Math.abs(deltaYToClosestObject_2) > Math.abs(y_3 - dimensionLine.getYEnd())) {
+                            deltaYToClosestObject_2 = y_3 - dimensionLine.getYEnd();
                         }
                     }
-                    if (Math.abs(y_1 - dimensionLine.getYStart()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
-                        if (Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - dimensionLine.getXStart())) {
-                            deltaXToClosestObject_1 = x_1 - dimensionLine.getXStart();
+                    if (Math.abs(y_3 - dimensionLine.getYStart()) < margin_3 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), alignedDimensionLine))) {
+                        if (Math.abs(deltaXToClosestObject_2) > Math.abs(x_3 - dimensionLine.getXStart())) {
+                            deltaXToClosestObject_2 = x_3 - dimensionLine.getXStart();
                         }
                     }
-                    else if (Math.abs(y_1 - dimensionLine.getYEnd()) < margin_1 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
-                        if (Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - dimensionLine.getXEnd())) {
-                            deltaXToClosestObject_1 = x_1 - dimensionLine.getXEnd();
+                    else if (Math.abs(y_3 - dimensionLine.getYEnd()) < margin_3 && (alignedDimensionLine == null || !_this.equalsDimensionLinePoint(dimensionLine.getXEnd(), dimensionLine.getYEnd(), alignedDimensionLine))) {
+                        if (Math.abs(deltaXToClosestObject_2) > Math.abs(x_3 - dimensionLine.getXEnd())) {
+                            deltaXToClosestObject_2 = x_3 - dimensionLine.getXEnd();
                         }
                     }
                 }
@@ -4230,11 +4008,11 @@ var PlanComponent = (function () {
                 var wallPoints = wall.getPoints();
                 wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
                 for (var i = 0; i < wallPoints.length; i++) {
-                    if (Math.abs(x_1 - wallPoints[i][0]) < margin_1 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - wallPoints[i][1])) {
-                        deltaYToClosestObject_1 = y_1 - wallPoints[i][1];
+                    if (Math.abs(x_3 - wallPoints[i][0]) < margin_3 && Math.abs(deltaYToClosestObject_2) > Math.abs(y_3 - wallPoints[i][1])) {
+                        deltaYToClosestObject_2 = y_3 - wallPoints[i][1];
                     }
-                    if (Math.abs(y_1 - wallPoints[i][1]) < margin_1 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - wallPoints[i][0])) {
-                        deltaXToClosestObject_1 = x_1 - wallPoints[i][0];
+                    if (Math.abs(y_3 - wallPoints[i][1]) < margin_3 && Math.abs(deltaXToClosestObject_2) > Math.abs(x_3 - wallPoints[i][0])) {
+                        deltaXToClosestObject_2 = x_3 - wallPoints[i][0];
                     }
                 }
             });
@@ -4242,31 +4020,31 @@ var PlanComponent = (function () {
                 if (piece.isVisible() && _this.isViewableAtSelectedLevel(piece)) {
                     var piecePoints = piece.getPoints();
                     for (var i = 0; i < piecePoints.length; i++) {
-                        if (Math.abs(x_1 - piecePoints[i][0]) < margin_1 && Math.abs(deltaYToClosestObject_1) > Math.abs(y_1 - piecePoints[i][1])) {
-                            deltaYToClosestObject_1 = y_1 - piecePoints[i][1];
+                        if (Math.abs(x_3 - piecePoints[i][0]) < margin_3 && Math.abs(deltaYToClosestObject_2) > Math.abs(y_3 - piecePoints[i][1])) {
+                            deltaYToClosestObject_2 = y_3 - piecePoints[i][1];
                         }
-                        if (Math.abs(y_1 - piecePoints[i][1]) < margin_1 && Math.abs(deltaXToClosestObject_1) > Math.abs(x_1 - piecePoints[i][0])) {
-                            deltaXToClosestObject_1 = x_1 - piecePoints[i][0];
+                        if (Math.abs(y_3 - piecePoints[i][1]) < margin_3 && Math.abs(deltaXToClosestObject_2) > Math.abs(x_3 - piecePoints[i][0])) {
+                            deltaXToClosestObject_2 = x_3 - piecePoints[i][0];
                         }
                     }
                 }
             });
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
-            if (deltaXToClosestObject_1 !== Infinity) {
-                if (deltaXToClosestObject_1 > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x_1 + 25 / planScale, y_1, x_1 - deltaXToClosestObject_1 - 25 / planScale, y_1));
+            if (deltaXToClosestObject_2 !== Infinity) {
+                if (deltaXToClosestObject_2 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_3 + 25 / planScale, y_3, x_3 - deltaXToClosestObject_2 - 25 / planScale, y_3));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x_1 - 25 / planScale, y_1, x_1 - deltaXToClosestObject_1 + 25 / planScale, y_1));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_3 - 25 / planScale, y_3, x_3 - deltaXToClosestObject_2 + 25 / planScale, y_3));
                 }
             }
-            if (deltaYToClosestObject_1 !== Infinity) {
-                if (deltaYToClosestObject_1 > 0) {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x_1, y_1 + 25 / planScale, x_1, y_1 - deltaYToClosestObject_1 - 25 / planScale));
+            if (deltaYToClosestObject_2 !== Infinity) {
+                if (deltaYToClosestObject_2 > 0) {
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_3, y_3 + 25 / planScale, x_3, y_3 - deltaYToClosestObject_2 - 25 / planScale));
                 }
                 else {
-                    g2D.draw(new java.awt.geom.Line2D.Float(x_1, y_1 - 25 / planScale, x_1, y_1 - deltaYToClosestObject_1 + 25 / planScale));
+                    g2D.draw(new java.awt.geom.Line2D.Float(x_3, y_3 - 25 / planScale, x_3, y_3 - deltaYToClosestObject_2 + 25 / planScale));
                 }
             }
             if (showPointFeedback) {
@@ -4350,7 +4128,7 @@ var PlanComponent = (function () {
             var stroke = new java.awt.BasicStroke(this.getStrokeWidth(ObserverCamera, PlanComponent.PaintMode.PAINT) / planScale);
             g2D.setStroke(stroke);
             g2D.draw(scaledCameraBody);
-            if ((selectedItems.indexOf((camera)) >= 0) && this.selectedItemsOutlinePainted) {
+            if (selectedItems.indexOf(camera) >= 0 && this.selectedItemsOutlinePainted) {
                 g2D.setPaint(selectionOutlinePaint);
                 g2D.setStroke(selectionOutlineStroke);
                 var cameraOutline = new java.awt.geom.Area(scaledCameraBody);
@@ -5340,11 +5118,7 @@ var PlanComponent;
                 this.focusedTextField.setValue(this.focusedTextField.getValue());
             }
             this.focusedTextFieldIndex = textFieldIndex;
-            this.focusedTextField = (function (m, k) { if (m.entries == null)
-                m.entries = []; for (var i = 0; i < m.entries.length; i++)
-                if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                    return m.entries[i].value;
-                } return null; })(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
+            this.focusedTextField = getFromMap(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
             if (this.focusedTextField.getText().length === 0) {
                 this.focusedTextField.getCaret().setVisible(false);
             }

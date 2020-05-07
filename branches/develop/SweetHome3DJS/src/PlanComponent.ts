@@ -1275,17 +1275,17 @@ class PlanComponent implements PlanView {
     getItemBounds(g : Graphics2D, item : any) : java.awt.geom.Rectangle2D {
         let points : number[][] = item.getPoints();
         let itemBounds : java.awt.geom.Rectangle2D = new java.awt.geom.Rectangle2D.Float(points[0][0], points[0][1], 0, 0);
-        for(let i : number = 1; i < points.length; i++) {{
+        for(let i : number = 1; i < points.length; i++) {
             itemBounds.add(points[i][0], points[i][1]);
-        };}
+        }
         let componentFont : string;
         if(g != null) {
             componentFont = g.getFont();
         } else {
             componentFont = this.getFont();
         }
-        if(item != null && item instanceof <any>Room) {
-            let room : any = item;
+        if(item != null && item instanceof Room) {
+            let room = item;
             let xRoomCenter : number = room.getXCenter();
             let yRoomCenter : number = room.getYCenter();
             let roomName : string = room.getName();
@@ -1296,34 +1296,28 @@ class PlanComponent implements PlanView {
                 let area : number = room.getArea();
                 if(area > 0.01) {
                     let areaText : string = this.preferences.getLengthUnit().getAreaFormatWithUnit().format(area);
-                    this.addTextBounds((<any>room.constructor), areaText, room.getAreaStyle(), xRoomCenter + room.getAreaXOffset(), yRoomCenter + room.getAreaYOffset(), room.getAreaAngle(), itemBounds);
+                    this.addTextBounds(room.constructor, areaText, room.getAreaStyle(), xRoomCenter + room.getAreaXOffset(), yRoomCenter + room.getAreaYOffset(), room.getAreaAngle(), itemBounds);
                 }
             }
         } else if(item != null && item instanceof <any>Polyline) {
             let polyline : any = item;
             return ShapeTools.getPolylineShape(polyline.getPoints(), polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath()).getBounds2D();
-        } else if(item != null && item instanceof <any>HomePieceOfFurniture) {
-            if(item != null && item instanceof <any>HomeDoorOrWindow) {
-                let doorOrWindow : any = item;
-                {
-                    let array149 = doorOrWindow.getSashes();
-                    for(let index148=0; index148 < array149.length; index148++) {
-                        let sash = array149[index148];
-                        {
-                            itemBounds.add(this.getDoorOrWindowSashShape(doorOrWindow, sash).getBounds2D());
-                        }
-                    }
-                }
-            } else if(item != null && item instanceof <any>HomeFurnitureGroup) {
-                itemBounds.add(this.getItemsBounds(g, (item).getFurniture()));
+        } else if(item != null && item instanceof HomePieceOfFurniture) {
+            if(item != null && item instanceof HomeDoorOrWindow) {
+                let doorOrWindow = item;
+                doorOrWindow.getSashes().forEach(sash => {
+                  itemBounds.add(this.getDoorOrWindowSashShape(doorOrWindow, sash).getBounds2D());
+                });
+            } else if(item != null && item instanceof HomeFurnitureGroup) {
+                itemBounds.add(this.getItemsBounds(g, item.getFurniture()));
             }
             let piece : any = item;
             let pieceName : string = piece.getName();
             if(piece.isVisible() && piece.isNameVisible() && pieceName.length > 0) {
-                this.addTextBounds((<any>piece.constructor), pieceName, piece.getNameStyle(), piece.getX() + piece.getNameXOffset(), piece.getY() + piece.getNameYOffset(), piece.getNameAngle(), itemBounds);
+                this.addTextBounds(piece.constructor, pieceName, piece.getNameStyle(), piece.getX() + piece.getNameXOffset(), piece.getY() + piece.getNameYOffset(), piece.getNameAngle(), itemBounds);
             }
-        } else if(item != null && item instanceof <any>DimensionLine) {
-            let dimensionLine : any = item;
+        } else if(item != null && item instanceof DimensionLine) {
+            let dimensionLine = item;
             let dimensionLineLength : number = dimensionLine.getLength();
             let lengthText : string = this.preferences.getLengthUnit().getFormat().format(dimensionLineLength);
             let lengthStyle : any = dimensionLine.getLengthStyle();
@@ -1338,33 +1332,33 @@ class PlanComponent implements PlanView {
             transform.translate(0, dimensionLine.getOffset());
             transform.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0?-lengthFontMetrics.getDescent() - 1:lengthFontMetrics.getAscent() + 1);
             let lengthTextBoundsPath : java.awt.geom.GeneralPath = new java.awt.geom.GeneralPath(lengthTextBounds);
-            for(let it : java.awt.geom.PathIterator = lengthTextBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {{
+            for(let it : java.awt.geom.PathIterator = lengthTextBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
                 let pathPoint : number[] = [0, 0];
                 if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
                     itemBounds.add(pathPoint[0], pathPoint[1]);
                 }
-            };}
+            }
             transform.setToTranslation(dimensionLine.getXStart(), dimensionLine.getYStart());
             transform.rotate(angle);
             transform.translate(0, dimensionLine.getOffset());
-            for(let it : java.awt.geom.PathIterator = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {{
+            for(let it : java.awt.geom.PathIterator = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {
                 let pathPoint : number[] = [0, 0];
                 if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
                     itemBounds.add(pathPoint[0], pathPoint[1]);
                 }
-            };}
+            }
             transform.translate(dimensionLineLength, 0);
-            for(let it : java.awt.geom.PathIterator = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {{
+            for(let it : java.awt.geom.PathIterator = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {
                 let pathPoint : number[] = [0, 0];
                 if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
                     itemBounds.add(pathPoint[0], pathPoint[1]);
                 }
-            };}
-        } else if(item != null && item instanceof <any>Label) {
-            let label : any = item;
-            this.addTextBounds((<any>label.constructor), label.getText(), label.getStyle(), label.getX(), label.getY(), label.getAngle(), itemBounds);
-        } else if(item != null && item instanceof <any>Compass) {
-            let compass : any = item;
+            }
+        } else if(item != null && item instanceof Label) {
+            let label = item;
+            this.addTextBounds(label.constructor, label.getText(), label.getStyle(), label.getX(), label.getY(), label.getAngle(), itemBounds);
+        } else if(item != null && item instanceof Compass) {
+            let compass = item;
             let transform : java.awt.geom.AffineTransform = java.awt.geom.AffineTransform.getTranslateInstance(compass.getX(), compass.getY());
             transform.scale(compass.getDiameter(), compass.getDiameter());
             transform.rotate(compass.getNorthDirection());
@@ -1410,12 +1404,12 @@ class PlanComponent implements PlanView {
         if(g != null) {
             this.setRenderingHints(g);
         }
-        for(let i : number = 0; i < lines.length; i++) {{
+        for(let i : number = 0; i < lines.length; i++) {
             let lineBounds : java.awt.geom.Rectangle2D = fontMetrics.getStringBounds(lines[i]);
             if(textBounds == null || textBounds.getWidth() < lineBounds.getWidth()) {
                 textBounds = lineBounds;
             }
-        };}
+        }
         let textWidth : number = <number>textBounds.getWidth();
         let shiftX : number;
         if(style.getAlignment() === TextStyle.Alignment.LEFT) {
@@ -1437,14 +1431,14 @@ class PlanComponent implements PlanView {
             transform.rotate(angle);
             transform.translate(shiftX, 0);
             let textBoundsPath : java.awt.geom.GeneralPath = new java.awt.geom.GeneralPath(textBounds);
-            let textPoints : Array<number[]> = <any>([]);
-            for(let it : java.awt.geom.PathIterator = textBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {{
+            let textPoints : Array<number[]> = [];
+            for(let it : java.awt.geom.PathIterator = textBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
                 let pathPoint : number[] = [0, 0];
                 if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-                    /* add */(textPoints.push(pathPoint)>0);
+                    textPoints.push(pathPoint);
                 }
-            };}
-            return /* toArray */textPoints.slice(0);
+            }
+            return textPoints.slice(0);
         }
     }
 
@@ -1682,13 +1676,13 @@ class PlanComponent implements PlanView {
         let backgroundImageLevel : Level = null;
         if(selectedLevel != null) {
             let levels = this.home.getLevels();
-            for(let i : number = levels.length - 1; i >= 0; i--) {{
+            for(let i : number = levels.length - 1; i >= 0; i--) {
                 let level = levels[i];
                 if(level.getElevation() === selectedLevel.getElevation() && level.getElevationIndex() <= selectedLevel.getElevationIndex() && level.isViewable() && level.getBackgroundImage() != null && level.getBackgroundImage().isVisible()) {
                     backgroundImageLevel = level;
                     break;
                 }
-            };}
+            }
         }
         let backgroundImage = backgroundImageLevel == null?this.home.getBackgroundImage():backgroundImageLevel.getBackgroundImage();
         if(backgroundImage != null && backgroundImage.isVisible()) {
@@ -1931,20 +1925,20 @@ class PlanComponent implements PlanView {
     paintGridLines(g2D : Graphics2D, gridScale : number, xMin : number, xMax : number, yMin : number, yMax : number, gridSize : number, mainGridSize : number) {
         g2D.setColor(this.getGridColor());
         g2D.setStroke(new java.awt.BasicStroke(0.5 / gridScale));
-        for(let x : number = (<number>(xMin / gridSize)|0) * gridSize; x < xMax; x += gridSize) {{
+        for(let x : number = (<number>(xMin / gridSize)|0) * gridSize; x < xMax; x += gridSize) {
             g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));
-        };}
-        for(let y : number = (<number>(yMin / gridSize)|0) * gridSize; y < yMax; y += gridSize) {{
+        }
+        for(let y : number = (<number>(yMin / gridSize)|0) * gridSize; y < yMax; y += gridSize) {
             g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
-        };}
+        }
         if(mainGridSize !== gridSize) {
             g2D.setStroke(new java.awt.BasicStroke(1.5 / gridScale, java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_BEVEL));
-            for(let x : number = (<number>(xMin / mainGridSize)|0) * mainGridSize; x < xMax; x += mainGridSize) {{
+            for(let x : number = (<number>(xMin / mainGridSize)|0) * mainGridSize; x < xMax; x += mainGridSize) {
                 g2D.draw(new java.awt.geom.Line2D.Double(x, yMin, x, yMax));
-            };}
-            for(let y : number = (<number>(yMin / mainGridSize)|0) * mainGridSize; y < yMax; y += mainGridSize) {{
+            }
+            for(let y : number = (<number>(yMin / mainGridSize)|0) * mainGridSize; y < yMax; y += mainGridSize) {
                 g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
-            };}
+            }
         }
     }
 
@@ -1964,9 +1958,9 @@ class PlanComponent implements PlanView {
             mainGridSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
         }
         let mainGridSize : number = mainGridSizes[0];
-        for(let i : number = 1; i < mainGridSizes.length && mainGridSize * gridScale < 50; i++) {{
+        for(let i : number = 1; i < mainGridSizes.length && mainGridSize * gridScale < 50; i++) {
             mainGridSize = mainGridSizes[i];
-        };}
+        }
         return mainGridSize;
     }
 
@@ -1986,9 +1980,9 @@ class PlanComponent implements PlanView {
             gridSizes = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
         }
         let gridSize : number = gridSizes[0];
-        for(let i : number = 1; i < gridSizes.length && gridSize * gridScale < 10; i++) {{
+        for(let i : number = 1; i < gridSizes.length && gridSize * gridScale < 10; i++) {
             gridSize = gridSizes[i];
-        };}
+        }
         return gridSize;
     }
 
@@ -2272,13 +2266,13 @@ class PlanComponent implements PlanView {
             if(firstY > shapeBounds.getY()) {
                 firstY -= anchorRect.getHeight();
             }
-            for(let x : number = firstX; x < shapeBounds.getMaxX(); x += anchorRect.getWidth()) {{
-                for(let y : number = firstY; y < shapeBounds.getMaxY(); y += anchorRect.getHeight()) {{
+            for(let x : number = firstX; x < shapeBounds.getMaxX(); x += anchorRect.getWidth()) {
+                for(let y : number = firstY; y < shapeBounds.getMaxY(); y += anchorRect.getHeight()) {
                     let transform : java.awt.geom.AffineTransform = java.awt.geom.AffineTransform.getTranslateInstance(x, y);
                     transform.concatenate(java.awt.geom.AffineTransform.getScaleInstance(anchorRect.getWidth() / image.getWidth(), anchorRect.getHeight() / image.getHeight()));
                     g2D.drawRenderedImage(image, transform);
-                };}
-            };}
+                }
+            }
             g2D.setClip(clip);
         } else {
             g2D.fill(shape);
@@ -2358,10 +2352,10 @@ class PlanComponent implements PlanView {
         let lines : string[] = text.split("\n");
         let lineWidths : number[] = (s => { let a=[]; while(s-->0) a.push(0); return a; })(lines.length);
         let textWidth : number = -3.4028235E38;
-        for(let i : number = 0; i < lines.length; i++) {{
+        for(let i : number = 0; i < lines.length; i++) {
             lineWidths[i] = fontMetrics.getStringBounds(lines[i]).getWidth();
             textWidth = Math.max(lineWidths[i], textWidth);
-        };}
+        }
         let stroke : java.awt.BasicStroke = null;
         let font : string;
         if(outlineColor != null) {
@@ -2373,7 +2367,7 @@ class PlanComponent implements PlanView {
             font = this.getFont(defaultFont, style);
         }
         g2D.setFont(font);
-        for(let i : number = lines.length - 1; i >= 0; i--) {{
+        for(let i : number = lines.length - 1; i >= 0; i--) {
             let line : string = lines[i];
             let translationX : number;
             if(style.getAlignment() === TextStyle.Alignment.LEFT) {
@@ -2395,7 +2389,7 @@ class PlanComponent implements PlanView {
             }
             g2D.drawString(line, 0, 0);
             g2D.translate(-translationX, -fontMetrics.getHeight());
-        };}
+        }
         g2D.setTransform(previousTransform);
     }
 
@@ -2412,47 +2406,37 @@ class PlanComponent implements PlanView {
      * @private
      */
     paintRoomsOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
-        let rooms : Array<any> = Home.getRoomsSubList(items);
+        let rooms : Room[] = Home.getRoomsSubList(items);
         let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
         let scaleInverse : number = 1 / planScale;
-        for(let index165=0; index165 < rooms.length; index165++) {
-            let room = rooms[index165];
-            {
-                if(this.isViewableAtSelectedLevel(room)) {
-                    g2D.setPaint(selectionOutlinePaint);
-                    g2D.setStroke(selectionOutlineStroke);
-                    g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
-                    if(indicatorPaint != null) {
-                        g2D.setPaint(indicatorPaint);
-                        {
-                            let array167 = room.getPoints();
-                            for(let index166=0; index166 < array167.length; index166++) {
-                                let point = array167[index166];
-                                {
-                                    g2D.translate(point[0], point[1]);
-                                    g2D.scale(scaleInverse, scaleInverse);
-                                    g2D.setStroke(PlanComponent.POINT_STROKE);
-                                    g2D.fill(PlanComponent.WALL_POINT);
-                                    g2D.setTransform(previousTransform);
-                                }
-                            }
-                        }
-                    }
+        for(let i=0; i < rooms.length; i++) {
+            let room = rooms[i];
+            if(this.isViewableAtSelectedLevel(room)) {
+                g2D.setPaint(selectionOutlinePaint);
+                g2D.setStroke(selectionOutlineStroke);
+                g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
+                if(indicatorPaint != null) {
+                    g2D.setPaint(indicatorPaint);
+                    room.getPoints().forEach(function(point) {
+                        g2D.translate(point[0], point[1]);
+                        g2D.scale(scaleInverse, scaleInverse);
+                        g2D.setStroke(PlanComponent.POINT_STROKE);
+                        g2D.fill(PlanComponent.WALL_POINT);
+                        g2D.setTransform(previousTransform);
+                    });
                 }
             }
         }
         g2D.setPaint(foregroundColor);
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Room, PlanComponent.PaintMode.PAINT) / planScale));
-        for(let index168=0; index168 < rooms.length; index168++) {
-            let room = rooms[index168];
-            {
-                if(this.isViewableAtSelectedLevel(room)) {
-                    g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
-                }
+        for(let i=0; i < rooms.length; i++) {
+            let room = rooms[i];
+            if(this.isViewableAtSelectedLevel(room)) {
+                g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
             }
         }
-        if(/* size */(<number>items.length) === 1 && /* size */(<number>rooms.length) === 1 && indicatorPaint != null) {
-            let selectedRoom : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(rooms).next();
+        if(items.length === 1 && rooms.length === 1 && indicatorPaint != null) {
+            let selectedRoom = rooms[0];
             if(this.isViewableAtSelectedLevel(selectedRoom)) {
                 g2D.setPaint(indicatorPaint);
                 this.paintPointsResizeIndicators(g2D, selectedRoom, indicatorPaint, planScale, true, 0, 0, true);
@@ -2482,7 +2466,7 @@ class PlanComponent implements PlanView {
             let scaleInverse : number = 1 / planScale * this.resolutionScale;
             let points : number[][] = item.getPoints();
             let resizeIndicator : java.awt.Shape = this.getIndicator(item, PlanComponent.IndicatorType.RESIZE);
-            for(let i : number = 0; i < points.length; i++) {{
+            for(let i : number = 0; i < points.length; i++) {
                 let point : number[] = points[i];
                 g2D.translate(point[0], point[1]);
                 g2D.scale(scaleInverse, scaleInverse);
@@ -2508,7 +2492,7 @@ class PlanComponent implements PlanView {
                 g2D.rotate(angle);
                 g2D.draw(resizeIndicator);
                 g2D.setTransform(previousTransform);
-            };}
+            }
         }
     }
 
@@ -2519,52 +2503,52 @@ class PlanComponent implements PlanView {
      * @return {Object}
      */
     getIndicator(item : any, indicatorType : PlanComponent.IndicatorType) : java.awt.Shape {
-        if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.RESIZE,indicatorType))) {
-            if(item != null && item instanceof <any>HomePieceOfFurniture) {
+        if(PlanComponent.IndicatorType.RESIZE === indicatorType) {
+            if(item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_RESIZE_INDICATOR;
-            } else if(item != null && item instanceof <any>Compass) {
+            } else if(item != null && item instanceof Compass) {
                 return PlanComponent.COMPASS_RESIZE_INDICATOR;
             } else {
                 return PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.ROTATE,indicatorType))) {
-            if(item != null && item instanceof <any>HomePieceOfFurniture) {
+        } else if(PlanComponent.IndicatorType.ROTATE === indicatorType) {
+            if(item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_ROTATION_INDICATOR;
-            } else if(item != null && item instanceof <any>Compass) {
+            } else if(item != null && item instanceof Compass) {
                 return PlanComponent.COMPASS_ROTATION_INDICATOR;
-            } else if(item != null && item instanceof <any>Camera) {
+            } else if(item != null && item instanceof Camera) {
                 return PlanComponent.CAMERA_YAW_ROTATION_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.ELEVATE,indicatorType))) {
-            if(item != null && item instanceof <any>Camera) {
+        } else if(PlanComponent.IndicatorType.ELEVATE === indicatorType) {
+            if(item != null && item instanceof Camera) {
                 return PlanComponent.CAMERA_ELEVATION_INDICATOR;
             } else {
                 return PlanComponent.ELEVATION_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.RESIZE_HEIGHT,indicatorType))) {
-            if(item != null && item instanceof <any>HomePieceOfFurniture) {
+        } else if(PlanComponent.IndicatorType.RESIZE_HEIGHT === indicatorType) {
+            if(item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_HEIGHT_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.CHANGE_POWER,indicatorType))) {
-            if(item != null && item instanceof <any>HomeLight) {
+        } else if(PlanComponent.IndicatorType.CHANGE_POWER === indicatorType) {
+            if(item != null && item instanceof HomeLight) {
                 return PlanComponent.LIGHT_POWER_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.MOVE_TEXT,indicatorType))) {
+        } else if(PlanComponent.IndicatorType.MOVE_TEXT === indicatorType) {
             return PlanComponent.TEXT_LOCATION_INDICATOR;
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.ROTATE_TEXT,indicatorType))) {
+        } else if(PlanComponent.IndicatorType.ROTATE_TEXT === indicatorType) {
             return PlanComponent.TEXT_ANGLE_INDICATOR;
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.ROTATE_PITCH,indicatorType))) {
-            if(item != null && item instanceof <any>HomePieceOfFurniture) {
+        } else if(PlanComponent.IndicatorType.ROTATE_PITCH === indicatorType) {
+            if(item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR;
-            } else if(item != null && item instanceof <any>Camera) {
+            } else if(item != null && item instanceof Camera) {
                 return PlanComponent.CAMERA_PITCH_ROTATION_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.ROTATE_ROLL,indicatorType))) {
-            if(item != null && item instanceof <any>HomePieceOfFurniture) {
+        } else if(PlanComponent.IndicatorType.ROTATE_ROLL === indicatorType) {
+            if(item != null && item instanceof HomePieceOfFurniture) {
                 return PlanComponent.FURNITURE_ROLL_ROTATION_INDICATOR;
             }
-        } else if(/* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(PlanComponent.IndicatorType.ARC_EXTENT,indicatorType))) {
-            if(item != null && item instanceof <any>Wall) {
+        } else if(PlanComponent.IndicatorType.ARC_EXTENT === indicatorType) {
+            if(item != null && item instanceof Wall) {
                 return PlanComponent.WALL_ARC_EXTENT_INDICATOR;
             }
         }
@@ -2652,11 +2636,11 @@ class PlanComponent implements PlanView {
      */
     getLineCount(text : string) : number {
         let lineCount : number = 1;
-        for(let i : number = 0, n : number = text.length; i < n; i++) {{
+        for(let i : number = 0, n : number = text.length; i < n; i++) {
             if((c => c.charCodeAt==null?<any>c:c.charCodeAt(0))(text.charAt(i)) == '\n'.charCodeAt(0)) {
                 lineCount++;
             }
-        };}
+        }
         return lineCount;
     }
 
@@ -2738,81 +2722,75 @@ class PlanComponent implements PlanView {
         let scaleInverse : number = 1 / planScale;
         let walls : Array<any> = Home.getWallsSubList(items);
         let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
-        for(let index171=0; index171 < walls.length; index171++) {
-            let wall = walls[index171];
-            {
-                if(this.isViewableAtSelectedLevel(wall)) {
-                    g2D.setPaint(selectionOutlinePaint);
-                    g2D.setStroke(selectionOutlineStroke);
-                    g2D.draw(ShapeTools.getShape(wall.getPoints(), true, null));
-                    if(indicatorPaint != null) {
-                        g2D.translate(wall.getXStart(), wall.getYStart());
-                        g2D.scale(scaleInverse, scaleInverse);
-                        g2D.setPaint(indicatorPaint);
-                        g2D.setStroke(PlanComponent.POINT_STROKE);
-                        g2D.fill(PlanComponent.WALL_POINT);
-                        let arcExtent : number = wall.getArcExtent();
-                        let indicatorAngle : number;
-                        let distanceAtScale : number;
-                        let xArcCircleCenter : number = 0;
-                        let yArcCircleCenter : number = 0;
-                        let arcCircleRadius : number = 0;
-                        let startPointToEndPointDistance : number = wall.getStartPointToEndPointDistance();
-                        let wallAngle : number = Math.atan2(wall.getYEnd() - wall.getYStart(), wall.getXEnd() - wall.getXStart());
-                        if(arcExtent != null && /* floatValue */arcExtent !== 0) {
-                            xArcCircleCenter = wall.getXArcCircleCenter();
-                            yArcCircleCenter = wall.getYArcCircleCenter();
-                            arcCircleRadius = java.awt.geom.Point2D.distance(wall.getXStart(), wall.getYStart(), xArcCircleCenter, yArcCircleCenter);
-                            distanceAtScale = arcCircleRadius * Math.abs(arcExtent) * planScale;
-                            indicatorAngle = Math.atan2(yArcCircleCenter - wall.getYStart(), xArcCircleCenter - wall.getXStart()) + (arcExtent > 0?-Math.PI / 2:Math.PI / 2);
-                        } else {
-                            distanceAtScale = startPointToEndPointDistance * planScale;
-                            indicatorAngle = wallAngle;
-                        }
-                        if(distanceAtScale < 30) {
-                            g2D.rotate(wallAngle);
-                            if(arcExtent != null) {
-                                let wallToStartPointArcCircleCenterAngle : number = Math.abs(arcExtent) > Math.PI?-(Math.PI + arcExtent) / 2:(Math.PI - arcExtent) / 2;
-                                let arcCircleCenterToWallDistance : number = <number>(Math.tan(wallToStartPointArcCircleCenterAngle) * startPointToEndPointDistance / 2);
-                                g2D.translate(startPointToEndPointDistance * planScale / 2, (arcCircleCenterToWallDistance - arcCircleRadius * (Math.abs(wallAngle) > Math.PI / 2?-1:1)) * planScale);
-                            } else {
-                                g2D.translate(distanceAtScale / 2, 0);
-                            }
-                        } else {
-                            g2D.rotate(indicatorAngle);
-                            g2D.translate(8, 0);
-                        }
-                        g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
-                        g2D.setTransform(previousTransform);
-                        g2D.translate(wall.getXEnd(), wall.getYEnd());
-                        g2D.scale(scaleInverse, scaleInverse);
-                        g2D.fill(PlanComponent.WALL_POINT);
-                        if(distanceAtScale >= 30) {
-                            if(arcExtent != null) {
-                                indicatorAngle += arcExtent;
-                            }
-                            g2D.rotate(indicatorAngle);
-                            g2D.translate(-10, 0);
-                            g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
-                        }
-                        g2D.setTransform(previousTransform);
+        for(let i=0; i < walls.length; i++) {
+            let wall = walls[i];
+            if(this.isViewableAtSelectedLevel(wall)) {
+                g2D.setPaint(selectionOutlinePaint);
+                g2D.setStroke(selectionOutlineStroke);
+                g2D.draw(ShapeTools.getShape(wall.getPoints(), true, null));
+                if(indicatorPaint != null) {
+                    g2D.translate(wall.getXStart(), wall.getYStart());
+                    g2D.scale(scaleInverse, scaleInverse);
+                    g2D.setPaint(indicatorPaint);
+                    g2D.setStroke(PlanComponent.POINT_STROKE);
+                    g2D.fill(PlanComponent.WALL_POINT);
+                    let arcExtent : number = wall.getArcExtent();
+                    let indicatorAngle : number;
+                    let distanceAtScale : number;
+                    let xArcCircleCenter : number = 0;
+                    let yArcCircleCenter : number = 0;
+                    let arcCircleRadius : number = 0;
+                    let startPointToEndPointDistance : number = wall.getStartPointToEndPointDistance();
+                    let wallAngle : number = Math.atan2(wall.getYEnd() - wall.getYStart(), wall.getXEnd() - wall.getXStart());
+                    if(arcExtent != null && /* floatValue */arcExtent !== 0) {
+                        xArcCircleCenter = wall.getXArcCircleCenter();
+                        yArcCircleCenter = wall.getYArcCircleCenter();
+                        arcCircleRadius = java.awt.geom.Point2D.distance(wall.getXStart(), wall.getYStart(), xArcCircleCenter, yArcCircleCenter);
+                        distanceAtScale = arcCircleRadius * Math.abs(arcExtent) * planScale;
+                        indicatorAngle = Math.atan2(yArcCircleCenter - wall.getYStart(), xArcCircleCenter - wall.getXStart()) + (arcExtent > 0?-Math.PI / 2:Math.PI / 2);
+                    } else {
+                        distanceAtScale = startPointToEndPointDistance * planScale;
+                        indicatorAngle = wallAngle;
                     }
+                    if(distanceAtScale < 30) {
+                        g2D.rotate(wallAngle);
+                        if(arcExtent != null) {
+                            let wallToStartPointArcCircleCenterAngle : number = Math.abs(arcExtent) > Math.PI?-(Math.PI + arcExtent) / 2:(Math.PI - arcExtent) / 2;
+                            let arcCircleCenterToWallDistance : number = <number>(Math.tan(wallToStartPointArcCircleCenterAngle) * startPointToEndPointDistance / 2);
+                            g2D.translate(startPointToEndPointDistance * planScale / 2, (arcCircleCenterToWallDistance - arcCircleRadius * (Math.abs(wallAngle) > Math.PI / 2?-1:1)) * planScale);
+                        } else {
+                            g2D.translate(distanceAtScale / 2, 0);
+                        }
+                    } else {
+                        g2D.rotate(indicatorAngle);
+                        g2D.translate(8, 0);
+                    }
+                    g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
+                    g2D.setTransform(previousTransform);
+                    g2D.translate(wall.getXEnd(), wall.getYEnd());
+                    g2D.scale(scaleInverse, scaleInverse);
+                    g2D.fill(PlanComponent.WALL_POINT);
+                    if(distanceAtScale >= 30) {
+                        if(arcExtent != null) {
+                            indicatorAngle += arcExtent;
+                        }
+                        g2D.rotate(indicatorAngle);
+                        g2D.translate(-10, 0);
+                        g2D.draw(PlanComponent.WALL_ORIENTATION_INDICATOR);
+                    }
+                    g2D.setTransform(previousTransform);
                 }
             }
         }
         g2D.setPaint(foregroundColor);
         g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, PlanComponent.PaintMode.PAINT) / planScale));
-        {
-            let array173 = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>this.getWallAreas(this.getDrawableWallsInSelectedLevel(walls)));
-            for(let index172=0; index172 < array173.length; index172++) {
-                let area = array173[index172];
-                {
-                    g2D.draw(area);
-                }
-            }
+        let entries = /* values */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].value); return r; })(<any>this.getWallAreas(this.getDrawableWallsInSelectedLevel(walls)));
+        for(let i=0; i < entries.length; i++) {
+            let area = entries[i];
+            g2D.draw(area);
         }
-        if(/* size */(<number>items.length) === 1 && /* size */(<number>walls.length) === 1 && indicatorPaint != null) {
-            let wall : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(walls).next();
+        if(items.length === 1 && walls.length === 1 && indicatorPaint != null) {
+            let wall = walls[0];
             if(this.isViewableAtSelectedLevel(wall)) {
                 this.paintWallResizeIndicators(g2D, wall, indicatorPaint, planScale);
             }
@@ -2886,14 +2864,12 @@ class PlanComponent implements PlanView {
      * @return {Wall[]}
      * @private
      */
-    getDrawableWallsInSelectedLevel(walls : Array<any>) : Array<any> {
-        let wallsInSelectedLevel : Array<any> = <any>([]);
-        for(let index174=0; index174 < walls.length; index174++) {
-            let wall = walls[index174];
-            {
-                if(this.isViewableAtSelectedLevel(wall)) {
-                    /* add */(wallsInSelectedLevel.push(wall)>0);
-                }
+    getDrawableWallsInSelectedLevel(walls : Wall[]) : Array<any> {
+        let wallsInSelectedLevel : Wall[] = [];
+        for(let i=0; i < walls.length; i++) {
+            let wall = walls[i];
+            if(this.isViewableAtSelectedLevel(wall)) {
+                wallsInSelectedLevel.push(wall);
             }
         }
         return wallsInSelectedLevel;
@@ -2926,7 +2902,7 @@ class PlanComponent implements PlanView {
         }
         let wallAreas = {};
         if(samePattern) {
-            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>wallAreas, walls, this.getItemsArea(walls));
+            putToMap(<any>wallAreas, walls, this.getItemsArea(walls));
         } else {
             let sortedWalls = {};
             walls.forEach(wall => {
@@ -2934,10 +2910,10 @@ class PlanComponent implements PlanView {
               if(wallPattern == null) {
                   wallPattern = this.preferences.getWallPattern();
               }
-              let patternWalls : Array<any> = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>sortedWalls, wallPattern);
+              let patternWalls : Array<any> = getFromMap(<any>sortedWalls, wallPattern);
               if(patternWalls == null) {
                   patternWalls = <any>([]);
-                  /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>sortedWalls, wallPattern, patternWalls);
+                  putToMap(<any>sortedWalls, wallPattern, patternWalls);
               }
               patternWalls.push(wall);
             });
@@ -2946,7 +2922,7 @@ class PlanComponent implements PlanView {
                 for(let index177=0; index177 < array178.length; index177++) {
                     let patternWalls = array178[index177];
                     {
-                        /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>wallAreas, patternWalls, this.getItemsArea(patternWalls));
+                        putToMap(<any>wallAreas, patternWalls, this.getItemsArea(patternWalls));
                     }
                 }
             }
@@ -3176,7 +3152,7 @@ class PlanComponent implements PlanView {
         if(doorOrWindow.isWallCutOutOnBothSides()) {
             let doorOrWindowWallArea : java.awt.geom.Area = null;
             if(this.doorOrWindowWallThicknessAreasCache != null) {
-                doorOrWindowWallArea = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
+                doorOrWindowWallArea = getFromMap(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
             }
             if(doorOrWindowWallArea == null) {
                 let doorOrWindowRectangle : java.awt.geom.Rectangle2D = this.getDoorOrWindowRectangle(doorOrWindow, false);
@@ -3212,7 +3188,7 @@ class PlanComponent implements PlanView {
             if(this.doorOrWindowWallThicknessAreasCache == null) {
                 this.doorOrWindowWallThicknessAreasCache = <any>({});
             }
-            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
+            putToMap(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
             g2D.setPaint(backgroundColor);
             g2D.fill(doorOrWindowWallArea);
             g2D.setPaint(foregroundColor);
@@ -3329,7 +3305,7 @@ class PlanComponent implements PlanView {
         let lastGroup : any = null;
         let furnitureInGroupsArea : java.awt.geom.Area = null;
         let homeFurniture : Array<any> = this.home.getFurniture();
-        for(let it : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(furniture); it.hasNext(); ) {{
+        for(let it : any = /* iterator */((a) => { var i = 0; return { next: function() { return i<a.length?a[i++]:null; }, hasNext: function() { return i<a.length; }}})(furniture); it.hasNext(); ) {
             let piece : HomePieceOfFurniture = it.next();
             newFurniture.push(piece);
             if(piece.isVisible() && this.isViewableAtSelectedLevel(piece)) {
@@ -3354,7 +3330,7 @@ class PlanComponent implements PlanView {
                     lastGroup = homePieceOfFurniture;
                 }
             }
-        };}
+        }
         if(furnitureGroupsArea != null) {
             furnitureGroupsArea.subtract(furnitureInGroupsArea);
             let oldComposite : number = this.setTransparency(g2D, 0.6);
@@ -3484,11 +3460,11 @@ class PlanComponent implements PlanView {
             this.furnitureTopViewIconsCache = <any>({});
         }
         
-        let topViewIconKey : PlanComponent.HomePieceOfFurnitureTopViewIconKey = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>this.furnitureTopViewIconKeys, piece);
+        let topViewIconKey : PlanComponent.HomePieceOfFurnitureTopViewIconKey = getFromMap(<any>this.furnitureTopViewIconKeys, piece);
         let icon : PlanComponent.PieceOfFurnitureTopViewIcon;
         if(topViewIconKey == null) {
             topViewIconKey = new PlanComponent.HomePieceOfFurnitureTopViewIconKey(/* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(piece));
-            icon = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = getFromMap(<any>this.furnitureTopViewIconsCache, topViewIconKey);
             if(icon == null || icon.isWaitIcon() && paintMode !== PlanComponent.PaintMode.PAINT) {
                 let waitingComponent : PlanComponent = paintMode === PlanComponent.PaintMode.PAINT?this:null;
                 if(piece.getPlanIcon() != null) {
@@ -3496,7 +3472,7 @@ class PlanComponent implements PlanView {
                 } else {
                     icon = new PlanComponent.PieceOfFurnitureModelIcon(piece, this.object3dFactory, waitingComponent, this.preferences.getFurnitureModelIconSize());
                 }
-                /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>this.furnitureTopViewIconsCache, topViewIconKey, icon);
+                putToMap(<any>this.furnitureTopViewIconsCache, topViewIconKey, icon);
             } else {
                 {
                     let array189 = /* keySet */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].key); return r; })(<any>this.furnitureTopViewIconsCache);
@@ -3511,9 +3487,9 @@ class PlanComponent implements PlanView {
                     }
                 }
             }
-            /* put */((m,k,v) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { m.entries[i].value=v; return; } m.entries.push({key:k,value:v,getKey: function() { return this.key }, getValue: function() { return this.value }}); })(<any>this.furnitureTopViewIconKeys, piece, topViewIconKey);
+            putToMap(<any>this.furnitureTopViewIconKeys, piece, topViewIconKey);
         } else {
-            icon = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = getFromMap(<any>this.furnitureTopViewIconsCache, topViewIconKey);
         }
         if(icon.isWaitIcon() || icon.isErrorIcon()) {
             this.paintPieceOfFurnitureIcon(g2D, piece, icon, pieceShape2D, planScale, backgroundColor);
@@ -3647,7 +3623,7 @@ class PlanComponent implements PlanView {
                   let secondPoint : number[] = null;
                   let beforeLastPoint : number[] = null;
                   let lastPoint : number[] = null;
-                  for(let it : java.awt.geom.PathIterator = polylineShape.getPathIterator(null, 0.5); !it.isDone(); it.next()) {{
+                  for(let it : java.awt.geom.PathIterator = polylineShape.getPathIterator(null, 0.5); !it.isDone(); it.next()) {
                       let pathPoint : number[] = [0, 0];
                       if(it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
                           if(firstPoint == null) {
@@ -3658,7 +3634,7 @@ class PlanComponent implements PlanView {
                           beforeLastPoint = lastPoint;
                           lastPoint = pathPoint;
                       }
-                  };}
+                  }
                   let angleAtStart : number = <number>Math.atan2(firstPoint[1] - secondPoint[1], firstPoint[0] - secondPoint[0]);
                   let angleAtEnd : number = <number>Math.atan2(lastPoint[1] - beforeLastPoint[1], lastPoint[0] - beforeLastPoint[0]);
                   let arrowDelta : number = polyline.getCapStyle() !== Polyline.CapStyle.BUTT?thickness / 2:0;
@@ -3668,7 +3644,7 @@ class PlanComponent implements PlanView {
                       g2D.setPaint(selectionOutlinePaint);
                       g2D.setStroke(ShapeTools.getStroke(thickness + 4 / planScale, polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
                       g2D.draw(polylineShape);
-                      if(/* size */(<number>selectedItems.length) === 1 && indicatorPaint != null) {
+                      if(selectedItems.length === 1 && indicatorPaint != null) {
                           let selectedPolyline : any = /* get */selectedItems[0];
                           if(this.isViewableAtSelectedLevel(selectedPolyline)) {
                               g2D.setPaint(indicatorPaint);
@@ -3884,7 +3860,7 @@ class PlanComponent implements PlanView {
                         let textBounds : number[][] = this.getTextBounds(labelText, labelStyle, xLabel, yLabel, labelAngle);
                         g2D.draw(ShapeTools.getShape(textBounds, true, null));
                         g2D.setPaint(foregroundColor);
-                        if(indicatorPaint != null && /* size */(<number>selectedItems.length) === 1 && /* get */selectedItems[0] === label) {
+                        if(indicatorPaint != null && selectedItems.length === 1 && selectedItems[0] === label) {
                             this.paintTextIndicators(g2D, label, this.getLineCount(labelText), labelStyle, xLabel, yLabel, labelAngle, indicatorPaint, planScale);
                             if(this.resizeIndicatorVisible && label.getPitch() != null) {
                                 let elevationIndicator : java.awt.Shape = this.getIndicator(label, PlanComponent.IndicatorType.ELEVATE);
@@ -3951,7 +3927,7 @@ class PlanComponent implements PlanView {
      */
     paintCompassOutline(g2D : Graphics2D, items : Array<any>, selectionOutlinePaint : string|CanvasPattern, selectionOutlineStroke : java.awt.BasicStroke, indicatorPaint : string|CanvasPattern, planScale : number, foregroundColor : string) {
         let compass : any = this.home.getCompass();
-        if(/* contains */(items.indexOf(<any>(compass)) >= 0) && compass.isVisible()) {
+        if((items.indexOf(compass) >= 0) && compass.isVisible()) {
             let previousTransform : java.awt.geom.AffineTransform = g2D.getTransform();
             g2D.translate(compass.getX(), compass.getY());
             g2D.rotate(compass.getNorthDirection());
@@ -4011,48 +3987,43 @@ class PlanComponent implements PlanView {
             let y : number = <number>locationFeedback.getY();
             let deltaXToClosestWall : number = Infinity;
             let deltaYToClosestWall : number = Infinity;
-            {
-                let array194 = this.getViewedItems<any>(this.home.getWalls(), this.otherLevelsWallsCache);
-                for(let index193=0; index193 < array194.length; index193++) {
-                    let wall = array194[index193];
-                    {
-                        if(wall !== alignedWall) {
-                            if(Math.abs(x - wall.getXStart()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
-                                if(Math.abs(deltaYToClosestWall) > Math.abs(y - wall.getYStart())) {
-                                    deltaYToClosestWall = y - wall.getYStart();
-                                }
-                            } else if(Math.abs(x - wall.getXEnd()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
-                                if(Math.abs(deltaYToClosestWall) > Math.abs(y - wall.getYEnd())) {
-                                    deltaYToClosestWall = y - wall.getYEnd();
-                                }
-                            }
-                            if(Math.abs(y - wall.getYStart()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
-                                if(Math.abs(deltaXToClosestWall) > Math.abs(x - wall.getXStart())) {
-                                    deltaXToClosestWall = x - wall.getXStart();
-                                }
-                            } else if(Math.abs(y - wall.getYEnd()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
-                                if(Math.abs(deltaXToClosestWall) > Math.abs(x - wall.getXEnd())) {
-                                    deltaXToClosestWall = x - wall.getXEnd();
-                                }
-                            }
-                            let wallPoints : number[][] = wall.getPoints();
-                            wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2|0) - 1], wallPoints[(wallPoints.length / 2|0)], wallPoints[wallPoints.length - 1]];
-                            for(let i : number = 0; i < wallPoints.length; i++) {{
-                                if(Math.abs(x - wallPoints[i][0]) < margin && (alignedWall == null || !this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
-                                    if(Math.abs(deltaYToClosestWall) > Math.abs(y - wallPoints[i][1])) {
-                                        deltaYToClosestWall = y - wallPoints[i][1];
-                                    }
-                                }
-                                if(Math.abs(y - wallPoints[i][1]) < margin && (alignedWall == null || !this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
-                                    if(Math.abs(deltaXToClosestWall) > Math.abs(x - wallPoints[i][0])) {
-                                        deltaXToClosestWall = x - wallPoints[i][0];
-                                    }
-                                }
-                            };}
-                        }
-                    }
-                }
-            }
+            this.getViewedItems<any>(this.home.getWalls(), this.otherLevelsWallsCache).forEach(wall => {
+              if(wall !== alignedWall) {
+                  if(Math.abs(x - wall.getXStart()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
+                      if(Math.abs(deltaYToClosestWall) > Math.abs(y - wall.getYStart())) {
+                          deltaYToClosestWall = y - wall.getYStart();
+                      }
+                  } else if(Math.abs(x - wall.getXEnd()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
+                      if(Math.abs(deltaYToClosestWall) > Math.abs(y - wall.getYEnd())) {
+                          deltaYToClosestWall = y - wall.getYEnd();
+                      }
+                  }
+                  if(Math.abs(y - wall.getYStart()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXStart(), wall.getYStart(), alignedWall))) {
+                      if(Math.abs(deltaXToClosestWall) > Math.abs(x - wall.getXStart())) {
+                          deltaXToClosestWall = x - wall.getXStart();
+                      }
+                  } else if(Math.abs(y - wall.getYEnd()) < margin && (alignedWall == null || !this.equalsWallPoint(wall.getXEnd(), wall.getYEnd(), alignedWall))) {
+                      if(Math.abs(deltaXToClosestWall) > Math.abs(x - wall.getXEnd())) {
+                          deltaXToClosestWall = x - wall.getXEnd();
+                      }
+                  }
+                  let wallPoints : number[][] = wall.getPoints();
+                  wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2|0) - 1], wallPoints[(wallPoints.length / 2|0)], wallPoints[wallPoints.length - 1]];
+                  for(let i : number = 0; i < wallPoints.length; i++) {
+                      if(Math.abs(x - wallPoints[i][0]) < margin && (alignedWall == null || !this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
+                          if(Math.abs(deltaYToClosestWall) > Math.abs(y - wallPoints[i][1])) {
+                              deltaYToClosestWall = y - wallPoints[i][1];
+                          }
+                      }
+                      if(Math.abs(y - wallPoints[i][1]) < margin && (alignedWall == null || !this.equalsWallPoint(wallPoints[i][0], wallPoints[i][1], alignedWall))) {
+                          if(Math.abs(deltaXToClosestWall) > Math.abs(x - wallPoints[i][0])) {
+                              deltaXToClosestWall = x - wallPoints[i][0];
+                          }
+                      }
+                  }
+              }
+            });
+            
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
             if(deltaXToClosestWall !== Infinity) {
@@ -4082,17 +4053,15 @@ class PlanComponent implements PlanView {
      * @return {*[]}
      * @private
      */
-    getViewedItems<T extends any>(homeItems : Array<T>, otherLevelItems : Array<T>) : Array<T> {
-        let viewedWalls : Array<T> = <any>([]);
+    getViewedItems<T>(homeItems : Array<T>, otherLevelItems : Array<T>) : Array<T> {
+        let viewedWalls : Array<T> = [];
         if(otherLevelItems != null) {
-            /* addAll */((l1, l2) => l1.push.apply(l1, l2))(viewedWalls, otherLevelItems);
+            viewedWalls.push.apply(viewedWalls, otherLevelItems);
         }
-        for(let index195=0; index195 < homeItems.length; index195++) {
-            let wall = homeItems[index195];
-            {
-                if(this.isViewableAtSelectedLevel(wall)) {
-                    /* add */(viewedWalls.push(wall)>0);
-                }
+        for(let i=0; i < homeItems.length; i++) {
+            let wall = homeItems[i];
+            if(this.isViewableAtSelectedLevel(wall)) {
+                viewedWalls.push(wall);
             }
         }
         return viewedWalls;
@@ -4153,52 +4122,42 @@ class PlanComponent implements PlanView {
             let y : number = <number>locationFeedback.getY();
             let deltaXToClosestObject : number = Infinity;
             let deltaYToClosestObject : number = Infinity;
-            {
-                let array197 = this.getViewedItems<any>(this.home.getRooms(), this.otherLevelsRoomsCache);
-                for(let index196=0; index196 < array197.length; index196++) {
-                    let room = array197[index196];
-                    {
-                        let roomPoints : number[][] = room.getPoints();
-                        let editedPointIndex : number = -1;
-                        if(room === alignedRoom) {
-                            for(let i : number = 0; i < roomPoints.length; i++) {{
-                                if(roomPoints[i][0] === x && roomPoints[i][1] === y) {
-                                    editedPointIndex = i;
-                                    break;
-                                }
-                            };}
-                        }
-                        for(let i : number = 0; i < roomPoints.length; i++) {{
-                            if(editedPointIndex === -1 || (i !== editedPointIndex && roomPoints.length > 2)) {
-                                if(Math.abs(x - roomPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints[i][1])) {
-                                    deltaYToClosestObject = y - roomPoints[i][1];
-                                }
-                                if(Math.abs(y - roomPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints[i][0])) {
-                                    deltaXToClosestObject = x - roomPoints[i][0];
-                                }
-                            }
-                        };}
-                    }
-                }
-            }
-            {
-                let array199 = this.getViewedItems<any>(this.home.getWalls(), this.otherLevelsWallsCache);
-                for(let index198=0; index198 < array199.length; index198++) {
-                    let wall = array199[index198];
-                    {
-                        let wallPoints : number[][] = wall.getPoints();
-                        wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2|0) - 1], wallPoints[(wallPoints.length / 2|0)], wallPoints[wallPoints.length - 1]];
-                        for(let i : number = 0; i < wallPoints.length; i++) {{
-                            if(Math.abs(x - wallPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints[i][1])) {
-                                deltaYToClosestObject = y - wallPoints[i][1];
-                            }
-                            if(Math.abs(y - wallPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints[i][0])) {
-                                deltaXToClosestObject = x - wallPoints[i][0];
-                            }
-                        };}
-                    }
-                }
-            }
+            this.getViewedItems<any>(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(room => {
+              let roomPoints : number[][] = room.getPoints();
+              let editedPointIndex : number = -1;
+              if(room === alignedRoom) {
+                  for(let i : number = 0; i < roomPoints.length; i++) {
+                      if(roomPoints[i][0] === x && roomPoints[i][1] === y) {
+                          editedPointIndex = i;
+                          break;
+                      }
+                  }
+              }
+              for(let i : number = 0; i < roomPoints.length; i++) {
+                  if(editedPointIndex === -1 || (i !== editedPointIndex && roomPoints.length > 2)) {
+                      if(Math.abs(x - roomPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - roomPoints[i][1])) {
+                          deltaYToClosestObject = y - roomPoints[i][1];
+                      }
+                      if(Math.abs(y - roomPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - roomPoints[i][0])) {
+                          deltaXToClosestObject = x - roomPoints[i][0];
+                      }
+                  }
+              }
+            });
+
+            this.getViewedItems<any>(this.home.getWalls(), this.otherLevelsWallsCache).forEach(wall => {
+              let wallPoints : number[][] = wall.getPoints();
+              wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2|0) - 1], wallPoints[(wallPoints.length / 2|0)], wallPoints[wallPoints.length - 1]];
+              for(let i : number = 0; i < wallPoints.length; i++) {
+                  if(Math.abs(x - wallPoints[i][0]) < margin && Math.abs(deltaYToClosestObject) > Math.abs(y - wallPoints[i][1])) {
+                      deltaYToClosestObject = y - wallPoints[i][1];
+                  }
+                  if(Math.abs(y - wallPoints[i][1]) < margin && Math.abs(deltaXToClosestObject) > Math.abs(x - wallPoints[i][0])) {
+                      deltaXToClosestObject = x - wallPoints[i][0];
+                  }
+              }
+            });
+            
             g2D.setPaint(feedbackPaint);
             g2D.setStroke(feedbackStroke);
             if(deltaXToClosestObject !== Infinity) {
@@ -4399,7 +4358,7 @@ class PlanComponent implements PlanView {
             let stroke : java.awt.BasicStroke = new java.awt.BasicStroke(this.getStrokeWidth(ObserverCamera, PlanComponent.PaintMode.PAINT) / planScale);
             g2D.setStroke(stroke);
             g2D.draw(scaledCameraBody);
-            if(/* contains */(selectedItems.indexOf(<any>(camera)) >= 0) && this.selectedItemsOutlinePainted) {
+            if(selectedItems.indexOf(camera) >= 0 && this.selectedItemsOutlinePainted) {
                 g2D.setPaint(selectionOutlinePaint);
                 g2D.setStroke(selectionOutlineStroke);
                 let cameraOutline : java.awt.geom.Area = new java.awt.geom.Area(scaledCameraBody);
@@ -4424,7 +4383,7 @@ class PlanComponent implements PlanView {
             cameraFieldOfViewAngle.lineTo(-xEndAngle, yEndAngle);
             g2D.draw(cameraFieldOfViewAngle);
             g2D.setTransform(previousTransform);
-            if(/* size */(<number>selectedItems.length) === 1 && /* get */selectedItems[0] === camera) {
+            if(selectedItems.length === 1 && selectedItems[0] === camera) {
                 this.paintCameraRotationIndicators(g2D, camera, indicatorPaint, planScale);
             }
         }
@@ -5421,7 +5380,7 @@ namespace PlanComponent {
                 this.focusedTextField.setValue(this.focusedTextField.getValue());
             }
             this.focusedTextFieldIndex = textFieldIndex;
-            this.focusedTextField = /* get */((m,k) => { if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) if(m.entries[i].key.equals!=null && m.entries[i].key.equals(k) || m.entries[i].key===k) { return m.entries[i].value; } return null; })(<any>this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
+            this.focusedTextField = getFromMap(<any>this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
             if(this.focusedTextField.getText().length === 0) {
                 this.focusedTextField.getCaret().setVisible(false);
             } else {
