@@ -1725,7 +1725,7 @@ HomeComponent3D.prototype.addFurnitureListener = function(group) {
           || "MODEL_MATERIALS" == propertyName
           || "SHININESS" == propertyName
           || ("POWER" == propertyName
-              && home.getEnvironment().getSubpartSizeUnderLight() > 0)) {
+              && component3D.home.getEnvironment().getSubpartSizeUnderLight() > 0)) {
         component3D.updateObjects([updatedPiece]);
       }
     };
