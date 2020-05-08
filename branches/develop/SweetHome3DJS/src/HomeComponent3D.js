@@ -1879,11 +1879,11 @@ HomeComponent3D.prototype.addRoomListener = function(group) {
               var roomAreaIntersectionWithNewArea = new java.awt.geom.Area(roomAreaIntersectionWithOldArea);
               roomAreaIntersectionWithNewArea.intersect(newArea);                  
               if (!roomAreaIntersectionWithNewArea.isEmpty()) {
-                updateObjects([room]);
+                component3D.updateObjects([room]);
               } else {
                 roomAreaIntersectionWithOldArea.intersect(oldArea);
                 if (!roomAreaIntersectionWithOldArea.isEmpty()) {
-                  updateObjects([room]);
+                  component3D.updateObjects([room]);
                 }
               }
             }
