@@ -345,7 +345,7 @@
       <sysproperty key="java.ext.dirs" value="../SweetHome3D/lib"/>
       <!-- Transpilation target may contain almost all com.eteks.sweethome3d.viewcontroller classes or only the subset needed to run 
            Sweet Home 3D JS Viewer (in which case swingundo.js extracted from tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js isn't required) -->
-      <sysproperty key="transpilationTarget" value="SweetHome3DJSViewer"/>
+      <!-- <sysproperty key="transpilationTarget" value="SweetHome3DJSViewer"/> -->
       <classpath>
         <fileset dir="tools/JSweet/lib" excludes="generated/" />
         <pathelement location="tools/JSweet/build/SweetHome3DJSweetExtension"/>
@@ -363,7 +363,7 @@
   	<!-- Quick fix for missing returns in geom.js -->
   	<replace file="lib/generated/geom.js" token="  _super.prototype.getPathIterator" value="  return _super.prototype.getPathIterator"/>
     <move file="tools/JSweet/build/js/j4ts-batik-svgpathparser-1.10.0-20170726/bundle.js" tofile="lib/generated/batik-svgpathparser.js"/>
-
+    <move file="tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js" tofile="lib/generated/swingundo.js"/>
     <!-- Clean build directory -->
     <delete dir="tools/JSweet/build" />
   </target>
