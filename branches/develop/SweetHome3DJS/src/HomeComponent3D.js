@@ -2152,7 +2152,7 @@ HomeComponent3D.prototype.updateIntersectingWalls = function(doorOrWindows) {
       if (wall.intersectsRectangle(doorOrWindowBounds.getX(), doorOrWindowBounds.getY(),
           doorOrWindowBounds.getX() + doorOrWindowBounds.getWidth(),
           doorOrWindowBounds.getY() + doorOrWindowBounds.getHeight())) {
-        updatedWalls.add(wall);
+        updatedWalls.push(wall);
       }
     }
     this.updateObjects(updatedWalls);
