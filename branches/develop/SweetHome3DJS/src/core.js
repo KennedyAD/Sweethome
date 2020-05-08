@@ -459,3 +459,30 @@ function sortArray(array, comparator) {
    array.sort(comparator);  
   }
 }
+
+var OperatingSystem = {}
+
+OperatingSystem.isLinux = function() {
+  if(navigator && navigator.platform) {
+    return navigator.platform.indexOf("Linux") !== -1;
+  } else {
+    return false;
+  }
+}
+
+OperatingSystem.isWindows = function() {
+  if(navigator && navigator.platform) {
+    return navigator.platform.indexOf("Windows") !== -1 || navigator.platform.indexOf("Win") !== -1;
+  } else {
+    return false;
+  }
+}
+
+OperatingSystem.isMacOSX = function() {
+  if(navigator && navigator.platform) {
+    return navigator.platform.indexOf("Mac") !== -1;
+  } else {
+    return false;
+  }
+}
+

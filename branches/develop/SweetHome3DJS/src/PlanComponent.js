@@ -23,6 +23,11 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+// TODO: utility function?
+function mouseEventCoordinates(e) {
+    var rect = e.target.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
@@ -344,8 +349,14 @@ var PlanComponent = (function () {
     PlanComponent.prototype.setToolTipFeedback = function (s, x, y) {
         // TODO
     };
+    /** @private */
     PlanComponent.prototype.setOpaque = function (opaque) {
         // TODO
+    };
+    /** @private */
+    PlanComponent.prototype.isEnabled = function () {
+        // TODO?
+        return true;
     };
     /** @private */
     PlanComponent.prototype.getBackground = function () {
@@ -382,6 +393,10 @@ var PlanComponent = (function () {
     /** @private */
     PlanComponent.prototype.getInsets = function () {
         return { top: 0, bottom: 0, left: 0, right: 0 };
+    };
+    /** @private */
+    PlanComponent.prototype.scrollRectToVisible = function (rectangle) {
+        // TODO
     };
     /**
      * Adds home items and selection listeners on this component to receive
@@ -680,34 +695,50 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
     /**
-     * Adds AWT mouse listeners to this component that calls back <code>controller</code> methods.
+     * Adds mouse listeners to this component that calls back <code>controller</code> methods.
      * @param {PlanController} controller
      * @private
      */
     PlanComponent.prototype.addMouseListeners = function (controller) {
+        var planComponent = this;
         var mouseListener = {
             lastMousePressedLocation: null,
-            mousePressed: function (ev) {
-                if (this.isEnabled() && ev.button === 0) {
+            mouseDoubleClicked: function (ev) {
+                if (planComponent.isEnabled() && ev.button === 0) {
                     mouseListener.lastMousePressedLocation = [ev.clientX, ev.clientY];
                     var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
                     var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
                     var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-                    controller.pressMouse(ev.clientX, ev.clientY, 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
+                    var coords = mouseEventCoordinates(ev);
+                    controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 2, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
+                }
+            },
+            mousePressed: function (ev) {
+                if (planComponent.isEnabled() && ev.button === 0) {
+                    mouseListener.lastMousePressedLocation = [ev.clientX, ev.clientY];
+                    var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
+                    var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
+                    var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
+                    var coords = mouseEventCoordinates(ev);
+                    controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
                 }
             },
             mouseReleased: function (ev) {
-                if (this.isEnabled() && ev.button === 0) {
-                    this.controller.releaseMouse(ev.clientX, ev.clientY);
+                if (planComponent.isEnabled() && ev.button === 0) {
+                    var coords = mouseEventCoordinates(ev);
+                    controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertXPixelToModel(coords.y));
                 }
             },
             mouseMoved: function (ev) {
-                if (this.lastMousePressedLocation != null && !(this.lastMousePressedLocation[0] === ev.clientX && this.lastMousePressedLocation[1] === ev.clientY)) {
-                    this.lastMousePressedLocation = null;
+                //console.info(ev.clientX+", "+ev.clientY+" ==> "+planComponent.convertXPixelToModel(ev.clientX)+", ",planComponent.convertYPixelToModel(ev.clientY));
+                //console.info(mouseEventCoordinates(ev));
+                if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.clientX && mouseListener.lastMousePressedLocation[1] === ev.clientY)) {
+                    mouseListener.lastMousePressedLocation = null;
                 }
-                if (this.lastMousePressedLocation == null) {
-                    if (this.isEnabled()) {
-                        this.controller.moveMouse(ev.clientX, ev.clientY);
+                if (mouseListener.lastMousePressedLocation == null) {
+                    if (planComponent.isEnabled()) {
+                        var coords = mouseEventCoordinates(ev);
+                        controller.moveMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
                     }
                 }
             },
@@ -738,6 +769,7 @@ var PlanComponent = (function () {
             }
         };
         this.canvas.addEventListener("mousedown", mouseListener.mousePressed);
+        this.canvas.addEventListener("dblclick", mouseListener.mouseDoubleClicked);
         this.canvas.addEventListener("mouseup", mouseListener.mouseReleased);
         this.canvas.addEventListener("mousemove", mouseListener.mouseMoved);
         this.mouseListener = mouseListener;
@@ -4377,9 +4409,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.convertXModelToScreen = function (x) {
-        var point = new java.awt.Point(this.convertXModelToPixel(x), 0);
-        javax.swing.SwingUtilities.convertPointToScreen(point, this);
-        return point.x;
+        return this.canvas.getBoundingClientRect().x + this.convertXModelToPixel(x);
     };
     /**
      * Returns <code>y</code> converted in screen coordinates space.
@@ -4387,9 +4417,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.convertYModelToScreen = function (y) {
-        var point = new java.awt.Point(0, this.convertYModelToPixel(y));
-        javax.swing.SwingUtilities.convertPointToScreen(point, this);
-        return point.y;
+        return this.canvas.getBoundingClientRect().y + this.convertYModelToPixel(y);
     };
     /**
      * Returns the length in centimeters of a pixel with the current scale.
@@ -4401,12 +4429,12 @@ var PlanComponent = (function () {
     /**
      * Returns the bounds of <code>shape</code> in pixels coordinates space.
      * @param {Object} shape
-     * @return {java.awt.Rectangle}
+     * @return {java.awt.geom.Rectangle2D.Float}
      * @private
      */
     PlanComponent.prototype.getShapePixelBounds = function (shape) {
         var shapeBounds = shape.getBounds2D();
-        return new java.awt.Rectangle(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), (Math.round(shapeBounds.getWidth() * this.getPaintScale()) | 0), (Math.round(shapeBounds.getHeight() * this.getPaintScale()) | 0));
+        return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), (Math.round(shapeBounds.getWidth() * this.getPaintScale()) | 0), (Math.round(shapeBounds.getHeight() * this.getPaintScale()) | 0));
     };
     /**
      * Sets the cursor of this component.

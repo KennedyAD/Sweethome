@@ -76,6 +76,12 @@ declare function getFromMap(map, key);
 declare function valuesFromMap(map) : Array<any>;
 declare function sortArray(array, comparator) : void;
 
+// TODO: utility function?
+function mouseEventCoordinates(e : MouseEvent) {
+  var rect = (<Element>e.target).getBoundingClientRect();
+  return { x : e.clientX - rect.left, y : e.clientY - rect.top };
+}    
+
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
@@ -603,8 +609,15 @@ class PlanComponent implements PlanView {
         // TODO
     }
 
+    /** @private */
     private setOpaque(opaque : boolean) {
       // TODO
+    }
+    
+    /** @private */
+    private isEnabled() {
+      // TODO?
+      return true;
     }
     
     /** @private */
@@ -647,6 +660,11 @@ class PlanComponent implements PlanView {
     /** @private */
     private getInsets() : { top : number, bottom : number, left : number, right : number } {
       return { top: 0, bottom: 0, left: 0, right: 0 };
+    }
+
+    /** @private */
+    private scrollRectToVisible(rectangle : java.awt.geom.Rectangle2D.Float) {
+      // TODO
     }
 
     /**
@@ -933,35 +951,50 @@ class PlanComponent implements PlanView {
     }
 
     /**
-     * Adds AWT mouse listeners to this component that calls back <code>controller</code> methods.
+     * Adds mouse listeners to this component that calls back <code>controller</code> methods.
      * @param {PlanController} controller
      * @private
      */
     addMouseListeners(controller : PlanController) {
-      
+      var planComponent = this;
       var mouseListener = {
         lastMousePressedLocation : null,
-        mousePressed : function(ev : MouseEvent) {
-          if(this.isEnabled() && ev.button === 0) {
+        mouseDoubleClicked : function(ev : MouseEvent) {
+          if(planComponent.isEnabled() && ev.button === 0) {
             mouseListener.lastMousePressedLocation = [ ev.clientX, ev.clientY ];
             let alignmentActivated: boolean = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
             let duplicationActivated: boolean = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
             let magnetismToggled: boolean = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-            controller.pressMouse(ev.clientX, ev.clientY, 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
+            let coords = mouseEventCoordinates(ev);
+            controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 2, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
+          }
+        },
+        mousePressed : function(ev : MouseEvent) {
+          if(planComponent.isEnabled() && ev.button === 0) {
+            mouseListener.lastMousePressedLocation = [ ev.clientX, ev.clientY ];
+            let alignmentActivated: boolean = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
+            let duplicationActivated: boolean = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
+            let magnetismToggled: boolean = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
+            let coords = mouseEventCoordinates(ev);
+            controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
           }
         },
         mouseReleased : function(ev : MouseEvent) {
-            if(this.isEnabled() && ev.button === 0) {
-                this.controller.releaseMouse(ev.clientX, ev.clientY);
+            if(planComponent.isEnabled() && ev.button === 0) {
+                let coords = mouseEventCoordinates(ev);
+                controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertXPixelToModel(coords.y));
             }
         },
         mouseMoved : function(ev : MouseEvent) {
-          if(this.lastMousePressedLocation != null && !(this.lastMousePressedLocation[0] === ev.clientX && this.lastMousePressedLocation[1] === ev.clientY)) {
-                this.lastMousePressedLocation = null;
+          //console.info(ev.clientX+", "+ev.clientY+" ==> "+planComponent.convertXPixelToModel(ev.clientX)+", ",planComponent.convertYPixelToModel(ev.clientY));
+          //console.info(mouseEventCoordinates(ev));
+          if(mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.clientX && mouseListener.lastMousePressedLocation[1] === ev.clientY)) {
+                mouseListener.lastMousePressedLocation = null;
             }
-            if(this.lastMousePressedLocation == null) {
-              if(this.isEnabled()) {
-                this.controller.moveMouse(ev.clientX, ev.clientY);
+            if(mouseListener.lastMousePressedLocation == null) {
+              if(planComponent.isEnabled()) {
+                let coords = mouseEventCoordinates(ev);
+                controller.moveMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
               }
             }       
         },
@@ -994,6 +1027,7 @@ class PlanComponent implements PlanView {
       };
       
       this.canvas.addEventListener("mousedown", mouseListener.mousePressed);
+      this.canvas.addEventListener("dblclick", mouseListener.mouseDoubleClicked);
       this.canvas.addEventListener("mouseup", mouseListener.mouseReleased);
       this.canvas.addEventListener("mousemove", mouseListener.mouseMoved);
 
@@ -4626,9 +4660,7 @@ class PlanComponent implements PlanView {
      * @return {number}
      */
     public convertXModelToScreen(x : number) : number {
-        let point : java.awt.Point = new java.awt.Point(this.convertXModelToPixel(x), 0);
-        javax.swing.SwingUtilities.convertPointToScreen(point, this);
-        return point.x;
+      return this.canvas.getBoundingClientRect().x + this.convertXModelToPixel(x);
     }
 
     /**
@@ -4637,9 +4669,7 @@ class PlanComponent implements PlanView {
      * @return {number}
      */
     public convertYModelToScreen(y : number) : number {
-        let point : java.awt.Point = new java.awt.Point(0, this.convertYModelToPixel(y));
-        javax.swing.SwingUtilities.convertPointToScreen(point, this);
-        return point.y;
+      return this.canvas.getBoundingClientRect().y + this.convertYModelToPixel(y);
     }
 
     /**
@@ -4653,12 +4683,12 @@ class PlanComponent implements PlanView {
     /**
      * Returns the bounds of <code>shape</code> in pixels coordinates space.
      * @param {Object} shape
-     * @return {java.awt.Rectangle}
+     * @return {java.awt.geom.Rectangle2D.Float}
      * @private
      */
-    getShapePixelBounds(shape : java.awt.Shape) : java.awt.Rectangle {
+    getShapePixelBounds(shape : java.awt.Shape) : java.awt.geom.Rectangle2D.Float {
         let shapeBounds : java.awt.geom.Rectangle2D = shape.getBounds2D();
-        return new java.awt.Rectangle(this.convertXModelToPixel(shapeBounds.getMinX()), 
+        return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), 
                                       this.convertYModelToPixel(shapeBounds.getMinY()), 
                                       (Math.round(shapeBounds.getWidth() * this.getPaintScale())|0), 
                                       (Math.round(shapeBounds.getHeight() * this.getPaintScale())|0));

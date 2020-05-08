@@ -489,11 +489,18 @@ function visitHome(home, preferences) {
   new HomeComponent3D("canvas3D_2", home, preferences, null, controller);
 }
 
-var plan;
+var planController;
 
 function displayPlan(home, preferences) {
   preferences.setFurnitureViewedFromTop(true);
-  plan = new PlanComponent("canvas2D", home, preferences, null, null);
+  var factory = {
+      createPlanView: function(home, preferences, planController) {
+        return new PlanComponent("canvas2D", home, preferences, planController);
+      }
+  }
+  factory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
+  planController = new PlanController(home, preferences, factory, null, new javax.swing.undo.UndoableEditSupport());
+  var plan = planController.getView();
   plan.setScale(0.75);
 }
 </script>

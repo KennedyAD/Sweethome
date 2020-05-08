@@ -36,6 +36,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.QualifiedNameable;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 
 import org.jsweet.JSweetConfig;
 import org.jsweet.transpiler.extension.AnnotationManager;
@@ -463,4 +464,15 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     return super.eraseSuperClass(type, superClass);
   }
+  
+  @Override
+  public boolean substituteInstanceof(String exprStr, ExtendedElement expr, TypeMirror type) {
+    if(type.toString().equals("com.eteks.sweethome3d.model.LengthUnit")) {
+      print(exprStr, expr);
+      print(" != null");
+      return true;
+    }
+    return super.substituteInstanceof(exprStr, expr, type);
+  }
+  
 }
