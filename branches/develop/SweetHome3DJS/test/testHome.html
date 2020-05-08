@@ -490,16 +490,30 @@ function visitHome(home, preferences) {
 }
 
 var planController;
+var undoManager;
 
 function displayPlan(home, preferences) {
   preferences.setFurnitureViewedFromTop(true);
   var factory = {
       createPlanView: function(home, preferences, planController) {
         return new PlanComponent("canvas2D", home, preferences, planController);
+      }, 
+      createLabelView: function (home, preferences, labelController) {
+        return {
+          displayView: function(parentView) {
+            labelController.setText("Test");
+            labelController.createLabel();
+          }
+        }
       }
   }
   factory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
-  planController = new PlanController(home, preferences, factory, null, new javax.swing.undo.UndoableEditSupport());
+  
+  undoManager = new javax.swing.undo.UndoManager();
+  var undoableEditSupport = new javax.swing.undo.UndoableEditSupport();
+  undoableEditSupport.addUndoableEditListener(undoManager);
+  
+  planController = new PlanController(home, preferences, factory, null, undoableEditSupport);
   var plan = planController.getView();
   plan.setScale(0.75);
 }
