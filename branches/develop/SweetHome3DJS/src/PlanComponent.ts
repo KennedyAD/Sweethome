@@ -1477,6 +1477,7 @@ class PlanComponent implements PlanView {
         }
     }
 
+    // TODO: return a Font object??
     /**
      * Returns the AWT font matching a given text style.
      * @param {string} defaultFont
@@ -3796,7 +3797,7 @@ class PlanComponent implements PlanView {
                   lengthStyle = this.preferences.getDefaultTextStyle((<any>dimensionLine.constructor));
               }
               if(feedback && this.getFont() != null) {
-                  lengthStyle = lengthStyle.deriveStyle(this.getFont().getSize() / this.getPaintScale());
+                  lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(this.getFont()).size) / this.getPaintScale());
               }
               let font : string = this.getFont(previousFont, lengthStyle);
               let lengthFontMetrics : FontMetrics = this.getFontMetrics(font, lengthStyle);
@@ -3804,14 +3805,12 @@ class PlanComponent implements PlanView {
               let fontAscent : number = lengthFontMetrics.getAscent();
               g2D.translate((dimensionLineLength - <number>lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0?-lengthFontMetrics.getDescent() - 1:fontAscent + 1);
               if(feedback) {
-                  g2D.setPaint(backgroundColor);
-                  let oldComposite : number = this.setTransparency(g2D, 0.7);
-                  g2D.setStroke(new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
-                  let fontRenderContext : java.awt.font.FontRenderContext = g2D.getFontRenderContext();
-                  let textLayout : java.awt.font.TextLayout = new java.awt.font.TextLayout(lengthText, font, fontRenderContext);
-                  g2D.draw(textLayout.getOutline(new java.awt.geom.AffineTransform()));
-                  g2D.setAlpha(oldComposite);
-                  g2D.setPaint(foregroundColor);
+                    g2D.setColor(backgroundColor);
+                    var oldComposite = this.setTransparency(g2D, 0.7);
+                    g2D.setStroke(new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
+                    g2D.drawStringOutline(lengthText, 0, 0);
+                    g2D.setAlpha(oldComposite);
+                    g2D.setColor(foregroundColor);                
               }
               g2D.setFont(font);
               g2D.drawString(lengthText, 0, 0);

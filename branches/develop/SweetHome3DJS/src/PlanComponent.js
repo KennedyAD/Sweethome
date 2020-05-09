@@ -1216,6 +1216,7 @@ var PlanComponent = (function () {
             return textPoints.slice(0);
         }
     };
+    // TODO: return a Font object??
     /**
      * Returns the AWT font matching a given text style.
      * @param {string} defaultFont
@@ -3567,7 +3568,7 @@ var PlanComponent = (function () {
                     lengthStyle = _this.preferences.getDefaultTextStyle(dimensionLine.constructor);
                 }
                 if (feedback && _this.getFont() != null) {
-                    lengthStyle = lengthStyle.deriveStyle(_this.getFont().getSize() / _this.getPaintScale());
+                    lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(_this.getFont()).size) / _this.getPaintScale());
                 }
                 var font = _this.getFont(previousFont, lengthStyle);
                 var lengthFontMetrics = _this.getFontMetrics(font, lengthStyle);
@@ -3575,14 +3576,12 @@ var PlanComponent = (function () {
                 var fontAscent = lengthFontMetrics.getAscent();
                 g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : fontAscent + 1);
                 if (feedback) {
-                    g2D.setPaint(backgroundColor);
+                    g2D.setColor(backgroundColor);
                     var oldComposite = _this.setTransparency(g2D, 0.7);
                     g2D.setStroke(new java.awt.BasicStroke(4 / planScale * _this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
-                    var fontRenderContext = g2D.getFontRenderContext();
-                    var textLayout = new java.awt.font.TextLayout(lengthText, font, fontRenderContext);
-                    g2D.draw(textLayout.getOutline(new java.awt.geom.AffineTransform()));
+                    g2D.drawStringOutline(lengthText, 0, 0);
                     g2D.setAlpha(oldComposite);
-                    g2D.setPaint(foregroundColor);
+                    g2D.setColor(foregroundColor);
                 }
                 g2D.setFont(font);
                 g2D.drawString(lengthText, 0, 0);
