@@ -76,12 +76,6 @@ declare function getFromMap(map, key);
 declare function valuesFromMap(map) : Array<any>;
 declare function sortArray(array, comparator) : void;
 
-// TODO: utility function?
-function mouseEventCoordinates(e : MouseEvent) {
-  var rect = (<Element>e.target).getBoundingClientRect();
-  return { x : e.clientX - rect.left, y : e.clientY - rect.top };
-}    
-
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
@@ -665,7 +659,19 @@ class PlanComponent implements PlanView {
 
     /** @private */
     private scrollRectToVisible(rectangle : java.awt.geom.Rectangle2D.Float) {
-      // TODO
+      let dx = 0;
+      let dy = 0;
+      if(rectangle.x < -this.scrollPane.scrollLeft) {
+        dx = -this.scrollPane.scrollLeft - rectangle.x;
+      } else if(rectangle.getX() + rectangle.getWidth() > this.scrollPane.scrollLeft + this.scrollPane.clientWidth) {
+        dx = rectangle.getX() + rectangle.getWidth() - (this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
+      }
+      if(rectangle.y < -this.scrollPane.scrollTop) {
+        dy = -this.scrollPane.scrollTop - rectangle.y;
+      } else if(rectangle.getY() + rectangle.getHeight() > this.scrollPane.scrollTop + this.scrollPane.clientHeight) {
+        dy = rectangle.getY() + rectangle.getHeight() - (this.scrollPane.scrollTop + this.scrollPane.clientHeight);
+      }
+      this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
     }
 
     /**
@@ -951,6 +957,11 @@ class PlanComponent implements PlanView {
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     }
 
+    private mouseEventCoordinates(e : MouseEvent) {
+      var rect = (<Element>e.target).getBoundingClientRect();
+      return { x : this.scrollPane.scrollLeft + e.clientX - rect.left, y : this.scrollPane.scrollTop + e.clientY - rect.top };
+    }    
+
     /**
      * Adds mouse listeners to this component that calls back <code>controller</code> methods.
      * @param {PlanController} controller
@@ -966,7 +977,7 @@ class PlanComponent implements PlanView {
             let alignmentActivated: boolean = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
             let duplicationActivated: boolean = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
             let magnetismToggled: boolean = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-            let coords = mouseEventCoordinates(ev);
+            let coords = planComponent.mouseEventCoordinates(ev);
             controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 2, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
           }
         },
@@ -976,13 +987,13 @@ class PlanComponent implements PlanView {
             let alignmentActivated: boolean = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
             let duplicationActivated: boolean = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
             let magnetismToggled: boolean = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-            let coords = mouseEventCoordinates(ev);
+            let coords = planComponent.mouseEventCoordinates(ev);
             controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
           }
         },
         mouseReleased : function(ev : MouseEvent) {
             if(planComponent.isEnabled() && ev.button === 0) {
-                let coords = mouseEventCoordinates(ev);
+                let coords = planComponent.mouseEventCoordinates(ev);
                 controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertXPixelToModel(coords.y));
             }
         },
@@ -994,7 +1005,7 @@ class PlanComponent implements PlanView {
             }
             if(mouseListener.lastMousePressedLocation == null) {
               if(planComponent.isEnabled()) {
-                let coords = mouseEventCoordinates(ev);
+                let coords = planComponent.mouseEventCoordinates(ev);
                 controller.moveMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
               }
             }       
@@ -1229,8 +1240,8 @@ class PlanComponent implements PlanView {
     public getPreferredSize() : { width : number, height : number } {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return { width : Math.round((planBounds.getWidth() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.left + insets.right, 
-                 height : Math.round((planBounds.getHeight() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.top + insets.bottom };
+        return { width : this.convertLengthToPixel(planBounds.getWidth() + PlanComponent.MARGIN * 2) + insets.left + insets.right, 
+                 height : this.convertLengthToPixel(planBounds.getHeight() + PlanComponent.MARGIN * 2) + insets.top + insets.bottom };
     }
 
     /**
@@ -4497,14 +4508,18 @@ class PlanComponent implements PlanView {
     public makeSelectionVisible() {
         if(!this.selectionScrollUpdated) {
             this.selectionScrollUpdated = true;
-            java.awt.EventQueue.invokeLater(() => {
+            setTimeout(() => {
                 this.selectionScrollUpdated = false;
                 let selectionBounds : java.awt.geom.Rectangle2D = this.getSelectionBounds(true);
                 if(selectionBounds != null) {
-                    let pixelBounds : java.awt.Rectangle = this.getShapePixelBounds(selectionBounds);
-                    pixelBounds.grow(5, 5);
-                    let visibleRectangle : java.awt.Rectangle = this.getVisibleRect();
-                    if(!pixelBounds.intersects(visibleRectangle)) {
+                    let pixelBounds : java.awt.geom.Rectangle2D.Float = this.getShapePixelBounds(selectionBounds);
+                    pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
+                    let visibleRectangle : java.awt.geom.Rectangle2D.Float = new java.awt.geom.Rectangle2D.Float(
+                      this.scrollPane.scrollLeft, this.scrollPane.scrollTop, this.scrollPane.clientWidth, this.scrollPane.clientHeight);
+//                    if(!pixelBounds.intersects(visibleRectangle)) {
+//                        this.scrollRectToVisible(pixelBounds);
+//                    }
+                    if(!visibleRectangle.contains(pixelBounds)) {
                         this.scrollRectToVisible(pixelBounds);
                     }
                 }
@@ -4539,7 +4554,8 @@ class PlanComponent implements PlanView {
      * @param {number} y
      */
     public makePointVisible(x : number, y : number) {
-        this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, 1 / this.getPaintScale(), 1 / this.getPaintScale())));
+        this.scrollRectToVisible(this.getShapePixelBounds(
+          new java.awt.geom.Rectangle2D.Float(x, y, this.getPixelLength(), this.getPixelLength())));
     }
 
     /**
@@ -4548,12 +4564,8 @@ class PlanComponent implements PlanView {
      * @param {number} dy
      */
     public moveView(dx : number, dy : number) {
-      let x0 = this.convertXModelToPixel(0);
-      let y0 = this.convertYModelToPixel(0);
-      let x1 = this.convertXModelToPixel(dx);
-      let y1 = this.convertYModelToPixel(dy);
-      this.scrollPane.scrollLeft += x1 - x0;
-      this.scrollPane.scrollTop += y1 - y0;
+      this.scrollPane.scrollLeft += this.convertLengthToPixel(dx);
+      this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
       this.repaint();
     }
 
@@ -4617,6 +4629,13 @@ class PlanComponent implements PlanView {
     }
 
     /**
+     * Returns the length in model units (cm) of the given <code>size</code> in pixels.
+     */
+    private convertPixelToLength(size : number) : number {
+      return size * this.getPixelLength();
+    }
+
+    /**
      * Returns <code>x</code> converted in model coordinates space.
      * @param {number} x
      * @return {number}
@@ -4624,7 +4643,7 @@ class PlanComponent implements PlanView {
     public convertXPixelToModel(x : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return (x - insets.left + this.view.scrollLeft) / this.getScale() - PlanComponent.MARGIN + <number>planBounds.getMinX();
+        return this.convertPixelToLength(x - insets.left + this.view.scrollLeft) - PlanComponent.MARGIN + <number>planBounds.getMinX();
     }
 
     /**
@@ -4635,9 +4654,16 @@ class PlanComponent implements PlanView {
     public convertYPixelToModel(y : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return (y - insets.top + this.view.scrollTop) / this.getScale() - PlanComponent.MARGIN + <number>planBounds.getMinY();
+        return this.convertPixelToLength(y - insets.top + this.view.scrollTop) - PlanComponent.MARGIN + <number>planBounds.getMinY();
     }
 
+    /**
+     * Returns the size in pixels of the given <code>length</code> in model units (cm).
+     */
+    private convertLengthToPixel(length : number) : number {
+      return (length / this.getPixelLength()) | 0;
+    }
+  
     /**
      * Returns <code>x</code> converted in view coordinates space.
      * @param {number} x
@@ -4647,7 +4673,7 @@ class PlanComponent implements PlanView {
     convertXModelToPixel(x : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return (<number>Math.round((x - planBounds.getMinX() + PlanComponent.MARGIN) * this.getScale())|0) + insets.left - this.view.scrollLeft;
+        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.view.scrollLeft;
     }
 
     /**
@@ -4659,7 +4685,7 @@ class PlanComponent implements PlanView {
     convertYModelToPixel(y : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return (<number>Math.round((y - planBounds.getMinY() + PlanComponent.MARGIN) * this.getPaintScale())|0) + insets.top - this.view.scrollTop;
+        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.view.scrollTop;
     }
 
     /**
@@ -4685,7 +4711,7 @@ class PlanComponent implements PlanView {
      * @return {number}
      */
     public getPixelLength() : number {
-        return 1 / this.getPaintScale();
+        return 1 / this.getScale();
     }
 
     /**
@@ -4698,8 +4724,8 @@ class PlanComponent implements PlanView {
         let shapeBounds : java.awt.geom.Rectangle2D = shape.getBounds2D();
         return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), 
                                       this.convertYModelToPixel(shapeBounds.getMinY()), 
-                                      (Math.round(shapeBounds.getWidth() * this.getPaintScale())|0), 
-                                      (Math.round(shapeBounds.getHeight() * this.getPaintScale())|0));
+                                      this.convertLengthToPixel(shapeBounds.getWidth()), 
+                                      this.convertLengthToPixel(shapeBounds.getHeight()));
     }
 
     /**

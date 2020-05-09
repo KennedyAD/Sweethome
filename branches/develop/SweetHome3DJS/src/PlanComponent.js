@@ -23,11 +23,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-// TODO: utility function?
-function mouseEventCoordinates(e) {
-    var rect = e.target.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-}
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {Home} home the home to display
@@ -396,7 +391,21 @@ var PlanComponent = (function () {
     };
     /** @private */
     PlanComponent.prototype.scrollRectToVisible = function (rectangle) {
-        // TODO
+        var dx = 0;
+        var dy = 0;
+        if (rectangle.x < -this.scrollPane.scrollLeft) {
+            dx = -this.scrollPane.scrollLeft - rectangle.x;
+        }
+        else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.scrollLeft + this.scrollPane.clientWidth) {
+            dx = rectangle.getX() + rectangle.getWidth() - (this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
+        }
+        if (rectangle.y < -this.scrollPane.scrollTop) {
+            dy = -this.scrollPane.scrollTop - rectangle.y;
+        }
+        else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.scrollTop + this.scrollPane.clientHeight) {
+            dy = rectangle.getY() + rectangle.getHeight() - (this.scrollPane.scrollTop + this.scrollPane.clientHeight);
+        }
+        this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
     };
     /**
      * Adds home items and selection listeners on this component to receive
@@ -694,6 +703,10 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", preferencesListener);
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
+    PlanComponent.prototype.mouseEventCoordinates = function (e) {
+        var rect = e.target.getBoundingClientRect();
+        return { x: this.scrollPane.scrollLeft + e.clientX - rect.left, y: this.scrollPane.scrollTop + e.clientY - rect.top };
+    };
     /**
      * Adds mouse listeners to this component that calls back <code>controller</code> methods.
      * @param {PlanController} controller
@@ -709,7 +722,7 @@ var PlanComponent = (function () {
                     var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
                     var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
                     var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-                    var coords = mouseEventCoordinates(ev);
+                    var coords = planComponent.mouseEventCoordinates(ev);
                     controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 2, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
                 }
             },
@@ -719,13 +732,13 @@ var PlanComponent = (function () {
                     var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
                     var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
                     var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-                    var coords = mouseEventCoordinates(ev);
+                    var coords = planComponent.mouseEventCoordinates(ev);
                     controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
                 }
             },
             mouseReleased: function (ev) {
                 if (planComponent.isEnabled() && ev.button === 0) {
-                    var coords = mouseEventCoordinates(ev);
+                    var coords = planComponent.mouseEventCoordinates(ev);
                     controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertXPixelToModel(coords.y));
                 }
             },
@@ -737,7 +750,7 @@ var PlanComponent = (function () {
                 }
                 if (mouseListener.lastMousePressedLocation == null) {
                     if (planComponent.isEnabled()) {
-                        var coords = mouseEventCoordinates(ev);
+                        var coords = planComponent.mouseEventCoordinates(ev);
                         controller.moveMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
                     }
                 }
@@ -962,8 +975,8 @@ var PlanComponent = (function () {
     PlanComponent.prototype.getPreferredSize = function () {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return { width: Math.round((planBounds.getWidth() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.left + insets.right,
-            height: Math.round((planBounds.getHeight() + PlanComponent.MARGIN * 2) * this.getScale()) + insets.top + insets.bottom };
+        return { width: this.convertLengthToPixel(planBounds.getWidth() + PlanComponent.MARGIN * 2) + insets.left + insets.right,
+            height: this.convertLengthToPixel(planBounds.getHeight() + PlanComponent.MARGIN * 2) + insets.top + insets.bottom };
     };
     /**
      * Returns the bounds of the plan displayed by this component.
@@ -4262,14 +4275,17 @@ var PlanComponent = (function () {
         var _this = this;
         if (!this.selectionScrollUpdated) {
             this.selectionScrollUpdated = true;
-            java.awt.EventQueue.invokeLater(function () {
+            setTimeout(function () {
                 _this.selectionScrollUpdated = false;
                 var selectionBounds = _this.getSelectionBounds(true);
                 if (selectionBounds != null) {
                     var pixelBounds = _this.getShapePixelBounds(selectionBounds);
-                    pixelBounds.grow(5, 5);
-                    var visibleRectangle = _this.getVisibleRect();
-                    if (!pixelBounds.intersects(visibleRectangle)) {
+                    pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
+                    var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
+                    //                    if(!pixelBounds.intersects(visibleRectangle)) {
+                    //                        this.scrollRectToVisible(pixelBounds);
+                    //                    }
+                    if (!visibleRectangle.contains(pixelBounds)) {
                         _this.scrollRectToVisible(pixelBounds);
                     }
                 }
@@ -4310,7 +4326,7 @@ var PlanComponent = (function () {
      * @param {number} y
      */
     PlanComponent.prototype.makePointVisible = function (x, y) {
-        this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, 1 / this.getPaintScale(), 1 / this.getPaintScale())));
+        this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, this.getPixelLength(), this.getPixelLength())));
     };
     /**
      * Moves the view from (dx, dy) unit in the scrolling zone it belongs to.
@@ -4318,12 +4334,8 @@ var PlanComponent = (function () {
      * @param {number} dy
      */
     PlanComponent.prototype.moveView = function (dx, dy) {
-        var x0 = this.convertXModelToPixel(0);
-        var y0 = this.convertYModelToPixel(0);
-        var x1 = this.convertXModelToPixel(dx);
-        var y1 = this.convertYModelToPixel(dy);
-        this.scrollPane.scrollLeft += x1 - x0;
-        this.scrollPane.scrollTop += y1 - y0;
+        this.scrollPane.scrollLeft += this.convertLengthToPixel(dx);
+        this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
         this.repaint();
     };
     /**
@@ -4370,6 +4382,12 @@ var PlanComponent = (function () {
         }
     };
     /**
+     * Returns the length in model units (cm) of the given <code>size</code> in pixels.
+     */
+    PlanComponent.prototype.convertPixelToLength = function (size) {
+        return size * this.getPixelLength();
+    };
+    /**
      * Returns <code>x</code> converted in model coordinates space.
      * @param {number} x
      * @return {number}
@@ -4377,7 +4395,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXPixelToModel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (x - insets.left + this.view.scrollLeft) / this.getScale() - PlanComponent.MARGIN + planBounds.getMinX();
+        return this.convertPixelToLength(x - insets.left + this.view.scrollLeft) - PlanComponent.MARGIN + planBounds.getMinX();
     };
     /**
      * Returns <code>y</code> converted in model coordinates space.
@@ -4387,7 +4405,13 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYPixelToModel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (y - insets.top + this.view.scrollTop) / this.getScale() - PlanComponent.MARGIN + planBounds.getMinY();
+        return this.convertPixelToLength(y - insets.top + this.view.scrollTop) - PlanComponent.MARGIN + planBounds.getMinY();
+    };
+    /**
+     * Returns the size in pixels of the given <code>length</code> in model units (cm).
+     */
+    PlanComponent.prototype.convertLengthToPixel = function (length) {
+        return (length / this.getPixelLength()) | 0;
     };
     /**
      * Returns <code>x</code> converted in view coordinates space.
@@ -4398,7 +4422,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXModelToPixel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (Math.round((x - planBounds.getMinX() + PlanComponent.MARGIN) * this.getScale()) | 0) + insets.left - this.view.scrollLeft;
+        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.view.scrollLeft;
     };
     /**
      * Returns <code>y</code> converted in view coordinates space.
@@ -4409,7 +4433,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYModelToPixel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return (Math.round((y - planBounds.getMinY() + PlanComponent.MARGIN) * this.getPaintScale()) | 0) + insets.top - this.view.scrollTop;
+        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.view.scrollTop;
     };
     /**
      * Returns <code>x</code> converted in screen coordinates space.
@@ -4432,7 +4456,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.getPixelLength = function () {
-        return 1 / this.getPaintScale();
+        return 1 / this.getScale();
     };
     /**
      * Returns the bounds of <code>shape</code> in pixels coordinates space.
@@ -4442,7 +4466,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.getShapePixelBounds = function (shape) {
         var shapeBounds = shape.getBounds2D();
-        return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), (Math.round(shapeBounds.getWidth() * this.getPaintScale()) | 0), (Math.round(shapeBounds.getHeight() * this.getPaintScale()) | 0));
+        return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), this.convertLengthToPixel(shapeBounds.getWidth()), this.convertLengthToPixel(shapeBounds.getHeight()));
     };
     /**
      * Sets the cursor of this component.
