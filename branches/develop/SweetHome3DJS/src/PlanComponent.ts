@@ -286,7 +286,8 @@ class PlanComponent implements PlanView {
     
     static WEBGL_AVAILABLE = true;
     
-    static RETINA_SCALE_FACTOR : number = 2;
+    // TODO: generic resolution support (see https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
+    static HIDPI_SCALE_FACTOR : number = 2;
     
     static DEFAULT_SELECTION_COLOR : string;
 
@@ -529,7 +530,7 @@ class PlanComponent implements PlanView {
           this.repaint();
         };
         
-        this.resolutionScale = PlanComponent.RETINA_SCALE_FACTOR;
+        this.resolutionScale = PlanComponent.HIDPI_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
         this.planBoundsCacheValid = false;
@@ -2986,32 +2987,40 @@ class PlanComponent implements PlanView {
      * @private
      */
     private makePatternImage(image : HTMLImageElement, foregroundColor : string, backgroundColor : string) : HTMLImageElement {
-        let canvas = document.createElement("canvas");
-        canvas.width = image.width;
-        canvas.height = image.height;
-        let ctx = canvas.getContext("2d");
-        ctx.drawImage(image, 0, 0);
-        let imageData = ctx.getImageData(0, 0, image.width, image.height).data;
-        let bgColor = stringToColor(backgroundColor);
-        let fgColor = stringToColor(foregroundColor);
-        for(let i=0; i < imageData.length; i+=4) {
-            if(imageData[i + 3] < 10) {
-              // change transparent color
-              imageData[i] = bgColor & 0xFF0000;
-              imageData[i + 1] = bgColor & 0xFF00;
-              imageData[i + 2] = bgColor & 0xFF;
-              imageData[i + 3] = 0xFF;
-            } else if(imageData[i] + imageData[i + 1] + imageData[i + 2] < 10) {
-              // change black color
-              imageData[i] = fgColor & 0xFF0000;
-              imageData[i + 1] = fgColor & 0xFF00;
-              imageData[i + 2] = fgColor & 0xFF;
-              imageData[i + 3] = 0xFF;
-            }
+      var canvas = document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      var context = canvas.getContext("2d");
+      context.fillStyle = "#FFFFFF";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0);
+      var imageData = context.getImageData(0, 0, image.width, image.height).data;
+      var bgColor = stringToColor(backgroundColor);
+      var fgColor = stringToColor(foregroundColor);
+      var updatedImageData = context.createImageData(image.width, image.height);
+      for (var i = 0; i < imageData.length; i += 4) {
+        updatedImageData.data[i + 3] = 0xFF;
+        if (imageData[i] === 0xFF && imageData[i + 1] === 0xFF && imageData[i + 2] === 0xFF) {
+          // Change white pixels to background color
+          updatedImageData.data[i] = (bgColor & 0xFF0000) >> 16;
+          updatedImageData.data[i + 1] = (bgColor & 0xFF00) >> 8;
+          updatedImageData.data[i + 2] = bgColor & 0xFF;
+        } else if (imageData[i] === 0 && imageData[i + 1] === 0 && imageData[i + 2] === 0) {
+          // Change black pixels to foreground color
+          updatedImageData.data[i] = (fgColor & 0xFF0000) >> 16;
+          updatedImageData.data[i + 1] = (fgColor & 0xFF00) >> 8;
+          updatedImageData.data[i + 2] = fgColor & 0xFF;
+        } else {
+          // Change color mixing foreground and background color 
+          var percent = 1 - (imageData[i] + imageData[i + 1] + imageData[i + 2]) / 3. / 0xFF;
+          updatedImageData.data[i] = Math.min(0xFF, ((fgColor & 0xFF0000) >> 16) * percent + ((bgColor & 0xFF0000) >> 16) * (1 - percent));
+          updatedImageData.data[i + 1] = Math.min(0xFF, ((fgColor & 0xFF00) >> 8) * percent + ((bgColor & 0xFF00) >> 8) * (1 - percent));
+          updatedImageData.data[i + 2] = Math.min(0xFF, (fgColor & 0xFF) * percent + (bgColor & 0xFF) * (1 - percent));
         }
-        ctx.putImageData(new ImageData(imageData, image.width, image.height), 0, 0);
-        image.src = canvas.toDataURL("image/png");
-        return image;
+      }
+      context.putImageData(updatedImageData, 0, 0);
+      image.src = canvas.toDataURL();
+      return image;
     }
 
     /**
