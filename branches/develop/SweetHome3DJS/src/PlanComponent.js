@@ -94,11 +94,11 @@ var PlanComponent = (function () {
         }
         this.rotationCursor = 'alias'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/rotation16x16.png", "resources/cursors/rotation32x32.png", "Rotation cursor", Cursor.MOVE_CURSOR);
         this.elevationCursor = 'row-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/elevation16x16.png", "resources/cursors/elevation32x32.png", "Elevation cursor", Cursor.MOVE_CURSOR);
-        this.heightCursor = 'n-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/height16x16.png", "resources/cursors/height32x32.png", "Height cursor", Cursor.MOVE_CURSOR);
+        this.heightCursor = 'ns-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/height16x16.png", "resources/cursors/height32x32.png", "Height cursor", Cursor.MOVE_CURSOR);
         this.powerCursor = 'cell'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/power16x16.png", "resources/cursors/power32x32.png", "Power cursor", Cursor.MOVE_CURSOR);
-        this.resizeCursor = 'all-scroll'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/resize16x16.png", "resources/cursors/resize32x32.png", "Resize cursor", Cursor.MOVE_CURSOR);
+        this.resizeCursor = 'ew-resize'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/resize16x16.png", "resources/cursors/resize32x32.png", "Resize cursor", Cursor.MOVE_CURSOR);
         this.moveCursor = 'move'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/move16x16.png", "resources/cursors/move32x32.png", "Move cursor", Cursor.MOVE_CURSOR);
-        this.panningCursor = 'col-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
+        this.panningCursor = 'move'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
         this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
         this.patternImagesCache = ({});
         this.setScale(1);
@@ -705,7 +705,7 @@ var PlanComponent = (function () {
     };
     PlanComponent.prototype.mouseEventCoordinates = function (e) {
         var rect = e.target.getBoundingClientRect();
-        return { x: this.scrollPane.scrollLeft + e.clientX - rect.left, y: this.scrollPane.scrollTop + e.clientY - rect.top };
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     };
     /**
      * Adds mouse listeners to this component that calls back <code>controller</code> methods.
@@ -739,7 +739,7 @@ var PlanComponent = (function () {
             mouseReleased: function (ev) {
                 if (planComponent.isEnabled() && ev.button === 0) {
                     var coords = planComponent.mouseEventCoordinates(ev);
-                    controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertXPixelToModel(coords.y));
+                    controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
                 }
             },
             mouseMoved: function (ev) {
@@ -3581,15 +3581,15 @@ var PlanComponent = (function () {
                     lengthStyle = _this.preferences.getDefaultTextStyle(dimensionLine.constructor);
                 }
                 if (feedback && _this.getFont() != null) {
-                    lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(_this.getFont()).size) / _this.getPaintScale());
+                    lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(_this.getFont()).size) / _this.getScale());
                 }
                 var font = _this.getFont(previousFont, lengthStyle);
                 var lengthFontMetrics = _this.getFontMetrics(font, lengthStyle);
                 var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText, g2D);
                 var fontAscent = lengthFontMetrics.getAscent();
                 g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : fontAscent + 1);
+                g2D.setColor(backgroundColor);
                 if (feedback) {
-                    g2D.setColor(backgroundColor);
                     var oldComposite = _this.setTransparency(g2D, 0.7);
                     g2D.setStroke(new java.awt.BasicStroke(4 / planScale * _this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
                     g2D.drawStringOutline(lengthText, 0, 0);
@@ -4395,7 +4395,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXPixelToModel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertPixelToLength(x - insets.left + this.view.scrollLeft) - PlanComponent.MARGIN + planBounds.getMinX();
+        return this.convertPixelToLength(x - insets.left + this.scrollPane.scrollLeft) - PlanComponent.MARGIN + planBounds.getMinX();
     };
     /**
      * Returns <code>y</code> converted in model coordinates space.
@@ -4405,13 +4405,13 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYPixelToModel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertPixelToLength(y - insets.top + this.view.scrollTop) - PlanComponent.MARGIN + planBounds.getMinY();
+        return this.convertPixelToLength(y - insets.top + this.scrollPane.scrollTop) - PlanComponent.MARGIN + planBounds.getMinY();
     };
     /**
      * Returns the size in pixels of the given <code>length</code> in model units (cm).
      */
     PlanComponent.prototype.convertLengthToPixel = function (length) {
-        return (length / this.getPixelLength()) | 0;
+        return Math.round(length / this.getPixelLength());
     };
     /**
      * Returns <code>x</code> converted in view coordinates space.
@@ -4422,7 +4422,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXModelToPixel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.view.scrollLeft;
+        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.scrollPane.scrollLeft;
     };
     /**
      * Returns <code>y</code> converted in view coordinates space.
@@ -4433,7 +4433,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYModelToPixel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.view.scrollTop;
+        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.scrollPane.scrollTop;
     };
     /**
      * Returns <code>x</code> converted in screen coordinates space.
@@ -4456,6 +4456,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.getPixelLength = function () {
+        // on contrary to Java version that uses getPaintScale(), we use the actual scale 
         return 1 / this.getScale();
     };
     /**

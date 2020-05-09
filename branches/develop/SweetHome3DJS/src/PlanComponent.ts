@@ -546,11 +546,11 @@ class PlanComponent implements PlanView {
         }
         this.rotationCursor = 'alias'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/rotation16x16.png", "resources/cursors/rotation32x32.png", "Rotation cursor", Cursor.MOVE_CURSOR);
         this.elevationCursor = 'row-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/elevation16x16.png", "resources/cursors/elevation32x32.png", "Elevation cursor", Cursor.MOVE_CURSOR);
-        this.heightCursor = 'n-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/height16x16.png", "resources/cursors/height32x32.png", "Height cursor", Cursor.MOVE_CURSOR);
+        this.heightCursor = 'ns-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/height16x16.png", "resources/cursors/height32x32.png", "Height cursor", Cursor.MOVE_CURSOR);
         this.powerCursor = 'cell'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/power16x16.png", "resources/cursors/power32x32.png", "Power cursor", Cursor.MOVE_CURSOR);
-        this.resizeCursor = 'all-scroll'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/resize16x16.png", "resources/cursors/resize32x32.png", "Resize cursor", Cursor.MOVE_CURSOR);
+        this.resizeCursor = 'ew-resize'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/resize16x16.png", "resources/cursors/resize32x32.png", "Resize cursor", Cursor.MOVE_CURSOR);
         this.moveCursor = 'move'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/move16x16.png", "resources/cursors/move32x32.png", "Move cursor", Cursor.MOVE_CURSOR);
-        this.panningCursor = 'col-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
+        this.panningCursor = 'move'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
         this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
         this.patternImagesCache = <any>({});
         this.setScale(1);
@@ -959,7 +959,7 @@ class PlanComponent implements PlanView {
 
     private mouseEventCoordinates(e : MouseEvent) {
       var rect = (<Element>e.target).getBoundingClientRect();
-      return { x : this.scrollPane.scrollLeft + e.clientX - rect.left, y : this.scrollPane.scrollTop + e.clientY - rect.top };
+      return { x : e.clientX - rect.left, y : e.clientY - rect.top };
     }    
 
     /**
@@ -994,7 +994,7 @@ class PlanComponent implements PlanView {
         mouseReleased : function(ev : MouseEvent) {
             if(planComponent.isEnabled() && ev.button === 0) {
                 let coords = planComponent.mouseEventCoordinates(ev);
-                controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertXPixelToModel(coords.y));
+                controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
             }
         },
         mouseMoved : function(ev : MouseEvent) {
@@ -3808,20 +3808,20 @@ class PlanComponent implements PlanView {
                   lengthStyle = this.preferences.getDefaultTextStyle((<any>dimensionLine.constructor));
               }
               if(feedback && this.getFont() != null) {
-                  lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(this.getFont()).size) / this.getPaintScale());
+                  lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(this.getFont()).size) / this.getScale());
               }
               let font : string = this.getFont(previousFont, lengthStyle);
               let lengthFontMetrics : FontMetrics = this.getFontMetrics(font, lengthStyle);
               let lengthTextBounds : java.awt.geom.Rectangle2D = lengthFontMetrics.getStringBounds(lengthText, g2D);
               let fontAscent : number = lengthFontMetrics.getAscent();
               g2D.translate((dimensionLineLength - <number>lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0?-lengthFontMetrics.getDescent() - 1:fontAscent + 1);
+              g2D.setColor(backgroundColor);
               if(feedback) {
-                    g2D.setColor(backgroundColor);
-                    var oldComposite = this.setTransparency(g2D, 0.7);
-                    g2D.setStroke(new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
-                    g2D.drawStringOutline(lengthText, 0, 0);
-                    g2D.setAlpha(oldComposite);
-                    g2D.setColor(foregroundColor);                
+                  var oldComposite = this.setTransparency(g2D, 0.7);
+                  g2D.setStroke(new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
+                  g2D.drawStringOutline(lengthText, 0, 0);
+                  g2D.setAlpha(oldComposite);
+                  g2D.setColor(foregroundColor);                
               }
               g2D.setFont(font);
               g2D.drawString(lengthText, 0, 0);
@@ -4643,7 +4643,7 @@ class PlanComponent implements PlanView {
     public convertXPixelToModel(x : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return this.convertPixelToLength(x - insets.left + this.view.scrollLeft) - PlanComponent.MARGIN + <number>planBounds.getMinX();
+        return this.convertPixelToLength(x - insets.left + this.scrollPane.scrollLeft) - PlanComponent.MARGIN + <number>planBounds.getMinX();
     }
 
     /**
@@ -4654,14 +4654,14 @@ class PlanComponent implements PlanView {
     public convertYPixelToModel(y : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return this.convertPixelToLength(y - insets.top + this.view.scrollTop) - PlanComponent.MARGIN + <number>planBounds.getMinY();
+        return this.convertPixelToLength(y - insets.top + this.scrollPane.scrollTop) - PlanComponent.MARGIN + <number>planBounds.getMinY();
     }
 
     /**
      * Returns the size in pixels of the given <code>length</code> in model units (cm).
      */
     private convertLengthToPixel(length : number) : number {
-      return (length / this.getPixelLength()) | 0;
+      return Math.round(length / this.getPixelLength());
     }
   
     /**
@@ -4673,7 +4673,7 @@ class PlanComponent implements PlanView {
     convertXModelToPixel(x : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.view.scrollLeft;
+        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.scrollPane.scrollLeft;
     }
 
     /**
@@ -4685,7 +4685,7 @@ class PlanComponent implements PlanView {
     convertYModelToPixel(y : number) : number {
         let insets = this.getInsets();
         let planBounds : java.awt.geom.Rectangle2D = this.getPlanBounds();
-        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.view.scrollTop;
+        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.scrollPane.scrollTop;
     }
 
     /**
@@ -4711,7 +4711,8 @@ class PlanComponent implements PlanView {
      * @return {number}
      */
     public getPixelLength() : number {
-        return 1 / this.getScale();
+      // on contrary to Java version that uses getPaintScale(), we use the actual scale 
+      return 1 / this.getScale();
     }
 
     /**
