@@ -393,17 +393,19 @@ var PlanComponent = (function () {
     PlanComponent.prototype.scrollRectToVisible = function (rectangle) {
         var dx = 0;
         var dy = 0;
-        if (rectangle.x < -this.scrollPane.scrollLeft) {
-            dx = -this.scrollPane.scrollLeft - rectangle.x;
+        //      console.info(rectangle);
+        //      console.info(rectangle.getX() + rectangle.getWidth(), this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
+        if (rectangle.x < 0) {
+            dx = rectangle.x;
         }
-        else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.scrollLeft + this.scrollPane.clientWidth) {
-            dx = rectangle.getX() + rectangle.getWidth() - (this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
+        else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.clientWidth) {
+            dx = rectangle.getX() + rectangle.getWidth() - this.scrollPane.clientWidth;
         }
-        if (rectangle.y < -this.scrollPane.scrollTop) {
-            dy = -this.scrollPane.scrollTop - rectangle.y;
+        if (rectangle.y < 0) {
+            dy = rectangle.y;
         }
-        else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.scrollTop + this.scrollPane.clientHeight) {
-            dy = rectangle.getY() + rectangle.getHeight() - (this.scrollPane.scrollTop + this.scrollPane.clientHeight);
+        else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.clientHeight) {
+            dy = rectangle.getY() + rectangle.getHeight() - this.scrollPane.clientHeight;
         }
         this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
     };
@@ -703,9 +705,24 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", preferencesListener);
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
-    PlanComponent.prototype.mouseEventCoordinates = function (e) {
-        var rect = e.target.getBoundingClientRect();
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    PlanComponent.prototype.handleMouseEvent = function (e, type) {
+        if (e.canvasX === undefined) {
+            var rect = this.canvas.getBoundingClientRect();
+            e.canvasX = e.clientX - rect.left;
+            e.canvasY = e.clientY - rect.top;
+        }
+        if (e.clickCount === undefined) {
+            if (type == "mouseDoubleClicked") {
+                e.clickCount = 2;
+            }
+            else if (type == "mousePressed" || type == "mouseReleased") {
+                e.clickCount = 1;
+            }
+            else {
+                e.clickCount = 0;
+            }
+        }
+        //console.info("mouse event: "+type + " ("+(<any>e).canvasX+","+(<any>e).canvasY+")");
     };
     /**
      * Adds mouse listeners to this component that calls back <code>controller</code> methods.
@@ -717,41 +734,35 @@ var PlanComponent = (function () {
         var mouseListener = {
             lastMousePressedLocation: null,
             mouseDoubleClicked: function (ev) {
-                if (planComponent.isEnabled() && ev.button === 0) {
-                    mouseListener.lastMousePressedLocation = [ev.clientX, ev.clientY];
-                    var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
-                    var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
-                    var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-                    var coords = planComponent.mouseEventCoordinates(ev);
-                    controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 2, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
-                }
+                planComponent.handleMouseEvent(ev, "mouseDoubleClicked");
+                mouseListener.mousePressed(ev);
             },
             mousePressed: function (ev) {
                 if (planComponent.isEnabled() && ev.button === 0) {
+                    planComponent.handleMouseEvent(ev, "mousePressed");
                     mouseListener.lastMousePressedLocation = [ev.clientX, ev.clientY];
                     var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
                     var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
                     var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
-                    var coords = planComponent.mouseEventCoordinates(ev);
-                    controller.pressMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y), 1, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
+                    controller.pressMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY), ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, alignmentActivated, duplicationActivated, magnetismToggled);
                 }
             },
             mouseReleased: function (ev) {
                 if (planComponent.isEnabled() && ev.button === 0) {
-                    var coords = planComponent.mouseEventCoordinates(ev);
-                    controller.releaseMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
+                    planComponent.handleMouseEvent(ev, "mouseReleased");
+                    controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                 }
             },
             mouseMoved: function (ev) {
-                //console.info(ev.clientX+", "+ev.clientY+" ==> "+planComponent.convertXPixelToModel(ev.clientX)+", ",planComponent.convertYPixelToModel(ev.clientY));
+                //console.info(ev.clientX+", "+ev.clientY+" ==> "+(<any>ev).canvasX+", "+(<any>ev).canvasY);
                 //console.info(mouseEventCoordinates(ev));
                 if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.clientX && mouseListener.lastMousePressedLocation[1] === ev.clientY)) {
                     mouseListener.lastMousePressedLocation = null;
                 }
                 if (mouseListener.lastMousePressedLocation == null) {
                     if (planComponent.isEnabled()) {
-                        var coords = planComponent.mouseEventCoordinates(ev);
-                        controller.moveMouse(planComponent.convertXPixelToModel(coords.x), planComponent.convertYPixelToModel(coords.y));
+                        planComponent.handleMouseEvent(ev, "mouseMoved");
+                        controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                     }
                 }
             },
@@ -783,8 +794,10 @@ var PlanComponent = (function () {
         };
         this.canvas.addEventListener("mousedown", mouseListener.mousePressed);
         this.canvas.addEventListener("dblclick", mouseListener.mouseDoubleClicked);
-        this.canvas.addEventListener("mouseup", mouseListener.mouseReleased);
-        this.canvas.addEventListener("mousemove", mouseListener.mouseMoved);
+        //this.canvas.addEventListener("mouseup", mouseListener.mouseReleased);
+        //this.canvas.addEventListener("mousemove", mouseListener.mouseMoved);
+        window.addEventListener("mouseup", mouseListener.mouseReleased);
+        window.addEventListener("mousemove", mouseListener.mouseMoved);
         this.mouseListener = mouseListener;
     };
     /**
@@ -3544,6 +3557,7 @@ var PlanComponent = (function () {
             dimensionLines = Home.getDimensionLinesSubList(selectedItems);
         }
         g2D.setPaint(foregroundColor);
+        g2D.setColor(foregroundColor);
         var dimensionLineStroke = new java.awt.BasicStroke(this.getStrokeWidth(DimensionLine, paintMode) / planScale);
         var previousFont = g2D.getFont();
         dimensionLines.forEach(function (dimensionLine) {
@@ -3588,15 +3602,15 @@ var PlanComponent = (function () {
                 var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText, g2D);
                 var fontAscent = lengthFontMetrics.getAscent();
                 g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : fontAscent + 1);
-                g2D.setColor(backgroundColor);
+                g2D.setFont(font);
                 if (feedback) {
+                    g2D.setColor(backgroundColor);
                     var oldComposite = _this.setTransparency(g2D, 0.7);
                     g2D.setStroke(new java.awt.BasicStroke(4 / planScale * _this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
                     g2D.drawStringOutline(lengthText, 0, 0);
                     g2D.setAlpha(oldComposite);
                     g2D.setColor(foregroundColor);
                 }
-                g2D.setFont(font);
                 g2D.drawString(lengthText, 0, 0);
                 g2D.setTransform(previousTransform);
             }
@@ -4282,10 +4296,7 @@ var PlanComponent = (function () {
                     var pixelBounds = _this.getShapePixelBounds(selectionBounds);
                     pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
                     var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
-                    //                    if(!pixelBounds.intersects(visibleRectangle)) {
-                    //                        this.scrollRectToVisible(pixelBounds);
-                    //                    }
-                    if (!visibleRectangle.contains(pixelBounds)) {
+                    if (!pixelBounds.intersects(visibleRectangle)) {
                         _this.scrollRectToVisible(pixelBounds);
                     }
                 }
