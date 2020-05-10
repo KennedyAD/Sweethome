@@ -974,6 +974,10 @@ class PlanComponent implements PlanView {
           e.clickCount = 0;
         }
       }
+      if(type == "mouseWheelMoved") {
+        e.preventDefault();
+        e.wheelRotation = (e.deltaY !== undefined ? e.deltaX + e.deltaY : -e.wheelDelta) / 4;
+      }
       //console.info("mouse event: "+type + " ("+(<any>e).canvasX+","+(<any>e).canvasY+")");
     }    
 
@@ -1007,8 +1011,6 @@ class PlanComponent implements PlanView {
             }
         },
         mouseMoved : function(ev : MouseEvent) {
-          //console.info(ev.clientX+", "+ev.clientY+" ==> "+(<any>ev).canvasX+", "+(<any>ev).canvasY);
-          //console.info(mouseEventCoordinates(ev));
           if(mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.clientX && mouseListener.lastMousePressedLocation[1] === ev.clientY)) {
                 mouseListener.lastMousePressedLocation = null;
             }
@@ -1020,29 +1022,26 @@ class PlanComponent implements PlanView {
             }       
         },
         mouseWheelMoved : function(ev : MouseWheelEvent) {
-          // TODO
-          /*  if(ev.getModifiers() === this.__parent.getToolkit().getMenuShortcutKeyMask()) {
-                let mouseX : number = 0;
-                let mouseY : number = 0;
-                let deltaX : number = 0;
-                let deltaY : number = 0;
-                if(this.__parent.getParent() != null && this.__parent.getParent() instanceof <any>javax.swing.JViewport) {
-                    mouseX = this.__parent.convertXPixelToModel(ev.getX());
-                    mouseY = this.__parent.convertYPixelToModel(ev.getY());
-                    let viewRectangle : java.awt.Rectangle = (<javax.swing.JViewport>this.__parent.getParent()).getViewRect();
-                    deltaX = ev.getX() - viewRectangle.x;
-                    deltaY = ev.getY() - viewRectangle.y;
-                }
-                let oldScale : number = this.__parent.getScale();
-                this.controller.zoom(<number>(ev.getWheelRotation() < 0?Math.pow(1.05, -ev.getWheelRotation()):Math.pow(0.95, ev.getWheelRotation())));
-                if(this.__parent.getScale() !== oldScale && (this.__parent.getParent() != null && this.__parent.getParent() instanceof <any>javax.swing.JViewport)) {
-                    (<javax.swing.JViewport>this.__parent.getParent()).setViewPosition(new java.awt.Point());
-                    this.__parent.moveView(mouseX - this.__parent.convertXPixelToModel(deltaX), mouseY - this.__parent.convertYPixelToModel(deltaY));
-                }
-            } else if(this.__parent.getMouseWheelListeners().length === 1) {
-                this.__parent.getParent().dispatchEvent(new java.awt.event.MouseWheelEvent(this.__parent.getParent(), ev.getID(), ev.getWhen(), ev.getModifiersEx() | ev.getModifiers(), ev.getX() - this.__parent.getX(), ev.getY() - this.__parent.getY(), ev.getClickCount(), ev.isPopupTrigger(), ev.getScrollType(), ev.getScrollAmount(), ev.getWheelRotation()));
+          planComponent.handleMouseEvent(ev, "mouseWheelMoved");
+          let shortcutKeyPressed: boolean = OperatingSystem.isMacOSX() ? ev.metaKey : ev.ctrlKey;
+          if(shortcutKeyPressed) {
+            let mouseX = planComponent.convertXPixelToModel((<any>ev).canvasX);
+            let mouseY = planComponent.convertYPixelToModel((<any>ev).canvasY);
+            
+            let oldScale : number = planComponent.getScale();
+            controller.zoom((<any>ev).wheelRotation < 0?Math.pow(1.05, -(<any>ev).wheelRotation):Math.pow(0.95, (<any>ev).wheelRotation));
+            if(planComponent.getScale() !== oldScale) {
+              // If scale changed, update viewport position to keep the same coordinates under mouse cursor
+              planComponent.scrollPane.scrollLeft = 0;
+              planComponent.scrollPane.scrollTop = 0;
+              let mouseDeltaX = (<any>ev).canvasX - planComponent.convertXModelToPixel(mouseX);
+              let mouseDeltaY = (<any>ev).canvasY - planComponent.convertYModelToPixel(mouseY);
+              planComponent.moveView(-planComponent.convertPixelToLength(mouseDeltaX), -planComponent.convertPixelToLength(mouseDeltaY));              
             }
-        */
+          } else {
+              planComponent.moveView(ev.shiftKey ? planComponent.convertPixelToLength((<any>ev).wheelRotation) : 0, 
+                                     ev.shiftKey ? 0 : planComponent.convertPixelToLength((<any>ev).wheelRotation));
+          }
         }
         
       };
@@ -1053,6 +1052,7 @@ class PlanComponent implements PlanView {
       //this.canvas.addEventListener("mousemove", mouseListener.mouseMoved);
       window.addEventListener("mouseup", mouseListener.mouseReleased);
       window.addEventListener("mousemove", mouseListener.mouseMoved);
+      this.canvas.addEventListener("mousewheel", mouseListener.mouseWheelMoved);
 
       this.mouseListener = mouseListener;
 
@@ -4531,9 +4531,6 @@ class PlanComponent implements PlanView {
                     if(!pixelBounds.intersects(visibleRectangle)) {
                         this.scrollRectToVisible(pixelBounds);
                     }
-//                    if(!visibleRectangle.contains(pixelBounds)) {
-//                        this.scrollRectToVisible(pixelBounds);
-//                    }
                 }
             });
         }
