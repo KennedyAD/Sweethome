@@ -5801,7 +5801,7 @@ namespace PlanComponent {
        * @return {Array}
        * @private
        */
-      computePieceOfFurnitureSizeInPlan(piece, object3dFactory) {
+      static computePieceOfFurnitureSizeInPlan(piece, object3dFactory) {
         var horizontalRotation = mat4.create();
         if (piece.getPitch() !== 0) {
           mat4.fromXRotation(horizontalRotation, -piece.getPitch());

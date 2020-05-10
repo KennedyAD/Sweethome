@@ -5497,7 +5497,7 @@ var PlanComponent;
          * @return {Array}
          * @private
          */
-        PieceOfFurnitureModelIcon.prototype.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
+        PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
             var horizontalRotation = mat4.create();
             if (piece.getPitch() !== 0) {
                 mat4.fromXRotation(horizontalRotation, -piece.getPitch());
