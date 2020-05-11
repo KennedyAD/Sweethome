@@ -828,15 +828,13 @@ HTMLCanvas3D.prototype.prepareTexture = function(textureImage) {
   var texture = this.gl.createTexture();
   texture.image = textureImage;
   if (textureImage.width != 0) {
-    this.bindTexture(texture);
+    this.bindTextureAndRepaint(texture, true);
   } else {
     var canvas3D = this;
     // If texture image isn't loaded yet, add a listener to follow its loading
     var loadListener = function() {
         textureImage.removeEventListener("load", loadListener);
-        canvas3D.bindTexture(texture);
-        // Redraw scene
-        canvas3D.repaint();
+        canvas3D.bindTextureAndRepaint(texture, false);
       };
     textureImage.addEventListener("load", loadListener);
   }
@@ -847,12 +845,9 @@ HTMLCanvas3D.prototype.prepareTexture = function(textureImage) {
 HTMLCanvas3D.resizeTransparentTextures = true;
 
 /**
- * @return {WebGLTexture}
  * @private
  */
-HTMLCanvas3D.prototype.bindTexture = function(texture) {
-  this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-  this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+HTMLCanvas3D.prototype.bindTextureAndRepaint = function(texture, bindOnly) {
   if ((!Appearance3D.isPowerOfTwo(texture.image.width) || !Appearance3D.isPowerOfTwo(texture.image.height)) 
       && (!texture.image.transparent || HTMLCanvas3D.resizeTransparentTextures)) {
     // From https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences#Non-Power_of_Two_Texture_Support
@@ -862,9 +857,35 @@ HTMLCanvas3D.prototype.bindTexture = function(texture) {
     canvas.height = Appearance3D.getNextHighestPowerOfTwo(texture.image.height);
     var context = canvas.getContext("2d");
     context.drawImage(texture.image, 0, 0, texture.image.width, texture.image.height, 0, 0, canvas.width, canvas.height);
-    canvas.transparent = texture.image.transparent; 
-    texture.image = canvas;
+
+    var image = new Image();
+    image.url = texture.image.url;
+    image.transparent = texture.image.transparent;
+    var canvas3D = this;
+    var loadListener = function() {
+        image.removeEventListener("load", loadListener);
+        canvas3D.bindTexture(texture);
+        // Redraw scene
+        canvas3D.repaint();
+      };
+    image.addEventListener("load", loadListener);
+    image.src = canvas.toDataURL();
+    texture.image = image;
+  } else {
+    this.bindTexture(texture);
+    // Redraw scene
+    if (!bindOnly) {
+      this.repaint();
+    }
   }
+}
+
+/**
+ * @private
+ */
+HTMLCanvas3D.prototype.bindTexture = function(texture) {
+  this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+  this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
   this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texture.image);
   this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
   if (Appearance3D.isPowerOfTwo(texture.image.width) && Appearance3D.isPowerOfTwo(texture.image.height)) {
@@ -878,6 +899,7 @@ HTMLCanvas3D.prototype.bindTexture = function(texture) {
   this.gl.bindTexture(this.gl.TEXTURE_2D, null);
   // Free image data
   delete texture.image.src;
+  texture.image.bound = true;
 }
 
 /**
@@ -1244,7 +1266,7 @@ HTMLCanvas3D.prototype.repaint = function() {
 HTMLCanvas3D.prototype.isLoadingCompleted = function() {
   // Check texture images loading is ended 
   for (var i = 0; i < this.textures.length; i++) {
-    if (this.textures [i].image.width === 0) {
+    if (!this.textures [i].image.bound) {
       return false;
     }
   }
