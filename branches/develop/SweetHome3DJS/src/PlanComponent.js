@@ -36,32 +36,35 @@ var __extends = (this && this.__extends) || function (d, b) {
  * @author Emmanuel Puybaret
  */
 var PlanComponent = (function () {
-    function PlanComponent(canvasId, home, preferences, object3dFactory, controller) {
+    function PlanComponent(containerId, home, preferences, object3dFactory, controller) {
         var _this = this;
         this.canvasNeededRepaint = false;
-        this.canvas = document.getElementById(canvasId);
-        var computedStyle = window.getComputedStyle(this.canvas);
+        this.container = document.getElementById(containerId);
+        var computedStyle = window.getComputedStyle(this.container);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
-        var container = document.createElement("div");
-        container.style.width = "" + this.canvas.width + "px";
-        container.style.height = "" + this.canvas.height + "px";
-        // TODO: copy canvas style to container?
-        container.style.position = "relative";
+        this.container.style.position = "relative";
+        this.canvas = document.createElement("canvas");
+        this.canvas.setAttribute("id", containerId + ".canvas");
+        this.canvas.style.width = "100%"; //computedStyle.width;
+        this.canvas.style.height = "100%"; //computedStyle.height;
+        // TODO: loop over all the properties and inject them?
+        this.canvas.style.background = computedStyle.background;
+        this.canvas.style.color = computedStyle.color;
+        this.canvas.style.font = computedStyle.font;
         this.scrollPane = document.createElement("div");
-        this.scrollPane.style.width = "" + this.canvas.width + "px";
-        this.scrollPane.style.height = "" + this.canvas.height + "px";
-        if (this.canvas.style.overflow) {
-            this.scrollPane.style.overflow = this.canvas.style.overflow;
+        this.scrollPane.setAttribute("id", containerId + ".scrollPane");
+        this.scrollPane.style.width = "100%"; //computedStyle.width;
+        this.scrollPane.style.height = "100%"; //computedStyle.height;
+        if (this.container.style.overflow) {
+            this.scrollPane.style.overflow = this.container.style.overflow;
         }
         else {
             this.scrollPane.style.overflow = "scroll";
         }
         this.view = document.createElement("div");
-        this.view.style.width = "" + this.canvas.width + "px";
-        this.view.style.height = "" + this.canvas.height + "px";
-        this.canvas.parentElement.replaceChild(container, this.canvas);
-        container.appendChild(this.scrollPane);
-        container.appendChild(this.canvas);
+        this.view.setAttribute("id", containerId + ".view");
+        this.container.appendChild(this.scrollPane);
+        this.container.appendChild(this.canvas);
         this.scrollPane.appendChild(this.view);
         this.canvas.style.position = "absolute";
         this.canvas.style.left = "0px";
@@ -72,6 +75,11 @@ var PlanComponent = (function () {
         this.scrollPane.onscroll = function () {
             _this.repaint();
         };
+        window.addEventListener("resize", function () {
+            // force layout computation (todo in revalidate?)
+            _this.setScale(_this.getScale() * 1.1);
+            _this.setScale(_this.getScale() / 1.1);
+        });
         this.resolutionScale = PlanComponent.HIDPI_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
@@ -706,10 +714,16 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
     PlanComponent.prototype.handleMouseEvent = function (e, type) {
-        if (e.canvasX === undefined) {
+        if (e.canvasX === undefined && e.clientX) {
             var rect = this.canvas.getBoundingClientRect();
             e.canvasX = e.clientX - rect.left;
             e.canvasY = e.clientY - rect.top;
+        }
+        if (type.indexOf("touch") === 0 && e.targetTouches.length == 1) {
+            var rect = this.canvas.getBoundingClientRect();
+            e.canvasX = e.targetTouches[0].clientX - rect.left;
+            e.canvasY = e.targetTouches[0].clientY - rect.top;
+            e.clickCount = 1;
         }
         if (e.clickCount === undefined) {
             if (type == "mouseDoubleClicked") {
@@ -737,6 +751,7 @@ var PlanComponent = (function () {
         var planComponent = this;
         var mouseListener = {
             lastMousePressedLocation: null,
+            distanceLastPinch: null,
             mouseDoubleClicked: function (ev) {
                 planComponent.handleMouseEvent(ev, "mouseDoubleClicked");
                 mouseListener.mousePressed(ev);
@@ -744,7 +759,7 @@ var PlanComponent = (function () {
             mousePressed: function (ev) {
                 if (planComponent.isEnabled() && ev.button === 0) {
                     planComponent.handleMouseEvent(ev, "mousePressed");
-                    mouseListener.lastMousePressedLocation = [ev.clientX, ev.clientY];
+                    mouseListener.lastMousePressedLocation = [ev.canvasX, ev.canvasY];
                     var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
                     var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
                     var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
@@ -758,12 +773,12 @@ var PlanComponent = (function () {
                 }
             },
             mouseMoved: function (ev) {
-                if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.clientX && mouseListener.lastMousePressedLocation[1] === ev.clientY)) {
+                planComponent.handleMouseEvent(ev, "mouseMoved");
+                if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.canvasX && mouseListener.lastMousePressedLocation[1] === ev.canvasY)) {
                     mouseListener.lastMousePressedLocation = null;
                 }
                 if (mouseListener.lastMousePressedLocation == null) {
                     if (planComponent.isEnabled()) {
-                        planComponent.handleMouseEvent(ev, "mouseMoved");
                         controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                     }
                 }
@@ -788,12 +803,87 @@ var PlanComponent = (function () {
                 else {
                     planComponent.moveView(ev.shiftKey ? planComponent.convertPixelToLength(ev.wheelRotation) : 0, ev.shiftKey ? 0 : planComponent.convertPixelToLength(ev.wheelRotation));
                 }
+            },
+            touchStarted: function (ev) {
+                ev.preventDefault();
+                if (planComponent.isEnabled()) {
+                    if (ev.targetTouches.length == 1) {
+                        planComponent.handleMouseEvent(ev, "touchStarted");
+                        mouseListener.lastMousePressedLocation = [ev.canvasX, ev.canvasY];
+                        controller.pressMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY), ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
+                    }
+                    else if (ev.targetTouches.length == 2) {
+                        mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0], ev.targetTouches[1]);
+                    }
+                }
+            },
+            touchMoved: function (ev) {
+                ev.preventDefault();
+                if (planComponent.isEnabled()) {
+                    if (ev.targetTouches.length == 1) {
+                        planComponent.handleMouseEvent(ev, "touchMoved");
+                        if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.canvasX && mouseListener.lastMousePressedLocation[1] === ev.canvasY)) {
+                            mouseListener.lastMousePressedLocation = null;
+                        }
+                        if (mouseListener.lastMousePressedLocation == null) {
+                            controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                        }
+                    }
+                    else if (ev.targetTouches.length == 2) {
+                        if (mouseListener.lastMousePressedLocation) {
+                            controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.lastMousePressedLocation[0]), planComponent.convertYPixelToModel(mouseListener.lastMousePressedLocation[1]));
+                        }
+                        var newDistance = mouseListener.distance(ev.targetTouches[0], ev.targetTouches[1]);
+                        var scaleDifference = newDistance / mouseListener.distanceLastPinch;
+                        var rect = planComponent.canvas.getBoundingClientRect();
+                        var mouseX = planComponent.convertXPixelToModel((ev.targetTouches[0].clientX + ev.targetTouches[1].clientX) / 2 - rect.left);
+                        var mouseY = planComponent.convertYPixelToModel((ev.targetTouches[0].clientY + ev.targetTouches[1].clientY) / 2 - rect.top);
+                        var oldScale = planComponent.getScale();
+                        controller.zoom(scaleDifference);
+                        //mouseListener.zoomed((1 - scaleDifference) * 50, false);
+                        mouseListener.distanceLastPinch = newDistance;
+                        if (planComponent.getScale() !== oldScale) {
+                            // If scale changed, update viewport position to keep the same coordinates under mouse cursor
+                            planComponent.scrollPane.scrollLeft = 0;
+                            planComponent.scrollPane.scrollTop = 0;
+                            var mouseDeltaX = (ev.targetTouches[0].clientX + ev.targetTouches[1].clientX) / 2 - rect.left - planComponent.convertXModelToPixel(mouseX);
+                            var mouseDeltaY = (ev.targetTouches[0].clientY + ev.targetTouches[1].clientY) / 2 - rect.top - planComponent.convertYModelToPixel(mouseY);
+                            planComponent.moveView(-planComponent.convertPixelToLength(mouseDeltaX), -planComponent.convertPixelToLength(mouseDeltaY));
+                        }
+                    }
+                }
+            },
+            touchEnded: function (ev) {
+                if (planComponent.isEnabled()) {
+                    planComponent.handleMouseEvent(ev, "touchEnded");
+                    controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                }
+            },
+            distance: function (p1, p2) {
+                return Math.sqrt(Math.pow(p2.pageX - p1.pageX, 2) + Math.pow(p2.pageY - p1.pageY, 2));
             }
         };
+        //  if (window.PointerEvent) {
+        //    // Multi touch support for IE and Edge
+        //    canvas3D.getCanvas().addEventListener("pointerdown", userActionsListener.pointerPressed);
+        //    canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.pointerMousePressed);
+        //    // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
+        //    window.addEventListener("pointermove", userActionsListener.windowPointerMoved);
+        //    window.addEventListener("pointerup", userActionsListener.windowPointerReleased);
+        //  } else {
+        //    canvas3D.getCanvas().addEventListener("touchstart", userActionsListener.touchStarted);
+        //    canvas3D.getCanvas().addEventListener("touchmove", userActionsListener.touchMoved);
+        //    canvas3D.getCanvas().addEventListener("touchend", userActionsListener.touchEnded);
+        //    canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.mousePressed);
+        //    // Add mousemove and mouseup event listeners to window to capture mouse events out of the canvas 
+        //    window.addEventListener("mousemove", userActionsListener.windowMouseMoved);
+        //    window.addEventListener("mouseup", userActionsListener.windowMouseReleased);
+        //  }
         this.canvas.addEventListener("mousedown", mouseListener.mousePressed);
         this.canvas.addEventListener("dblclick", mouseListener.mouseDoubleClicked);
-        //this.canvas.addEventListener("mouseup", mouseListener.mouseReleased);
-        //this.canvas.addEventListener("mousemove", mouseListener.mouseMoved);
+        this.canvas.addEventListener("touchstart", mouseListener.touchStarted);
+        this.canvas.addEventListener("touchmove", mouseListener.touchMoved);
+        this.canvas.addEventListener("touchend", mouseListener.touchEnded);
         window.addEventListener("mouseup", mouseListener.mouseReleased);
         window.addEventListener("mousemove", mouseListener.mouseMoved);
         this.canvas.addEventListener("mousewheel", mouseListener.mouseWheelMoved);
