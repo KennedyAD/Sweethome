@@ -337,6 +337,8 @@ HTMLCanvas3D.prototype.updateViewportSize = function() {
       || this.viewportHeight != canvasBounds.height) {
     this.viewportWidth = canvasBounds.width;
     this.viewportHeight = canvasBounds.height;
+    this.canvas.width = this.viewportWidth;
+    this.canvas.height = this.viewportHeight;
     
     if (this.pickingFrameBuffer !== undefined) {
       this.gl.deleteFramebuffer(this.pickingFrameBuffer);
