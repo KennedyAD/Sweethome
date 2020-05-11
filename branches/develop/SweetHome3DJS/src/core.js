@@ -460,6 +460,7 @@ function sortArray(array, comparator) {
   }
 }
 
+
 var OperatingSystem = {}
 
 OperatingSystem.isLinux = function() {
@@ -486,3 +487,132 @@ OperatingSystem.isMacOSX = function() {
   }
 }
 
+/**
+ * Returns a string describing the key event in parameter. 
+ * @param {KeyboardEvent} ev
+ * @param {string} keyEventType "keyup", "keydown" or "keypress"
+ * @returns
+ */
+function convertKeyboardEventToKeyStroke(ev, keyEventType) {
+  if (convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS === undefined) {
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS = new Array(223);
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [8]  = "BACK_SPACE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [9]  = "TAB";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [13] = "ENTER";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [16] = "SHIFT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [17] = "CONTROL";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [18] = "ALT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [19] = "PAUSE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [20] = "CAPS_LOCK";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [27] = "ESCAPE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [33] = "PAGE_UP";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [34] = "PAGE_DOWN";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [35] = "END";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [36] = "HOME";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [37] = "LEFT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [38] = "UP";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [39] = "RIGHT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [40] = "DOWN";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [45] = "INSERT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [46] = "DELETE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [48] = "0";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [49] = "1";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [50] = "2";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [51] = "3";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [52] = "4";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [53] = "5";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [54] = "6";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [55] = "7";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [56] = "8";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [57] = "9";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [65] = "A";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [66] = "B";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [67] = "C";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [68] = "D";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [69] = "E";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [70] = "F";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [71] = "G";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [72] = "H";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [73] = "I";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [74] = "J";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [75] = "K";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [76] = "L";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [77] = "M";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [78] = "N";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [79] = "O";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [80] = "P";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [81] = "Q";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [82] = "R";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [83] = "S";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [84] = "T";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [85] = "U";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [86] = "V";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [87] = "W";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [88] = "X";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [89] = "Y";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [90] = "Z";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [91] = "META";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [92] = "META";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [96] = "NUMPAD0";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [97] = "NUMPAD1";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [98] = "NUMPAD2";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [99] = "NUMPAD3";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [100] = "NUMPAD4";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [101] = "NUMPAD5";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [102] = "NUMPAD6";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [103] = "NUMPAD7";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [104] = "NUMPAD8";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [105] = "NUMPAD9";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [106] = "MULTIPLY";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [107] = "ADD";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [109] = "VK_SUBTRACT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [110] = "VK_DECIMAL";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [111] = "VK_DIVIDE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [112] = "F1";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [113] = "F2";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [114] = "F3";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [115] = "F4";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [116] = "F5";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [117] = "F6";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [118] = "F7";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [119] = "F8";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [120] = "F9";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [121] = "F10";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [122] = "F11";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [123] = "F12";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [144] = "VK_NUM_LOCK";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [145] = "VK_SCROLL_LOCK";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [186] = "VK_SEMICOLON";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [187] = "VK_EQUALS";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [188] = "VK_COMMA";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [190] = "VK_PERIOD";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [191] = "VK_SLASH";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [219] = "VK_OPEN_BRACKET";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [220] = "VK_BACK_SLASH";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [221] = "VK_CLOSE_BRACKET";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [222] = "VK_QUOTE";
+  }
+  
+  var keyStroke = ""; 
+  var keyName = convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [ev.keyCode];
+  if (keyName) {
+    if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
+      keyStroke += "control ";
+    }
+    if (ev.altKey || keyName.indexOf("alt ") != -1) {
+      keyStroke += "alt ";
+    }
+    if (ev.metaKey || keyName.indexOf("meta ") != -1) {
+      keyStroke += "meta ";
+    }
+    if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
+      keyStroke += "shift ";
+    }
+    var nameWithoutVK = keyName.indexOf('VK_') === 0
+        ? keyName.substring(3)
+        : keyName;
+    keyStroke += (keyEventType == "keyup" ? "released " : "pressed ") 
+        + nameWithoutVK;
+  } 
+  return keyStroke;
+}

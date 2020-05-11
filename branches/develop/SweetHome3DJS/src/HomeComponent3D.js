@@ -970,128 +970,17 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
   var component3D = this;
   this.canvas3D.getCanvas().addEventListener("keydown", 
       function(ev) {
-        if (HomeComponent3D.KEY_CODE_TEXTS === undefined) {
-          HomeComponent3D.KEY_CODE_TEXTS = new Array(223);
-          HomeComponent3D.KEY_CODE_TEXTS [8]  = "BACK_SPACE";
-          HomeComponent3D.KEY_CODE_TEXTS [9]  = "TAB";
-          HomeComponent3D.KEY_CODE_TEXTS [13] = "ENTER";
-          HomeComponent3D.KEY_CODE_TEXTS [16] = "SHIFT";
-          HomeComponent3D.KEY_CODE_TEXTS [17] = "CONTROL";
-          HomeComponent3D.KEY_CODE_TEXTS [18] = "ALT";
-          HomeComponent3D.KEY_CODE_TEXTS [19] = "PAUSE";
-          HomeComponent3D.KEY_CODE_TEXTS [20] = "CAPS_LOCK";
-          HomeComponent3D.KEY_CODE_TEXTS [27] = "ESCAPE";
-          HomeComponent3D.KEY_CODE_TEXTS [33] = "PAGE_UP";
-          HomeComponent3D.KEY_CODE_TEXTS [34] = "PAGE_DOWN";
-          HomeComponent3D.KEY_CODE_TEXTS [35] = "END";
-          HomeComponent3D.KEY_CODE_TEXTS [36] = "HOME";
-          HomeComponent3D.KEY_CODE_TEXTS [37] = "LEFT";
-          HomeComponent3D.KEY_CODE_TEXTS [38] = "UP";
-          HomeComponent3D.KEY_CODE_TEXTS [39] = "RIGHT";
-          HomeComponent3D.KEY_CODE_TEXTS [40] = "DOWN";
-          HomeComponent3D.KEY_CODE_TEXTS [45] = "INSERT";
-          HomeComponent3D.KEY_CODE_TEXTS [46] = "DELETE";
-          HomeComponent3D.KEY_CODE_TEXTS [48] = "0";
-          HomeComponent3D.KEY_CODE_TEXTS [49] = "1";
-          HomeComponent3D.KEY_CODE_TEXTS [50] = "2";
-          HomeComponent3D.KEY_CODE_TEXTS [51] = "3";
-          HomeComponent3D.KEY_CODE_TEXTS [52] = "4";
-          HomeComponent3D.KEY_CODE_TEXTS [53] = "5";
-          HomeComponent3D.KEY_CODE_TEXTS [54] = "6";
-          HomeComponent3D.KEY_CODE_TEXTS [55] = "7";
-          HomeComponent3D.KEY_CODE_TEXTS [56] = "8";
-          HomeComponent3D.KEY_CODE_TEXTS [57] = "9";
-          HomeComponent3D.KEY_CODE_TEXTS [65] = "A";
-          HomeComponent3D.KEY_CODE_TEXTS [66] = "B";
-          HomeComponent3D.KEY_CODE_TEXTS [67] = "C";
-          HomeComponent3D.KEY_CODE_TEXTS [68] = "D";
-          HomeComponent3D.KEY_CODE_TEXTS [69] = "E";
-          HomeComponent3D.KEY_CODE_TEXTS [70] = "F";
-          HomeComponent3D.KEY_CODE_TEXTS [71] = "G";
-          HomeComponent3D.KEY_CODE_TEXTS [72] = "H";
-          HomeComponent3D.KEY_CODE_TEXTS [73] = "I";
-          HomeComponent3D.KEY_CODE_TEXTS [74] = "J";
-          HomeComponent3D.KEY_CODE_TEXTS [75] = "K";
-          HomeComponent3D.KEY_CODE_TEXTS [76] = "L";
-          HomeComponent3D.KEY_CODE_TEXTS [77] = "M";
-          HomeComponent3D.KEY_CODE_TEXTS [78] = "N";
-          HomeComponent3D.KEY_CODE_TEXTS [79] = "O";
-          HomeComponent3D.KEY_CODE_TEXTS [80] = "P";
-          HomeComponent3D.KEY_CODE_TEXTS [81] = "Q";
-          HomeComponent3D.KEY_CODE_TEXTS [82] = "R";
-          HomeComponent3D.KEY_CODE_TEXTS [83] = "S";
-          HomeComponent3D.KEY_CODE_TEXTS [84] = "T";
-          HomeComponent3D.KEY_CODE_TEXTS [85] = "U";
-          HomeComponent3D.KEY_CODE_TEXTS [86] = "V";
-          HomeComponent3D.KEY_CODE_TEXTS [87] = "W";
-          HomeComponent3D.KEY_CODE_TEXTS [88] = "X";
-          HomeComponent3D.KEY_CODE_TEXTS [89] = "Y";
-          HomeComponent3D.KEY_CODE_TEXTS [90] = "Z";
-          HomeComponent3D.KEY_CODE_TEXTS [91] = "META";
-          HomeComponent3D.KEY_CODE_TEXTS [92] = "META";
-          HomeComponent3D.KEY_CODE_TEXTS [96] = "NUMPAD0";
-          HomeComponent3D.KEY_CODE_TEXTS [97] = "NUMPAD1";
-          HomeComponent3D.KEY_CODE_TEXTS [98] = "NUMPAD2";
-          HomeComponent3D.KEY_CODE_TEXTS [99] = "NUMPAD3";
-          HomeComponent3D.KEY_CODE_TEXTS [100] = "NUMPAD4";
-          HomeComponent3D.KEY_CODE_TEXTS [101] = "NUMPAD5";
-          HomeComponent3D.KEY_CODE_TEXTS [102] = "NUMPAD6";
-          HomeComponent3D.KEY_CODE_TEXTS [103] = "NUMPAD7";
-          HomeComponent3D.KEY_CODE_TEXTS [104] = "NUMPAD8";
-          HomeComponent3D.KEY_CODE_TEXTS [105] = "NUMPAD9";
-          HomeComponent3D.KEY_CODE_TEXTS [106] = "MULTIPLY";
-          HomeComponent3D.KEY_CODE_TEXTS [107] = "ADD";
-          HomeComponent3D.KEY_CODE_TEXTS [109] = "VK_SUBTRACT";
-          HomeComponent3D.KEY_CODE_TEXTS [110] = "VK_DECIMAL";
-          HomeComponent3D.KEY_CODE_TEXTS [111] = "VK_DIVIDE";
-          HomeComponent3D.KEY_CODE_TEXTS [112] = "F1";
-          HomeComponent3D.KEY_CODE_TEXTS [113] = "F2";
-          HomeComponent3D.KEY_CODE_TEXTS [114] = "F3";
-          HomeComponent3D.KEY_CODE_TEXTS [115] = "F4";
-          HomeComponent3D.KEY_CODE_TEXTS [116] = "F5";
-          HomeComponent3D.KEY_CODE_TEXTS [117] = "F6";
-          HomeComponent3D.KEY_CODE_TEXTS [118] = "F7";
-          HomeComponent3D.KEY_CODE_TEXTS [119] = "F8";
-          HomeComponent3D.KEY_CODE_TEXTS [120] = "F9";
-          HomeComponent3D.KEY_CODE_TEXTS [121] = "F10";
-          HomeComponent3D.KEY_CODE_TEXTS [122] = "F11";
-          HomeComponent3D.KEY_CODE_TEXTS [123] = "F12";
-          HomeComponent3D.KEY_CODE_TEXTS [144] = "VK_NUM_LOCK";
-          HomeComponent3D.KEY_CODE_TEXTS [145] = "VK_SCROLL_LOCK";
-          HomeComponent3D.KEY_CODE_TEXTS [186] = "VK_SEMICOLON";
-          HomeComponent3D.KEY_CODE_TEXTS [187] = "VK_EQUALS";
-          HomeComponent3D.KEY_CODE_TEXTS [188] = "VK_COMMA";
-          HomeComponent3D.KEY_CODE_TEXTS [190] = "VK_PERIOD";
-          HomeComponent3D.KEY_CODE_TEXTS [191] = "VK_SLASH";
-          HomeComponent3D.KEY_CODE_TEXTS [219] = "VK_OPEN_BRACKET";
-          HomeComponent3D.KEY_CODE_TEXTS [220] = "VK_BACK_SLASH";
-          HomeComponent3D.KEY_CODE_TEXTS [221] = "VK_CLOSE_BRACKET";
-          HomeComponent3D.KEY_CODE_TEXTS [222] = "VK_QUOTE";
-        }
-        component3D.callAction(HomeComponent3D.KEY_CODE_TEXTS [ev.keyCode], ev);
+        component3D.callAction(ev, "keydown");
       }, false);
 }
 
 /**
- * Runs the action bound to the key in parameter.
+ * Runs the action bound to the key event in parameter.
  * @private 
  */
-HomeComponent3D.prototype.callAction = function(keyName, ev) {
-  if (keyName) {
-    var keyStroke = ""; 
-    if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
-      keyStroke += "control ";
-    }
-    if (ev.altKey || keyName.indexOf("alt ") != -1) {
-      keyStroke += "alt ";
-    }
-    if (ev.metaKey || keyName.indexOf("meta ") != -1) {
-      keyStroke += "meta ";
-    }
-    if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
-      keyStroke += "shift ";
-    }
-    keyStroke += "pressed " + keyName.substring(keyName.lastIndexOf(' ') + 1);
+HomeComponent3D.prototype.callAction = function(ev, keyType) {
+  var keyStroke = convertKeyboardEventToKeyStroke(ev, keyType);
+  if (keyStroke !== undefined) {
     var actionKey = this.inputMap [keyStroke];
     if (actionKey !== undefined) {
       var action = this.actionMap [actionKey];
@@ -1100,7 +989,7 @@ HomeComponent3D.prototype.callAction = function(keyName, ev) {
       }
       ev.stopPropagation();
     }
-  } 
+  }
 }
 
 /**
