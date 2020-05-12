@@ -616,7 +616,8 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
         previewComponent.stopRotationAnimation();
       };
     canvas.addEventListener("keydown", this.clickListener);
-    if (window.PointerEvent) {
+    if ((document.documentMode || /Edg/.test(navigator.userAgent))
+        && window.PointerEvent) {
       // Multi touch support for IE and Edge
       canvas.addEventListener("pointerdown", this.clickListener);
       canvas.addEventListener("pointermove", this.clickListener);
@@ -627,7 +628,8 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
     }
     var elements = this.component3D.getSimulatedKeyElements(document.getElementsByTagName("body").item(0));
     for (var i = 0; i < elements.length; i++) {
-      if (window.PointerEvent) {
+      if ((document.documentMode || /Edg/.test(navigator.userAgent))
+          && window.PointerEvent) {
         elements [i].addEventListener("pointerdown", this.clickListener);
       } else {
         elements [i].addEventListener("mousedown", this.clickListener);
@@ -782,7 +784,8 @@ HomePreviewComponent.prototype.dispose = function() {
       document.removeEventListener("visibilitychange", this.visibilityChanged);
       var elements = this.component3D.getSimulatedKeyElements(document.getElementsByTagName("body").item(0));
       for (var i = 0; i < elements.length; i++) {
-        if (window.PointerEvent) {
+        if ((document.documentMode || /Edg/.test(navigator.userAgent))
+            && window.PointerEvent) {
           elements [i].removeEventListener("pointerdown", this.clickListener);
         } else {
           elements [i].removeEventListener("mousedown", this.clickListener);
