@@ -501,6 +501,18 @@ function merge(destination, source) {
 }
 
 /**
+ * This utility function returns the intersection between two arrays.
+ * @param {any[]} array1
+ * @param {any[]} array2
+ * @returns {any[]} an array container elements being both in array1 and array2
+ */
+function intersection(array1, array2) {
+  return array1.filter(function(n) {
+    return array2.indexOf(n) !== -1;
+  });  
+}
+
+/**
  * Returns a string describing the key event in parameter. 
  * @param {KeyboardEvent} ev
  * @param {string} keyEventType "keyup", "keydown" or "keypress"

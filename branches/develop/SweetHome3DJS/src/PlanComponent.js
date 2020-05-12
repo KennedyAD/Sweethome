@@ -39,7 +39,6 @@ var PlanComponent = (function () {
     function PlanComponent(containerId, home, preferences, object3dFactory, controller) {
         var _this = this;
         this.canvasNeededRepaint = false;
-        PlanController.INDICATOR_PIXEL_MARGIN = 10;
         this.container = document.getElementById(containerId);
         var computedStyle = window.getComputedStyle(this.container);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
@@ -715,15 +714,29 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
     PlanComponent.prototype.handleMouseEvent = function (e, type) {
+        PlanController.INDICATOR_PIXEL_MARGIN = 5;
         if (e.canvasX === undefined && e.clientX) {
             var rect = this.canvas.getBoundingClientRect();
             e.canvasX = e.clientX - rect.left;
             e.canvasY = e.clientY - rect.top;
         }
-        if (type.indexOf("touch") === 0 && e.targetTouches.length == 1) {
+        if (type.indexOf("touch") === 0) {
+            var touches = e.targetTouches;
+            if (e.targetTouches.length == 0) {
+                // touchend case
+                touches = e.changedTouches;
+            }
+            // force a different margin for touch events
+            PlanController.INDICATOR_PIXEL_MARGIN = 15;
             var rect = this.canvas.getBoundingClientRect();
-            e.canvasX = e.targetTouches[0].clientX - rect.left;
-            e.canvasY = e.targetTouches[0].clientY - rect.top;
+            if (touches.length == 1) {
+                e.canvasX = touches[0].clientX - rect.left;
+                e.canvasY = touches[0].clientY - rect.top;
+            }
+            else if (touches.length == 2) {
+                e.canvasX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
+                e.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
+            }
             e.clickCount = 1;
         }
         if (e.clickCount === undefined) {
@@ -751,8 +764,11 @@ var PlanComponent = (function () {
     PlanComponent.prototype.addMouseListeners = function (controller) {
         var planComponent = this;
         var mouseListener = {
-            lastMousePressedLocation: null,
+            initialPointerLocation: null,
+            lastPointerLocation: null,
             distanceLastPinch: null,
+            previousMode: null,
+            initialTime: 0,
             mouseDoubleClicked: function (ev) {
                 planComponent.handleMouseEvent(ev, "mouseDoubleClicked");
                 mouseListener.mousePressed(ev);
@@ -760,7 +776,7 @@ var PlanComponent = (function () {
             mousePressed: function (ev) {
                 if (planComponent.isEnabled() && ev.button === 0) {
                     planComponent.handleMouseEvent(ev, "mousePressed");
-                    mouseListener.lastMousePressedLocation = [ev.canvasX, ev.canvasY];
+                    mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
                     var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() ? ev.shiftKey : ev.shiftKey && !ev.altKey;
                     var duplicationActivated = OperatingSystem.isMacOSX() ? ev.altKey : ev.ctrlKey;
                     var magnetismToggled = OperatingSystem.isWindows() ? ev.altKey : (OperatingSystem.isMacOSX() ? ev.metaKey : ev.shiftKey && ev.altKey);
@@ -775,10 +791,10 @@ var PlanComponent = (function () {
             },
             mouseMoved: function (ev) {
                 planComponent.handleMouseEvent(ev, "mouseMoved");
-                if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.canvasX && mouseListener.lastMousePressedLocation[1] === ev.canvasY)) {
-                    mouseListener.lastMousePressedLocation = null;
+                if (mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === ev.canvasX && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+                    mouseListener.initialPointerLocation = null;
                 }
-                if (mouseListener.lastMousePressedLocation == null) {
+                if (mouseListener.initialPointerLocation == null) {
                     if (planComponent.isEnabled()) {
                         controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                     }
@@ -808,13 +824,14 @@ var PlanComponent = (function () {
             touchStarted: function (ev) {
                 ev.preventDefault();
                 if (planComponent.isEnabled()) {
+                    mouseListener.initialTime = Date.now();
                     if (ev.targetTouches.length == 1) {
                         planComponent.handleMouseEvent(ev, "touchStarted");
-                        mouseListener.lastMousePressedLocation = [ev.canvasX, ev.canvasY];
-                        controller.pressMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY), ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
+                        mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+                        mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
                     }
                     else if (ev.targetTouches.length == 2) {
-                        mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0], ev.targetTouches[1]);
+                        mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
                     }
                 }
             },
@@ -822,19 +839,35 @@ var PlanComponent = (function () {
                 ev.preventDefault();
                 if (planComponent.isEnabled()) {
                     if (ev.targetTouches.length == 1) {
+                        mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
                         planComponent.handleMouseEvent(ev, "touchMoved");
-                        if (mouseListener.lastMousePressedLocation != null && !(mouseListener.lastMousePressedLocation[0] === ev.canvasX && mouseListener.lastMousePressedLocation[1] === ev.canvasY)) {
-                            mouseListener.lastMousePressedLocation = null;
+                        if (mouseListener.initialPointerLocation != null) {
+                            var selection_1 = controller.home.getSelectedItems();
+                            var previousState = controller.state;
+                            controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
+                            if (selection_1.length > 0 && selection_1.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function (value, index) { return value === selection_1[index]; })) {
+                                //mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation[1])>3) {
+                                //controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), (<any>ev).clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
+                                mouseListener.initialPointerLocation = null;
+                            }
+                            else {
+                                controller.home.setSelectedItems(selection_1);
+                                controller.setState(previousState);
+                                mouseListener.previousMode = controller.getMode();
+                                controller.setMode(PlanController.Mode.PANNING);
+                                controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
+                                mouseListener.initialPointerLocation = null;
+                            }
                         }
-                        if (mouseListener.lastMousePressedLocation == null) {
+                        if (mouseListener.initialPointerLocation == null) {
                             controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                         }
                     }
                     else if (ev.targetTouches.length == 2) {
-                        if (mouseListener.lastMousePressedLocation) {
-                            controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.lastMousePressedLocation[0]), planComponent.convertYPixelToModel(mouseListener.lastMousePressedLocation[1]));
+                        if (mouseListener.initialPointerLocation) {
+                            controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
                         }
-                        var newDistance = mouseListener.distance(ev.targetTouches[0], ev.targetTouches[1]);
+                        var newDistance = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
                         var scaleDifference = newDistance / mouseListener.distanceLastPinch;
                         var rect = planComponent.canvas.getBoundingClientRect();
                         var mouseX = planComponent.convertXPixelToModel((ev.targetTouches[0].clientX + ev.targetTouches[1].clientX) / 2 - rect.left);
@@ -857,11 +890,22 @@ var PlanComponent = (function () {
             touchEnded: function (ev) {
                 if (planComponent.isEnabled()) {
                     planComponent.handleMouseEvent(ev, "touchEnded");
+                    if (mouseListener.initialPointerLocation != null) {
+                        // simple click (no move)
+                        if (mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation[1]) <= 3) {
+                            controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, Date.now() - mouseListener.initialTime > 500, false, false, false);
+                        }
+                    }
                     controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                    if (mouseListener.previousMode != null) {
+                        controller.setMode(mouseListener.previousMode);
+                        mouseListener.previousMode = null;
+                    }
+                    mouseListener.initialPointerLocation = null;
                 }
             },
-            distance: function (p1, p2) {
-                return Math.sqrt(Math.pow(p2.pageX - p1.pageX, 2) + Math.pow(p2.pageY - p1.pageY, 2));
+            distance: function (x1, y1, x2, y2) {
+                return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             }
         };
         //  if (window.PointerEvent) {
@@ -1034,6 +1078,7 @@ var PlanComponent = (function () {
             });
         }
         this.container.addEventListener("keydown", function (ev) { return _this.callAction(ev, "keydown"); }, true);
+        this.container.addEventListener("keyup", function (ev) { return _this.callAction(ev, "keyup"); }, true);
     };
     /**
      * Runs the action bound to the key event in parameter.
