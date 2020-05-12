@@ -75,6 +75,8 @@ declare function putToMap(map, key, value);
 declare function getFromMap(map, key);
 declare function valuesFromMap(map) : Array<any>;
 declare function sortArray(array, comparator) : void;
+declare function merge(destination: Object, source: Object): Object;
+declare function convertKeyboardEventToKeyStroke(ev, keyType);
 
 /**
  * Creates a new plan that displays <code>home</code>.
@@ -107,6 +109,10 @@ class PlanComponent implements PlanView {
     font : string;
     
     mouseListener : any;
+    
+    inputMap : {};
+
+    actionMap : {};
     
     /*private*/ home : Home;
 
@@ -488,6 +494,9 @@ class PlanComponent implements PlanView {
     }
 
     public constructor(containerId : string, home : Home, preferences? : any, object3dFactory? : any, controller? : PlanController) {
+        
+        PlanController.INDICATOR_PIXEL_MARGIN = 10;
+        
         this.container = <HTMLElement>document.getElementById(containerId);
         var computedStyle = window.getComputedStyle(this.container);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
@@ -1184,133 +1193,171 @@ class PlanComponent implements PlanView {
      * @private
      */
     installDefaultKeyboardActions() {
-      // TODO
-        /*let inputMap : javax.swing.InputMap = this.getInputMap(javax.swing.JComponent.WHEN_FOCUSED);
-        inputMap.clear();
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("DELETE"), PlanComponent.ActionType.DELETE_SELECTION);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("BACK_SPACE"), PlanComponent.ActionType.DELETE_SELECTION);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("ESCAPE"), PlanComponent.ActionType.ESCAPE);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift ESCAPE"), PlanComponent.ActionType.ESCAPE);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("LEFT"), PlanComponent.ActionType.MOVE_SELECTION_LEFT);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift LEFT"), PlanComponent.ActionType.MOVE_SELECTION_FAST_LEFT);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("UP"), PlanComponent.ActionType.MOVE_SELECTION_UP);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift UP"), PlanComponent.ActionType.MOVE_SELECTION_FAST_UP);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("DOWN"), PlanComponent.ActionType.MOVE_SELECTION_DOWN);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift DOWN"), PlanComponent.ActionType.MOVE_SELECTION_FAST_DOWN);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("RIGHT"), PlanComponent.ActionType.MOVE_SELECTION_RIGHT);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift RIGHT"), PlanComponent.ActionType.MOVE_SELECTION_FAST_RIGHT);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        if(com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX()) {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt pressed ALT"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("released ALT"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift alt pressed ALT"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released ALT"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta alt pressed ALT"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta released ALT"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift meta alt pressed ALT"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift meta released ALT"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        } else {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control pressed CONTROL"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("released CONTROL"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift control pressed CONTROL"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released CONTROL"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta control pressed CONTROL"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta released CONTROL"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift meta control pressed CONTROL"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift meta released CONTROL"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        }
-        if(com.eteks.sweethome3d.tools.OperatingSystem.isWindows()) {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt pressed ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("released ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift alt pressed ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control alt pressed ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control released ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift control alt pressed ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift control released ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        } else if(com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX()) {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta pressed META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("released META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift meta pressed META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt meta pressed META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt released META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift alt meta pressed META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift alt released META"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        } else {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift alt pressed ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt shift pressed SHIFT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt released SHIFT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control shift alt pressed ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control alt shift pressed SHIFT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_ON);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control alt released SHIFT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control shift released ALT"), PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt shift ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt shift  ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control alt shift ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control alt shift  ENTER"), PlanComponent.ActionType.ACTIVATE_EDITIION);
-        }
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift pressed SHIFT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("released SHIFT"), PlanComponent.ActionType.DEACTIVATE_ALIGNMENT);
-        if(com.eteks.sweethome3d.tools.OperatingSystem.isWindows()) {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control shift pressed SHIFT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control released SHIFT"), PlanComponent.ActionType.DEACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt shift pressed SHIFT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt released SHIFT"), PlanComponent.ActionType.DEACTIVATE_ALIGNMENT);
-        } else if(com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX()) {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt shift pressed SHIFT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt released SHIFT"), PlanComponent.ActionType.DEACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta shift pressed SHIFT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("meta released SHIFT"), PlanComponent.ActionType.DEACTIVATE_ALIGNMENT);
-        } else {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control shift pressed SHIFT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control released SHIFT"), PlanComponent.ActionType.DEACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released ALT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control shift released ALT"), PlanComponent.ActionType.ACTIVATE_ALIGNMENT);
-        }*/
+      this.inputMap = {
+        "pressed DELETE" : "DELETE_SELECTION",
+        "pressed BACK_SPACE" : "DELETE_SELECTION",
+        "pressed ESCAPE" : "ESCAPE",
+        "shift pressed ESCAPE" : "ESCAPE",
+        "pressed LEFT" : "MOVE_SELECTION_LEFT",
+        "shift pressed LEFT" : "MOVE_SELECTION_FAST_LEFT",
+        "pressed UP" : "MOVE_SELECTION_UP",
+        "shift pressed UP" : "MOVE_SELECTION_FAST_UP",
+        "pressed DOWN" : "MOVE_SELECTION_DOWN",
+        "shift pressed DOWN" : "MOVE_SELECTION_FAST_DOWN",
+        "pressed RIGHT" : "MOVE_SELECTION_RIGHT",
+        "shift pressed RIGHT" : "MOVE_SELECTION_FAST_RIGHT",
+        "pressed ENTER" : "ACTIVATE_EDITIION",
+        "shift pressed ENTER" : "ACTIVATE_EDITIION",
+      };
+      if(OperatingSystem.isMacOSX()) {
+        merge(this.inputMap, {
+          "alt pressed ALT" : "ACTIVATE_DUPLICATION",
+          "released ALT" : "DEACTIVATE_DUPLICATION",
+          "shift alt pressed ALT" : "ACTIVATE_DUPLICATION",
+          "shift released ALT" : "DEACTIVATE_DUPLICATION",
+          "meta alt pressed ALT" : "ACTIVATE_DUPLICATION",
+          "meta released ALT" : "DEACTIVATE_DUPLICATION",
+          "shift meta alt pressed ALT" : "ACTIVATE_DUPLICATION",
+          "shift meta released ALT" : "DEACTIVATE_DUPLICATION",
+          "alt pressed ESCAPE" : "ESCAPE",
+          "alt pressed ENTER" : "ACTIVATE_EDITIION"
+        });
+      } else {
+        merge(this.inputMap, {
+          "control pressed CONTROL" : "ACTIVATE_DUPLICATION",
+          "released CONTROL" : "DEACTIVATE_DUPLICATION",
+          "shift control pressed CONTROL" : "ACTIVATE_DUPLICATION",
+          "shift released CONTROL" : "DEACTIVATE_DUPLICATION",
+          "meta control pressed CONTROL" : "ACTIVATE_DUPLICATION",
+          "meta released CONTROL" : "DEACTIVATE_DUPLICATION",
+          "shift meta control pressed CONTROL" : "ACTIVATE_DUPLICATION",
+          "shift meta released CONTROL" : "DEACTIVATE_DUPLICATION",
+          "control pressed ESCAPE" : "ESCAPE",
+          "control pressed ENTER" : "ACTIVATE_EDITIION"
+        });
+      }
+      if(OperatingSystem.isWindows()) {
+        merge(this.inputMap, {
+          "alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
+          "released ALT" : "TOGGLE_MAGNETISM_OFF",
+          "shift alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
+          "shift released ALT" : "TOGGLE_MAGNETISM_OFF",
+          "control alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
+          "control released ALT" : "TOGGLE_MAGNETISM_OFF",
+          "shift control alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
+          "shift control released ALT" : "TOGGLE_MAGNETISM_OFF",
+          "alt pressed ESCAPE" : "ESCAPE",
+          "alt pressed ENTER" : "ACTIVATE_EDITIION"
+        });
+      } else if(OperatingSystem.isMacOSX()) {
+        merge(this.inputMap, {
+          "meta pressed META" : "TOGGLE_MAGNETISM_ON",
+          "released META" : "TOGGLE_MAGNETISM_OFF",
+          "shift meta pressed META" : "TOGGLE_MAGNETISM_ON",
+          "shift released META" : "TOGGLE_MAGNETISM_OFF",
+          "alt meta pressed META" : "TOGGLE_MAGNETISM_ON",
+          "alt released META" : "TOGGLE_MAGNETISM_OFF",
+          "shift alt meta pressed META" : "TOGGLE_MAGNETISM_ON",
+          "shift alt released META" : "TOGGLE_MAGNETISM_OFF",
+          "meta pressed ESCAPE" : "ESCAPE",
+          "meta pressed ENTER" : "ACTIVATE_EDITIION"
+        });
+      } else {
+        merge(this.inputMap, {
+          "shift alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
+          "alt shift pressed SHIFT" : "TOGGLE_MAGNETISM_ON",
+          "alt released SHIFT" : "TOGGLE_MAGNETISM_OFF",
+          "shift released ALT" : "TOGGLE_MAGNETISM_OFF",
+          "control shift alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
+          "control alt shift pressed SHIFT" : "TOGGLE_MAGNETISM_ON",
+          "control alt released SHIFT" : "TOGGLE_MAGNETISM_OFF",
+          "control shift released ALT" : "TOGGLE_MAGNETISM_OFF",
+          "alt shift pressed ESCAPE" : "ESCAPE",
+          "alt shift  pressed ENTER" : "ACTIVATE_EDITIION",
+          "control alt shift pressed ESCAPE" : "ESCAPE",
+          "control alt shift pressed ENTER" : "ACTIVATE_EDITIION"
+        });
+      }
+      merge(this.inputMap, {
+        "shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
+        "released SHIFT" : "DEACTIVATE_ALIGNMENT"
+      });
+      if(OperatingSystem.isWindows()) {
+        merge(this.inputMap, {
+          "control shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
+          "control released SHIFT" : "DEACTIVATE_ALIGNMENT",
+          "alt shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
+          "alt released SHIFT" : "DEACTIVATE_ALIGNMENT"
+        });
+      } else if(OperatingSystem.isMacOSX()) {
+        merge(this.inputMap, {
+          "alt shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
+          "alt released SHIFT" : "DEACTIVATE_ALIGNMENT",
+          "meta shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
+          "meta released SHIFT" : "DEACTIVATE_ALIGNMENT"
+        });
+      } else {
+        merge(this.inputMap, {
+          "control shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
+          "control released SHIFT" : "DEACTIVATE_ALIGNMENT",
+          "shift released ALT" : "ACTIVATE_ALIGNMENT",
+          "control shift released ALT" : "ACTIVATE_ALIGNMENT"
+        });
+      }
+      this.container.addEventListener("keydown", ev => this.callAction(ev, "keydown"), true);
     }
+
+    /**
+     * Runs the action bound to the key event in parameter.
+     * @private 
+     */
+    private callAction(ev: any, keyType: string) {
+      var keyStroke = convertKeyboardEventToKeyStroke(ev, keyType);
+      if (keyStroke !== undefined) {
+        var actionKey = this.inputMap[keyStroke];
+        if (actionKey !== undefined) {
+          var action = this.actionMap[actionKey];
+          if (action !== undefined) {
+            action.actionPerformed(ev);
+          }
+          ev.stopPropagation();
+        }
+      }
+    }
+
 
     /**
      * Installs keys bound to actions during edition.
      * @private
      */
     installEditionKeyboardActions() {
-      // TODO
-      /*
-        let inputMap : javax.swing.InputMap = this.getInputMap(javax.swing.JComponent.WHEN_FOCUSED);
-        inputMap.clear();
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("ESCAPE"), PlanComponent.ActionType.ESCAPE);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift ESCAPE"), PlanComponent.ActionType.ESCAPE);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("ENTER"), PlanComponent.ActionType.DEACTIVATE_EDITIION);
-        inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift ENTER"), PlanComponent.ActionType.DEACTIVATE_EDITIION);
-        if(com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX()) {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt ENTER"), PlanComponent.ActionType.DEACTIVATE_EDITIION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt shift ENTER"), PlanComponent.ActionType.DEACTIVATE_EDITIION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("alt pressed ALT"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("released ALT"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift alt pressed ALT"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released ALT"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-        } else {
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control ESCAPE"), PlanComponent.ActionType.ESCAPE);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control ENTER"), PlanComponent.ActionType.DEACTIVATE_EDITIION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control shift ENTER"), PlanComponent.ActionType.DEACTIVATE_EDITIION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("control pressed CONTROL"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("released CONTROL"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift control pressed CONTROL"), PlanComponent.ActionType.ACTIVATE_DUPLICATION);
-            inputMap.put(javax.swing.KeyStroke.getKeyStroke("shift released CONTROL"), PlanComponent.ActionType.DEACTIVATE_DUPLICATION);
-        }
-        */
+      this.inputMap = {
+        "ESCAPE" : "ESCAPE",
+        "shift ESCAPE" : "ESCAPE",
+        "ENTER" : "DEACTIVATE_EDITIION",
+        "shift ENTER" : "DEACTIVATE_EDITIION"
+      };
+      if(OperatingSystem.isMacOSX()) {
+        merge(this.inputMap, {
+          "alt ESCAPE" : "ESCAPE",
+          "alt ENTER" : "DEACTIVATE_EDITIION",
+          "alt shift ENTER" : "DEACTIVATE_EDITIION",
+          "alt pressed ALT" : "ACTIVATE_DUPLICATION",
+          "released ALT" : "DEACTIVATE_DUPLICATION",
+          "shift alt pressed ALT" : "ACTIVATE_DUPLICATION",
+          "shift released ALT" : "DEACTIVATE_DUPLICATION"
+        });
+      } else {
+        merge(this.inputMap, {
+          "control ESCAPE" : "ESCAPE",
+          "control ENTER" : "DEACTIVATE_EDITIION",
+          "control shift ENTER" : "DEACTIVATE_EDITIION",
+          "control pressed CONTROL" : "ACTIVATE_DUPLICATION",
+          "released CONTROL" : "DEACTIVATE_DUPLICATION",
+          "shift control pressed CONTROL" : "ACTIVATE_DUPLICATION",
+          "shift released CONTROL" : "DEACTIVATE_DUPLICATION"
+        });
+      }
     }
 
     /**
@@ -1318,28 +1365,70 @@ class PlanComponent implements PlanView {
      * @param {PlanController} controller
      * @private
      */
-    createActions(controller : any) {
-        /*let deleteSelectionAction : javax.swing.Action = new PlanComponent.PlanComponent$18(this, controller);
-        let escapeAction : javax.swing.Action = new PlanComponent.PlanComponent$19(this, controller);
-        let actionMap : javax.swing.ActionMap = this.getActionMap();
-        actionMap.put(PlanComponent.ActionType.DELETE_SELECTION, deleteSelectionAction);
-        actionMap.put(PlanComponent.ActionType.ESCAPE, escapeAction);
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_LEFT, new PlanComponent.MoveSelectionAction(this, -1, 0));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_FAST_LEFT, new PlanComponent.MoveSelectionAction(this, -10, 0));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_UP, new PlanComponent.MoveSelectionAction(this, 0, -1));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_FAST_UP, new PlanComponent.MoveSelectionAction(this, 0, -10));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_DOWN, new PlanComponent.MoveSelectionAction(this, 0, 1));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_FAST_DOWN, new PlanComponent.MoveSelectionAction(this, 0, 10));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_RIGHT, new PlanComponent.MoveSelectionAction(this, 1, 0));
-        actionMap.put(PlanComponent.ActionType.MOVE_SELECTION_FAST_RIGHT, new PlanComponent.MoveSelectionAction(this, 10, 0));
-        actionMap.put(PlanComponent.ActionType.TOGGLE_MAGNETISM_ON, new PlanComponent.ToggleMagnetismAction(this, true));
-        actionMap.put(PlanComponent.ActionType.TOGGLE_MAGNETISM_OFF, new PlanComponent.ToggleMagnetismAction(this, false));
-        actionMap.put(PlanComponent.ActionType.ACTIVATE_ALIGNMENT, new PlanComponent.SetAlignmentActivatedAction(this, true));
-        actionMap.put(PlanComponent.ActionType.DEACTIVATE_ALIGNMENT, new PlanComponent.SetAlignmentActivatedAction(this, false));
-        actionMap.put(PlanComponent.ActionType.ACTIVATE_DUPLICATION, new PlanComponent.SetDuplicationActivatedAction(this, true));
-        actionMap.put(PlanComponent.ActionType.DEACTIVATE_DUPLICATION, new PlanComponent.SetDuplicationActivatedAction(this, false));
-        actionMap.put(PlanComponent.ActionType.ACTIVATE_EDITIION, new PlanComponent.SetEditionActivatedAction(this, true));
-        actionMap.put(PlanComponent.ActionType.DEACTIVATE_EDITIION, new PlanComponent.SetEditionActivatedAction(this, false));*/
+    createActions(controller : PlanController) {
+      let planComponent = this;
+      
+      function MoveSelectionAction(dx : number, dy : number) {
+        this.dx = dx;
+        this.dy = dy;
+      }
+
+      MoveSelectionAction.prototype.actionPerformed = function(ev) {
+        controller.moveSelection(this.dx / planComponent.getScale(), this.dy / planComponent.getScale());
+      }
+
+      function ToggleMagnetismAction(toggle: boolean) {
+        this.toggle = toggle;
+      }
+
+      ToggleMagnetismAction.prototype.actionPerformed = function(ev) {
+        controller.toggleMagnetism(this.toggle);
+      }
+
+      function SetAlignmentActivatedAction(alignmentActivated: boolean) {
+        this.alignmentActivated = alignmentActivated;
+      }
+
+      SetAlignmentActivatedAction.prototype.actionPerformed = function(ev) {
+        controller.setAlignmentActivated(this.alignmentActivated);
+      }
+
+      function SetDuplicationActivatedAction(duplicationActivated: boolean) {
+        this.duplicationActivated = duplicationActivated;
+      }
+
+      SetDuplicationActivatedAction.prototype.actionPerformed = function(ev) {
+        controller.setDuplicationActivated(this.duplicationActivated);
+      }
+
+      function SetEditionActivatedAction(editionActivated: boolean) {
+        this.editionActivated = editionActivated;
+      }
+
+      SetEditionActivatedAction.prototype.actionPerformed = function(ev) {
+        controller.setEditionActivated(this.editionActivated);
+      }
+
+      this.actionMap = {
+        "DELETE_SELECTION" : { actionPerformed: function() { controller.deleteSelection(); } },
+        "ESCAPE" : { actionPerformed: function() { controller.escape(); } },
+        "MOVE_SELECTION_LEFT" : new MoveSelectionAction(-1, 0),
+        "MOVE_SELECTION_FAST_LEFT" : new MoveSelectionAction(-10, 0),
+        "MOVE_SELECTION_UP" : new MoveSelectionAction(0, -1),
+        "MOVE_SELECTION_FAST_UP" : new MoveSelectionAction(0, -10),
+        "MOVE_SELECTION_DOWN" : new MoveSelectionAction(0, 1),
+        "MOVE_SELECTION_FAST_DOWN" : new MoveSelectionAction(0, 10),
+        "MOVE_SELECTION_RIGHT" : new MoveSelectionAction(1, 0),
+        "MOVE_SELECTION_FAST_RIGHT" : new MoveSelectionAction(10, 0),
+        "TOGGLE_MAGNETISM_ON" : new ToggleMagnetismAction(true),
+        "TOGGLE_MAGNETISM_OFF" : new ToggleMagnetismAction(false),
+        "ACTIVATE_ALIGNMENT" : new SetAlignmentActivatedAction(true),
+        "DEACTIVATE_ALIGNMENT" : new SetAlignmentActivatedAction(false),
+        "ACTIVATE_DUPLICATION" : new SetDuplicationActivatedAction(true),
+        "DEACTIVATE_DUPLICATION" : new SetDuplicationActivatedAction(false),
+        "ACTIVATE_EDITIION" : new SetEditionActivatedAction(true),
+        "DEACTIVATE_EDITIION" : new SetEditionActivatedAction(false),
+      }
     }
 
     /**
@@ -5318,40 +5407,6 @@ namespace PlanComponent {
     HomePieceOfFurnitureTopViewIconKey["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.HomePieceOfFurnitureTopViewIconKey";
 
 
-    export class PlanComponent$14 {
-        public __parent: any;
-        public mouseWheelMoved(ev : java.awt.event.MouseWheelEvent) {
-            if(ev.getModifiers() === this.__parent.getToolkit().getMenuShortcutKeyMask()) {
-                let mouseX : number = 0;
-                let mouseY : number = 0;
-                let deltaX : number = 0;
-                let deltaY : number = 0;
-                if(this.__parent.getParent() != null && this.__parent.getParent() instanceof <any>javax.swing.JViewport) {
-                    mouseX = this.__parent.convertXPixelToModel(ev.getX());
-                    mouseY = this.__parent.convertYPixelToModel(ev.getY());
-                    let viewRectangle : java.awt.Rectangle = (<javax.swing.JViewport>this.__parent.getParent()).getViewRect();
-                    deltaX = ev.getX() - viewRectangle.x;
-                    deltaY = ev.getY() - viewRectangle.y;
-                }
-                let oldScale : number = this.__parent.getScale();
-                this.controller.zoom(<number>(ev.getWheelRotation() < 0?Math.pow(1.05, -ev.getWheelRotation()):Math.pow(0.95, ev.getWheelRotation())));
-                if(this.__parent.getScale() !== oldScale && (this.__parent.getParent() != null && this.__parent.getParent() instanceof <any>javax.swing.JViewport)) {
-                    (<javax.swing.JViewport>this.__parent.getParent()).setViewPosition(new java.awt.Point());
-                    this.__parent.moveView(mouseX - this.__parent.convertXPixelToModel(deltaX), mouseY - this.__parent.convertYPixelToModel(deltaY));
-                }
-            } else if(this.__parent.getMouseWheelListeners().length === 1) {
-                this.__parent.getParent().dispatchEvent(new java.awt.event.MouseWheelEvent(this.__parent.getParent(), ev.getID(), ev.getWhen(), ev.getModifiersEx() | ev.getModifiers(), ev.getX() - this.__parent.getX(), ev.getY() - this.__parent.getY(), ev.getClickCount(), ev.isPopupTrigger(), ev.getScrollType(), ev.getScrollAmount(), ev.getWheelRotation()));
-            }
-        }
-
-        constructor(__parent: any, private controller: any) {
-            this.__parent = __parent;
-        }
-    }
-    PlanComponent$14["__interfaces"] = ["java.util.EventListener","java.awt.event.MouseWheelListener"];
-
-
-
     export class PlanComponent$15 {
         public __parent: any;
         /**
@@ -5417,38 +5472,6 @@ namespace PlanComponent {
     }
     PlanComponent$17["__interfaces"] = ["java.util.EventListener","java.beans.PropertyChangeListener"];
 
-
-
-    export class PlanComponent$18 /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            this.controller.deleteSelection();
-        }
-
-        constructor(__parent: any, private controller: any) {
-            super();
-            this.__parent = __parent;
-        }
-    }
-    PlanComponent$18["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
-
-
-
-    export class PlanComponent$19 /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            this.controller.escape();
-        }
-
-        constructor(__parent: any, private controller: any) {
-            super();
-            this.__parent = __parent;
-        }
-    }
-    PlanComponent$19["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
-
-
-
     export class PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ {
         public __parent: any;
         /**
@@ -5466,8 +5489,6 @@ namespace PlanComponent {
         }
     }
     PlanComponent$20["__interfaces"] = ["javax.swing.Scrollable","javax.swing.TransferHandler.HasGetTransferHandler","java.awt.MenuContainer","javax.accessibility.Accessible","javax.swing.SwingConstants","java.awt.image.ImageObserver","java.io.Serializable"];
-
-
 
     export class PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ {
         public __parent: any;
@@ -5606,110 +5627,6 @@ namespace PlanComponent {
         }
     }
     PlanComponent$25["__interfaces"] = ["java.util.EventListener","java.awt.event.KeyListener"];
-
-
-
-    export class MoveSelectionAction /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        dx : number;
-
-        dy : number;
-
-        public constructor(__parent: any, dx : number, dy : number) {
-            super();
-            this.__parent = __parent;
-            if(this.dx===undefined) this.dx = 0;
-            if(this.dy===undefined) this.dy = 0;
-            this.dx = dx;
-            this.dy = dy;
-        }
-
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            controller.moveSelection(this.dx / this.__parent.getScale(), this.dy / this.__parent.getScale());
-        }
-    }
-    MoveSelectionAction["__class"] = "MoveSelectionAction";
-    MoveSelectionAction["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
-
-
-
-    export class ToggleMagnetismAction /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        toggle : boolean;
-
-        public constructor(__parent: any, toggle : boolean) {
-            super();
-            this.__parent = __parent;
-            if(this.toggle===undefined) this.toggle = false;
-            this.toggle = toggle;
-        }
-
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            controller.toggleMagnetism(this.toggle);
-        }
-    }
-    ToggleMagnetismAction["__class"] = "ToggleMagnetismAction";
-    ToggleMagnetismAction["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
-
-
-
-    export class SetAlignmentActivatedAction /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        alignmentActivated : boolean;
-
-        public constructor(__parent: any, alignmentActivated : boolean) {
-            super();
-            this.__parent = __parent;
-            if(this.alignmentActivated===undefined) this.alignmentActivated = false;
-            this.alignmentActivated = alignmentActivated;
-        }
-
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            controller.setAlignmentActivated(this.alignmentActivated);
-        }
-    }
-    SetAlignmentActivatedAction["__class"] = "SetAlignmentActivatedAction";
-    SetAlignmentActivatedAction["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
-
-
-
-    export class SetDuplicationActivatedAction /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        duplicationActivated : boolean;
-
-        public constructor(__parent: any, duplicationActivated : boolean) {
-            super();
-            this.__parent = __parent;
-            if(this.duplicationActivated===undefined) this.duplicationActivated = false;
-            this.duplicationActivated = duplicationActivated;
-        }
-
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            controller.setDuplicationActivated(this.duplicationActivated);
-        }
-    }
-    SetDuplicationActivatedAction["__class"] = "SetDuplicationActivatedAction";
-    SetDuplicationActivatedAction["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
-
-
-
-    export class SetEditionActivatedAction /*extends javax.swing.AbstractAction*/ {
-        public __parent: any;
-        editionActivated : boolean;
-
-        public constructor(__parent: any, editionActivated : boolean) {
-            super();
-            this.__parent = __parent;
-            if(this.editionActivated===undefined) this.editionActivated = false;
-            this.editionActivated = editionActivated;
-        }
-
-        public actionPerformed(ev : java.awt.event.ActionEvent) {
-            controller.setEditionActivated(this.editionActivated);
-        }
-    }
-    SetEditionActivatedAction["__class"] = "SetEditionActivatedAction";
-    SetEditionActivatedAction["__interfaces"] = ["java.util.EventListener","java.lang.Cloneable","java.awt.event.ActionListener","javax.swing.Action","java.io.Serializable"];
 
   // =======================================================
 
