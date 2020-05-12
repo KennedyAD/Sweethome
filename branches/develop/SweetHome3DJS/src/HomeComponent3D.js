@@ -1750,7 +1750,7 @@ HomeComponent3D.prototype.addRoomListener = function(group) {
         component3D.updateObjects(component3D.home.getRooms());
         component3D.groundChangeListener(null);
       } else if ("POINTS" == propertyName) {   
-        if (component3D.homeObjectsToUpdate != null) {
+        if (component3D.homeObjectsToUpdate) {
           // Don't try to optimize if more than one room to update
           component3D.updateObjects(component3D.home.getRooms());
         } else {
@@ -2015,7 +2015,7 @@ HomeComponent3D.prototype.updateObjects = function(objects) {
 HomeComponent3D.prototype.updateIntersectingWalls = function(doorOrWindows) {
   var walls = this.home.getWalls();
   var wallCount = 0;
-  if (this.homeObjectsToUpdate !== null) {
+  if (this.homeObjectsToUpdate) {
     for (var i = 0; i < this.homeObjectsToUpdate.length; i++) {
       if (this.homeObjectsToUpdate [i] instanceof Wall) {
         wallCount++;
