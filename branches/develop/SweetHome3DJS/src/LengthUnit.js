@@ -137,13 +137,13 @@ LengthUnit.MILLIMETER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
-    this.name = getStringFromKey(resource, "millimeterUnit");
-    var groupingSeparator = getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = getStringFromKey(resource, "decimalSeparator");
+    var resource = CoreTools.loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "millimeterUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10, this.name);          
     this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10);
-    var squareMeterUnit = getStringFromKey(resource, "squareMeterUnit");
+    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
 }
@@ -202,13 +202,13 @@ LengthUnit.CENTIMETER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
-    this.name = getStringFromKey(resource, "centimeterUnit");
-    var groupingSeparator = getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = getStringFromKey(resource, "decimalSeparator");
+    var resource = CoreTools.loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "centimeterUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1, this.name);          
     this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1);
-    var squareMeterUnit = getStringFromKey(resource, "squareMeterUnit");
+    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
 }
@@ -266,13 +266,13 @@ LengthUnit.METER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
-    this.name = getStringFromKey(resource, "meterUnit");
-    var groupingSeparator = getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = getStringFromKey(resource, "decimalSeparator");
+    var resource = CoreTools.loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "meterUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01, this.name);          
     this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01);
-    var squareMeterUnit = getStringFromKey(resource, "squareMeterUnit");
+    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
 }
@@ -330,11 +330,11 @@ LengthUnit.INCH.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
-    this.name = getStringFromKey(resource, "inchUnit");
+    var resource = CoreTools.loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
     this.lengthFormat = new InchFormat(this.name);
     this.lengthFormatWithUnit = new InchFormat(this.name);
-    var squareFootUnit = getStringFromKey(resource, "squareFootUnit");
+    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
   }
 }
@@ -393,13 +393,13 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
-    this.name = getStringFromKey(resource, "inchUnit");
-    var groupingSeparator = getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = getStringFromKey(resource, "decimalSeparator");
+    var resource = CoreTools.loadResourceBundles("lib/generated/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###", this.name); 
     this.lengthFormat = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###");
-    var squareFootUnit = getStringFromKey(resource, "squareFootUnit");
+    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
   }
 }

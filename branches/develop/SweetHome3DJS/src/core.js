@@ -296,12 +296,14 @@ Locale.setDefault = function(language) {
 // Additional core utilities
 // =================================================================
 
+var CoreTools = {};
+
 /**
  * Loads a JSON resource from a url (synchronous).
  * @param url {string}  the url of the JSON resource to be loaded
  * @returns an object that corresponds to the loaded JSON
  */
-function loadJSON(url) {
+CoreTools.loadJSON =  function(url) {
   try {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, false);
@@ -320,7 +322,7 @@ function loadJSON(url) {
  * @param {*[]|...*} args an array of arguments to be applied to formatString
  * @returns the formatted string
  */
-function format(formatString, args) {
+CoreTools.format = function(formatString, args) {
   if(args === undefined || args.length === 0) {
     return formatString;
   } else {
@@ -349,15 +351,15 @@ function format(formatString, args) {
  * @param language the language to be loaded (Java conventions)
  * @returns an array of bundle objects, starting with the most specific localization to the default
  */
-function loadResourceBundles(baseURL, language) {
+CoreTools.loadResourceBundles = function(baseURL, language) {
   var resourceBundles = [];
   if (language) {
-    resourceBundles.push(loadJSON(baseURL + "_" + language + ".json"));
+    resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language + ".json"));
     if (language.indexOf("_") > 0) {
-      resourceBundles.push(loadJSON(baseURL + "_" + language.split("_")[0] + ".json"));
+      resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language.split("_")[0] + ".json"));
     }
   }
-  resourceBundles.push(loadJSON(baseURL + ".json"));
+  resourceBundles.push(CoreTools.loadJSON(baseURL + ".json"));
   return resourceBundles;  
 }
 
@@ -370,10 +372,10 @@ function loadResourceBundles(baseURL, language) {
  * @param parameters {...*} parameters for the formatting of the key
  * @returns the value associated with the key (in the first bundle object that contains it)
  */
-function getStringFromKey(resourceBundles, key, parameters) {
+CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
   for (var i = 0; i < resourceBundles.length; i++) {
     if (resourceBundles[i] != null && resourceBundles[i][key]) {
-      return format.apply(null, [resourceBundles[i][key]].concat(Array.prototype.slice.call(arguments, 2)));
+      return CoreTools.format.apply(null, [resourceBundles[i][key]].concat(Array.prototype.slice.call(arguments, 2)));
     }
   }
   throw new IllegalArgumentException("Can't find resource bundle for " + key);
@@ -385,7 +387,7 @@ function getStringFromKey(resourceBundles, key, parameters) {
  * @param key {string|*} the key to associate the value to (can be an object or a string)
  * @returns {*} the value associated to the key (null if not found)
  */
-function getFromMap(map, key) {
+CoreTools.getFromMap = function(map, key) {
   if(typeof key === 'string') {
     return map[key] === undefined ? null : map[key];
   } else {
@@ -408,7 +410,7 @@ function getFromMap(map, key) {
  * @param key {string|*} the key to associate the value to (can be an object or a string)
  * @param value {*} the value to be put
  */
-function putToMap(map, key, value) {
+CoreTools.putToMap = function(map, key, value) {
   if(typeof key === 'string') {
     map[key] = value;
   } else {
@@ -434,7 +436,7 @@ function putToMap(map, key, value) {
  * @param map {Object} the map containing the values
  * @returns {Array} the values (no specific order)
  */
-function valuesFromMap(map) {
+CoreTools.valuesFromMap = function(map) {
   var r = [];
   if(map.entries === undefined) {
     Object.getOwnPropertyNames(map).forEach(function(p) { r.push(map[p]); });
@@ -450,7 +452,7 @@ function valuesFromMap(map) {
  * @param array {Array} an array to be sorted (in-place sort)
  * @param comparator {Object|function} an object providing a <code>compare(Object, Object)</code>, or simply a function
  */
-function sortArray(array, comparator) { 
+CoreTools.sortArray = function(array, comparator) { 
   if(comparator.compare) {
     array.sort(function(e1, e2) {
       return comparator.compare(e1,e2);
@@ -494,7 +496,7 @@ OperatingSystem.isMacOSX = function() {
  * @param {Object} source
  * @returns {Object} the destination object
  */
-function merge(destination, source) {
+CoreTools.merge = function(destination, source) {
   for (var key in source) {
     destination[key] = source[key];
   }
@@ -506,7 +508,7 @@ function merge(destination, source) {
  * @param {any[]} array2
  * @returns {any[]} an array container elements being both in array1 and array2
  */
-function intersection(array1, array2) {
+CoreTools.intersection = function(array1, array2) {
   return array1.filter(function(n) {
     return array2.indexOf(n) !== -1;
   });  

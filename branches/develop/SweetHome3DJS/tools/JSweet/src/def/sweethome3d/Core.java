@@ -148,3 +148,7 @@ class PropertyChangeSupport {
 
   public native void firePropertyChange(String propertyName, Object oldValue, Object newValue);
 }
+
+class CoreTools {
+  public native static String format(String formatString, Object... args);
+}

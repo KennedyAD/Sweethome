@@ -354,9 +354,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     // Provide a partial default simple JavaScript implementation for String.format
     if (invocation.getMethodName().equals("format")
         && String.class.getName().equals(invocation.getTargetExpression().getTypeAsElement().toString())) {
-      print(
-          "((s, r) => { let result = s; result = s.replace(/%s/g, r); result = s.replace(/%d/g, r); result = s.replace(/%%/, '%'); return result; })(")
-              .print(invocation.getArgument(0)).print(",''+").print(invocation.getArgument(1)).print(")");
+      print("CoreTools.format(").printArgList(invocation.getArguments()).print(")");
       return true;
     }
 

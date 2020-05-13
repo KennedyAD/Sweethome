@@ -261,7 +261,7 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
   if (this.resourceBundles.length == 0) {
-    this.resourceBundles = loadResourceBundles("lib/generated/localization", this.language);
+    this.resourceBundles = CoreTools.loadResourceBundles("lib/generated/localization", this.language);
   }
   // JSweet-generated code interop: if resourceClass is a constructor, it may contain the Java class full name in __class
   if(resourceClass.__class) {
@@ -269,7 +269,7 @@ UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceK
     resourceClass = resourceClassArray[resourceClassArray.length - 1];
   }
   var key = resourceClass + "." + resourceKey;
-  return getStringFromKey.apply(null, [this.resourceBundles, key].concat(Array.prototype.slice.call(arguments, 2)));  
+  return CoreTools.getStringFromKey.apply(null, [this.resourceBundles, key].concat(Array.prototype.slice.call(arguments, 2)));  
 }
 
 /**

@@ -71,13 +71,16 @@ declare class OperatingSystem {
     static isWindows() : boolean;
 }
 
-declare function putToMap(map, key, value);
-declare function getFromMap(map, key);
-declare function valuesFromMap(map) : Array<any>;
-declare function sortArray(array, comparator) : void;
-declare function merge(destination: Object, source: Object): Object;
+declare namespace CoreTools {
+  declare function putToMap(map, key, value);
+  declare function getFromMap(map, key);
+  declare function valuesFromMap(map) : Array<any>;
+  declare function sortArray(array, comparator) : void;
+  declare function merge(destination: Object, source: Object): Object;
+  declare function intersection(array1 : any[], array2 : any[]) : any[];
+}
+
 declare function convertKeyboardEventToKeyStroke(ev, keyType);
-declare function intersection(array1 : any[], array2 : any[]) : any[];
 
 /**
  * Creates a new plan that displays <code>home</code>.
@@ -104,6 +107,8 @@ class PlanComponent implements PlanView {
     scrollPane : HTMLDivElement;
 
     view : HTMLDivElement;
+    
+    tooltip : HTMLDivElement;
    
     graphics : Graphics2D;
 
@@ -544,6 +549,18 @@ class PlanComponent implements PlanView {
           this.setScale(this.getScale() / 1.1);
         });
         
+        this.tooltip = document.createElement("div");
+        this.tooltip.style.position = "absolute";
+        this.tooltip.style.left = "0px";
+        this.tooltip.style.top = "0px";
+        this.tooltip.style.textAlign = "center";
+        this.tooltip.style.visibility = "hidden";
+        this.tooltip.style.backgroundColor = this.getBackground()+"A0";
+        this.tooltip.style.borderWidth = "2px";
+        this.tooltip.style.borderStyle = "solid";
+        this.tooltip.style.borderColor = this.getForeground()+"A0";
+        this.container.appendChild(this.tooltip);
+        
         this.resolutionScale = PlanComponent.HIDPI_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
@@ -621,7 +638,16 @@ class PlanComponent implements PlanView {
     }
 
     setToolTipFeedback(s : string, x: number, y:number) {
-        // TODO
+      this.tooltip.style.width = "";
+      this.tooltip.style.marginLeft = "";
+      this.tooltip.innerText = s;
+      this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
+      this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
+      this.tooltip.style.marginTop = -(this.tooltip.clientHeight * 2) + "px"
+      let width = this.tooltip.clientWidth + 10;
+      this.tooltip.style.width = width + "px";
+      this.tooltip.style.marginLeft = -width/2 + "px";
+      this.tooltip.style.visibility = "visible";
     }
 
     /** @private */
@@ -1127,7 +1153,7 @@ class PlanComponent implements PlanView {
                 if(mouseListener.isLongTouch() || selection.length > 0 && selection.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function(value, index) { return value === selection[index]})) {
                   mouseListener.initialPointerLocation = null;
                 } else {
-                  controller.home.setSelectedItems(selection);
+                  controller.selectItems(selection);
                   controller.setState(previousState);
                   mouseListener.panningPreviousMode = controller.getMode();
                   controller.setMode(PlanController.Mode.PANNING);
@@ -1286,7 +1312,7 @@ class PlanComponent implements PlanView {
         "shift pressed ENTER" : "ACTIVATE_EDITIION",
       };
       if(OperatingSystem.isMacOSX()) {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "alt pressed ALT" : "ACTIVATE_DUPLICATION",
           "released ALT" : "DEACTIVATE_DUPLICATION",
           "shift alt pressed ALT" : "ACTIVATE_DUPLICATION",
@@ -1299,7 +1325,7 @@ class PlanComponent implements PlanView {
           "alt pressed ENTER" : "ACTIVATE_EDITIION"
         });
       } else {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "control pressed CONTROL" : "ACTIVATE_DUPLICATION",
           "released CONTROL" : "DEACTIVATE_DUPLICATION",
           "shift control pressed CONTROL" : "ACTIVATE_DUPLICATION",
@@ -1313,7 +1339,7 @@ class PlanComponent implements PlanView {
         });
       }
       if(OperatingSystem.isWindows()) {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
           "released ALT" : "TOGGLE_MAGNETISM_OFF",
           "shift alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
@@ -1326,7 +1352,7 @@ class PlanComponent implements PlanView {
           "alt pressed ENTER" : "ACTIVATE_EDITIION"
         });
       } else if(OperatingSystem.isMacOSX()) {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "meta pressed META" : "TOGGLE_MAGNETISM_ON",
           "released META" : "TOGGLE_MAGNETISM_OFF",
           "shift meta pressed META" : "TOGGLE_MAGNETISM_ON",
@@ -1339,7 +1365,7 @@ class PlanComponent implements PlanView {
           "meta pressed ENTER" : "ACTIVATE_EDITIION"
         });
       } else {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "shift alt pressed ALT" : "TOGGLE_MAGNETISM_ON",
           "alt shift pressed SHIFT" : "TOGGLE_MAGNETISM_ON",
           "alt released SHIFT" : "TOGGLE_MAGNETISM_OFF",
@@ -1354,26 +1380,26 @@ class PlanComponent implements PlanView {
           "control alt shift pressed ENTER" : "ACTIVATE_EDITIION"
         });
       }
-      merge(this.inputMap, {
+      CoreTools.merge(this.inputMap, {
         "shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
         "released SHIFT" : "DEACTIVATE_ALIGNMENT"
       });
       if(OperatingSystem.isWindows()) {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "control shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
           "control released SHIFT" : "DEACTIVATE_ALIGNMENT",
           "alt shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
           "alt released SHIFT" : "DEACTIVATE_ALIGNMENT"
         });
       } else if(OperatingSystem.isMacOSX()) {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "alt shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
           "alt released SHIFT" : "DEACTIVATE_ALIGNMENT",
           "meta shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
           "meta released SHIFT" : "DEACTIVATE_ALIGNMENT"
         });
       } else {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "control shift pressed SHIFT" : "ACTIVATE_ALIGNMENT",
           "control released SHIFT" : "DEACTIVATE_ALIGNMENT",
           "shift released ALT" : "ACTIVATE_ALIGNMENT",
@@ -1415,7 +1441,7 @@ class PlanComponent implements PlanView {
         "shift ENTER" : "DEACTIVATE_EDITIION"
       };
       if(OperatingSystem.isMacOSX()) {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "alt ESCAPE" : "ESCAPE",
           "alt ENTER" : "DEACTIVATE_EDITIION",
           "alt shift ENTER" : "DEACTIVATE_EDITIION",
@@ -1425,7 +1451,7 @@ class PlanComponent implements PlanView {
           "shift released ALT" : "DEACTIVATE_DUPLICATION"
         });
       } else {
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
           "control ESCAPE" : "ESCAPE",
           "control ENTER" : "DEACTIVATE_EDITIION",
           "control shift ENTER" : "DEACTIVATE_EDITIION",
@@ -1777,7 +1803,7 @@ class PlanComponent implements PlanView {
         if(this.fonts == null) {
             this.fonts = {};
         }
-        let font : string = getFromMap(this.fonts, textStyle);
+        let font : string = CoreTools.getFromMap(this.fonts, textStyle);
         if(font == null) {
             let fontStyle : string = 'normal';
             let fontWeight : string = 'normal';
@@ -1798,7 +1824,7 @@ class PlanComponent implements PlanView {
                 defaultFont = new Font({style:fontStyle, weight:fontWeight, size:"10px", family:fontName}).toString();
             }
             font = new Font({style:fontStyle, weight:fontWeight, size:textStyle.getFontSize() + "px", family:new Font(defaultFont).family}).toString();
-            putToMap(this.fonts, textStyle, font);
+            CoreTools.putToMap(this.fonts, textStyle, font);
         }
         return font;
     }
@@ -1816,10 +1842,10 @@ class PlanComponent implements PlanView {
         if(this.fontsMetrics == null) {
             this.fontsMetrics = {};
         }
-        let fontMetrics : FontMetrics = getFromMap(this.fontsMetrics, textStyle);
+        let fontMetrics : FontMetrics = CoreTools.getFromMap(this.fontsMetrics, textStyle);
         if(fontMetrics == null) {
             fontMetrics = this.getFontMetrics(this.getFont(defaultFont, textStyle));
-            putToMap(this.fontsMetrics, textStyle, fontMetrics);
+            CoreTools.putToMap(this.fontsMetrics, textStyle, fontMetrics);
         }
         return fontMetrics;
     }
@@ -2389,7 +2415,7 @@ class PlanComponent implements PlanView {
                   this.sortedLevelFurniture.push(piece);
               }
             });
-            sortArray(this.sortedLevelFurniture, {
+            CoreTools.sortArray(this.sortedLevelFurniture, {
               compare : (piece1 : HomePieceOfFurniture, piece2 : HomePieceOfFurniture) => {
                 return (piece1.getGroundElevation() - piece2.getGroundElevation());
              }
@@ -2468,7 +2494,7 @@ class PlanComponent implements PlanView {
                   this.sortedLevelRooms.push(room);
               }
             });
-            sortArray(this.sortedLevelRooms, {
+            CoreTools.sortArray(this.sortedLevelRooms, {
               compare : (room1 : any, room2 : any) => {
                 if(room1.isFloorVisible() === room2.isFloorVisible() && room1.isCeilingVisible() === room2.isCeilingVisible()) {
                   return 0;
@@ -3224,7 +3250,7 @@ class PlanComponent implements PlanView {
         }
         let wallAreas = {};
         if(samePattern) {
-            putToMap(<any>wallAreas, walls, this.getItemsArea(walls));
+            CoreTools.putToMap(<any>wallAreas, walls, this.getItemsArea(walls));
         } else {
             let sortedWalls = {};
             walls.forEach(wall => {
@@ -3232,10 +3258,10 @@ class PlanComponent implements PlanView {
               if(wallPattern == null) {
                   wallPattern = this.preferences.getWallPattern();
               }
-              let patternWalls : Array<any> = getFromMap(<any>sortedWalls, wallPattern);
+              let patternWalls : Array<any> = CoreTools.getFromMap(<any>sortedWalls, wallPattern);
               if(patternWalls == null) {
                   patternWalls = <any>([]);
-                  putToMap(<any>sortedWalls, wallPattern, patternWalls);
+                  CoreTools.putToMap(<any>sortedWalls, wallPattern, patternWalls);
               }
               patternWalls.push(wall);
             });
@@ -3244,7 +3270,7 @@ class PlanComponent implements PlanView {
                 for(let index177=0; index177 < array178.length; index177++) {
                     let patternWalls = array178[index177];
                     {
-                        putToMap(<any>wallAreas, patternWalls, this.getItemsArea(patternWalls));
+                        CoreTools.putToMap(<any>wallAreas, patternWalls, this.getItemsArea(patternWalls));
                     }
                 }
             }
@@ -3482,7 +3508,7 @@ class PlanComponent implements PlanView {
         if(doorOrWindow.isWallCutOutOnBothSides()) {
             let doorOrWindowWallArea : java.awt.geom.Area = null;
             if(this.doorOrWindowWallThicknessAreasCache != null) {
-                doorOrWindowWallArea = getFromMap(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
+                doorOrWindowWallArea = CoreTools.getFromMap(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
             }
             if(doorOrWindowWallArea == null) {
                 let doorOrWindowRectangle : java.awt.geom.Rectangle2D = this.getDoorOrWindowRectangle(doorOrWindow, false);
@@ -3518,7 +3544,7 @@ class PlanComponent implements PlanView {
             if(this.doorOrWindowWallThicknessAreasCache == null) {
                 this.doorOrWindowWallThicknessAreasCache = <any>({});
             }
-            putToMap(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
+            CoreTools.putToMap(<any>this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
             g2D.setPaint(backgroundColor);
             g2D.fill(doorOrWindowWallArea);
             g2D.setPaint(foregroundColor);
@@ -3790,11 +3816,11 @@ class PlanComponent implements PlanView {
             this.furnitureTopViewIconsCache = <any>({});
         }
         
-        let topViewIconKey : PlanComponent.HomePieceOfFurnitureTopViewIconKey = getFromMap(<any>this.furnitureTopViewIconKeys, piece);
+        let topViewIconKey : PlanComponent.HomePieceOfFurnitureTopViewIconKey = CoreTools.getFromMap(<any>this.furnitureTopViewIconKeys, piece);
         let icon : PlanComponent.PieceOfFurnitureTopViewIcon;
         if(topViewIconKey == null) {
             topViewIconKey = new PlanComponent.HomePieceOfFurnitureTopViewIconKey(/* clone *//* clone */((o:any) => { if(o.clone!=undefined) { return (<any>o).clone(); } else { let clone = Object.create(o); for(let p in o) { if (o.hasOwnProperty(p)) clone[p] = o[p]; } return clone; } })(piece));
-            icon = getFromMap(<any>this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = CoreTools.getFromMap(<any>this.furnitureTopViewIconsCache, topViewIconKey);
             if(icon == null || icon.isWaitIcon() && paintMode !== PlanComponent.PaintMode.PAINT) {
                 let waitingComponent : PlanComponent = paintMode === PlanComponent.PaintMode.PAINT?this:null;
                 if(piece.getPlanIcon() != null) {
@@ -3802,7 +3828,7 @@ class PlanComponent implements PlanView {
                 } else {
                     icon = new PlanComponent.PieceOfFurnitureModelIcon(piece, this.object3dFactory, waitingComponent, this.preferences.getFurnitureModelIconSize());
                 }
-                putToMap(<any>this.furnitureTopViewIconsCache, topViewIconKey, icon);
+                CoreTools.putToMap(<any>this.furnitureTopViewIconsCache, topViewIconKey, icon);
             } else {
                 {
                     let array189 = /* keySet */((m) => { let r=[]; if(m.entries==null) m.entries=[]; for(let i=0;i<m.entries.length;i++) r.push(m.entries[i].key); return r; })(<any>this.furnitureTopViewIconsCache);
@@ -3817,9 +3843,9 @@ class PlanComponent implements PlanView {
                     }
                 }
             }
-            putToMap(<any>this.furnitureTopViewIconKeys, piece, topViewIconKey);
+            CoreTools.putToMap(<any>this.furnitureTopViewIconKeys, piece, topViewIconKey);
         } else {
-            icon = getFromMap(<any>this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = CoreTools.getFromMap(<any>this.furnitureTopViewIconsCache, topViewIconKey);
         }
         if(icon.isWaitIcon() || icon.isErrorIcon()) {
             this.paintPieceOfFurnitureIcon(g2D, piece, icon, pieceShape2D, planScale, backgroundColor);
@@ -5061,7 +5087,10 @@ class PlanComponent implements PlanView {
      * Deletes tool tip text from screen.
      */
     public deleteToolTipFeedback() {
-        // TODO
+      this.tooltip.style.visibility = "hidden";
+      this.tooltip.style.width = "";
+      this.tooltip.style.marginLeft = "";
+      this.tooltip.style.marginTop = "";
     }
 
     /**
@@ -5650,7 +5679,7 @@ namespace PlanComponent {
                 this.focusedTextField.setValue(this.focusedTextField.getValue());
             }
             this.focusedTextFieldIndex = textFieldIndex;
-            this.focusedTextField = getFromMap(<any>this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
+            this.focusedTextField = CoreTools.getFromMap(<any>this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
             if(this.focusedTextField.getText().length === 0) {
                 this.focusedTextField.getCaret().setVisible(false);
             } else {

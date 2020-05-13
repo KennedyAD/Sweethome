@@ -80,6 +80,17 @@ var PlanComponent = (function () {
             _this.setScale(_this.getScale() * 1.1);
             _this.setScale(_this.getScale() / 1.1);
         });
+        this.tooltip = document.createElement("div");
+        this.tooltip.style.position = "absolute";
+        this.tooltip.style.left = "0px";
+        this.tooltip.style.top = "0px";
+        this.tooltip.style.textAlign = "center";
+        this.tooltip.style.visibility = "hidden";
+        this.tooltip.style.backgroundColor = this.getBackground() + "A0";
+        this.tooltip.style.borderWidth = "2px";
+        this.tooltip.style.borderStyle = "solid";
+        this.tooltip.style.borderColor = this.getForeground() + "A0";
+        this.container.appendChild(this.tooltip);
         this.resolutionScale = PlanComponent.HIDPI_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
@@ -350,7 +361,16 @@ var PlanComponent = (function () {
         return this.view.clientHeight;
     };
     PlanComponent.prototype.setToolTipFeedback = function (s, x, y) {
-        // TODO
+        this.tooltip.style.width = "";
+        this.tooltip.style.marginLeft = "";
+        this.tooltip.innerText = s;
+        this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
+        this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
+        this.tooltip.style.marginTop = -(this.tooltip.clientHeight * 2) + "px";
+        var width = this.tooltip.clientWidth + 10;
+        this.tooltip.style.width = width + "px";
+        this.tooltip.style.marginLeft = -width / 2 + "px";
+        this.tooltip.style.visibility = "visible";
     };
     /** @private */
     PlanComponent.prototype.setOpaque = function (opaque) {
@@ -862,7 +882,7 @@ var PlanComponent = (function () {
                                 mouseListener.initialPointerLocation = null;
                             }
                             else {
-                                controller.home.setSelectedItems(selection_1);
+                                controller.selectItems(selection_1);
                                 controller.setState(previousState);
                                 mouseListener.panningPreviousMode = controller.getMode();
                                 controller.setMode(PlanController.Mode.PANNING);
@@ -1011,7 +1031,7 @@ var PlanComponent = (function () {
             "shift pressed ENTER": "ACTIVATE_EDITIION"
         };
         if (OperatingSystem.isMacOSX()) {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "alt pressed ALT": "ACTIVATE_DUPLICATION",
                 "released ALT": "DEACTIVATE_DUPLICATION",
                 "shift alt pressed ALT": "ACTIVATE_DUPLICATION",
@@ -1025,7 +1045,7 @@ var PlanComponent = (function () {
             });
         }
         else {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "control pressed CONTROL": "ACTIVATE_DUPLICATION",
                 "released CONTROL": "DEACTIVATE_DUPLICATION",
                 "shift control pressed CONTROL": "ACTIVATE_DUPLICATION",
@@ -1039,7 +1059,7 @@ var PlanComponent = (function () {
             });
         }
         if (OperatingSystem.isWindows()) {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "alt pressed ALT": "TOGGLE_MAGNETISM_ON",
                 "released ALT": "TOGGLE_MAGNETISM_OFF",
                 "shift alt pressed ALT": "TOGGLE_MAGNETISM_ON",
@@ -1053,7 +1073,7 @@ var PlanComponent = (function () {
             });
         }
         else if (OperatingSystem.isMacOSX()) {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "meta pressed META": "TOGGLE_MAGNETISM_ON",
                 "released META": "TOGGLE_MAGNETISM_OFF",
                 "shift meta pressed META": "TOGGLE_MAGNETISM_ON",
@@ -1067,7 +1087,7 @@ var PlanComponent = (function () {
             });
         }
         else {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "shift alt pressed ALT": "TOGGLE_MAGNETISM_ON",
                 "alt shift pressed SHIFT": "TOGGLE_MAGNETISM_ON",
                 "alt released SHIFT": "TOGGLE_MAGNETISM_OFF",
@@ -1082,12 +1102,12 @@ var PlanComponent = (function () {
                 "control alt shift pressed ENTER": "ACTIVATE_EDITIION"
             });
         }
-        merge(this.inputMap, {
+        CoreTools.merge(this.inputMap, {
             "shift pressed SHIFT": "ACTIVATE_ALIGNMENT",
             "released SHIFT": "DEACTIVATE_ALIGNMENT"
         });
         if (OperatingSystem.isWindows()) {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "control shift pressed SHIFT": "ACTIVATE_ALIGNMENT",
                 "control released SHIFT": "DEACTIVATE_ALIGNMENT",
                 "alt shift pressed SHIFT": "ACTIVATE_ALIGNMENT",
@@ -1095,7 +1115,7 @@ var PlanComponent = (function () {
             });
         }
         else if (OperatingSystem.isMacOSX()) {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "alt shift pressed SHIFT": "ACTIVATE_ALIGNMENT",
                 "alt released SHIFT": "DEACTIVATE_ALIGNMENT",
                 "meta shift pressed SHIFT": "ACTIVATE_ALIGNMENT",
@@ -1103,7 +1123,7 @@ var PlanComponent = (function () {
             });
         }
         else {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "control shift pressed SHIFT": "ACTIVATE_ALIGNMENT",
                 "control released SHIFT": "DEACTIVATE_ALIGNMENT",
                 "shift released ALT": "ACTIVATE_ALIGNMENT",
@@ -1142,7 +1162,7 @@ var PlanComponent = (function () {
             "shift ENTER": "DEACTIVATE_EDITIION"
         };
         if (OperatingSystem.isMacOSX()) {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "alt ESCAPE": "ESCAPE",
                 "alt ENTER": "DEACTIVATE_EDITIION",
                 "alt shift ENTER": "DEACTIVATE_EDITIION",
@@ -1153,7 +1173,7 @@ var PlanComponent = (function () {
             });
         }
         else {
-            merge(this.inputMap, {
+            CoreTools.merge(this.inputMap, {
                 "control ESCAPE": "ESCAPE",
                 "control ENTER": "DEACTIVATE_EDITIION",
                 "control shift ENTER": "DEACTIVATE_EDITIION",
@@ -1498,7 +1518,7 @@ var PlanComponent = (function () {
         if (this.fonts == null) {
             this.fonts = {};
         }
-        var font = getFromMap(this.fonts, textStyle);
+        var font = CoreTools.getFromMap(this.fonts, textStyle);
         if (font == null) {
             var fontStyle = 'normal';
             var fontWeight = 'normal';
@@ -1519,7 +1539,7 @@ var PlanComponent = (function () {
                 defaultFont = new Font({ style: fontStyle, weight: fontWeight, size: "10px", family: fontName }).toString();
             }
             font = new Font({ style: fontStyle, weight: fontWeight, size: textStyle.getFontSize() + "px", family: new Font(defaultFont).family }).toString();
-            putToMap(this.fonts, textStyle, font);
+            CoreTools.putToMap(this.fonts, textStyle, font);
         }
         return font;
     };
@@ -1536,10 +1556,10 @@ var PlanComponent = (function () {
         if (this.fontsMetrics == null) {
             this.fontsMetrics = {};
         }
-        var fontMetrics = getFromMap(this.fontsMetrics, textStyle);
+        var fontMetrics = CoreTools.getFromMap(this.fontsMetrics, textStyle);
         if (fontMetrics == null) {
             fontMetrics = this.getFontMetrics(this.getFont(defaultFont, textStyle));
-            putToMap(this.fontsMetrics, textStyle, fontMetrics);
+            CoreTools.putToMap(this.fontsMetrics, textStyle, fontMetrics);
         }
         return fontMetrics;
     };
@@ -2099,7 +2119,7 @@ var PlanComponent = (function () {
                     _this.sortedLevelFurniture.push(piece);
                 }
             });
-            sortArray(this.sortedLevelFurniture, {
+            CoreTools.sortArray(this.sortedLevelFurniture, {
                 compare: function (piece1, piece2) {
                     return (piece1.getGroundElevation() - piece2.getGroundElevation());
                 }
@@ -2175,7 +2195,7 @@ var PlanComponent = (function () {
                     _this.sortedLevelRooms.push(room);
                 }
             });
-            sortArray(this.sortedLevelRooms, {
+            CoreTools.sortArray(this.sortedLevelRooms, {
                 compare: function (room1, room2) {
                     if (room1.isFloorVisible() === room2.isFloorVisible() && room1.isCeilingVisible() === room2.isCeilingVisible()) {
                         return 0;
@@ -2957,7 +2977,7 @@ var PlanComponent = (function () {
             }
             var wallAreas = {};
             if (samePattern) {
-                putToMap(wallAreas, walls, this.getItemsArea(walls));
+                CoreTools.putToMap(wallAreas, walls, this.getItemsArea(walls));
             }
             else {
                 var sortedWalls_1 = {};
@@ -2966,10 +2986,10 @@ var PlanComponent = (function () {
                     if (wallPattern == null) {
                         wallPattern = _this.preferences.getWallPattern();
                     }
-                    var patternWalls = getFromMap(sortedWalls_1, wallPattern);
+                    var patternWalls = CoreTools.getFromMap(sortedWalls_1, wallPattern);
                     if (patternWalls == null) {
                         patternWalls = ([]);
-                        putToMap(sortedWalls_1, wallPattern, patternWalls);
+                        CoreTools.putToMap(sortedWalls_1, wallPattern, patternWalls);
                     }
                     patternWalls.push(wall);
                 });
@@ -2980,7 +3000,7 @@ var PlanComponent = (function () {
                     for (var index177 = 0; index177 < array178.length; index177++) {
                         var patternWalls = array178[index177];
                         {
-                            putToMap(wallAreas, patternWalls, this.getItemsArea(patternWalls));
+                            CoreTools.putToMap(wallAreas, patternWalls, this.getItemsArea(patternWalls));
                         }
                     }
                 }
@@ -3225,7 +3245,7 @@ var PlanComponent = (function () {
         if (doorOrWindow.isWallCutOutOnBothSides()) {
             var doorOrWindowWallArea = null;
             if (this.doorOrWindowWallThicknessAreasCache != null) {
-                doorOrWindowWallArea = getFromMap(this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
+                doorOrWindowWallArea = CoreTools.getFromMap(this.doorOrWindowWallThicknessAreasCache, doorOrWindow);
             }
             if (doorOrWindowWallArea == null) {
                 var doorOrWindowRectangle = this.getDoorOrWindowRectangle(doorOrWindow, false);
@@ -3261,7 +3281,7 @@ var PlanComponent = (function () {
             if (this.doorOrWindowWallThicknessAreasCache == null) {
                 this.doorOrWindowWallThicknessAreasCache = ({});
             }
-            putToMap(this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
+            CoreTools.putToMap(this.doorOrWindowWallThicknessAreasCache, doorOrWindow, doorOrWindowWallArea);
             g2D.setPaint(backgroundColor);
             g2D.fill(doorOrWindowWallArea);
             g2D.setPaint(foregroundColor);
@@ -3525,7 +3545,7 @@ var PlanComponent = (function () {
             this.furnitureTopViewIconKeys = ({});
             this.furnitureTopViewIconsCache = ({});
         }
-        var topViewIconKey = getFromMap(this.furnitureTopViewIconKeys, piece);
+        var topViewIconKey = CoreTools.getFromMap(this.furnitureTopViewIconKeys, piece);
         var icon;
         if (topViewIconKey == null) {
             topViewIconKey = new PlanComponent.HomePieceOfFurnitureTopViewIconKey(/* clone */ /* clone */ (function (o) { if (o.clone != undefined) {
@@ -3539,7 +3559,7 @@ var PlanComponent = (function () {
                 }
                 return clone;
             } })(piece));
-            icon = getFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = CoreTools.getFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
             if (icon == null || icon.isWaitIcon() && paintMode !== PlanComponent.PaintMode.PAINT) {
                 var waitingComponent = paintMode === PlanComponent.PaintMode.PAINT ? this : null;
                 if (piece.getPlanIcon() != null) {
@@ -3548,7 +3568,7 @@ var PlanComponent = (function () {
                 else {
                     icon = new PlanComponent.PieceOfFurnitureModelIcon(piece, this.object3dFactory, waitingComponent, this.preferences.getFurnitureModelIconSize());
                 }
-                putToMap(this.furnitureTopViewIconsCache, topViewIconKey, icon);
+                CoreTools.putToMap(this.furnitureTopViewIconsCache, topViewIconKey, icon);
             }
             else {
                 {
@@ -3566,10 +3586,10 @@ var PlanComponent = (function () {
                     }
                 }
             }
-            putToMap(this.furnitureTopViewIconKeys, piece, topViewIconKey);
+            CoreTools.putToMap(this.furnitureTopViewIconKeys, piece, topViewIconKey);
         }
         else {
-            icon = getFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
+            icon = CoreTools.getFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
         }
         if (icon.isWaitIcon() || icon.isErrorIcon()) {
             this.paintPieceOfFurnitureIcon(g2D, piece, icon, pieceShape2D, planScale, backgroundColor);
@@ -4780,7 +4800,10 @@ var PlanComponent = (function () {
      * Deletes tool tip text from screen.
      */
     PlanComponent.prototype.deleteToolTipFeedback = function () {
-        // TODO
+        this.tooltip.style.visibility = "hidden";
+        this.tooltip.style.width = "";
+        this.tooltip.style.marginLeft = "";
+        this.tooltip.style.marginTop = "";
     };
     /**
      * Sets whether the resize indicator of selected wall or piece of furniture
@@ -5374,7 +5397,7 @@ var PlanComponent;
                 this.focusedTextField.setValue(this.focusedTextField.getValue());
             }
             this.focusedTextFieldIndex = textFieldIndex;
-            this.focusedTextField = getFromMap(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
+            this.focusedTextField = CoreTools.getFromMap(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
             if (this.focusedTextField.getText().length === 0) {
                 this.focusedTextField.getCaret().setVisible(false);
             }
