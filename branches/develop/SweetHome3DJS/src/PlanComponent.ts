@@ -109,6 +109,8 @@ class PlanComponent implements PlanView {
     view : HTMLDivElement;
     
     tooltip : HTMLDivElement;
+
+    tooltipMarginFactor : number = 2;
    
     graphics : Graphics2D;
 
@@ -640,10 +642,10 @@ class PlanComponent implements PlanView {
     setToolTipFeedback(s : string, x: number, y:number) {
       this.tooltip.style.width = "";
       this.tooltip.style.marginLeft = "";
-      this.tooltip.innerText = s;
+      this.tooltip.innerHTML = s;
       this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
       this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
-      this.tooltip.style.marginTop = -(this.tooltip.clientHeight * 2) + "px"
+      this.tooltip.style.marginTop = -(this.tooltip.clientHeight * this.tooltipMarginFactor) + "px"
       let width = this.tooltip.clientWidth + 10;
       this.tooltip.style.width = width + "px";
       this.tooltip.style.marginLeft = -width/2 + "px";
@@ -1006,7 +1008,6 @@ class PlanComponent implements PlanView {
     }
 
     private handleMouseEvent(e : any, type : string) {
-      PlanController.INDICATOR_PIXEL_MARGIN = 5;
       if(e.canvasX === undefined && e.clientX) {
         var rect = this.canvas.getBoundingClientRect();
         e.canvasX = e.clientX - rect.left;
@@ -1015,6 +1016,7 @@ class PlanComponent implements PlanView {
       if(type.indexOf("touch") === 0) {
         // force a different margin for touch events
         PlanController.INDICATOR_PIXEL_MARGIN = 15;
+        this.tooltipMarginFactor = 3;
         let touches = e.targetTouches;
         if(e.targetTouches.length == 0) {
           // touchend case
@@ -1029,6 +1031,9 @@ class PlanComponent implements PlanView {
           e.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
         }
         e.clickCount = 1;
+      } else {
+        PlanController.INDICATOR_PIXEL_MARGIN = 5;
+        this.tooltipMarginFactor = 2;
       }
       if(e.clickCount === undefined) {
         if(type == "mouseDoubleClicked") {

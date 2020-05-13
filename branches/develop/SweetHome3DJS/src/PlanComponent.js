@@ -38,6 +38,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var PlanComponent = (function () {
     function PlanComponent(containerId, home, preferences, object3dFactory, controller) {
         var _this = this;
+        this.tooltipMarginFactor = 2;
         this.canvasNeededRepaint = false;
         this.container = document.getElementById(containerId);
         var computedStyle = window.getComputedStyle(this.container);
@@ -363,10 +364,10 @@ var PlanComponent = (function () {
     PlanComponent.prototype.setToolTipFeedback = function (s, x, y) {
         this.tooltip.style.width = "";
         this.tooltip.style.marginLeft = "";
-        this.tooltip.innerText = s;
+        this.tooltip.innerHTML = s;
         this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
         this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
-        this.tooltip.style.marginTop = -(this.tooltip.clientHeight * 2) + "px";
+        this.tooltip.style.marginTop = -(this.tooltip.clientHeight * this.tooltipMarginFactor) + "px";
         var width = this.tooltip.clientWidth + 10;
         this.tooltip.style.width = width + "px";
         this.tooltip.style.marginLeft = -width / 2 + "px";
@@ -734,7 +735,6 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
     PlanComponent.prototype.handleMouseEvent = function (e, type) {
-        PlanController.INDICATOR_PIXEL_MARGIN = 5;
         if (e.canvasX === undefined && e.clientX) {
             var rect = this.canvas.getBoundingClientRect();
             e.canvasX = e.clientX - rect.left;
@@ -743,6 +743,7 @@ var PlanComponent = (function () {
         if (type.indexOf("touch") === 0) {
             // force a different margin for touch events
             PlanController.INDICATOR_PIXEL_MARGIN = 15;
+            this.tooltipMarginFactor = 3;
             var touches = e.targetTouches;
             if (e.targetTouches.length == 0) {
                 // touchend case
@@ -758,6 +759,10 @@ var PlanComponent = (function () {
                 e.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
             }
             e.clickCount = 1;
+        }
+        else {
+            PlanController.INDICATOR_PIXEL_MARGIN = 5;
+            this.tooltipMarginFactor = 2;
         }
         if (e.clickCount === undefined) {
             if (type == "mouseDoubleClicked") {
