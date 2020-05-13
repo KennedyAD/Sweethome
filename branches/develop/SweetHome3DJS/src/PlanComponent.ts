@@ -987,13 +987,13 @@ class PlanComponent implements PlanView {
         e.canvasY = e.clientY - rect.top;
       }
       if(type.indexOf("touch") === 0) {
+        // force a different margin for touch events
+        PlanController.INDICATOR_PIXEL_MARGIN = 15;
         let touches = e.targetTouches;
         if(e.targetTouches.length == 0) {
           // touchend case
           touches = e.changedTouches;
         }
-        // force a different margin for touch events
-        PlanController.INDICATOR_PIXEL_MARGIN = 15;
         var rect = this.canvas.getBoundingClientRect();
         if(touches.length == 1) {
           e.canvasX = touches[0].clientX - rect.left;
@@ -1028,10 +1028,10 @@ class PlanComponent implements PlanView {
     addMouseListeners(controller : PlanController) {
       var planComponent = this;
       var mouseListener = {
-        initialPointerLocation : null,
+        initialPointerLocation : null, // reset to null when controller.pressMouse is fired
         lastPointerLocation : null,
-        distanceLastPinch : null,
-        previousMode : null,
+        distanceLastPinch : null, // !null when pinching
+        panningPreviousMode : null, // !null when panning
         initialTime : 0,
         mouseDoubleClicked : function(ev : MouseEvent) {
           planComponent.handleMouseEvent(ev, "mouseDoubleClicked");
@@ -1086,16 +1086,28 @@ class PlanComponent implements PlanView {
                                      ev.shiftKey ? 0 : planComponent.convertPixelToLength((<any>ev).wheelRotation));
           }
         },
+        stopPanning : function() {
+          if(mouseListener.panningPreviousMode != null) {
+            controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.lastPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.lastPointerLocation[1]));
+            controller.setMode(mouseListener.panningPreviousMode);
+            mouseListener.panningPreviousMode = null;
+          }
+        },
+        isLongTouch : function() {
+          return Date.now() - mouseListener.initialTime > 500;
+        },
         touchStarted : function(ev) {
           ev.preventDefault();
           if(planComponent.isEnabled()) {
+            planComponent.handleMouseEvent(ev, "touchStarted");
+            mouseListener.panningPreviousMode = null;
             mouseListener.initialTime = Date.now();
-            if (ev.targetTouches.length == 1) {
-              planComponent.handleMouseEvent(ev, "touchStarted");
+            if (ev.targetTouches.length === 1) {
+              mouseListener.distanceLastPinch = null;
               mouseListener.initialPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
               mouseListener.lastPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
-              //controller.pressMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY), (<any>ev).clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
-            } else if (ev.targetTouches.length == 2) {
+            } else if (ev.targetTouches.length === 2) {
+              mouseListener.initialPointerLocation = null;
               mouseListener.distanceLastPinch = mouseListener.distance(
                   ev.targetTouches[0].clientX, ev.targetTouches[0].clientY,
                   ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
@@ -1105,21 +1117,19 @@ class PlanComponent implements PlanView {
         touchMoved : function(ev) {
           ev.preventDefault();
           if(planComponent.isEnabled()) {
+            planComponent.handleMouseEvent(ev, "touchMoved");
+            mouseListener.lastPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
             if (ev.targetTouches.length == 1) {
-              mouseListener.lastPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
-              planComponent.handleMouseEvent(ev, "touchMoved");
               if(mouseListener.initialPointerLocation != null) { 
                 let selection = controller.home.getSelectedItems();
                 let previousState = controller.state;
                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), (<any>ev).clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
-                if(selection.length > 0 && selection.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function(value, index) { return value === selection[index]})) {
-                 //mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation[1])>3) {
-                  //controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), (<any>ev).clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
+                if(mouseListener.isLongTouch() || selection.length > 0 && selection.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function(value, index) { return value === selection[index]})) {
                   mouseListener.initialPointerLocation = null;
                 } else {
                   controller.home.setSelectedItems(selection);
                   controller.setState(previousState);
-                  mouseListener.previousMode = controller.getMode();
+                  mouseListener.panningPreviousMode = controller.getMode();
                   controller.setMode(PlanController.Mode.PANNING);
                   controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), (<any>ev).clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
                   mouseListener.initialPointerLocation = null;
@@ -1129,8 +1139,22 @@ class PlanComponent implements PlanView {
                 controller.moveMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
               }       
             } else if (ev.targetTouches.length == 2) {
-              if(mouseListener.initialPointerLocation) {
-                controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
+              if(mouseListener.distanceLastPinch == null) { // should never happen
+                console.error("state error in pinching", mouseListener);
+                // try to recover
+                mouseListener.distanceLastPinch = mouseListener.distance(
+                    ev.targetTouches[0].clientX, ev.targetTouches[0].clientY,
+                    ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
+              }
+              if(mouseListener.initialPointerLocation != null) { // should never happen
+                console.error("state error in pinching", mouseListener);
+                // try to recover
+                mouseListener.initialPointerLocation = null;
+              }
+              if(mouseListener.panningPreviousMode != null) { // should never happen
+                console.error("state error in pinching", mouseListener);
+                // try to recover
+                mouseListener.stopPanning();
               }
               var newDistance = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
               var scaleDifference = newDistance / mouseListener.distanceLastPinch;
@@ -1139,7 +1163,6 @@ class PlanComponent implements PlanView {
               var mouseY = planComponent.convertYPixelToModel((ev.targetTouches[0].clientY + ev.targetTouches[1].clientY) / 2 - rect.top);
               let oldScale : number = planComponent.getScale();
               controller.zoom(scaleDifference);
-              //mouseListener.zoomed((1 - scaleDifference) * 50, false);
               mouseListener.distanceLastPinch = newDistance;
               
               if(planComponent.getScale() !== oldScale) {
@@ -1156,18 +1179,27 @@ class PlanComponent implements PlanView {
         touchEnded : function(ev) {
           if(planComponent.isEnabled()) {
               planComponent.handleMouseEvent(ev, "touchEnded");
-              if(mouseListener.initialPointerLocation != null) {
-                // simple click (no move)
-                if(mouseListener.distance((<any>ev).canvasX, (<any>ev).canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation[1])<=3) {
-                  controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, Date.now() - mouseListener.initialTime > 500, false, false, false);
+              if(mouseListener.distanceLastPinch != null) { // pinch case
+                if(mouseListener.initialPointerLocation != null) {
+                  // should never happen
+                  console.error("state error in pinching", mouseListener);
                 }
+                if(mouseListener.panningPreviousMode != null) {
+                  // should never happen
+                  console.error("state error in pinching", mouseListener);
+                }
+              } else { // no pinch cases
+                if(mouseListener.panningPreviousMode != null) { // panning case
+                  mouseListener.stopPanning();
+                } else { // other actions
+                  if(mouseListener.initialPointerLocation != null) {
+                    // press mouse was never fired => do it now
+                    controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
+                  }
+                  controller.releaseMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
+                }
+                mouseListener.initialPointerLocation = null;
               }
-              controller.releaseMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
-              if(mouseListener.previousMode != null) {
-                controller.setMode(mouseListener.previousMode);
-                mouseListener.previousMode = null;
-              }
-              mouseListener.initialPointerLocation = null;
           }
         },
         distance : function(x1, y1, x2, y2) {
