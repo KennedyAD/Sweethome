@@ -818,38 +818,41 @@ var PlanComponent = (function () {
                 }
             },
             mouseReleased: function (ev) {
-                if (planComponent.isEnabled() && ev.button === 0) {
-                    planComponent.handleMouseEvent(ev, "mouseReleased");
-                    controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                if (mouseListener.lastPointerLocation != null) {
+                    if (planComponent.isEnabled() && ev.button === 0) {
+                        planComponent.handleMouseEvent(ev, "mouseReleased");
+                        controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                    }
+                    if (mouseListener.autoScroll != null) {
+                        clearInterval(mouseListener.autoScroll);
+                        mouseListener.autoScroll = null;
+                    }
+                    mouseListener.initialPointerLocation = null;
+                    mouseListener.lastPointerLocation = null;
                 }
-                if (mouseListener.autoScroll != null) {
-                    clearInterval(mouseListener.autoScroll);
-                    mouseListener.autoScroll = null;
-                }
-                mouseListener.initialPointerLocation = null;
-                mouseListener.lastPointerLocation = null;
             },
             mouseMoved: function (ev) {
-                planComponent.handleMouseEvent(ev, "mouseMoved");
-                if (mouseListener.autoScroll == null && mouseListener.lastPointerLocation != null && ev.target !== planComponent.canvas) {
-                    mouseListener.autoScroll = setInterval(function () {
-                        window.dispatchEvent(ev);
-                    }, 10);
-                }
-                if (mouseListener.autoScroll != null && ev.target === planComponent.canvas) {
-                    clearInterval(mouseListener.autoScroll);
-                    mouseListener.autoScroll = null;
-                }
-                mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-                if (mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === ev.canvasX && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
-                    mouseListener.initialPointerLocation = null;
-                }
-                if (mouseListener.initialPointerLocation == null) {
-                    if (planComponent.isEnabled()) {
-                        controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                if (mouseListener.lastPointerLocation != null) {
+                    planComponent.handleMouseEvent(ev, "mouseMoved");
+                    if (mouseListener.autoScroll == null && ev.target !== planComponent.canvas) {
+                        mouseListener.autoScroll = setInterval(function () {
+                            window.dispatchEvent(ev);
+                        }, 10);
                     }
+                    if (mouseListener.autoScroll != null && ev.target === planComponent.canvas) {
+                        clearInterval(mouseListener.autoScroll);
+                        mouseListener.autoScroll = null;
+                    }
+                    if (mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === ev.canvasX && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+                        mouseListener.initialPointerLocation = null;
+                    }
+                    if (mouseListener.initialPointerLocation == null) {
+                        if (planComponent.isEnabled()) {
+                            controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                        }
+                    }
+                    mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
                 }
-                mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             },
             mouseWheelMoved: function (ev) {
                 planComponent.handleMouseEvent(ev, "mouseWheelMoved");
@@ -2111,7 +2114,7 @@ var PlanComponent = (function () {
             var selectedItems = this.home.getSelectedItems();
             var selectionColor = this.getSelectionColor();
             var furnitureOutlineColor = this.getFurnitureOutlineColor();
-            var selectionOutlinePaint = "rgba(0, 60, 239, 0.5)"; //  selectionColor + "80"; // add alpha
+            var selectionOutlinePaint = selectionColor + "80"; // add alpha
             var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
             var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
             var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
@@ -2176,7 +2179,7 @@ var PlanComponent = (function () {
             });
         }
         var selectionColor = this.getSelectionColor();
-        var selectionOutlinePaint = "rgba(0, 60, 239, 0.5)"; //  selectionColor + "80"; // add alpha
+        var selectionOutlinePaint = selectionColor + "80"; // add alpha
         var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
@@ -2211,7 +2214,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.getDefaultSelectionColor = function (planComponent) {
         if (PlanComponent.DEFAULT_SELECTION_COLOR == null) {
-            planComponent.view.style.color = "rgba(0, 60, 239)"; // "Highlight";
+            planComponent.view.style.color = "Highlight";
             PlanComponent.DEFAULT_SELECTION_COLOR = styleToColorString(window.getComputedStyle(planComponent.view).color);
             if (PlanComponent.DEFAULT_SELECTION_COLOR == "") {
                 PlanComponent.DEFAULT_SELECTION_COLOR = "#0042E0";
@@ -4608,7 +4611,7 @@ var PlanComponent = (function () {
                     var pixelBounds = _this.getShapePixelBounds(selectionBounds);
                     pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
                     var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
-                    if(!pixelBounds.intersects(visibleRectangle)) {
+                    if (!pixelBounds.intersects(visibleRectangle)) {
                         _this.scrollRectToVisible(pixelBounds);
                     }
                 }
@@ -4959,7 +4962,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.isFurnitureSizeInPlanSupported = function () {
         try {
-            return true; // !javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.no3D");
+            return !javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.no3D");
         }
         catch (ex) {
             return false;
@@ -5671,7 +5674,7 @@ var PlanComponent;
          * @return {Array}
          * @private
          */
-         PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
+        PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
             var horizontalRotation = mat4.create();
             if (piece.getPitch() !== 0) {
                 mat4.fromXRotation(horizontalRotation, -piece.getPitch());

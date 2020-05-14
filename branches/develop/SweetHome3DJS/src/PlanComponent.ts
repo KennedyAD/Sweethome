@@ -1088,9 +1088,10 @@ class PlanComponent implements PlanView {
           }
         },
         mouseReleased : function(ev : MouseEvent) {
+          if(mouseListener.lastPointerLocation != null) {
             if(planComponent.isEnabled() && ev.button === 0) {
-                planComponent.handleMouseEvent(ev, "mouseReleased");
-                controller.releaseMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
+              planComponent.handleMouseEvent(ev, "mouseReleased");
+              controller.releaseMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
             }
             if(mouseListener.autoScroll != null) {
               clearInterval(mouseListener.autoScroll);
@@ -1098,28 +1099,30 @@ class PlanComponent implements PlanView {
             }
             mouseListener.initialPointerLocation = null;            
             mouseListener.lastPointerLocation = null;            
+          }
         },
         mouseMoved : function(ev : MouseEvent) {
-          planComponent.handleMouseEvent(ev, "mouseMoved");
-          if(mouseListener.autoScroll == null && mouseListener.lastPointerLocation != null && ev.target !== planComponent.canvas) {
-            mouseListener.autoScroll = setInterval(() => {
-              window.dispatchEvent(ev);
-            }, 10);
-          }
-          if(mouseListener.autoScroll != null && ev.target === planComponent.canvas) {
-            clearInterval(mouseListener.autoScroll);
-            mouseListener.autoScroll = null;
-          }
-          mouseListener.lastPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
-          if(mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === (<any>ev).canvasX && mouseListener.initialPointerLocation[1] === (<any>ev).canvasY)) {
-             mouseListener.initialPointerLocation = null;
-          }
-          if(mouseListener.initialPointerLocation == null) {
-            if(planComponent.isEnabled()) {
-              controller.moveMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
+          if(mouseListener.lastPointerLocation != null) {
+            planComponent.handleMouseEvent(ev, "mouseMoved");
+            if(mouseListener.autoScroll == null && ev.target !== planComponent.canvas) {
+              mouseListener.autoScroll = setInterval(() => {
+                window.dispatchEvent(ev);
+              }, 10);
             }
-          }       
-          mouseListener.lastPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
+            if(mouseListener.autoScroll != null && ev.target === planComponent.canvas) {
+              clearInterval(mouseListener.autoScroll);
+              mouseListener.autoScroll = null;
+            }
+            if(mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === (<any>ev).canvasX && mouseListener.initialPointerLocation[1] === (<any>ev).canvasY)) {
+               mouseListener.initialPointerLocation = null;
+            }
+            if(mouseListener.initialPointerLocation == null) {
+              if(planComponent.isEnabled()) {
+                controller.moveMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
+              }
+            }       
+            mouseListener.lastPointerLocation = [ (<any>ev).canvasX, (<any>ev).canvasY ];
+          }
         },
         mouseWheelMoved : function(ev : MouseWheelEvent) {
           planComponent.handleMouseEvent(ev, "mouseWheelMoved");
