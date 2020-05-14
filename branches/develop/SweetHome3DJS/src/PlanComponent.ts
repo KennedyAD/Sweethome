@@ -110,7 +110,7 @@ class PlanComponent implements PlanView {
     
     tooltip : HTMLDivElement;
 
-    tooltipMarginFactor : number = 2;
+    pointerType : number = 0; // 0 = mouse, 1 = touch
    
     graphics : Graphics2D;
 
@@ -651,7 +651,7 @@ class PlanComponent implements PlanView {
       this.tooltip.innerHTML = s.replace("<html>", "").replace("</html>", "");
       this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
       this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
-      this.tooltip.style.marginTop = -(this.tooltip.clientHeight * this.tooltipMarginFactor) + "px"
+      this.tooltip.style.marginTop = -(this.tooltip.clientHeight * (this.pointerType===1?3:2)) + "px"
       let width = this.tooltip.clientWidth + 10;
       this.tooltip.style.width = width + "px";
       this.tooltip.style.marginLeft = -width/2 + "px";
@@ -1022,7 +1022,7 @@ class PlanComponent implements PlanView {
       if(type.indexOf("touch") === 0) {
         // force a different margin for touch events
         PlanController.INDICATOR_PIXEL_MARGIN = 15;
-        this.tooltipMarginFactor = 3;
+        this.pointerType = 1;
         let touches = e.targetTouches;
         if(e.targetTouches.length == 0) {
           // touchend case
@@ -1039,7 +1039,7 @@ class PlanComponent implements PlanView {
         e.clickCount = 1;
       } else {
         PlanController.INDICATOR_PIXEL_MARGIN = 5;
-        this.tooltipMarginFactor = 2;
+        this.pointerType = 0;
       }
       if(e.clickCount === undefined) {
         if(type == "mouseDoubleClicked") {
@@ -1104,12 +1104,12 @@ class PlanComponent implements PlanView {
         mouseMoved : function(ev : MouseEvent) {
           if(mouseListener.lastPointerLocation != null) {
             planComponent.handleMouseEvent(ev, "mouseMoved");
-            if(mouseListener.autoScroll == null && ev.target !== planComponent.canvas) {
+            if(mouseListener.autoScroll == null && !mouseListener.isInCanvas(ev)) {
               mouseListener.autoScroll = setInterval(() => {
                 window.dispatchEvent(ev);
               }, 10);
             }
-            if(mouseListener.autoScroll != null && ev.target === planComponent.canvas) {
+            if(mouseListener.autoScroll != null && mouseListener.isInCanvas(ev)) {
               clearInterval(mouseListener.autoScroll);
               mouseListener.autoScroll = null;
             }
@@ -1184,7 +1184,7 @@ class PlanComponent implements PlanView {
               mouseListener.autoScroll = null;
             }
             if (ev.targetTouches.length == 1) {
-              if(mouseListener.autoScroll == null && mouseListener.lastPointerLocation != null && !mouseListener.isInCanvas(ev)) {
+              if(mouseListener.autoScroll == null && mouseListener.panningPreviousMode == null && mouseListener.lastPointerLocation != null && !mouseListener.isInCanvas(ev)) {
                 mouseListener.autoScroll = setInterval(() => {
                   mouseListener.touchMoved(ev);
                 }, 10);
@@ -1281,8 +1281,8 @@ class PlanComponent implements PlanView {
           return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         },
         isInCanvas : function(ev) {
-          return !(ev.canvasX < 0 || ev.canvasX > planComponent.canvas.clientWidth 
-                || ev.canvasY < 0 || ev.canvasY > planComponent.canvas.clientHeight);
+          return !(ev.canvasX < 0 || ev.canvasX >= planComponent.canvas.clientWidth 
+                || ev.canvasY < 0 || ev.canvasY >= planComponent.canvas.clientHeight);
         }
         
       };

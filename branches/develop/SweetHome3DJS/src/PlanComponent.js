@@ -38,7 +38,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var PlanComponent = (function () {
     function PlanComponent(containerId, home, preferences, object3dFactory, controller) {
         var _this = this;
-        this.tooltipMarginFactor = 2;
+        this.pointerType = 0; // 0 = mouse, 1 = touch
         this.canvasNeededRepaint = false;
         this.container = document.getElementById(containerId);
         var computedStyle = window.getComputedStyle(this.container);
@@ -373,7 +373,7 @@ var PlanComponent = (function () {
         this.tooltip.innerHTML = s.replace("<html>", "").replace("</html>", "");
         this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
         this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
-        this.tooltip.style.marginTop = -(this.tooltip.clientHeight * this.tooltipMarginFactor) + "px";
+        this.tooltip.style.marginTop = -(this.tooltip.clientHeight * (this.pointerType === 1 ? 3 : 2)) + "px";
         var width = this.tooltip.clientWidth + 10;
         this.tooltip.style.width = width + "px";
         this.tooltip.style.marginLeft = -width / 2 + "px";
@@ -749,7 +749,7 @@ var PlanComponent = (function () {
         if (type.indexOf("touch") === 0) {
             // force a different margin for touch events
             PlanController.INDICATOR_PIXEL_MARGIN = 15;
-            this.tooltipMarginFactor = 3;
+            this.pointerType = 1;
             var touches = e.targetTouches;
             if (e.targetTouches.length == 0) {
                 // touchend case
@@ -768,7 +768,7 @@ var PlanComponent = (function () {
         }
         else {
             PlanController.INDICATOR_PIXEL_MARGIN = 5;
-            this.tooltipMarginFactor = 2;
+            this.pointerType = 0;
         }
         if (e.clickCount === undefined) {
             if (type == "mouseDoubleClicked") {
@@ -834,12 +834,12 @@ var PlanComponent = (function () {
             mouseMoved: function (ev) {
                 if (mouseListener.lastPointerLocation != null) {
                     planComponent.handleMouseEvent(ev, "mouseMoved");
-                    if (mouseListener.autoScroll == null && ev.target !== planComponent.canvas) {
+                    if (mouseListener.autoScroll == null && !mouseListener.isInCanvas(ev)) {
                         mouseListener.autoScroll = setInterval(function () {
                             window.dispatchEvent(ev);
                         }, 10);
                     }
-                    if (mouseListener.autoScroll != null && ev.target === planComponent.canvas) {
+                    if (mouseListener.autoScroll != null && mouseListener.isInCanvas(ev)) {
                         clearInterval(mouseListener.autoScroll);
                         mouseListener.autoScroll = null;
                     }
@@ -912,7 +912,7 @@ var PlanComponent = (function () {
                         mouseListener.autoScroll = null;
                     }
                     if (ev.targetTouches.length == 1) {
-                        if (mouseListener.autoScroll == null && mouseListener.lastPointerLocation != null && !mouseListener.isInCanvas(ev)) {
+                        if (mouseListener.autoScroll == null && mouseListener.panningPreviousMode == null && mouseListener.lastPointerLocation != null && !mouseListener.isInCanvas(ev)) {
                             mouseListener.autoScroll = setInterval(function () {
                                 mouseListener.touchMoved(ev);
                             }, 10);
@@ -1010,8 +1010,8 @@ var PlanComponent = (function () {
                 return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             },
             isInCanvas: function (ev) {
-                return !(ev.canvasX < 0 || ev.canvasX > planComponent.canvas.clientWidth
-                    || ev.canvasY < 0 || ev.canvasY > planComponent.canvas.clientHeight);
+                return !(ev.canvasX < 0 || ev.canvasX >= planComponent.canvas.clientWidth
+                    || ev.canvasY < 0 || ev.canvasY >= planComponent.canvas.clientHeight);
             }
         };
         //  if (window.PointerEvent) {
