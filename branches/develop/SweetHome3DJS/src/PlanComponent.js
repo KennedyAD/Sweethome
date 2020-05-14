@@ -2277,7 +2277,7 @@ var PlanComponent = (function () {
      * @return {string}
      */
     PlanComponent.prototype.getFurnitureOutlineColor = function () {
-        return this.getForeground() + "55";
+        return ColorTools.toRGBAStyle(this.getForeground(), 0.33);
     };
     /**
      * Paints rooms.
@@ -4626,7 +4626,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintRectangleFeedback = function (g2D, selectionColor, planScale) {
         if (this.rectangleFeedback != null) {
-            g2D.setPaint(selectionColor + "20"); // add alpha
+            g2D.setPaint(ColorTools.toRGBAStyle(selectionColor, 0.125));
             g2D.fill(this.rectangleFeedback);
             g2D.setPaint(selectionColor);
             g2D.setStroke(new java.awt.BasicStroke(1 / planScale * this.resolutionScale));
