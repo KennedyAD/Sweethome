@@ -239,7 +239,7 @@ var Graphics2D = (function () {
         this.context.fillStyle = color;
     };
     /**
-     * Gets the current color.
+     * Gets the current ColorTools.
      */
     Graphics2D.prototype.getColor = function () {
         return this.color;
@@ -317,7 +317,7 @@ var Graphics2D = (function () {
         return this.context.font;
     };
     /**
-     * Sets the fill style as a color.
+     * Sets the fill style as a ColorTools.
      * @param {string} color a CSS color descriptor
      */
     Graphics2D.prototype.setBackground = function (color) {
@@ -569,20 +569,24 @@ var Font = (function () {
     return Font;
 }());
 /**
+ * A namespace holding utilities for colors.
+ */
+var ColorTools = {};
+/**
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000.
  * Note that the alpha content is ignored.
  * @param {number} color
  * @returns {string} a CSS string
  */
-function intToColorString(color) {
+ColorTools.intToHexString = function (color) {
     return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
-}
+};
 /**
  * Returns an hexadecimal color string from a computed style (no alpha).
  * @param {string} a style containing a color as rgb(...) or rgba(...)
  * @returns {string} the color as a string or an empty string if the given style was not parseable
  */
-function styleToColorString(style) {
+ColorTools.styleToHexString = function (style) {
     var prefix = "rgb(";
     var index = style.indexOf(prefix);
     if (index < 0) {
@@ -591,16 +595,16 @@ function styleToColorString(style) {
     }
     if (index >= 0) {
         var array = style.slice(prefix.length, style.indexOf(")")).split(",");
-        return intToColorString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
+        return ColorTools.intToHexString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
     }
     return "";
-}
+};
 /**
  * Returns a color from a computed style (no alpha).
  * @param {string} style a style containing a color as rgb(...) or rgba(...)
  * @returns {number} the color as an integer or -1 if the given style was not parseable
  */
-function styleToColor(style) {
+ColorTools.styleToInt = function (style) {
     var prefix = "rgb(";
     var index = style.indexOf(prefix);
     if (index < 0) {
@@ -612,16 +616,35 @@ function styleToColor(style) {
         return (parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]);
     }
     return -1;
-}
+};
+ColorTools.isTransparent = function (style) {
+    var prefix = "rgba(";
+    var index = style.indexOf(prefix);
+    if (index >= 0) {
+        var array = style.slice(prefix.length, style.indexOf(")")).split(",");
+        return parseFloat(array[3]) === 0;
+    }
+    return false;
+};
 /**
  * Returns a color from a color string (no alpha).
  * @param {string} colorString color string under the format #RRGGBB
  * @returns {number} the color as an integer or -1 if the given string was not parseable
  */
-function stringToColor(colorString) {
+ColorTools.hexStringToInt = function (colorString) {
     if (colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
         colorString = colorString.slice(1);
         return (parseInt(colorString.slice(0, 2), 16) << 16) + (parseInt(colorString.slice(2, 4), 16) << 8) + parseInt(colorString.slice(4, 6), 16);
     }
     return -1;
-}
+};
+/**
+ * Returns an rgba style color from an hexadecimal color string (no alpha).
+ * @param {string} colorString color string under the format #RRGGBB
+ * @param {number} the alpha component (between 0 and 1)
+ * @returns {string} the color as an rgba description
+ */
+ColorTools.toRGBAStyle = function (colorString, alpha) {
+    var c = ColorTools.hexStringToInt(colorString);
+    return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
+};

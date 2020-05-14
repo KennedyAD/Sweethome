@@ -514,7 +514,7 @@ class PlanComponent implements PlanView {
         this.canvas.style.width = "100%"; //computedStyle.width;
         this.canvas.style.height = "100%"; //computedStyle.height;
         // TODO: loop over all the properties and inject them?
-        this.canvas.style.background = computedStyle.background;
+        this.canvas.style.backgroundColor = computedStyle.backgroundColor;
         this.canvas.style.color = computedStyle.color;
         this.canvas.style.font = computedStyle.font;
         
@@ -554,10 +554,10 @@ class PlanComponent implements PlanView {
         this.tooltip = document.createElement("div");
         this.tooltip.style.position = "absolute";
         this.tooltip.style.visibility = "hidden";
-        this.tooltip.style.backgroundColor = this.getBackground()+"A0";
+        this.tooltip.style.backgroundColor = ColorTools.toRGBAStyle(this.getBackground(), 0.7);
         this.tooltip.style.borderWidth = "2px";
         this.tooltip.style.borderStyle = "solid";
-        this.tooltip.style.borderColor = this.getForeground()+"A0";
+        this.tooltip.style.borderColor = ColorTools.toRGBAStyle(this.getForeground(), 0.7);
         
         this.container.appendChild(this.tooltip);
         
@@ -590,7 +590,7 @@ class PlanComponent implements PlanView {
         this.panningCursor = 'move'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
         this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
         this.patternImagesCache = <any>({});
-        this.setScale(1);
+        this.setScale(0.5);
     }
 
     getGraphics() : Graphics2D {
@@ -619,8 +619,53 @@ class PlanComponent implements PlanView {
     }
 
     revalidate() : void {
+      this.invalidate(true);
+      this.validate();
       this.repaint();
     }
+
+    /** @private */
+    private invalidate(invalidatePlanBoundsCache) {
+      if (invalidatePlanBoundsCache) {
+        var planBoundsCacheWereValid = this.planBoundsCacheValid;
+        if (!this.invalidPlanBounds) {
+          this.invalidPlanBounds = this.getPlanBounds().getBounds2D();
+        }
+        if (planBoundsCacheWereValid) {
+          this.planBoundsCacheValid = false;
+        }
+      }
+    }
+    
+    /** @private */
+    private validate() {
+      if (this.invalidPlanBounds != null
+          && this.scrollPane) {
+        var size = this.getPreferredSize();
+        this.view.style.width = size.width + "px";
+        this.view.style.height = size.height + "px";
+        this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+        this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+        this.canvas.style.width = this.scrollPane.clientWidth + "px";
+        this.canvas.style.height = this.scrollPane.clientHeight + "px";
+//        var planBoundsNewMinX = this.getPlanBounds().getMinX();
+//        var planBoundsNewMinY = this.getPlanBounds().getMinY();
+//        // If plan bounds upper left corner diminished
+//        if (planBoundsNewMinX < this.invalidPlanBounds.getMinX()
+//            || planBoundsNewMinY < this.invalidPlanBounds.getMinY()) {
+//          // Update view position when scroll bars are visible
+//          if (this.canvas.width < parseInt(this.view.style.width)
+//              || this.canvas.height < parseInt(this.view.style.height)) {
+//            var deltaX = this.convertLengthToPixel(this.invalidPlanBounds.getMinX() - planBoundsNewMinX);
+//            var deltaY = this.convertLengthToPixel(this.invalidPlanBounds.getMinY() - planBoundsNewMinY);
+//            this.scrollPane.scrollLeft += deltaX;
+//            this.scrollPane.scrollTop += deltaY;
+//          }
+//        }
+      }
+      delete this.invalidPlanBounds;
+    }
+
 
     /** @private */
     private isOpaque() : boolean {
@@ -669,7 +714,7 @@ class PlanComponent implements PlanView {
     /** @private */
     private getBackground() : string {
       if((<any>this).background == null) {
-        (<any>this).background = styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
+        (<any>this).background = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).backgroundColor);
       }
       return (<any>this).background;
     }
@@ -677,7 +722,7 @@ class PlanComponent implements PlanView {
     /** @private */
     private getForeground() : string {
       if((<any>this).foreground == null) {
-        (<any>this).foreground = styleToColorString(window.getComputedStyle(this.canvas).color);
+        (<any>this).foreground = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).color);
       }
       return (<any>this).foreground;
     }
@@ -686,10 +731,10 @@ class PlanComponent implements PlanView {
     private getGridColor() {
       if((<any>this).gridColor == null) {
         // compute the gray color in between background and foreground colors
-        let background = styleToColor(window.getComputedStyle(this.canvas).backgroundColor);
-        let foreground = styleToColor(window.getComputedStyle(this.canvas).color);
+        let background = ColorTools.styleToInt(window.getComputedStyle(this.canvas).backgroundColor);
+        let foreground = ColorTools.styleToInt(window.getComputedStyle(this.canvas).color);
         let gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
-        (<any>this).gridColor = intToColorString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
+        (<any>this).gridColor = ColorTools.intToHexString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
       }
       return (<any>this).gridColor; 
     }
@@ -2426,7 +2471,7 @@ class PlanComponent implements PlanView {
             let selectedItems : Selectable[] = this.home.getSelectedItems();
             let selectionColor : string = this.getSelectionColor();
             let furnitureOutlineColor : string = this.getFurnitureOutlineColor();
-            let selectionOutlinePaint : string = selectionColor+"80"; // add alpha
+            let selectionOutlinePaint : string = ColorTools.toRGBAStyle(selectionColor, 0.5);
             let selectionOutlineStroke : java.awt.BasicStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
             let dimensionLinesSelectionOutlineStroke : java.awt.BasicStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
             let locationFeedbackStroke : java.awt.BasicStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
@@ -2488,7 +2533,7 @@ class PlanComponent implements PlanView {
             });
         }
         let selectionColor : string = this.getSelectionColor();
-        let selectionOutlinePaint : string = selectionColor+"80"; // add alpha
+        let selectionOutlinePaint : string = ColorTools.toRGBAStyle(selectionColor, 0.5);
         let selectionOutlineStroke : java.awt.BasicStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         let dimensionLinesSelectionOutlineStroke : java.awt.BasicStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         let locationFeedbackStroke : java.awt.BasicStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
@@ -2525,10 +2570,15 @@ class PlanComponent implements PlanView {
      */
     static getDefaultSelectionColor(planComponent : PlanComponent) : string {
       if(PlanComponent.DEFAULT_SELECTION_COLOR == null) {
-        planComponent.view.style.color = "Highlight";
-        PlanComponent.DEFAULT_SELECTION_COLOR = styleToColorString(window.getComputedStyle(planComponent.view).color);
-        if(PlanComponent.DEFAULT_SELECTION_COLOR == "") {
+        let color = window.getComputedStyle(planComponent.container, "::selection").backgroundColor;
+        if(color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
+          planComponent.view.style.color = "Highlight";
+          color = window.getComputedStyle(planComponent.view).color;
+        }
+        if(color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
           PlanComponent.DEFAULT_SELECTION_COLOR = "#0042E0";
+        } else {
+          PlanComponent.DEFAULT_SELECTION_COLOR = ColorTools.styleToHexString(color);
         }
       }
       return PlanComponent.DEFAULT_SELECTION_COLOR;
@@ -2587,7 +2637,7 @@ class PlanComponent implements PlanView {
                     let floorTexture : HomeTexture = null;
                     if(this.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                         if(room.getFloorColor() != null) {
-                            g2D.setPaint(intToColorString(room.getFloorColor()));
+                            g2D.setPaint(ColorTools.intToHexString(room.getFloorColor()));
                         } else {
                             floorTexture = room.getFloorTexture();
                             if(floorTexture != null) {
@@ -2797,7 +2847,7 @@ class PlanComponent implements PlanView {
             g2D.translate(translationX, 0);
             if(outlineColor != null) {
                 let defaultColor : string = g2D.getColor();
-                g2D.setColor(intToColorString(outlineColor));
+                g2D.setColor(ColorTools.intToHexString(outlineColor));
                 g2D.drawStringOutline(line, 0, 0);
                 g2D.setColor(defaultColor);
             }
@@ -3374,8 +3424,8 @@ class PlanComponent implements PlanView {
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(image, 0, 0);
       var imageData = context.getImageData(0, 0, image.width, image.height).data;
-      var bgColor = stringToColor(backgroundColor);
-      var fgColor = stringToColor(foregroundColor);
+      var bgColor = ColorTools.hexStringToInt(backgroundColor);
+      var fgColor = ColorTools.hexStringToInt(foregroundColor);
       var updatedImageData = context.createImageData(image.width, image.height);
       for (var i = 0; i < imageData.length; i += 4) {
         updatedImageData.data[i + 3] = 0xFF;
@@ -4036,7 +4086,7 @@ class PlanComponent implements PlanView {
           if(this.isViewableAtSelectedLevel(polyline)) {
               let selected : boolean = /* contains */(selectedItems.indexOf(<any>(polyline)) >= 0);
               if(paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
-                  g2D.setPaint(intToColorString(polyline.getColor()));
+                  g2D.setPaint(ColorTools.intToHexString(polyline.getColor()));
                   let thickness : number = polyline.getThickness();
                   g2D.setStroke(ShapeTools.getStroke(thickness, polyline.getCapStyle(), polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset()));
                   let polylineShape : java.awt.Shape = ShapeTools.getPolylineShape(polyline.getPoints(), polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath());
@@ -4273,7 +4323,7 @@ class PlanComponent implements PlanView {
                         labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
                     }
                     let color : number = label.getColor();
-                    g2D.setPaint(color != null?intToColorString(color):foregroundColor);
+                    g2D.setPaint(color != null?ColorTools.intToHexString(color):foregroundColor);
                     this.paintText(g2D, (<any>label.constructor), labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
                     if(paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
                         g2D.setPaint(selectionOutlinePaint);
@@ -4957,40 +5007,45 @@ class PlanComponent implements PlanView {
      * @param {number} scale
      */
     public setScale(scale : number) {
-        if(this.scale !== scale) {
-//            let parent : javax.swing.JViewport = null;
-//            let viewRectangle : java.awt.Rectangle = null;
-//            let xViewCenterPosition : number = 0;
-//            let yViewCenterPosition : number = 0;
-//            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
-//                parent = <javax.swing.JViewport>this.getParent();
-//                viewRectangle = this.scrollPane.parent.getViewRect();
-//                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
-//                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
-//            }
-            
+       if (this.scale !== scale) {
             this.scale = scale;
-            
-            let size = this.getPreferredSize();
-            
-            this.view.style.width = "" + (size.width) +"px";
-            this.view.style.height = "" + (size.height) +"px";
-            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
-            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
-            this.canvas.style.width = "" + (this.scrollPane.clientWidth) +"px";
-            this.canvas.style.height = "" + (this.scrollPane.clientHeight) +"px";
             this.revalidate();
-            
-            
-//            if(parent != null && parent instanceof <any>javax.swing.JViewport) {
-//                let viewSize : java.awt.Dimension = parent.getViewSize();
-//                let viewWidth : number = this.convertXPixelToModel(viewRectangle.x + viewRectangle.width) - this.convertXPixelToModel(viewRectangle.x);
-//                let xViewLocation : number = Math.max(0, Math.min(this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2), viewSize.width - viewRectangle.x));
-//                let viewHeight : number = this.convertYPixelToModel(viewRectangle.y + viewRectangle.height) - this.convertYPixelToModel(viewRectangle.y);
-//                let yViewLocation : number = Math.max(0, Math.min(this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2), viewSize.height - viewRectangle.y));
-//                parent.setViewPosition(new java.awt.Point(xViewLocation, yViewLocation));
-//            }
         }
+              
+//        if(this.scale !== scale) {
+////            let parent : javax.swing.JViewport = null;
+////            let viewRectangle : java.awt.Rectangle = null;
+////            let xViewCenterPosition : number = 0;
+////            let yViewCenterPosition : number = 0;
+////            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
+////                parent = <javax.swing.JViewport>this.getParent();
+////                viewRectangle = this.scrollPane.parent.getViewRect();
+////                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
+////                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
+////            }
+//            
+//            this.scale = scale;
+//            
+//            let size = this.getPreferredSize();
+//            
+//            this.view.style.width = "" + (size.width) +"px";
+//            this.view.style.height = "" + (size.height) +"px";
+//            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+//            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+//            this.canvas.style.width = "" + (this.scrollPane.clientWidth) +"px";
+//            this.canvas.style.height = "" + (this.scrollPane.clientHeight) +"px";
+//            this.revalidate();
+//            
+//            
+////            if(parent != null && parent instanceof <any>javax.swing.JViewport) {
+////                let viewSize : java.awt.Dimension = parent.getViewSize();
+////                let viewWidth : number = this.convertXPixelToModel(viewRectangle.x + viewRectangle.width) - this.convertXPixelToModel(viewRectangle.x);
+////                let xViewLocation : number = Math.max(0, Math.min(this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2), viewSize.width - viewRectangle.x));
+////                let viewHeight : number = this.convertYPixelToModel(viewRectangle.y + viewRectangle.height) - this.convertYPixelToModel(viewRectangle.y);
+////                let yViewLocation : number = Math.max(0, Math.min(this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2), viewSize.height - viewRectangle.y));
+////                parent.setViewPosition(new java.awt.Point(xViewLocation, yViewLocation));
+////            }
+//        }
     }
 
     /**
@@ -5059,7 +5114,7 @@ class PlanComponent implements PlanView {
      * @return {number}
      */
     public convertXModelToScreen(x : number) : number {
-      return this.canvas.getBoundingClientRect().x + this.convertXModelToPixel(x);
+      return this.canvas.getBoundingClientRect().left + this.convertXModelToPixel(x);
     }
 
     /**
@@ -5068,7 +5123,7 @@ class PlanComponent implements PlanView {
      * @return {number}
      */
     public convertYModelToScreen(y : number) : number {
-      return this.canvas.getBoundingClientRect().y + this.convertYModelToPixel(y);
+      return this.canvas.getBoundingClientRect().top + this.convertYModelToPixel(y);
     }
 
     /**
@@ -5268,11 +5323,7 @@ class PlanComponent implements PlanView {
      * @return {boolean}
      */
     public isFurnitureSizeInPlanSupported() : boolean {
-        try {
-            return !javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.no3D");
-        } catch(ex) {
-            return false;
-        };
+      return PlanComponent.WEBGL_AVAILABLE;
     }
 
     public getPreferredScrollableViewportSize() : java.awt.Dimension {

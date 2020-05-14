@@ -49,7 +49,7 @@ var PlanComponent = (function () {
         this.canvas.style.width = "100%"; //computedStyle.width;
         this.canvas.style.height = "100%"; //computedStyle.height;
         // TODO: loop over all the properties and inject them?
-        this.canvas.style.background = computedStyle.background;
+        this.canvas.style.backgroundColor = computedStyle.backgroundColor;
         this.canvas.style.color = computedStyle.color;
         this.canvas.style.font = computedStyle.font;
         this.scrollPane = document.createElement("div");
@@ -84,10 +84,10 @@ var PlanComponent = (function () {
         this.tooltip = document.createElement("div");
         this.tooltip.style.position = "absolute";
         this.tooltip.style.visibility = "hidden";
-        this.tooltip.style.backgroundColor = this.getBackground() + "A0";
+        this.tooltip.style.backgroundColor = ColorTools.toRGBAStyle(this.getBackground(), 0.7);
         this.tooltip.style.borderWidth = "2px";
         this.tooltip.style.borderStyle = "solid";
-        this.tooltip.style.borderColor = this.getForeground() + "A0";
+        this.tooltip.style.borderColor = ColorTools.toRGBAStyle(this.getForeground(), 0.7);
         this.container.appendChild(this.tooltip);
         this.resolutionScale = PlanComponent.HIDPI_SCALE_FACTOR;
         this.selectedItemsOutlinePainted = true;
@@ -118,7 +118,7 @@ var PlanComponent = (function () {
         this.panningCursor = 'move'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
         this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
         this.patternImagesCache = ({});
-        this.setScale(1);
+        this.setScale(0.5);
     }
     PlanComponent.__static_initialize = function () { if (!PlanComponent.__static_initialized) {
         PlanComponent.__static_initialized = true;
@@ -344,7 +344,35 @@ var PlanComponent = (function () {
         }
     };
     PlanComponent.prototype.revalidate = function () {
+        this.invalidate(true);
+        this.validate();
         this.repaint();
+    };
+    /** @private */
+    PlanComponent.prototype.invalidate = function (invalidatePlanBoundsCache) {
+        if (invalidatePlanBoundsCache) {
+            var planBoundsCacheWereValid = this.planBoundsCacheValid;
+            if (!this.invalidPlanBounds) {
+                this.invalidPlanBounds = this.getPlanBounds().getBounds2D();
+            }
+            if (planBoundsCacheWereValid) {
+                this.planBoundsCacheValid = false;
+            }
+        }
+    };
+    /** @private */
+    PlanComponent.prototype.validate = function () {
+        if (this.invalidPlanBounds != null
+            && this.scrollPane) {
+            var size = this.getPreferredSize();
+            this.view.style.width = size.width + "px";
+            this.view.style.height = size.height + "px";
+            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+            this.canvas.style.width = this.scrollPane.clientWidth + "px";
+            this.canvas.style.height = this.scrollPane.clientHeight + "px";
+        }
+        delete this.invalidPlanBounds;
     };
     /** @private */
     PlanComponent.prototype.isOpaque = function () {
@@ -388,14 +416,14 @@ var PlanComponent = (function () {
     /** @private */
     PlanComponent.prototype.getBackground = function () {
         if (this.background == null) {
-            this.background = styleToColorString(window.getComputedStyle(this.canvas).backgroundColor);
+            this.background = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).backgroundColor);
         }
         return this.background;
     };
     /** @private */
     PlanComponent.prototype.getForeground = function () {
         if (this.foreground == null) {
-            this.foreground = styleToColorString(window.getComputedStyle(this.canvas).color);
+            this.foreground = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).color);
         }
         return this.foreground;
     };
@@ -403,10 +431,10 @@ var PlanComponent = (function () {
     PlanComponent.prototype.getGridColor = function () {
         if (this.gridColor == null) {
             // compute the gray color in between background and foreground colors
-            var background = styleToColor(window.getComputedStyle(this.canvas).backgroundColor);
-            var foreground = styleToColor(window.getComputedStyle(this.canvas).color);
+            var background = ColorTools.styleToInt(window.getComputedStyle(this.canvas).backgroundColor);
+            var foreground = ColorTools.styleToInt(window.getComputedStyle(this.canvas).color);
             var gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
-            this.gridColor = intToColorString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
+            this.gridColor = ColorTools.intToHexString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
         }
         return this.gridColor;
     };
@@ -2129,7 +2157,7 @@ var PlanComponent = (function () {
             var selectedItems = this.home.getSelectedItems();
             var selectionColor = this.getSelectionColor();
             var furnitureOutlineColor = this.getFurnitureOutlineColor();
-            var selectionOutlinePaint = selectionColor + "80"; // add alpha
+            var selectionOutlinePaint = ColorTools.toRGBAStyle(selectionColor, 0.5);
             var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
             var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
             var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
@@ -2194,7 +2222,7 @@ var PlanComponent = (function () {
             });
         }
         var selectionColor = this.getSelectionColor();
-        var selectionOutlinePaint = selectionColor + "80"; // add alpha
+        var selectionOutlinePaint = ColorTools.toRGBAStyle(selectionColor, 0.5);
         var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
         var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
@@ -2229,10 +2257,16 @@ var PlanComponent = (function () {
      */
     PlanComponent.getDefaultSelectionColor = function (planComponent) {
         if (PlanComponent.DEFAULT_SELECTION_COLOR == null) {
-            planComponent.view.style.color = "Highlight";
-            PlanComponent.DEFAULT_SELECTION_COLOR = styleToColorString(window.getComputedStyle(planComponent.view).color);
-            if (PlanComponent.DEFAULT_SELECTION_COLOR == "") {
+            var color = window.getComputedStyle(planComponent.container, "::selection").backgroundColor;
+            if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
+                planComponent.view.style.color = "Highlight";
+                color = window.getComputedStyle(planComponent.view).color;
+            }
+            if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
                 PlanComponent.DEFAULT_SELECTION_COLOR = "#0042E0";
+            }
+            else {
+                PlanComponent.DEFAULT_SELECTION_COLOR = ColorTools.styleToHexString(color);
             }
         }
         return PlanComponent.DEFAULT_SELECTION_COLOR;
@@ -2292,7 +2326,7 @@ var PlanComponent = (function () {
                 var floorTexture_1 = null;
                 if (this_1.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
                     if (room.getFloorColor() != null) {
-                        g2D.setPaint(intToColorString(room.getFloorColor()));
+                        g2D.setPaint(ColorTools.intToHexString(room.getFloorColor()));
                     }
                     else {
                         floorTexture_1 = room.getFloorTexture();
@@ -2509,7 +2543,7 @@ var PlanComponent = (function () {
             g2D.translate(translationX, 0);
             if (outlineColor != null) {
                 var defaultColor = g2D.getColor();
-                g2D.setColor(intToColorString(outlineColor));
+                g2D.setColor(ColorTools.intToHexString(outlineColor));
                 g2D.drawStringOutline(line, 0, 0);
                 g2D.setColor(defaultColor);
             }
@@ -3104,8 +3138,8 @@ var PlanComponent = (function () {
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.drawImage(image, 0, 0);
         var imageData = context.getImageData(0, 0, image.width, image.height).data;
-        var bgColor = stringToColor(backgroundColor);
-        var fgColor = stringToColor(foregroundColor);
+        var bgColor = ColorTools.hexStringToInt(backgroundColor);
+        var fgColor = ColorTools.hexStringToInt(foregroundColor);
         var updatedImageData = context.createImageData(image.width, image.height);
         for (var i = 0; i < imageData.length; i += 4) {
             updatedImageData.data[i + 3] = 0xFF;
@@ -3785,7 +3819,7 @@ var PlanComponent = (function () {
             if (this.isViewableAtSelectedLevel(polyline)) {
                 var selected = (selectedItems.indexOf((polyline)) >= 0);
                 if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
-                    g2D.setPaint(intToColorString(polyline.getColor()));
+                    g2D.setPaint(ColorTools.intToHexString(polyline.getColor()));
                     var thickness = polyline.getThickness();
                     g2D.setStroke(ShapeTools.getStroke(thickness, polyline.getCapStyle(), polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset()));
                     var polylineShape = ShapeTools.getPolylineShape(polyline.getPoints(), polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath());
@@ -4020,7 +4054,7 @@ var PlanComponent = (function () {
                         labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
                     }
                     var color = label.getColor();
-                    g2D.setPaint(color != null ? intToColorString(color) : foregroundColor);
+                    g2D.setPaint(color != null ? ColorTools.intToHexString(color) : foregroundColor);
                     this.paintText(g2D, label.constructor, labelText, labelStyle, label.getOutlineColor(), xLabel, yLabel, labelAngle, previousFont);
                     if (paintMode === PlanComponent.PaintMode.PAINT && this.selectedItemsOutlinePainted && selectedLabel) {
                         g2D.setPaint(selectionOutlinePaint);
@@ -4701,26 +4735,43 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.setScale = function (scale) {
         if (this.scale !== scale) {
-            //            let parent : javax.swing.JViewport = null;
-            //            let viewRectangle : java.awt.Rectangle = null;
-            //            let xViewCenterPosition : number = 0;
-            //            let yViewCenterPosition : number = 0;
-            //            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
-            //                parent = <javax.swing.JViewport>this.getParent();
-            //                viewRectangle = this.scrollPane.parent.getViewRect();
-            //                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
-            //                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
-            //            }
             this.scale = scale;
-            var size = this.getPreferredSize();
-            this.view.style.width = "" + (size.width) + "px";
-            this.view.style.height = "" + (size.height) + "px";
-            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
-            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
-            this.canvas.style.width = "" + (this.scrollPane.clientWidth) + "px";
-            this.canvas.style.height = "" + (this.scrollPane.clientHeight) + "px";
             this.revalidate();
         }
+        //        if(this.scale !== scale) {
+        ////            let parent : javax.swing.JViewport = null;
+        ////            let viewRectangle : java.awt.Rectangle = null;
+        ////            let xViewCenterPosition : number = 0;
+        ////            let yViewCenterPosition : number = 0;
+        ////            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
+        ////                parent = <javax.swing.JViewport>this.getParent();
+        ////                viewRectangle = this.scrollPane.parent.getViewRect();
+        ////                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
+        ////                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
+        ////            }
+        //            
+        //            this.scale = scale;
+        //            
+        //            let size = this.getPreferredSize();
+        //            
+        //            this.view.style.width = "" + (size.width) +"px";
+        //            this.view.style.height = "" + (size.height) +"px";
+        //            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+        //            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+        //            this.canvas.style.width = "" + (this.scrollPane.clientWidth) +"px";
+        //            this.canvas.style.height = "" + (this.scrollPane.clientHeight) +"px";
+        //            this.revalidate();
+        //            
+        //            
+        ////            if(parent != null && parent instanceof <any>javax.swing.JViewport) {
+        ////                let viewSize : java.awt.Dimension = parent.getViewSize();
+        ////                let viewWidth : number = this.convertXPixelToModel(viewRectangle.x + viewRectangle.width) - this.convertXPixelToModel(viewRectangle.x);
+        ////                let xViewLocation : number = Math.max(0, Math.min(this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2), viewSize.width - viewRectangle.x));
+        ////                let viewHeight : number = this.convertYPixelToModel(viewRectangle.y + viewRectangle.height) - this.convertYPixelToModel(viewRectangle.y);
+        ////                let yViewLocation : number = Math.max(0, Math.min(this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2), viewSize.height - viewRectangle.y));
+        ////                parent.setViewPosition(new java.awt.Point(xViewLocation, yViewLocation));
+        ////            }
+        //        }
     };
     /**
      * Returns the length in model units (cm) of the given <code>size</code> in pixels.
@@ -4782,7 +4833,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.convertXModelToScreen = function (x) {
-        return this.canvas.getBoundingClientRect().x + this.convertXModelToPixel(x);
+        return this.canvas.getBoundingClientRect().left + this.convertXModelToPixel(x);
     };
     /**
      * Returns <code>y</code> converted in screen coordinates space.
@@ -4790,7 +4841,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.convertYModelToScreen = function (y) {
-        return this.canvas.getBoundingClientRect().y + this.convertYModelToPixel(y);
+        return this.canvas.getBoundingClientRect().top + this.convertYModelToPixel(y);
     };
     /**
      * Returns the length in centimeters of a pixel with the current scale.
@@ -4976,13 +5027,7 @@ var PlanComponent = (function () {
      * @return {boolean}
      */
     PlanComponent.prototype.isFurnitureSizeInPlanSupported = function () {
-        try {
-            return !javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.no3D");
-        }
-        catch (ex) {
-            return false;
-        }
-        ;
+        return PlanComponent.WEBGL_AVAILABLE;
     };
     PlanComponent.prototype.getPreferredScrollableViewportSize = function () {
         return this.getPreferredSize();

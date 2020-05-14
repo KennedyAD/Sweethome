@@ -648,12 +648,17 @@ class Font {
 }
 
 /**
+ * A namespace holding utilities for colors.
+ */
+var ColorTools : any = {}
+
+/**
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000. 
  * Note that the alpha content is ignored.
  * @param {number} color 
  * @returns {string} a CSS string
  */
-function intToColorString(color : number) {
+ColorTools.intToHexString = function(color : number) {
     return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
 }
 
@@ -662,7 +667,7 @@ function intToColorString(color : number) {
  * @param {string} a style containing a color as rgb(...) or rgba(...)
  * @returns {string} the color as a string or an empty string if the given style was not parseable
  */
-function styleToColorString(style : string) {
+ColorTools.styleToHexString = function(style : string) {
   let prefix = "rgb(";
   let index = style.indexOf(prefix);
   if (index < 0) {
@@ -671,7 +676,7 @@ function styleToColorString(style : string) {
   }
   if(index >= 0) {
     let array = style.slice(prefix.length, style.indexOf(")")).split(",");
-    return intToColorString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2])); 
+    return ColorTools.intToHexString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2])); 
   }
   return "";
 }
@@ -681,7 +686,7 @@ function styleToColorString(style : string) {
  * @param {string} style a style containing a color as rgb(...) or rgba(...)
  * @returns {number} the color as an integer or -1 if the given style was not parseable
  */
-function styleToColor(style : string) {
+ColorTools.styleToInt = function(style : string) {
   let prefix = "rgb(";
   let index = style.indexOf(prefix);
   if (index < 0) {
@@ -695,15 +700,37 @@ function styleToColor(style : string) {
   return -1;
 }
 
+ColorTools.isTransparent = function(style : string) {
+  let prefix = "rgba(";
+  let index = style.indexOf(prefix);
+  if(index >= 0) {
+    let array = style.slice(prefix.length, style.indexOf(")")).split(",");
+    return parseFloat(array[3]) === 0; 
+  }
+  return false;
+}
+
 /**
  * Returns a color from a color string (no alpha).
  * @param {string} colorString color string under the format #RRGGBB
  * @returns {number} the color as an integer or -1 if the given string was not parseable
  */
-function stringToColor(colorString : string) {
+ColorTools.hexStringToInt = function(colorString : string) {
   if(colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
     colorString = colorString.slice(1);
     return (parseInt(colorString.slice(0, 2), 16) << 16) + (parseInt(colorString.slice(2, 4), 16) << 8) + parseInt(colorString.slice(4, 6), 16); 
   }
   return -1;
 }
+
+/**
+ * Returns an rgba style color from an hexadecimal color string (no alpha).
+ * @param {string} colorString color string under the format #RRGGBB
+ * @param {number} the alpha component (between 0 and 1)
+ * @returns {string} the color as an rgba description
+ */
+ColorTools.toRGBAStyle = function(colorString : string, alpha: number) {
+  let c = ColorTools.hexStringToInt(colorString);
+  return "rgba("+ ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
+}
+

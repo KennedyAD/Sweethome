@@ -97,7 +97,8 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.tools", "com.eteks.sweethome3d.io.*", "!com.eteks.sweethome3d.io.HomeXMLHandler",
         "com.eteks.sweethome3d.io.HomeXMLHandler.contentContext",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setContentContext(**)",
-        "com.eteks.sweethome3d.io.HomeXMLHandler.isSameContent(**)");
+        "com.eteks.sweethome3d.io.HomeXMLHandler.isSameContent(**)",
+        "com.eteks.sweethome3d.model.TextStyle.deriveStyle(com.eteks.sweethome3d.model.TextStyle.Alignment)");
     if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))) {
       // Only HomeController3D and its dependencies are needed for Sweet Home 3D
       // viewer
