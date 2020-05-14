@@ -857,8 +857,8 @@ var PlanComponent = (function () {
                 }
             },
             mouseMoved: function (ev) {
+                planComponent.handleMouseEvent(ev, "mouseMoved");
                 if (mouseListener.lastPointerLocation != null) {
-                    planComponent.handleMouseEvent(ev, "mouseMoved");
                     if (mouseListener.autoScroll == null && !mouseListener.isInCanvas(ev)) {
                         mouseListener.autoScroll = setInterval(function () {
                             window.dispatchEvent(ev);
@@ -868,15 +868,15 @@ var PlanComponent = (function () {
                         clearInterval(mouseListener.autoScroll);
                         mouseListener.autoScroll = null;
                     }
-                    if (mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === ev.canvasX && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
-                        mouseListener.initialPointerLocation = null;
-                    }
-                    if (mouseListener.initialPointerLocation == null) {
-                        if (planComponent.isEnabled()) {
-                            controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
-                        }
-                    }
                     mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+                }
+                if (mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === ev.canvasX && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+                    mouseListener.initialPointerLocation = null;
+                }
+                if (mouseListener.initialPointerLocation == null) {
+                    if (planComponent.isEnabled()) {
+                        controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                    }
                 }
             },
             mouseWheelMoved: function (ev) {

@@ -239,7 +239,7 @@ var Graphics2D = (function () {
         this.context.fillStyle = color;
     };
     /**
-     * Gets the current ColorTools.
+     * Gets the current color.
      */
     Graphics2D.prototype.getColor = function () {
         return this.color;
@@ -317,7 +317,7 @@ var Graphics2D = (function () {
         return this.context.font;
     };
     /**
-     * Sets the fill style as a ColorTools.
+     * Sets the fill style as a color.
      * @param {string} color a CSS color descriptor
      */
     Graphics2D.prototype.setBackground = function (color) {
