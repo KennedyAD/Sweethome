@@ -553,9 +553,6 @@ class PlanComponent implements PlanView {
         
         this.tooltip = document.createElement("div");
         this.tooltip.style.position = "absolute";
-        this.tooltip.style.left = "0px";
-        this.tooltip.style.top = "0px";
-        this.tooltip.style.textAlign = "center";
         this.tooltip.style.visibility = "hidden";
         this.tooltip.style.backgroundColor = this.getBackground()+"A0";
         this.tooltip.style.borderWidth = "2px";
@@ -651,7 +648,7 @@ class PlanComponent implements PlanView {
       this.tooltip.innerHTML = s.replace("<html>", "").replace("</html>", "");
       this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
       this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
-      this.tooltip.style.marginTop = -(this.tooltip.clientHeight * (this.pointerType===1?3:2)) + "px"
+      this.tooltip.style.marginTop = -(this.tooltip.clientHeight + (this.pointerType===1?50:20)) + "px"
       let width = this.tooltip.clientWidth + 10;
       this.tooltip.style.width = width + "px";
       this.tooltip.style.marginLeft = -width/2 + "px";
@@ -1194,7 +1191,9 @@ class PlanComponent implements PlanView {
                 let selection = controller.home.getSelectedItems();
                 let previousState = controller.state;
                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), (<any>ev).clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
-                if(mouseListener.isLongTouch() || selection.length > 0 && selection.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function(value, index) { return value === selection[index]})) {
+                if(mouseListener.isLongTouch() 
+                   || controller.getMode() !== PlanController.Mode.SELECTION
+                   || selection.length > 0 && selection.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function(value, index) { return value === selection[index]})) {
                   mouseListener.initialPointerLocation = null;
                 } else {
                   controller.selectItems(selection);
@@ -1267,11 +1266,25 @@ class PlanComponent implements PlanView {
                     clearInterval(mouseListener.autoScroll);
                     mouseListener.autoScroll = null;
                   }
+                  let release = true;
                   if(mouseListener.initialPointerLocation != null) {
                     // press mouse was never fired => do it now
-                    controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
+                    if(controller.getMode() === PlanController.Mode.SELECTION) {
+                      controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
+                    } else {
+                      if(mouseListener.isLongTouch()) {
+                        // double click emulated
+                        release = false;
+                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
+                      } else {
+                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                      }
+                    }
                   }
-                  controller.releaseMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
+                  if(release) {
+                    controller.releaseMouse(planComponent.convertXPixelToModel((<any>ev).canvasX), planComponent.convertYPixelToModel((<any>ev).canvasY));
+                  }
                 }
                 mouseListener.initialPointerLocation = null;
               }

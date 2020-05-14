@@ -83,9 +83,6 @@ var PlanComponent = (function () {
         });
         this.tooltip = document.createElement("div");
         this.tooltip.style.position = "absolute";
-        this.tooltip.style.left = "0px";
-        this.tooltip.style.top = "0px";
-        this.tooltip.style.textAlign = "center";
         this.tooltip.style.visibility = "hidden";
         this.tooltip.style.backgroundColor = this.getBackground() + "A0";
         this.tooltip.style.borderWidth = "2px";
@@ -373,7 +370,7 @@ var PlanComponent = (function () {
         this.tooltip.innerHTML = s.replace("<html>", "").replace("</html>", "");
         this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
         this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
-        this.tooltip.style.marginTop = -(this.tooltip.clientHeight * (this.pointerType === 1 ? 3 : 2)) + "px";
+        this.tooltip.style.marginTop = -(this.tooltip.clientHeight + (this.pointerType === 1 ? 50 : 20)) + "px";
         var width = this.tooltip.clientWidth + 10;
         this.tooltip.style.width = width + "px";
         this.tooltip.style.marginLeft = -width / 2 + "px";
@@ -922,7 +919,9 @@ var PlanComponent = (function () {
                             var selection_1 = controller.home.getSelectedItems();
                             var previousState = controller.state;
                             controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, false, false, false);
-                            if (mouseListener.isLongTouch() || selection_1.length > 0 && selection_1.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function (value, index) { return value === selection_1[index]; })) {
+                            if (mouseListener.isLongTouch()
+                                || controller.getMode() !== PlanController.Mode.SELECTION
+                                || selection_1.length > 0 && selection_1.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function (value, index) { return value === selection_1[index]; })) {
                                 mouseListener.initialPointerLocation = null;
                             }
                             else {
@@ -996,11 +995,27 @@ var PlanComponent = (function () {
                                 clearInterval(mouseListener.autoScroll);
                                 mouseListener.autoScroll = null;
                             }
+                            var release = true;
                             if (mouseListener.initialPointerLocation != null) {
                                 // press mouse was never fired => do it now
-                                controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
+                                if (controller.getMode() === PlanController.Mode.SELECTION) {
+                                    controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
+                                }
+                                else {
+                                    if (mouseListener.isLongTouch()) {
+                                        // double click emulated
+                                        release = false;
+                                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
+                                    }
+                                    else {
+                                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                                    }
+                                }
                             }
-                            controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                            if (release) {
+                                controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
+                            }
                         }
                         mouseListener.initialPointerLocation = null;
                     }
