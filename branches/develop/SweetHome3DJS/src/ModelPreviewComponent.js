@@ -169,7 +169,7 @@ function ModelPreviewComponent(canvasId, pitchAndScaleChangeSupported) {
         }
       };
       
-    if ((document.documentMode || /Edg/.test(navigator.userAgent))
+    if (OperatingSystem.isEdgeOrInternetExplorer()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
       this.canvas3D.getCanvas().addEventListener("pointerdown", userActionsListener.pointerPressed);
@@ -294,7 +294,7 @@ ModelPreviewComponent.prototype.clear = function() {
  * This method should be called to free resources in the browser when this component is not needed anymore.
  */
 ModelPreviewComponent.prototype.dispose = function() {
-  if ((document.documentMode || /Edg/.test(navigator.userAgent))
+  if (OperatingSystem.isEdgeOrInternetExplorer()
       && window.PointerEvent) {
     window.removeEventListener("pointermove", this.userActionsListener.windowPointerMoved);
     window.removeEventListener("pointerup", this.userActionsListener.windowPointerReleased);

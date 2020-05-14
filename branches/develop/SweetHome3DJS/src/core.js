@@ -264,7 +264,7 @@ function Format() {
 } 
 
 Format.prototype.format = function(object) {
-  return ""+object;
+  return "" + object;
 }
 
 var Locale = {}
@@ -323,7 +323,7 @@ CoreTools.loadJSON =  function(url) {
  * @returns the formatted string
  */
 CoreTools.format = function(formatString, args) {
-  if(args === undefined || args.length === 0) {
+  if (args === undefined || args.length === 0) {
     return formatString;
   } else {
     var placeHolders = /%s|%d|%\d+\$s|%\d+\$d/g;
@@ -388,7 +388,7 @@ CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
  * @returns {*} the value associated to the key (null if not found)
  */
 CoreTools.getFromMap = function(map, key) {
-  if(typeof key === 'string') {
+  if (typeof key === 'string') {
     return map[key] === undefined ? null : map[key];
   } else {
     if (map.entries == null) {
@@ -411,7 +411,7 @@ CoreTools.getFromMap = function(map, key) {
  * @param value {*} the value to be put
  */
 CoreTools.putToMap = function(map, key, value) {
-  if(typeof key === 'string') {
+  if (typeof key === 'string') {
     map[key] = value;
   } else {
     if (map.entries == null) {
@@ -438,7 +438,7 @@ CoreTools.putToMap = function(map, key, value) {
  */
 CoreTools.valuesFromMap = function(map) {
   var r = [];
-  if(map.entries === undefined) {
+  if (map.entries === undefined) {
     Object.getOwnPropertyNames(map).forEach(function(p) { r.push(map[p]); });
   } else {
     map.entries.forEach(function(e) { r.push(e.value); });
@@ -453,7 +453,7 @@ CoreTools.valuesFromMap = function(map) {
  * @param comparator {Object|function} an object providing a <code>compare(Object, Object)</code>, or simply a function
  */
 CoreTools.sortArray = function(array, comparator) { 
-  if(comparator.compare) {
+  if (comparator.compare) {
     array.sort(function(e1, e2) {
       return comparator.compare(e1,e2);
     });
@@ -466,7 +466,7 @@ CoreTools.sortArray = function(array, comparator) {
 var OperatingSystem = {}
 
 OperatingSystem.isLinux = function() {
-  if(navigator && navigator.platform) {
+  if (navigator && navigator.platform) {
     return navigator.platform.indexOf("Linux") !== -1;
   } else {
     return false;
@@ -474,7 +474,7 @@ OperatingSystem.isLinux = function() {
 }
 
 OperatingSystem.isWindows = function() {
-  if(navigator && navigator.platform) {
+  if (navigator && navigator.platform) {
     return navigator.platform.indexOf("Windows") !== -1 || navigator.platform.indexOf("Win") !== -1;
   } else {
     return false;
@@ -482,11 +482,19 @@ OperatingSystem.isWindows = function() {
 }
 
 OperatingSystem.isMacOSX = function() {
-  if(navigator && navigator.platform) {
+  if (navigator && navigator.platform) {
     return navigator.platform.indexOf("Mac") !== -1;
   } else {
     return false;
   }
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Edge or Internet Explorer.
+ */
+OperatingSystem.isEdgeOrInternetExplorer = function() {
+  // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return (document.documentMode || /Edg/.test(navigator.userAgent));
 }
 
 /**
