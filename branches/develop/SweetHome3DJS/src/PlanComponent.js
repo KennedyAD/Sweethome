@@ -405,14 +405,15 @@ var PlanComponent = (function () {
           if (this.isScrolled()) {
             this.view.style.width = size.width + "px";
             this.view.style.height = size.height + "px";
-            if(this.canvas.width !== this.scrollPane.clientWidth * this.resolutionScale 
+            if (this.canvas.width !== this.scrollPane.clientWidth * this.resolutionScale 
                 || this.canvas.height !== this.scrollPane.clientHeight * this.resolutionScale) {
               this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
               this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
               this.canvas.style.width = this.scrollPane.clientWidth + "px";
               this.canvas.style.height = this.scrollPane.clientHeight + "px";
             }
-          } else {
+          } else if (this.canvas.width !== this.canvas.clientWidth 
+                     || this.canvas.height !== this.canvas.clientHeight) {
             this.canvas.width = this.canvas.clientWidth; 
             this.canvas.height = this.canvas.clientHeight;
           }
