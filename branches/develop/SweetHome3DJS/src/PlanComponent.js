@@ -93,6 +93,7 @@ var PlanComponent = (function () {
         this.tooltip.style.borderWidth = "2px";
         this.tooltip.style.paddingLeft = "2px";
         this.tooltip.style.borderStyle = "solid";
+        this.tooltip.style.whiteSpace = "nowrap";
         this.tooltip.style.borderColor = ColorTools.toRGBAStyle(this.getForeground(), 0.7);
         this.tooltip.style.font = this.font;
         this.tooltip.style.color = this.canvas.style.color;
