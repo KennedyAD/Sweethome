@@ -376,6 +376,7 @@ var PlanComponent = (function () {
                     var t = Date.now();
                     _this.canvasNeededRepaint = false;
                     _this.paintComponent(_this.getGraphics());
+                    //console.info("paint: "+(Date.now() - t));
                 }
             });
         }
@@ -404,10 +405,13 @@ var PlanComponent = (function () {
           if (this.isScrolled()) {
             this.view.style.width = size.width + "px";
             this.view.style.height = size.height + "px";
-            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
-            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
-            this.canvas.style.width = this.scrollPane.clientWidth + "px";
-            this.canvas.style.height = this.scrollPane.clientHeight + "px";
+            if(this.canvas.width !== this.scrollPane.clientWidth * this.resolutionScale 
+                || this.canvas.height !== this.scrollPane.clientHeight * this.resolutionScale) {
+              this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+              this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+              this.canvas.style.width = this.scrollPane.clientWidth + "px";
+              this.canvas.style.height = this.scrollPane.clientHeight + "px";
+            }
           } else {
             this.canvas.width = this.canvas.clientWidth; 
             this.canvas.height = this.canvas.clientHeight;
