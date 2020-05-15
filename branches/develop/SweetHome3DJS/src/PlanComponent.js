@@ -109,7 +109,7 @@ var PlanComponent = (function () {
                 e.style.borderTopColor = this.getSelectionColor();
                 e.style.borderRightColor = this.getSelectionColor();
             }
-            e.style.animationDuration = "480ms";
+            e.style.animationDuration = "400ms";
         }
         
         this.resolutionScale = this.scrollPane ? PlanComponent.HIDPI_SCALE_FACTOR : 1.;
@@ -349,7 +349,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.startLongTouchAnimation = function (x, y) {
         this.longTouchTimer.style.visibility = "visible";
         this.longTouchTimer.style.left = (this.canvas.getBoundingClientRect().left + x - this.longTouchTimer.clientWidth / 2) + "px";
-        this.longTouchTimer.style.top = (this.canvas.getBoundingClientRect().top + y - this.longTouchTimer.clientHeight - 50) + "px";
+        this.longTouchTimer.style.top = (this.canvas.getBoundingClientRect().top + y - this.longTouchTimer.clientHeight - 30) + "px";
         for (var i = 0; i < this.longTouchTimer.children.length; i++) {
             this.longTouchTimer.children.item(i).classList.add("animated");
         }
@@ -874,6 +874,7 @@ var PlanComponent = (function () {
             panningPreviousMode: null,
             initialTime: 0,
             autoScroll: null,
+            longTouch: null,
             mouseDoubleClicked: function (ev) {
                 planComponent.handleMouseEvent(ev, "mouseDoubleClicked");
                 mouseListener.mousePressed(ev);
@@ -963,6 +964,11 @@ var PlanComponent = (function () {
                 ev.preventDefault();
                 if (planComponent.isEnabled()) {
                     planComponent.handleMouseEvent(ev, "touchStarted");
+                    if (mouseListener.longTouch != null) {
+                      clearTimeout(mouseListener.longTouch);
+                      mouseListener.longTouch = null;
+                      planComponent.stopLongTouchAnimation();
+                    }
                     mouseListener.autoScroll = null;
                     mouseListener.panningPreviousMode = null;
                     mouseListener.initialTime = Date.now();
@@ -970,6 +976,9 @@ var PlanComponent = (function () {
                         mouseListener.distanceLastPinch = null;
                         mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
                         mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+                        mouseListener.longTouch = setTimeout(function() {
+                          planComponent.startLongTouchAnimation(ev.canvasX, ev.canvasY);
+                        }, 100);
                     }
                     else if (ev.targetTouches.length === 2) {
                         mouseListener.initialPointerLocation = null;
@@ -990,6 +999,11 @@ var PlanComponent = (function () {
                             mouseListener.autoScroll = setInterval(function () {
                                 mouseListener.touchMoved(ev);
                             }, 10);
+                        }
+                        if (mouseListener.longTouch != null) {
+                          clearTimeout(mouseListener.longTouch);
+                          mouseListener.longTouch = null;
+                          planComponent.stopLongTouchAnimation();
                         }
                         mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
                         if (mouseListener.initialPointerLocation != null) {
@@ -1054,6 +1068,11 @@ var PlanComponent = (function () {
             touchEnded: function (ev) {
                 if (planComponent.isEnabled()) {
                     planComponent.handleMouseEvent(ev, "touchEnded");
+                    if (mouseListener.longTouch != null) {
+                      clearTimeout(mouseListener.longTouch);
+                      mouseListener.longTouch = null;
+                      planComponent.stopLongTouchAnimation();
+                    }
                     if (mouseListener.distanceLastPinch != null) {
                         if (mouseListener.initialPointerLocation != null) {
                             // should never happen
