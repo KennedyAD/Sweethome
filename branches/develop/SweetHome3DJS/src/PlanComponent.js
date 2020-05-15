@@ -4337,13 +4337,13 @@ var PlanComponent = (function () {
     PlanComponent.prototype.paintPointFeedback = function (g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke) {
         g2D.setPaint(pointPaint);
         g2D.setStroke(pointStroke);
-        var circle = new java.awt.geom.Ellipse2D.Float(locationFeedback.getX() - 20.0 / planScale, locationFeedback.getY() - 20.0 / planScale, 40.0 / planScale, 40.0 / planScale);
+        var circle = new java.awt.geom.Ellipse2D.Float(locationFeedback.getX() - 10.0 / this.getScale(), locationFeedback.getY() - 10.0 / this.getScale(), 20.0 / this.getScale(), 20.0 / this.getScale());
         g2D.fill(circle);
         g2D.setPaint(feedbackPaint);
         g2D.setStroke(new java.awt.BasicStroke(1 / planScale * this.resolutionScale));
         g2D.draw(circle);
-        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX(), locationFeedback.getY() - 5.0 / planScale, locationFeedback.getX(), locationFeedback.getY() + 5.0 / planScale));
-        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX() - 5.0 / planScale, locationFeedback.getY(), locationFeedback.getX() + 5.0 / planScale, locationFeedback.getY()));
+        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX(), locationFeedback.getY() - 5.0 / this.getScale(), locationFeedback.getX(), locationFeedback.getY() + 5.0 / this.getScale()));
+        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX() - 5.0 / this.getScale(), locationFeedback.getY(), locationFeedback.getX() + 5.0 / this.getScale(), locationFeedback.getY()));
     };
     /**
      * Returns <code>true</code> if <code>wall</code> start or end point
@@ -4577,9 +4577,9 @@ var PlanComponent = (function () {
         }
         var previousTransform = g2D.getTransform();
         g2D.translate(center.getX(), center.getY());
-        var radius = 20 / planScale;
+        var radius = 20 / this.getScale();
         g2D.draw(new java.awt.geom.Arc2D.Double(-radius, -radius, radius * 2, radius * 2, /* toDegrees */ (function (x) { return x * 180 / Math.PI; })(angle1), /* toDegrees */ (function (x) { return x * 180 / Math.PI; })(extent), java.awt.geom.Arc2D.OPEN));
-        radius += 5 / planScale;
+        radius += 5 / this.getScale();
         g2D.draw(new java.awt.geom.Line2D.Double(0, 0, radius * Math.cos(angle1), -radius * Math.sin(angle1)));
         g2D.draw(new java.awt.geom.Line2D.Double(0, 0, radius * Math.cos(angle1 + extent), -radius * Math.sin(angle1 + extent)));
         g2D.setTransform(previousTransform);
