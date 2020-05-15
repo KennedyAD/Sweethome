@@ -25,6 +25,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 /**
  * Creates a new plan that displays <code>home</code>.
+ * @param {string} containerOrCanvasId the ID of a HTML DIV or CANVAS
  * @param {Home} home the home to display
  * @param {UserPreferences} preferences user preferences to retrieve used unit, grid visibility...
  * @param {Object} [object3dFactory] a factory able to create 3D objects from <code>home</code> furniture.
@@ -36,60 +37,67 @@ var __extends = (this && this.__extends) || function (d, b) {
  * @author Emmanuel Puybaret
  */
 var PlanComponent = (function () {
-    function PlanComponent(containerId, home, preferences, object3dFactory, controller) {
+    function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, controller) {
         var _this = this;
         this.pointerType = 0; // 0 = mouse, 1 = touch
         this.canvasNeededRepaint = false;
-        this.container = document.getElementById(containerId);
+        this.container = document.getElementById(containerOrCanvasId);
         var computedStyle = window.getComputedStyle(this.container);
         this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
         this.container.style.position = "relative";
-        this.canvas = document.createElement("canvas");
-        this.canvas.setAttribute("id", containerId + ".canvas");
-        this.canvas.style.width = "100%"; //computedStyle.width;
-        this.canvas.style.height = "100%"; //computedStyle.height;
-        // TODO: loop over all the properties and inject them?
-        this.canvas.style.backgroundColor = computedStyle.backgroundColor;
-        this.canvas.style.color = computedStyle.color;
-        this.canvas.style.font = computedStyle.font;
-        this.scrollPane = document.createElement("div");
-        this.scrollPane.setAttribute("id", containerId + ".scrollPane");
-        this.scrollPane.style.width = "100%"; //computedStyle.width;
-        this.scrollPane.style.height = "100%"; //computedStyle.height;
-        if (this.container.style.overflow) {
+        if (this.container instanceof HTMLCanvasElement) {
+          this.canvas = this.view = this.container; // No scrollPane
+          this.canvas.width = this.canvas.clientWidth; 
+          this.canvas.height = this.canvas.clientHeight;
+        } else {
+          this.canvas = document.createElement("canvas");
+          this.canvas.setAttribute("id", containerOrCanvasId + ".canvas");
+          this.canvas.style.width = "100%"; //computedStyle.width;
+          this.canvas.style.height = "100%"; //computedStyle.height;
+          // TODO: loop over all the properties and inject them?
+          this.canvas.style.backgroundColor = computedStyle.backgroundColor;
+          this.canvas.style.color = computedStyle.color;
+          this.canvas.style.font = computedStyle.font;
+          this.scrollPane = document.createElement("div");
+          this.scrollPane.setAttribute("id", containerOrCanvasId + ".scrollPane");
+          this.scrollPane.style.width = "100%"; //computedStyle.width;
+          this.scrollPane.style.height = "100%"; //computedStyle.height;
+          if (this.container.style.overflow) {
             this.scrollPane.style.overflow = this.container.style.overflow;
-        }
-        else {
+          }
+          else {
             this.scrollPane.style.overflow = "scroll";
+          }
+          this.view = document.createElement("div");
+          this.view.setAttribute("id", containerOrCanvasId + ".view");
+          this.container.appendChild(this.scrollPane);
+          this.container.appendChild(this.canvas);
+          this.scrollPane.appendChild(this.view);
+          this.canvas.style.position = "absolute";
+          this.canvas.style.left = "0px";
+          this.canvas.style.top = "0px";
+          this.scrollPane.style.position = "absolute";
+          this.scrollPane.style.left = "0px";
+          this.scrollPane.style.top = "0px";
+          this.scrollPane.onscroll = function () {
+              _this.repaint();
+            };
         }
-        this.view = document.createElement("div");
-        this.view.setAttribute("id", containerId + ".view");
-        this.container.appendChild(this.scrollPane);
-        this.container.appendChild(this.canvas);
-        this.scrollPane.appendChild(this.view);
-        this.canvas.style.position = "absolute";
-        this.canvas.style.left = "0px";
-        this.canvas.style.top = "0px";
-        this.scrollPane.style.position = "absolute";
-        this.scrollPane.style.left = "0px";
-        this.scrollPane.style.top = "0px";
-        this.scrollPane.onscroll = function () {
-            _this.repaint();
-        };
         window.addEventListener("resize", function () {
-            // force layout computation (todo in revalidate?)
-            _this.setScale(_this.getScale() * 1.1);
-            _this.setScale(_this.getScale() / 1.1);
+            _this.revalidate();
         });
         this.tooltip = document.createElement("div");
         this.tooltip.style.position = "absolute";
         this.tooltip.style.visibility = "hidden";
         this.tooltip.style.backgroundColor = ColorTools.toRGBAStyle(this.getBackground(), 0.7);
         this.tooltip.style.borderWidth = "2px";
+        this.tooltip.style.paddingLeft = "2px";
         this.tooltip.style.borderStyle = "solid";
         this.tooltip.style.borderColor = ColorTools.toRGBAStyle(this.getForeground(), 0.7);
-        this.container.appendChild(this.tooltip);
-        this.resolutionScale = PlanComponent.HIDPI_SCALE_FACTOR;
+        this.tooltip.style.font = this.font;
+        this.tooltip.style.color = this.canvas.style.color;
+        document.body.appendChild(this.tooltip);
+        this.resolutionScale = this.scrollPane ? PlanComponent.HIDPI_SCALE_FACTOR : 1.;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
         this.planBoundsCacheValid = false;
@@ -362,17 +370,25 @@ var PlanComponent = (function () {
     };
     /** @private */
     PlanComponent.prototype.validate = function () {
-        if (this.invalidPlanBounds != null
-            && this.scrollPane) {
-            var size = this.getPreferredSize();
+        if (this.invalidPlanBounds != null) {
+          var size = this.getPreferredSize();
+          if (this.isScrolled()) {
             this.view.style.width = size.width + "px";
             this.view.style.height = size.height + "px";
             this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
             this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
             this.canvas.style.width = this.scrollPane.clientWidth + "px";
             this.canvas.style.height = this.scrollPane.clientHeight + "px";
+          } else {
+            this.canvas.width = this.canvas.clientWidth; 
+            this.canvas.height = this.canvas.clientHeight;
+          }
         }
         delete this.invalidPlanBounds;
+    };
+    /** @private */
+    PlanComponent.prototype.isScrolled = function () {
+        return this.scrollPane !== undefined;
     };
     /** @private */
     PlanComponent.prototype.isOpaque = function () {
@@ -396,8 +412,9 @@ var PlanComponent = (function () {
             this.tooltip.style.textAlign = "center";
         }
         this.tooltip.innerHTML = s.replace("<html>", "").replace("</html>", "");
-        this.tooltip.style.left = this.convertXModelToPixel(x) + "px";
-        this.tooltip.style.top = this.convertYModelToPixel(y) + "px";
+        var containerRect = this.container.getBoundingClientRect();
+        this.tooltip.style.left = containerRect.left + this.convertXModelToPixel(x) + "px";
+        this.tooltip.style.top = containerRect.top + this.convertYModelToPixel(y) + "px";
         this.tooltip.style.marginTop = -(this.tooltip.clientHeight + (this.pointerType === 1 ? 50 : 20)) + "px";
         var width = this.tooltip.clientWidth + 10;
         this.tooltip.style.width = width + "px";
@@ -451,23 +468,25 @@ var PlanComponent = (function () {
     };
     /** @private */
     PlanComponent.prototype.scrollRectToVisible = function (rectangle) {
-        var dx = 0;
-        var dy = 0;
-        //      console.info(rectangle);
-        //      console.info(rectangle.getX() + rectangle.getWidth(), this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
-        if (rectangle.x < 0) {
+        if (this.isScrolled()) {
+          var dx = 0;
+          var dy = 0;
+          //      console.info(rectangle);
+          //      console.info(rectangle.getX() + rectangle.getWidth(), this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
+          if (rectangle.x < 0) {
             dx = rectangle.x;
-        }
-        else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.clientWidth) {
+          }
+          else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.clientWidth) {
             dx = rectangle.getX() + rectangle.getWidth() - this.scrollPane.clientWidth;
-        }
-        if (rectangle.y < 0) {
+          }
+          if (rectangle.y < 0) {
             dy = rectangle.y;
-        }
-        else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.clientHeight) {
+          }
+          else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.clientHeight) {
             dy = rectangle.getY() + rectangle.getHeight() - this.scrollPane.clientHeight;
+          }
+          this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
         }
-        this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
     };
     /**
      * Adds home items and selection listeners on this component to receive
@@ -887,7 +906,8 @@ var PlanComponent = (function () {
                     var mouseY = planComponent.convertYPixelToModel(ev.canvasY);
                     var oldScale = planComponent.getScale();
                     controller.zoom(ev.wheelRotation < 0 ? Math.pow(1.05, -ev.wheelRotation) : Math.pow(0.95, ev.wheelRotation));
-                    if (planComponent.getScale() !== oldScale) {
+                    if (planComponent.isScrolled()
+                        && planComponent.getScale() !== oldScale) {
                         // If scale changed, update viewport position to keep the same coordinates under mouse cursor
                         planComponent.scrollPane.scrollLeft = 0;
                         planComponent.scrollPane.scrollTop = 0;
@@ -990,7 +1010,8 @@ var PlanComponent = (function () {
                         var oldScale = planComponent.getScale();
                         controller.zoom(scaleDifference);
                         mouseListener.distanceLastPinch = newDistance;
-                        if (planComponent.getScale() !== oldScale) {
+                        if (planComponent.isScrolled() 
+                            && planComponent.getScale() !== oldScale) {
                             // If scale changed, update viewport position to keep the same coordinates under mouse cursor
                             planComponent.scrollPane.scrollLeft = 0;
                             planComponent.scrollPane.scrollTop = 0;
@@ -1708,7 +1729,10 @@ var PlanComponent = (function () {
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
         var paintScale = this.getPaintScale();
-        g2D.translate(-(this.scrollPane.scrollLeft + insets.left) * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, -(this.scrollPane.scrollTop + insets.top) * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
+        if (this.isScrolled()) {
+          g2D.translate(-this.scrollPane.scrollLeft * this.resolutionScale, -this.scrollPane.scrollTop * this.resolutionScale);
+        } 
+        g2D.translate(-insets.left * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, -insets.top * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
         g2D.scale(paintScale, paintScale);
         this.setRenderingHints(g2D);
         // for debugging only
@@ -2033,8 +2057,8 @@ var PlanComponent = (function () {
         //        } else {
         xMin = planBounds.getMinX() - PlanComponent.MARGIN;
         yMin = planBounds.getMinY() - PlanComponent.MARGIN;
-        xMax = this.convertXPixelToModel(Math.max(this.getWidth(), this.scrollPane.clientWidth));
-        yMax = this.convertYPixelToModel(Math.max(this.getHeight(), this.scrollPane.clientHeight));
+        xMax = this.convertXPixelToModel(Math.max(this.getWidth(), this.canvas.clientWidth));
+        yMax = this.convertYPixelToModel(Math.max(this.getHeight(), this.canvas.clientHeight));
         //        }
         //        let useGridImage : boolean = false;
         //        try {
@@ -2259,10 +2283,10 @@ var PlanComponent = (function () {
         if (PlanComponent.DEFAULT_SELECTION_COLOR == null) {
             var color = window.getComputedStyle(planComponent.container, "::selection").backgroundColor;
             if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
-                planComponent.view.style.color = "Highlight";
-                color = window.getComputedStyle(planComponent.view).color;
+                planComponent.container.style.color = "Highlight";
+                color = window.getComputedStyle(planComponent.container).color;
             }
-            if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
+            if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color) || color == window.getComputedStyle(planComponent.container).backgroundColor) {
                 PlanComponent.DEFAULT_SELECTION_COLOR = "#0042E0";
             }
             else {
@@ -4282,7 +4306,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.paintPointFeedback = function (g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke) {
         g2D.setPaint(pointPaint);
         g2D.setStroke(pointStroke);
-        var circle = new java.awt.geom.Ellipse2D.Float(locationFeedback.getX() - 10.0 / planScale, locationFeedback.getY() - 10.0 / planScale, 20.0 / planScale, 20.0 / planScale);
+        var circle = new java.awt.geom.Ellipse2D.Float(locationFeedback.getX() - 20.0 / planScale, locationFeedback.getY() - 20.0 / planScale, 40.0 / planScale, 40.0 / planScale);
         g2D.fill(circle);
         g2D.setPaint(feedbackPaint);
         g2D.setStroke(new java.awt.BasicStroke(1 / planScale * this.resolutionScale));
@@ -4651,7 +4675,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.makeSelectionVisible = function () {
         var _this = this;
-        if (!this.selectionScrollUpdated) {
+        if (this.isScrolled() && !this.selectionScrollUpdated) {
             this.selectionScrollUpdated = true;
             setTimeout(function () {
                 _this.selectionScrollUpdated = false;
@@ -4709,9 +4733,11 @@ var PlanComponent = (function () {
      * @param {number} dy
      */
     PlanComponent.prototype.moveView = function (dx, dy) {
+      if (this.isScrolled()) {
         this.scrollPane.scrollLeft += this.convertLengthToPixel(dx);
         this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
         this.repaint();
+      }
     };
     /**
      * Returns the actual paint scale (including potential resolution scale) used to display the plan.
@@ -4787,7 +4813,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXPixelToModel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertPixelToLength(x - insets.left + this.scrollPane.scrollLeft) - PlanComponent.MARGIN + planBounds.getMinX();
+        return this.convertPixelToLength(x - insets.left + (this.isScrolled() ? this.scrollPane.scrollLeft : 0)) - PlanComponent.MARGIN + planBounds.getMinX();
     };
     /**
      * Returns <code>y</code> converted in model coordinates space.
@@ -4797,7 +4823,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYPixelToModel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertPixelToLength(y - insets.top + this.scrollPane.scrollTop) - PlanComponent.MARGIN + planBounds.getMinY();
+        return this.convertPixelToLength(y - insets.top + (this.isScrolled() ? this.scrollPane.scrollTop : 0)) - PlanComponent.MARGIN + planBounds.getMinY();
     };
     /**
      * Returns the size in pixels of the given <code>length</code> in model units (cm).
@@ -4814,7 +4840,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertXModelToPixel = function (x) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - this.scrollPane.scrollLeft;
+        return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - (this.isScrolled() ? this.scrollPane.scrollLeft : 0);
     };
     /**
      * Returns <code>y</code> converted in view coordinates space.
@@ -4825,7 +4851,7 @@ var PlanComponent = (function () {
     PlanComponent.prototype.convertYModelToPixel = function (y) {
         var insets = this.getInsets();
         var planBounds = this.getPlanBounds();
-        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - this.scrollPane.scrollTop;
+        return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - (this.isScrolled() ? this.scrollPane.scrollTop : 0);
     };
     /**
      * Returns <code>x</code> converted in screen coordinates space.
