@@ -1781,19 +1781,20 @@ var PlanComponent = (function () {
         var insets = this.getInsets();
         //g2D.clipRect(0, 0, this.getWidth(), this.getHeight());
         var planBounds = this.getPlanBounds();
-        var paintScale = this.getPaintScale();
+        var planScale = this.getScale() * this.resolutionScale; 
         if (this.isScrolled()) {
           g2D.translate(-this.scrollPane.scrollLeft * this.resolutionScale, -this.scrollPane.scrollTop * this.resolutionScale);
         } 
-        g2D.translate(-insets.left * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinX()) * paintScale, -insets.top * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinY()) * paintScale);
-        g2D.scale(paintScale, paintScale);
+        g2D.translate(insets.left * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinX()) * planScale,
+            insets.top * this.resolutionScale + (PlanComponent.MARGIN - planBounds.getMinY()) * planScale);
+        g2D.scale(planScale, planScale);
         this.setRenderingHints(g2D);
         // for debugging only
         if (this.drawPlanBounds) {
             g2D.setColor("#FF0000");
             g2D.draw(planBounds);
         }
-        this.paintContent(g2D, paintScale, PlanComponent.PaintMode.PAINT);
+        this.paintContent(g2D, this.getScale(), PlanComponent.PaintMode.PAINT);
         g2D.dispose();
     };
     /**
@@ -1823,9 +1824,6 @@ var PlanComponent = (function () {
         }
         if (paintMode === PlanComponent.PaintMode.PRINT) {
             strokeWidth *= 0.5;
-        }
-        else {
-            strokeWidth *= this.resolutionScale;
         }
         return strokeWidth;
     };
@@ -2065,7 +2063,8 @@ var PlanComponent = (function () {
             }
             if (this.otherLevelsWallsCache.length !== 0) {
                 var oldComposite = this.setTransparency(g2D, this.preferences.isGridVisible() ? 0.2 : 0.1);
-                this.fillAndDrawWallsArea(g2D, this.otherLevelsWallAreaCache, planScale, this.getWallPaint(g2D, planScale, backgroundColor, foregroundColor, this.preferences.getNewWallPattern()), foregroundColor, PlanComponent.PaintMode.PAINT);
+                this.fillAndDrawWallsArea(g2D, this.otherLevelsWallAreaCache, planScale, 
+                    this.getWallPaint(g2D, planScale, backgroundColor, foregroundColor, this.preferences.getNewWallPattern()), foregroundColor, PlanComponent.PaintMode.PAINT);
                 g2D.setAlpha(oldComposite);
             }
         }
@@ -2119,11 +2118,11 @@ var PlanComponent = (function () {
         //        } catch(ex) {
         //        };
         //        if(useGridImage) {
-        //            let imageWidth : number = Math.round(mainGridSize * gridScale);
+        //            let imageWidth : number = Math.round(mainGridSize * gridScale * this.resolutionScale);
         //            let gridImage : java.awt.image.BufferedImage = new java.awt.image.BufferedImage(imageWidth, imageWidth, java.awt.image.BufferedImage.TYPE_INT_ARGB);
         //            let imageGraphics : Graphics2D = <Graphics2D>gridImage.getGraphics();
         //            this.setRenderingHints(imageGraphics);
-        //            imageGraphics.scale(gridScale, gridScale);
+        //            imageGraphics.scale(gridScale * this.resolutionScale, gridScale * this.resolutionScale);
         //            this.paintGridLines(imageGraphics, gridScale, 0, mainGridSize, 0, mainGridSize, gridSize, mainGridSize);
         //            imageGraphics.dispose();
         //            g2D.setPaint(new java.awt.TexturePaint(gridImage, new java.awt.geom.Rectangle2D.Float(0, 0, mainGridSize, mainGridSize)));
@@ -2213,7 +2212,7 @@ var PlanComponent = (function () {
      * @throws InterruptedIOException if painting was interrupted (may happen only
      * if <code>paintMode</code> is equal to <code>PaintMode.EXPORT</code>).
      * @param {Graphics2D} g2D
-     * @param {number} planScale
+     * @param {number} gridScale
      * @param {PlanComponent.PaintMode} paintMode
      * @private
      */
@@ -2225,7 +2224,7 @@ var PlanComponent = (function () {
             if (paintMode === PlanComponent.PaintMode.PAINT) {
                 this.paintOtherLevels(g2D, planScale, backgroundColor, foregroundColor);
                 if (this.preferences.isGridVisible()) {
-                    this.paintGrid(g2D, planScale / this.resolutionScale);
+                    this.paintGrid(g2D, planScale);
                 }
             }
         }
@@ -2235,9 +2234,11 @@ var PlanComponent = (function () {
             var selectionColor = this.getSelectionColor();
             var furnitureOutlineColor = this.getFurnitureOutlineColor();
             var selectionOutlinePaint = ColorTools.toRGBAStyle(selectionColor, 0.5);
-            var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
-            var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
-            var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
+            var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
+            var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
+            var locationFeedbackStroke = new java.awt.BasicStroke(
+                1 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, 
+                [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
             this.paintCamera(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, planScale, backgroundColor, foregroundColor);
             if (this.alignedObjectClass != null) {
                 if (Wall === this.alignedObjectClass) {
@@ -2300,9 +2301,10 @@ var PlanComponent = (function () {
         }
         var selectionColor = this.getSelectionColor();
         var selectionOutlinePaint = ColorTools.toRGBAStyle(selectionColor, 0.5);
-        var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
-        var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
-        var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
+        var selectionOutlineStroke = new java.awt.BasicStroke(6 / planScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
+        var dimensionLinesSelectionOutlineStroke = new java.awt.BasicStroke(4 / planScale, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND);
+        var locationFeedbackStroke = new java.awt.BasicStroke(1 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_BEVEL, 0, 
+            [20 / planScale, 5 / planScale, 5 / planScale, 5 / planScale], 4 / planScale);
         //console.log("painting home elements");
         this.paintCompass(g2D, selectedItems, planScale, foregroundColor, paintMode);
         this.paintRooms(g2D, selectedItems, planScale, foregroundColor, paintMode);
@@ -2700,7 +2702,7 @@ var PlanComponent = (function () {
             g2D.setPaint(indicatorPaint);
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var previousTransform = g2D.getTransform();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             var points = item.getPoints();
             var resizeIndicator = this.getIndicator(item, PlanComponent.IndicatorType.RESIZE);
             for (var i = 0; i < points.length; i++) {
@@ -2855,7 +2857,7 @@ var PlanComponent = (function () {
             g2D.setPaint(indicatorPaint);
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var previousTransform = g2D.getTransform();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             g2D.translate(x, y);
             g2D.rotate(angle);
             g2D.scale(scaleInverse, scaleInverse);
@@ -2913,7 +2915,9 @@ var PlanComponent = (function () {
             paintedWalls = Home.getWallsSubList(selectedItems);
             wallAreas = this.getWallAreas(this.getDrawableWallsInSelectedLevel(paintedWalls));
         }
-        var wallPaintScale = paintMode === PlanComponent.PaintMode.PRINT ? planScale / 72 * 150 : planScale / this.resolutionScale;
+        var wallPaintScale = paintMode === PlanComponent.PaintMode.PRINT 
+            ? planScale / 72 * 150 
+            : planScale;
         var oldComposite = null;
         if (paintMode === PlanComponent.PaintMode.PAINT && this.backgroundPainted && this.backgroundImageCache != null && this.wallsDoorsOrWindowsModification) {
             oldComposite = this.setTransparency(g2D, 0.5);
@@ -2945,7 +2949,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.fillAndDrawWallsArea = function (g2D, area, planScale, fillPaint, drawPaint, paintMode) {
         g2D.setPaint(fillPaint);
-        var patternScale = this.resolutionScale / planScale;
+        var patternScale = 1 / planScale;
         g2D.scale(patternScale, patternScale);
         var filledArea = area.clone();
         filledArea.transform(java.awt.geom.AffineTransform.getScaleInstance(1 / patternScale, 1 / patternScale));
@@ -3072,7 +3076,7 @@ var PlanComponent = (function () {
             g2D.setPaint(indicatorPaint);
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var previousTransform = g2D.getTransform();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             var wallPoints = wall.getPoints();
             var leftSideMiddlePointIndex = (wallPoints.length / 4 | 0);
             var wallAngle = Math.atan2(wall.getYEnd() - wall.getYStart(), wall.getXEnd() - wall.getXStart());
@@ -3572,7 +3576,7 @@ var PlanComponent = (function () {
         var furniture = Home.getFurnitureSubList(items);
         var newFurniture = [];
         var furnitureGroupsArea = null;
-        var furnitureGroupsStroke = new java.awt.BasicStroke(15 / planScale * this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_ROUND);
+        var furnitureGroupsStroke = new java.awt.BasicStroke(15 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_ROUND);
         var lastGroup = null;
         var furnitureInGroupsArea = null;
         var homeFurniture = this.home.getFurniture();
@@ -3808,7 +3812,7 @@ var PlanComponent = (function () {
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var previousTransform = g2D.getTransform();
             var piecePoints = piece.getPoints();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             var pieceAngle = piece.getAngle();
             var rotationIndicator = this.getIndicator(piece, PlanComponent.IndicatorType.ROTATE);
             if (rotationIndicator != null) {
@@ -4038,7 +4042,7 @@ var PlanComponent = (function () {
                     lengthStyle = _this.preferences.getDefaultTextStyle(dimensionLine.constructor);
                 }
                 if (feedback && _this.getFont() != null) {
-                    lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(_this.getFont()).size) / _this.getScale());
+                    lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(_this.getFont()).size) / planScale);
                 }
                 var font = _this.getFont(previousFont, lengthStyle);
                 var lengthFontMetrics = _this.getFontMetrics(font, lengthStyle);
@@ -4049,7 +4053,7 @@ var PlanComponent = (function () {
                 if (feedback) {
                     g2D.setColor(backgroundColor);
                     var oldComposite = _this.setTransparency(g2D, 0.7);
-                    g2D.setStroke(new java.awt.BasicStroke(4 / planScale * _this.resolutionScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
+                    g2D.setStroke(new java.awt.BasicStroke(4 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
                     g2D.drawStringOutline(lengthText, 0, 0);
                     g2D.setAlpha(oldComposite);
                     g2D.setColor(foregroundColor);
@@ -4077,7 +4081,7 @@ var PlanComponent = (function () {
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var wallAngle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), dimensionLine.getXEnd() - dimensionLine.getXStart());
             var previousTransform = g2D.getTransform();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
             g2D.rotate(wallAngle);
             g2D.translate(0, dimensionLine.getOffset());
@@ -4156,7 +4160,7 @@ var PlanComponent = (function () {
                                     else {
                                         g2D.translate((textBounds[2][0] + textBounds[3][0]) / 2, (textBounds[2][1] + textBounds[3][1]) / 2);
                                     }
-                                    var scaleInverse = 1 / planScale * this.resolutionScale;
+                                    var scaleInverse = 1 / planScale;
                                     g2D.scale(scaleInverse, scaleInverse);
                                     g2D.rotate(label.getAngle());
                                     g2D.draw(PlanComponent.ELEVATION_POINT_INDICATOR);
@@ -4215,10 +4219,10 @@ var PlanComponent = (function () {
             var diameter = compass.getDiameter();
             g2D.scale(diameter, diameter);
             g2D.setPaint(selectionOutlinePaint);
-            g2D.setStroke(new java.awt.BasicStroke((5.5 + planScale) / diameter / planScale * this.resolutionScale));
+            g2D.setStroke(new java.awt.BasicStroke((5.5 + planScale) / diameter / planScale));
             g2D.draw(PlanComponent.COMPASS_DISC);
             g2D.setColor(foregroundColor);
-            g2D.setStroke(new java.awt.BasicStroke(1.0 / diameter / planScale * this.resolutionScale));
+            g2D.setStroke(new java.awt.BasicStroke(1.0 / diameter / planScale));
             g2D.draw(PlanComponent.COMPASS_DISC);
             g2D.setTransform(previousTransform);
             if (items.length === 1 && items[0] === compass) {
@@ -4233,7 +4237,7 @@ var PlanComponent = (function () {
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var previousTransform = g2D.getTransform();
             var compassPoints = compass.getPoints();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             g2D.translate((compassPoints[2][0] + compassPoints[3][0]) / 2, (compassPoints[2][1] + compassPoints[3][1]) / 2);
             g2D.scale(scaleInverse, scaleInverse);
             g2D.rotate(compass.getNorthDirection());
@@ -4361,13 +4365,13 @@ var PlanComponent = (function () {
     PlanComponent.prototype.paintPointFeedback = function (g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke) {
         g2D.setPaint(pointPaint);
         g2D.setStroke(pointStroke);
-        var circle = new java.awt.geom.Ellipse2D.Float(locationFeedback.getX() - 10.0 / this.getScale(), locationFeedback.getY() - 10.0 / this.getScale(), 20.0 / this.getScale(), 20.0 / this.getScale());
+        var circle = new java.awt.geom.Ellipse2D.Float(locationFeedback.getX() - 10.0 / planScale, locationFeedback.getY() - 10.0 / planScale, 20.0 / planScale, 20.0 / planScale);
         g2D.fill(circle);
         g2D.setPaint(feedbackPaint);
-        g2D.setStroke(new java.awt.BasicStroke(1 / planScale * this.resolutionScale));
+        g2D.setStroke(new java.awt.BasicStroke(1 / planScale));
         g2D.draw(circle);
-        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX(), locationFeedback.getY() - 5.0 / this.getScale(), locationFeedback.getX(), locationFeedback.getY() + 5.0 / this.getScale()));
-        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX() - 5.0 / this.getScale(), locationFeedback.getY(), locationFeedback.getX() + 5.0 / this.getScale(), locationFeedback.getY()));
+        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX(), locationFeedback.getY() - 5.0 / planScale, locationFeedback.getX(), locationFeedback.getY() + 5.0 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(locationFeedback.getX() - 5.0 / planScale, locationFeedback.getY(), locationFeedback.getX() + 5.0 / planScale, locationFeedback.getY()));
     };
     /**
      * Returns <code>true</code> if <code>wall</code> start or end point
@@ -4586,7 +4590,7 @@ var PlanComponent = (function () {
      */
     PlanComponent.prototype.paintAngleFeedback = function (g2D, center, point1, point2, planScale, selectionColor) {
         g2D.setColor(selectionColor);
-        g2D.setStroke(new java.awt.BasicStroke(1 / planScale * this.resolutionScale));
+        g2D.setStroke(new java.awt.BasicStroke(1 / planScale));
         var angle1 = Math.atan2(center.getY() - point1.getY(), point1.getX() - center.getX());
         if (angle1 < 0) {
             angle1 = 2 * Math.PI + angle1;
@@ -4601,9 +4605,9 @@ var PlanComponent = (function () {
         }
         var previousTransform = g2D.getTransform();
         g2D.translate(center.getX(), center.getY());
-        var radius = 20 / this.getScale();
+        var radius = 20 / planScale;
         g2D.draw(new java.awt.geom.Arc2D.Double(-radius, -radius, radius * 2, radius * 2, /* toDegrees */ (function (x) { return x * 180 / Math.PI; })(angle1), /* toDegrees */ (function (x) { return x * 180 / Math.PI; })(extent), java.awt.geom.Arc2D.OPEN));
-        radius += 5 / this.getScale();
+        radius += 5 / planScale;
         g2D.draw(new java.awt.geom.Line2D.Double(0, 0, radius * Math.cos(angle1), -radius * Math.sin(angle1)));
         g2D.draw(new java.awt.geom.Line2D.Double(0, 0, radius * Math.cos(angle1 + extent), -radius * Math.sin(angle1 + extent)));
         g2D.setTransform(previousTransform);
@@ -4674,7 +4678,7 @@ var PlanComponent = (function () {
             g2D.setStroke(PlanComponent.INDICATOR_STROKE);
             var previousTransform = g2D.getTransform();
             var cameraPoints = camera.getPoints();
-            var scaleInverse = 1 / planScale * this.resolutionScale;
+            var scaleInverse = 1 / planScale;
             g2D.translate((cameraPoints[0][0] + cameraPoints[3][0]) / 2, (cameraPoints[0][1] + cameraPoints[3][1]) / 2);
             g2D.scale(scaleInverse, scaleInverse);
             g2D.rotate(camera.getYaw());
@@ -4708,7 +4712,7 @@ var PlanComponent = (function () {
             g2D.setPaint(ColorTools.toRGBAStyle(selectionColor, 0.125));
             g2D.fill(this.rectangleFeedback);
             g2D.setPaint(selectionColor);
-            g2D.setStroke(new java.awt.BasicStroke(1 / planScale * this.resolutionScale));
+            g2D.setStroke(new java.awt.BasicStroke(1 / planScale));
             g2D.draw(this.rectangleFeedback);
         }
     };
@@ -4795,13 +4799,6 @@ var PlanComponent = (function () {
       }
     };
     /**
-     * Returns the actual paint scale (including potential resolution scale) used to display the plan.
-     * @return {number}
-     */
-    PlanComponent.prototype.getPaintScale = function () {
-        return this.scale * this.resolutionScale;
-    };
-    /**
      * Returns the scale used to display the plan.
      * @return {number}
      */
@@ -4819,40 +4816,6 @@ var PlanComponent = (function () {
             this.scale = scale;
             this.revalidate();
         }
-        //        if(this.scale !== scale) {
-        ////            let parent : javax.swing.JViewport = null;
-        ////            let viewRectangle : java.awt.Rectangle = null;
-        ////            let xViewCenterPosition : number = 0;
-        ////            let yViewCenterPosition : number = 0;
-        ////            if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
-        ////                parent = <javax.swing.JViewport>this.getParent();
-        ////                viewRectangle = this.scrollPane.parent.getViewRect();
-        ////                xViewCenterPosition = this.convertXPixelToModel(viewRectangle.x + (viewRectangle.width / 2|0));
-        ////                yViewCenterPosition = this.convertYPixelToModel(viewRectangle.y + (viewRectangle.height / 2|0));
-        ////            }
-        //            
-        //            this.scale = scale;
-        //            
-        //            let size = this.getPreferredSize();
-        //            
-        //            this.view.style.width = "" + (size.width) +"px";
-        //            this.view.style.height = "" + (size.height) +"px";
-        //            this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
-        //            this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
-        //            this.canvas.style.width = "" + (this.scrollPane.clientWidth) +"px";
-        //            this.canvas.style.height = "" + (this.scrollPane.clientHeight) +"px";
-        //            this.revalidate();
-        //            
-        //            
-        ////            if(parent != null && parent instanceof <any>javax.swing.JViewport) {
-        ////                let viewSize : java.awt.Dimension = parent.getViewSize();
-        ////                let viewWidth : number = this.convertXPixelToModel(viewRectangle.x + viewRectangle.width) - this.convertXPixelToModel(viewRectangle.x);
-        ////                let xViewLocation : number = Math.max(0, Math.min(this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2), viewSize.width - viewRectangle.x));
-        ////                let viewHeight : number = this.convertYPixelToModel(viewRectangle.y + viewRectangle.height) - this.convertYPixelToModel(viewRectangle.y);
-        ////                let yViewLocation : number = Math.max(0, Math.min(this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2), viewSize.height - viewRectangle.y));
-        ////                parent.setViewPosition(new java.awt.Point(xViewLocation, yViewLocation));
-        ////            }
-        //        }
     };
     /**
      * Returns the length in model units (cm) of the given <code>size</code> in pixels.
@@ -4929,7 +4892,7 @@ var PlanComponent = (function () {
      * @return {number}
      */
     PlanComponent.prototype.getPixelLength = function () {
-        // on contrary to Java version that uses getPaintScale(), we use the actual scale 
+        // On contrary to Java version based on resolution scale, we use the actual scale 
         return 1 / this.getScale();
     };
     /**
