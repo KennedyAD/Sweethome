@@ -97,6 +97,21 @@ var PlanComponent = (function () {
         this.tooltip.style.font = this.font;
         this.tooltip.style.color = this.canvas.style.color;
         document.body.appendChild(this.tooltip);
+        
+        this.longTouchTimer = document.createElement("div");
+        this.longTouchTimer.id = "long-touch-timer";
+        this.longTouchTimer.style.position = "absolute";
+        this.longTouchTimer.innerHTML = '<div id="long-touch-timer-bg"></div><div id="long-touch-timer-hidder"></div><div id="long-touch-timer-loader1"></div><div id="long-touch-timer-loader2"></div>';
+        document.body.appendChild(this.longTouchTimer);
+        for (var i = 0; i < this.longTouchTimer.children.length; i++) {
+            var e = this.longTouchTimer.children.item(i);
+            if (e.id != "long-touch-timer-bg" && e.id != "long-touch-timer-hidder") {
+                e.style.borderTopColor = this.getSelectionColor();
+                e.style.borderRightColor = this.getSelectionColor();
+            }
+            e.style.animationDuration = "480ms";
+        }
+        
         this.resolutionScale = this.scrollPane ? PlanComponent.HIDPI_SCALE_FACTOR : 1.;
         this.selectedItemsOutlinePainted = true;
         this.backgroundPainted = true;
@@ -329,6 +344,20 @@ var PlanComponent = (function () {
             if (!gl) {
                 PlanComponent.WEBGL_AVAILABLE = false;
             }
+        }
+    };
+    PlanComponent.prototype.startLongTouchAnimation = function (x, y) {
+        this.longTouchTimer.style.visibility = "visible";
+        this.longTouchTimer.style.left = (this.canvas.getBoundingClientRect().left + x - this.longTouchTimer.clientWidth / 2) + "px";
+        this.longTouchTimer.style.top = (this.canvas.getBoundingClientRect().top + y - this.longTouchTimer.clientHeight - 50) + "px";
+        for (var i = 0; i < this.longTouchTimer.children.length; i++) {
+            this.longTouchTimer.children.item(i).classList.add("animated");
+        }
+    };
+    PlanComponent.prototype.stopLongTouchAnimation = function (x, y) {
+        this.longTouchTimer.style.visibility = "hidden";
+        for (var i = 0; i < this.longTouchTimer.children.length; i++) {
+            this.longTouchTimer.children.item(i).classList.remove("animated");
         }
     };
     PlanComponent.prototype.getGraphics = function () {
@@ -2276,13 +2305,15 @@ var PlanComponent = (function () {
     };
     /**
      * Returns the default color used to draw selection outlines.
+     * Note that the default selection color may be forced using CSS by setting backgroundColor with the ::selection selector.
+     * In case the browser does not support the ::selection selector, one can force the selectio color in JavaScript by setting PlanComponent.DEFAULT_SELECTION_COLOR.
      * @param {PlanComponent} planComponent
      * @return {string}
      */
     PlanComponent.getDefaultSelectionColor = function (planComponent) {
         if (PlanComponent.DEFAULT_SELECTION_COLOR == null) {
             var color = window.getComputedStyle(planComponent.container, "::selection").backgroundColor;
-            if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color)) {
+            if (color.indexOf("rgb") === -1 || ColorTools.isTransparent(color) || color == window.getComputedStyle(planComponent.container).backgroundColor) {
                 planComponent.container.style.color = "Highlight";
                 color = window.getComputedStyle(planComponent.container).color;
             }
