@@ -326,17 +326,21 @@ CoreTools.format = function(formatString, args) {
   if (args === undefined || args.length === 0) {
     return formatString;
   } else {
-    var placeHolders = /%s|%d|%\d+\$s|%\d+\$d/g;
+    var placeHolders = /%%|%s|%d|%\d+\$s|%\d+\$d/g;
     var matchResult;
     var result = "";
     var currentIndex = 0;
     var values = Array.isArray(args) ? args : Array.prototype.slice.call(arguments, 1);
     var currentValueIndex = 0;
-    while (currentValueIndex < values.length && (matchResult = placeHolders.exec(formatString)) !== null) {
+    while ((matchResult = placeHolders.exec(formatString)) !== null) {
       // TODO: support explicit position in place holders (%x$s)
       result += formatString.slice(currentIndex, placeHolders.lastIndex - matchResult[0].length);
-      result += values[currentValueIndex];
-      currentValueIndex++;
+      if (matchResult[0] == "%%") {
+        result += '%';
+      } else if (currentValueIndex < values.length) {
+        result += values[currentValueIndex];
+        currentValueIndex++;
+      }
       currentIndex = placeHolders.lastIndex;
     }
     result += formatString.slice(currentIndex);
