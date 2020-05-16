@@ -416,6 +416,21 @@ var PlanComponent = (function () {
               this.canvas.style.width = this.scrollPane.clientWidth + "px";
               this.canvas.style.height = this.scrollPane.clientHeight + "px";
             }
+            
+            var planBoundsNewMinX = this.getPlanBounds().getMinX();
+            var planBoundsNewMinY = this.getPlanBounds().getMinY();
+            // If plan bounds upper left corner diminished
+            if (planBoundsNewMinX < this.invalidPlanBounds.getMinX()
+                || planBoundsNewMinY < this.invalidPlanBounds.getMinY()) {
+              // Update view position when scroll bars are visible
+              if (this.scrollPane.clientWidth < this.view.clientWidth
+                  || this.scrollPane.clientHeight < this.view.clientHeight.height) {
+                var deltaX = this.convertLengthToPixel(this.invalidPlanBounds.getMinX() - planBoundsNewMinX);
+                var deltaY = this.convertLengthToPixel(this.invalidPlanBounds.getMinY() - planBoundsNewMinY);
+                this.scrollPane.scrollLeft += deltaX;
+                this.scrollPane.scrollTop += deltaY;
+              }
+            }
           } else if (this.canvas.width !== this.canvas.clientWidth 
                      || this.canvas.height !== this.canvas.clientHeight) {
             this.canvas.width = this.canvas.clientWidth; 
@@ -929,11 +944,15 @@ var PlanComponent = (function () {
                     }
                     mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
                 }
-                if (mouseListener.initialPointerLocation != null && !(mouseListener.initialPointerLocation[0] === ev.canvasX && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+                if (mouseListener.initialPointerLocation != null 
+                    && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
+                         && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
                     mouseListener.initialPointerLocation = null;
                 }
                 if (mouseListener.initialPointerLocation == null) {
-                    if (planComponent.isEnabled()) {
+                    if (planComponent.isEnabled()
+                        && ev.canvasX !== undefined // May happen when the pointer leaves the window
+                        && ev.canvasY !== undefined) {
                         controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                     }
                 }
@@ -1122,6 +1141,7 @@ var PlanComponent = (function () {
                                         // double click emulated
                                         release = false;
                                         controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                                        controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
                                         controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
                                         controller.setMode(PlanController.Mode.SELECTION);
                                     }
@@ -1129,10 +1149,11 @@ var PlanComponent = (function () {
                                         //controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                                     }
                                 }
-                            } else if(mouseListener.longTouchWhenDragged != null && mouseListener.isLongTouch(true)) {
+                            } else if (mouseListener.longTouchWhenDragged != null && mouseListener.isLongTouch(true)) {
                                 // double click emulated
                                 release = false;
                                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 1, false, false, false, false);
+                                controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]));
                                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 2, false, false, false, false);
                                 controller.setMode(PlanController.Mode.SELECTION);
                             }
