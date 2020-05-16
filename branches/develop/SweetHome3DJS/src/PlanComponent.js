@@ -1123,6 +1123,7 @@ var PlanComponent = (function () {
                                         release = false;
                                         controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                                         controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
+                                        controller.setMode(PlanController.Mode.SELECTION);
                                     }
                                     else {
                                         //controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
@@ -1133,6 +1134,7 @@ var PlanComponent = (function () {
                                 release = false;
                                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 1, false, false, false, false);
                                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 2, false, false, false, false);
+                                controller.setMode(PlanController.Mode.SELECTION);
                             }
                             if (controller.getMode() === PlanController.Mode.SELECTION) {
                                 controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
