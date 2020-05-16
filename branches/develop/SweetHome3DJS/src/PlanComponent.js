@@ -110,7 +110,7 @@ var PlanComponent = (function () {
                 e.style.borderTopColor = this.getSelectionColor();
                 e.style.borderRightColor = this.getSelectionColor();
             }
-            e.style.animationDuration = "400ms";
+            e.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
         }
         
         this.resolutionScale = this.scrollPane ? PlanComponent.HIDPI_SCALE_FACTOR : 1.;
@@ -338,6 +338,9 @@ var PlanComponent = (function () {
         PlanComponent.ARROW.lineTo(-5, 2);
         PlanComponent.ERROR_TEXTURE_IMAGE = TextureManager.getInstance().getErrorImage();
         PlanComponent.WAIT_TEXTURE_IMAGE = TextureManager.getInstance().getWaitImage();
+        PlanComponent.LONG_TOUCH_DELAY = 200; // ms
+        PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
+        PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
         var canvas = document.createElement("canvas");
         var gl = canvas.getContext("webgl");
         if (!gl) {
@@ -881,6 +884,7 @@ var PlanComponent = (function () {
             initialTime: 0,
             autoScroll: null,
             longTouch: null,
+            longTouchWhenDragged: null,
             mouseDoubleClicked: function (ev) {
                 planComponent.handleMouseEvent(ev, "mouseDoubleClicked");
                 mouseListener.mousePressed(ev);
@@ -963,8 +967,8 @@ var PlanComponent = (function () {
                     mouseListener.panningPreviousMode = null;
                 }
             },
-            isLongTouch: function () {
-                return Date.now() - mouseListener.initialTime > 500;
+            isLongTouch: function (dragging) {
+                return Date.now() - mouseListener.initialTime > (dragging ? PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING : PlanComponent.LONG_TOUCH_DELAY) + PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY;
             },
             touchStarted: function (ev) {
                 ev.preventDefault();
@@ -984,7 +988,7 @@ var PlanComponent = (function () {
                         mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
                         mouseListener.longTouch = setTimeout(function() {
                           planComponent.startLongTouchAnimation(ev.canvasX, ev.canvasY);
-                        }, 100);
+                        }, PlanComponent.LONG_TOUCH_DELAY);
                     }
                     else if (ev.targetTouches.length === 2) {
                         mouseListener.initialPointerLocation = null;
@@ -1000,6 +1004,7 @@ var PlanComponent = (function () {
                         clearInterval(mouseListener.autoScroll);
                         mouseListener.autoScroll = null;
                     }
+                    mouseListener.longTouchWhenDragged = null;
                     if (ev.targetTouches.length == 1) {
                         if (mouseListener.autoScroll == null && mouseListener.panningPreviousMode == null && mouseListener.lastPointerLocation != null && !mouseListener.isInCanvas(ev)) {
                             mouseListener.autoScroll = setInterval(function () {
@@ -1033,6 +1038,14 @@ var PlanComponent = (function () {
                         if (mouseListener.initialPointerLocation == null) {
                             controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                         }
+                        if(!mouseListener.autoScroll && controller.getMode() !== PlanController.Mode.SELECTION && controller.getMode() !== PlanController.Mode.PANNING) {
+                          mouseListener.initialTime = Date.now();
+                          mouseListener.longTouch = setTimeout(function() {
+                            mouseListener.longTouchWhenDragged = [ev.canvasX, ev.canvasY];   
+                            planComponent.startLongTouchAnimation(ev.canvasX, ev.canvasY);
+                          }, PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING);
+                        }
+
                     }
                     else if (ev.targetTouches.length == 2) {
                         mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
@@ -1112,11 +1125,16 @@ var PlanComponent = (function () {
                                         controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
                                     }
                                     else {
-                                        controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                                        //controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                                     }
                                 }
+                            } else if(mouseListener.longTouchWhenDragged != null && mouseListener.isLongTouch(true)) {
+                                // double click emulated
+                                release = false;
+                                controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 1, false, false, false, false);
+                                controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 2, false, false, false, false);
                             }
-                            if (release) {
+                            if (controller.getMode() === PlanController.Mode.SELECTION) {
                                 controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                             }
                         }
