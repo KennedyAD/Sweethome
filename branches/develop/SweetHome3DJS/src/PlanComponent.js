@@ -1008,6 +1008,9 @@ var PlanComponent = (function () {
                         }, PlanComponent.LONG_TOUCH_DELAY);
                     }
                     else if (ev.targetTouches.length === 2) {
+                        if (controller.isModificationState()) {
+                          controller.escape();
+                        } 
                         mouseListener.initialPointerLocation = null;
                         mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
                     }
