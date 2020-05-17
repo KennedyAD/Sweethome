@@ -837,52 +837,52 @@ var PlanComponent = (function () {
         preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", preferencesListener);
         preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
     };
-    PlanComponent.prototype.handleMouseEvent = function (e, type) {
-        if (e.canvasX === undefined && e.clientX) {
-            var rect = this.canvas.getBoundingClientRect();
-            e.canvasX = e.clientX - rect.left;
-            e.canvasY = e.clientY - rect.top;
+    PlanComponent.prototype.handleMouseEvent = function (ev, type) {
+        if (ev.canvasX === undefined && ev.clientX !== undefined) {
+          var rect = this.canvas.getBoundingClientRect();
+          ev.canvasX = ev.clientX - rect.left;
+          ev.canvasY = ev.clientY - rect.top;
         }
         if (type.indexOf("touch") === 0) {
-            // force a different margin for touch events
-            PlanController.INDICATOR_PIXEL_MARGIN = 15;
-            this.pointerType = 1;
-            var touches = e.targetTouches;
-            if (e.targetTouches.length == 0) {
-                // touchend case
-                touches = e.changedTouches;
-            }
-            var rect = this.canvas.getBoundingClientRect();
-            if (touches.length == 1) {
-                e.canvasX = touches[0].clientX - rect.left;
-                e.canvasY = touches[0].clientY - rect.top;
-            }
-            else if (touches.length == 2) {
-                e.canvasX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
-                e.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
-            }
-            e.clickCount = 1;
+          // Force a different margin for touch events
+          PlanController.INDICATOR_PIXEL_MARGIN = 15;
+          this.pointerType = 1;
+          var touches = ev.targetTouches;
+          if (ev.targetTouches.length == 0) {
+              // touchend case
+              touches = ev.changedTouches;
+          }
+          var rect = this.canvas.getBoundingClientRect();
+          if (touches.length == 1) {
+            ev.canvasX = touches[0].clientX - rect.left;
+            ev.canvasY = touches[0].clientY - rect.top;
+          }
+          else if (touches.length == 2) {
+            ev.canvasX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
+            ev.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
+          }
+          ev.clickCount = 1;
         }
         else {
-            PlanController.INDICATOR_PIXEL_MARGIN = 5;
-            this.pointerType = 0;
+          PlanController.INDICATOR_PIXEL_MARGIN = 5;
+          this.pointerType = 0;
         }
-        if (e.clickCount === undefined) {
-            if (type == "mouseDoubleClicked") {
-                e.clickCount = 2;
-            }
-            else if (type == "mousePressed" || type == "mouseReleased") {
-                e.clickCount = 1;
-            }
-            else {
-                e.clickCount = 0;
-            }
+        if (ev.clickCount === undefined) {
+          if (type == "mouseDoubleClicked") {
+            ev.clickCount = 2;
+          }
+          else if (type == "mousePressed" || type == "mouseReleased") {
+            ev.clickCount = 1;
+          }
+          else {
+            ev.clickCount = 0;
+          }
         }
         if (type == "mouseWheelMoved") {
-            e.preventDefault();
-            e.wheelRotation = (e.deltaY !== undefined ? e.deltaX + e.deltaY : -e.wheelDelta) / 4;
+          ev.preventDefault();
+          ev.wheelRotation = (ev.deltaY !== undefined ? ev.deltaX + ev.deltaY : -ev.wheelDelta) / 4;
         }
-        //console.info("mouse event: "+type + " ("+(<any>e).canvasX+","+(<any>e).canvasY+")");
+        //console.info("mouse event: "+type + " ("+(<any>ev).canvasX+","+(<any>ev).canvasY+")");
     };
     /**
      * Adds mouse listeners to this component that calls back <code>controller</code> methods.
@@ -950,9 +950,7 @@ var PlanComponent = (function () {
                     mouseListener.initialPointerLocation = null;
                 }
                 if (mouseListener.initialPointerLocation == null) {
-                    if (planComponent.isEnabled()
-                        && ev.canvasX !== undefined // May happen when the pointer leaves the window
-                        && ev.canvasY !== undefined) {
+                    if (planComponent.isEnabled()) {
                         controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
                     }
                 }
@@ -1137,7 +1135,8 @@ var PlanComponent = (function () {
                                     controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
                                 }
                                 else {
-                                    if (mouseListener.isLongTouch()) {
+                                    if (mouseListener.isLongTouch() 
+                                        && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
                                         // double click emulated
                                         release = false;
                                         controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
