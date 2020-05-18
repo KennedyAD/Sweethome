@@ -64,7 +64,7 @@
 <script type="text/javascript" src="src/PlanComponent.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
-#canvas2D::selection { background: red; }
+#canvas2D::selection { background: #0042E0; }
 </style>
 </head>
 <body>
@@ -349,6 +349,9 @@ function testHome(geomAvailable) {
   piece = new HomePieceOfFurniture(catalogPiece);
   piece.setX(100);
   piece.setY(100);
+  piece.setProperty("prop1", "value1");
+  piece.setProperty("prop2", "value2");
+  assertEquals("Wrong number of properties", 2, piece.getPropertyNames().length);
   home.addPieceOfFurniture(piece);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   home.deletePieceOfFurniture(piece);
@@ -530,7 +533,7 @@ function displayPlan(home, preferences) {
 
 <canvas id="canvas3D" style="width:98%; height:50%; background-color: #CCCCCC; border: 1px solid gray;" 
         tabIndex="1"></canvas>
-<div id="canvas2D" style="width: 98%; height: 50%; background-color: #0055AA; border: 1px solid gray; font-family: sans-serif; color: #CCCC77"         
+<div id="canvas2D" style="width: 98%; height: 50%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
         tabIndex="2" ></div>
 <canvas id="canvas3D_2" style="display: none; background-color: #CCCCCC; border: 1px solid gray" 
         width="600" height="300" tabIndex="3"></canvas>
