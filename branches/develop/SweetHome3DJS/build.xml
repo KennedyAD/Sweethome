@@ -359,9 +359,7 @@
           description="Builds dist/generated/SweetHome3D.js and retrieves other generated JavaScript libraries">
     <mkdir dir="lib/generated" />
     <move file="tools/JSweet/build/js/bundle.js" tofile="lib/generated/SweetHome3D.js"/>
-    <move file="tools/JSweet/build/js/j4ts-awtgeom-1.8.132-20170726/bundle.js" tofile="lib/generated/geom.js"/>
-  	<!-- Quick fix for missing returns in geom.js -->
-  	<replace file="lib/generated/geom.js" token="  _super.prototype.getPathIterator" value="  return _super.prototype.getPathIterator"/>
+    <move file="tools/JSweet/build/js/j4ts-awtgeom-1.8.132-20200519/bundle.js" tofile="lib/generated/geom.js"/>
     <move file="tools/JSweet/build/js/j4ts-batik-svgpathparser-1.10.0-20170726/bundle.js" tofile="lib/generated/batik-svgpathparser.js"/>
     <move file="tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js" tofile="lib/generated/swingundo.js"/>
     <!-- Clean build directory -->
