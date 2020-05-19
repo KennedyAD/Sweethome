@@ -477,7 +477,6 @@ function testHome(geomAvailable) {
           
           // View a clone of the home in the second canvas
           visitHome(home.clone(), preferences);
-          displayPlan(home, preferences);
           
           console.log("End of testHome");          
         },
@@ -490,25 +489,47 @@ function testHome(geomAvailable) {
       });
 }
 
-function displayHome(home, preferences) {
-  var controller = new HomeController3D(home, preferences);
-  new HomeComponent3D("canvas3D", home, preferences, null, controller);
-}
-
 function visitHome(home, preferences) {
   home.setCamera(home.getObserverCamera());
   var controller = new HomeController3D(home, preferences);
   new HomeComponent3D("canvas3D_2", home, preferences, null, controller);
 }
 
-var planController;
-var undoManager;
+var homeController;
 
-function displayPlan(home, preferences) {
+function displayHome(home, preferences) {
   preferences.setFurnitureViewedFromTop(true);
   var factory = {
+      createFurnitureCatalogView(catalog, preferences, furnitureCatalogController) {
+        return null;
+      },
+      createFurnitureView(home, preferences, furnitureController) {
+        return null;
+      },
       createPlanView: function(home, preferences, planController) {
         return new PlanComponent("canvas2D", home, preferences, planController);
+      }, 
+      createView3D(home, preferences, homeController3D) {
+        return new HomeComponent3D("canvas3D", home, preferences, null, homeController3D);
+        
+      },
+      createHomeView: function(home, preferences, homeController) {
+        homeController.getPlanController().getView();
+        homeController.getHomeController3D().getView();
+        return {
+          setEnabled: function(actionType, enabled) {
+          },
+          setUndoRedoName: function(undoText, redoText) {
+          },
+          setTransferEnabled: function(enabled) {
+          },
+          isClipboardEmpty: function() {
+            return true;
+          },
+          getClipboardItems: function() {
+         	return null;    
+          }
+        };
       }, 
       createLabelView: function (home, preferences, labelController) {
         return {
@@ -521,13 +542,8 @@ function displayPlan(home, preferences) {
   }
   factory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
   
-  undoManager = new javax.swing.undo.UndoManager();
-  var undoableEditSupport = new javax.swing.undo.UndoableEditSupport();
-  undoableEditSupport.addUndoableEditListener(undoManager);
-  
-  planController = new PlanController(home, preferences, factory, null, undoableEditSupport);
-  var plan = planController.getView();
-  plan.setScale(0.75);
+  homeController = new HomeController(home, preferences, factory);
+  homeController.getView();
 }
 </script>
 
