@@ -4912,1160 +4912,1164 @@ PlanComponent.prototype.paintCameraRotationIndicators = function (g2D, camera, i
  * @param {number} planScale
  * @private
  */
- PlanComponent.prototype.paintRectangleFeedback = function (g2D, selectionColor, planScale) {
-   if (this.rectangleFeedback != null) {
-     g2D.setPaint(ColorTools.toRGBAStyle(selectionColor, 0.125));
-     g2D.fill(this.rectangleFeedback);
-     g2D.setPaint(selectionColor);
-     g2D.setStroke(new java.awt.BasicStroke(1 / planScale));
-     g2D.draw(this.rectangleFeedback);
-   }
- };
+PlanComponent.prototype.paintRectangleFeedback = function (g2D, selectionColor, planScale) {
+  if (this.rectangleFeedback != null) {
+    g2D.setPaint(ColorTools.toRGBAStyle(selectionColor, 0.125));
+    g2D.fill(this.rectangleFeedback);
+    g2D.setPaint(selectionColor);
+    g2D.setStroke(new java.awt.BasicStroke(1 / planScale));
+    g2D.draw(this.rectangleFeedback);
+  }
+};
 
- /**
-  * Sets rectangle selection feedback coordinates.
-  * @param {number} x0
-  * @param {number} y0
-  * @param {number} x1
-  * @param {number} y1
-  */
- PlanComponent.prototype.setRectangleFeedback = function (x0, y0, x1, y1) {
-   this.rectangleFeedback = new java.awt.geom.Rectangle2D.Float(x0, y0, 0, 0);
-   this.rectangleFeedback.add(x1, y1);
-   this.repaint();
- };
+/**
+ * Sets rectangle selection feedback coordinates.
+ * @param {number} x0
+ * @param {number} y0
+ * @param {number} x1
+ * @param {number} y1
+ */
+PlanComponent.prototype.setRectangleFeedback = function (x0, y0, x1, y1) {
+  this.rectangleFeedback = new java.awt.geom.Rectangle2D.Float(x0, y0, 0, 0);
+  this.rectangleFeedback.add(x1, y1);
+  this.repaint();
+};
 
- /**
-  * Ensures selected items are visible at screen and moves
-  * scroll bars if needed.
-  */
- PlanComponent.prototype.makeSelectionVisible = function () {
-   var _this = this;
-   if (this.isScrolled() && !this.selectionScrollUpdated) {
-     this.selectionScrollUpdated = true;
-     setTimeout(function () {
-       _this.selectionScrollUpdated = false;
-       var selectionBounds = _this.getSelectionBounds(true);
-       if (selectionBounds != null) {
-         var pixelBounds = _this.getShapePixelBounds(selectionBounds);
-         pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
-         var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
-         if (!pixelBounds.intersects(visibleRectangle)) {
-           _this.scrollRectToVisible(pixelBounds);
-         }
-       }
-     });
-   }
- };
+/**
+ * Ensures selected items are visible at screen and moves
+ * scroll bars if needed.
+ */
+PlanComponent.prototype.makeSelectionVisible = function () {
+  var _this = this;
+  if (this.isScrolled() && !this.selectionScrollUpdated) {
+    this.selectionScrollUpdated = true;
+    setTimeout(function () {
+      _this.selectionScrollUpdated = false;
+      var selectionBounds = _this.getSelectionBounds(true);
+      if (selectionBounds != null) {
+        var pixelBounds = _this.getShapePixelBounds(selectionBounds);
+        pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
+        var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
+        if (!pixelBounds.intersects(visibleRectangle)) {
+          _this.scrollRectToVisible(pixelBounds);
+        }
+      }
+    });
+  }
+};
 
- /**
-  * Returns the bounds of the selected items.
-  * @param {boolean} includeCamera
-  * @return {java.awt.geom.Rectangle2D}
-  * @private
-  */
- PlanComponent.prototype.getSelectionBounds = function (includeCamera) {
-   var _this = this;
-   var g = this.getGraphics();
-   if (g != null) {
-     this.setRenderingHints(g);
-   }
-   if (includeCamera) {
-     return this.getItemsBounds(g, this.home.getSelectedItems());
-   }
-   else {
-     var selectedItems = (this.home.getSelectedItems().slice(0));
-     /* remove */ (function (a) { var index = a.indexOf(_this.home.getCamera()); if (index >= 0) {
-       a.splice(index, 1);
-       return true;
-     }
-     else {
-       return false;
-     } })(selectedItems);
-     return this.getItemsBounds(g, selectedItems);
-   }
- };
+/**
+ * Returns the bounds of the selected items.
+ * @param {boolean} includeCamera
+ * @return {java.awt.geom.Rectangle2D}
+ * @private
+ */
+PlanComponent.prototype.getSelectionBounds = function (includeCamera) {
+  var _this = this;
+  var g = this.getGraphics();
+  if (g != null) {
+    this.setRenderingHints(g);
+  }
+  if (includeCamera) {
+    return this.getItemsBounds(g, this.home.getSelectedItems());
+  }
+  else {
+    var selectedItems = (this.home.getSelectedItems().slice(0));
+    /* remove */ (function (a) { var index = a.indexOf(_this.home.getCamera()); if (index >= 0) {
+      a.splice(index, 1);
+      return true;
+    }
+    else {
+      return false;
+    } })(selectedItems);
+    return this.getItemsBounds(g, selectedItems);
+  }
+};
 
- /**
-  * Ensures the point at (<code>x</code>, <code>y</code>) is visible,
-  * moving scroll bars if needed.
-  * @param {number} x
-  * @param {number} y
-  */
- PlanComponent.prototype.makePointVisible = function (x, y) {
-   this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, this.getPixelLength(), this.getPixelLength())));
- };
+/**
+ * Ensures the point at (<code>x</code>, <code>y</code>) is visible,
+ * moving scroll bars if needed.
+ * @param {number} x
+ * @param {number} y
+ */
+PlanComponent.prototype.makePointVisible = function (x, y) {
+  this.scrollRectToVisible(this.getShapePixelBounds(new java.awt.geom.Rectangle2D.Float(x, y, this.getPixelLength(), this.getPixelLength())));
+};
 
- /**
-  * Moves the view from (dx, dy) unit in the scrolling zone it belongs to.
-  * @param {number} dx
-  * @param {number} dy
-  */
- PlanComponent.prototype.moveView = function (dx, dy) {
-   if (this.isScrolled()) {
-     this.scrollPane.scrollLeft += this.convertLengthToPixel(dx);
-     this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
-     this.repaint();
-   }
- };
+/**
+ * Moves the view from (dx, dy) unit in the scrolling zone it belongs to.
+ * @param {number} dx
+ * @param {number} dy
+ */
+PlanComponent.prototype.moveView = function (dx, dy) {
+  if (this.isScrolled()) {
+    this.scrollPane.scrollLeft += this.convertLengthToPixel(dx);
+    this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
+    this.repaint();
+  }
+};
 
- /**
-  * Returns the scale used to display the plan.
-  * @return {number}
-  */
- PlanComponent.prototype.getScale = function () {
-   return this.scale;
- };
+/**
+ * Returns the scale used to display the plan.
+ * @return {number}
+ */
+PlanComponent.prototype.getScale = function () {
+  return this.scale;
+};
 
- /**
-  * Sets the scale used to display the plan.
-  * If this component is displayed in a viewport the view position is updated
-  * to ensure the center's view will remain the same after the scale change.
-  * @param {number} scale
-  */
- PlanComponent.prototype.setScale = function (scale) {
-   if (this.scale !== scale) {
-     this.scale = scale;
-     this.revalidate();
-   }
- };
+/**
+ * Sets the scale used to display the plan.
+ * If this component is displayed in a viewport the view position is updated
+ * to ensure the center's view will remain the same after the scale change.
+ * @param {number} scale
+ */
+PlanComponent.prototype.setScale = function (scale) {
+  if (this.scale !== scale) {
+    this.scale = scale;
+    this.revalidate();
+  }
+};
 
- /**
-  * Returns the length in model units (cm) of the given <code>size</code> in pixels.
-  */
- PlanComponent.prototype.convertPixelToLength = function (size) {
-   return size * this.getPixelLength();
- };
- /**
-  * Returns <code>x</code> converted in model coordinates space.
-  * @param {number} x
-  * @return {number}
-  */
- PlanComponent.prototype.convertXPixelToModel = function (x) {
-   var insets = this.getInsets();
-   var planBounds = this.getPlanBounds();
-   return this.convertPixelToLength(x - insets.left + (this.isScrolled() ? this.scrollPane.scrollLeft : 0)) - PlanComponent.MARGIN + planBounds.getMinX();
- };
+/**
+ * Returns the length in model units (cm) of the given <code>size</code> in pixels.
+ */
+PlanComponent.prototype.convertPixelToLength = function (size) {
+  return size * this.getPixelLength();
+};
+/**
+ * Returns <code>x</code> converted in model coordinates space.
+ * @param {number} x
+ * @return {number}
+ */
+PlanComponent.prototype.convertXPixelToModel = function (x) {
+  var insets = this.getInsets();
+  var planBounds = this.getPlanBounds();
+  return this.convertPixelToLength(x - insets.left + (this.isScrolled() ? this.scrollPane.scrollLeft : 0)) - PlanComponent.MARGIN + planBounds.getMinX();
+};
 
- /**
-  * Returns <code>y</code> converted in model coordinates space.
-  * @param {number} y
-  * @return {number}
-  */
- PlanComponent.prototype.convertYPixelToModel = function (y) {
-   var insets = this.getInsets();
-   var planBounds = this.getPlanBounds();
-   return this.convertPixelToLength(y - insets.top + (this.isScrolled() ? this.scrollPane.scrollTop : 0)) - PlanComponent.MARGIN + planBounds.getMinY();
- };
+/**
+ * Returns <code>y</code> converted in model coordinates space.
+ * @param {number} y
+ * @return {number}
+ */
+PlanComponent.prototype.convertYPixelToModel = function (y) {
+  var insets = this.getInsets();
+  var planBounds = this.getPlanBounds();
+  return this.convertPixelToLength(y - insets.top + (this.isScrolled() ? this.scrollPane.scrollTop : 0)) - PlanComponent.MARGIN + planBounds.getMinY();
+};
 
- /**
-  * Returns the size in pixels of the given <code>length</code> in model units (cm).
-  */
- PlanComponent.prototype.convertLengthToPixel = function (length) {
-   return Math.round(length / this.getPixelLength());
- };
+/**
+ * Returns the size in pixels of the given <code>length</code> in model units (cm).
+ */
+PlanComponent.prototype.convertLengthToPixel = function (length) {
+  return Math.round(length / this.getPixelLength());
+};
 
- /**
-  * Returns <code>x</code> converted in view coordinates space.
-  * @param {number} x
-  * @return {number}
-  * @private
-  */
- PlanComponent.prototype.convertXModelToPixel = function (x) {
-   var insets = this.getInsets();
-   var planBounds = this.getPlanBounds();
-   return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - (this.isScrolled() ? this.scrollPane.scrollLeft : 0);
- };
+/**
+ * Returns <code>x</code> converted in view coordinates space.
+ * @param {number} x
+ * @return {number}
+ * @private
+ */
+PlanComponent.prototype.convertXModelToPixel = function (x) {
+  var insets = this.getInsets();
+  var planBounds = this.getPlanBounds();
+  return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - (this.isScrolled() ? this.scrollPane.scrollLeft : 0);
+};
 
- /**
-  * Returns <code>y</code> converted in view coordinates space.
-  * @param {number} y
-  * @return {number}
-  * @private
-  */
- PlanComponent.prototype.convertYModelToPixel = function (y) {
-   var insets = this.getInsets();
-   var planBounds = this.getPlanBounds();
-   return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - (this.isScrolled() ? this.scrollPane.scrollTop : 0);
- };
+/**
+ * Returns <code>y</code> converted in view coordinates space.
+ * @param {number} y
+ * @return {number}
+ * @private
+ */
+PlanComponent.prototype.convertYModelToPixel = function (y) {
+  var insets = this.getInsets();
+  var planBounds = this.getPlanBounds();
+  return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - (this.isScrolled() ? this.scrollPane.scrollTop : 0);
+};
 
- /**
-  * Returns <code>x</code> converted in screen coordinates space.
-  * @param {number} x
-  * @return {number}
-  */
- PlanComponent.prototype.convertXModelToScreen = function (x) {
-   return this.canvas.getBoundingClientRect().left + this.convertXModelToPixel(x);
- };
- /**
-  * Returns <code>y</code> converted in screen coordinates space.
-  * @param {number} y
-  * @return {number}
-  */
- PlanComponent.prototype.convertYModelToScreen = function (y) {
-   return this.canvas.getBoundingClientRect().top + this.convertYModelToPixel(y);
- };
+/**
+ * Returns <code>x</code> converted in screen coordinates space.
+ * @param {number} x
+ * @return {number}
+ */
+PlanComponent.prototype.convertXModelToScreen = function (x) {
+  return this.canvas.getBoundingClientRect().left + this.convertXModelToPixel(x);
+};
+/**
+ * Returns <code>y</code> converted in screen coordinates space.
+ * @param {number} y
+ * @return {number}
+ */
+PlanComponent.prototype.convertYModelToScreen = function (y) {
+  return this.canvas.getBoundingClientRect().top + this.convertYModelToPixel(y);
+};
 
- /**
-  * Returns the length in centimeters of a pixel with the current scale.
-  * @return {number}
-  */
- PlanComponent.prototype.getPixelLength = function () {
-   // On contrary to Java version based on resolution scale, we use the actual scale 
-   return 1 / this.getScale();
- };
+/**
+ * Returns the length in centimeters of a pixel with the current scale.
+ * @return {number}
+ */
+PlanComponent.prototype.getPixelLength = function () {
+  // On contrary to Java version based on resolution scale, we use the actual scale 
+  return 1 / this.getScale();
+};
 
- /**
-  * Returns the bounds of <code>shape</code> in pixels coordinates space.
-  * @param {Object} shape
-  * @return {java.awt.geom.Rectangle2D.Float}
-  * @private
-  */
- PlanComponent.prototype.getShapePixelBounds = function (shape) {
-   var shapeBounds = shape.getBounds2D();
-   return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), this.convertLengthToPixel(shapeBounds.getWidth()), this.convertLengthToPixel(shapeBounds.getHeight()));
- };
+/**
+ * Returns the bounds of <code>shape</code> in pixels coordinates space.
+ * @param {Object} shape
+ * @return {java.awt.geom.Rectangle2D.Float}
+ * @private
+ */
+PlanComponent.prototype.getShapePixelBounds = function (shape) {
+  var shapeBounds = shape.getBounds2D();
+  return new java.awt.geom.Rectangle2D.Float(this.convertXModelToPixel(shapeBounds.getMinX()), this.convertYModelToPixel(shapeBounds.getMinY()), this.convertLengthToPixel(shapeBounds.getWidth()), this.convertLengthToPixel(shapeBounds.getHeight()));
+};
 
- /**
-  * Sets the cursor of this component.
-  * @param {PlanView.CursorType|string} cursorType
-  */
- PlanComponent.prototype.setCursor = function (cursorType) {
-   if (typeof cursorType == "string") {
-     this.canvas.style.cursor = cursorType;
-   }
-   else {
-     switch ((cursorType)) {
-     case PlanView.CursorType.DRAW:
-       this.setCursor('crosshair');
-       break;
-     case PlanView.CursorType.ROTATION:
-       this.setCursor(this.rotationCursor);
-       break;
-     case PlanView.CursorType.HEIGHT:
-       this.setCursor(this.heightCursor);
-       break;
-     case PlanView.CursorType.POWER:
-       this.setCursor(this.powerCursor);
-       break;
-     case PlanView.CursorType.ELEVATION:
-       this.setCursor(this.elevationCursor);
-       break;
-     case PlanView.CursorType.RESIZE:
-       this.setCursor(this.resizeCursor);
-       break;
-     case PlanView.CursorType.PANNING:
-       this.setCursor(this.panningCursor);
-       break;
-     case PlanView.CursorType.DUPLICATION:
-       this.setCursor(this.duplicationCursor);
-       break;
-     case PlanView.CursorType.MOVE:
-       this.setCursor(this.moveCursor);
-       break;
-     case PlanView.CursorType.SELECTION:
-     default:
-       this.setCursor('default');
-     break;
-     }
-   }
- };
+/**
+ * Sets the cursor of this component.
+ * @param {PlanView.CursorType|string} cursorType
+ */
+PlanComponent.prototype.setCursor = function (cursorType) {
+  if (typeof cursorType == "string") {
+    this.canvas.style.cursor = cursorType;
+  } else {
+    switch ((cursorType)) {
+    case PlanView.CursorType.DRAW:
+      this.setCursor('crosshair');
+      break;
+    case PlanView.CursorType.ROTATION:
+      this.setCursor(this.rotationCursor);
+      break;
+    case PlanView.CursorType.HEIGHT:
+      this.setCursor(this.heightCursor);
+      break;
+    case PlanView.CursorType.POWER:
+      this.setCursor(this.powerCursor);
+      break;
+    case PlanView.CursorType.ELEVATION:
+      this.setCursor(this.elevationCursor);
+      break;
+    case PlanView.CursorType.RESIZE:
+      this.setCursor(this.resizeCursor);
+      break;
+    case PlanView.CursorType.PANNING:
+      this.setCursor(this.panningCursor);
+      break;
+    case PlanView.CursorType.DUPLICATION:
+      this.setCursor(this.duplicationCursor);
+      break;
+    case PlanView.CursorType.MOVE:
+      this.setCursor(this.moveCursor);
+      break;
+    case PlanView.CursorType.SELECTION:
+    default:
+      this.setCursor('default');
+    break;
+    }
+  }
+};
 
- /**
-  * Set tool tip edition.
-  * @param {Array} toolTipEditedProperties
-  * @param {Array} toolTipPropertyValues
-  * @param {number} x
-  * @param {number} y
-  */
- PlanComponent.prototype.setToolTipEditedProperties = function (toolTipEditedProperties, toolTipPropertyValues, x, y) {
-   // TODO
- };
+/**
+ * Set tool tip edition.
+ * @param {Array} toolTipEditedProperties
+ * @param {Array} toolTipPropertyValues
+ * @param {number} x
+ * @param {number} y
+ */
+PlanComponent.prototype.setToolTipEditedProperties = function (toolTipEditedProperties, toolTipPropertyValues, x, y) {
+  // TODO
+};
 
- /**
-  * Deletes tool tip text from screen.
-  */
- PlanComponent.prototype.deleteToolTipFeedback = function () {
-   this.tooltip.style.visibility = "hidden";
-   this.tooltip.style.width = "";
-   this.tooltip.style.marginLeft = "";
-   this.tooltip.style.marginTop = "";
- };
+/**
+ * Deletes tool tip text from screen.
+ */
+PlanComponent.prototype.deleteToolTipFeedback = function () {
+  this.tooltip.style.visibility = "hidden";
+  this.tooltip.style.width = "";
+  this.tooltip.style.marginLeft = "";
+  this.tooltip.style.marginTop = "";
+};
 
- /**
-  * Sets whether the resize indicator of selected wall or piece of furniture
-  * should be visible or not.
-  * @param {boolean} resizeIndicatorVisible
-  */
- PlanComponent.prototype.setResizeIndicatorVisible = function (resizeIndicatorVisible) {
-   this.resizeIndicatorVisible = resizeIndicatorVisible;
-   this.repaint();
- };
+/**
+ * Sets whether the resize indicator of selected wall or piece of furniture
+ * should be visible or not.
+ * @param {boolean} resizeIndicatorVisible
+ */
+PlanComponent.prototype.setResizeIndicatorVisible = function (resizeIndicatorVisible) {
+  this.resizeIndicatorVisible = resizeIndicatorVisible;
+  this.repaint();
+};
 
- /**
-  * Sets the location point for alignment feedback.
-  * @param {Object} alignedObjectClass
-  * @param {Object} alignedObject
-  * @param {number} x
-  * @param {number} y
-  * @param {boolean} showPointFeedback
-  */
- PlanComponent.prototype.setAlignmentFeedback = function (alignedObjectClass, alignedObject, x, y, showPointFeedback) {
-   this.alignedObjectClass = alignedObjectClass;
-   this.alignedObjectFeedback = alignedObject;
-   this.locationFeeback = new java.awt.geom.Point2D.Float(x, y);
-   this.showPointFeedback = showPointFeedback;
-   this.repaint();
- };
+/**
+ * Sets the location point for alignment feedback.
+ * @param {Object} alignedObjectClass
+ * @param {Object} alignedObject
+ * @param {number} x
+ * @param {number} y
+ * @param {boolean} showPointFeedback
+ */
+PlanComponent.prototype.setAlignmentFeedback = function (alignedObjectClass, alignedObject, x, y, showPointFeedback) {
+  this.alignedObjectClass = alignedObjectClass;
+  this.alignedObjectFeedback = alignedObject;
+  this.locationFeeback = new java.awt.geom.Point2D.Float(x, y);
+  this.showPointFeedback = showPointFeedback;
+  this.repaint();
+};
 
- /**
-  * Sets the points used to draw an angle in plan view.
-  * @param {number} xCenter
-  * @param {number} yCenter
-  * @param {number} x1
-  * @param {number} y1
-  * @param {number} x2
-  * @param {number} y2
-  */
- PlanComponent.prototype.setAngleFeedback = function (xCenter, yCenter, x1, y1, x2, y2) {
-   this.centerAngleFeedback = new java.awt.geom.Point2D.Float(xCenter, yCenter);
-   this.point1AngleFeedback = new java.awt.geom.Point2D.Float(x1, y1);
-   this.point2AngleFeedback = new java.awt.geom.Point2D.Float(x2, y2);
- };
+/**
+ * Sets the points used to draw an angle in plan view.
+ * @param {number} xCenter
+ * @param {number} yCenter
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ */
+PlanComponent.prototype.setAngleFeedback = function (xCenter, yCenter, x1, y1, x2, y2) {
+  this.centerAngleFeedback = new java.awt.geom.Point2D.Float(xCenter, yCenter);
+  this.point1AngleFeedback = new java.awt.geom.Point2D.Float(x1, y1);
+  this.point2AngleFeedback = new java.awt.geom.Point2D.Float(x2, y2);
+};
 
- /**
-  * Sets the feedback of dragged items drawn during a drag and drop operation,
-  * initiated from outside of plan view.
-  * @param {*[]} draggedItems
-  */
- PlanComponent.prototype.setDraggedItemsFeedback = function (draggedItems) {
-   this.draggedItemsFeedback = draggedItems;
-   this.repaint();
- };
+/**
+ * Sets the feedback of dragged items drawn during a drag and drop operation,
+ * initiated from outside of plan view.
+ * @param {*[]} draggedItems
+ */
+PlanComponent.prototype.setDraggedItemsFeedback = function (draggedItems) {
+  this.draggedItemsFeedback = draggedItems;
+  this.repaint();
+};
 
- /**
-  * Sets the given dimension lines to be drawn as feedback.
-  * @param {DimensionLine[]} dimensionLines
-  */
- PlanComponent.prototype.setDimensionLinesFeedback = function (dimensionLines) {
-   this.dimensionLinesFeedback = dimensionLines;
-   this.repaint();
- };
+/**
+ * Sets the given dimension lines to be drawn as feedback.
+ * @param {DimensionLine[]} dimensionLines
+ */
+PlanComponent.prototype.setDimensionLinesFeedback = function (dimensionLines) {
+  this.dimensionLinesFeedback = dimensionLines;
+  this.repaint();
+};
 
- /**
-  * Deletes all elements shown as feedback.
-  */
- PlanComponent.prototype.deleteFeedback = function () {
-   this.deleteToolTipFeedback();
-   this.rectangleFeedback = null;
-   this.alignedObjectClass = null;
-   this.alignedObjectFeedback = null;
-   this.locationFeeback = null;
-   this.centerAngleFeedback = null;
-   this.point1AngleFeedback = null;
-   this.point2AngleFeedback = null;
-   this.draggedItemsFeedback = null;
-   this.dimensionLinesFeedback = null;
-   this.repaint();
- };
+/**
+ * Deletes all elements shown as feedback.
+ */
+PlanComponent.prototype.deleteFeedback = function () {
+  this.deleteToolTipFeedback();
+  this.rectangleFeedback = null;
+  this.alignedObjectClass = null;
+  this.alignedObjectFeedback = null;
+  this.locationFeeback = null;
+  this.centerAngleFeedback = null;
+  this.point1AngleFeedback = null;
+  this.point2AngleFeedback = null;
+  this.draggedItemsFeedback = null;
+  this.dimensionLinesFeedback = null;
+  this.repaint();
+};
 
- /**
-  * Returns <code>true</code>.
-  * @param {*[]} items
-  * @param {number} x
-  * @param {number} y
-  * @return {boolean}
-  */
- PlanComponent.prototype.canImportDraggedItems = function (items, x, y) {
-   return true;
- };
+/**
+ * Returns <code>true</code>.
+ * @param {*[]} items
+ * @param {number} x
+ * @param {number} y
+ * @return {boolean}
+ */
+PlanComponent.prototype.canImportDraggedItems = function (items, x, y) {
+  return true;
+};
 
- /**
-  * Returns the size of the given piece of furniture in the horizontal plan,
-  * or <code>null</code> if the view isn't able to compute such a value.
-  * @param {HomePieceOfFurniture} piece
-  * @return {Array}
-  */
- PlanComponent.prototype.getPieceOfFurnitureSizeInPlan = function (piece) {
-   if (piece.getRoll() === 0 && piece.getPitch() === 0) {
-     return [piece.getWidth(), piece.getDepth(), piece.getHeight()];
-   }
-   else if (!this.isFurnitureSizeInPlanSupported()) {
-     return null;
-   }
-   else {
-     return PlanComponent.PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan(piece, this.object3dFactory);
-   }
- };
+/**
+ * Returns the size of the given piece of furniture in the horizontal plan,
+ * or <code>null</code> if the view isn't able to compute such a value.
+ * @param {HomePieceOfFurniture} piece
+ * @return {Array}
+ */
+PlanComponent.prototype.getPieceOfFurnitureSizeInPlan = function (piece) {
+  if (piece.getRoll() === 0 && piece.getPitch() === 0) {
+    return [piece.getWidth(), piece.getDepth(), piece.getHeight()];
+  }
+  else if (!this.isFurnitureSizeInPlanSupported()) {
+    return null;
+  }
+  else {
+    return PlanComponent.PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan(piece, this.object3dFactory);
+  }
+};
 
- /**
-  * Returns <code>true</code> if this component is able to compute the size of horizontally rotated furniture.
-  * @return {boolean}
-  */
- PlanComponent.prototype.isFurnitureSizeInPlanSupported = function () {
-   return PlanComponent.WEBGL_AVAILABLE;
- };
- PlanComponent.prototype.getPreferredScrollableViewportSize = function () {
-   return this.getPreferredSize();
- };
- PlanComponent.prototype.getScrollableBlockIncrement = function (visibleRect, orientation, direction) {
-   if (orientation === javax.swing.SwingConstants.HORIZONTAL) {
-     return (visibleRect.width / 2 | 0);
-   }
-   else {
-     return (visibleRect.height / 2 | 0);
-   }
- };
- PlanComponent.prototype.getScrollableTracksViewportHeight = function () {
-   return (this.getParent() != null && this.getParent() instanceof javax.swing.JViewport) && this.getPreferredSize().height < this.getParent().getHeight();
- };
- PlanComponent.prototype.getScrollableTracksViewportWidth = function () {
-   return (this.getParent() != null && this.getParent() instanceof javax.swing.JViewport) && this.getPreferredSize().width < this.getParent().getWidth();
- };
- PlanComponent.prototype.getScrollableUnitIncrement = function (visibleRect, orientation, direction) {
-   if (orientation === javax.swing.SwingConstants.HORIZONTAL) {
-     return (visibleRect.width / 10 | 0);
-   }
-   else {
-     return (visibleRect.height / 10 | 0);
-   }
- };
+/**
+ * Returns <code>true</code> if this component is able to compute the size of horizontally rotated furniture.
+ * @return {boolean}
+ */
+PlanComponent.prototype.isFurnitureSizeInPlanSupported = function () {
+  return PlanComponent.WEBGL_AVAILABLE;
+};
 
- /**
-  * Returns the component used as an horizontal ruler for this plan.
-  * @return {Object}
-  */
- PlanComponent.prototype.getHorizontalRuler = function () {
-   if (this.horizontalRuler == null) {
-     this.horizontalRuler = new PlanComponent.PlanRulerComponent(this, javax.swing.SwingConstants.HORIZONTAL);
-   }
-   return this.horizontalRuler;
- };
+PlanComponent.prototype.getPreferredScrollableViewportSize = function () {
+  return this.getPreferredSize();
+};
 
- /**
-  * Returns the component used as a vertical ruler for this plan.
-  * @return {Object}
-  */
- PlanComponent.prototype.getVerticalRuler = function () {
-   if (this.verticalRuler == null) {
-     this.verticalRuler = new PlanComponent.PlanRulerComponent(this, javax.swing.SwingConstants.VERTICAL);
-   }
-   return this.verticalRuler;
- };
+PlanComponent.prototype.getScrollableBlockIncrement = function (visibleRect, orientation, direction) {
+  if (orientation === javax.swing.SwingConstants.HORIZONTAL) {
+    return (visibleRect.width / 2 | 0);
+  }
+  else {
+    return (visibleRect.height / 2 | 0);
+  }
+};
 
- PlanComponent["__class"] = "com.eteks.sweethome3d.swing.PlanComponent";
- PlanComponent["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.PlanView", "com.eteks.sweethome3d.viewcontroller.View", "javax.swing.Scrollable", "com.eteks.sweethome3d.viewcontroller.ExportableView", "java.awt.print.Printable", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "java.awt.image.ImageObserver", "com.eteks.sweethome3d.viewcontroller.TransferableView", "java.io.Serializable"];
+PlanComponent.prototype.getScrollableTracksViewportHeight = function () {
+  return (this.getParent() != null && this.getParent() instanceof javax.swing.JViewport) && this.getPreferredSize().height < this.getParent().getHeight();
+};
+
+PlanComponent.prototype.getScrollableTracksViewportWidth = function () {
+  return (this.getParent() != null && this.getParent() instanceof javax.swing.JViewport) && this.getPreferredSize().width < this.getParent().getWidth();
+};
+
+PlanComponent.prototype.getScrollableUnitIncrement = function (visibleRect, orientation, direction) {
+  if (orientation === javax.swing.SwingConstants.HORIZONTAL) {
+    return (visibleRect.width / 10 | 0);
+  }
+  else {
+    return (visibleRect.height / 10 | 0);
+  }
+};
+
+/**
+ * Returns the component used as an horizontal ruler for this plan.
+ * @return {Object}
+ */
+PlanComponent.prototype.getHorizontalRuler = function () {
+  if (this.horizontalRuler == null) {
+    this.horizontalRuler = new PlanComponent.PlanRulerComponent(this, javax.swing.SwingConstants.HORIZONTAL);
+  }
+  return this.horizontalRuler;
+};
+
+/**
+ * Returns the component used as a vertical ruler for this plan.
+ * @return {Object}
+ */
+PlanComponent.prototype.getVerticalRuler = function () {
+  if (this.verticalRuler == null) {
+    this.verticalRuler = new PlanComponent.PlanRulerComponent(this, javax.swing.SwingConstants.VERTICAL);
+  }
+  return this.verticalRuler;
+};
+
+PlanComponent["__class"] = "com.eteks.sweethome3d.swing.PlanComponent";
+PlanComponent["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.PlanView", "com.eteks.sweethome3d.viewcontroller.View", "javax.swing.Scrollable", "com.eteks.sweethome3d.viewcontroller.ExportableView", "java.awt.print.Printable", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "java.awt.image.ImageObserver", "com.eteks.sweethome3d.viewcontroller.TransferableView", "java.io.Serializable"];
 
 
 /**
  * PlanComponent namespace.
  */
 var PlanComponent;
- (function (PlanComponent) {
+(function (PlanComponent) {
 
-   /**
-    * The circumstances under which the home items displayed by this component will be painted.
-    * @enum
-    * @property {PlanComponent.PaintMode} PAINT
-    * @property {PlanComponent.PaintMode} PRINT
-    * @property {PlanComponent.PaintMode} CLIPBOARD
-    * @property {PlanComponent.PaintMode} EXPORT
-    * @class
-    */
-   (function (PaintMode) {
-     PaintMode[PaintMode["PAINT"] = 0] = "PAINT";
-     PaintMode[PaintMode["PRINT"] = 1] = "PRINT";
-     PaintMode[PaintMode["CLIPBOARD"] = 2] = "CLIPBOARD";
-     PaintMode[PaintMode["EXPORT"] = 3] = "EXPORT";
-   })(PlanComponent.PaintMode || (PlanComponent.PaintMode = {}));
-   var PaintMode = PlanComponent.PaintMode;
+  /**
+   * The circumstances under which the home items displayed by this component will be painted.
+   * @enum
+   * @property {PlanComponent.PaintMode} PAINT
+   * @property {PlanComponent.PaintMode} PRINT
+   * @property {PlanComponent.PaintMode} CLIPBOARD
+   * @property {PlanComponent.PaintMode} EXPORT
+   * @class
+   */
+  (function (PaintMode) {
+    PaintMode[PaintMode["PAINT"] = 0] = "PAINT";
+    PaintMode[PaintMode["PRINT"] = 1] = "PRINT";
+    PaintMode[PaintMode["CLIPBOARD"] = 2] = "CLIPBOARD";
+    PaintMode[PaintMode["EXPORT"] = 3] = "EXPORT";
+  })(PlanComponent.PaintMode || (PlanComponent.PaintMode = {}));
+  var PaintMode = PlanComponent.PaintMode;
 
-   (function (ActionType) {
-     ActionType[ActionType["DELETE_SELECTION"] = 0] = "DELETE_SELECTION";
-     ActionType[ActionType["ESCAPE"] = 1] = "ESCAPE";
-     ActionType[ActionType["MOVE_SELECTION_LEFT"] = 2] = "MOVE_SELECTION_LEFT";
-     ActionType[ActionType["MOVE_SELECTION_UP"] = 3] = "MOVE_SELECTION_UP";
-     ActionType[ActionType["MOVE_SELECTION_DOWN"] = 4] = "MOVE_SELECTION_DOWN";
-     ActionType[ActionType["MOVE_SELECTION_RIGHT"] = 5] = "MOVE_SELECTION_RIGHT";
-     ActionType[ActionType["MOVE_SELECTION_FAST_LEFT"] = 6] = "MOVE_SELECTION_FAST_LEFT";
-     ActionType[ActionType["MOVE_SELECTION_FAST_UP"] = 7] = "MOVE_SELECTION_FAST_UP";
-     ActionType[ActionType["MOVE_SELECTION_FAST_DOWN"] = 8] = "MOVE_SELECTION_FAST_DOWN";
-     ActionType[ActionType["MOVE_SELECTION_FAST_RIGHT"] = 9] = "MOVE_SELECTION_FAST_RIGHT";
-     ActionType[ActionType["TOGGLE_MAGNETISM_ON"] = 10] = "TOGGLE_MAGNETISM_ON";
-     ActionType[ActionType["TOGGLE_MAGNETISM_OFF"] = 11] = "TOGGLE_MAGNETISM_OFF";
-     ActionType[ActionType["ACTIVATE_ALIGNMENT"] = 12] = "ACTIVATE_ALIGNMENT";
-     ActionType[ActionType["DEACTIVATE_ALIGNMENT"] = 13] = "DEACTIVATE_ALIGNMENT";
-     ActionType[ActionType["ACTIVATE_DUPLICATION"] = 14] = "ACTIVATE_DUPLICATION";
-     ActionType[ActionType["DEACTIVATE_DUPLICATION"] = 15] = "DEACTIVATE_DUPLICATION";
-     ActionType[ActionType["ACTIVATE_EDITIION"] = 16] = "ACTIVATE_EDITIION";
-     ActionType[ActionType["DEACTIVATE_EDITIION"] = 17] = "DEACTIVATE_EDITIION";
-   })(PlanComponent.ActionType || (PlanComponent.ActionType = {}));
-   var ActionType = PlanComponent.ActionType;
+  (function (ActionType) {
+    ActionType[ActionType["DELETE_SELECTION"] = 0] = "DELETE_SELECTION";
+    ActionType[ActionType["ESCAPE"] = 1] = "ESCAPE";
+    ActionType[ActionType["MOVE_SELECTION_LEFT"] = 2] = "MOVE_SELECTION_LEFT";
+    ActionType[ActionType["MOVE_SELECTION_UP"] = 3] = "MOVE_SELECTION_UP";
+    ActionType[ActionType["MOVE_SELECTION_DOWN"] = 4] = "MOVE_SELECTION_DOWN";
+    ActionType[ActionType["MOVE_SELECTION_RIGHT"] = 5] = "MOVE_SELECTION_RIGHT";
+    ActionType[ActionType["MOVE_SELECTION_FAST_LEFT"] = 6] = "MOVE_SELECTION_FAST_LEFT";
+    ActionType[ActionType["MOVE_SELECTION_FAST_UP"] = 7] = "MOVE_SELECTION_FAST_UP";
+    ActionType[ActionType["MOVE_SELECTION_FAST_DOWN"] = 8] = "MOVE_SELECTION_FAST_DOWN";
+    ActionType[ActionType["MOVE_SELECTION_FAST_RIGHT"] = 9] = "MOVE_SELECTION_FAST_RIGHT";
+    ActionType[ActionType["TOGGLE_MAGNETISM_ON"] = 10] = "TOGGLE_MAGNETISM_ON";
+    ActionType[ActionType["TOGGLE_MAGNETISM_OFF"] = 11] = "TOGGLE_MAGNETISM_OFF";
+    ActionType[ActionType["ACTIVATE_ALIGNMENT"] = 12] = "ACTIVATE_ALIGNMENT";
+    ActionType[ActionType["DEACTIVATE_ALIGNMENT"] = 13] = "DEACTIVATE_ALIGNMENT";
+    ActionType[ActionType["ACTIVATE_DUPLICATION"] = 14] = "ACTIVATE_DUPLICATION";
+    ActionType[ActionType["DEACTIVATE_DUPLICATION"] = 15] = "DEACTIVATE_DUPLICATION";
+    ActionType[ActionType["ACTIVATE_EDITIION"] = 16] = "ACTIVATE_EDITIION";
+    ActionType[ActionType["DEACTIVATE_EDITIION"] = 17] = "DEACTIVATE_EDITIION";
+  })(PlanComponent.ActionType || (PlanComponent.ActionType = {}));
+  var ActionType = PlanComponent.ActionType;
 
-   /**
-    * Indicator types that may be displayed on selected items.
-    * @class
-    */
-   var IndicatorType = (function () {
+  /**
+   * Indicator types that may be displayed on selected items.
+   * @class
+   */
+  var IndicatorType = (function () {
 
-     function IndicatorType(name) {
-       this.name = name;
-     }
+    function IndicatorType(name) {
+      this.name = name;
+    }
 
-     IndicatorType.prototype.name = function () {
-       return this.name;
-     };
+    IndicatorType.prototype.name = function () {
+      return this.name;
+    };
 
-     /**
-      *
-      * @return {string}
-      */
-     IndicatorType.prototype.toString = function () {
-       return this.name;
-     };
-     return IndicatorType;
-   }());
-   PlanComponent.IndicatorType = IndicatorType;
-   IndicatorType["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.IndicatorType";
-   IndicatorType.ROTATE = new PlanComponent.IndicatorType("ROTATE");
-   IndicatorType.RESIZE = new PlanComponent.IndicatorType("RESIZE");
-   IndicatorType.ELEVATE = new PlanComponent.IndicatorType("ELEVATE");
-   IndicatorType.RESIZE_HEIGHT = new PlanComponent.IndicatorType("RESIZE_HEIGHT");
-   IndicatorType.CHANGE_POWER = new PlanComponent.IndicatorType("CHANGE_POWER");
-   IndicatorType.MOVE_TEXT = new PlanComponent.IndicatorType("MOVE_TEXT");
-   IndicatorType.ROTATE_TEXT = new PlanComponent.IndicatorType("ROTATE_TEXT");
-   IndicatorType.ROTATE_PITCH = new PlanComponent.IndicatorType("ROTATE_PITCH");
-   IndicatorType.ROTATE_ROLL = new PlanComponent.IndicatorType("ROTATE_ROLL");
-   IndicatorType.ARC_EXTENT = new PlanComponent.IndicatorType("ARC_EXTENT");
+    /**
+     *
+     * @return {string}
+     */
+    IndicatorType.prototype.toString = function () {
+      return this.name;
+    };
+    return IndicatorType;
+  }());
+  PlanComponent.IndicatorType = IndicatorType;
+  IndicatorType["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.IndicatorType";
+  IndicatorType.ROTATE = new PlanComponent.IndicatorType("ROTATE");
+  IndicatorType.RESIZE = new PlanComponent.IndicatorType("RESIZE");
+  IndicatorType.ELEVATE = new PlanComponent.IndicatorType("ELEVATE");
+  IndicatorType.RESIZE_HEIGHT = new PlanComponent.IndicatorType("RESIZE_HEIGHT");
+  IndicatorType.CHANGE_POWER = new PlanComponent.IndicatorType("CHANGE_POWER");
+  IndicatorType.MOVE_TEXT = new PlanComponent.IndicatorType("MOVE_TEXT");
+  IndicatorType.ROTATE_TEXT = new PlanComponent.IndicatorType("ROTATE_TEXT");
+  IndicatorType.ROTATE_PITCH = new PlanComponent.IndicatorType("ROTATE_PITCH");
+  IndicatorType.ROTATE_ROLL = new PlanComponent.IndicatorType("ROTATE_ROLL");
+  IndicatorType.ARC_EXTENT = new PlanComponent.IndicatorType("ARC_EXTENT");
 
-   /**
-    * Preferences property listener bound to this component with a weak reference to avoid
-    * strong link between preferences and this component.
-    * @param {PlanComponent} planComponent
-    * @class
-    */
-   var UserPreferencesChangeListener = (function () {
+  /**
+   * Preferences property listener bound to this component with a weak reference to avoid
+   * strong link between preferences and this component.
+   * @param {PlanComponent} planComponent
+   * @class
+   */
+  var UserPreferencesChangeListener = (function () {
 
-     function UserPreferencesChangeListener(planComponent) {
-       if (this.planComponent === undefined)
-         this.planComponent = null;
-       this.planComponent = (planComponent);
-     }
+    function UserPreferencesChangeListener(planComponent) {
+      if (this.planComponent === undefined)
+        this.planComponent = null;
+      this.planComponent = (planComponent);
+    }
 
-     UserPreferencesChangeListener.prototype.propertyChange = function (ev) {
-       var planComponent = this.planComponent;
-       var preferences = ev.getSource();
-       var property = ev.getPropertyName();
-       if (planComponent == null) {
-         preferences.removePropertyChangeListener(property, this);
-       } else {
-         switch ((property)) {
-         case "LANGUAGE":
-         case "UNIT":
-           //                    {
-           //                        let array211 = /* entrySet */((m) => { if(m.entries==null) m.entries=[]; return m.entries; })(<any>planComponent.toolTipEditableTextFields);
-           //                        for(let index210=0; index210 < array211.length; index210++) {
-           //                            let toolTipTextFieldEntry = array211[index210];
-           //                            {
-           //                                PlanComponent.updateToolTipTextFieldFormatterFactory(toolTipTextFieldEntry.getValue(), toolTipTextFieldEntry.getKey(), preferences);
-           //                            }
-           //                        }
-           //                    }
-           //                    if(planComponent.horizontalRuler != null) {
-           //                        planComponent.horizontalRuler.repaint();
-           //                    }
-           //                    if(planComponent.verticalRuler != null) {
-           //                        planComponent.verticalRuler.repaint();
-           //                    }
-           break;
-         case "DEFAULT_FONT_NAME":
-           planComponent.fonts = null;
-           planComponent.fontsMetrics = null;
-           null /*erased method planComponent.revalidate*/;
-           break;
-         case "WALL_PATTERN":
-           planComponent.wallAreasCache = null;
-           break;
-         case "FURNITURE_VIEWED_FROM_TOP":
-           if (planComponent.furnitureTopViewIconKeys != null && !preferences.isFurnitureViewedFromTop()) {
-             planComponent.furnitureTopViewIconKeys = null;
-             planComponent.furnitureTopViewIconsCache = null;
-           }
-           break;
-         case "FURNITURE_MODEL_ICON_SIZE":
-           planComponent.furnitureTopViewIconKeys = null;
-           planComponent.furnitureTopViewIconsCache = null;
-           break;
-         default:
-           break;
-         }
-         planComponent.repaint();
-       }
-     };
-     return UserPreferencesChangeListener;
-   }());
-   PlanComponent.UserPreferencesChangeListener = UserPreferencesChangeListener;
-   UserPreferencesChangeListener["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.UserPreferencesChangeListener";
-   UserPreferencesChangeListener["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
+    UserPreferencesChangeListener.prototype.propertyChange = function (ev) {
+      var planComponent = this.planComponent;
+      var preferences = ev.getSource();
+      var property = ev.getPropertyName();
+      if (planComponent == null) {
+        preferences.removePropertyChangeListener(property, this);
+      } else {
+        switch ((property)) {
+        case "LANGUAGE":
+        case "UNIT":
+          //                    {
+          //                        let array211 = /* entrySet */((m) => { if(m.entries==null) m.entries=[]; return m.entries; })(<any>planComponent.toolTipEditableTextFields);
+          //                        for(let index210=0; index210 < array211.length; index210++) {
+          //                            let toolTipTextFieldEntry = array211[index210];
+          //                            {
+          //                                PlanComponent.updateToolTipTextFieldFormatterFactory(toolTipTextFieldEntry.getValue(), toolTipTextFieldEntry.getKey(), preferences);
+          //                            }
+          //                        }
+          //                    }
+          //                    if(planComponent.horizontalRuler != null) {
+          //                        planComponent.horizontalRuler.repaint();
+          //                    }
+          //                    if(planComponent.verticalRuler != null) {
+          //                        planComponent.verticalRuler.repaint();
+          //                    }
+          break;
+        case "DEFAULT_FONT_NAME":
+          planComponent.fonts = null;
+          planComponent.fontsMetrics = null;
+          null /*erased method planComponent.revalidate*/;
+          break;
+        case "WALL_PATTERN":
+          planComponent.wallAreasCache = null;
+          break;
+        case "FURNITURE_VIEWED_FROM_TOP":
+          if (planComponent.furnitureTopViewIconKeys != null && !preferences.isFurnitureViewedFromTop()) {
+            planComponent.furnitureTopViewIconKeys = null;
+            planComponent.furnitureTopViewIconsCache = null;
+          }
+          break;
+        case "FURNITURE_MODEL_ICON_SIZE":
+          planComponent.furnitureTopViewIconKeys = null;
+          planComponent.furnitureTopViewIconsCache = null;
+          break;
+        default:
+          break;
+        }
+        planComponent.repaint();
+      }
+    };
+    return UserPreferencesChangeListener;
+  }());
+  PlanComponent.UserPreferencesChangeListener = UserPreferencesChangeListener;
+  UserPreferencesChangeListener["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.UserPreferencesChangeListener";
+  UserPreferencesChangeListener["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
 
-   /**
-    * Separated static class to be able to exclude FreeHEP library from classpath
-    * in case the application doesn't use export to SVG format.
-    * @class
-    */
-   var SVGSupport = (function () {
+  /**
+   * Separated static class to be able to exclude FreeHEP library from classpath
+   * in case the application doesn't use export to SVG format.
+   * @class
+   */
+  var SVGSupport = (function () {
 
-     function SVGSupport() {
-     }
+    function SVGSupport() {
+    }
 
-     SVGSupport.exportToSVG = function (out, planComponent) {
-       var homeItems = planComponent.getPaintedItems();
-       var svgItemBounds = planComponent.getItemsBounds(null, homeItems);
-       if (svgItemBounds == null) {
-         svgItemBounds = new java.awt.geom.Rectangle2D.Float();
-       }
-       var svgScale = 1.0;
-       var extraMargin = planComponent.getStrokeWidthExtraMargin(homeItems, PlanComponent.PaintMode.EXPORT);
-       var imageSize = new java.awt.Dimension((Math.ceil(svgItemBounds.getWidth() * svgScale + 2 * extraMargin) | 0), (Math.ceil(svgItemBounds.getHeight() * svgScale + 2 * extraMargin) | 0));
-       var exportG2D = new SVGSupport.SVGSupport$0(out, imageSize);
-       var properties = new org.freehep.util.UserProperties();
-       properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.STYLABLE, true);
-       properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.WRITE_IMAGES_AS, org.freehep.graphicsio.ImageConstants.PNG);
-       properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.TITLE, planComponent.home.getName() != null ? planComponent.home.getName() : "");
-       properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.FOR, java.lang.System.getProperty("user.name", ""));
-       exportG2D.setProperties(properties);
-       exportG2D.startExport();
-       exportG2D.translate(-svgItemBounds.getMinX() + extraMargin, -svgItemBounds.getMinY() + extraMargin);
-       planComponent.paintContent(exportG2D, svgScale, PlanComponent.PaintMode.EXPORT);
-       exportG2D.endExport();
-     };
-     return SVGSupport;
-   }());
-   PlanComponent.SVGSupport = SVGSupport;
-   SVGSupport["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.SVGSupport";
+    SVGSupport.exportToSVG = function (out, planComponent) {
+      var homeItems = planComponent.getPaintedItems();
+      var svgItemBounds = planComponent.getItemsBounds(null, homeItems);
+      if (svgItemBounds == null) {
+        svgItemBounds = new java.awt.geom.Rectangle2D.Float();
+      }
+      var svgScale = 1.0;
+      var extraMargin = planComponent.getStrokeWidthExtraMargin(homeItems, PlanComponent.PaintMode.EXPORT);
+      var imageSize = new java.awt.Dimension((Math.ceil(svgItemBounds.getWidth() * svgScale + 2 * extraMargin) | 0), (Math.ceil(svgItemBounds.getHeight() * svgScale + 2 * extraMargin) | 0));
+      var exportG2D = new SVGSupport.SVGSupport$0(out, imageSize);
+      var properties = new org.freehep.util.UserProperties();
+      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.STYLABLE, true);
+      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.WRITE_IMAGES_AS, org.freehep.graphicsio.ImageConstants.PNG);
+      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.TITLE, planComponent.home.getName() != null ? planComponent.home.getName() : "");
+      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.FOR, java.lang.System.getProperty("user.name", ""));
+      exportG2D.setProperties(properties);
+      exportG2D.startExport();
+      exportG2D.translate(-svgItemBounds.getMinX() + extraMargin, -svgItemBounds.getMinY() + extraMargin);
+      planComponent.paintContent(exportG2D, svgScale, PlanComponent.PaintMode.EXPORT);
+      exportG2D.endExport();
+    };
+    return SVGSupport;
+  }());
+  PlanComponent.SVGSupport = SVGSupport;
+  SVGSupport["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.SVGSupport";
 
-   /**
-    * A map key used to compare furniture with the same top view icon.
-    * @param {HomePieceOfFurniture} piece
-    * @class
-    */
-   var HomePieceOfFurnitureTopViewIconKey = (function () {
-     function HomePieceOfFurnitureTopViewIconKey(piece) {
-       this.piece = piece;
-       //            this.__hashCode = (piece.getPlanIcon() != null?null/*erased method piece.getPlanIcon().hashCode*/:null/*erased method piece.getModel().hashCode*/) + (piece.getColor() != null?37 * null/*erased method this.piece.getColor().hashCode*/:1234);
-       //            if(this.piece.isHorizontallyRotated() || this.piece.getTexture() != null) {
-       //                this.__hashCode += (piece.getTexture() != null?37 * null/*erased method this.piece.getTexture().hashCode*/:0) + 37 * null/*erased method Float.valueOf(piece.getWidthInPlan()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getDepthInPlan()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getHeightInPlan()).hashCode*/;
-       //            }
-       //            if(this.piece.getPlanIcon() != null) {
-       //                this.__hashCode += 37 * java.util.Arrays.deepHashCode(piece.getModelRotation()) + 37 * null/*erased method Boolean.valueOf(piece.isModelCenteredAtOrigin()).hashCode*/ + 37 * null/*erased method Boolean.valueOf(piece.isBackFaceShown()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getPitch()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getRoll()).hashCode*/ + 37 * null/*erased method Arrays.hashCode*/ + 37 * null/*erased method Arrays.hashCode*/ + (piece.getShininess() != null?37 * null/*erased method this.piece.getShininess().hashCode*/:3456);
-       //            }
-     }
-     /**
-      *
-      * @param {Object} obj
-      * @return {boolean}
-      */
-     HomePieceOfFurnitureTopViewIconKey.prototype.equals = function (obj) {
-       if (obj instanceof HomePieceOfFurnitureTopViewIconKey) {
-         var piece2 = obj.piece;
-         // Test all furniture data that could make change the plan icon
-         // (see HomePieceOfFurniture3D and PlanComponent#addModelListeners for changes conditions)
-         return (this.piece.getPlanIcon() != null
-             ? this.piece.getPlanIcon().equals(piece2.getPlanIcon())
-                 : this.piece.getModel().equals(piece2.getModel()))
-                 && (this.piece.getColor() == piece2.getColor())
-                 && (this.piece.getTexture() == piece2.getTexture()
-                     || this.piece.getTexture() != null && this.piece.getTexture().equals(piece2.getTexture()))
-                     && (!this.piece.isHorizontallyRotated()
-                         && !piece2.isHorizontallyRotated()
-                         && this.piece.getTexture() == null
-                         && piece2.getTexture() == null
-                         || this.piece.getWidthInPlan() == piece2.getWidthInPlan()
-                         && this.piece.getDepthInPlan() == piece2.getDepthInPlan()
-                         && this.piece.getHeightInPlan() == piece2.getHeightInPlan())
-                         && (this.piece.getPlanIcon() != null
-                             || this.piece.getModelRotation() == piece2.getModelRotation()) // TODO : array equality
-                             && this.piece.isModelCenteredAtOrigin() == piece2.isModelCenteredAtOrigin()
-                             && this.piece.isBackFaceShown() == piece2.isBackFaceShown()
-                             && this.piece.getPitch() == piece2.getPitch()
-                             && this.piece.getRoll() == piece2.getRoll()
-                             && this.piece.getModelTransformations() == piece2.getModelTransformations() // TODO : array equality
-                             && this.piece.getModelMaterials() == piece2.getModelMaterials() // TODO : array equality
-                             && (this.piece.getShininess() == piece2.getShininess());
-       }
-       else {
-         return false;
-       }
-     };
-     return HomePieceOfFurnitureTopViewIconKey;
-   }());
-   PlanComponent.HomePieceOfFurnitureTopViewIconKey = HomePieceOfFurnitureTopViewIconKey;
-   HomePieceOfFurnitureTopViewIconKey["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.HomePieceOfFurnitureTopViewIconKey";
+  /**
+   * A map key used to compare furniture with the same top view icon.
+   * @param {HomePieceOfFurniture} piece
+   * @class
+   */
+  var HomePieceOfFurnitureTopViewIconKey = (function () {
+    function HomePieceOfFurnitureTopViewIconKey(piece) {
+      this.piece = piece;
+      //            this.__hashCode = (piece.getPlanIcon() != null?null/*erased method piece.getPlanIcon().hashCode*/:null/*erased method piece.getModel().hashCode*/) + (piece.getColor() != null?37 * null/*erased method this.piece.getColor().hashCode*/:1234);
+      //            if(this.piece.isHorizontallyRotated() || this.piece.getTexture() != null) {
+      //                this.__hashCode += (piece.getTexture() != null?37 * null/*erased method this.piece.getTexture().hashCode*/:0) + 37 * null/*erased method Float.valueOf(piece.getWidthInPlan()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getDepthInPlan()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getHeightInPlan()).hashCode*/;
+      //            }
+      //            if(this.piece.getPlanIcon() != null) {
+      //                this.__hashCode += 37 * java.util.Arrays.deepHashCode(piece.getModelRotation()) + 37 * null/*erased method Boolean.valueOf(piece.isModelCenteredAtOrigin()).hashCode*/ + 37 * null/*erased method Boolean.valueOf(piece.isBackFaceShown()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getPitch()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getRoll()).hashCode*/ + 37 * null/*erased method Arrays.hashCode*/ + 37 * null/*erased method Arrays.hashCode*/ + (piece.getShininess() != null?37 * null/*erased method this.piece.getShininess().hashCode*/:3456);
+      //            }
+    }
+    /**
+     *
+     * @param {Object} obj
+     * @return {boolean}
+     */
+    HomePieceOfFurnitureTopViewIconKey.prototype.equals = function (obj) {
+      if (obj instanceof HomePieceOfFurnitureTopViewIconKey) {
+        var piece2 = obj.piece;
+        // Test all furniture data that could make change the plan icon
+        // (see HomePieceOfFurniture3D and PlanComponent#addModelListeners for changes conditions)
+        return (this.piece.getPlanIcon() != null
+            ? this.piece.getPlanIcon().equals(piece2.getPlanIcon())
+                : this.piece.getModel().equals(piece2.getModel()))
+                && (this.piece.getColor() == piece2.getColor())
+                && (this.piece.getTexture() == piece2.getTexture()
+                    || this.piece.getTexture() != null && this.piece.getTexture().equals(piece2.getTexture()))
+                    && (!this.piece.isHorizontallyRotated()
+                        && !piece2.isHorizontallyRotated()
+                        && this.piece.getTexture() == null
+                        && piece2.getTexture() == null
+                        || this.piece.getWidthInPlan() == piece2.getWidthInPlan()
+                        && this.piece.getDepthInPlan() == piece2.getDepthInPlan()
+                        && this.piece.getHeightInPlan() == piece2.getHeightInPlan())
+                        && (this.piece.getPlanIcon() != null
+                            || this.piece.getModelRotation() == piece2.getModelRotation()) // TODO : array equality
+                            && this.piece.isModelCenteredAtOrigin() == piece2.isModelCenteredAtOrigin()
+                            && this.piece.isBackFaceShown() == piece2.isBackFaceShown()
+                            && this.piece.getPitch() == piece2.getPitch()
+                            && this.piece.getRoll() == piece2.getRoll()
+                            && this.piece.getModelTransformations() == piece2.getModelTransformations() // TODO : array equality
+                            && this.piece.getModelMaterials() == piece2.getModelMaterials() // TODO : array equality
+                            && (this.piece.getShininess() == piece2.getShininess());
+      }
+      else {
+        return false;
+      }
+    };
+    return HomePieceOfFurnitureTopViewIconKey;
+  }());
+  PlanComponent.HomePieceOfFurnitureTopViewIconKey = HomePieceOfFurnitureTopViewIconKey;
+  HomePieceOfFurnitureTopViewIconKey["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.HomePieceOfFurnitureTopViewIconKey";
 
-   /**
-    * A proxy for the furniture icon seen from top.
-    * @param {Image} icon
-    * @constructor
-    */
-   var PieceOfFurnitureTopViewIcon = (function () {
+  /**
+   * A proxy for the furniture icon seen from top.
+   * @param {Image} icon
+   * @constructor
+   */
+  var PieceOfFurnitureTopViewIcon = (function () {
 
-     function PieceOfFurnitureTopViewIcon(image) {
-       this.image = image;
-     }
+    function PieceOfFurnitureTopViewIcon(image) {
+      this.image = image;
+    }
 
-     PieceOfFurnitureTopViewIcon.prototype.getIconWidth = function () {
-       return this.image.width;
-     };
+    PieceOfFurnitureTopViewIcon.prototype.getIconWidth = function () {
+      return this.image.width;
+    };
 
-     PieceOfFurnitureTopViewIcon.prototype.getIconHeight = function () {
-       return this.image.height;
-     };
+    PieceOfFurnitureTopViewIcon.prototype.getIconHeight = function () {
+      return this.image.height;
+    };
 
-     PieceOfFurnitureTopViewIcon.prototype.paintIcon = function (g, x, y) {
-       g.drawImage(this.image, x, y);
-     };
+    PieceOfFurnitureTopViewIcon.prototype.paintIcon = function (g, x, y) {
+      g.drawImage(this.image, x, y);
+    };
 
-     PieceOfFurnitureTopViewIcon.prototype.isWaitIcon = function () {
-       return this.image === TextureManager.getInstance().getWaitImage();
-     };
+    PieceOfFurnitureTopViewIcon.prototype.isWaitIcon = function () {
+      return this.image === TextureManager.getInstance().getWaitImage();
+    };
 
-     PieceOfFurnitureTopViewIcon.prototype.isErrorIcon = function () {
-       return this.image === TextureManager.getInstance().getErrorImage();
-     };
+    PieceOfFurnitureTopViewIcon.prototype.isErrorIcon = function () {
+      return this.image === TextureManager.getInstance().getErrorImage();
+    };
 
-     PieceOfFurnitureTopViewIcon.prototype.setIcon = function (image) {
-       this.image = image;
-     };
+    PieceOfFurnitureTopViewIcon.prototype.setIcon = function (image) {
+      this.image = image;
+    };
 
-     return PieceOfFurnitureTopViewIcon;
-   }());
-   PlanComponent.PieceOfFurnitureTopViewIcon = PieceOfFurnitureTopViewIcon;
+    return PieceOfFurnitureTopViewIcon;
+  }());
+  PlanComponent.PieceOfFurnitureTopViewIcon = PieceOfFurnitureTopViewIcon;
 
-   /**
-    * Creates a top view icon proxy for a <code>piece</code> of furniture.
-    * @param {HomePieceOfFurniture} piece an object containing a 3D content
-    * @param {Object} object3dFactory a factory with a <code>createObject3D(home, item, waitForLoading)</code> method
-    * @param {Object} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-    *          be read immediately in the current thread.
-    * @param {number} iconSize the size in pixels of the generated icon
-    * @constructor
-    * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-    */
-   var PieceOfFurnitureModelIcon = (function (_super) {
-     __extends(PieceOfFurnitureModelIcon, _super);
-     function PieceOfFurnitureModelIcon(piece, object3dFactory, waitingComponent, iconSize) {
-       _super.call(this, TextureManager.getInstance().getWaitImage());
-       var modelIcon = this;
-       ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
-         modelUpdated: function (modelRoot) {
-           var normalizedPiece = piece.clone();
-           if (normalizedPiece.isResizable()) {
-             normalizedPiece.setModelMirrored(false);
-           }
-           var pieceWidth = normalizedPiece.getWidthInPlan();
-           var pieceDepth = normalizedPiece.getDepthInPlan();
-           var pieceHeight = normalizedPiece.getHeightInPlan();
-           normalizedPiece.setX(0);
-           normalizedPiece.setY(0);
-           normalizedPiece.setElevation(-pieceHeight / 2);
-           normalizedPiece.setLevel(null);
-           normalizedPiece.setAngle(0);
-           if (waitingComponent !== null) {
-             var updater = function () {
-               modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize, function (icon) {
-                 modelIcon.setIcon(icon);
-                 waitingComponent.repaint();
-               });
-             };
-             setTimeout(updater, 0);
-           }
-           else {
-             modelIcon.setIcon(modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize));
-           }
-         },
-         modelError: function (ex) {
-           // In case of problem use a default red box
-           modelIcon.setIcon(TextureManager.getInstance().getErrorImage());
-           if (waitingComponent !== null) {
-             waitingComponent.repaint();
-           }
-         }
-       });
-     }
+  /**
+   * Creates a top view icon proxy for a <code>piece</code> of furniture.
+   * @param {HomePieceOfFurniture} piece an object containing a 3D content
+   * @param {Object} object3dFactory a factory with a <code>createObject3D(home, item, waitForLoading)</code> method
+   * @param {Object} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+   *          be read immediately in the current thread.
+   * @param {number} iconSize the size in pixels of the generated icon
+   * @constructor
+   * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+   */
+  var PieceOfFurnitureModelIcon = (function (_super) {
+    __extends(PieceOfFurnitureModelIcon, _super);
+    function PieceOfFurnitureModelIcon(piece, object3dFactory, waitingComponent, iconSize) {
+      _super.call(this, TextureManager.getInstance().getWaitImage());
+      var modelIcon = this;
+      ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
+        modelUpdated: function (modelRoot) {
+          var normalizedPiece = piece.clone();
+          if (normalizedPiece.isResizable()) {
+            normalizedPiece.setModelMirrored(false);
+          }
+          var pieceWidth = normalizedPiece.getWidthInPlan();
+          var pieceDepth = normalizedPiece.getDepthInPlan();
+          var pieceHeight = normalizedPiece.getHeightInPlan();
+          normalizedPiece.setX(0);
+          normalizedPiece.setY(0);
+          normalizedPiece.setElevation(-pieceHeight / 2);
+          normalizedPiece.setLevel(null);
+          normalizedPiece.setAngle(0);
+          if (waitingComponent !== null) {
+            var updater = function () {
+              modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize, function (icon) {
+                modelIcon.setIcon(icon);
+                waitingComponent.repaint();
+              });
+            };
+            setTimeout(updater, 0);
+          }
+          else {
+            modelIcon.setIcon(modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize));
+          }
+        },
+        modelError: function (ex) {
+          // In case of problem use a default red box
+          modelIcon.setIcon(TextureManager.getInstance().getErrorImage());
+          if (waitingComponent !== null) {
+            waitingComponent.repaint();
+          }
+        }
+      });
+    }
 
-     /**
-      * Returns the branch group bound to a universe and a canvas for the given
-      * resolution.
-      * @param {number} iconSize
-      * @return {BranchGroup3D}
-      * @private
-      */
-     PieceOfFurnitureModelIcon.prototype.getSceneRoot = function (iconSize) {
-       if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
-         var canvas = document.createElement("canvas");
-         canvas.width = iconSize;
-         canvas.height = iconSize;
-         canvas.style.backgroundColor = "rgba(255, 255, 255, 0)";
-         var canvas3D = new HTMLCanvas3D(canvas);
-         var rotation = mat4.create();
-         mat4.fromXRotation(rotation, -Math.PI / 2);
-         var transform = mat4.create();
-         mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
-         mat4.mul(transform, transform, rotation);
-         canvas3D.setViewPlatformTransform(transform);
-         canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
-         var sceneRoot = new BranchGroup3D();
-         sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
-         var lights = [
-           new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)),
-           new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)),
-           new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)),
-           new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))];
-         for (var i = 0; i < lights.length; i++) {
-           sceneRoot.addChild(lights[i]);
-         }
-         canvas3D.setScene(sceneRoot);
-         PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
-       }
-       else {
-         if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
-           PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
-           PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
-           return this.getSceneRoot(iconSize);
-         }
-       }
-       return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
-     };
+    /**
+     * Returns the branch group bound to a universe and a canvas for the given
+     * resolution.
+     * @param {number} iconSize
+     * @return {BranchGroup3D}
+     * @private
+     */
+    PieceOfFurnitureModelIcon.prototype.getSceneRoot = function (iconSize) {
+      if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+        var canvas = document.createElement("canvas");
+        canvas.width = iconSize;
+        canvas.height = iconSize;
+        canvas.style.backgroundColor = "rgba(255, 255, 255, 0)";
+        var canvas3D = new HTMLCanvas3D(canvas);
+        var rotation = mat4.create();
+        mat4.fromXRotation(rotation, -Math.PI / 2);
+        var transform = mat4.create();
+        mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
+        mat4.mul(transform, transform, rotation);
+        canvas3D.setViewPlatformTransform(transform);
+        canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
+        var sceneRoot = new BranchGroup3D();
+        sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
+        var lights = [
+          new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)),
+          new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)),
+          new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)),
+          new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))];
+        for (var i = 0; i < lights.length; i++) {
+          sceneRoot.addChild(lights[i]);
+        }
+        canvas3D.setScene(sceneRoot);
+        PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
+      }
+      else {
+        if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
+          PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
+          PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
+          return this.getSceneRoot(iconSize);
+        }
+      }
+      return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
+    };
 
-     /**
-      * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready
-      * or returns the icon itself if <code>iconObserver</code> is not given.
-      * @param {Object3DBranch} pieceNode
-      * @param {number} pieceWidth
-      * @param {number} pieceDepth
-      * @param {number} pieceHeight
-      * @param {number} iconSize
-      * @param {Object} [iconObserver] a function that will receive the icon as parameter
-      * @return {Image} the icon or <code>undefined</code> if <code>iconObserver</code> exists
-      * @private
-      */
-     PieceOfFurnitureModelIcon.prototype.createIcon = function (pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver) {
-       var scaleTransform = mat4.create();
-       mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
-       var modelTransformGroup = new TransformGroup3D();
-       modelTransformGroup.setTransform(scaleTransform);
-       modelTransformGroup.addChild(pieceNode);
-       var model = new BranchGroup3D();
-       model.addChild(modelTransformGroup);
-       var sceneRoot = this.getSceneRoot(iconSize);
-       if (iconObserver) {
-         var iconGeneration = function () {
-           sceneRoot.addChild(model);
-           var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
-           if (loadingCompleted) {
-             iconObserver(PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage());
-           }
-           sceneRoot.removeChild(model);
-           if (!loadingCompleted) {
-             setTimeout(iconGeneration, 0);
-           }
-         };
-         iconGeneration();
-         return undefined;
-       }
-       else {
-         sceneRoot.addChild(model);
-         var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
-         sceneRoot.removeChild(model);
-         return icon;
-       }
-     };
+    /**
+     * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready
+     * or returns the icon itself if <code>iconObserver</code> is not given.
+     * @param {Object3DBranch} pieceNode
+     * @param {number} pieceWidth
+     * @param {number} pieceDepth
+     * @param {number} pieceHeight
+     * @param {number} iconSize
+     * @param {Object} [iconObserver] a function that will receive the icon as parameter
+     * @return {Image} the icon or <code>undefined</code> if <code>iconObserver</code> exists
+     * @private
+     */
+    PieceOfFurnitureModelIcon.prototype.createIcon = function (pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver) {
+      var scaleTransform = mat4.create();
+      mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
+      var modelTransformGroup = new TransformGroup3D();
+      modelTransformGroup.setTransform(scaleTransform);
+      modelTransformGroup.addChild(pieceNode);
+      var model = new BranchGroup3D();
+      model.addChild(modelTransformGroup);
+      var sceneRoot = this.getSceneRoot(iconSize);
+      if (iconObserver) {
+        var iconGeneration = function () {
+          sceneRoot.addChild(model);
+          var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
+          if (loadingCompleted) {
+            iconObserver(PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage());
+          }
+          sceneRoot.removeChild(model);
+          if (!loadingCompleted) {
+            setTimeout(iconGeneration, 0);
+          }
+        };
+        iconGeneration();
+        return undefined;
+      }
+      else {
+        sceneRoot.addChild(model);
+        var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
+        sceneRoot.removeChild(model);
+        return icon;
+      }
+    };
 
-     /**
-      * Returns the size of the given piece computed from its vertices.
-      * @param {HomePieceOfFurniture} piece
-      * @param {Object} object3dFactory
-      * @return {Array}
-      * @private
-      */
-     PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
-       var horizontalRotation = mat4.create();
-       if (piece.getPitch() !== 0) {
-         mat4.fromXRotation(horizontalRotation, -piece.getPitch());
-       }
-       if (piece.getRoll() !== 0) {
-         var rollRotation = mat4.create();
-         mat4.fromZRotation(rollRotation, -piece.getRoll());
-         mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
-       }
-       // Compute bounds of a piece centered at the origin and rotated around the target horizontal angle
-       piece = piece.clone();
-       piece.setX(0);
-       piece.setY(0);
-       piece.setElevation(-piece.getHeight() / 2);
-       piece.setLevel(null);
-       piece.setAngle(0);
-       piece.setRoll(0);
-       piece.setPitch(0);
-       piece.setWidthInPlan(piece.getWidth());
-       piece.setDepthInPlan(piece.getDepth());
-       piece.setHeightInPlan(piece.getHeight());
-       var bounds = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
-       var lower = vec3.create();
-       bounds.getLower(lower);
-       var upper = vec3.create();
-       bounds.getUpper(upper);
-       return [Math.max(0.001, (upper[0] - lower[0])),
-         Math.max(0.001, (upper[2] - lower[2])),
-         Math.max(0.001, (upper[1] - lower[1]))];
-     };
+    /**
+     * Returns the size of the given piece computed from its vertices.
+     * @param {HomePieceOfFurniture} piece
+     * @param {Object} object3dFactory
+     * @return {Array}
+     * @private
+     */
+    PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function (piece, object3dFactory) {
+      var horizontalRotation = mat4.create();
+      if (piece.getPitch() !== 0) {
+        mat4.fromXRotation(horizontalRotation, -piece.getPitch());
+      }
+      if (piece.getRoll() !== 0) {
+        var rollRotation = mat4.create();
+        mat4.fromZRotation(rollRotation, -piece.getRoll());
+        mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
+      }
+      // Compute bounds of a piece centered at the origin and rotated around the target horizontal angle
+      piece = piece.clone();
+      piece.setX(0);
+      piece.setY(0);
+      piece.setElevation(-piece.getHeight() / 2);
+      piece.setLevel(null);
+      piece.setAngle(0);
+      piece.setRoll(0);
+      piece.setPitch(0);
+      piece.setWidthInPlan(piece.getWidth());
+      piece.setDepthInPlan(piece.getDepth());
+      piece.setHeightInPlan(piece.getHeight());
+      var bounds = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
+      var lower = vec3.create();
+      bounds.getLower(lower);
+      var upper = vec3.create();
+      bounds.getUpper(upper);
+      return [Math.max(0.001, (upper[0] - lower[0])),
+        Math.max(0.001, (upper[2] - lower[2])),
+        Math.max(0.001, (upper[1] - lower[1]))];
+    };
 
-     return PieceOfFurnitureModelIcon;
-   }(PieceOfFurnitureTopViewIcon));
-   PlanComponent.PieceOfFurnitureModelIcon = PieceOfFurnitureModelIcon;
+    return PieceOfFurnitureModelIcon;
+  }(PieceOfFurnitureTopViewIcon));
+  PlanComponent.PieceOfFurnitureModelIcon = PieceOfFurnitureModelIcon;
 
-   /**
-    * Creates a plan icon proxy for a <code>piece</code> of furniture.
-    * @param {HomePieceOfFurniture} piece an object containing a plan icon content
-    * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-    * be read immediately in the current thread.
-    * @class
-    * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-    */
-   var PieceOfFurniturePlanIcon = (function (_super) {
-     __extends(PieceOfFurniturePlanIcon, _super);
-     function PieceOfFurniturePlanIcon(piece, waitingComponent) {
-       var _this = this;
-       _super.call(this, TextureManager.getInstance().getWaitImage());
-       TextureManager.getInstance().loadTexture(piece.getPlanIcon(), false, {
-         textureUpdated: function (textureImage) {
-           _this.setIcon(textureImage);
-           waitingComponent.repaint();
-         },
-         textureError: function (error) {
-           _this.setIcon(TextureManager.getInstance().getErrorImage());
-           waitingComponent.repaint();
-         }
-       });
-     }
-     return PieceOfFurniturePlanIcon;
-   }(PlanComponent.PieceOfFurnitureTopViewIcon));
-   PlanComponent.PieceOfFurniturePlanIcon = PieceOfFurniturePlanIcon;
-   PieceOfFurniturePlanIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurniturePlanIcon";
-   PieceOfFurniturePlanIcon["__interfaces"] = ["javax.swing.Icon"];
+  /**
+   * Creates a plan icon proxy for a <code>piece</code> of furniture.
+   * @param {HomePieceOfFurniture} piece an object containing a plan icon content
+   * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+   * be read immediately in the current thread.
+   * @class
+   * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+   */
+  var PieceOfFurniturePlanIcon = (function (_super) {
+    __extends(PieceOfFurniturePlanIcon, _super);
+    function PieceOfFurniturePlanIcon(piece, waitingComponent) {
+      var _this = this;
+      _super.call(this, TextureManager.getInstance().getWaitImage());
+      TextureManager.getInstance().loadTexture(piece.getPlanIcon(), false, {
+        textureUpdated: function (textureImage) {
+          _this.setIcon(textureImage);
+          waitingComponent.repaint();
+        },
+        textureError: function (error) {
+          _this.setIcon(TextureManager.getInstance().getErrorImage());
+          waitingComponent.repaint();
+        }
+      });
+    }
+    return PieceOfFurniturePlanIcon;
+  }(PlanComponent.PieceOfFurnitureTopViewIcon));
+  PlanComponent.PieceOfFurniturePlanIcon = PieceOfFurniturePlanIcon;
+  PieceOfFurniturePlanIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurniturePlanIcon";
+  PieceOfFurniturePlanIcon["__interfaces"] = ["javax.swing.Icon"];
 
 
-   // =======================================================
-   // Anonymous classes (TODO: remove or replace)
-   var PlanComponent$15 = (function () {
-     function PlanComponent$15(__parent, controller) {
-       this.controller = controller;
-       this.__parent = __parent;
-     }
-     /**
-      *
-      * @param {java.awt.event.FocusEvent} ev
-      */
-     PlanComponent$15.prototype.focusLost = function (ev) {
-       this.controller.escape();
-     };
-     return PlanComponent$15;
-   }());
-   PlanComponent.PlanComponent$15 = PlanComponent$15;
-   PlanComponent$15["__interfaces"] = ["java.util.EventListener", "java.awt.event.FocusListener"];
-   var PlanComponent$16 = (function () {
-     function PlanComponent$16(__parent) {
-       this.__parent = __parent;
-     }
-     PlanComponent$16.prototype.propertyChange = function (ev) {
-       if (!(this.__parent.home.getSelectedItems().length == 0)) {
-         this.__parent.repaint();
-       }
-     };
-     return PlanComponent$16;
-   }());
-   PlanComponent.PlanComponent$16 = PlanComponent$16;
-   PlanComponent$16["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
-   var PlanComponent$17 = (function () {
-     function PlanComponent$17(__parent, controller) {
-       this.controller = controller;
-       this.__parent = __parent;
-     }
-     PlanComponent$17.prototype.propertyChange = function (ev) {
-       var wallsDoorsOrWindowsModification = this.controller.isBasePlanModificationState();
-       if (wallsDoorsOrWindowsModification) {
-         if (this.controller.getMode() !== PlanController.Mode.WALL_CREATION) {
-           {
-             var array214 = (this.__parent.draggedItemsFeedback != null ? this.__parent.draggedItemsFeedback : this.__parent.home.getSelectedItems());
-             for (var index213 = 0; index213 < array214.length; index213++) {
-               var item = array214[index213];
-               {
-                 if (!(item != null && item instanceof Wall) && !((item != null && item instanceof HomePieceOfFurniture) && (item).isDoorOrWindow())) {
-                   wallsDoorsOrWindowsModification = false;
-                 }
-               }
-             }
-           }
-         }
-       }
-       if (this.__parent.wallsDoorsOrWindowsModification !== wallsDoorsOrWindowsModification) {
-         this.__parent.wallsDoorsOrWindowsModification = wallsDoorsOrWindowsModification;
-         this.__parent.repaint();
-       }
-     };
-     return PlanComponent$17;
-   }());
-   PlanComponent.PlanComponent$17 = PlanComponent$17;
-   PlanComponent$17["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
-   var PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ = (function () {
-     function PlanComponent$20 /*extends javax.swing.JFormattedTextField*/(__parent) {
-       _super.call(this);
-       this.__parent = __parent;
-     }
-     /**
-      *
-      * @return {java.awt.Dimension}
-      */
-     PlanComponent$20 /*extends javax.swing.JFormattedTextField*/.prototype.getPreferredSize = function () {
-       var preferredSize = _super.prototype.getPreferredSize.call(this);
-       return new java.awt.Dimension(preferredSize.width + 1, preferredSize.height);
-     };
-     return PlanComponent$20 /*extends javax.swing.JFormattedTextField*/;
-   }());
-   PlanComponent.PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ = PlanComponent$20 /*extends javax.swing.JFormattedTextField*/;
-   PlanComponent$20["__interfaces"] = ["javax.swing.Scrollable", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "javax.accessibility.Accessible", "javax.swing.SwingConstants", "java.awt.image.ImageObserver", "java.io.Serializable"];
-   var PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = (function () {
-     function PlanComponent$21 /*implements javax.swing.event.DocumentListener*/(__parent, textField, controller, editableProperty) {
-       this.textField = textField;
-       this.controller = controller;
-       this.editableProperty = editableProperty;
-       this.__parent = __parent;
-     }
-     PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.changedUpdate = function (ev) {
-       try {
-         this.textField.commitEdit();
-         this.controller.updateEditableProperty(this.editableProperty, this.textField.getValue());
-       }
-       catch (ex) {
-         this.controller.updateEditableProperty(this.editableProperty, null);
-       }
-       ;
-     };
-     PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.insertUpdate = function (ev) {
-       this.changedUpdate(ev);
-     };
-     PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.removeUpdate = function (ev) {
-       this.changedUpdate(ev);
-     };
-     return PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
-   }());
-   PlanComponent.PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
-   PlanComponent$21["__interfaces"] = ["java.util.EventListener", "javax.swing.event.DocumentListener"];
-   var PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = (function () {
-     function PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/(__parent) {
-       _super.call(this);
-       this.__parent = __parent;
-     }
-     /**
-      *
-      * @param {java.awt.event.MouseEvent} ev
-      */
-     PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mousePressed = function (ev) {
-       this.mouseMoved(ev);
-     };
-     /**
-      *
-      * @param {java.awt.event.MouseEvent} ev
-      */
-     PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseReleased = function (ev) {
-       this.mouseMoved(ev);
-     };
-     /**
-      *
-      * @param {java.awt.event.MouseEvent} ev
-      */
-     PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseMoved = function (ev) {
-       this.__parent.dispatchEvent(javax.swing.SwingUtilities.convertMouseEvent(this.__parent.toolTipWindow, ev, this.__parent));
-     };
-     /**
-      *
-      * @param {java.awt.event.MouseEvent} ev
-      */
-     PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseDragged = function (ev) {
-       this.mouseMoved(ev);
-     };
-     return PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/;
-   }());
-   PlanComponent.PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/;
-   PlanComponent$24["__interfaces"] = ["java.util.EventListener", "java.awt.event.MouseMotionListener", "javax.swing.event.MouseInputListener", "java.awt.event.MouseWheelListener", "java.awt.event.MouseListener"];
-   var PlanComponent$25 = (function () {
-     function PlanComponent$25(__parent, toolTipEditedProperties) {
-       var _this = this;
-       this.toolTipEditedProperties = toolTipEditedProperties;
-       this.__parent = __parent;
-       if (this.focusedTextFieldIndex === undefined)
-         this.focusedTextFieldIndex = 0;
-       if (this.focusedTextField === undefined)
-         this.focusedTextField = null;
-       (function () {
-         _this.setFocusedTextFieldIndex(0);
-       })();
-     }
-     PlanComponent$25.prototype.setFocusedTextFieldIndex = function (textFieldIndex) {
-       if (this.focusedTextField != null) {
-         this.focusedTextField.getCaret().setVisible(false);
-         this.focusedTextField.getCaret().setSelectionVisible(false);
-         this.focusedTextField.setValue(this.focusedTextField.getValue());
-       }
-       this.focusedTextFieldIndex = textFieldIndex;
-       this.focusedTextField = CoreTools.getFromMap(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
-       if (this.focusedTextField.getText().length === 0) {
-         this.focusedTextField.getCaret().setVisible(false);
-       }
-       else {
-         this.focusedTextField.selectAll();
-       }
-       this.focusedTextField.getCaret().setSelectionVisible(true);
-     };
-     PlanComponent$25.prototype.keyPressed = function (ev) {
-       this.keyTyped(ev);
-     };
-     PlanComponent$25.prototype.keyReleased = function (ev) {
-       if (ev.getKeyCode() !== java.awt.event.KeyEvent.VK_CONTROL && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ALT) {
-         java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(this.focusedTextField, ev);
-       }
-     };
-     PlanComponent$25.prototype.keyTyped = function (ev) {
-       var forwardKeys = this.focusedTextField.getFocusTraversalKeys(java.awt.KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
-       if ((forwardKeys.indexOf((java.awt.AWTKeyStroke.getAWTKeyStrokeForEvent(ev))) >= 0) || ev.getKeyCode() === java.awt.event.KeyEvent.VK_DOWN) {
-         this.setFocusedTextFieldIndex((this.focusedTextFieldIndex + 1) % this.toolTipEditedProperties.length);
-         ev.consume();
-       }
-       else {
-         var backwardKeys = this.focusedTextField.getFocusTraversalKeys(java.awt.KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);
-         if ((backwardKeys.indexOf((java.awt.AWTKeyStroke.getAWTKeyStrokeForEvent(ev))) >= 0) || ev.getKeyCode() === java.awt.event.KeyEvent.VK_UP) {
-           this.setFocusedTextFieldIndex((this.focusedTextFieldIndex - 1 + this.toolTipEditedProperties.length) % this.toolTipEditedProperties.length);
-           ev.consume();
-         }
-         else if ((ev.getKeyCode() === java.awt.event.KeyEvent.VK_HOME || ev.getKeyCode() === java.awt.event.KeyEvent.VK_END) && com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && !com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
-           if (ev.getKeyCode() === java.awt.event.KeyEvent.VK_HOME) {
-             this.focusedTextField.setCaretPosition(0);
-           }
-           else if (ev.getKeyCode() === java.awt.event.KeyEvent.VK_END) {
-             this.focusedTextField.setCaretPosition(this.focusedTextField.getText().length);
-           }
-           ev.consume();
-         }
-         else if (ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ESCAPE && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_CONTROL && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ALT) {
-           java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(this.focusedTextField, ev);
-           this.focusedTextField.getCaret().setVisible(true);
-           this.__parent.toolTipWindow.pack();
-         }
-       }
-     };
-     return PlanComponent$25;
-   }());
-   PlanComponent.PlanComponent$25 = PlanComponent$25;
-   PlanComponent$25["__interfaces"] = ["java.util.EventListener", "java.awt.event.KeyListener"];
+  // =======================================================
+  // Anonymous classes (TODO: remove or replace)
+  var PlanComponent$15 = (function () {
+    function PlanComponent$15(__parent, controller) {
+      this.controller = controller;
+      this.__parent = __parent;
+    }
+    /**
+     *
+     * @param {java.awt.event.FocusEvent} ev
+     */
+    PlanComponent$15.prototype.focusLost = function (ev) {
+      this.controller.escape();
+    };
+    return PlanComponent$15;
+  }());
+  PlanComponent.PlanComponent$15 = PlanComponent$15;
+  PlanComponent$15["__interfaces"] = ["java.util.EventListener", "java.awt.event.FocusListener"];
+  var PlanComponent$16 = (function () {
+    function PlanComponent$16(__parent) {
+      this.__parent = __parent;
+    }
+    PlanComponent$16.prototype.propertyChange = function (ev) {
+      if (!(this.__parent.home.getSelectedItems().length == 0)) {
+        this.__parent.repaint();
+      }
+    };
+    return PlanComponent$16;
+  }());
+  PlanComponent.PlanComponent$16 = PlanComponent$16;
+  PlanComponent$16["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
+  var PlanComponent$17 = (function () {
+    function PlanComponent$17(__parent, controller) {
+      this.controller = controller;
+      this.__parent = __parent;
+    }
+    PlanComponent$17.prototype.propertyChange = function (ev) {
+      var wallsDoorsOrWindowsModification = this.controller.isBasePlanModificationState();
+      if (wallsDoorsOrWindowsModification) {
+        if (this.controller.getMode() !== PlanController.Mode.WALL_CREATION) {
+          {
+            var array214 = (this.__parent.draggedItemsFeedback != null ? this.__parent.draggedItemsFeedback : this.__parent.home.getSelectedItems());
+            for (var index213 = 0; index213 < array214.length; index213++) {
+              var item = array214[index213];
+              {
+                if (!(item != null && item instanceof Wall) && !((item != null && item instanceof HomePieceOfFurniture) && (item).isDoorOrWindow())) {
+                  wallsDoorsOrWindowsModification = false;
+                }
+              }
+            }
+          }
+        }
+      }
+      if (this.__parent.wallsDoorsOrWindowsModification !== wallsDoorsOrWindowsModification) {
+        this.__parent.wallsDoorsOrWindowsModification = wallsDoorsOrWindowsModification;
+        this.__parent.repaint();
+      }
+    };
+    return PlanComponent$17;
+  }());
+  PlanComponent.PlanComponent$17 = PlanComponent$17;
+  PlanComponent$17["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
+  var PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ = (function () {
+    function PlanComponent$20 /*extends javax.swing.JFormattedTextField*/(__parent) {
+      _super.call(this);
+      this.__parent = __parent;
+    }
+    /**
+     *
+     * @return {java.awt.Dimension}
+     */
+    PlanComponent$20 /*extends javax.swing.JFormattedTextField*/.prototype.getPreferredSize = function () {
+      var preferredSize = _super.prototype.getPreferredSize.call(this);
+      return new java.awt.Dimension(preferredSize.width + 1, preferredSize.height);
+    };
+    return PlanComponent$20 /*extends javax.swing.JFormattedTextField*/;
+  }());
+  PlanComponent.PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ = PlanComponent$20 /*extends javax.swing.JFormattedTextField*/;
+  PlanComponent$20["__interfaces"] = ["javax.swing.Scrollable", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "javax.accessibility.Accessible", "javax.swing.SwingConstants", "java.awt.image.ImageObserver", "java.io.Serializable"];
+  var PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = (function () {
+    function PlanComponent$21 /*implements javax.swing.event.DocumentListener*/(__parent, textField, controller, editableProperty) {
+      this.textField = textField;
+      this.controller = controller;
+      this.editableProperty = editableProperty;
+      this.__parent = __parent;
+    }
+    PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.changedUpdate = function (ev) {
+      try {
+        this.textField.commitEdit();
+        this.controller.updateEditableProperty(this.editableProperty, this.textField.getValue());
+      }
+      catch (ex) {
+        this.controller.updateEditableProperty(this.editableProperty, null);
+      }
+      ;
+    };
+    PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.insertUpdate = function (ev) {
+      this.changedUpdate(ev);
+    };
+    PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.removeUpdate = function (ev) {
+      this.changedUpdate(ev);
+    };
+    return PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
+  }());
+  PlanComponent.PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
+  PlanComponent$21["__interfaces"] = ["java.util.EventListener", "javax.swing.event.DocumentListener"];
+  var PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = (function () {
+    function PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/(__parent) {
+      _super.call(this);
+      this.__parent = __parent;
+    }
+    /**
+     *
+     * @param {java.awt.event.MouseEvent} ev
+     */
+    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mousePressed = function (ev) {
+      this.mouseMoved(ev);
+    };
+    /**
+     *
+     * @param {java.awt.event.MouseEvent} ev
+     */
+    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseReleased = function (ev) {
+      this.mouseMoved(ev);
+    };
+    /**
+     *
+     * @param {java.awt.event.MouseEvent} ev
+     */
+    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseMoved = function (ev) {
+      this.__parent.dispatchEvent(javax.swing.SwingUtilities.convertMouseEvent(this.__parent.toolTipWindow, ev, this.__parent));
+    };
+    /**
+     *
+     * @param {java.awt.event.MouseEvent} ev
+     */
+    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseDragged = function (ev) {
+      this.mouseMoved(ev);
+    };
+    return PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/;
+  }());
+  PlanComponent.PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/;
+  PlanComponent$24["__interfaces"] = ["java.util.EventListener", "java.awt.event.MouseMotionListener", "javax.swing.event.MouseInputListener", "java.awt.event.MouseWheelListener", "java.awt.event.MouseListener"];
+  var PlanComponent$25 = (function () {
+    function PlanComponent$25(__parent, toolTipEditedProperties) {
+      var _this = this;
+      this.toolTipEditedProperties = toolTipEditedProperties;
+      this.__parent = __parent;
+      if (this.focusedTextFieldIndex === undefined)
+        this.focusedTextFieldIndex = 0;
+      if (this.focusedTextField === undefined)
+        this.focusedTextField = null;
+      (function () {
+        _this.setFocusedTextFieldIndex(0);
+      })();
+    }
+    PlanComponent$25.prototype.setFocusedTextFieldIndex = function (textFieldIndex) {
+      if (this.focusedTextField != null) {
+        this.focusedTextField.getCaret().setVisible(false);
+        this.focusedTextField.getCaret().setSelectionVisible(false);
+        this.focusedTextField.setValue(this.focusedTextField.getValue());
+      }
+      this.focusedTextFieldIndex = textFieldIndex;
+      this.focusedTextField = CoreTools.getFromMap(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
+      if (this.focusedTextField.getText().length === 0) {
+        this.focusedTextField.getCaret().setVisible(false);
+      }
+      else {
+        this.focusedTextField.selectAll();
+      }
+      this.focusedTextField.getCaret().setSelectionVisible(true);
+    };
+    PlanComponent$25.prototype.keyPressed = function (ev) {
+      this.keyTyped(ev);
+    };
+    PlanComponent$25.prototype.keyReleased = function (ev) {
+      if (ev.getKeyCode() !== java.awt.event.KeyEvent.VK_CONTROL && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ALT) {
+        java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(this.focusedTextField, ev);
+      }
+    };
+    PlanComponent$25.prototype.keyTyped = function (ev) {
+      var forwardKeys = this.focusedTextField.getFocusTraversalKeys(java.awt.KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
+      if ((forwardKeys.indexOf((java.awt.AWTKeyStroke.getAWTKeyStrokeForEvent(ev))) >= 0) || ev.getKeyCode() === java.awt.event.KeyEvent.VK_DOWN) {
+        this.setFocusedTextFieldIndex((this.focusedTextFieldIndex + 1) % this.toolTipEditedProperties.length);
+        ev.consume();
+      }
+      else {
+        var backwardKeys = this.focusedTextField.getFocusTraversalKeys(java.awt.KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);
+        if ((backwardKeys.indexOf((java.awt.AWTKeyStroke.getAWTKeyStrokeForEvent(ev))) >= 0) || ev.getKeyCode() === java.awt.event.KeyEvent.VK_UP) {
+          this.setFocusedTextFieldIndex((this.focusedTextFieldIndex - 1 + this.toolTipEditedProperties.length) % this.toolTipEditedProperties.length);
+          ev.consume();
+        }
+        else if ((ev.getKeyCode() === java.awt.event.KeyEvent.VK_HOME || ev.getKeyCode() === java.awt.event.KeyEvent.VK_END) && com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && !com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
+          if (ev.getKeyCode() === java.awt.event.KeyEvent.VK_HOME) {
+            this.focusedTextField.setCaretPosition(0);
+          }
+          else if (ev.getKeyCode() === java.awt.event.KeyEvent.VK_END) {
+            this.focusedTextField.setCaretPosition(this.focusedTextField.getText().length);
+          }
+          ev.consume();
+        }
+        else if (ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ESCAPE && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_CONTROL && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ALT) {
+          java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(this.focusedTextField, ev);
+          this.focusedTextField.getCaret().setVisible(true);
+          this.__parent.toolTipWindow.pack();
+        }
+      }
+    };
+    return PlanComponent$25;
+  }());
+  PlanComponent.PlanComponent$25 = PlanComponent$25;
+  PlanComponent$25["__interfaces"] = ["java.util.EventListener", "java.awt.event.KeyListener"];
 
- })(PlanComponent || (PlanComponent = {}));
+})(PlanComponent || (PlanComponent = {}));
