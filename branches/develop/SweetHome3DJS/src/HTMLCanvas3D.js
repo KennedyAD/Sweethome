@@ -508,15 +508,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
                 for (var i = 0; i < sceneGeometries.length; i++) {
                   var geometry = sceneGeometries [i];
                   if (geometry.nodeGeometry === removedGeometry) {
-                    // Free geometry buffers
-                    canvas3D.gl.deleteBuffer(geometry.vertexBuffer);
-                    if (geometry.textureCoordinatesBuffer !== null
-                        && geometry.texture !== undefined) {
-                      canvas3D.gl.deleteBuffer(geometry.textureCoordinatesBuffer);
-                    }
-                    if (geometry.normalBuffer !== undefined) {
-                      canvas3D.gl.deleteBuffer(geometry.normalBuffer);
-                    }
+                    canvas3D.clearGeometryBuffers(geometry);
                     sceneGeometries.splice(i, 1);
                     break;
                   }
@@ -786,7 +778,6 @@ HTMLCanvas3D.prototype.updateChildrenTransformation = function(node, geometries,
  * @private  
  */
 HTMLCanvas3D.prototype.removeDisplayedItems = function(node, geometries, lights) {
-  var canvas3D = this;
   if (node instanceof Group3D) {
     var children = node.getChildren();
     for (var i = 0; i < children.length; i++) {
@@ -795,11 +786,14 @@ HTMLCanvas3D.prototype.removeDisplayedItems = function(node, geometries, lights)
   } else if (node instanceof Link3D) {
     this.removeDisplayedItems(node.getSharedGroup(), geometries, lights);
   } else if (node instanceof Shape3D) {
-    for (var i = 0; i < geometries.length; i++) {
-      if (geometries [i].node === node) {
+    var count = node.getGeometries().length;
+    for (var i = geometries.length - 1; count > 0 && i >= 0; i--) {
+      var geometry = geometries [i];
+      if (geometry.node === node) {
+        this.clearGeometryBuffers(geometry);
         geometries.splice(i, 1);
-        break;
-      }
+        count--;
+      } 
     }
   } else if (node instanceof Light3D) {
     for (var i = 0; i < lights.length; i++) {
@@ -1318,17 +1312,24 @@ HTMLCanvas3D.prototype.clear = function() {
  */
 HTMLCanvas3D.prototype.clearGeometries = function(geometries) {
   for (var i = 0; i < geometries.length; i++) {
-    var geometry = geometries [i];
-    this.gl.deleteBuffer(geometry.vertexBuffer);
-    if (geometry.textureCoordinatesBuffer !== null
-        && geometry.texture !== undefined) {
-      this.gl.deleteBuffer(geometry.textureCoordinatesBuffer);
-    }
-    if (geometry.normalBuffer !== undefined) {
-      this.gl.deleteBuffer(geometry.normalBuffer);
-    }
+    this.clearGeometryBuffers(geometries [i]);
   }
   geometries.length = 0;
+}
+
+/**
+ * Frees buffers used by the given geometry.
+ * @private
+ */
+HTMLCanvas3D.prototype.clearGeometryBuffers = function(geometry) {
+  this.gl.deleteBuffer(geometry.vertexBuffer);
+  if (geometry.textureCoordinatesBuffer !== null
+      && geometry.texture !== undefined) {
+    this.gl.deleteBuffer(geometry.textureCoordinatesBuffer);
+  }
+  if (geometry.normalBuffer !== undefined) {
+    this.gl.deleteBuffer(geometry.normalBuffer);
+  }  
 }
 
 /**
