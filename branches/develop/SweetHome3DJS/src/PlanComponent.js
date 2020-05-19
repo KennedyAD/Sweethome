@@ -97,13 +97,16 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.longTouchTimer = document.createElement("div");
   this.longTouchTimer.id = "long-touch-timer";
   this.longTouchTimer.style.position = "absolute";
-  this.longTouchTimer.innerHTML = '<div id="long-touch-timer-bg"></div><div id="long-touch-timer-hidder"></div><div id="long-touch-timer-loader1"></div><div id="long-touch-timer-loader2"></div>';
+  this.longTouchTimer.innerHTML = '<div id="long-touch-timer-content"></div><div id="long-touch-timer-bg"></div><div id="long-touch-timer-hidder"></div><div id="long-touch-timer-loader1"></div><div id="long-touch-timer-loader2"></div>';
   document.body.appendChild(this.longTouchTimer);
   for (var i = 0; i < this.longTouchTimer.children.length; i++) {
     var e = this.longTouchTimer.children.item(i);
-    if (e.id != "long-touch-timer-bg" && e.id != "long-touch-timer-hidder") {
+    if (e.id.indexOf("loader") !== -1) {
       e.style.borderTopColor = this.getSelectionColor();
       e.style.borderRightColor = this.getSelectionColor();
+    }
+    if(e.id == "long-touch-timer-content") {
+      e.style.color = this.getForeground();
     }
     e.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
   }
@@ -386,10 +389,15 @@ PlanComponent.initStatics = function () {
 
 PlanComponent.initStatics();
 
-PlanComponent.prototype.startLongTouchAnimation = function (x, y) {
+PlanComponent.prototype.startLongTouchAnimation = function (controller, x, y) {
   this.longTouchTimer.style.visibility = "visible";
+  if(controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
+    document.getElementById("long-touch-timer-content").innerHTML = "&#x21EA;";
+  } else {
+    document.getElementById("long-touch-timer-content").innerHTML = "2";
+  }
   this.longTouchTimer.style.left = (this.canvas.getBoundingClientRect().left + x - this.longTouchTimer.clientWidth / 2) + "px";
-  this.longTouchTimer.style.top = (this.canvas.getBoundingClientRect().top + y - this.longTouchTimer.clientHeight - 30) + "px";
+  this.longTouchTimer.style.top = (this.canvas.getBoundingClientRect().top + y - this.longTouchTimer.clientHeight - 35) + "px";
   for (var i = 0; i < this.longTouchTimer.children.length; i++) {
     this.longTouchTimer.children.item(i).classList.add("animated");
   }
@@ -964,6 +972,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
       mousePressed: function (ev) {
         if (planComponent.isEnabled() && ev.button === 0) {
           planComponent.handleMouseEvent(ev, "mousePressed");
+          //planComponent.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
           mouseListener.autoScroll = null;
           mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
           mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
@@ -977,6 +986,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
         if (mouseListener.lastPointerLocation != null) {
           if (planComponent.isEnabled() && ev.button === 0) {
             planComponent.handleMouseEvent(ev, "mouseReleased");
+            //planComponent.stopLongTouchAnimation();
             controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
           }
           if (mouseListener.autoScroll != null) {
@@ -1061,7 +1071,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
             mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             mouseListener.longTouch = setTimeout(function() {
-              planComponent.startLongTouchAnimation(ev.canvasX, ev.canvasY);
+              planComponent.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
             }, PlanComponent.LONG_TOUCH_DELAY);
           }
           else if (ev.targetTouches.length === 2) {
@@ -1119,7 +1129,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
               mouseListener.initialTime = Date.now();
               mouseListener.longTouch = setTimeout(function() {
                 mouseListener.longTouchWhenDragged = [ev.canvasX, ev.canvasY];   
-                planComponent.startLongTouchAnimation(ev.canvasX, ev.canvasY);
+                planComponent.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
               }, PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING);
             }
 
