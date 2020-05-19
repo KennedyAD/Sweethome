@@ -32,6 +32,7 @@
 function HTMLCanvas3D(canvasId, offscreen) {
   this.scene = null;
   this.textures = [];
+  this.sharedGeometries = [];
   this.sceneGeometries = [];
   this.backgroundGeometries = [];
   this.lights = [];
@@ -356,13 +357,15 @@ HTMLCanvas3D.prototype.updateViewportSize = function() {
  * @param onprogression   progression call back
  */
 HTMLCanvas3D.prototype.setScene = function(scene, onprogression) {
+  var sharedGeometries = [];
   var sceneGeometries = [];
   var backgroundGeometries = [];
   var lights = [];
   var sceneGeometryCount = this.countDisplayedGeometries(scene);
-  this.prepareScene(scene, sceneGeometries, backgroundGeometries, false, [], lights, mat4.create(), onprogression, sceneGeometryCount);
+  this.prepareScene(scene, sharedGeometries, sceneGeometries, backgroundGeometries, false, [], lights, mat4.create(), onprogression, sceneGeometryCount);
   
   this.scene = scene;
+  this.sharedGeometries = sharedGeometries;
   this.sceneGeometries = sceneGeometries;
   this.backgroundGeometries = backgroundGeometries;
   this.lights = lights;
@@ -420,6 +423,7 @@ HTMLCanvas3D.DEFAULT_APPEARANCE = new Appearance3D();
 /**
  * Prepares the scene to be rendered, creating the required buffers and textures in WebGL.  
  * @param {Node3D}  node
+ * @param {Array}   sharedGeometries
  * @param {Array}   sceneGeometries
  * @param {Array}   backgroundGeometries
  * @param {boolean} background
@@ -430,7 +434,7 @@ HTMLCanvas3D.DEFAULT_APPEARANCE = new Appearance3D();
  * @param {number}  sceneGeometryCount
  * @private
  */
-HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms, 
+HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms, 
                                                onprogression, sceneGeometryCount) {
   var canvas3D = this;
   if (node instanceof Group3D) {
@@ -457,18 +461,18 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
 
     var children = node.getChildren();
     for (var i = 0; i < children.length; i++) {
-      this.prepareScene(children [i], sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms, onprogression, sceneGeometryCount);
+      this.prepareScene(children [i], sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms, onprogression, sceneGeometryCount);
     }
     if (node.getCapability(Group3D.ALLOW_CHILDREN_EXTEND)) {
       // Add listener to group to update the scene when children change
       node.addChildrenListener(
           {  
             childAdded : function(ev) {
-              canvas3D.prepareScene(ev.child, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms);
+              canvas3D.prepareScene(ev.child, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms);
               canvas3D.repaint();
             },
             childRemoved : function(ev) {
-              canvas3D.removeDisplayedItems(ev.child, background ? backgroundGeometries : sceneGeometries, lights);
+              canvas3D.removeDisplayedItems(ev.child, sharedGeometries, background ? backgroundGeometries : sceneGeometries, lights);
               // TODO Should remove listeners on the children of deleted item ?
               canvas3D.repaint();
             }
@@ -477,7 +481,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
   } else if (node instanceof Link3D) {
     parentLinks = parentLinks.slice(0);
     parentLinks.push(node);
-    this.prepareScene(node.getSharedGroup(), sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms, onprogression, sceneGeometryCount);
+    this.prepareScene(node.getSharedGroup(), sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms, onprogression, sceneGeometryCount);
   } else if (node instanceof Shape3D) {
     // Log each time 10% more shape geometries are bound
     if (onprogression !== undefined
@@ -497,7 +501,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
     var nodeGeometries = node.getGeometries();
     for (var i = 0; i < nodeGeometries.length; i++) {
       this.prepareGeometry(nodeGeometries [i], nodeAppearance, texture, 
-          node, sceneGeometries, backgroundGeometries, background, parentLinks, parentTransforms);
+          node, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, parentTransforms);
     }
     if (node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
       node.addPropertyChangeListener(
@@ -525,8 +529,8 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
                 if (nodeAppearance.getTextureImage()) {
                   texture = canvas3D.prepareTexture(nodeAppearance.getTextureImage());
                 }
-                canvas3D.prepareGeometry(addedGeometry, nodeAppearance, texture, 
-                    node, sceneGeometries, backgroundGeometries, background, parentLinks, parentTransforms);
+                canvas3D.prepareGeometry(addedGeometry, nodeAppearance, texture, node, 
+                    sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, parentTransforms);
               }
             }
           });
@@ -590,7 +594,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
           });
     }
   } else if (node instanceof Background3D) {
-    this.prepareScene(node.getGeometry(), sceneGeometries, backgroundGeometries, true, parentLinks, lights, parentTransforms);
+    this.prepareScene(node.getGeometry(), sharedGeometries, sceneGeometries, backgroundGeometries, true, parentLinks, lights, parentTransforms);
   } else if (node instanceof Light3D) {
     var light = {node  : node,
                  color : node.getColor()};
@@ -625,6 +629,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
  * @param {Appearance3D} nodeAppearance
  * @param {WebGLTexture} texture
  * @param {Node3D}  node
+ * @param {Array}   sharedGeometries
  * @param {Array}   sceneGeometries
  * @param {Array}   backgroundGeometries
  * @param {boolean} background
@@ -632,22 +637,22 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sceneGeometries, background
  * @param {mat4}    transform
  * @private
  */
-HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, texture, 
-                                                  node, sceneGeometries, backgroundGeometries, background, 
+HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, texture, node,
+                                                  sharedGeometries, sceneGeometries, backgroundGeometries, background, 
                                                   parentLinks, transform) {
-  var geometries = background ? backgroundGeometries : sceneGeometries;
   var geometry = null;
   if (!node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
     // Search if node geometry is already used
-    for (var i = 0; i < geometries.length; i++) {
-      if (geometries [i].nodeGeometry === nodeGeometry) {
+    for (var i = 0; i < sharedGeometries.length; i++) {
+      if (sharedGeometries [i].nodeGeometry === nodeGeometry) {
         geometry = {node : node,
                     nodeGeometry : nodeGeometry,
-                    vertexCount  : geometries [i].vertexCount, 
-                    vertexBuffer : geometries [i].vertexBuffer, 
-                    textureCoordinatesBuffer : geometries [i].textureCoordinatesBuffer,
-                    normalBuffer : geometries [i].normalBuffer,
-                    mode : geometries [i].mode};
+                    vertexCount  : sharedGeometries [i].vertexCount, 
+                    vertexBuffer : sharedGeometries [i].vertexBuffer, 
+                    textureCoordinatesBuffer : sharedGeometries [i].textureCoordinatesBuffer,
+                    normalBuffer : sharedGeometries [i].normalBuffer,
+                    mode : sharedGeometries [i].mode};
+        sharedGeometries [i].referenceCount++;
         break;
       }
     }
@@ -665,6 +670,17 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
     } else {
       geometry.mode = this.gl.LINES;
     } 
+    
+    if (!node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
+      sharedGeometries.push(
+          {nodeGeometry : nodeGeometry,
+           vertexCount  : geometry.vertexCount, 
+           vertexBuffer : geometry.vertexBuffer, 
+           textureCoordinatesBuffer : geometry.textureCoordinatesBuffer,
+           normalBuffer : geometry.normalBuffer,
+           mode : geometry.mode,
+           referenceCount : 1});
+    }
   } 
   // Set parameters not shared
   geometry.transform = transform;
@@ -710,6 +726,8 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
       ? 1 - nodeAppearance.getTransparency()
       : 1;
       geometry.visible = nodeAppearance.isVisible();
+      
+  var geometries = background ? backgroundGeometries : sceneGeometries;
   geometries.push(geometry);
 }
 
@@ -773,24 +791,39 @@ HTMLCanvas3D.prototype.updateChildrenTransformation = function(node, geometries,
 /**
  * Removes the tree with the given root node.  
  * @param {Node3D}  node
+ * @param {Array}   sharedGeometries
  * @param {Array}   geometries
  * @param {Array}   lights
  * @private  
  */
-HTMLCanvas3D.prototype.removeDisplayedItems = function(node, geometries, lights) {
+HTMLCanvas3D.prototype.removeDisplayedItems = function(node, sharedGeometries, geometries, lights) {
   if (node instanceof Group3D) {
     var children = node.getChildren();
     for (var i = 0; i < children.length; i++) {
-      this.removeDisplayedItems(children [i], geometries, lights);
+      this.removeDisplayedItems(children [i], sharedGeometries, geometries, lights);
     }
   } else if (node instanceof Link3D) {
-    this.removeDisplayedItems(node.getSharedGroup(), geometries, lights);
+    this.removeDisplayedItems(node.getSharedGroup(), sharedGeometries, geometries, lights);
   } else if (node instanceof Shape3D) {
     var count = node.getGeometries().length;
     for (var i = geometries.length - 1; count > 0 && i >= 0; i--) {
       var geometry = geometries [i];
       if (geometry.node === node) {
-        this.clearGeometryBuffers(geometry);
+        if (node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
+          this.clearGeometryBuffers(geometry);
+        } else {
+          // Remove shared geometry if reference count is 0
+          for (var j = 0; j < sharedGeometries.length; j++) {
+            var sharedGeometry = sharedGeometries [j];
+            if (sharedGeometry.nodeGeometry ===  geometry.nodeGeometry) {
+              if (--sharedGeometry.referenceCount === 0) {
+                this.clearGeometryBuffers(geometry);
+                sharedGeometries.splice(j, 1);
+              }
+              break;
+            }
+          }
+        }
         geometries.splice(i, 1);
         count--;
       } 
@@ -1295,6 +1328,7 @@ HTMLCanvas3D.prototype.clear = function() {
   }
   this.textures = [];
   
+  this.clearGeometries(this.sharedGeometries);
   this.clearGeometries(this.sceneGeometries);
   this.clearGeometries(this.backgroundGeometries);
   
