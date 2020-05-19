@@ -942,6 +942,8 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   patterns.push(new DefaultPatternTexture("crossHatch"));
   var patternsCatalog = new PatternsCatalog(patterns);  
   this.setPatternsCatalog(patternsCatalog);
+  this.setFurnitureCatalog(new FurnitureCatalog());
+  this.setTexturesCatalog(new TexturesCatalog());
   
   this.setNavigationPanelVisible(false);
   this.setUnit(LengthUnit.CENTIMETER);
