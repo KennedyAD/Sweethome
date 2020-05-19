@@ -103,6 +103,13 @@ UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) 
 }
 
 /**
+ * Writes user preferences.
+ */
+UserPreferences.prototype.write = function() {
+  // Does nothing
+}
+
+/**
  * Adds the <code>listener</code> in parameter to these preferences. 
  * The listener is a function that will receive in parameter an event of {@link PropertyChangeEvent} class.
  */
@@ -710,7 +717,7 @@ UserPreferences.prototype.setAutoSaveDelayForRecovery = function(autoSaveDelayFo
  * @ignore
  */
 UserPreferences.prototype.getRecentHomes = function() {
-  return Collections.unmodifiableList(this.recentHomes);
+  return this.recentHomes.slice(0);
 }
 
 /**
@@ -792,7 +799,7 @@ UserPreferences.prototype.getDefaultTextStyle = function(selectableClass) {
 UserPreferences.prototype.getAutoCompletionStrings = function(property) {
   var propertyAutoCompletionStrings = this.autoCompletionStrings.get(property);
   if (propertyAutoCompletionStrings !== null) {
-    return Collections.unmodifiableList(propertyAutoCompletionStrings);
+    return propertyAutoCompletionStrings.slice(0);
   } else {
     return [];
   }
@@ -840,7 +847,7 @@ UserPreferences.prototype.getAutoCompletedProperties = function() {
   if (this.autoCompletionStrings !== null) {
     return Object.keys(this.autoCompletionStrings);
   } else {
-    return Collections.emptyList();
+    return [];
   }
 }
 
