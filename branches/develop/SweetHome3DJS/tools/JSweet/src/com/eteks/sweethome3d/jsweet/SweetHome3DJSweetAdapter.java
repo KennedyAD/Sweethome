@@ -89,37 +89,63 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
 
     // All the Java elements to be ignored (will generate no JS) except the ones
     // starting with !
-    addAnnotation("jsweet.lang.Erased", "**.readObject(..)", "**.writeObject(..)", "**.hashCode(..)",
-        "**.Compass.updateSunLocation(..)", "**.Compass.getSunAzimuth(..)", "**.Compass.getSunElevation(..)",
-        "**.serialVersionUID", "**.Content.openStream(..)", "com.eteks.sweethome3d.model.UserPreferences",
-        "com.eteks.sweethome3d.model.LengthUnit", "com.eteks.sweethome3d.model.HomeRecorder",
-        "com.eteks.sweethome3d.model.HomeApplication", "com.eteks.sweethome3d.model.*Exception",
-        "com.eteks.sweethome3d.tools", "com.eteks.sweethome3d.io.*", "!com.eteks.sweethome3d.io.HomeXMLHandler",
+    addAnnotation("jsweet.lang.Erased",
+        "**.readObject(..)",
+        "**.writeObject(..)",
+        "**.hashCode(..)",
+        "**.serialVersionUID",
+        "com.eteks.sweethome3d.model.Compass.updateSunLocation(..)",
+        "com.eteks.sweethome3d.model.Compass.getSunAzimuth(..)",
+        "com.eteks.sweethome3d.model.Compass.getSunElevation(..)",
+        "com.eteks.sweethome3d.model.Content.openStream(..)",
+        "com.eteks.sweethome3d.model.LengthUnit",
+        "com.eteks.sweethome3d.model.TextStyle.deriveStyle(com.eteks.sweethome3d.model.TextStyle.Alignment)",
+        "com.eteks.sweethome3d.model.UserPreferences",
+        "com.eteks.sweethome3d.tools",
+        "com.eteks.sweethome3d.io.*",
+        "!com.eteks.sweethome3d.io.HomeXMLHandler",
         "com.eteks.sweethome3d.io.HomeXMLHandler.contentContext",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setContentContext(**)",
-        "com.eteks.sweethome3d.io.HomeXMLHandler.isSameContent(**)",
-        "com.eteks.sweethome3d.model.TextStyle.deriveStyle(com.eteks.sweethome3d.model.TextStyle.Alignment)");
+        "com.eteks.sweethome3d.io.HomeXMLHandler.isSameContent(**)");
     if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))) {
       // Only HomeController3D and its dependencies are needed for Sweet Home 3D
       // viewer
-      addAnnotation("jsweet.lang.Erased", "com.eteks.sweethome3d.viewcontroller.*",
+      addAnnotation("jsweet.lang.Erased",
+          "com.eteks.sweethome3d.model.HomeApplication",
+          "com.eteks.sweethome3d.model.HomeRecorder",
+          "com.eteks.sweethome3d.model.*Exception",
+          "com.eteks.sweethome3d.viewcontroller.*",
           "!com.eteks.sweethome3d.viewcontroller.HomeController3D",
           "com.eteks.sweethome3d.viewcontroller.HomeController3D.modifyAttributes(**)",
-          "!com.eteks.sweethome3d.viewcontroller.Controller", "!com.eteks.sweethome3d.viewcontroller.View");
+          "!com.eteks.sweethome3d.viewcontroller.Controller",
+          "!com.eteks.sweethome3d.viewcontroller.View");
     } else {
-      addAnnotation("jsweet.lang.Erased", "com.eteks.sweethome3d.viewcontroller.ThreadedTaskController",
-          "com.eteks.sweethome3d.viewcontroller.HomeController", "com.eteks.sweethome3d.viewcontroller.HelpController",
-          "com.eteks.sweethome3d.viewcontroller.PrintPreviewController",
-          "com.eteks.sweethome3d.viewcontroller.HomeView",
+      addAnnotation("jsweet.lang.Erased",
+          "com.eteks.sweethome3d.model.HomeRecorder.*(..)",
           "com.eteks.sweethome3d.viewcontroller.ExportableView.exportData(..)",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHelpView(..)",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHomeView(..)",
-          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.homeController",
-          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.UserPreferencesController(*,*,*,*)",
+          "com.eteks.sweethome3d.viewcontroller.HelpController",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.REPAIRED_*",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.newHomeFromExample(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.open(*)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.*Damaged*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.*Invalid*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.getError*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.close(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.save*()",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.export*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.create*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.setupPage(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.previewPrint(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.print*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.help(..)",
+          "com.eteks.sweethome3d.viewcontroller.PrintPreviewController",
+          "com.eteks.sweethome3d.viewcontroller.ThreadedTaskController",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.checkUpdates()",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.mayImportLanguageLibrary()",
-          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.importLanguageLibrary()");
+          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.importLanguageLibrary()",
+          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHelpView(..)",
+          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHomeView(..)",
+          "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter");
     }
 
     // Ignore some Java elements with a programmatic adapter
@@ -174,8 +200,11 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
 
     // Erase com.eteks.sweethome3d packages to keep all their elements at top level
     // in JavaScript
-    addAnnotation("@Root", "com.eteks.sweethome3d.model", "com.eteks.sweethome3d.io",
-        "com.eteks.sweethome3d.viewcontroller", "com.eteks.sweethome3d.j3d");
+    addAnnotation("@Root",
+        "com.eteks.sweethome3d.model",
+        "com.eteks.sweethome3d.io",
+        "com.eteks.sweethome3d.viewcontroller",
+        "com.eteks.sweethome3d.j3d");
 
     // Replace some Java implementations with some JavaScript-specific
     // implementations
@@ -246,6 +275,41 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         print(invocation.getTargetExpression()).print(".").print(invocation.getMethodName()).print("(")
             .printArgList(invocation.getArguments()).print(")");
         return true;
+      case "com.eteks.sweethome3d.model.UserPreferences.Property":
+        if (invocation.getMethodName().equals("values")) {
+          print("[");
+          print("'LANGUAGE',");
+          print("'UNIT',");
+          print("'CURRENCY',");
+          print("'VALUE_ADDED_TAX_ENABLED',");
+          print("'DEFAULT_VALUE_ADDED_TAX_PERCENTAGE',");
+          print("'MAGNETISM_ENABLED',");
+          print("'RULERS_VISIBLE',");
+          print("'GRID_VISIBLE',");
+          print("'DEFAULT_FONT_NAME',");
+          print("'FURNITURE_VIEWED_FROM_TOP',");
+          print("'FURNITURE_MODEL_ICON_SIZE',");
+          print("'ROOM_FLOOR_COLORED_OR_TEXTURED',");
+          print("'WALL_PATTERN',");
+          print("'NEW_WALL_PATTERN',");
+          print("'NEW_WALL_THICKNESS',");
+          print("'NEW_WALL_HEIGHT',");
+          print("'NEW_WALL_SIDEBOARD_THICKNESS',");
+          print("'NEW_WALL_SIDEBOARD_HEIGHT',");
+          print("'NEW_FLOOR_THICKNESS',");
+          print("'RECENT_HOMES',");
+          print("'IGNORED_ACTION_TIP',");
+          print("'FURNITURE_CATALOG_VIEWED_IN_TREE',");
+          print("'NAVIGATION_PANEL_VISIBLE',");
+          print("'AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED',");
+          print("'OBSERVER_CAMERA_SELECTED_AT_CHANGE',");
+          print("'AUTO_SAVE_DELAY_FOR_RECOVERY',");
+          print("'AUTO_COMPLETION_STRINGS',");
+          print("'RECENT_COLORS',");
+          print("'RECENT_TEXTURES'");
+          print("]");
+          return true;
+        }
       case "java.text.Collator":
         switch (invocation.getMethodName()) {
         case "setStrength":
@@ -323,6 +387,25 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           }
         }
         break;
+      case "java.text.DateFormat":
+        switch (invocation.getMethodName()) {
+        case "getDateTimeInstance":
+           print("toLocaleDateString(this.preferences.getLanguage().replace('_', '-'))");
+           return true;
+        case "format":
+           print("new Date().").print(invocation.getTargetExpression());
+           return true;
+        }
+        break;
+      case "java.lang.System":
+        switch (invocation.getMethodName()) {
+        case "getProperty":
+           if (invocation.getArgument(0).toString().equals("\"com.eteks.sweethome3d.deploymentInformation\"")) {
+             print("'JS'");
+             return true;
+           }
+        }
+        break;
       }
 
       // Map model Property enums to strings
@@ -398,6 +481,42 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
   }
 
   @Override
+  public boolean substituteExecutable(ExecutableElement executable) {
+    if (executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.viewcontroller.HomeController")) {
+      switch(executable.getSimpleName().toString()) {
+      case "newHomeFromExample":
+      case "open":
+      case "close":
+        if (executable.getParameters().size() > 0) {
+          return true;
+        }
+      case "save":
+      case "saveAs":
+        if (!executable.getModifiers().contains(Modifier.PUBLIC)) {
+          return true;
+        }
+      case "saveAndCompress":
+      case "saveAsAndCompress":
+      case "exportToCSV":
+      case "exportToSVG":
+      case "exportToOBJ":
+      case "createPhotos":
+      case "createPhoto":
+      case "createVideo":
+      case "setupPage":
+      case "previewPrint":
+      case "print":
+      case "printToPDF":
+        // Implements main I/O HomeController methods with empty code
+        print("public ").print(executable.getSimpleName().toString()).print("(");
+        print(")\n    {\n    }\n");
+        return true;
+      }
+    }
+    return super.substituteExecutable(executable);
+  }
+
+  @Override
   public boolean substituteIdentifier(IdentifierElement identifier) {
     // Map *Property enums to strings
     if (identifier.getTypeAsElement().getKind() == ElementKind.ENUM && identifier.isConstant()
@@ -463,7 +582,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     return super.eraseSuperClass(type, superClass);
   }
-  
+
   @Override
   public boolean substituteInstanceof(String exprStr, ExtendedElement expr, TypeMirror type) {
     if(type.toString().equals("com.eteks.sweethome3d.model.LengthUnit")) {
@@ -473,5 +592,5 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     return super.substituteInstanceof(exprStr, expr, type);
   }
-  
+
 }
