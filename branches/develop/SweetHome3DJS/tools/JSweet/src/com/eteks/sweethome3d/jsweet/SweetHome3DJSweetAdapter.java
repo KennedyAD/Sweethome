@@ -144,7 +144,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.mayImportLanguageLibrary()",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.importLanguageLibrary()",
           "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHelpView(..)",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHomeView(..)",
           "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter");
     }
 
