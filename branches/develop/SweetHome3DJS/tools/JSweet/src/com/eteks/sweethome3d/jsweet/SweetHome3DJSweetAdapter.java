@@ -125,19 +125,9 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           "com.eteks.sweethome3d.viewcontroller.ExportableView.exportData(..)",
           "com.eteks.sweethome3d.viewcontroller.HelpController",
           "com.eteks.sweethome3d.viewcontroller.HomeController.REPAIRED_*",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.newHomeFromExample(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.open(*)",
           "com.eteks.sweethome3d.viewcontroller.HomeController.*Damaged*(..)",
           "com.eteks.sweethome3d.viewcontroller.HomeController.*Invalid*(..)",
           "com.eteks.sweethome3d.viewcontroller.HomeController.getError*(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.close(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.save*()",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.export*(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.create*(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.setupPage(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.previewPrint(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.print*(..)",
-          "com.eteks.sweethome3d.viewcontroller.HomeController.help(..)",
           "com.eteks.sweethome3d.viewcontroller.PrintPreviewController",
           "com.eteks.sweethome3d.viewcontroller.ThreadedTaskController",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.checkUpdates()",
@@ -506,6 +496,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
       case "previewPrint":
       case "print":
       case "printToPDF":
+      case "help":
         // Implements main I/O HomeController methods with empty code
         print("public ").print(executable.getSimpleName().toString()).print("(");
         print(")\n    {\n    }\n");
