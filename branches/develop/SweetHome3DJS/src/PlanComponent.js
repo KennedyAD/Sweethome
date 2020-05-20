@@ -132,21 +132,17 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.installDefaultKeyboardActions();
   }
 
-  this.rotationCursor = PlanComponent.getCustomCursor('rotation', 'alias');
-  this.elevationCursor = PlanComponent.getCustomCursor('elevation', 'row-resize');
-  this.heightCursor = PlanComponent.getCustomCursor('height', 'ns-resize');
-  this.powerCursor = PlanComponent.getCustomCursor('power', 'cell');
-  this.resizeCursor = PlanComponent.getCustomCursor('resize', 'ew-resize');
-  this.moveCursor = PlanComponent.getCustomCursor('move', 'move');
-  this.panningCursor = PlanComponent.getCustomCursor('panning', 'move');
+  this.rotationCursor = PlanComponent.createCustomCursor('rotation', 'alias');
+  this.elevationCursor = PlanComponent.createCustomCursor('elevation', 'row-resize');
+  this.heightCursor = PlanComponent.createCustomCursor('height', 'ns-resize');
+  this.powerCursor = PlanComponent.createCustomCursor('power', 'cell');
+  this.resizeCursor = PlanComponent.createCustomCursor('resize', 'ew-resize');
+  this.moveCursor = PlanComponent.createCustomCursor('move', 'move');
+  this.panningCursor = PlanComponent.createCustomCursor('panning', 'move');
   this.duplicationCursor = 'copy';
 
   this.patternImagesCache = ({});
   this.setScale(0.5);
-}
-
-PlanComponent.getCustomCursor = function(name, fallback) {
-  return 'url("lib/resources/cursors/' + name + '16x16' + (OperatingSystem.isMacOSX() ? '-macosx' : '') + '.png") 8 8, ' + fallback;
 }
 
 /** @private */
@@ -1569,6 +1565,14 @@ PlanComponent.prototype.createActions = function (controller) {
       "DEACTIVATE_EDITIION": new SetEditionActivatedAction(false)
   };
 };
+
+PlanComponent.createCustomCursor = function(name, defaultCursor) {
+   if (OperatingSystem.isInternetExplorer()) {
+     return defaultCursor;
+   } else {
+     return 'url("lib/resources/cursors/' + name + '16x16' + (OperatingSystem.isMacOSX() ? '-macosx' : '') + '.png") 8 8, ' + defaultCursor;
+   }
+}
 
 /**
  * Returns the preferred size of this component in actual screen pixels size.
@@ -5176,6 +5180,7 @@ PlanComponent.prototype.setCursor = function (cursorType) {
     switch (cursorType) {
       case PlanView.CursorType.ROTATION:
       case PlanView.CursorType.HEIGHT:
+      case PlanView.CursorType.POWER:
       case PlanView.CursorType.ELEVATION:
       case PlanView.CursorType.RESIZE:
         if (this.mouseListener.longTouch != null) {
@@ -5184,42 +5189,42 @@ PlanComponent.prototype.setCursor = function (cursorType) {
           this.stopLongTouchAnimation();
         }
     }
-    if(this.canvasX && this.canvasY) {
+    if (this.canvasX && this.canvasY) {
       this.startIndicatorAnimation(this.canvasX, this.canvasY, PlanView.CursorType[cursorType].toLowerCase());
     }
     switch (cursorType) {
-    case PlanView.CursorType.DRAW:
-      this.setCursor('crosshair');
+      case PlanView.CursorType.DRAW:
+        this.setCursor('crosshair');
+        break;
+      case PlanView.CursorType.ROTATION:
+        this.setCursor(this.rotationCursor);
+        break;
+      case PlanView.CursorType.HEIGHT:
+        this.setCursor(this.heightCursor);
+        break;
+      case PlanView.CursorType.POWER:
+        this.setCursor(this.powerCursor);
+        break;
+      case PlanView.CursorType.ELEVATION:
+        this.setCursor(this.elevationCursor);
+        break;
+      case PlanView.CursorType.RESIZE:
+        this.setCursor(this.resizeCursor);
+        break;
+      case PlanView.CursorType.PANNING:
+        this.setCursor(this.panningCursor);
+        break;
+      case PlanView.CursorType.DUPLICATION:
+        this.setCursor(this.duplicationCursor);
+        break;
+      case PlanView.CursorType.MOVE:
+        this.setCursor(this.moveCursor);
+        break;
+      case PlanView.CursorType.SELECTION:
+      default:
+        this.stopIndicatorAnimation();
+        this.setCursor('default');
       break;
-    case PlanView.CursorType.ROTATION:
-      this.setCursor(this.rotationCursor);
-      break;
-    case PlanView.CursorType.HEIGHT:
-      this.setCursor(this.heightCursor);
-      break;
-    case PlanView.CursorType.POWER:
-      this.setCursor(this.powerCursor);
-      break;
-    case PlanView.CursorType.ELEVATION:
-      this.setCursor(this.elevationCursor);
-      break;
-    case PlanView.CursorType.RESIZE:
-      this.setCursor(this.resizeCursor);
-      break;
-    case PlanView.CursorType.PANNING:
-      this.setCursor(this.panningCursor);
-      break;
-    case PlanView.CursorType.DUPLICATION:
-      this.setCursor(this.duplicationCursor);
-      break;
-    case PlanView.CursorType.MOVE:
-      this.setCursor(this.moveCursor);
-      break;
-    case PlanView.CursorType.SELECTION:
-    default:
-      this.stopIndicatorAnimation();
-      this.setCursor('default');
-    break;
     }
   }
 };

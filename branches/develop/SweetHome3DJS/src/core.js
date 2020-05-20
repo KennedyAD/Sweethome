@@ -502,6 +502,14 @@ OperatingSystem.isEdgeOrInternetExplorer = function() {
 }
 
 /**
+ * Returns <code>true</code> if the current browser is Internet Explorer.
+ */
+OperatingSystem.isInternetExplorer = function() {
+  // IE test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return document.documentMode;
+}
+
+/**
  * This utility function merges all the source object properties into the destination object.
  * It has to be used in replacement of Object.assign that is now supported in IE.
  * @param {Object} destination
