@@ -1,19 +1,19 @@
-#long-touch-timer {
+#touch-overlay-timer {
   position: relative;
   width: 20px;
   height: 20px;
   opacity: 0.8;
 }
-#long-touch-timer > div {
+#touch-overlay-timer > div {
   position: absolute;
   top: -2px;
   left: -2px;
 }	
-#long-touch-timer > .animated {
+#touch-overlay-timer > .animated {
 	animation-duration: 3s;
   animation-timing-function: linear;
 }
-#long-touch-timer-hidder.animated, #long-touch-timer-loader1.animated, #long-touch-timer-loader2.animated {
+#touch-overlay-timer-hidder.animated, #touch-overlay-timer-loader1.animated, #touch-overlay-timer-loader2.animated {
   border: 2px solid transparent;
   border-radius: 50%;
   border-top-color: #3498db;
@@ -21,7 +21,7 @@
   width: 100%;
   height: 100%;
 }
-#long-touch-timer-content {
+#touch-overlay-timer-content {
 	opacity: 0;
 	font-size: 15px;
 	text-align: center;
@@ -33,13 +33,13 @@
   text-shadow: 2px 2px 4px #000000;
   
 }
-#long-touch-timer-bg.animated, #long-touch-timer-hidder.animated {
+#touch-overlay-timer-bg.animated, #touch-overlay-timer-hidder.animated {
   border-color: #AAAAAA;
 }
-#long-touch-timer-bg.animated {
+#touch-overlay-timer-bg.animated {
   box-shadow: 2px 2px 4px #000000;
 }
-#long-touch-timer-bg.animated {
+#touch-overlay-timer-bg.animated {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -47,7 +47,7 @@
   border-style: solid;
   border-radius: 50%;
 }
-#long-touch-timer-hidder.animated {
+#touch-overlay-timer-hidder.animated {
   z-index: 1;
   visibility: hidden;
   border-bottom-color: transparent;
@@ -55,15 +55,15 @@
   transform: rotate(-135deg);
   animation-name: hider;
 }
-#long-touch-timer-loader1.animated {
+#touch-overlay-timer-loader1.animated {
   transform: rotate(45deg);
   animation-name: spin1;
 }
-#long-touch-timer-loader2.animated {
+#touch-overlay-timer-loader2.animated {
   transform: rotate(225deg);
   animation-name: spin2;
 }
-#long-touch-timer-content.animated {
+#touch-overlay-timer-content.animated {
 	opacity: 1;
 	animation-name: showcontent;
 }
@@ -84,4 +84,12 @@
 @keyframes showcontent {
   0% { opacity: 0; }
   100% { opacity: 1; }
+}
+
+#touch-overlay-timer > .indicator {
+	visibility: hidden;
+}
+#touch-overlay-timer-content.indicator {
+  opacity: 1;
+  visibility: visible;
 }

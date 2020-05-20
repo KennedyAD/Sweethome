@@ -94,18 +94,18 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.tooltip.style.color = this.canvas.style.color;
   document.body.appendChild(this.tooltip);
 
-  this.longTouchTimer = document.createElement("div");
-  this.longTouchTimer.id = "long-touch-timer";
-  this.longTouchTimer.style.position = "absolute";
-  this.longTouchTimer.innerHTML = '<div id="long-touch-timer-content"></div><div id="long-touch-timer-bg"></div><div id="long-touch-timer-hidder"></div><div id="long-touch-timer-loader1"></div><div id="long-touch-timer-loader2"></div>';
-  document.body.appendChild(this.longTouchTimer);
-  for (var i = 0; i < this.longTouchTimer.children.length; i++) {
-    var e = this.longTouchTimer.children.item(i);
+  this.touchOverlay = document.createElement("div");
+  this.touchOverlay.id = "touch-overlay-timer";
+  this.touchOverlay.style.position = "absolute";
+  this.touchOverlay.innerHTML = '<div id="touch-overlay-timer-content"></div><div id="touch-overlay-timer-bg"></div><div id="touch-overlay-timer-hidder"></div><div id="touch-overlay-timer-loader1"></div><div id="touch-overlay-timer-loader2"></div>';
+  document.body.appendChild(this.touchOverlay);
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    var e = this.touchOverlay.children.item(i);
     if (e.id.indexOf("loader") !== -1) {
       e.style.borderTopColor = this.getSelectionColor();
       e.style.borderRightColor = this.getSelectionColor();
     }
-    if(e.id == "long-touch-timer-content") {
+    if(e.id == "touch-overlay-timer-content") {
       e.style.color = this.getForeground();
     }
     e.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
@@ -131,16 +131,22 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.createActions(controller);
     this.installDefaultKeyboardActions();
   }
-  this.rotationCursor = 'alias'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/rotation16x16.png", "resources/cursors/rotation32x32.png", "Rotation cursor", Cursor.MOVE_CURSOR);
-  this.elevationCursor = 'row-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/elevation16x16.png", "resources/cursors/elevation32x32.png", "Elevation cursor", Cursor.MOVE_CURSOR);
-  this.heightCursor = 'ns-resize'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/height16x16.png", "resources/cursors/height32x32.png", "Height cursor", Cursor.MOVE_CURSOR);
-  this.powerCursor = 'cell'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/power16x16.png", "resources/cursors/power32x32.png", "Power cursor", Cursor.MOVE_CURSOR);
-  this.resizeCursor = 'ew-resize'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/resize16x16.png", "resources/cursors/resize32x32.png", "Resize cursor", Cursor.MOVE_CURSOR);
-  this.moveCursor = 'move'; // this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/move16x16.png", "resources/cursors/move32x32.png", "Move cursor", Cursor.MOVE_CURSOR);
-  this.panningCursor = 'move'; //this.createCustomCursor$java_lang_String$java_lang_String$java_lang_String$int("resources/cursors/panning16x16.png", "resources/cursors/panning32x32.png", "Panning cursor", Cursor.HAND_CURSOR);
-  this.duplicationCursor = 'copy'; //java.awt.dnd.DragSource.DefaultCopyDrop;
+
+  this.rotationCursor = PlanComponent.getCustomCursor('rotation', 'alias');
+  this.elevationCursor = PlanComponent.getCustomCursor('elevation', 'row-resize');
+  this.heightCursor = PlanComponent.getCustomCursor('height', 'ns-resize');
+  this.powerCursor = PlanComponent.getCustomCursor('power', 'cell');
+  this.resizeCursor = PlanComponent.getCustomCursor('resize', 'ew-resize');
+  this.moveCursor = PlanComponent.getCustomCursor('move', 'move');
+  this.panningCursor = PlanComponent.getCustomCursor('panning', 'move');
+  this.duplicationCursor = 'copy';
+
   this.patternImagesCache = ({});
   this.setScale(0.5);
+}
+
+PlanComponent.getCustomCursor = function(name, fallback) {
+  return 'url("lib/resources/cursors/' + name + '16x16' + (OperatingSystem.isMacOSX() ? '-macosx' : '') + '.png") 8 8, ' + fallback;
 }
 
 /** @private */
@@ -390,23 +396,48 @@ PlanComponent.initStatics = function () {
 PlanComponent.initStatics();
 
 PlanComponent.prototype.startLongTouchAnimation = function (controller, x, y) {
-  this.longTouchTimer.style.visibility = "visible";
+  this.touchOverlay.style.visibility = "visible";
   if(controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
-    document.getElementById("long-touch-timer-content").innerHTML = "&#x21EA;";
+    document.getElementById("touch-overlay-timer-content").innerHTML = "&#x21EA;";
   } else {
-    document.getElementById("long-touch-timer-content").innerHTML = "2";
+    document.getElementById("touch-overlay-timer-content").innerHTML = "2";
   }
-  this.longTouchTimer.style.left = (this.canvas.getBoundingClientRect().left + x - this.longTouchTimer.clientWidth / 2) + "px";
-  this.longTouchTimer.style.top = (this.canvas.getBoundingClientRect().top + y - this.longTouchTimer.clientHeight - 35) + "px";
-  for (var i = 0; i < this.longTouchTimer.children.length; i++) {
-    this.longTouchTimer.children.item(i).classList.add("animated");
+  this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
+  this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+    this.touchOverlay.children.item(i).classList.add("animated");
   }
 };
 
 PlanComponent.prototype.stopLongTouchAnimation = function (x, y) {
-  this.longTouchTimer.style.visibility = "hidden";
-  for (var i = 0; i < this.longTouchTimer.children.length; i++) {
-    this.longTouchTimer.children.item(i).classList.remove("animated");
+  this.touchOverlay.style.visibility = "hidden";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("animated");
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+};
+
+PlanComponent.prototype.startIndicatorAnimation = function (x, y, indicator) {
+  if(indicator == "default" || indicator == "selection") {
+    this.touchOverlay.style.visibility = "hidden";
+  } else {
+    this.touchOverlay.style.visibility = "visible";
+    document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="lib/resources/cursors/' + indicator + '32x32.png"/>';
+    this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
+    this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+    for (var i = 0; i < this.touchOverlay.children.length; i++) {
+      this.touchOverlay.children.item(i).classList.remove("animated");
+      this.touchOverlay.children.item(i).classList.add("indicator");
+    }
+  }
+};
+
+PlanComponent.prototype.stopIndicatorAnimation = function () {
+  this.touchOverlay.style.visibility = "hidden";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("animated");
+    this.touchOverlay.children.item(i).classList.remove("indicator");
   }
 };
 
@@ -902,6 +933,8 @@ PlanComponent.prototype.addModelListeners = function (home, preferences, control
   preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
 };
 PlanComponent.prototype.handleMouseEvent = function (ev, type) {
+  this.canvasX = undefined;
+  this.canvasY = undefined;
   if (ev.canvasX === undefined && ev.clientX !== undefined) {
     var rect = this.canvas.getBoundingClientRect();
     ev.canvasX = ev.clientX - rect.left;
@@ -920,10 +953,14 @@ PlanComponent.prototype.handleMouseEvent = function (ev, type) {
     if (touches.length == 1) {
       ev.canvasX = touches[0].clientX - rect.left;
       ev.canvasY = touches[0].clientY - rect.top;
+      this.canvasX = ev.canvasX;
+      this.canvasY = ev.canvasY;
     }
     else if (touches.length == 2) {
       ev.canvasX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
       ev.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
+      this.canvasX = ev.canvasX;
+      this.canvasY = ev.canvasY;
     }
     ev.clickCount = 1;
   }
@@ -1073,6 +1110,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
             mouseListener.longTouch = setTimeout(function() {
               planComponent.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
             }, PlanComponent.LONG_TOUCH_DELAY);
+            controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
           }
           else if (ev.targetTouches.length === 2) {
             if (controller.isModificationState()) {
@@ -1087,6 +1125,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
         ev.preventDefault();
         if (planComponent.isEnabled()) {
           planComponent.handleMouseEvent(ev, "touchMoved");
+          planComponent.stopIndicatorAnimation();
           if (mouseListener.autoScroll != null && mouseListener.isInCanvas(ev)) {
             clearInterval(mouseListener.autoScroll);
             mouseListener.autoScroll = null;
@@ -1174,6 +1213,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
       touchEnded: function (ev) {
         if (planComponent.isEnabled()) {
           planComponent.handleMouseEvent(ev, "touchEnded");
+          planComponent.stopIndicatorAnimation();
           if (mouseListener.longTouch != null) {
             clearTimeout(mouseListener.longTouch);
             mouseListener.longTouch = null;
@@ -1188,12 +1228,10 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
               // should never happen
               console.error("state error in pinching", mouseListener);
             }
-          }
-          else {
+          } else {
             if (mouseListener.panningPreviousMode != null) {
               mouseListener.stopPanning();
-            }
-            else {
+            } else {
               if (mouseListener.autoScroll != null) {
                 clearInterval(mouseListener.autoScroll);
                 mouseListener.autoScroll = null;
@@ -1231,6 +1269,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
               }
             }
             mouseListener.initialPointerLocation = null;
+            planComponent.stopIndicatorAnimation();
           }
         }
       },
@@ -5134,7 +5173,21 @@ PlanComponent.prototype.setCursor = function (cursorType) {
   if (typeof cursorType == "string") {
     this.canvas.style.cursor = cursorType;
   } else {
-    switch ((cursorType)) {
+    switch (cursorType) {
+      case PlanView.CursorType.ROTATION:
+      case PlanView.CursorType.HEIGHT:
+      case PlanView.CursorType.ELEVATION:
+      case PlanView.CursorType.RESIZE:
+        if (this.mouseListener.longTouch != null) {
+          clearTimeout(this.mouseListener.longTouch);
+          this.mouseListener.longTouch = null;
+          this.stopLongTouchAnimation();
+        }
+    }
+    if(this.canvasX && this.canvasY) {
+      this.startIndicatorAnimation(this.canvasX, this.canvasY, PlanView.CursorType[cursorType].toLowerCase());
+    }
+    switch (cursorType) {
     case PlanView.CursorType.DRAW:
       this.setCursor('crosshair');
       break;
@@ -5164,6 +5217,7 @@ PlanComponent.prototype.setCursor = function (cursorType) {
       break;
     case PlanView.CursorType.SELECTION:
     default:
+      this.stopIndicatorAnimation();
       this.setCursor('default');
     break;
     }
