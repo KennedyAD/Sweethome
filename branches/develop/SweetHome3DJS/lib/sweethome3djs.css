@@ -30,14 +30,14 @@
   margin-top:1px;
 	width: 24px;
   height: 24px;
-  text-shadow: 2px 2px 4px #000000;
+  text-shadow: 2px 2px 4px #777777;
   
 }
 #touch-overlay-timer-bg.animated, #touch-overlay-timer-hidder.animated {
   border-color: #AAAAAA;
 }
 #touch-overlay-timer-bg.animated {
-  box-shadow: 2px 2px 4px #000000;
+  box-shadow: 2px 2px 4px #777777;
 }
 #touch-overlay-timer-bg.animated {
   position: absolute;

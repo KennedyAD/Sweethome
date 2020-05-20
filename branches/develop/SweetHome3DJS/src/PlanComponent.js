@@ -105,7 +105,7 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
       e.style.borderTopColor = this.getSelectionColor();
       e.style.borderRightColor = this.getSelectionColor();
     }
-    if(e.id == "touch-overlay-timer-content") {
+    if (e.id == "touch-overlay-timer-content") {
       e.style.color = this.getForeground();
     }
     e.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
@@ -393,13 +393,16 @@ PlanComponent.initStatics();
 
 PlanComponent.prototype.startLongTouchAnimation = function (controller, x, y) {
   this.touchOverlay.style.visibility = "visible";
-  if(controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "&#x21EA;";
+  if (controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
+    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
   } else {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "2";
+    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif'>2</span>";
   }
   this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
   this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+  if (this.tooltip.style.visibility == "visible") {
+    this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
+  }
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     this.touchOverlay.children.item(i).classList.remove("indicator");
     this.touchOverlay.children.item(i).classList.add("animated");
@@ -415,7 +418,7 @@ PlanComponent.prototype.stopLongTouchAnimation = function (x, y) {
 };
 
 PlanComponent.prototype.startIndicatorAnimation = function (x, y, indicator) {
-  if(indicator == "default" || indicator == "selection") {
+  if (indicator == "default" || indicator == "selection") {
     this.touchOverlay.style.visibility = "hidden";
   } else {
     this.touchOverlay.style.visibility = "visible";
@@ -1160,7 +1163,7 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
             if (mouseListener.initialPointerLocation == null) {
               controller.moveMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
             }
-            if(!mouseListener.autoScroll && controller.getMode() !== PlanController.Mode.SELECTION && controller.getMode() !== PlanController.Mode.PANNING) {
+            if (!mouseListener.autoScroll && controller.getMode() !== PlanController.Mode.SELECTION && controller.getMode() !== PlanController.Mode.PANNING) {
               mouseListener.initialTime = Date.now();
               mouseListener.longTouch = setTimeout(function() {
                 mouseListener.longTouchWhenDragged = [ev.canvasX, ev.canvasY];   
@@ -1246,10 +1249,9 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
                     controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                     controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
                     controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
-                    controller.setMode(PlanController.Mode.SELECTION);
                   }
                   else {
-                    //controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
+                    controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                   }
                 }
               } else if (mouseListener.longTouchWhenDragged != null && mouseListener.isLongTouch(true)) {
@@ -1258,11 +1260,8 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 1, false, false, false, false);
                 controller.releaseMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]));
                 controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]), planComponent.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]), 2, false, false, false, false);
-                controller.setMode(PlanController.Mode.SELECTION);
               }
-              if (controller.getMode() === PlanController.Mode.SELECTION) {
-                controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
-              }
+              controller.releaseMouse(planComponent.convertXPixelToModel(ev.canvasX), planComponent.convertYPixelToModel(ev.canvasY));
             }
             mouseListener.initialPointerLocation = null;
             planComponent.stopIndicatorAnimation();
@@ -1312,10 +1311,10 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
  */
 PlanComponent.prototype.addFocusListener = function (controller) {
   // TODO?
-  //this.addFocusListener(new PlanComponent.PlanComponent$15(this, controller));
-  //if(com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
-  //    this.addPropertyChangeListener("Frame.active", new PlanComponent.PlanComponent$16(this));
-  //}
+  // this.addFocusListener(new PlanComponent.PlanComponent$15(this, controller));
+  // if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
+  //   this.addPropertyChangeListener("Frame.active", new PlanComponent.PlanComponent$16(this));
+  // }
 };
 
 /**
@@ -2265,7 +2264,7 @@ PlanComponent.prototype.paintOtherLevels = function (g2D, planScale, backgroundC
  */
 PlanComponent.prototype.setTransparency = function (g2D, alpha) {
   var oldAlpha = g2D.getAlpha();
-  //        if(oldComposite.length === 7) {
+  //        if (oldComposite.length === 7) {
   //          oldComposite += "FF";
   //        }
   //        g2D.setColor(oldComposite.slice(0, 7) + ((alpha * 255) | 0).toString(16));
@@ -2288,7 +2287,7 @@ PlanComponent.prototype.paintGrid = function (g2D, gridScale) {
   var xMax;
   var yMax;
   var planBounds = this.getPlanBounds();
-  //        if(this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
+  //        if (this.getParent() != null && this.getParent() instanceof <any>javax.swing.JViewport) {
   //            let viewRectangle : java.awt.Rectangle = (<javax.swing.JViewport>this.getParent()).getViewRect();
   //            xMin = this.convertXPixelToModel(viewRectangle.x - 1);
   //            yMin = this.convertYPixelToModel(viewRectangle.y - 1);
@@ -2302,10 +2301,10 @@ PlanComponent.prototype.paintGrid = function (g2D, gridScale) {
   //        }
 //        let useGridImage : boolean = false;
   //        try {
-  //            useGridImage = com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && /* equals */(<any>((o1: any, o2: any) => { if(o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(java.lang.System.getProperty("apple.awt.graphics.UseQuartz", "false"),"false"));
+  //            useGridImage = com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && /* equals */(<any>((o1: any, o2: any) => { if (o1 && o1.equals) { return o1.equals(o2); } else { return o1 === o2; } })(java.lang.System.getProperty("apple.awt.graphics.UseQuartz", "false"),"false"));
   //        } catch(ex) {
   //        };
-  //        if(useGridImage) {
+  //        if (useGridImage) {
   //            let imageWidth : number = Math.round(mainGridSize * gridScale * this.resolutionScale);
   //            let gridImage : java.awt.image.BufferedImage = new java.awt.image.BufferedImage(imageWidth, imageWidth, java.awt.image.BufferedImage.TYPE_INT_ARGB);
   //            let imageGraphics : Graphics2D = <Graphics2D>gridImage.getGraphics();
@@ -5188,10 +5187,14 @@ PlanComponent.prototype.setCursor = function (cursorType) {
           this.mouseListener.longTouch = null;
           this.stopLongTouchAnimation();
         }
+        // No break;
+      case PlanView.CursorType.MOVE:
+        if (this.canvasX && this.canvasY && cursorType !== PlanView.CursorType.DRAW) {
+          this.startIndicatorAnimation(this.canvasX, this.canvasY, PlanView.CursorType[cursorType].toLowerCase());
+        }
+        break;
     }
-    if (this.canvasX && this.canvasY) {
-      this.startIndicatorAnimation(this.canvasX, this.canvasY, PlanView.CursorType[cursorType].toLowerCase());
-    }
+
     switch (cursorType) {
       case PlanView.CursorType.DRAW:
         this.setCursor('crosshair');
@@ -5224,7 +5227,7 @@ PlanComponent.prototype.setCursor = function (cursorType) {
       default:
         this.stopIndicatorAnimation();
         this.setCursor('default');
-      break;
+        break;
     }
   }
 };
@@ -5526,18 +5529,18 @@ var PlanComponent;
         case "LANGUAGE":
         case "UNIT":
           //                    {
-          //                        let array211 = /* entrySet */((m) => { if(m.entries==null) m.entries=[]; return m.entries; })(<any>planComponent.toolTipEditableTextFields);
-          //                        for(let index210=0; index210 < array211.length; index210++) {
+          //                        let array211 = /* entrySet */((m) => { if (m.entries==null) m.entries=[]; return m.entries; })(<any>planComponent.toolTipEditableTextFields);
+          //                        for (let index210=0; index210 < array211.length; index210++) {
           //                            let toolTipTextFieldEntry = array211[index210];
           //                            {
           //                                PlanComponent.updateToolTipTextFieldFormatterFactory(toolTipTextFieldEntry.getValue(), toolTipTextFieldEntry.getKey(), preferences);
           //                            }
           //                        }
           //                    }
-          //                    if(planComponent.horizontalRuler != null) {
+          //                    if (planComponent.horizontalRuler != null) {
           //                        planComponent.horizontalRuler.repaint();
           //                    }
-          //                    if(planComponent.verticalRuler != null) {
+          //                    if (planComponent.verticalRuler != null) {
           //                        planComponent.verticalRuler.repaint();
           //                    }
           break;
@@ -5616,10 +5619,10 @@ var PlanComponent;
     function HomePieceOfFurnitureTopViewIconKey(piece) {
       this.piece = piece;
       //            this.__hashCode = (piece.getPlanIcon() != null?null/*erased method piece.getPlanIcon().hashCode*/:null/*erased method piece.getModel().hashCode*/) + (piece.getColor() != null?37 * null/*erased method this.piece.getColor().hashCode*/:1234);
-      //            if(this.piece.isHorizontallyRotated() || this.piece.getTexture() != null) {
+      //            if (this.piece.isHorizontallyRotated() || this.piece.getTexture() != null) {
       //                this.__hashCode += (piece.getTexture() != null?37 * null/*erased method this.piece.getTexture().hashCode*/:0) + 37 * null/*erased method Float.valueOf(piece.getWidthInPlan()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getDepthInPlan()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getHeightInPlan()).hashCode*/;
       //            }
-      //            if(this.piece.getPlanIcon() != null) {
+      //            if (this.piece.getPlanIcon() != null) {
       //                this.__hashCode += 37 * java.util.Arrays.deepHashCode(piece.getModelRotation()) + 37 * null/*erased method Boolean.valueOf(piece.isModelCenteredAtOrigin()).hashCode*/ + 37 * null/*erased method Boolean.valueOf(piece.isBackFaceShown()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getPitch()).hashCode*/ + 37 * null/*erased method Float.valueOf(piece.getRoll()).hashCode*/ + 37 * null/*erased method Arrays.hashCode*/ + 37 * null/*erased method Arrays.hashCode*/ + (piece.getShininess() != null?37 * null/*erased method this.piece.getShininess().hashCode*/:3456);
       //            }
     }
