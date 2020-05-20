@@ -500,16 +500,16 @@ var homeController;
 function displayHome(home, preferences) {
   preferences.setFurnitureViewedFromTop(true);
   var factory = {
-      createFurnitureCatalogView(catalog, preferences, furnitureCatalogController) {
+      createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
         return null;
       },
-      createFurnitureView(home, preferences, furnitureController) {
+      createFurnitureView: function(home, preferences, furnitureController) {
         return null;
       },
       createPlanView: function(home, preferences, planController) {
         return new PlanComponent("canvas2D", home, preferences, planController);
       }, 
-      createView3D(home, preferences, homeController3D) {
+      createView3D: function(home, preferences, homeController3D) {
         return new HomeComponent3D("canvas3D", home, preferences, null, homeController3D);
         
       },
