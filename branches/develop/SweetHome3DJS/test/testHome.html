@@ -62,6 +62,7 @@
 <script type="text/javascript" src="src/LengthUnit.js"></script>
 <script type="text/javascript" src="src/graphics2d.js"></script>
 <script type="text/javascript" src="src/PlanComponent.js"></script>
+<script type="text/javascript" src="src/HomePane.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
 #canvas2D::selection { background: #0042E0; }
@@ -516,20 +517,7 @@ function displayHome(home, preferences) {
       createHomeView: function(home, preferences, homeController) {
         homeController.getPlanController().getView();
         homeController.getHomeController3D().getView();
-        return {
-          setEnabled: function(actionType, enabled) {
-          },
-          setUndoRedoName: function(undoText, redoText) {
-          },
-          setTransferEnabled: function(enabled) {
-          },
-          isClipboardEmpty: function() {
-            return true;
-          },
-          getClipboardItems: function() {
-         	return null;    
-          }
-        };
+        return new HomePane(home, preferences, homeController);
       }, 
       createLabelView: function (home, preferences, labelController) {
         return {
@@ -549,6 +537,25 @@ function displayHome(home, preferences) {
 
 <canvas id="canvas3D" style="width:98%; height:50%; background-color: #CCCCCC; border: 1px solid gray;" 
         tabIndex="1"></canvas>
+
+<div id="home-pane-toolbar">
+<button onclick="homeController.getView().getAction('DELETE_SELECTION').actionPerformed()">DELETE</button>
+<button onclick="homeController.getView().getAction('COPY').actionPerformed()">COPY</button>
+<button onclick="homeController.getView().getAction('CUT').actionPerformed()">CUT</button>
+<button onclick="homeController.getView().getAction('PASTE').actionPerformed()">PASTE</button>
+<button onclick="homeController.getView().getAction('UNDO').actionPerformed()">UNDO</button>
+<button onclick="homeController.getView().getAction('REDO').actionPerformed()">REDO</button>
+Mode: <select onchange="homeController.getView().getAction(this.value).actionPerformed()">
+  <option value="SELECT">Selection</option>
+  <option value="PAN">Panning</option>
+  <option value="CREATE_WALLS">Walls</option>
+  <option value="CREATE_ROOMS">Rooms</option>
+  <option value="CREATE_DIMENSION_LINES">Dimensions</option>
+  <option value="CREATE_POLYLINES">Polylines</option>
+  <option value="CREATE_LABELS">Labels</option>
+</select>
+</div>
+
 <div id="canvas2D" style="width: 98%; height: 50%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
         tabIndex="2" ></div>
 <canvas id="canvas3D_2" style="display: none; background-color: #CCCCCC; border: 1px solid gray" 
