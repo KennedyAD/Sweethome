@@ -78,8 +78,14 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
       _this.repaint();
     };
   }
+
+  this.toolbar = document.getElementById("home-pane-toolbar");
+
   window.addEventListener("resize", function () {
     _this.revalidate();
+    _this.toolbar.style.visibility = "hidden";
+    _this.toolbar.className = "";
+    setTimeout(function() { _this.toolbar.style.visibility = "visible"; _this.showToolbar(); }, 500);
   });
   this.tooltip = document.createElement("div");
   this.tooltip.style.position = "absolute";
@@ -92,11 +98,14 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.tooltip.style.borderColor = ColorTools.toRGBAStyle(this.getForeground(), 0.7);
   this.tooltip.style.font = this.font;
   this.tooltip.style.color = this.canvas.style.color;
+  this.tooltip.style.zIndex = 3;
   document.body.appendChild(this.tooltip);
 
   this.touchOverlay = document.createElement("div");
   this.touchOverlay.id = "touch-overlay-timer";
   this.touchOverlay.style.position = "absolute";
+  this.touchOverlay.style.top = "0px";
+  this.touchOverlay.style.left = "0px";
   this.touchOverlay.innerHTML = '<div id="touch-overlay-timer-content"></div><div id="touch-overlay-timer-bg"></div><div id="touch-overlay-timer-hidder"></div><div id="touch-overlay-timer-loader1"></div><div id="touch-overlay-timer-loader2"></div>';
   document.body.appendChild(this.touchOverlay);
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
@@ -143,6 +152,7 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
 
   this.patternImagesCache = ({});
   this.setScale(0.5);
+  this.showToolbar();
 }
 
 /** @private */
@@ -391,6 +401,7 @@ PlanComponent.initStatics = function () {
 
 PlanComponent.initStatics();
 
+/** @private */
 PlanComponent.prototype.startLongTouchAnimation = function (controller, x, y) {
   this.touchOverlay.style.visibility = "visible";
   if (controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
@@ -409,6 +420,7 @@ PlanComponent.prototype.startLongTouchAnimation = function (controller, x, y) {
   }
 };
 
+/** @private */
 PlanComponent.prototype.stopLongTouchAnimation = function (x, y) {
   this.touchOverlay.style.visibility = "hidden";
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
@@ -417,6 +429,7 @@ PlanComponent.prototype.stopLongTouchAnimation = function (x, y) {
   }
 };
 
+/** @private */
 PlanComponent.prototype.startIndicatorAnimation = function (x, y, indicator) {
   if (indicator == "default" || indicator == "selection") {
     this.touchOverlay.style.visibility = "hidden";
@@ -432,11 +445,83 @@ PlanComponent.prototype.startIndicatorAnimation = function (x, y, indicator) {
   }
 };
 
+/** @private */
 PlanComponent.prototype.stopIndicatorAnimation = function () {
   this.touchOverlay.style.visibility = "hidden";
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     this.touchOverlay.children.item(i).classList.remove("animated");
     this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+};
+
+/**
+ * Toogles the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
+ */
+PlanComponent.prototype.toggleToolbar = function () {
+  if (this.toolbar == null) {
+    return;
+  }
+  if (this.toolbar.classList.contains("show")) {
+    this.hideToolbar();
+  } else {
+    this.showToolbar();
+  }
+};
+
+/**
+ * Shows the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
+ */
+PlanComponent.prototype.showToolbar = function () {
+  if (this.toolbar == null) {
+    return;
+  }
+  this.toolbar.style.width = (this.canvas.getBoundingClientRect().width) + "px";
+  this.toolbar.style.left = (this.canvas.getBoundingClientRect().left) + "px";
+  this.toolbar.style.top = (this.canvas.getBoundingClientRect().top) + "px";
+  if (!this.toolbar.classList.contains("show")) {
+    this.toolbar.classList.remove("hide");
+    this.toolbar.classList.add("show");
+  }
+  if (this.toolbarHideTimeout) {
+    clearTimeout(this.toolbarHideTimeout);
+    this.toolbarHideTimeout = undefined;
+  }
+};
+
+/**
+ * Hides the toolbar after the given timeout.
+ */
+PlanComponent.prototype.setToolbarTimeout = function (timeout) {
+  if (this.toolbar == null) {
+    return;
+  }
+  if (this.toolbarHideTimeout) {
+    clearTimeout(this.toolbarHideTimeout);
+    this.toolbarHideTimeout = undefined;
+  }
+  if (!this.toolbar.classList.contains("show")) {
+    return;
+  }
+  var planComponent = this;
+  planComponent.toolbarHideTimeout = setTimeout(function() {
+    planComponent.hideToolbar();
+  }, timeout);
+}
+
+/**
+ * Hides the toolbar.
+ */
+PlanComponent.prototype.hideToolbar = function () {
+  if (this.toolbar == null) {
+    return;
+  }
+  if(this.toolbarHideTimeout) {
+    clearTimeout(this.toolbarHideTimeout);
+    this.toolbarHideTimeout = undefined;
+  }
+  if (!this.toolbar.classList.contains("hide") && this.toolbar.classList.contains("show")) {
+    this.toolbar.classList.remove("show");
+    this.toolbar.classList.add("hide");
   }
 };
 
@@ -1035,6 +1120,16 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
       },
       mouseMoved: function (ev) {
         planComponent.handleMouseEvent(ev, "mouseMoved");
+        if(mouseListener.isInCanvas(ev) && ev.canvasY <= 30) {
+          if(!mouseListener.inToolbar) {
+            // entering toolbar
+            planComponent.showToolbar();
+          }
+          mouseListener.inToolbar = true;
+        }
+        if(mouseListener.isInCanvas(ev) && ev.canvasY > 30) {
+          mouseListener.inToolbar = false;
+        }
         if (mouseListener.lastPointerLocation != null) {
           if (mouseListener.autoScroll == null && !mouseListener.isInCanvas(ev)) {
             mouseListener.autoScroll = setInterval(function () {
@@ -1240,8 +1335,10 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
                 // press mouse was never fired => do it now
                 if (controller.getMode() === PlanController.Mode.SELECTION) {
                   controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
-                }
-                else {
+                  if (!mouseListener.isLongTouch()) { 
+                    planComponent.toggleToolbar();
+                  }
+                } else {
                   if (mouseListener.isLongTouch() 
                       && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
                     // double click emulated

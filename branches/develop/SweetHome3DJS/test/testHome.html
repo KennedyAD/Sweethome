@@ -68,7 +68,7 @@
 #canvas2D::selection { background: #0042E0; }
 </style>
 </head>
-<body>
+<body style="margin-top:0px; margin-bottom:0px;">
 <script type="text/javascript">
 var animate = false;
 
@@ -535,7 +535,7 @@ function displayHome(home, preferences) {
 }
 </script>
 
-<canvas id="canvas3D" style="width:98%; height:50%; background-color: #CCCCCC; border: 1px solid gray;" 
+<canvas id="canvas3D" style="width:98%; height:48%; background-color: #CCCCCC; border: 1px solid gray;" 
         tabIndex="1"></canvas>
 
 <div id="home-pane-toolbar">
@@ -545,7 +545,7 @@ function displayHome(home, preferences) {
 <button onclick="homeController.getView().getAction('PASTE').actionPerformed()">PASTE</button>
 <button onclick="homeController.getView().getAction('UNDO').actionPerformed()">UNDO</button>
 <button onclick="homeController.getView().getAction('REDO').actionPerformed()">REDO</button>
-Mode: <select onchange="homeController.getView().getAction(this.value).actionPerformed()">
+<select onchange="homeController.getView().getAction(this.value).actionPerformed()">
   <option value="SELECT">Selection</option>
   <option value="PAN">Panning</option>
   <option value="CREATE_WALLS">Walls</option>
@@ -554,9 +554,10 @@ Mode: <select onchange="homeController.getView().getAction(this.value).actionPer
   <option value="CREATE_POLYLINES">Polylines</option>
   <option value="CREATE_LABELS">Labels</option>
 </select>
+<button onclick="homeController.getPlanController().getView().hideToolbar()" style="float: right;">X</button>
 </div>
 
-<div id="canvas2D" style="width: 98%; height: 50%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
+<div id="canvas2D" style="width: 98%; height: 48%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
         tabIndex="2" ></div>
 <canvas id="canvas3D_2" style="display: none; background-color: #CCCCCC; border: 1px solid gray" 
         width="600" height="300" tabIndex="3"></canvas>

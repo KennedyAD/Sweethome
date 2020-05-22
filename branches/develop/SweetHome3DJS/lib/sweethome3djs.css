@@ -3,6 +3,7 @@
   width: 20px;
   height: 20px;
   opacity: 0.8;
+  z-index: 4;
 }
 #touch-overlay-timer > div {
   position: absolute;
@@ -93,3 +94,57 @@
   opacity: 1;
   visibility: visible;
 }
+
+/*******************************/
+/* TOOLBAR                     */
+/*******************************/
+
+#home-pane-toolbar {
+	visibility: hidden;
+	position: absolute;
+	z-index: 2;
+  background-color: rgba(0, 0, 0, 0.5);
+  -padding-top: 2px;
+  -padding-bottom: 2px;
+}	
+#home-pane-toolbar.show {
+	visibility: visible;
+	opacity: 1;
+  animation-name: showtoolbar;
+  animation-duration: 1s;	
+}
+#home-pane-toolbar.hide {
+  visibility: hidden;
+  opacity: 0;
+	animation-name: hidetoolbar;
+  animation-duration: 1s; 
+}
+#home-pane-toolbar > button, #home-pane-toolbar > select {
+  --webkit-appearance: button;
+  -width: 40px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  height: 20px;
+  border-radius: 5px;
+  border: solid 1px transparent;
+  text-align: center;
+  overflow:hidden;
+  -box-shadow: 0 0 3px gray;
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+#home-pane-toolbar > button:hover, #home-pane-toolbar > select:hover {
+  color: rgba(0, 0, 0, 1);
+  border-color: rgba(0, 0, 0, 1);
+  background-color: rgba(255, 255, 255, 0.5);
+}	
+@keyframes showtoolbar {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes hidetoolbar {
+  0% { visibility: visible; opacity: 1; }
+  100% { visibility: visible; opacity: 0; }
+}
+
+
