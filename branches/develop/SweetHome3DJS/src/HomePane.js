@@ -36,8 +36,11 @@ var ResourceAction = (function () {
   var parameters;
 
   function ResourceAction(preferences, resourceClass, actionPrefix, enabled, controller, controllerMethod, parameters) {
-    if(enabled === undefined) {
-      enabled = false;
+    if (enabled === undefined) {
+      parameters = controllerMethod;
+      controllerMethod = controller;
+      controller = enabled;
+      enabled = false;      
     }
     this.putValue(ResourceAction.RESOURCE_CLASS, resourceClass);
     this.putValue(ResourceAction.RESOURCE_PREFIX, actionPrefix);
@@ -68,7 +71,12 @@ var ResourceAction = (function () {
    *                  disable it
    */
   ResourceAction.prototype.setEnabled = function (enabled) {
-    this.enabled = enabled;
+    if (this.enabled != enabled) {
+      this.enabled = enabled;
+      if(this.changeSupport != null) {
+        this.changeSupport.firePropertyChange("enabled", !enabled, enabled);
+      }
+    }
   }
 
   /**
@@ -166,7 +174,7 @@ var ResourceAction = (function () {
    *
    * @param {PropertyChangeListener} listener The <code>PropertyChangeListener</code> to be added
    */
-  ResourceAction.prototype.addPropertyChangeListener = function(istener) {
+  ResourceAction.prototype.addPropertyChangeListener = function(listener) {
     if (this.changeSupport == null) {
       this.changeSupport = new PropertyChangeSupport(this);
     }
@@ -470,6 +478,7 @@ var HomePane = (function () {
     this.home = home;
     this.preferences = preferences;
     this.controller = controller;
+    this.clipboardEmpty = true;
     this.actionMap = {};
     this.createActions(home, preferences, controller);
     // _this.createMenuActions(preferences, controller);
@@ -494,6 +503,53 @@ var HomePane = (function () {
     // }
     // _this.disableMenuItemsDuringDragAndDrop(controller.getPlanController().getView(), homeMenuBar);
     // _this.applyComponentOrientation(java.awt.ComponentOrientation.getOrientation(/* getDefault */ (window.navigator['userLanguage'] || window.navigator.language)));
+    
+    // TODO Create toolbar in createToolBar
+    var toolBar = document.getElementById("home-pane-toolbar"); 
+    var toolBarActions = [HomeView.ActionType.UNDO, HomeView.ActionType.REDO, null, HomeView.ActionType.DELETE_SELECTION, HomeView.ActionType.CUT, HomeView.ActionType.COPY, HomeView.ActionType.PASTE, null,  
+                          HomeView.ActionType.SELECT, HomeView.ActionType.PAN, HomeView.ActionType.CREATE_WALLS, HomeView.ActionType.CREATE_ROOMS, HomeView.ActionType.CREATE_POLYLINES, HomeView.ActionType.CREATE_DIMENSION_LINES, HomeView.ActionType.CREATE_LABELS, null,  
+                          HomeView.ActionType.VIEW_FROM_TOP, HomeView.ActionType.VIEW_FROM_OBSERVER];
+    for (var i = 0; i < toolBarActions.length; i++) {
+      if (toolBarActions [i]) {
+        var action = this.getAction(toolBarActions [i]);
+        var button = document.createElement("button");
+        button.disabled = !action.isEnabled();
+        var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
+        if (!icon) {
+          icon = action.getValue(ResourceAction.SMALL_ICON);
+        }
+        button.style.background = "url('lib/"+ icon + "')";
+        button.style.opacity = button.disabled ? ".33" : "1";
+        button.style.backgroundPosition = "center";
+        button.style.backgroundRepeat = "no-repeat";
+        button.style.width = "16px";
+        button.style.border = "none";
+        button.action = action;
+        button.addEventListener("click", function() {
+            this.action.actionPerformed();
+          });
+        var listener = {
+            button: button,
+            propertyChange: function(ev) {
+                if (ev.getPropertyName() == "enabled") {
+                  this.button.disabled = !ev.getNewValue();
+                }
+                this.button.style.opacity = this.button.disabled ? ".33" : "1";
+              }
+          };
+        action.addPropertyChangeListener(listener);
+        toolBar.appendChild(button);        
+      } else {
+        var space = document.createElement("span");
+        space.innerHTML = "&nbsp;"; // TODO Fix width
+        toolBar.appendChild(space);
+      }
+    }
+    
+    // TODO Manage focus once furniture view will exist
+    setTimeout(function() {
+        controller.focusedViewChanged(controller.getPlanController().getView());
+      });
     return this;
   }
 
@@ -767,7 +823,7 @@ var HomePane = (function () {
       parameters[i - 4] = arguments[i];
     }
     try {
-      var action = new ResourceAction(preferences, HomePane, HomeView.ActionType[actionType], true, controller, method, parameters);
+      var action = new ResourceAction(preferences, HomePane, HomeView.ActionType[actionType], false, controller, method, parameters);
       this.getActionMap()[HomeView.ActionType[actionType]] = action;
       return action;
     } catch (ex) {
@@ -811,11 +867,12 @@ var HomePane = (function () {
     var action = this.createAction(actionType, preferences);
     var homePane = this;
     action.actionPerformed = function(ev) {
-      if(copyAction) {
+      if (copyAction) {
         homePane.clipboard = Home.duplicate(homePane.home.getSelectedItems());
         homePane.clipboardEmpty = false;
+        homePane.controller.enablePasteAction();
       }
-      switch(actionType) {
+      switch (actionType) {
       case HomeView.ActionType.CUT:
         homePane.controller.cut(homePane.home.getSelectedItems());
         break;

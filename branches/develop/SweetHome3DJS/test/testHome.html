@@ -399,6 +399,7 @@ function testHome(geomAvailable) {
         homeLoaded: function(home) {
           assertTrue("No furniture", home.getFurniture().length > 0);
           var preferences = new DefaultUserPreferences();
+	      preferences.setLanguage("en");
           displayHome(home, preferences);
           // Add objects to home and make them blink      
           home.addPieceOfFurniture(piece);
@@ -535,30 +536,15 @@ function displayHome(home, preferences) {
 }
 </script>
 
-<canvas id="canvas3D" style="width:98%; height:48%; background-color: #CCCCCC; border: 1px solid gray;" 
+<canvas id="canvas3D" style="width:98%; height:45%; background-color: #CCCCCC; border: 1px solid gray;" 
         tabIndex="1"></canvas>
 
+<div id="canvas2D" style="width: 98%; height: 50%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
+        tabIndex="2" ></div>
+
 <div id="home-pane-toolbar">
-<button onclick="homeController.getView().getAction('DELETE_SELECTION').actionPerformed()">DELETE</button>
-<button onclick="homeController.getView().getAction('COPY').actionPerformed()">COPY</button>
-<button onclick="homeController.getView().getAction('CUT').actionPerformed()">CUT</button>
-<button onclick="homeController.getView().getAction('PASTE').actionPerformed()">PASTE</button>
-<button onclick="homeController.getView().getAction('UNDO').actionPerformed()">UNDO</button>
-<button onclick="homeController.getView().getAction('REDO').actionPerformed()">REDO</button>
-<select onchange="homeController.getView().getAction(this.value).actionPerformed()">
-  <option value="SELECT">Selection</option>
-  <option value="PAN">Panning</option>
-  <option value="CREATE_WALLS">Walls</option>
-  <option value="CREATE_ROOMS">Rooms</option>
-  <option value="CREATE_DIMENSION_LINES">Dimensions</option>
-  <option value="CREATE_POLYLINES">Polylines</option>
-  <option value="CREATE_LABELS">Labels</option>
-</select>
-<button onclick="homeController.getPlanController().getView().hideToolbar()" style="float: right;">X</button>
 </div>
 
-<div id="canvas2D" style="width: 98%; height: 48%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
-        tabIndex="2" ></div>
 <canvas id="canvas3D_2" style="display: none; background-color: #CCCCCC; border: 1px solid gray" 
         width="600" height="300" tabIndex="3"></canvas>
 
