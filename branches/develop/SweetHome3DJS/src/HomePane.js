@@ -260,7 +260,9 @@ var ResourceAction = (function () {
    */
   ResourceAction.prototype.getOptionalString = function (preferences, resourceClass, propertyKey, label) {
     try {
-      var localizedText = label ? label : preferences.getLocalizedString(resourceClass, propertyKey);
+      var localizedText = label 
+          ? ResourceAction.getLocalizedLabelText(preferences, resourceClass, propertyKey) 
+          : preferences.getLocalizedString(resourceClass, propertyKey);
       if (localizedText != null && localizedText.length > 0) {
         return localizedText;
       } else {
@@ -271,6 +273,39 @@ var ResourceAction = (function () {
       return null;
     }
   };
+  
+  /**
+   * Returns a localized text for menus items and labels depending on the system.
+   * @param {UserPreferences} preferences
+   * @param {Object} resourceClass
+   * @param {string} propertyKey
+   * @param {Array} label
+   * @return {string}
+   * @private
+   */
+  ResourceAction.getLocalizedLabelText = function(preferences, resourceClass, resourceKey, resourceParameters) {
+    var localizedString = preferences.getLocalizedString(resourceClass, resourceKey, resourceParameters);
+    var language = Locale.getDefault();
+    if (OperatingSystem.isMacOSX()
+        && (language.indexOf("zh") == 0 // CHINESE
+            || language.indexOf("ja") == 0 // JAPANESE
+            || language.indexOf("ko") == 0 // KOREAN
+            || language.indexOf("uk") == 0)) { // Ukrainian
+      var openingBracketIndex = localizedString.indexOf('(');
+      if (openingBracketIndex !== -1) {
+        var closingBracketIndex = localizedString.indexOf(')');
+        if (openingBracketIndex === closingBracketIndex - 2) {
+          var c = localizedString.charAt(openingBracketIndex + 1);
+          if (c >= 'A' && c <= 'Z') {
+            localizedString = localizedString.substring(0, openingBracketIndex)
+                + localizedString.substring(closingBracketIndex + 1);
+          }
+        }
+      }
+    }
+    return localizedString;
+  }
+
   /**
    * Unsupported operation. Subclasses should override this method if they want
    * to associate a real action to this class.
@@ -282,60 +317,6 @@ var ResourceAction = (function () {
     } else {
       throw new UnsupportedOperationException();
     }
-  };
-  /**
-   * Returns <code>true</code> if the given <code>action</action> is valid to avoid it to be
-   * fired twice for the same user command.
-   * @param {Object} action
-   * @return {boolean}
-   */
-  ResourceAction.isActionValid = function (action) {
-    if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionBetween("1.7", "9")) {
-      var inputLocale = java.awt.im.InputContext.getInstance().getLocale();
-      if (inputLocale != null && java.util.Arrays.binarySearch(ResourceAction.LATIN_AND_SUPPORTED_LOCALES, inputLocale.getLanguage()) < 0) {
-        if (!ResourceAction.isInvokedFromMenuItem()) {
-          ResourceAction.previousActionAccelerator = action.getValue(ResourceAction.ACCELERATOR_KEY);
-          if (ResourceAction.doubleEventsTimer == null) {
-            ResourceAction.doubleEventsTimer = new javax.swing.Timer(1000, new ResourceAction.ResourceAction$0());
-          }
-          ResourceAction.doubleEventsTimer.restart();
-        }
-        else if (ResourceAction.previousActionAccelerator != null && ResourceAction.previousActionAccelerator.equals(action.getValue(ResourceAction.ACCELERATOR_KEY))) {
-          ResourceAction.previousActionAccelerator = null;
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-  /**
-   * Returns <code>true</code> if current call is done from a menu item.
-   * @return {boolean}
-   * @private
-   */
-  ResourceAction.isInvokedFromMenuItem = function () {
-    {
-      var array122 = java.lang.Thread.currentThread().getStackTrace();
-      for (var index121 = 0; index121 < array122.length; index121++) {
-        var stackElement = array122[index121];
-        {
-          if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-          }
-          else {
-            return o1 === o2;
-          } })("com.apple.laf.ScreenMenuItem", stackElement.getClassName()) && /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
-            return o1.equals(o2);
-          }
-          else {
-            return o1 === o2;
-          } })("actionPerformed", stackElement.getMethodName())) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   };
 
   /**
@@ -388,7 +369,7 @@ var ResourceAction = (function () {
    * The key used for storing a <code>KeyStroke</code> to be used as the
    * accelerator for the action.
    */
-  ResourceAction.ACCELERATOR_KEY="AcceleratorKey";
+  ResourceAction.ACCELERATOR_KEY = "AcceleratorKey";
 
   /**
    * The key used for storing an <code>Integer</code> that corresponds to
@@ -399,7 +380,7 @@ var ResourceAction = (function () {
    * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.getExtendedKeyCodeForChar('\u0444'))</code>
    * sets the mnemonic of <code>myAction</code> to Cyrillic letter "Ef".
    */
-  ResourceAction.MNEMONIC_KEY="MnemonicKey";
+  ResourceAction.MNEMONIC_KEY = "MnemonicKey";
 
   /**
    * The key used for storing a <code>Boolean</code> that corresponds
@@ -454,9 +435,6 @@ var ResourceAction = (function () {
   ResourceAction.POPUP = "Popup";
   ResourceAction.TOGGLE_BUTTON_MODEL = "ToggleButtonModel";
   ResourceAction.TOOL_BAR_ICON = "ToolBarIcon";
-  ResourceAction.LATIN_AND_SUPPORTED_LOCALES = ["cs", "da", "de", "en", "es", "et", "fi", "fr", "hr", "hu", "it", "ja", "lt", "lv", "nl", "no", "pl", "pt", "ro", "sk", "sl", "sv", "tr", "vi"];
-  ResourceAction.previousActionAccelerator = null;
-  ResourceAction.doubleEventsTimer = null;
   return ResourceAction;
 }());
 ResourceAction["__class"] = "com.eteks.sweethome3d.swing.ResourceAction";
@@ -1937,43 +1915,42 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.createToolBar = function (home) {
-    // TODO Create toolbar in createToolBar
     var toolBar = document.getElementById("home-pane-toolbar"); 
     var toolBarActions = [HomeView.ActionType.UNDO, HomeView.ActionType.REDO, null, HomeView.ActionType.DELETE_SELECTION, HomeView.ActionType.CUT, HomeView.ActionType.COPY, HomeView.ActionType.PASTE, null,  
                           HomeView.ActionType.SELECT, HomeView.ActionType.PAN, HomeView.ActionType.CREATE_WALLS, HomeView.ActionType.CREATE_ROOMS, HomeView.ActionType.CREATE_POLYLINES, HomeView.ActionType.CREATE_DIMENSION_LINES, HomeView.ActionType.CREATE_LABELS, null,  
                           HomeView.ActionType.VIEW_FROM_TOP, HomeView.ActionType.VIEW_FROM_OBSERVER];
     for (var i = 0; i < toolBarActions.length; i++) {
-      if (toolBarActions [i]/* && this.getAction(toolBarActions [i]).getValue(ResourceAction.NAME) != null*/) {
+      if (toolBarActions [i]) {
         var action = this.getAction(toolBarActions [i]);
-        var button = document.createElement("button");
-        button.disabled = !action.isEnabled();
-        var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
-        if (!icon) {
-          icon = action.getValue(ResourceAction.SMALL_ICON);
-        }
-        button.style.background = "url('lib/"+ icon + "')";
-        //button.style.opacity = button.disabled ? ".33" : "1";
-        button.style.backgroundPosition = "center";
-        button.style.backgroundRepeat = "no-repeat";
-        button.classList.add("toolbar-button");
-        if(action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
-          button.classList.add("toggle");
-        }
-        button.action = action;
-        button.addEventListener("click", function() {
-            this.action.actionPerformed();
-          });
-        var listener = {
-            button: button,
-            propertyChange: function(ev) {
-                if (ev.getPropertyName() == "enabled") {
-                  this.button.disabled = !ev.getNewValue();
+        if (action.getValue(ResourceAction.NAME) != null) {
+          var button = document.createElement("button");
+          button.disabled = !action.isEnabled();
+          var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
+          if (!icon) {
+            icon = action.getValue(ResourceAction.SMALL_ICON);
+          }
+          button.style.background = "url('lib/"+ icon + "')";
+          button.style.backgroundPosition = "center";
+          button.style.backgroundRepeat = "no-repeat";
+          button.classList.add("toolbar-button");
+          if (action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
+            button.classList.add("toggle");
+          }
+          button.action = action;
+          button.addEventListener("click", function() {
+              this.action.actionPerformed();
+            });
+          var listener = {
+                button: button,
+                propertyChange: function(ev) {
+                  if (ev.getPropertyName() == "enabled") {
+                    this.button.disabled = !ev.getNewValue();
+                  }
                 }
-                //this.button.style.opacity = this.button.disabled ? ".33" : "1";
-              }
-          };
-        action.addPropertyChangeListener(listener);
-        toolBar.appendChild(button);        
+            };
+          action.addPropertyChangeListener(listener);
+          toolBar.appendChild(button);        
+        }
       } else {
         var space = document.createElement("span");
         space.classList.add("toolbar-separator");
