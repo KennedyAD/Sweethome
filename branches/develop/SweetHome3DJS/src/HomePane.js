@@ -473,8 +473,7 @@ var HomePane = (function () {
     // var homeMenuBar = _this.createMenuBar(home, preferences, controller);
     // _this.setJMenuBar(homeMenuBar);
     // var contentPane = _this.getContentPane();
-    this.createToolBar(home);
-    // contentPane.add(_this.createToolBar(home), java.awt.BorderLayout.NORTH);
+    this.createToolBar(home, preferences);
     // contentPane.add(_this.createMainPane(home, preferences, controller));
     // if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
     //     contentPane.add(new javax.swing.JLabel(), java.awt.BorderLayout.WEST);
@@ -659,23 +658,26 @@ var HomePane = (function () {
     var planController = controller.getPlanController();
     if (planController.getView() != null) {
       this.createAction(ActionType.SELECT_ALL_AT_ALL_LEVELS, preferences, planController, "selectAllAtAllLevels");
-      this.createToggleAction(ActionType.SELECT, planController.getMode() == PlanController.Mode.SELECTION, "modeGroup",
+      var modeGroup = [];
+      this.createToggleAction(ActionType.SELECT, planController.getMode() == PlanController.Mode.SELECTION, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.SELECTION);
-      this.createToggleAction(ActionType.PAN, planController.getMode() == PlanController.Mode.PANNING, "modeGroup",
+      this.createToggleAction(ActionType.PAN, planController.getMode() == PlanController.Mode.PANNING, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.PANNING);
-      this.createToggleAction(ActionType.CREATE_WALLS, planController.getMode() == PlanController.Mode.WALL_CREATION, "modeGroup",
+      this.createToggleAction(ActionType.CREATE_WALLS, planController.getMode() == PlanController.Mode.WALL_CREATION, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.WALL_CREATION);
-      this.createToggleAction(ActionType.CREATE_ROOMS, planController.getMode() == PlanController.Mode.ROOM_CREATION, "modeGroup",
+      this.createToggleAction(ActionType.CREATE_ROOMS, planController.getMode() == PlanController.Mode.ROOM_CREATION, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.ROOM_CREATION);
-      this.createToggleAction(ActionType.CREATE_POLYLINES, planController.getMode() == PlanController.Mode.POLYLINE_CREATION, "modeGroup",
+      this.createToggleAction(ActionType.CREATE_POLYLINES, planController.getMode() == PlanController.Mode.POLYLINE_CREATION, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.POLYLINE_CREATION);
-      this.createToggleAction(ActionType.CREATE_DIMENSION_LINES, planController.getMode() == PlanController.Mode.DIMENSION_LINE_CREATION, "modeGroup",
+      this.createToggleAction(ActionType.CREATE_DIMENSION_LINES, planController.getMode() == PlanController.Mode.DIMENSION_LINE_CREATION, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.DIMENSION_LINE_CREATION);
-      this.createToggleAction(ActionType.CREATE_LABELS, planController.getMode() == PlanController.Mode.LABEL_CREATION, "modeGroup",
+      this.createToggleAction(ActionType.CREATE_LABELS, planController.getMode() == PlanController.Mode.LABEL_CREATION, modeGroup,
           preferences, controller, "setMode", PlanController.Mode.LABEL_CREATION);
       this.createAction(ActionType.DELETE_SELECTION, preferences, planController, "deleteSelection");
       this.createAction(ActionType.LOCK_BASE_PLAN, preferences, planController, "lockBasePlan");
       this.createAction(ActionType.UNLOCK_BASE_PLAN, preferences, planController, "unlockBasePlan");
+      this.createAction(ActionType.ENABLE_MAGNETISM, preferences, controller, "enableMagnetism");
+      this.createAction(ActionType.DISABLE_MAGNETISM, preferences, controller, "disableMagnetism");
       this.createAction(ActionType.FLIP_HORIZONTALLY, preferences, planController, "flipHorizontally");
       this.createAction(ActionType.FLIP_VERTICALLY, preferences, planController, "flipVertically");
       this.createAction(ActionType.MODIFY_COMPASS, preferences, planController, "modifyCompass");
@@ -719,10 +721,10 @@ var HomePane = (function () {
       // SELECT_OBJECT and TOGGLE_SELECTION actions are actually defined later in updatePickingActions
       this.createAction(ActionType.SELECT_OBJECT, preferences);
       this.createAction(ActionType.TOGGLE_SELECTION, preferences);
-
-      this.createToggleAction(ActionType.VIEW_FROM_TOP, home.getCamera() == home.getTopCamera(), "viewGroup",
+      var viewGroup = [];
+      this.createToggleAction(ActionType.VIEW_FROM_TOP, home.getCamera() == home.getTopCamera(), viewGroup,
           preferences, homeController3D, "viewFromTop");
-      this.createToggleAction(ActionType.VIEW_FROM_OBSERVER, home.getCamera() == home.getObserverCamera(), "viewGroup",
+      this.createToggleAction(ActionType.VIEW_FROM_OBSERVER, home.getCamera() == home.getObserverCamera(), viewGroup,
           preferences, homeController3D, "viewFromObserver");
       this.createAction(ActionType.MODIFY_OBSERVER, preferences, planController, "modifyObserverCamera");
       this.createAction(ActionType.STORE_POINT_OF_VIEW, preferences, controller, "storeCamera");
@@ -731,9 +733,10 @@ var HomePane = (function () {
       this.createAction(ActionType.ATTACH_3D_VIEW, preferences, controller, "attachView", controller.getHomeController3D().getView());
 
       var allLevelsVisible = home.getEnvironment().isAllLevelsVisible();
-      this.createToggleAction(ActionType.DISPLAY_ALL_LEVELS, allLevelsVisible, "displayLevelGroup", preferences,
+      var displayLevelGroup = [];
+      this.createToggleAction(ActionType.DISPLAY_ALL_LEVELS, allLevelsVisible, displayLevelGroup, preferences,
           homeController3D, "displayAllLevels");
-      this.createToggleAction(ActionType.DISPLAY_SELECTED_LEVEL, !allLevelsVisible, "displayLevelGroup", preferences,
+      this.createToggleAction(ActionType.DISPLAY_SELECTED_LEVEL, !allLevelsVisible, displayLevelGroup, preferences,
           homeController3D, "displaySelectedLevel");
       this.createAction(ActionType.MODIFY_3D_ATTRIBUTES, preferences, homeController3D, "modifyAttributes");
       this.createAction(ActionType.CREATE_PHOTO, preferences, controller, "createPhoto");
@@ -788,7 +791,26 @@ var HomePane = (function () {
       parameters[i - 6] = arguments[i];
     }
     var action = this.createAction.apply(this, [actionType, preferences, controller, method].concat(parameters));
-    action.putValue(ResourceAction.TOGGLE_BUTTON_MODEL, group);
+    if (group != null) {
+      group.push(action);
+      action.putValue(ResourceAction.TOGGLE_BUTTON_MODEL, group);
+      action.putValue(ResourceAction.SELECTED_KEY, selected);
+      action.addPropertyChangeListener(function(ev) {
+          if (ev.getPropertyName() == ResourceAction.SELECTED_KEY) {
+            if (ev.getNewValue()) {
+              var group = ev.getSource().getValue(ResourceAction.TOGGLE_BUTTON_MODEL);
+              for (var i = 0; i < group.length; i++) {
+                if (action !== group [i] 
+                    && group [i].getValue(ResourceAction.SELECTED_KEY)) {
+                  group [i].putValue(ResourceAction.SELECTED_KEY, false);
+                }
+              }
+            } else {
+              ev.getSource().putValue(ResourceAction.SELECTED_KEY, false);
+            }
+          }
+        })
+    }
     return action;
   };
 
@@ -985,12 +1007,7 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.setToggleButtonModelSelected = function (actionType, selected) {
-    if(this.getAction(actionType).getValue(ResourceAction.TOGGLE_BUTTON_MODEL) != null && 
-        this.getAction(actionType).getValue(ResourceAction.TOGGLE_BUTTON_MODEL).setSelected) {
-      this.getAction(actionType).getValue(ResourceAction.TOGGLE_BUTTON_MODEL).setSelected(selected);
-    } else {
-      console.warn("no support yet for toggle button => TODO: create a model");
-    }
+    this.getAction(actionType).putValue(ResourceAction.addPlanControllerListener, selected);
   };
   /**
    * Adds listener to <code>home</code> to update
@@ -1635,7 +1652,58 @@ var HomePane = (function () {
     else {
       return null;
     }
-  };
+  }
+  
+  /**
+   * Returns Enable / Disable magnetism button.
+   * @param {UserPreferences} preferences
+   * @private
+   */
+  HomePane.prototype.createEnableDisableMagnetismButton = function(preferences) {
+    var disableMagnetismAction = this.getAction(HomeView.ActionType.DISABLE_MAGNETISM);
+    var enableMagnetismAction = this.getAction(HomeView.ActionType.ENABLE_MAGNETISM);
+    if (disableMagnetismAction !== null
+        && disableMagnetismAction.getValue(ResourceAction.NAME) !== null
+        && enableMagnetismAction.getValue(ResourceAction.NAME) !== null) {
+      var enableDisableMagnetismButton = this.createToolBarButton(
+          preferences.isMagnetismEnabled()
+              ? disableMagnetismAction
+              : enableMagnetismAction);
+      preferences.addPropertyChangeListener("MAGNETISM_ENABLED",
+          new HomePane.MagnetismChangeListener(this, enableDisableMagnetismButton));
+      return enableDisableMagnetismButton;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Preferences property listener bound to this component with a weak reference to avoid
+   * strong link between preferences and this component.
+   */
+  var MagnetismChangeListener = (function() {
+    function MagnetismChangeListener(homePane, enableDisableMagnetismButton) {
+      this.enableDisableMagnetismButton = enableDisableMagnetismButton;
+      this.homePane = homePane;
+    }
+
+    MagnetismChangeListener.prototype.propertyChange = function(ev) {
+      var homePane = this.homePane;
+      var preferences = ev.getSource();
+      var property = ev.getPropertyName();
+      if (homePane == null) {
+        preferences.removePropertyChangeListener(property, this);
+      } else {
+        this.enableDisableMagnetismButton.setAction(
+            preferences.isMagnetismEnabled()
+                ? homePane.getAction(HomeView.ActionType.DISABLE_MAGNETISM)
+                : homePane.getAction(HomeView.ActionType.ENABLE_MAGNETISM));
+      }
+    }
+    return MagnetismChangeListener;
+  }());
+  HomePane.MagnetismChangeListener = MagnetismChangeListener;
+
   /**
    * Returns text style menu.
    * @param {Home} home
@@ -1911,55 +1979,42 @@ var HomePane = (function () {
   /**
    * Returns the tool bar displayed in this pane.
    * @param {Home} home
-   * @return {javax.swing.JToolBar}
+   * @param {UserPreferences preferences}
+   * @return {Object}
    * @private
    */
-  HomePane.prototype.createToolBar = function (home) {
+  HomePane.prototype.createToolBar = function(home, preferences) {
     var toolBar = document.getElementById("home-pane-toolbar"); 
-    var toolBarActions = [HomeView.ActionType.UNDO, HomeView.ActionType.REDO, null, HomeView.ActionType.DELETE_SELECTION, HomeView.ActionType.CUT, HomeView.ActionType.COPY, HomeView.ActionType.PASTE, null,  
-                          HomeView.ActionType.SELECT, HomeView.ActionType.PAN, HomeView.ActionType.CREATE_WALLS, HomeView.ActionType.CREATE_ROOMS, HomeView.ActionType.CREATE_POLYLINES, HomeView.ActionType.CREATE_DIMENSION_LINES, HomeView.ActionType.CREATE_LABELS, null,  
-                          HomeView.ActionType.VIEW_FROM_TOP, HomeView.ActionType.VIEW_FROM_OBSERVER];
-    for (var i = 0; i < toolBarActions.length; i++) {
-      if (toolBarActions [i]) {
-        var action = this.getAction(toolBarActions [i]);
-        if (action.getValue(ResourceAction.NAME) != null) {
-          var button = document.createElement("button");
-          button.disabled = !action.isEnabled();
-          var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
-          if (!icon) {
-            icon = action.getValue(ResourceAction.SMALL_ICON);
-          }
-          button.style.background = "url('lib/"+ icon + "')";
-          button.style.backgroundPosition = "center";
-          button.style.backgroundRepeat = "no-repeat";
-          button.classList.add("toolbar-button");
-          if (action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
-            button.classList.add("toggle");
-          }
-          button.action = action;
-          button.addEventListener("click", function() {
-              this.action.actionPerformed();
-            });
-          var listener = {
-                button: button,
-                propertyChange: function(ev) {
-                  if (ev.getPropertyName() == "enabled") {
-                    this.button.disabled = !ev.getNewValue();
-                  }
-                }
-            };
-          action.addPropertyChangeListener(listener);
-          toolBar.appendChild(button);        
-        }
-      } else {
-        var space = document.createElement("span");
-        space.classList.add("toolbar-separator");
-        toolBar.appendChild(space);
-      }
+    this.addActionToToolBar(HomeView.ActionType.UNDO, toolBar); 
+    this.addActionToToolBar(HomeView.ActionType.REDO, toolBar); 
+    this.addSeparator(toolBar); 
+    
+    this.addActionToToolBar(HomeView.ActionType.DELETE_SELECTION, toolBar, "toolbar-optional"); 
+    this.addActionToToolBar(HomeView.ActionType.CUT, toolBar); 
+    this.addActionToToolBar(HomeView.ActionType.COPY, toolBar); 
+    this.addActionToToolBar(HomeView.ActionType.PASTE, toolBar); 
+    this.addSeparator(toolBar);
+    
+    this.addToggleActionToToolBar(HomeView.ActionType.SELECT, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.PAN, toolBar, "toolbar-optional"); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_WALLS, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_ROOMS, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_POLYLINES, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_DIMENSION_LINES, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_LABELS, toolBar); 
+    this.addSeparator(toolBar);
+    
+    var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences);
+    if (enableDisableMagnetismButton !== null) {
+      toolBar.appendChild(enableDisableMagnetismButton);
+      this.addSeparator(toolBar);
     }
-
+    
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
     return toolBar;
-  };
+  }
+  
   /**
    * Adds to tool bar the button matching the given <code>actionType</code>
    * and returns <code>true</code> if it was added.
@@ -1967,51 +2022,102 @@ var HomePane = (function () {
    * @param {javax.swing.JToolBar} toolBar
    * @private
    */
-  HomePane.prototype.addToggleActionToToolBar = function (actionType, toolBar) {
+  HomePane.prototype.addToggleActionToToolBar = function(actionType, toolBar, additionalClass) {
     var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
-      var toolBarAction = new ResourceAction.ToolBarAction(action);
-      var toggleButton = void 0;
-      if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior() && com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionBetween("1.7", "1.7.0_40")) {
-        toggleButton = new HomePane.HomePane$26(this, toolBarAction);
+    if (action.getValue(ResourceAction.NAME) != null) {
+      var button = this.createToolBarButton(action, additionalClass);
+      if (action.getValue(ResourceAction.SELECTED_KEY)) {
+        button.classList.add("selected");
       }
-      else {
-        toggleButton = new javax.swing.JToggleButton(toolBarAction);
-      }
-      toggleButton.setModel(action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL));
-      toolBar.add(toggleButton);
+      action.addPropertyChangeListener(function(ev) {
+          if (ev.getPropertyName() == ResourceAction.SELECTED_KEY) {
+            if (ev.getNewValue()) {
+              button.classList.add("selected");
+            } else {
+              button.classList.remove("selected");
+            }
+          }
+        });
+      button.addEventListener("click", function() {
+          action.putValue(ResourceAction.SELECTED_KEY, true);
+        });
+      toolBar.appendChild(button);        
     }
-  };
-  HomePane.prototype.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar = function (actionType, toolBar) {
-    var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
-      this.addActionToToolBar$javax_swing_Action$javax_swing_JToolBar(new ResourceAction.ToolBarAction(action), toolBar);
-    }
-  };
+  }
+
   /**
    * Adds to tool bar the button matching the given <code>actionType</code>.
    * @param {HomeView.ActionType} actionType
-   * @param {javax.swing.JToolBar} toolBar
+   * @param {Object} toolBar
+   * @param {string} otherClass additional CSS class
    * @private
    */
-  HomePane.prototype.addActionToToolBar = function (actionType, toolBar) {
-    if (((typeof actionType === 'number') || actionType === null) && ((toolBar != null && toolBar instanceof javax.swing.JToolBar) || toolBar === null)) {
-      return this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(actionType, toolBar);
+  HomePane.prototype.addActionToToolBar = function(actionType, toolBar, additionalClass) {
+    var action = this.getAction(actionType);
+    if (action.getValue(ResourceAction.NAME) != null) {
+      toolBar.appendChild(this.createToolBarButton(action, additionalClass));        
     }
-    else if (((actionType != null && (actionType["__interfaces"] != null && actionType["__interfaces"].indexOf("javax.swing.Action") >= 0 || actionType.constructor != null && actionType.constructor["__interfaces"] != null && actionType.constructor["__interfaces"].indexOf("javax.swing.Action") >= 0)) || actionType === null) && ((toolBar != null && toolBar instanceof javax.swing.JToolBar) || toolBar === null)) {
-      return this.addActionToToolBar$javax_swing_Action$javax_swing_JToolBar(actionType, toolBar);
+    return null;
+  }
+  
+  /**
+   * Returns a button configured from the given <code>action</code>.
+   * @param {HomeView.ResourceAction} action
+   * @param {string} additionalClass additional CSS class
+   * @returns {HTMLButton} 
+   * @private
+   */
+  HomePane.prototype.createToolBarButton = function(action, additionalClass) {
+    var button = document.createElement("button");
+    button.disabled = !action.isEnabled();
+    var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
+    if (!icon) {
+      icon = action.getValue(ResourceAction.SMALL_ICON);
     }
-    else
-      throw new Error('invalid overload');
-  };
-  HomePane.prototype.addActionToToolBar$javax_swing_Action$javax_swing_JToolBar = function (action, toolBar) {
-    if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior() && com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionBetween("1.7", "1.7.0_40")) {
-      toolBar.add(new HomePane.HomePane$27(this, new ResourceAction.ToolBarAction(action)));
+    button.style.background = "url('lib/"+ icon + "')";
+    button.style.backgroundPosition = "center";
+    button.style.backgroundRepeat = "no-repeat";
+    button.classList.add("toolbar-button");
+    if (action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
+      button.classList.add("toggle");
     }
-    else {
-      toolBar.add(new javax.swing.JButton(new ResourceAction.ToolBarAction(action)));
+    button.action = action;
+    button.setAction = function(newAction) {
+        button.action = newAction;
+        var icon = newAction.getValue(ResourceAction.TOOL_BAR_ICON);
+        if (!icon) {
+          icon = newAction.getValue(ResourceAction.SMALL_ICON);
+        }
+        button.style.background = "url('lib/"+ icon + "')";
+        button.style.backgroundPosition = "center";
+        button.style.backgroundRepeat = "no-repeat";
+      };
+    button.addEventListener("click", function() {
+        this.action.actionPerformed();
+      });
+    var listener = {
+          propertyChange: function(ev) {
+            if (ev.getPropertyName() == "enabled") {
+              button.disabled = !ev.getNewValue();
+            }
+          }
+      };
+    action.addPropertyChangeListener(listener);
+    if (additionalClass) {
+      button.classList.add(additionalClass);
     }
-  };
+    return button;
+  }
+  
+  /**
+   * @private
+   */
+  HomePane.prototype.addSeparator = function(toolBar) {
+    var space = document.createElement("span");
+    space.classList.add("toolbar-separator");
+    toolBar.appendChild(space);
+  }
+  
   /**
    * Enables or disables the action matching <code>actionType</code>.
    * @param {HomeView.ActionType} actionType

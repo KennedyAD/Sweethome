@@ -106,23 +106,12 @@
 
 #home-pane-toolbar > .toolbar-button  {
   width: 28px;
-  border: none;
   opacity: 1;
 }
 
 #home-pane-toolbar > .toolbar-separator  {
   display: inline-block;
-  width: 28px;
-}
-
-@media (max-width: 600px) {
-  #home-pane-toolbar > .toolbar-button  {
-    width: 20px;
-  }
-
-  #home-pane-toolbar > .toolbar-separator  {
-    width: 20px;
-  }
+  width: 15px;
 }
 
 #home-pane-toolbar > .toolbar-button:disabled  {
@@ -130,14 +119,33 @@
   opacity: 0.33;
 }
 
+#home-pane-toolbar > .selected, #home-pane-toolbar > .selected:hover {
+  border-color: black;
+}
+
+@media (max-width: 600px) {
+  #home-pane-toolbar > .toolbar-button  {
+    width: 24px;
+  }
+
+  #home-pane-toolbar > .toolbar-separator  {
+    width: 4px;
+  }
+
+  #home-pane-toolbar > .toolbar-optional  {
+   display: none;
+  }
+}
+
+
 #home-pane-toolbar {
 	visibility: visible;
-	position: absolute;
+/* 	position: absolute; */
   top: 0px;
   height: 2em;
-  width: 100%;
+  width: 99%;
 	z-index: 2;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.1);
   -padding-top: 2px;
   -padding-bottom: 2px;
 }	
@@ -167,9 +175,9 @@
   color: rgba(255, 255, 255, 1);
   background-color: rgba(0, 0, 0, 0.5);
 }
-#home-pane-toolbar > button:hover, #home-pane-toolbar > select:hover {
-  color: rgba(0, 0, 0, 1);
-  border-color: rgba(0, 0, 0, 1);
+#home-pane-toolbar > button:hover {
+  color: rgba(0, 0, 0, 0.2);
+  border-color: rgba(0, 0, 0, 0.2);
   background-color: rgba(255, 255, 255, 0.5);
 }	
 @keyframes showtoolbar {

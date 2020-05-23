@@ -516,14 +516,12 @@ function displayHome(home, preferences) {
         
       },
       createHomeView: function(home, preferences, homeController) {
-        homeController.getPlanController().getView();
-        homeController.getHomeController3D().getView();
         return new HomePane(home, preferences, homeController);
       }, 
       createLabelView: function (home, preferences, labelController) {
         return {
           displayView: function(parentView) {
-            labelController.setText("Test");
+            labelController.setText(prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text")));
             labelController.createLabel();
           }
         }
