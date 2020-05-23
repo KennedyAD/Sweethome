@@ -1,3 +1,8 @@
+
+/********************************/
+/* PlanComponent                */
+/********************************/
+
 #touch-overlay-timer {
   position: relative;
   width: 20px;
@@ -96,12 +101,41 @@
 }
 
 /*******************************/
-/* TOOLBAR                     */
+/* HomePane                    */
 /*******************************/
 
+#home-pane-toolbar > .toolbar-button  {
+  width: 28px;
+  border: none;
+  opacity: 1;
+}
+
+#home-pane-toolbar > .toolbar-separator  {
+  display: inline-block;
+  width: 28px;
+}
+
+@media (max-width: 600px) {
+  #home-pane-toolbar > .toolbar-button  {
+    width: 20px;
+  }
+
+  #home-pane-toolbar > .toolbar-separator  {
+    width: 20px;
+  }
+}
+
+#home-pane-toolbar > .toolbar-button:disabled  {
+  filter: grayscale(100%);
+  opacity: 0.33;
+}
+
 #home-pane-toolbar {
-	visibility: hidden;
+	visibility: visible;
 	position: absolute;
+  top: 0px;
+  height: 2em;
+  width: 100%;
 	z-index: 2;
   background-color: rgba(0, 0, 0, 0.5);
   -padding-top: 2px;

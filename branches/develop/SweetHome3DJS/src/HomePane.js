@@ -495,6 +495,7 @@ var HomePane = (function () {
     // var homeMenuBar = _this.createMenuBar(home, preferences, controller);
     // _this.setJMenuBar(homeMenuBar);
     // var contentPane = _this.getContentPane();
+    this.createToolBar(home);
     // contentPane.add(_this.createToolBar(home), java.awt.BorderLayout.NORTH);
     // contentPane.add(_this.createMainPane(home, preferences, controller));
     // if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
@@ -504,47 +505,7 @@ var HomePane = (function () {
     // _this.disableMenuItemsDuringDragAndDrop(controller.getPlanController().getView(), homeMenuBar);
     // _this.applyComponentOrientation(java.awt.ComponentOrientation.getOrientation(/* getDefault */ (window.navigator['userLanguage'] || window.navigator.language)));
     
-    // TODO Create toolbar in createToolBar
-    var toolBar = document.getElementById("home-pane-toolbar"); 
-    var toolBarActions = [HomeView.ActionType.UNDO, HomeView.ActionType.REDO, null, HomeView.ActionType.DELETE_SELECTION, HomeView.ActionType.CUT, HomeView.ActionType.COPY, HomeView.ActionType.PASTE, null,  
-                          HomeView.ActionType.SELECT, HomeView.ActionType.PAN, HomeView.ActionType.CREATE_WALLS, HomeView.ActionType.CREATE_ROOMS, HomeView.ActionType.CREATE_POLYLINES, HomeView.ActionType.CREATE_DIMENSION_LINES, HomeView.ActionType.CREATE_LABELS, null,  
-                          HomeView.ActionType.VIEW_FROM_TOP, HomeView.ActionType.VIEW_FROM_OBSERVER];
-    for (var i = 0; i < toolBarActions.length; i++) {
-      if (toolBarActions [i]) {
-        var action = this.getAction(toolBarActions [i]);
-        var button = document.createElement("button");
-        button.disabled = !action.isEnabled();
-        var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
-        if (!icon) {
-          icon = action.getValue(ResourceAction.SMALL_ICON);
-        }
-        button.style.background = "url('lib/"+ icon + "')";
-        button.style.opacity = button.disabled ? ".33" : "1";
-        button.style.backgroundPosition = "center";
-        button.style.backgroundRepeat = "no-repeat";
-        button.style.width = "16px";
-        button.style.border = "none";
-        button.action = action;
-        button.addEventListener("click", function() {
-            this.action.actionPerformed();
-          });
-        var listener = {
-            button: button,
-            propertyChange: function(ev) {
-                if (ev.getPropertyName() == "enabled") {
-                  this.button.disabled = !ev.getNewValue();
-                }
-                this.button.style.opacity = this.button.disabled ? ".33" : "1";
-              }
-          };
-        action.addPropertyChangeListener(listener);
-        toolBar.appendChild(button);        
-      } else {
-        var space = document.createElement("span");
-        space.innerHTML = "&nbsp;"; // TODO Fix width
-        toolBar.appendChild(space);
-      }
-    }
+
     
     // TODO Manage focus once furniture view will exist
     setTimeout(function() {
@@ -885,6 +846,78 @@ var HomePane = (function () {
       return action;
     }
   };
+
+  /**
+   * Toogles the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
+   */
+  PlanComponent.prototype.toggleToolBar = function () {
+    if (this.toolBar == null) {
+      return;
+    }
+    if (this.toolBar.classList.contains("show")) {
+      this.hideToolBar();
+    } else {
+      this.showToolBar();
+    }
+  };
+
+  /**
+   * Shows the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
+   */
+  PlanComponent.prototype.showToolBar = function () {
+    if (this.toolBar == null) {
+      return;
+    }
+    this.toolBar.style.width = (this.canvas.getBoundingClientRect().width) + "px";
+    this.toolBar.style.left = (this.canvas.getBoundingClientRect().left) + "px";
+    this.toolBar.style.top = (this.canvas.getBoundingClientRect().top) + "px";
+    if (!this.toolBar.classList.contains("show")) {
+      this.toolBar.classList.remove("hide");
+      this.toolBar.classList.add("show");
+    }
+    if (this.toolBarHideTimeout) {
+      clearTimeout(this.toolBarHideTimeout);
+      this.toolBarHideTimeout = undefined;
+    }
+  };
+
+  /**
+   * Hides the toolbar after the given timeout.
+   */
+  PlanComponent.prototype.setToolBarTimeout = function (timeout) {
+    if (this.toolBar == null) {
+      return;
+    }
+    if (this.toolBarHideTimeout) {
+      clearTimeout(this.toolBarHideTimeout);
+      this.toolBarHideTimeout = undefined;
+    }
+    if (!this.toolBar.classList.contains("show")) {
+      return;
+    }
+    var planComponent = this;
+    planComponent.toolBarHideTimeout = setTimeout(function() {
+      planComponent.hideToolBar();
+    }, timeout);
+  }
+
+  /**
+   * Hides the toolbar.
+   */
+  PlanComponent.prototype.hideToolBar = function () {
+    if (this.toolBar == null) {
+      return;
+    }
+    if(this.toolBarHideTimeout) {
+      clearTimeout(this.toolBarHideTimeout);
+      this.toolBarHideTimeout = undefined;
+    }
+    if (!this.toolBar.classList.contains("hide") && this.toolBar.classList.contains("show")) {
+      this.toolBar.classList.remove("show");
+      this.toolBar.classList.add("hide");
+    }
+  };
+
   /**
    * Create the actions map used to create menus of this component.
    * @param {UserPreferences} preferences
@@ -1904,82 +1937,50 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.createToolBar = function (home) {
-    var toolBar = new UnfocusableToolBar();
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.NEW_HOME, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.OPEN, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.SAVE, toolBar);
-    if (!com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX()) {
-      this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.PREFERENCES, toolBar);
-    }
-    toolBar.addSeparator();
-    var previousCount = toolBar.getComponentCount();
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.UNDO, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.REDO, toolBar);
-    if (previousCount !== toolBar.getComponentCount()) {
-      toolBar.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(2, 2)));
-    }
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.CUT, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.COPY, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.PASTE, toolBar);
-    toolBar.addSeparator();
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.ADD_HOME_FURNITURE, toolBar);
-    toolBar.addSeparator();
-    previousCount = toolBar.getComponentCount();
-    this.addToggleActionToToolBar(HomeView.ActionType.SELECT, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.PAN, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_WALLS, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_ROOMS, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_POLYLINES, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_DIMENSION_LINES, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_LABELS, toolBar);
-    if (previousCount !== toolBar.getComponentCount()) {
-      toolBar.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(2, 2)));
-      previousCount = toolBar.getComponentCount();
-    }
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.DECREASE_TEXT_SIZE, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_BOLD_STYLE, toolBar);
-    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_ITALIC_STYLE, toolBar);
-    if (previousCount !== toolBar.getComponentCount()) {
-      toolBar.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(2, 2)));
-    }
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.ZOOM_IN, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.ZOOM_OUT, toolBar);
-    toolBar.addSeparator();
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.CREATE_PHOTO, toolBar);
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.CREATE_VIDEO, toolBar);
-    toolBar.addSeparator();
-    var pluginActionsAdded = false;
-    for (var index136 = 0; index136 < this.pluginActions.length; index136++) {
-      var pluginAction = this.pluginActions[index136];
-      {
-        if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
-          return o1.equals(o2);
+    // TODO Create toolbar in createToolBar
+    var toolBar = document.getElementById("home-pane-toolbar"); 
+    var toolBarActions = [HomeView.ActionType.UNDO, HomeView.ActionType.REDO, null, HomeView.ActionType.DELETE_SELECTION, HomeView.ActionType.CUT, HomeView.ActionType.COPY, HomeView.ActionType.PASTE, null,  
+                          HomeView.ActionType.SELECT, HomeView.ActionType.PAN, HomeView.ActionType.CREATE_WALLS, HomeView.ActionType.CREATE_ROOMS, HomeView.ActionType.CREATE_POLYLINES, HomeView.ActionType.CREATE_DIMENSION_LINES, HomeView.ActionType.CREATE_LABELS, null,  
+                          HomeView.ActionType.VIEW_FROM_TOP, HomeView.ActionType.VIEW_FROM_OBSERVER];
+    for (var i = 0; i < toolBarActions.length; i++) {
+      if (toolBarActions [i]/* && this.getAction(toolBarActions [i]).getValue(ResourceAction.NAME) != null*/) {
+        var action = this.getAction(toolBarActions [i]);
+        var button = document.createElement("button");
+        button.disabled = !action.isEnabled();
+        var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
+        if (!icon) {
+          icon = action.getValue(ResourceAction.SMALL_ICON);
         }
-        else {
-          return o1 === o2;
-        } })(true, pluginAction.getValue(/* name */ "TOOL_BAR"))) {
-          this.addActionToToolBar$javax_swing_Action$javax_swing_JToolBar(new ResourceAction.ToolBarAction(pluginAction), toolBar);
-          pluginActionsAdded = true;
+        button.style.background = "url('lib/"+ icon + "')";
+        //button.style.opacity = button.disabled ? ".33" : "1";
+        button.style.backgroundPosition = "center";
+        button.style.backgroundRepeat = "no-repeat";
+        button.classList.add("toolbar-button");
+        if(action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
+          button.classList.add("toggle");
         }
+        button.action = action;
+        button.addEventListener("click", function() {
+            this.action.actionPerformed();
+          });
+        var listener = {
+            button: button,
+            propertyChange: function(ev) {
+                if (ev.getPropertyName() == "enabled") {
+                  this.button.disabled = !ev.getNewValue();
+                }
+                //this.button.style.opacity = this.button.disabled ? ".33" : "1";
+              }
+          };
+        action.addPropertyChangeListener(listener);
+        toolBar.appendChild(button);        
+      } else {
+        var space = document.createElement("span");
+        space.classList.add("toolbar-separator");
+        toolBar.appendChild(space);
       }
     }
-    if (pluginActionsAdded) {
-      toolBar.addSeparator();
-    }
-    this.addActionToToolBar$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JToolBar(HomeView.ActionType.HELP, toolBar);
-    for (var i = toolBar.getComponentCount() - 1; i > 0; i--) {
-      {
-        var child = toolBar.getComponent(i);
-        if ((child != null && child instanceof javax.swing.JSeparator) && (i === toolBar.getComponentCount() - 1 || i > 0 && (toolBar.getComponent(i - 1) != null && toolBar.getComponent(i - 1) instanceof javax.swing.JSeparator))) {
-          toolBar.remove(i);
-        }
-      }
-      ;
-    }
-    if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior() && com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionBetween("1.7", "1.7.0_40")) {
-      toolBar.setPreferredSize(new java.awt.Dimension(0, toolBar.getPreferredSize().height - 4));
-    }
+
     return toolBar;
   };
   /**

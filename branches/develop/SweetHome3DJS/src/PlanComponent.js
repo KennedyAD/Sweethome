@@ -79,13 +79,8 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     };
   }
 
-  this.toolbar = document.getElementById("home-pane-toolbar");
-
   window.addEventListener("resize", function () {
     _this.revalidate();
-    _this.toolbar.style.visibility = "hidden";
-    _this.toolbar.className = "";
-    setTimeout(function() { _this.toolbar.style.visibility = "visible"; _this.showToolbar(); }, 500);
   });
   this.tooltip = document.createElement("div");
   this.tooltip.style.position = "absolute";
@@ -152,7 +147,6 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
 
   this.patternImagesCache = ({});
   this.setScale(0.5);
-  this.showToolbar();
 }
 
 /** @private */
@@ -451,77 +445,6 @@ PlanComponent.prototype.stopIndicatorAnimation = function () {
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     this.touchOverlay.children.item(i).classList.remove("animated");
     this.touchOverlay.children.item(i).classList.remove("indicator");
-  }
-};
-
-/**
- * Toogles the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
- */
-PlanComponent.prototype.toggleToolbar = function () {
-  if (this.toolbar == null) {
-    return;
-  }
-  if (this.toolbar.classList.contains("show")) {
-    this.hideToolbar();
-  } else {
-    this.showToolbar();
-  }
-};
-
-/**
- * Shows the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
- */
-PlanComponent.prototype.showToolbar = function () {
-  if (this.toolbar == null) {
-    return;
-  }
-  this.toolbar.style.width = (this.canvas.getBoundingClientRect().width) + "px";
-  this.toolbar.style.left = (this.canvas.getBoundingClientRect().left) + "px";
-  this.toolbar.style.top = (this.canvas.getBoundingClientRect().top) + "px";
-  if (!this.toolbar.classList.contains("show")) {
-    this.toolbar.classList.remove("hide");
-    this.toolbar.classList.add("show");
-  }
-  if (this.toolbarHideTimeout) {
-    clearTimeout(this.toolbarHideTimeout);
-    this.toolbarHideTimeout = undefined;
-  }
-};
-
-/**
- * Hides the toolbar after the given timeout.
- */
-PlanComponent.prototype.setToolbarTimeout = function (timeout) {
-  if (this.toolbar == null) {
-    return;
-  }
-  if (this.toolbarHideTimeout) {
-    clearTimeout(this.toolbarHideTimeout);
-    this.toolbarHideTimeout = undefined;
-  }
-  if (!this.toolbar.classList.contains("show")) {
-    return;
-  }
-  var planComponent = this;
-  planComponent.toolbarHideTimeout = setTimeout(function() {
-    planComponent.hideToolbar();
-  }, timeout);
-}
-
-/**
- * Hides the toolbar.
- */
-PlanComponent.prototype.hideToolbar = function () {
-  if (this.toolbar == null) {
-    return;
-  }
-  if(this.toolbarHideTimeout) {
-    clearTimeout(this.toolbarHideTimeout);
-    this.toolbarHideTimeout = undefined;
-  }
-  if (!this.toolbar.classList.contains("hide") && this.toolbar.classList.contains("show")) {
-    this.toolbar.classList.remove("show");
-    this.toolbar.classList.add("hide");
   }
 };
 
@@ -1120,16 +1043,6 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
       },
       mouseMoved: function (ev) {
         planComponent.handleMouseEvent(ev, "mouseMoved");
-        if(mouseListener.isInCanvas(ev) && ev.canvasY <= 30) {
-          if(!mouseListener.inToolbar) {
-            // entering toolbar
-            planComponent.showToolbar();
-          }
-          mouseListener.inToolbar = true;
-        }
-        if(mouseListener.isInCanvas(ev) && ev.canvasY > 30) {
-          mouseListener.inToolbar = false;
-        }
         if (mouseListener.lastPointerLocation != null) {
           if (mouseListener.autoScroll == null && !mouseListener.isInCanvas(ev)) {
             mouseListener.autoScroll = setInterval(function () {
@@ -1335,9 +1248,6 @@ PlanComponent.prototype.addMouseListeners = function (controller) {
                 // press mouse was never fired => do it now
                 if (controller.getMode() === PlanController.Mode.SELECTION) {
                   controller.pressMouse(planComponent.convertXPixelToModel(mouseListener.initialPointerLocation[0]), planComponent.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, mouseListener.isLongTouch(), false, false, false);
-                  if (!mouseListener.isLongTouch()) { 
-                    planComponent.toggleToolbar();
-                  }
                 } else {
                   if (mouseListener.isLongTouch() 
                       && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
