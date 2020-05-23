@@ -446,15 +446,17 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
         // Add listener to update the scene when transformation changes
         node.addPropertyChangeListener("TRANSFORM", 
             function(ev) {
-              var oldInvert = mat4.invert(mat4.create(), ev.getOldValue());
-              mat4.mul(parentTransforms, parentTransforms, oldInvert);
-              mat4.mul(parentTransforms, parentTransforms, ev.getNewValue());
-              var children = node.getChildren();
-              for (var i = 0; i < children.length; i++) {
-                canvas3D.updateChildrenTransformation(children [i], background ? backgroundGeometries : sceneGeometries, 
-                    parentLinks, lights, parentTransforms);
+              if (canvas3D.isInSceneTree(node)) {
+                var oldInvert = mat4.invert(mat4.create(), ev.getOldValue());
+                mat4.mul(parentTransforms, parentTransforms, oldInvert);
+                mat4.mul(parentTransforms, parentTransforms, ev.getNewValue());
+                var children = node.getChildren();
+                for (var i = 0; i < children.length; i++) {
+                  canvas3D.updateChildrenTransformation(children [i], background ? backgroundGeometries : sceneGeometries, 
+                      parentLinks, lights, parentTransforms);
+                }
+                canvas3D.repaint();
               }
-              canvas3D.repaint();
             });
       }
     }
@@ -506,7 +508,8 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
     if (node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
       node.addPropertyChangeListener(
           function(ev) {
-            if ("GEOMETRY" == ev.getPropertyName()) {
+            if (canvas3D.isInSceneTree(node)
+                && "GEOMETRY" == ev.getPropertyName()) {
               if (ev.getOldValue()) {
                 removedGeometry = ev.getOldValue();
                 for (var i = 0; i < sceneGeometries.length; i++) {
@@ -539,58 +542,60 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
     if (nodeAppearance !== HTMLCanvas3D.DEFAULT_APPEARANCE) {
       nodeAppearance.addPropertyChangeListener(
           function(ev) {
-            var geometries = background ? backgroundGeometries : sceneGeometries;
-            for (var i = 0; i < geometries.length; i++) {
-              var geometry = geometries [i];
-              if (geometry.node === node) {
-                var newValue = ev.getNewValue();
-                switch (ev.getPropertyName()) {
-                  case "AMBIENT_COLOR" : 
-                    geometry.ambientColor = newValue;
-                    break;
-                  case "DIFFUSE_COLOR" : 
-                    geometry.diffuseColor = newValue;
-                    break;
-                  case "SPECULAR_COLOR" : 
-                    geometry.specularColor = newValue;
-                    break;
-                  case "SHININESS" :
-                    geometry.shininess = newValue;
-                    break;
-                  case "TRANSPARENCY" : 
-                    geometry.transparency = newValue !== undefined 
-                        ? 1 - newValue
-                        : 1;
-                    break;
-                  case "ILLUMINATION" :
-                    geometry.lightingEnabled = (newValue === undefined || newValue >= 1)
-                        && geometry.mode === canvas3D.gl.TRIANGLES;
-                    break;
-                  case "TEXTURE_IMAGE" : 
-                    geometry.texture = newValue !== null
-                        ? canvas3D.prepareTexture(newValue)
-                        : undefined;
-                    break;
-                  case "TEXTURE_COORDINATES_GENERATION" :
-                    var textureCoordinatesGeneration = newValue;
-                    geometry.textureCoordinatesGeneration = textureCoordinatesGeneration;
-                    break;
-                  case "TEXTURE_TRANSFORM" :
-                    geometry.textureTransform = newValue;
-                    break;
-                  case "VISIBLE" : 
-                    geometry.visible = newValue !== false;
-                    break;
-                  case "CULL_FACE" : 
-                    geometry.cullFace = newValue;
-                    break;
-                  case "BACK_FACE_NORMAL_FLIP" : 
-                    geometry.backFaceNormalFlip = newValue === true;
-                    break;
+            if (canvas3D.isInSceneTree(node)) {
+              var geometries = background ? backgroundGeometries : sceneGeometries;
+              for (var i = 0; i < geometries.length; i++) {
+                var geometry = geometries [i];
+                if (geometry.node === node) {
+                  var newValue = ev.getNewValue();
+                  switch (ev.getPropertyName()) {
+                    case "AMBIENT_COLOR" : 
+                      geometry.ambientColor = newValue;
+                      break;
+                    case "DIFFUSE_COLOR" : 
+                      geometry.diffuseColor = newValue;
+                      break;
+                    case "SPECULAR_COLOR" : 
+                      geometry.specularColor = newValue;
+                      break;
+                    case "SHININESS" :
+                      geometry.shininess = newValue;
+                      break;
+                    case "TRANSPARENCY" : 
+                      geometry.transparency = newValue !== undefined 
+                          ? 1 - newValue
+                          : 1;
+                      break;
+                    case "ILLUMINATION" :
+                      geometry.lightingEnabled = (newValue === undefined || newValue >= 1)
+                          && geometry.mode === canvas3D.gl.TRIANGLES;
+                      break;
+                    case "TEXTURE_IMAGE" : 
+                      geometry.texture = newValue !== null
+                          ? canvas3D.prepareTexture(newValue)
+                          : undefined;
+                      break;
+                    case "TEXTURE_COORDINATES_GENERATION" :
+                      var textureCoordinatesGeneration = newValue;
+                      geometry.textureCoordinatesGeneration = textureCoordinatesGeneration;
+                      break;
+                    case "TEXTURE_TRANSFORM" :
+                      geometry.textureTransform = newValue;
+                      break;
+                    case "VISIBLE" : 
+                      geometry.visible = newValue !== false;
+                      break;
+                    case "CULL_FACE" : 
+                      geometry.cullFace = newValue;
+                      break;
+                    case "BACK_FACE_NORMAL_FLIP" : 
+                      geometry.backFaceNormalFlip = newValue === true;
+                      break;
+                  }
                 }
               }
+              canvas3D.repaint();
             }
-            canvas3D.repaint();
           });
     }
   } else if (node instanceof Background3D) {
@@ -729,6 +734,21 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
       
   var geometries = background ? backgroundGeometries : sceneGeometries;
   geometries.push(geometry);
+}
+
+/**
+ * Returns <code>true</code> if the given <code>node</code> belongs to scene tree.
+ * @param {Node3D}  node
+ */
+HTMLCanvas3D.prototype.isInSceneTree = function(node) {
+  while (node.getParent() != null) {
+    if (node.getParent() === this.scene) {
+      return true;
+    } else {
+      return this.isInSceneTree(node.getParent());
+    }
+  }
+  return false;
 }
 
 /**

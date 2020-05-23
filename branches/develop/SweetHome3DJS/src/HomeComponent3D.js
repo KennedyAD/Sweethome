@@ -1957,6 +1957,12 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
     homeObject.object3D.detach();
     delete homeObject.object3D;
     this.homeObjects.splice(this.homeObjects.indexOf(homeObject), 1);
+    if (this.homeObjectsToUpdate) {
+      var index = this.homeObjectsToUpdate.indexOf(homeObject);
+      if (index >= 0) {
+        this.homeObjectsToUpdate.splice(homeObject);
+      }
+    }
   }
 }
 
