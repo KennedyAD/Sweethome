@@ -652,12 +652,20 @@ PlanComponent.prototype.scrollRectToVisible = function (rectangle) {
  * @private
  */
 PlanComponent.prototype.addModelListeners = function (home, preferences, controller) {
-  var _this = this;
+  var planComponent = this;
   var furnitureChangeListener = {
       propertyChange: function (ev) {
-        if (_this.furnitureTopViewIconKeys != null && ("MODEL_TRANSFORMATIONS" == ev.getPropertyName() || "ROLL" == ev.getPropertyName() || "PITCH" == ev.getPropertyName() || "WIDTH_IN_PLAN" == ev.getPropertyName() || "DEPTH_IN_PLAN" == ev.getPropertyName() || "HEIGHT_IN_PLAN" == ev.getPropertyName()) && (ev.getSource().isHorizontallyRotated() || ev.getSource().getTexture() != null)) {
+        if (planComponent.furnitureTopViewIconKeys != null 
+            && ("MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
+                || "ROLL" == ev.getPropertyName() 
+                || "PITCH" == ev.getPropertyName() 
+                || ("WIDTH_IN_PLAN" == ev.getPropertyName() 
+                    || "DEPTH_IN_PLAN" == ev.getPropertyName() 
+                    || "HEIGHT_IN_PLAN" == ev.getPropertyName())
+                   && (ev.getSource().isHorizontallyRotated() 
+                       || ev.getSource().getTexture() != null))) {
           if ("HEIGHT_IN_PLAN" == ev.getPropertyName()) {
-            _this.sortedLevelFurniture = null;
+            planComponent.sortedLevelFurniture = null;
           }
           if (!(ev.getSource() != null && ev.getSource() instanceof HomeFurnitureGroup)) {
             if (controller == null || !controller.isModificationState()) {
@@ -665,53 +673,69 @@ PlanComponent.prototype.addModelListeners = function (home, preferences, control
                 m.entries = []; for (var i = 0; i < m.entries.length; i++)
                   if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
                     return m.entries.splice(i, 1)[0];
-                  } })(_this.furnitureTopViewIconKeys, ev.getSource());
-            }
-            else {
+                  } })(planComponent.furnitureTopViewIconKeys, ev.getSource());
+            } else {
               controller.addPropertyChangeListener("MODIFICATION_STATE", {
                 propertyChange: function (ev2) {
                   /* remove */ (function (m, k) { if (m.entries == null)
                     m.entries = []; for (var i = 0; i < m.entries.length; i++)
                       if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
                         return m.entries.splice(i, 1)[0];
-                      } })(_this.furnitureTopViewIconKeys, ev.getSource());
-                  _this.repaint();
-                  controller.removePropertyChangeListener("MODIFICATION_STATE", _this);
+                      } })(planComponent.furnitureTopViewIconKeys, ev.getSource());
+                  planComponent.repaint();
+                  controller.removePropertyChangeListener("MODIFICATION_STATE", planComponent);
                 }
               });
             }
           }
-          _this.revalidate();
-        }
-        else if (_this.furnitureTopViewIconKeys != null && ("COLOR" == ev.getPropertyName() || "TEXTURE" == ev.getPropertyName() || "MODEL_MATERIALS" == ev.getPropertyName() || "SHININESS" == ev.getPropertyName())) {
+          planComponent.revalidate();
+        } else if (planComponent.furnitureTopViewIconKeys != null 
+            && ("COLOR" == ev.getPropertyName() 
+                || "TEXTURE" == ev.getPropertyName() 
+                || "MODEL_MATERIALS" == ev.getPropertyName() 
+                || "SHININESS" == ev.getPropertyName())) {
           /* remove */ (function (m, k) { if (m.entries == null)
             m.entries = []; for (var i = 0; i < m.entries.length; i++)
               if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
                 return m.entries.splice(i, 1)[0];
-              } })(_this.furnitureTopViewIconKeys, ev.getSource());
-          _this.repaint();
-        }
-        else if ("ELEVATION" == ev.getPropertyName() || "LEVEL" == ev.getPropertyName() || "HEIGHT_IN_PLAN" == ev.getPropertyName()) {
-          _this.sortedLevelFurniture = null;
-          _this.repaint();
-        }
-        else if (_this.doorOrWindowWallThicknessAreasCache != null && (function (m, k) { if (m.entries == null)
-          m.entries = []; for (var i = 0; i < m.entries.length; i++)
-            if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-              return true;
-            } return false; })(_this.doorOrWindowWallThicknessAreasCache, ev.getSource()) && ("WIDTH" == ev.getPropertyName() || "DEPTH" == ev.getPropertyName() || "ANGLE" == ev.getPropertyName() || "MODEL_MIRRORED" == ev.getPropertyName() || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() || "X" == ev.getPropertyName() || "Y" == ev.getPropertyName() || "LEVEL" == ev.getPropertyName())) {
-          /* remove */ (function (m, k) { if (m.entries == null)
-            m.entries = []; for (var i = 0; i < m.entries.length; i++)
-              if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
-                return m.entries.splice(i, 1)[0];
-              } })(_this.doorOrWindowWallThicknessAreasCache, ev.getSource());
-          _this.revalidate();
-        }
-        else {
-          _this.revalidate();
+              } })(planComponent.furnitureTopViewIconKeys, ev.getSource());
+          planComponent.repaint();
+        } else if ("ELEVATION" == ev.getPropertyName() 
+                  || "LEVEL" == ev.getPropertyName() 
+                  || "HEIGHT_IN_PLAN" == ev.getPropertyName()) {
+          planComponent.sortedLevelFurniture = null;
+          planComponent.repaint();
+        } else if (planComponent.doorOrWindowWallThicknessAreasCache != null 
+                  && (function (m, k) { 
+                        if (m.entries == null)
+                          m.entries = []; 
+                        for (var i = 0; i < m.entries.length; i++)
+                          if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
+                            return true;
+                          } return false; 
+                      })(planComponent.doorOrWindowWallThicknessAreasCache, ev.getSource()) 
+                  && ("WIDTH" == ev.getPropertyName() 
+                      || "DEPTH" == ev.getPropertyName() 
+                      || "ANGLE" == ev.getPropertyName() 
+                      || "MODEL_MIRRORED" == ev.getPropertyName() 
+                      || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
+                      || "X" == ev.getPropertyName() 
+                      || "Y" == ev.getPropertyName() 
+                      || "LEVEL" == ev.getPropertyName())) {
+           /* remove */ (function (m, k) { 
+             if (m.entries == null)
+               m.entries = []; 
+             for (var i = 0; i < m.entries.length; i++)
+               if (m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
+                 return m.entries.splice(i, 1)[0];
+               } 
+             })(planComponent.doorOrWindowWallThicknessAreasCache, ev.getSource());
+           planComponent.revalidate();
+        } else {
+          planComponent.revalidate();
         }
       }
-  };
+    };
   if (home.getFurniture() != null) {
     home.getFurniture().forEach(function (piece) {
       piece.addPropertyChangeListener(furnitureChangeListener);
@@ -731,8 +755,7 @@ PlanComponent.prototype.addModelListeners = function (home, preferences, control
           childPiece.addPropertyChangeListener(furnitureChangeListener);
         });
       }
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
+    } else if (ev.getType() === CollectionEvent.Type.DELETE) {
       piece.removePropertyChangeListener(furnitureChangeListener);
       if (piece != null && piece instanceof HomeFurnitureGroup) {
         piece.getAllFurniture().forEach(function (childPiece) {
@@ -740,195 +763,251 @@ PlanComponent.prototype.addModelListeners = function (home, preferences, control
         });
       }
     }
-    _this.sortedLevelFurniture = null;
-    _this.revalidate();
+    planComponent.sortedLevelFurniture = null;
+    planComponent.revalidate();
   });
   var wallChangeListener = {
       propertyChange: function (ev) {
         var propertyName = ev.getPropertyName();
-        if ("X_START" == propertyName || "X_END" == propertyName || "Y_START" == propertyName || "Y_END" == propertyName || "WALL_AT_START" == propertyName || "WALL_AT_END" == propertyName || "THICKNESS" == propertyName || "ARC_EXTENT" == propertyName || "PATTERN" == propertyName) {
-          if (_this.home.isAllLevelsSelection()) {
-            _this.otherLevelsWallAreaCache = null;
-            _this.otherLevelsWallsCache = null;
+        if ("X_START" == propertyName 
+            || "X_END" == propertyName 
+            || "Y_START" == propertyName 
+            || "Y_END" == propertyName 
+            || "WALL_AT_START" == propertyName 
+            || "WALL_AT_END" == propertyName 
+            || "THICKNESS" == propertyName 
+            || "ARC_EXTENT" == propertyName 
+            || "PATTERN" == propertyName) {
+          if (planComponent.home.isAllLevelsSelection()) {
+            planComponent.otherLevelsWallAreaCache = null;
+            planComponent.otherLevelsWallsCache = null;
           }
-          _this.wallAreasCache = null;
-          _this.doorOrWindowWallThicknessAreasCache = null;
-          _this.revalidate();
-        }
-        else if ("LEVEL" == propertyName || "HEIGHT" == propertyName || "HEIGHT_AT_END" == propertyName) {
-          _this.otherLevelsWallAreaCache = null;
-          _this.otherLevelsWallsCache = null;
-          _this.wallAreasCache = null;
-          _this.repaint();
+          planComponent.wallAreasCache = null;
+          planComponent.doorOrWindowWallThicknessAreasCache = null;
+          planComponent.revalidate();
+        } else if ("LEVEL" == propertyName 
+            || "HEIGHT" == propertyName 
+            || "HEIGHT_AT_END" == propertyName) {
+          planComponent.otherLevelsWallAreaCache = null;
+          planComponent.otherLevelsWallsCache = null;
+          planComponent.wallAreasCache = null;
+          planComponent.repaint();
         }
       }
-  };
-  if (home.getWalls() != null)
+    };
+  if (home.getWalls() != null) {
     home.getWalls().forEach(function (wall) {
-      wall.addPropertyChangeListener(wallChangeListener);
-    });
+        wall.addPropertyChangeListener(wallChangeListener);
+      });
+  }
   home.addWallsListener(function (ev) {
-    if (ev.getType() === CollectionEvent.Type.ADD) {
-      ev.getItem().addPropertyChangeListener(wallChangeListener);
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
-      ev.getItem().removePropertyChangeListener(wallChangeListener);
-    }
-    _this.otherLevelsWallAreaCache = null;
-    _this.otherLevelsWallsCache = null;
-    _this.wallAreasCache = null;
-    _this.doorOrWindowWallThicknessAreasCache = null;
-    _this.revalidate();
-  });
+      if (ev.getType() === CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(wallChangeListener);
+      }
+      else if (ev.getType() === CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(wallChangeListener);
+      }
+      planComponent.otherLevelsWallAreaCache = null;
+      planComponent.otherLevelsWallsCache = null;
+      planComponent.wallAreasCache = null;
+      planComponent.doorOrWindowWallThicknessAreasCache = null;
+      planComponent.revalidate();
+    });
   var roomChangeListener = {
       propertyChange: function (ev) {
         var propertyName = ev.getPropertyName();
-        if ("POINTS" == propertyName || "NAME" == propertyName || "NAME_X_OFFSET" == propertyName || "NAME_Y_OFFSET" == propertyName || "NAME_STYLE" == propertyName || "NAME_ANGLE" == propertyName || "AREA_VISIBLE" == propertyName || "AREA_X_OFFSET" == propertyName || "AREA_Y_OFFSET" == propertyName || "AREA_STYLE" == propertyName || "AREA_ANGLE" == propertyName) {
-          _this.sortedLevelRooms = null;
-          _this.otherLevelsRoomAreaCache = null;
-          _this.otherLevelsRoomsCache = null;
-          _this.revalidate();
-        }
-        else if (_this.preferences.isRoomFloorColoredOrTextured() && ("FLOOR_COLOR" == propertyName || "FLOOR_TEXTURE" == propertyName || "FLOOR_VISIBLE" == propertyName)) {
-          _this.repaint();
+        if ("POINTS" == propertyName 
+            || "NAME" == propertyName 
+            || "NAME_X_OFFSET" == propertyName 
+            || "NAME_Y_OFFSET" == propertyName 
+            || "NAME_STYLE" == propertyName 
+            || "NAME_ANGLE" == propertyName 
+            || "AREA_VISIBLE" == propertyName 
+            || "AREA_X_OFFSET" == propertyName 
+            || "AREA_Y_OFFSET" == propertyName 
+            || "AREA_STYLE" == propertyName 
+            || "AREA_ANGLE" == propertyName) {
+          planComponent.sortedLevelRooms = null;
+          planComponent.otherLevelsRoomAreaCache = null;
+          planComponent.otherLevelsRoomsCache = null;
+          planComponent.revalidate();
+        } else if (planComponent.preferences.isRoomFloorColoredOrTextured() 
+                   && ("FLOOR_COLOR" == propertyName 
+                       || "FLOOR_TEXTURE" == propertyName 
+                       || "FLOOR_VISIBLE" == propertyName)) {
+          planComponent.repaint();
         }
       }
   };
-  if (home.getRooms() != null)
-    home.getRooms().forEach(function (room) { return room.addPropertyChangeListener(roomChangeListener); });
+  if (home.getRooms() != null) {
+    home.getRooms().forEach(function (room) { 
+        return room.addPropertyChangeListener(roomChangeListener); 
+      });
+  }
   home.addRoomsListener(function (ev) {
-    if (ev.getType() === CollectionEvent.Type.ADD) {
-      ev.getItem().addPropertyChangeListener(roomChangeListener);
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
-      ev.getItem().removePropertyChangeListener(roomChangeListener);
-    }
-    _this.sortedLevelRooms = null;
-    _this.otherLevelsRoomAreaCache = null;
-    _this.otherLevelsRoomsCache = null;
-    _this.revalidate();
-  });
+      if (ev.getType() === CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(roomChangeListener);
+      } else if (ev.getType() === CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(roomChangeListener);
+      }
+      planComponent.sortedLevelRooms = null;
+      planComponent.otherLevelsRoomAreaCache = null;
+      planComponent.otherLevelsRoomsCache = null;
+      planComponent.revalidate();
+    });
   var changeListener = {
       propertyChange: function (ev) {
         var propertyName = ev.getPropertyName();
-        if ("COLOR" == propertyName || "DASH_STYLE" == propertyName) {
-          _this.repaint();
-        }
-        else {
-          _this.revalidate();
+        if ("COLOR" == propertyName
+            || "DASH_STYLE" == propertyName) {
+          planComponent.repaint();
+        } else {
+          planComponent.revalidate();
         }
       }
-  };
-  if (home.getPolylines() != null)
-    home.getPolylines().forEach(function (polyline) { return polyline.addPropertyChangeListener(changeListener); });
+    };
+  if (home.getPolylines() != null) {
+    home.getPolylines().forEach(function (polyline) { 
+        return polyline.addPropertyChangeListener(changeListener); 
+      });
+  }
   home.addPolylinesListener(function (ev) {
-    if (ev.getType() === CollectionEvent.Type.ADD) {
-      ev.getItem().addPropertyChangeListener(changeListener);
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
-      ev.getItem().removePropertyChangeListener(changeListener);
-    }
-    _this.revalidate();
-  });
+      if (ev.getType() === CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(changeListener);
+      } else if (ev.getType() === CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(changeListener);
+      }
+      planComponent.revalidate();
+    });
   var dimensionLineChangeListener = {
-      propertyChange: function (ev) { return _this.revalidate(); }
-  };
-  if (home.getDimensionLines() != null)
-    home.getDimensionLines().forEach(function (dimensionLine) { return dimensionLine.addPropertyChangeListener(dimensionLineChangeListener); });
+      propertyChange: function (ev) { 
+        return planComponent.revalidate(); 
+      }
+    };
+  if (home.getDimensionLines() != null) {
+    home.getDimensionLines().forEach(function (dimensionLine) { 
+        return dimensionLine.addPropertyChangeListener(dimensionLineChangeListener); 
+      });
+  }
   home.addDimensionLinesListener(function (ev) {
-    if (ev.getType() === CollectionEvent.Type.ADD) {
-      ev.getItem().addPropertyChangeListener(dimensionLineChangeListener);
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
-      ev.getItem().removePropertyChangeListener(dimensionLineChangeListener);
-    }
-    _this.revalidate();
-  });
+      if (ev.getType() === CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(dimensionLineChangeListener);
+      } else if (ev.getType() === CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(dimensionLineChangeListener);
+      }
+      planComponent.revalidate();
+    });
   var labelChangeListener = {
-      propertyChange: function (ev) { return _this.revalidate(); }
-  };
-  if (home.getLabels() != null)
-    home.getLabels().forEach(function (label) { return label.addPropertyChangeListener(labelChangeListener); });
+      propertyChange: function (ev) { 
+        return planComponent.revalidate(); 
+      }
+    };
+  if (home.getLabels() != null) {
+    home.getLabels().forEach(function (label) { 
+        return label.addPropertyChangeListener(labelChangeListener); 
+      });
+  }
   home.addLabelsListener(function (ev) {
-    if (ev.getType() === CollectionEvent.Type.ADD) {
-      ev.getItem().addPropertyChangeListener(labelChangeListener);
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
-      ev.getItem().removePropertyChangeListener(labelChangeListener);
-    }
-    _this.revalidate();
-  });
+      if (ev.getType() === CollectionEvent.Type.ADD) {
+        ev.getItem().addPropertyChangeListener(labelChangeListener);
+      } else if (ev.getType() === CollectionEvent.Type.DELETE) {
+        ev.getItem().removePropertyChangeListener(labelChangeListener);
+      }
+      planComponent.revalidate();
+    });
   var levelChangeListener = {
       propertyChange: function (ev) {
         var propertyName = ev.getPropertyName();
-        if ("BACKGROUND_IMAGE" == propertyName || "ELEVATION" == propertyName || "ELEVATION_INDEX" == propertyName || "VIEWABLE" == propertyName) {
-          _this.backgroundImageCache = null;
-          _this.otherLevelsWallAreaCache = null;
-          _this.otherLevelsWallsCache = null;
-          _this.otherLevelsRoomAreaCache = null;
-          _this.otherLevelsRoomsCache = null;
-          _this.wallAreasCache = null;
-          _this.doorOrWindowWallThicknessAreasCache = null;
-          _this.sortedLevelFurniture = null;
-          _this.sortedLevelRooms = null;
-          _this.repaint();
+        if ("BACKGROUND_IMAGE" == propertyName) {
+          planComponent.backgroundImageCache = null;
+          planComponent.revalidate();
+        } else if ("ELEVATION" == propertyName 
+              || "ELEVATION_INDEX" == propertyName 
+              || "VIEWABLE" == propertyName) {
+          planComponent.backgroundImageCache = null;
+          planComponent.otherLevelsWallAreaCache = null;
+          planComponent.otherLevelsWallsCache = null;
+          planComponent.otherLevelsRoomAreaCache = null;
+          planComponent.otherLevelsRoomsCache = null;
+          planComponent.wallAreasCache = null;
+          planComponent.doorOrWindowWallThicknessAreasCache = null;
+          planComponent.sortedLevelFurniture = null;
+          planComponent.sortedLevelRooms = null;
+          planComponent.repaint();
         }
       }
   };
-  if (home.getLevels() != null)
-    home.getLevels().forEach(function (level) { return level.addPropertyChangeListener(levelChangeListener); });
+  if (home.getLevels() != null) {
+    home.getLevels().forEach(function (level) { 
+        return level.addPropertyChangeListener(levelChangeListener); 
+      });
+  }
   home.addLevelsListener(function (ev) {
-    var level = ev.getItem();
-    if (ev.getType() === CollectionEvent.Type.ADD) {
-      level.addPropertyChangeListener(levelChangeListener);
-    }
-    else if (ev.getType() === CollectionEvent.Type.DELETE) {
-      level.removePropertyChangeListener(levelChangeListener);
-    }
-    _this.revalidate();
-  });
+      var level = ev.getItem();
+      if (ev.getType() === CollectionEvent.Type.ADD) {
+        level.addPropertyChangeListener(levelChangeListener);
+      } else if (ev.getType() === CollectionEvent.Type.DELETE) {
+        level.removePropertyChangeListener(levelChangeListener);
+      }
+      planComponent.revalidate();
+    });
   home.addPropertyChangeListener("CAMERA", {
-    propertyChange: function (ev) { return _this.revalidate(); }
-  });
+      propertyChange: function (ev) { 
+        return planComponent.revalidate(); 
+      }
+    });
   home.getObserverCamera().addPropertyChangeListener({
-    propertyChange: function (ev) {
-      var propertyName = ev.getPropertyName();
-      if ("X" == propertyName || "Y" == propertyName || "FIELD_OF_VIEW" == propertyName || "YAW" == propertyName || "WIDTH" == propertyName || "DEPTH" == propertyName || "HEIGHT" == propertyName) {
-        _this.revalidate();
+      propertyChange: function (ev) {
+        var propertyName = ev.getPropertyName();
+        if ("X" == propertyName 
+            || "Y" == propertyName 
+            || "FIELD_OF_VIEW" == propertyName 
+            || "YAW" == propertyName 
+            || "WIDTH" == propertyName 
+            || "DEPTH" == propertyName 
+            || "HEIGHT" == propertyName) {
+          planComponent.revalidate();
+        }
       }
-    }
-  });
+    });
   home.getCompass().addPropertyChangeListener({
-    propertyChange: function (ev) {
-      var propertyName = ev.getPropertyName();
-      if ("X" == propertyName || "Y" == propertyName || "NORTH_DIRECTION" == propertyName || "DIAMETER" == propertyName || "VISIBLE" == propertyName) {
-        _this.revalidate();
+      propertyChange: function (ev) {
+        var propertyName = ev.getPropertyName();
+        if ("X" == propertyName 
+            || "Y" == propertyName 
+            || "NORTH_DIRECTION" == propertyName 
+            || "DIAMETER" == propertyName 
+            || "VISIBLE" == propertyName) {
+          planComponent.revalidate();
+        }
       }
-    }
-  });
+    });
   home.addSelectionListener({
-    selectionChanged: function (ev) { return _this.repaint(); }
-  });
+      selectionChanged: function (ev) { 
+        return planComponent.repaint(); 
+      }
+    });
   home.addPropertyChangeListener("BACKGROUND_IMAGE", {
-    propertyChange: function (ev) {
-      _this.backgroundImageCache = null;
-      _this.repaint();
-    }
-  });
+      propertyChange: function (ev) {
+        planComponent.backgroundImageCache = null;
+        planComponent.repaint();
+      }
+    });
   home.addPropertyChangeListener("SELECTED_LEVEL", {
-    propertyChange: function (ev) {
-      _this.backgroundImageCache = null;
-      _this.otherLevelsWallAreaCache = null;
-      _this.otherLevelsWallsCache = null;
-      _this.otherLevelsRoomAreaCache = null;
-      _this.otherLevelsRoomsCache = null;
-      _this.wallAreasCache = null;
-      _this.doorOrWindowWallThicknessAreasCache = null;
-      _this.sortedLevelRooms = null;
-      _this.sortedLevelFurniture = null;
-      _this.repaint();
-    }
-  });
+      propertyChange: function (ev) {
+        planComponent.backgroundImageCache = null;
+        planComponent.otherLevelsWallAreaCache = null;
+        planComponent.otherLevelsWallsCache = null;
+        planComponent.otherLevelsRoomAreaCache = null;
+        planComponent.otherLevelsRoomsCache = null;
+        planComponent.wallAreasCache = null;
+        planComponent.doorOrWindowWallThicknessAreasCache = null;
+        planComponent.sortedLevelRooms = null;
+        planComponent.sortedLevelFurniture = null;
+        planComponent.repaint();
+      }
+    });
+  
   var preferencesListener = new PlanComponent.UserPreferencesChangeListener(this);
   preferences.addPropertyChangeListener("UNIT", preferencesListener);
   preferences.addPropertyChangeListener("LANGUAGE", preferencesListener);
@@ -939,6 +1018,7 @@ PlanComponent.prototype.addModelListeners = function (home, preferences, control
   preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", preferencesListener);
   preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
 };
+
 PlanComponent.prototype.handleMouseEvent = function (ev, type) {
   this.canvasX = undefined;
   this.canvasY = undefined;
@@ -4997,8 +5077,10 @@ PlanComponent.prototype.makeSelectionVisible = function () {
       var selectionBounds = _this.getSelectionBounds(true);
       if (selectionBounds != null) {
         var pixelBounds = _this.getShapePixelBounds(selectionBounds);
-        pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
-        var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
+        pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, 
+            pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
+        var visibleRectangle = new java.awt.geom.Rectangle2D.Float(_this.scrollPane.scrollLeft, _this.scrollPane.scrollTop, 
+            _this.scrollPane.clientWidth, _this.scrollPane.clientHeight);
         if (!pixelBounds.intersects(visibleRectangle)) {
           _this.scrollRectToVisible(pixelBounds);
         }
