@@ -236,7 +236,7 @@ var ResourceAction = (function () {
       this.putValue(ResourceAction.TOOL_BAR_ICON, toolBarIcon);
     }
     var propertyKey = propertyPrefix + ResourceAction.ACCELERATOR_KEY;
-    var acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey /*+ "." + java.lang.System.getProperty("os.name")*/, false);
+    var acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey + "." + OperatingSystem.getName(), false);
     if (acceleratorKey == null) {
       acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey, false);
     }
@@ -482,7 +482,23 @@ var HomePane = (function () {
     // _this.disableMenuItemsDuringDragAndDrop(controller.getPlanController().getView(), homeMenuBar);
     // _this.applyComponentOrientation(java.awt.ComponentOrientation.getOrientation(/* getDefault */ (window.navigator['userLanguage'] || window.navigator.language)));
     
-
+    // Keyboard accelerators management
+    var homePane = this;
+    document.addEventListener("keydown", function (ev) {
+        var keyStroke = convertKeyboardEventToKeyStroke(ev);
+        if (keyStroke !== undefined) {
+          // Search action matching shortcut and call its actionPerformed method
+          for (var actionType in homePane.actionMap) {
+            var action = homePane.actionMap [actionType];
+            if (action.isEnabled()
+                && action.getValue(ResourceAction.ACCELERATOR_KEY) == keyStroke) {
+              // TODO Allow only action with a button at screen ?
+              action.actionPerformed();
+              ev.stopPropagation();
+            }
+          }
+        }
+      }, true);
     
     // TODO Manage focus once furniture view will exist
     setTimeout(function() {

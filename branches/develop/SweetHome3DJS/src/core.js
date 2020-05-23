@@ -493,6 +493,18 @@ OperatingSystem.isMacOSX = function() {
   }
 }
 
+OperatingSystem.getName = function() {
+  if (OperatingSystem.isMacOSX()) {
+    return "Mac OS X";
+  } else if (OperatingSystem.isLinux()) {
+    return "Linux";
+  } else if (OperatingSystem.isWindows()) {
+    return "Windows";
+  } else {
+    return "Other";
+  }
+}
+
 /**
  * Returns <code>true</code> if the current browser is Edge or Internet Explorer.
  */
@@ -537,7 +549,7 @@ CoreTools.intersection = function(array1, array2) {
 /**
  * Returns a string describing the key event in parameter. 
  * @param {KeyboardEvent} ev
- * @param {string} keyEventType "keyup", "keydown" or "keypress"
+ * @param {string} [keyEventType] "keyup", "keydown" or "keypress"
  * @returns
  */
 function convertKeyboardEventToKeyStroke(ev, keyEventType) {
@@ -658,8 +670,10 @@ function convertKeyboardEventToKeyStroke(ev, keyEventType) {
     var nameWithoutVK = keyName.indexOf('VK_') === 0
         ? keyName.substring(3)
         : keyName;
-    keyStroke += (keyEventType == "keyup" ? "released " : "pressed ") 
-        + nameWithoutVK;
+    if (keyEventType !== undefined) {
+      keyStroke += (keyEventType == "keyup" ? "released " : "pressed "); 
+    }
+    keyStroke += nameWithoutVK;
   } 
   return keyStroke;
 }
