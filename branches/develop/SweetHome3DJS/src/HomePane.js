@@ -2086,18 +2086,7 @@ var HomePane = (function () {
   HomePane.prototype.createToolBarButton = function(action, additionalClass) {
     var button = document.createElement("button");
     button.disabled = !action.isEnabled();
-    var icon = action.getValue(ResourceAction.TOOL_BAR_ICON);
-    if (!icon) {
-      icon = action.getValue(ResourceAction.SMALL_ICON);
-    }
-    button.style.background = "url('lib/"+ icon + "')";
-    button.style.backgroundPosition = "center";
-    button.style.backgroundRepeat = "no-repeat";
-    button.classList.add("toolbar-button");
-    if (action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
-      button.classList.add("toggle");
-    }
-    button.action = action;
+    // Modify action with a setAction method which is also invoked elsewhere 
     button.setAction = function(newAction) {
         button.action = newAction;
         var icon = newAction.getValue(ResourceAction.TOOL_BAR_ICON);
@@ -2107,7 +2096,17 @@ var HomePane = (function () {
         button.style.background = "url('lib/"+ icon + "')";
         button.style.backgroundPosition = "center";
         button.style.backgroundRepeat = "no-repeat";
+        var shortDescription = newAction.getValue(ResourceAction.SHORT_DESCRIPTION);
+        if (shortDescription) {
+          button.title = shortDescription;
+        }
       };
+    button.setAction(action);
+    button.classList.add("toolbar-button");
+    if (action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
+      button.classList.add("toggle");
+    }
+    button.action = action;
     button.addEventListener("click", function() {
         this.action.actionPerformed();
       });
