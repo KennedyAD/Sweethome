@@ -798,7 +798,7 @@ UserPreferences.prototype.getDefaultTextStyle = function(selectableClass) {
  */
 UserPreferences.prototype.getAutoCompletionStrings = function(property) {
   var propertyAutoCompletionStrings = this.autoCompletionStrings.get(property);
-  if (propertyAutoCompletionStrings !== null) {
+  if (propertyAutoCompletionStrings !== undefined) {
     return propertyAutoCompletionStrings.slice(0);
   } else {
     return [];
@@ -812,7 +812,7 @@ UserPreferences.prototype.getAutoCompletionStrings = function(property) {
  */
 UserPreferences.prototype.addAutoCompletionString = function(property, autoCompletionString) {
   if (autoCompletionString !== null 
-      && autoCompletionString.length() > 0) {
+      && autoCompletionString.length > 0) {
     var propertyAutoCompletionStrings = this.autoCompletionStrings [property];
     if (propertyAutoCompletionStrings === undefined) {
       propertyAutoCompletionStrings = [];
@@ -833,7 +833,7 @@ UserPreferences.prototype.addAutoCompletionString = function(property, autoCompl
 UserPreferences.prototype.setAutoCompletionStrings = function(property, autoCompletionStrings) {
   var propertyAutoCompletionStrings = this.autoCompletionStrings [property];
   if (autoCompletionStrings != propertyAutoCompletionStrings) {
-    this.autoCompletionStrings.put(property, autoCompletionStrings.slice(0));
+    this.autoCompletionStrings [property] = autoCompletionStrings.slice(0);
     this.propertyChangeSupport.firePropertyChange("AUTO_COMPLETION_STRINGS", 
         null, property);
   }

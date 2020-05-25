@@ -2108,7 +2108,7 @@ var HomePane = (function () {
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_LABELS, toolBar); 
     this.addSeparator(toolBar);
     
-    var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences);
+    var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences, "toolbar-optional");
     if (enableDisableMagnetismButton !== null) {
       this.addButtonToToolBar(toolBar, enableDisableMagnetismButton);
     }
@@ -3907,7 +3907,7 @@ var HomePane = (function () {
    * @param {() => void} runnable
    */
   HomePane.prototype.invokeLater = function (runnable) {
-    java.awt.EventQueue.invokeLater((runnable));
+    setTimeout(runnable);
   };
   HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.MainPaneDividerLocation";
   HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.CatalogPaneDividerLocation";

@@ -398,8 +398,12 @@ CoreTools.getFromMap = function(map, key) {
     if (map.entries == null) {
       map.entries = []; 
     }
+    var keyHashCode = typeof key.hashCode == "function" ? key.hashCode() : undefined;
     for (var i = 0; i < map.entries.length; i++) {
-      if (map.entries[i].key.equals != null && map.entries[i].key.equals(key) || map.entries[i].key === key) {
+      if ((keyHashCode === undefined || map.entries[i].keyHashCode === keyHashCode)
+            && map.entries[i].key.equals !== undefined 
+            && map.entries[i].key.equals(key) 
+          || map.entries[i].key === key) {
         return map.entries[i].value;
       }
     }
@@ -421,33 +425,75 @@ CoreTools.putToMap = function(map, key, value) {
     if (map.entries == null) {
       map.entries = [];
     }
+    var keyHashCode = typeof key.hashCode == "function" ? key.hashCode() : undefined;
     for (var i = 0; i < map.entries.length; i++) {
-      if (map.entries[i].key.equals != null && map.entries[i].key.equals(key) || map.entries[i].key === key) {
+      if ((keyHashCode === undefined || map.entries[i].keyHashCode === keyHashCode)
+            && map.entries[i].key.equals !== undefined 
+            && map.entries[i].key.equals(key) 
+          || map.entries[i].key === key) {
         map.entries[i].value = value;
         return;
       }
     }
-    map.entries.push({ key: key, 
-                     value: value,
-                     getKey: function () { return this.key; }, 
-                     getValue: function () { return this.value; } 
-                   });
+    var entry = {key: key, 
+                 value: value,
+                 getKey: function () { return this.key; }, 
+                 getValue: function () { return this.value; } 
+                };
+    if (typeof key.hashCode == "function") {
+      entry.keyHashCode = key.hashCode(); 
+    }
+    map.entries.push(entry);
   }
 }
 
 /**
- * Gets all the values put in a map opbject, as an array.
+ * Removes an object from a map object. When the given key is a string, the map object directly holds the 
+ * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
+ * @param map {Object} the object holding the map
+ * @param key {string|*} the key to associate the value to (can be an object or a string)
+ * @returns the removed value or <code>null</code> if not found
+ */
+CoreTools.removeFromMap = function(map, key) {
+  if (typeof key === 'string') {
+    var value = map[key];
+    if (value !== undefined) {
+      delete map[key];
+    }
+    return value !== undefined ? value : null;
+  } else {
+    var keyHashCode = typeof key.hashCode == "function" ? key.hashCode() : undefined;
+    for (var i = 0; i < map.entries.length; i++) {
+      if ((keyHashCode === undefined || map.entries[i].keyHashCode === keyHashCode)
+            && map.entries[i].key.equals !== undefined 
+            && map.entries[i].key.equals(key) 
+          || map.entries[i].key === key) {
+        var value = map.entries[i].value; // TODO Why prototype is lost?
+        delete map.entries.splice(i, 1);
+        return value;
+      }
+    }
+    return null;
+  }
+}
+
+/**
+ * Returns all the values put in a map object, as an array.
  * @param map {Object} the map containing the values
  * @returns {Array} the values (no specific order)
  */
 CoreTools.valuesFromMap = function(map) {
-  var r = [];
+  var values = [];
   if (map.entries === undefined) {
-    Object.getOwnPropertyNames(map).forEach(function(p) { r.push(map[p]); });
+    Object.getOwnPropertyNames(map).forEach(function(property) {
+        values.push(map[property]); 
+      });
   } else {
-    map.entries.forEach(function(e) { r.push(e.value); });
+    map.entries.forEach(function(entry) { 
+        values.push(entry.value); 
+      });
   }
-  return r;
+  return values;
 }
 
 /**

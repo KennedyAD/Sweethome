@@ -92,7 +92,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     addAnnotation("jsweet.lang.Erased",
         "**.readObject(..)",
         "**.writeObject(..)",
-        "**.hashCode(..)",
         "**.serialVersionUID",
         "com.eteks.sweethome3d.model.Compass.updateSunLocation(..)",
         "com.eteks.sweethome3d.model.Compass.getSunAzimuth(..)",
@@ -264,6 +263,13 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         print(invocation.getTargetExpression()).print(".").print(invocation.getMethodName()).print("(")
             .printArgList(invocation.getArguments()).print(")");
         return true;
+      case "com.eteks.sweethome3d.model.TextStyle.Alignment":
+        switch (invocation.getMethodName()) {
+        case "hashCode":
+          print("0");
+          return true;
+        }
+        break;
       case "com.eteks.sweethome3d.model.UserPreferences.Property":
         if (invocation.getMethodName().equals("values")) {
           print("[");
@@ -316,6 +322,20 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         case "deepToString":
           printMacroName(invocation.getMethodName());
           print(invocation.getArgument(0));
+          return true;
+        case "deepHashCode":
+          printMacroName(invocation.getMethodName());
+          print("(function(array) { function deepHashCode(array) {"
+              + " if (array == null) return 0; var hashCode = 1;"
+              + " for (var i = 0; i < array.length; i++) { var elementHashCode = 1;"
+              + " if (Array.isArray(array[i])) elementHashCode = deepHashCode(array[i]);"
+              + " else if (typeof array[i] == 'number') elementHashCode = (array[i] * 1000) | 0;"
+              + " hashCode = 31 * hashCode + elementHashCode;"
+              + " }"
+              + " return hashCode;"
+              + " }"
+              + "return deepHashCode"
+              + "})(").print(invocation.getArgument(0)).print(")");
           return true;
         }
         break;

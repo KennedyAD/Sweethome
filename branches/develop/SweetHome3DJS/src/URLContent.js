@@ -90,6 +90,17 @@ URLContent.prototype.equals = function(obj) {
 }
 
 /**
+ * Returns a hash code for this object.
+ * @return {Number}
+ */
+URLContent.prototype.hashCode = function() {
+  return this.url.split("").reduce(function(a, b) {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+}
+
+/**
  * An URL content read from a home stream.
  * @param {string} url  the URL from which this content will be read
  * @constructor
