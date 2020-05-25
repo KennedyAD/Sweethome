@@ -2005,8 +2005,8 @@ var HomePane = (function () {
     this.addActionToToolBar(HomeView.ActionType.REDO, toolBar); 
     this.addSeparator(toolBar); 
     
-    this.addActionToToolBar(HomeView.ActionType.DELETE_SELECTION, toolBar, "toolbar-optional"); 
-    this.addActionToToolBar(HomeView.ActionType.CUT, toolBar); 
+    this.addActionToToolBar(HomeView.ActionType.DELETE_SELECTION, toolBar); 
+    this.addActionToToolBar(HomeView.ActionType.CUT, toolBar, "toolbar-optional"); 
     this.addActionToToolBar(HomeView.ActionType.COPY, toolBar); 
     this.addActionToToolBar(HomeView.ActionType.PASTE, toolBar); 
     this.addSeparator(toolBar);
