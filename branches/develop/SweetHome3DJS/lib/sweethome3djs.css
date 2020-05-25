@@ -165,7 +165,7 @@
 }
 
 
-@media (min-width: 600px) {
+@media (min-width: 800px) {
   #home-pane-toolbar .toolbar-button-group {
     padding-right: 8px;
     margin-right: 8px;
@@ -176,7 +176,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   #home-pane-toolbar > .toolbar-button  {
     width: 24px;
   }
@@ -184,9 +184,11 @@
   #home-pane-toolbar .toolbar-button-group {
     margin-right: 4px;
   }
+}
 
+@media (max-width: 680px) {
   #home-pane-toolbar .toolbar-optional  {
-   display: none;
+    display: none;
   }
 }
 

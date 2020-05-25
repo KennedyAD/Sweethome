@@ -433,7 +433,7 @@ var ResourceAction = (function () {
   ResourceAction.RESOURCE_PREFIX = "ResourcePrefix";
   ResourceAction.VISIBLE = "Visible";
   ResourceAction.POPUP = "Popup";
-  ResourceAction.TOGGLE_BUTTON_MODEL = "ToggleButtonModel";
+  ResourceAction.TOGGLE_BUTTON_GROUP = "ToggleButtonGroup";
   ResourceAction.TOOL_BAR_ICON = "ToolBarIcon";
   return ResourceAction;
 }());
@@ -711,10 +711,8 @@ var HomePane = (function () {
       this.createAction(ActionType.DECREASE_TEXT_SIZE, preferences, planController, "decreaseTextSize");
       // Use special toggle models for bold and italic check box menu items and tool bar buttons
       // that are selected texts in home selected items are all bold or italic
-      var toggleBoldAction = this.createAction(ActionType.TOGGLE_BOLD_STYLE, preferences, planController, "toggleBoldStyle");
-      //toggleBoldAction.putValue(ResourceAction.TOGGLE_BUTTON_MODEL, createBoldStyleToggleModel(home, preferences));
-      var toggleItalicAction = this.createAction(ActionType.TOGGLE_ITALIC_STYLE, preferences, planController, "toggleItalicStyle");
-      //toggleItalicAction.putValue(ResourceAction.TOGGLE_BUTTON_MODEL, createItalicStyleToggleModel(home, preferences));
+      var toggleBoldAction = this.createBoldStyleAction(ActionType.TOGGLE_BOLD_STYLE, home, preferences, planController, "toggleBoldStyle");
+      var toggleItalicAction = this.createItalicStyleToggleModel(ActionType.TOGGLE_ITALIC_STYLE, home, preferences, planController, "toggleItalicStyle");
       this.createAction(ActionType.IMPORT_BACKGROUND_IMAGE, preferences, controller, "importBackgroundImage");
       this.createAction(ActionType.MODIFY_BACKGROUND_IMAGE, preferences, controller, "modifyBackgroundImage");
       this.createAction(ActionType.HIDE_BACKGROUND_IMAGE, preferences, controller, "hideBackgroundImage");
@@ -789,8 +787,7 @@ var HomePane = (function () {
     }
   };
   /**
-   * Returns a new <code>ControllerAction</code> object associated with a <code>ToggleButtonModel</code> instance
-   * set as selected or not.
+   * Returns a new <code>ControllerAction</code> object associated with other actions if the same <code>group</code>.
    * @param {HomeView.ActionType} actionType
    * @param {boolean} selected
    * @param {string} group
@@ -809,12 +806,12 @@ var HomePane = (function () {
     var action = this.createAction.apply(this, [actionType, preferences, controller, method].concat(parameters));
     if (group != null) {
       group.push(action);
-      action.putValue(ResourceAction.TOGGLE_BUTTON_MODEL, group);
+      action.putValue(ResourceAction.TOGGLE_BUTTON_GROUP, group);
       action.putValue(ResourceAction.SELECTED_KEY, selected);
       action.addPropertyChangeListener(function(ev) {
           if (ev.getPropertyName() == ResourceAction.SELECTED_KEY) {
             if (ev.getNewValue()) {
-              var group = ev.getSource().getValue(ResourceAction.TOGGLE_BUTTON_MODEL);
+              var group = ev.getSource().getValue(ResourceAction.TOGGLE_BUTTON_GROUP);
               for (var i = 0; i < group.length; i++) {
                 if (action !== group [i] 
                     && group [i].getValue(ResourceAction.SELECTED_KEY)) {
@@ -1395,7 +1392,7 @@ var HomePane = (function () {
     else {
       menuItem = new javax.swing.JCheckBoxMenuItem();
     }
-    menuItem.setModel(action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL));
+    menuItem.setModel(action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP));
     menuItem.setAction(popup ? new ResourceAction.PopupMenuItemAction(action) : new ResourceAction.MenuItemAction(action));
     return menuItem;
   };
@@ -1650,19 +1647,23 @@ var HomePane = (function () {
   /**
    * Returns Lock / Unlock base plan button.
    * @param {Home} home
-   * @return {javax.swing.JComponent}
+   * @param {string} additionalClass additional CSS class
+   * @return {HTMLButton}
    * @private
    */
-  HomePane.prototype.createLockUnlockBasePlanButton = function (home) {
-    var actionMap = this.getActionMap();
-    var unlockBasePlanAction = actionMap.get(HomeView.ActionType.UNLOCK_BASE_PLAN);
-    var lockBasePlanAction = actionMap.get(HomeView.ActionType.LOCK_BASE_PLAN);
-    if (unlockBasePlanAction != null && unlockBasePlanAction.getValue(ResourceAction.NAME) != null && lockBasePlanAction.getValue(ResourceAction.NAME) != null) {
-      var lockUnlockBasePlanButton = new javax.swing.JButton(new ResourceAction.ToolBarAction(home.isBasePlanLocked() ? unlockBasePlanAction : lockBasePlanAction));
-      lockUnlockBasePlanButton.setBorderPainted(false);
-      lockUnlockBasePlanButton.setContentAreaFilled(false);
-      lockUnlockBasePlanButton.setFocusable(false);
-      home.addPropertyChangeListener("BASE_PLAN_LOCKED", new HomePane.HomePane$14(this, lockUnlockBasePlanButton, home, unlockBasePlanAction, lockBasePlanAction));
+  HomePane.prototype.createLockUnlockBasePlanButton = function(home, additionalClass) {
+    var unlockBasePlanAction = this.getAction(HomeView.ActionType.UNLOCK_BASE_PLAN);
+    var lockBasePlanAction = this.getAction(HomeView.ActionType.LOCK_BASE_PLAN);
+    if (unlockBasePlanAction != null 
+        && unlockBasePlanAction.getValue(ResourceAction.NAME) != null 
+        && lockBasePlanAction.getValue(ResourceAction.NAME) != null) {
+      var lockUnlockBasePlanButton = this.createToolBarButton(
+          home.isBasePlanLocked() ? unlockBasePlanAction : lockBasePlanAction, additionalClass);
+      home.addPropertyChangeListener("BASE_PLAN_LOCKED", function() {
+          lockUnlockBasePlanButton.setAction(home.isBasePlanLocked()
+              ? unlockBasePlanAction
+              : lockBasePlanAction);
+        });
       return lockUnlockBasePlanButton;
     }
     else {
@@ -1673,18 +1674,18 @@ var HomePane = (function () {
   /**
    * Returns Enable / Disable magnetism button.
    * @param {UserPreferences} preferences
+   * @param {string} additionalClass additional CSS class
+   * @return {HTMLButton}
    * @private
    */
-  HomePane.prototype.createEnableDisableMagnetismButton = function(preferences) {
+  HomePane.prototype.createEnableDisableMagnetismButton = function(preferences, additionalClass) {
     var disableMagnetismAction = this.getAction(HomeView.ActionType.DISABLE_MAGNETISM);
     var enableMagnetismAction = this.getAction(HomeView.ActionType.ENABLE_MAGNETISM);
     if (disableMagnetismAction !== null
         && disableMagnetismAction.getValue(ResourceAction.NAME) !== null
         && enableMagnetismAction.getValue(ResourceAction.NAME) !== null) {
       var enableDisableMagnetismButton = this.createToolBarButton(
-          preferences.isMagnetismEnabled()
-              ? disableMagnetismAction
-              : enableMagnetismAction);
+          preferences.isMagnetismEnabled() ? disableMagnetismAction : enableMagnetismAction, additionalClass);
       preferences.addPropertyChangeListener("MAGNETISM_ENABLED",
           new HomePane.MagnetismChangeListener(this, enableDisableMagnetismButton));
       return enableDisableMagnetismButton;
@@ -1737,27 +1738,114 @@ var HomePane = (function () {
     this.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$boolean$javax_swing_JMenu(HomeView.ActionType.TOGGLE_ITALIC_STYLE, popup, false, modifyTextStyleMenu);
     return modifyTextStyleMenu;
   };
+  
   /**
-   * Creates a toggle button model that is selected when all the text of the
+   * Creates an action that is selected when all the text of the
    * selected items in <code>home</code> use bold style.
+   * @param {HomeView.ActionType} actionType
    * @param {Home} home
    * @param {UserPreferences} preferences
-   * @return {javax.swing.JToggleButton.ToggleButtonModel}
+   * @param {Object} controller
+   * @param {string} method
+   * @return {ResourceAction}
    * @private
    */
-  HomePane.prototype.createBoldStyleToggleModel = function (home, preferences) {
-    return new HomePane.HomePane$15(this, home, preferences);
+  HomePane.prototype.createBoldStyleAction = function(actionType, home, preferences, controller, method) {
+    var action = this.createAction(actionType, preferences, controller, method);
+    home.addSelectionListener({
+          selectionChanged: function(ev) {
+            // Find if selected items are all bold or not
+            var selectionBoldStyle = null;
+            var selectedItems = home.getSelectedItems();
+            for (var i = 0; i < selectedItems.length; i++) {
+              item = selectedItems [i];
+              var bold;
+              if (item instanceof Label) {
+                bold = this.isItemTextBold("Label", item.getStyle());
+              } else if (item instanceof HomePieceOfFurniture
+                  && item.isVisible()) {
+                bold = this.isItemTextBold("HomePieceOfFurniture", item.getNameStyle());
+              } else if (item instanceof Room) {
+                bold = this.isItemTextBold("Room", item.getNameStyle());
+                if (bold != this.isItemTextBold("Room", item.getAreaStyle())) {
+                  bold = null;
+                }
+              } else if (item instanceof DimensionLine) {
+                bold = this.isItemTextBold("DimensionLine", item.getLengthStyle());
+              } else {
+                continue;
+              }
+              if (selectionBoldStyle == null) {
+                selectionBoldStyle = bold;
+              } else if (bold == null || selectionBoldStyle != bold) {
+                selectionBoldStyle = null;
+                break;
+              }
+            }
+            action.putValue(ResourceAction.SELECTED_KEY, selectionBoldStyle != null && selectionBoldStyle);
+          },
+        isItemTextBold: function(itemClass, textStyle) {
+          if (textStyle == null) {
+            textStyle = preferences.getDefaultTextStyle(itemClass);
+          }
+          return textStyle.isBold();
+        }
+      });
+    return action;
   };
   /**
-   * Creates a toggle button model that is selected when all the text of the
+   * Creates an action that is selected when all the text of the
    * selected items in <code>home</code> use italic style.
+   * @param {HomeView.ActionType} actionType
    * @param {Home} home
    * @param {UserPreferences} preferences
-   * @return {javax.swing.JToggleButton.ToggleButtonModel}
+   * @param {Object} controller
+   * @param {string} method
+   * @return {ResourceAction}
    * @private
    */
-  HomePane.prototype.createItalicStyleToggleModel = function (home, preferences) {
-    return new HomePane.HomePane$16(this, home, preferences);
+  HomePane.prototype.createItalicStyleToggleModel = function (actionType, home, preferences, controller, method) {
+    var action = this.createAction(actionType, preferences, controller, method);
+    home.addSelectionListener({
+          selectionChanged: function(ev) {
+            // Find if selected items are all italic or not
+            var selectionItalicStyle = null;
+            var selectedItems = home.getSelectedItems();
+            for (var i = 0; i < selectedItems.length; i++) {
+              item = selectedItems [i];
+              var italic;
+              if (item instanceof Label) {
+                italic = this.isItemTextItalic("Label", item.getStyle());
+              } else if (item instanceof HomePieceOfFurniture
+                  && item.isVisible()) {
+                italic = this.isItemTextItalic("HomePieceOfFurniture", item.getNameStyle());
+              } else if (item instanceof Room) {
+                italic = this.isItemTextItalic("Room", item.getNameStyle());
+                if (italic != this.isItemTextItalic("Room", item.getAreaStyle())) {
+                  italic = null;
+                }
+              } else if (item instanceof DimensionLine) {
+                italic = this.isItemTextItalic("DimensionLine", item.getLengthStyle());
+              } else {
+                continue;
+              }
+              if (selectionItalicStyle == null) {
+                selectionItalicStyle = italic;
+              } else if (italic == null || selectionItalicStyle != italic) {
+                selectionItalicStyle = null;
+                break;
+              }
+            }
+            action.putValue(ResourceAction.SELECTED_KEY, selectionItalicStyle != null && selectionItalicStyle);
+          },
+          isItemTextItalic: function(itemClass, textStyle) {
+          if (textStyle == null) {
+            textStyle = preferences.getDefaultTextStyle(itemClass);
+          }
+          return textStyle.isItalic();
+        }
+      });
+    return action;
   };
   /**
    * Returns Import / Modify background image menu item.
@@ -2023,9 +2111,23 @@ var HomePane = (function () {
     var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences);
     if (enableDisableMagnetismButton !== null) {
       this.addButtonToToolBar(toolBar, enableDisableMagnetismButton);
-      this.addSeparator(toolBar);
     }
+    var lockUnlockBasePlanButton = this.createLockUnlockBasePlanButton(home, "toolbar-optional")
+    if (lockUnlockBasePlanButton !== null) {
+      this.addButtonToToolBar(toolBar, lockUnlockBasePlanButton);
+    }
+    this.addSeparator(toolBar);
     
+    this.addActionToToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.DECREASE_TEXT_SIZE, toolBar, "toolbar-optional");
+    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_BOLD_STYLE, toolBar, "toolbar-optional");
+    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_ITALIC_STYLE, toolBar, "toolbar-optional");
+    this.addSeparator(toolBar);
+
+    this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
+    this.addSeparator(toolBar);
+
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
     return toolBar;
@@ -2070,7 +2172,8 @@ var HomePane = (function () {
           }
         });
       button.addEventListener("click", function() {
-          action.putValue(ResourceAction.SELECTED_KEY, true);
+          var group = action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP);
+          action.putValue(ResourceAction.SELECTED_KEY, group ? true : !action.getValue(ResourceAction.SELECTED_KEY));
         });
       this.addButtonToToolBar(toolBar, button);
     }
@@ -2118,7 +2221,7 @@ var HomePane = (function () {
       };
     button.setAction(action);
     button.classList.add("toolbar-button");
-    if (action.getValue(ResourceAction.TOGGLE_BUTTON_MODEL)) {
+    if (action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP)) {
       button.classList.add("toggle");
     }
     button.action = action;
