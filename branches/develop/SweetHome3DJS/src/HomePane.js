@@ -2114,6 +2114,8 @@ var HomePane = (function () {
           propertyChange: function(ev) {
             if (ev.getPropertyName() == "enabled") {
               button.disabled = !ev.getNewValue();
+            } else if (ev.getPropertyName() == ResourceAction.SHORT_DESCRIPTION) {
+              button.title = ev.getNewValue();
             }
           }
       };
