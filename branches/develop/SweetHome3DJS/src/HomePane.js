@@ -73,7 +73,7 @@ var ResourceAction = (function () {
   ResourceAction.prototype.setEnabled = function (enabled) {
     if (this.enabled != enabled) {
       this.enabled = enabled;
-      if(this.changeSupport != null) {
+      if (this.changeSupport != null) {
         this.changeSupport.firePropertyChange("enabled", !enabled, enabled);
       }
     }
@@ -142,7 +142,7 @@ var ResourceAction = (function () {
         this.arrayTable[key] = newValue;
       }
     }
-    if(this.changeSupport != null) {
+    if (this.changeSupport != null) {
       this.changeSupport.firePropertyChange(key, oldValue, newValue);
     }
   }
@@ -312,7 +312,7 @@ var ResourceAction = (function () {
    * @param {java.awt.event.ActionEvent} ev
    */
   ResourceAction.prototype.actionPerformed = function (ev) {
-    if(this.controller != null && this.controllerMethod != null) {
+    if (this.controller != null && this.controllerMethod != null) {
       return this.controller[this.controllerMethod].apply(this.controller, this.parameters);
     } else {
       throw new UnsupportedOperationException();
@@ -516,7 +516,7 @@ var HomePane = (function () {
    * @param {string|HomeView.ActionType} actionType
    */
   HomePane.prototype.getAction = function (actionType) {
-    if(typeof actionType == "string") {
+    if (typeof actionType == "string") {
       return this.actionMap[actionType];
     } else {
       return this.actionMap[HomeView.ActionType[actionType]];
@@ -924,7 +924,7 @@ var HomePane = (function () {
     if (this.toolBar == null) {
       return;
     }
-    if(this.toolBarHideTimeout) {
+    if (this.toolBarHideTimeout) {
       clearTimeout(this.toolBarHideTimeout);
       this.toolBarHideTimeout = undefined;
     }
@@ -2022,13 +2022,28 @@ var HomePane = (function () {
     
     var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences);
     if (enableDisableMagnetismButton !== null) {
-      toolBar.appendChild(enableDisableMagnetismButton);
+      this.addButtonToToolBar(toolBar, enableDisableMagnetismButton);
       this.addSeparator(toolBar);
     }
     
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
     return toolBar;
+  }
+
+  /** @private */
+  HomePane.prototype.startToolBarButtonGroup = function(toolBar) {
+    var buttonGroup = document.createElement("span");
+    toolBar.appendChild(buttonGroup);
+    buttonGroup.classList.add("toolbar-button-group");
+  }
+
+  /** @private */
+  HomePane.prototype.addButtonToToolBar = function(toolBar, button) {
+    if (toolBar.children.length === 0) {
+      this.startToolBarButtonGroup(toolBar);
+    }
+    toolBar.children[toolBar.children.length - 1].appendChild(button);        
   }
   
   /**
@@ -2057,7 +2072,7 @@ var HomePane = (function () {
       button.addEventListener("click", function() {
           action.putValue(ResourceAction.SELECTED_KEY, true);
         });
-      toolBar.appendChild(button);        
+      this.addButtonToToolBar(toolBar, button);
     }
   }
 
@@ -2071,7 +2086,7 @@ var HomePane = (function () {
   HomePane.prototype.addActionToToolBar = function(actionType, toolBar, additionalClass) {
     var action = this.getAction(actionType);
     if (action.getValue(ResourceAction.NAME) != null) {
-      toolBar.appendChild(this.createToolBarButton(action, additionalClass));        
+      this.addButtonToToolBar(toolBar, this.createToolBarButton(action, additionalClass));
     }
     return null;
   }
@@ -2093,7 +2108,7 @@ var HomePane = (function () {
         if (!icon) {
           icon = newAction.getValue(ResourceAction.SMALL_ICON);
         }
-        button.style.background = "url('lib/"+ icon + "')";
+        button.style.backgroundImage = "url('lib/"+ icon + "')";
         button.style.backgroundPosition = "center";
         button.style.backgroundRepeat = "no-repeat";
         var shortDescription = newAction.getValue(ResourceAction.SHORT_DESCRIPTION);
@@ -2130,9 +2145,7 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.addSeparator = function(toolBar) {
-    var space = document.createElement("span");
-    space.classList.add("toolbar-separator");
-    toolBar.appendChild(space);
+    this.startToolBarButtonGroup(toolBar);
   }
   
   /**
