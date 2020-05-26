@@ -28,9 +28,9 @@
  * The {@link Object3DFactory#createObject3D(Home, Selectable, boolean) createObject3D} of
  * this factory is expected to return an instance of {@link Object3DBranch} in current implementation.
  * @param {PlanController} controller the optional controller used to manage home items modification
- * @class
- * @extends javax.swing.JComponent
+ * @constructor
  * @author Emmanuel Puybaret
+ * @author Renaud Pawlak
  */
 function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, controller) {
   var plan = this;
@@ -59,8 +59,7 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.scrollPane.style.height = "100%"; //computedStyle.height;
     if (this.container.style.overflow) {
       this.scrollPane.style.overflow = this.container.style.overflow;
-    }
-    else {
+    } else {
       this.scrollPane.style.overflow = "scroll";
     }
     this.view = document.createElement("div");
@@ -75,8 +74,8 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.scrollPane.style.left = "0px";
     this.scrollPane.style.top = "0px";
     this.scrollPane.onscroll = function() {
-      plan.repaint();
-    };
+        plan.repaint();
+      };
   }
 
   window.addEventListener("resize", function() {
@@ -119,6 +118,7 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.selectedItemsOutlinePainted = true;
   this.backgroundPainted = true;
   this.planBoundsCacheValid = false;
+  
   this.home = home;
   this.preferences = preferences;
   if (controller == null) {
@@ -145,59 +145,40 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.panningCursor = PlanComponent.createCustomCursor('panning', 'move');
   this.duplicationCursor = 'copy';
 
-  this.patternImagesCache = ({});
+  this.patternImagesCache = {};
+  
   this.setScale(0.5);
 }
 
-/** @private */
+PlanComponent["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.PlanView", "com.eteks.sweethome3d.viewcontroller.View", "com.eteks.sweethome3d.viewcontroller.ExportableView", "com.eteks.sweethome3d.viewcontroller.TransferableView"];
+
+/** 
+ * @private 
+ */
 PlanComponent.initStatics = function() {
   PlanComponent.MARGIN = 40;
-  PlanComponent.POINT_INDICATOR = null;
-  PlanComponent.FURNITURE_ROTATION_INDICATOR = null;
-  PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR = null;
-  PlanComponent.FURNITURE_ROLL_ROTATION_INDICATOR = null;
-  PlanComponent.FURNITURE_RESIZE_INDICATOR = null;
-  PlanComponent.ELEVATION_INDICATOR = null;
-  PlanComponent.ELEVATION_POINT_INDICATOR = null;
-  PlanComponent.FURNITURE_HEIGHT_INDICATOR = null;
-  PlanComponent.FURNITURE_HEIGHT_POINT_INDICATOR = null;
-  PlanComponent.LIGHT_POWER_INDICATOR = null;
-  PlanComponent.LIGHT_POWER_POINT_INDICATOR = null;
-  PlanComponent.WALL_ORIENTATION_INDICATOR = null;
-  PlanComponent.WALL_POINT = null;
-  PlanComponent.WALL_ARC_EXTENT_INDICATOR = null;
-  PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR = null;
-  PlanComponent.CAMERA_YAW_ROTATION_INDICATOR = null;
-  PlanComponent.CAMERA_PITCH_ROTATION_INDICATOR = null;
-  PlanComponent.CAMERA_ELEVATION_INDICATOR = null;
-  PlanComponent.CAMERA_BODY = null;
-  PlanComponent.CAMERA_HEAD = null;
-  PlanComponent.DIMENSION_LINE_END = null;
-  PlanComponent.TEXT_LOCATION_INDICATOR = null;
-  PlanComponent.TEXT_ANGLE_INDICATOR = null;
-  PlanComponent.LABEL_CENTER_INDICATOR = null;
-  PlanComponent.COMPASS_DISC = null;
-  PlanComponent.COMPASS = null;
-  PlanComponent.COMPASS_ROTATION_INDICATOR = null;
-  PlanComponent.COMPASS_RESIZE_INDICATOR = null;
-  PlanComponent.ARROW = null;
+  
   PlanComponent.INDICATOR_STROKE = new java.awt.BasicStroke(1.5);
   PlanComponent.POINT_STROKE = new java.awt.BasicStroke(2.0);
+  
   PlanComponent.WALL_STROKE_WIDTH = 1.5;
   PlanComponent.BORDER_STROKE_WIDTH = 1.0;
+  
   PlanComponent.ERROR_TEXTURE_IMAGE = null;
   PlanComponent.WAIT_TEXTURE_IMAGE = null;
-  PlanComponent.WEBGL_AVAILABLE = true;
+  
   // TODO: generic resolution support (see https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
   PlanComponent.HIDPI_SCALE_FACTOR = 2;
 
   PlanComponent.POINT_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
+  
   PlanComponent.FURNITURE_ROTATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.FURNITURE_ROTATION_INDICATOR.append(PlanComponent.POINT_INDICATOR, false);
   PlanComponent.FURNITURE_ROTATION_INDICATOR.append(new java.awt.geom.Arc2D.Float(-8, -8, 16, 16, 45, 180, java.awt.geom.Arc2D.OPEN), false);
   PlanComponent.FURNITURE_ROTATION_INDICATOR.moveTo(2.66, -5.66);
   PlanComponent.FURNITURE_ROTATION_INDICATOR.lineTo(5.66, -5.66);
   PlanComponent.FURNITURE_ROTATION_INDICATOR.lineTo(4.0, -8.3);
+  
   PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.append(PlanComponent.POINT_INDICATOR, false);
   PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.moveTo(-4.5, 0);
@@ -208,10 +189,13 @@ PlanComponent.initStatics = function() {
   PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.moveTo(-10.0, -4.5);
   PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.lineTo(-12.3, -2.0);
   PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.lineTo(-12.8, -5.8);
+  
   var transform = java.awt.geom.AffineTransform.getRotateInstance(-Math.PI / 2);
   transform.concatenate(java.awt.geom.AffineTransform.getScaleInstance(1, -1));
   PlanComponent.FURNITURE_ROLL_ROTATION_INDICATOR = PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.createTransformedShape(transform);
+  
   PlanComponent.ELEVATION_POINT_INDICATOR = new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0);
+  
   PlanComponent.ELEVATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.ELEVATION_INDICATOR.moveTo(0, -5);
   PlanComponent.ELEVATION_INDICATOR.lineTo(0, 5);
@@ -220,7 +204,9 @@ PlanComponent.initStatics = function() {
   PlanComponent.ELEVATION_INDICATOR.moveTo(-1.2, 1.5);
   PlanComponent.ELEVATION_INDICATOR.lineTo(0, 4.5);
   PlanComponent.ELEVATION_INDICATOR.lineTo(1.2, 1.5);
+  
   PlanComponent.FURNITURE_HEIGHT_POINT_INDICATOR = new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0);
+  
   PlanComponent.FURNITURE_HEIGHT_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.FURNITURE_HEIGHT_INDICATOR.moveTo(0, -6);
   PlanComponent.FURNITURE_HEIGHT_INDICATOR.lineTo(0, 6);
@@ -234,7 +220,9 @@ PlanComponent.initStatics = function() {
   PlanComponent.FURNITURE_HEIGHT_INDICATOR.moveTo(-1.2, 2.5);
   PlanComponent.FURNITURE_HEIGHT_INDICATOR.lineTo(0.0, 5.5);
   PlanComponent.FURNITURE_HEIGHT_INDICATOR.lineTo(1.2, 2.5);
+  
   PlanComponent.LIGHT_POWER_POINT_INDICATOR = new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0);
+  
   PlanComponent.LIGHT_POWER_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.LIGHT_POWER_INDICATOR.moveTo(-8, 0);
   PlanComponent.LIGHT_POWER_INDICATOR.lineTo(-6.0, 0);
@@ -250,6 +238,7 @@ PlanComponent.initStatics = function() {
   PlanComponent.LIGHT_POWER_INDICATOR.lineTo(4.0, -3.5);
   PlanComponent.LIGHT_POWER_INDICATOR.lineTo(2.0, -2.8);
   PlanComponent.LIGHT_POWER_INDICATOR.closePath();
+  
   PlanComponent.FURNITURE_RESIZE_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.FURNITURE_RESIZE_INDICATOR.append(new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0), false);
   PlanComponent.FURNITURE_RESIZE_INDICATOR.moveTo(5, -4);
@@ -262,11 +251,14 @@ PlanComponent.initStatics = function() {
   PlanComponent.FURNITURE_RESIZE_INDICATOR.moveTo(7, 9.5);
   PlanComponent.FURNITURE_RESIZE_INDICATOR.lineTo(10, 10);
   PlanComponent.FURNITURE_RESIZE_INDICATOR.lineTo(9.5, 7);
+  
   PlanComponent.WALL_ORIENTATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.WALL_ORIENTATION_INDICATOR.moveTo(-4, -4);
   PlanComponent.WALL_ORIENTATION_INDICATOR.lineTo(4, 0);
   PlanComponent.WALL_ORIENTATION_INDICATOR.lineTo(-4, 4);
+  
   PlanComponent.WALL_POINT = new java.awt.geom.Ellipse2D.Float(-3, -3, 6, 6);
+  
   PlanComponent.WALL_ARC_EXTENT_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.WALL_ARC_EXTENT_INDICATOR.append(new java.awt.geom.Arc2D.Float(-4, 1, 8, 5, 210, 120, java.awt.geom.Arc2D.OPEN), false);
   PlanComponent.WALL_ARC_EXTENT_INDICATOR.moveTo(0, 6);
@@ -274,6 +266,7 @@ PlanComponent.initStatics = function() {
   PlanComponent.WALL_ARC_EXTENT_INDICATOR.moveTo(-1.8, 8.7);
   PlanComponent.WALL_ARC_EXTENT_INDICATOR.lineTo(0, 12);
   PlanComponent.WALL_ARC_EXTENT_INDICATOR.lineTo(1.8, 8.7);
+  
   PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR.moveTo(5, -2);
   PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR.lineTo(5, 2);
@@ -282,10 +275,13 @@ PlanComponent.initStatics = function() {
   PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR.moveTo(8.7, -1.8);
   PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR.lineTo(12, 0);
   PlanComponent.WALL_AND_LINE_RESIZE_INDICATOR.lineTo(8.7, 1.8);
+  
   transform = java.awt.geom.AffineTransform.getRotateInstance(-Math.PI / 4);
   PlanComponent.CAMERA_YAW_ROTATION_INDICATOR = PlanComponent.FURNITURE_ROTATION_INDICATOR.createTransformedShape(transform);
+  
   transform = java.awt.geom.AffineTransform.getRotateInstance(Math.PI);
   PlanComponent.CAMERA_PITCH_ROTATION_INDICATOR = PlanComponent.FURNITURE_PITCH_ROTATION_INDICATOR.createTransformedShape(transform);
+  
   PlanComponent.CAMERA_ELEVATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.CAMERA_ELEVATION_INDICATOR.moveTo(0, -4);
   PlanComponent.CAMERA_ELEVATION_INDICATOR.lineTo(0, 4);
@@ -294,11 +290,13 @@ PlanComponent.initStatics = function() {
   PlanComponent.CAMERA_ELEVATION_INDICATOR.moveTo(-1.2, 0.5);
   PlanComponent.CAMERA_ELEVATION_INDICATOR.lineTo(0, 3.5);
   PlanComponent.CAMERA_ELEVATION_INDICATOR.lineTo(1.2, 0.5);
+  
   var cameraBodyAreaPath = new java.awt.geom.GeneralPath();
   cameraBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.5, -0.425, 1.0, 0.85), false);
   cameraBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.5, -0.3, 0.24, 0.6), false);
   cameraBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(0.26, -0.3, 0.24, 0.6), false);
   PlanComponent.CAMERA_BODY = new java.awt.geom.Area(cameraBodyAreaPath);
+  
   var cameraHeadAreaPath = new java.awt.geom.GeneralPath();
   cameraHeadAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.18, -0.45, 0.36, 1.0), false);
   cameraHeadAreaPath.moveTo(-0.04, 0.55);
@@ -306,11 +304,13 @@ PlanComponent.initStatics = function() {
   cameraHeadAreaPath.lineTo(0.04, 0.55);
   cameraHeadAreaPath.closePath();
   PlanComponent.CAMERA_HEAD = new java.awt.geom.Area(cameraHeadAreaPath);
+  
   PlanComponent.DIMENSION_LINE_END = new java.awt.geom.GeneralPath();
   PlanComponent.DIMENSION_LINE_END.moveTo(-5, 5);
   PlanComponent.DIMENSION_LINE_END.lineTo(5, -5);
   PlanComponent.DIMENSION_LINE_END.moveTo(0, 5);
   PlanComponent.DIMENSION_LINE_END.lineTo(0, -5);
+  
   PlanComponent.TEXT_LOCATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.TEXT_LOCATION_INDICATOR.append(new java.awt.geom.Arc2D.Float(-2, 0, 4, 4, 190, 160, java.awt.geom.Arc2D.CHORD), false);
   PlanComponent.TEXT_LOCATION_INDICATOR.moveTo(0, 4);
@@ -328,13 +328,16 @@ PlanComponent.initStatics = function() {
   PlanComponent.TEXT_LOCATION_INDICATOR.moveTo(-6, 6.5);
   PlanComponent.TEXT_LOCATION_INDICATOR.lineTo(-10, 7);
   PlanComponent.TEXT_LOCATION_INDICATOR.lineTo(-7.5, 3.5);
+  
   PlanComponent.TEXT_ANGLE_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.TEXT_ANGLE_INDICATOR.append(new java.awt.geom.Arc2D.Float(-1.25, -1.25, 2.5, 2.5, 10, 160, java.awt.geom.Arc2D.CHORD), false);
   PlanComponent.TEXT_ANGLE_INDICATOR.append(new java.awt.geom.Arc2D.Float(-8, -8, 16, 16, 30, 120, java.awt.geom.Arc2D.OPEN), false);
   PlanComponent.TEXT_ANGLE_INDICATOR.moveTo(4.0, -5.2);
   PlanComponent.TEXT_ANGLE_INDICATOR.lineTo(6.9, -4.0);
   PlanComponent.TEXT_ANGLE_INDICATOR.lineTo(5.8, -7.0);
+  
   PlanComponent.LABEL_CENTER_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.0, -1.0, 2, 2);
+  
   PlanComponent.COMPASS_DISC = new java.awt.geom.Ellipse2D.Float(-0.5, -0.5, 1, 1);
   var stroke = new java.awt.BasicStroke(0.01);
   PlanComponent.COMPASS = new java.awt.geom.GeneralPath(stroke.createStrokedShape(PlanComponent.COMPASS_DISC));
@@ -357,12 +360,14 @@ PlanComponent.initStatics = function() {
   compassNorthDirection.lineTo(0.07, -0.56);
   compassNorthDirection.lineTo(0.07, -0.7);
   PlanComponent.COMPASS.append(stroke.createStrokedShape(compassNorthDirection), false);
+  
   PlanComponent.COMPASS_ROTATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.COMPASS_ROTATION_INDICATOR.append(PlanComponent.POINT_INDICATOR, false);
   PlanComponent.COMPASS_ROTATION_INDICATOR.append(new java.awt.geom.Arc2D.Float(-8, -7, 16, 16, 210, 120, java.awt.geom.Arc2D.OPEN), false);
   PlanComponent.COMPASS_ROTATION_INDICATOR.moveTo(4.0, 5.66);
   PlanComponent.COMPASS_ROTATION_INDICATOR.lineTo(7.0, 5.66);
   PlanComponent.COMPASS_ROTATION_INDICATOR.lineTo(5.6, 8.3);
+  
   PlanComponent.COMPASS_RESIZE_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.COMPASS_RESIZE_INDICATOR.append(new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0), false);
   PlanComponent.COMPASS_RESIZE_INDICATOR.moveTo(4, -6);
@@ -374,15 +379,16 @@ PlanComponent.initStatics = function() {
   PlanComponent.COMPASS_RESIZE_INDICATOR.moveTo(9, -1.5);
   PlanComponent.COMPASS_RESIZE_INDICATOR.lineTo(12, 0);
   PlanComponent.COMPASS_RESIZE_INDICATOR.lineTo(9, 1.5);
+  
   PlanComponent.ARROW = new java.awt.geom.GeneralPath();
   PlanComponent.ARROW.moveTo(-5, -2);
   PlanComponent.ARROW.lineTo(0, 0);
   PlanComponent.ARROW.lineTo(-5, 2);
+  
   PlanComponent.ERROR_TEXTURE_IMAGE = TextureManager.getInstance().getErrorImage();
   PlanComponent.WAIT_TEXTURE_IMAGE = TextureManager.getInstance().getWaitImage();
-  PlanComponent.LONG_TOUCH_DELAY = 200; // ms
-  PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
-  PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
+
+  PlanComponent.WEBGL_AVAILABLE = true;
   var canvas = document.createElement("canvas");
   var gl = canvas.getContext("webgl");
   if (!gl) {
@@ -391,254 +397,84 @@ PlanComponent.initStatics = function() {
       PlanComponent.WEBGL_AVAILABLE = false;
     }
   }
-};
+  
+  PlanComponent.LONG_TOUCH_DELAY = 200; // ms
+  PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
+  PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
+}
 
 PlanComponent.initStatics();
 
-/** @private */
-PlanComponent.prototype.startLongTouchAnimation = function(controller, x, y) {
-  this.touchOverlay.style.visibility = "visible";
-  if (controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
-  } else {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif'>2</span>";
-  }
-  this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
-  this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
-  if (this.tooltip.style.visibility == "visible") {
-    this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
-  }
-  for (var i = 0; i < this.touchOverlay.children.length; i++) {
-    this.touchOverlay.children.item(i).classList.remove("indicator");
-    this.touchOverlay.children.item(i).classList.add("animated");
-  }
-};
 
-/** @private */
-PlanComponent.prototype.stopLongTouchAnimation = function(x, y) {
-  this.touchOverlay.style.visibility = "hidden";
-  for (var i = 0; i < this.touchOverlay.children.length; i++) {
-    this.touchOverlay.children.item(i).classList.remove("animated");
-    this.touchOverlay.children.item(i).classList.remove("indicator");
-  }
-};
+/**
+ * The circumstances under which the home items displayed by this component will be painted.
+ * @enum
+ * @property {PlanComponent.PaintMode} PAINT
+ * @property {PlanComponent.PaintMode} PRINT
+ * @property {PlanComponent.PaintMode} CLIPBOARD
+ * @property {PlanComponent.PaintMode} EXPORT
+ */
+PlanComponent.PaintMode = {};
+PlanComponent.PaintMode[PlanComponent.PaintMode["PAINT"] = 0] = "PAINT";
+PlanComponent.PaintMode[PlanComponent.PaintMode["PRINT"] = 1] = "PRINT";
+PlanComponent.PaintMode[PlanComponent.PaintMode["CLIPBOARD"] = 2] = "CLIPBOARD";
+PlanComponent.PaintMode[PlanComponent.PaintMode["EXPORT"] = 3] = "EXPORT";
 
-/** @private */
-PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
-  if (indicator == "default" || indicator == "selection") {
-    this.touchOverlay.style.visibility = "hidden";
-  } else {
-    this.touchOverlay.style.visibility = "visible";
-    document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="lib/resources/cursors/' + indicator + '32x32.png"/>';
-    this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
-    this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
-    for (var i = 0; i < this.touchOverlay.children.length; i++) {
-      this.touchOverlay.children.item(i).classList.remove("animated");
-      this.touchOverlay.children.item(i).classList.add("indicator");
-    }
-  }
-};
+/**
+ * @private
+ */
+PlanComponent.ActionType = {};
+PlanComponent.ActionType[PlanComponent.ActionType["DELETE_SELECTION"] = 0] = "DELETE_SELECTION";
+PlanComponent.ActionType[PlanComponent.ActionType["ESCAPE"] = 1] = "ESCAPE";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_LEFT"] = 2] = "MOVE_SELECTION_LEFT";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_UP"] = 3] = "MOVE_SELECTION_UP";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_DOWN"] = 4] = "MOVE_SELECTION_DOWN";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_RIGHT"] = 5] = "MOVE_SELECTION_RIGHT";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_FAST_LEFT"] = 6] = "MOVE_SELECTION_FAST_LEFT";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_FAST_UP"] = 7] = "MOVE_SELECTION_FAST_UP";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_FAST_DOWN"] = 8] = "MOVE_SELECTION_FAST_DOWN";
+PlanComponent.ActionType[PlanComponent.ActionType["MOVE_SELECTION_FAST_RIGHT"] = 9] = "MOVE_SELECTION_FAST_RIGHT";
+PlanComponent.ActionType[PlanComponent.ActionType["TOGGLE_MAGNETISM_ON"] = 10] = "TOGGLE_MAGNETISM_ON";
+PlanComponent.ActionType[PlanComponent.ActionType["TOGGLE_MAGNETISM_OFF"] = 11] = "TOGGLE_MAGNETISM_OFF";
+PlanComponent.ActionType[PlanComponent.ActionType["ACTIVATE_ALIGNMENT"] = 12] = "ACTIVATE_ALIGNMENT";
+PlanComponent.ActionType[PlanComponent.ActionType["DEACTIVATE_ALIGNMENT"] = 13] = "DEACTIVATE_ALIGNMENT";
+PlanComponent.ActionType[PlanComponent.ActionType["ACTIVATE_DUPLICATION"] = 14] = "ACTIVATE_DUPLICATION";
+PlanComponent.ActionType[PlanComponent.ActionType["DEACTIVATE_DUPLICATION"] = 15] = "DEACTIVATE_DUPLICATION";
+PlanComponent.ActionType[PlanComponent.ActionType["ACTIVATE_EDITIION"] = 16] = "ACTIVATE_EDITIION";
+PlanComponent.ActionType[PlanComponent.ActionType["DEACTIVATE_EDITIION"] = 17] = "DEACTIVATE_EDITIION";
 
-/** @private */
-PlanComponent.prototype.stopIndicatorAnimation = function() {
-  this.touchOverlay.style.visibility = "hidden";
-  for (var i = 0; i < this.touchOverlay.children.length; i++) {
-    this.touchOverlay.children.item(i).classList.remove("animated");
-    this.touchOverlay.children.item(i).classList.remove("indicator");
-  }
-};
+/**
+ * Indicator types that may be displayed on selected items.
+ * @constructor
+ */
+PlanComponent.IndicatorType = function(name) {
+  this.name = name;
+}
 
-PlanComponent.prototype.getGraphics = function() {
-  if (!this.graphics) {
-    this.graphics = new Graphics2D(this.canvas);
-  }
-  return this.graphics;
-};
+/**
+ * @return {string}
+ */
+PlanComponent.IndicatorType.prototype.name = function() {
+  return this.name;
+}
 
-PlanComponent.prototype.repaint = function() {
-  var plan = this;
-  if (!this.canvasNeededRepaint) {
-    this.canvasNeededRepaint = true;
-    requestAnimationFrame(function() {
-        if (plan.canvasNeededRepaint) {
-          plan.canvasNeededRepaint = false;
-          plan.paintComponent(plan.getGraphics());
-        }
-      });
-  }
-};
+/**
+ * @return {string}
+ */
+PlanComponent.IndicatorType.prototype.toString = function() {
+  return this.name;
+}
+PlanComponent.IndicatorType.ROTATE = new PlanComponent.IndicatorType("ROTATE");
+PlanComponent.IndicatorType.RESIZE = new PlanComponent.IndicatorType("RESIZE");
+PlanComponent.IndicatorType.ELEVATE = new PlanComponent.IndicatorType("ELEVATE");
+PlanComponent.IndicatorType.RESIZE_HEIGHT = new PlanComponent.IndicatorType("RESIZE_HEIGHT");
+PlanComponent.IndicatorType.CHANGE_POWER = new PlanComponent.IndicatorType("CHANGE_POWER");
+PlanComponent.IndicatorType.MOVE_TEXT = new PlanComponent.IndicatorType("MOVE_TEXT");
+PlanComponent.IndicatorType.ROTATE_TEXT = new PlanComponent.IndicatorType("ROTATE_TEXT");
+PlanComponent.IndicatorType.ROTATE_PITCH = new PlanComponent.IndicatorType("ROTATE_PITCH");
+PlanComponent.IndicatorType.ROTATE_ROLL = new PlanComponent.IndicatorType("ROTATE_ROLL");
+PlanComponent.IndicatorType.ARC_EXTENT = new PlanComponent.IndicatorType("ARC_EXTENT");
 
-PlanComponent.prototype.revalidate = function() {
-  this.invalidate(true);
-  this.validate();
-  this.repaint();
-};
-
-/** @private */
-PlanComponent.prototype.invalidate = function(invalidatePlanBoundsCache) {
-  if (invalidatePlanBoundsCache) {
-    var planBoundsCacheWereValid = this.planBoundsCacheValid;
-    if (!this.invalidPlanBounds) {
-      this.invalidPlanBounds = this.getPlanBounds().getBounds2D();
-    }
-    if (planBoundsCacheWereValid) {
-      this.planBoundsCacheValid = false;
-    }
-  }
-};
-
-/** @private */
-PlanComponent.prototype.validate = function() {
-  if (this.invalidPlanBounds != null) {
-    var size = this.getPreferredSize();
-    if (this.isScrolled()) {
-      this.view.style.width = size.width + "px";
-      this.view.style.height = size.height + "px";
-      if (this.canvas.width !== this.scrollPane.clientWidth * this.resolutionScale 
-          || this.canvas.height !== this.scrollPane.clientHeight * this.resolutionScale) {
-        this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
-        this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
-        this.canvas.style.width = this.scrollPane.clientWidth + "px";
-        this.canvas.style.height = this.scrollPane.clientHeight + "px";
-      }
-
-      var planBoundsNewMinX = this.getPlanBounds().getMinX();
-      var planBoundsNewMinY = this.getPlanBounds().getMinY();
-      // If plan bounds upper left corner diminished
-      if (planBoundsNewMinX < this.invalidPlanBounds.getMinX()
-          || planBoundsNewMinY < this.invalidPlanBounds.getMinY()) {
-        // Update view position when scroll bars are visible
-        if (this.scrollPane.clientWidth < this.view.clientWidth
-            || this.scrollPane.clientHeight < this.view.clientHeight.height) {
-          var deltaX = this.convertLengthToPixel(this.invalidPlanBounds.getMinX() - planBoundsNewMinX);
-          var deltaY = this.convertLengthToPixel(this.invalidPlanBounds.getMinY() - planBoundsNewMinY);
-          this.scrollPane.scrollLeft += deltaX;
-          this.scrollPane.scrollTop += deltaY;
-        }
-      }
-    } else if (this.canvas.width !== this.canvas.clientWidth 
-        || this.canvas.height !== this.canvas.clientHeight) {
-      this.canvas.width = this.canvas.clientWidth; 
-      this.canvas.height = this.canvas.clientHeight;
-    }
-  }
-  delete this.invalidPlanBounds;
-};
-
-/** @private */
-PlanComponent.prototype.isScrolled = function() {
-  return this.scrollPane !== undefined;
-};
-
-/** @private */
-PlanComponent.prototype.isOpaque = function() {
-  return true;
-};
-
-/** @private */
-PlanComponent.prototype.getWidth = function() {
-  return this.view.clientWidth;
-};
-
-/** @private */
-PlanComponent.prototype.getHeight = function() {
-  return this.view.clientHeight;
-};
-
-PlanComponent.prototype.setToolTipFeedback = function(s, x, y) {
-  this.tooltip.style.width = "";
-  this.tooltip.style.marginLeft = "";
-  if (s.indexOf("<html>") === 0) {
-    this.tooltip.style.textAlign = "left";
-  }
-  else {
-    this.tooltip.style.textAlign = "center";
-  }
-  this.tooltip.innerHTML = s.replace("<html>", "").replace("</html>", "");
-  var containerRect = this.container.getBoundingClientRect();
-  this.tooltip.style.left = containerRect.left + this.convertXModelToPixel(x) + "px";
-  this.tooltip.style.top = containerRect.top + this.convertYModelToPixel(y) + "px";
-  this.tooltip.style.marginTop = -(this.tooltip.clientHeight + (this.pointerType === 1 ? 50 : 20)) + "px";
-  var width = this.tooltip.clientWidth + 10;
-  this.tooltip.style.width = width + "px";
-  this.tooltip.style.marginLeft = -width / 2 + "px";
-  this.tooltip.style.visibility = "visible";
-};
-
-/** @private */
-PlanComponent.prototype.setOpaque = function(opaque) {
-  // TODO
-};
-
-/** @private */
-PlanComponent.prototype.isEnabled = function() {
-  // TODO?
-  return true;
-};
-
-/** @private */
-PlanComponent.prototype.getBackground = function() {
-  if (this.background == null) {
-    this.background = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).backgroundColor);
-  }
-  return this.background;
-};
-
-/** @private */
-PlanComponent.prototype.getForeground = function() {
-  if (this.foreground == null) {
-    this.foreground = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).color);
-  }
-  return this.foreground;
-};
-
-/** @private */
-PlanComponent.prototype.getGridColor = function() {
-  if (this.gridColor == null) {
-    // compute the gray color in between background and foreground colors
-    var background = ColorTools.styleToInt(window.getComputedStyle(this.canvas).backgroundColor);
-    var foreground = ColorTools.styleToInt(window.getComputedStyle(this.canvas).color);
-    var gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
-    this.gridColor = ColorTools.intToHexString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
-  }
-  return this.gridColor;
-};
-
-/** @private */
-PlanComponent.prototype.setFont = function(font) {
-  this.font = font;
-};
-PlanComponent.prototype.getParent = function() {
-  return null;
-};
-
-/** @private */
-PlanComponent.prototype.getInsets = function() {
-  return { top: 0, bottom: 0, left: 0, right: 0 };
-};
-
-/** @private */
-PlanComponent.prototype.scrollRectToVisible = function(rectangle) {
-  if (this.isScrolled()) {
-    var dx = 0;
-    var dy = 0;
-    //      console.info(rectangle);
-    //      console.info(rectangle.getX() + rectangle.getWidth(), this.scrollPane.scrollLeft + this.scrollPane.clientWidth);
-    if (rectangle.x < 0) {
-      dx = rectangle.x;
-    }
-    else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.clientWidth) {
-      dx = rectangle.getX() + rectangle.getWidth() - this.scrollPane.clientWidth;
-    }
-    if (rectangle.y < 0) {
-      dy = rectangle.y;
-    }
-    else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.clientHeight) {
-      dy = rectangle.getY() + rectangle.getHeight() - this.scrollPane.clientHeight;
-    }
-    this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
-  }
-};
 
 /**
  * Adds home items and selection listeners on this component to receive
@@ -665,14 +501,23 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
         }
         if (!(ev.getSource() instanceof HomeFurnitureGroup)) {
           if (controller == null || !controller.isModificationState()) {
-            CoreTools.removeFromMap(plan.furnitureTopViewIconKeys, ev.getSource());
+            plan.removeTopViewIconFromCache(ev.getSource());
           } else {
-            var modificationStateListener = function(ev2) {
-                CoreTools.removeFromMap(plan.furnitureTopViewIconKeys, ev.getSource());
-                plan.repaint();
-                controller.removePropertyChangeListener("MODIFICATION_STATE", modificationStateListener);
-              };
-            controller.addPropertyChangeListener("MODIFICATION_STATE", modificationStateListener);
+            if (plan.invalidFurnitureTopViewIcons == null) {
+              plan.invalidFurnitureTopViewIcons = [];
+              var modificationStateListener = function(ev2) {
+                  for (var i = 0; i < plan.invalidFurnitureTopViewIcons.length; i++) {
+                    plan.removeTopViewIconFromCache(plan.invalidFurnitureTopViewIcons[i]);
+                  }
+                  plan.invalidFurnitureTopViewIcons = null;
+                  plan.repaint();
+                  controller.removePropertyChangeListener("MODIFICATION_STATE", modificationStateListener);
+                };
+              controller.addPropertyChangeListener("MODIFICATION_STATE", modificationStateListener);
+            }
+          }
+          if (plan.invalidFurnitureTopViewIcons.indexOf(ev.getSource()) < 0) {
+            plan.invalidFurnitureTopViewIcons.push(ev.getSource());
           }
         }
         plan.revalidate();
@@ -681,7 +526,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
               || "TEXTURE" == ev.getPropertyName() 
               || "MODEL_MATERIALS" == ev.getPropertyName() 
               || "SHININESS" == ev.getPropertyName())) {
-        CoreTools.removeFromMap(plan.furnitureTopViewIconKeys, ev.getSource());
+        plan.removeTopViewIconFromCache(ev.getSource());
         plan.repaint();
       } else if ("ELEVATION" == ev.getPropertyName() 
                 || "LEVEL" == ev.getPropertyName() 
@@ -725,24 +570,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
         }
       } else if (ev.getType() === CollectionEvent.Type.DELETE) {
         piece.removePropertyChangeListener(furnitureChangeListener);
-        // Explicitely remove deleted object from some maps since there's no WeakHashMap
-        if (plan.furnitureTopViewIconKeys != null) {
-          var topViewIconKey = CoreTools.removeFromMap(plan.furnitureTopViewIconKeys, piece);
-          if (topViewIconKey != null) {
-            // Update plan.furnitureTopViewIconsCache too if topViewIconKey isn't used anymore
-            var keys = CoreTools.valuesFromMap(plan.furnitureTopViewIconKeys);
-            var removedKeyFound = false; 
-            for (var i = 0; i < keys.length; i++) {
-              if (keys [i].hash === topViewIconKey.hash // TODO Why prototype is lost?
-                  && keys [i].equals(topViewIconKey)) {
-                removedKeyFound = true;
-              }
-            }
-            if (!removedKeyFound) {
-              CoreTools.removeFromMap(plan.furnitureTopViewIconsCache, topViewIconKey);
-            }
-          }
-        }
+        plan.removeTopViewIconFromCache(piece);
         if (piece instanceof HomeDoorOrWindow
             && plan.doorOrWindowWallThicknessAreasCache != null) {
           CoreTools.removeFromMap(plan.doorOrWindowWallThicknessAreasCache, piece);
@@ -791,8 +619,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
   home.addWallsListener(function(ev) {
       if (ev.getType() === CollectionEvent.Type.ADD) {
         ev.getItem().addPropertyChangeListener(wallChangeListener);
-      }
-      else if (ev.getType() === CollectionEvent.Type.DELETE) {
+      } else if (ev.getType() === CollectionEvent.Type.DELETE) {
         ev.getItem().removePropertyChangeListener(wallChangeListener);
       }
       plan.otherLevelsWallAreaCache = null;
@@ -985,61 +812,160 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
   preferences.addPropertyChangeListener("FURNITURE_MODEL_ICON_SIZE", preferencesListener);
   preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", preferencesListener);
   preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
-};
+}
 
-PlanComponent.prototype.handleMouseEvent = function(ev, type) {
-  this.canvasX = undefined;
-  this.canvasY = undefined;
-  if (ev.canvasX === undefined && ev.clientX !== undefined) {
-    var rect = this.canvas.getBoundingClientRect();
-    ev.canvasX = ev.clientX - rect.left;
-    ev.canvasY = ev.clientY - rect.top;
+/**
+ * Preferences property listener bound to this component with a weak reference to avoid
+ * strong link between preferences and this component.
+ * @param {PlanComponent} planComponent
+ * @constructor
+ * @private
+ */
+PlanComponent.UserPreferencesChangeListener = function(planComponent) {
+  this.planComponent = planComponent;
+}
+
+PlanComponent.UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
+  var planComponent = this.planComponent;
+  var preferences = ev.getSource();
+  var property = ev.getPropertyName();
+  if (planComponent == null) {
+    preferences.removePropertyChangeListener(property, this);
+  } else {
+    switch ((property)) {
+    case "LANGUAGE":
+    case "UNIT":
+      if (planComponent.horizontalRuler != null) {
+        planComponent.horizontalRuler.repaint();
+      }
+      if (planComponent.verticalRuler != null) {
+        planComponent.verticalRuler.repaint();
+      }
+      break;
+    case "DEFAULT_FONT_NAME":
+      planComponent.fonts = null;
+      planComponent.fontsMetrics = null;
+      planComponent.revalidate();
+      break;
+    case "WALL_PATTERN":
+      planComponent.wallAreasCache = null;
+      break;
+    case "FURNITURE_VIEWED_FROM_TOP":
+      if (planComponent.furnitureTopViewIconKeys != null && !preferences.isFurnitureViewedFromTop()) {
+        planComponent.furnitureTopViewIconKeys = null;
+        planComponent.furnitureTopViewIconsCache = null;
+      }
+      break;
+    case "FURNITURE_MODEL_ICON_SIZE":
+      planComponent.furnitureTopViewIconKeys = null;
+      planComponent.furnitureTopViewIconsCache = null;
+      break;
+    default:
+      break;
+    }
+    planComponent.repaint();
   }
-  if (type.indexOf("touch") === 0) {
-    // Force a different margin for touch events
-    PlanController.INDICATOR_PIXEL_MARGIN = 15;
-    this.pointerType = 1;
-    var touches = ev.targetTouches;
-    if (ev.targetTouches.length == 0) {
-      // touchend case
-      touches = ev.changedTouches;
-    }
-    var rect = this.canvas.getBoundingClientRect();
-    if (touches.length == 1) {
-      ev.canvasX = touches[0].clientX - rect.left;
-      ev.canvasY = touches[0].clientY - rect.top;
-      this.canvasX = ev.canvasX;
-      this.canvasY = ev.canvasY;
-    }
-    else if (touches.length == 2) {
-      ev.canvasX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
-      ev.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
-      this.canvasX = ev.canvasX;
-      this.canvasY = ev.canvasY;
-    }
-    ev.clickCount = 1;
-  }
-  else {
-    PlanController.INDICATOR_PIXEL_MARGIN = 5;
-    this.pointerType = 0;
-  }
-  if (ev.clickCount === undefined) {
-    if (type == "mouseDoubleClicked") {
-      ev.clickCount = 2;
-    }
-    else if (type == "mousePressed" || type == "mouseReleased") {
-      ev.clickCount = 1;
-    }
-    else {
-      ev.clickCount = 0;
+}
+
+/**
+ * Removes piece from maps handling top view icons.
+ * @private 
+ */
+PlanComponent.prototype.removeTopViewIconFromCache = function(piece) {
+  if (this.furnitureTopViewIconKeys != null) {
+    // Explicitely remove deleted object from some maps since there's no WeakHashMap
+    var topViewIconKey = CoreTools.removeFromMap(this.furnitureTopViewIconKeys, piece);
+    if (topViewIconKey != null) {
+      // Update furnitureTopViewIconsCache too if topViewIconKey isn't used anymore
+      var keys = CoreTools.valuesFromMap(this.furnitureTopViewIconKeys);
+      var removedKeyFound = false; 
+      for (var i = 0; i < keys.length; i++) {
+        if (keys [i].hashCode === topViewIconKey.hashCode // TODO Why prototype is lost? 
+            && keys [i].equals(topViewIconKey)) {
+          removedKeyFound = true;
+        }
+      }
+      if (!removedKeyFound) {
+        CoreTools.removeFromMap(this.furnitureTopViewIconsCache, topViewIconKey);
+      }
     }
   }
-  if (type == "mouseWheelMoved") {
-    ev.preventDefault();
-    ev.wheelRotation = (ev.deltaY !== undefined ? ev.deltaX + ev.deltaY : -ev.wheelDelta) / 4;
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.isEnabled = function() {
+  return true;
+}
+
+PlanComponent.prototype.revalidate = function() {
+  this.invalidate(true);
+  this.validate();
+  this.repaint();
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.invalidate = function(invalidatePlanBoundsCache) {
+  if (invalidatePlanBoundsCache) {
+    var planBoundsCacheWereValid = this.planBoundsCacheValid;
+    if (!this.invalidPlanBounds) {
+      this.invalidPlanBounds = this.getPlanBounds().getBounds2D();
+    }
+    if (planBoundsCacheWereValid) {
+      this.planBoundsCacheValid = false;
+    }
   }
-  //console.info("mouse event: "+type + " ("+(<any>ev).canvasX+","+(<any>ev).canvasY+")");
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.validate = function() {
+  if (this.invalidPlanBounds != null) {
+    var size = this.getPreferredSize();
+    if (this.isScrolled()) {
+      this.view.style.width = size.width + "px";
+      this.view.style.height = size.height + "px";
+      if (this.canvas.width !== this.scrollPane.clientWidth * this.resolutionScale 
+          || this.canvas.height !== this.scrollPane.clientHeight * this.resolutionScale) {
+        this.canvas.width = this.scrollPane.clientWidth * this.resolutionScale;
+        this.canvas.height = this.scrollPane.clientHeight * this.resolutionScale;
+        this.canvas.style.width = this.scrollPane.clientWidth + "px";
+        this.canvas.style.height = this.scrollPane.clientHeight + "px";
+      }
+
+      var planBoundsNewMinX = this.getPlanBounds().getMinX();
+      var planBoundsNewMinY = this.getPlanBounds().getMinY();
+      // If plan bounds upper left corner diminished
+      if (planBoundsNewMinX < this.invalidPlanBounds.getMinX()
+          || planBoundsNewMinY < this.invalidPlanBounds.getMinY()) {
+        // Update view position when scroll bars are visible
+        if (this.scrollPane.clientWidth < this.view.clientWidth
+            || this.scrollPane.clientHeight < this.view.clientHeight.height) {
+          var deltaX = this.convertLengthToPixel(this.invalidPlanBounds.getMinX() - planBoundsNewMinX);
+          var deltaY = this.convertLengthToPixel(this.invalidPlanBounds.getMinY() - planBoundsNewMinY);
+          this.scrollPane.scrollLeft += deltaX;
+          this.scrollPane.scrollTop += deltaY;
+        }
+      }
+    } else if (this.canvas.width !== this.canvas.clientWidth 
+        || this.canvas.height !== this.canvas.clientHeight) {
+      this.canvas.width = this.canvas.clientWidth; 
+      this.canvas.height = this.canvas.clientHeight;
+    }
+  }
+  delete this.invalidPlanBounds;
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.isScrolled = function() {
+  return this.scrollPane !== undefined;
+}
 
 /**
  * Adds mouse listeners to this component that calls back <code>controller</code> methods.
@@ -1131,8 +1057,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             var mouseDeltaY = ev.canvasY - plan.convertYModelToPixel(mouseY);
             plan.moveView(-plan.convertPixelToLength(mouseDeltaX), -plan.convertPixelToLength(mouseDeltaY));
           }
-        }
-        else {
+        } else {
           plan.moveView(ev.shiftKey ? plan.convertPixelToLength(ev.wheelRotation) : 0, ev.shiftKey ? 0 : plan.convertPixelToLength(ev.wheelRotation));
         }
       },
@@ -1166,8 +1091,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
             }, PlanComponent.LONG_TOUCH_DELAY);
             controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
-          }
-          else if (ev.targetTouches.length === 2) {
+          } else if (ev.targetTouches.length === 2) {
             if (controller.isModificationState()) {
               controller.escape();
             } 
@@ -1206,8 +1130,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                   || controller.getMode() !== PlanController.Mode.SELECTION
                   || selection_1.length > 0 && selection_1.length === controller.home.getSelectedItems().length && controller.home.getSelectedItems().every(function(value, index) { return value === selection_1[index]; })) {
                 mouseListener.initialPointerLocation = null;
-              }
-              else {
+              } else {
                 controller.selectItems(selection_1);
                 controller.setState(previousState);
                 mouseListener.panningPreviousMode = controller.getMode();
@@ -1227,8 +1150,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               }, PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING);
             }
 
-          }
-          else if (ev.targetTouches.length == 2) {
+          } else if (ev.targetTouches.length == 2) {
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             if (mouseListener.distanceLastPinch == null) {
               console.error("state error in pinching", mouseListener);
@@ -1304,8 +1226,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                     controller.pressMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                     controller.releaseMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
                     controller.pressMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 2, false, false, false, false);
-                  }
-                  else {
+                  } else {
                     controller.pressMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]), 1, false, false, false, false);
                   }
                 }
@@ -1330,7 +1251,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         return !(ev.canvasX < 0 || ev.canvasX >= plan.canvas.clientWidth
             || ev.canvasY < 0 || ev.canvasY >= plan.canvas.clientHeight);
       }
-  };
+    };
   //  if (window.PointerEvent) {
   //    // Multi touch support for IE and Edge
   //    canvas3D.getCanvas().addEventListener("pointerdown", userActionsListener.pointerPressed);
@@ -1356,7 +1277,121 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
   window.addEventListener("mousemove", mouseListener.mouseMoved);
   this.canvas.addEventListener("mousewheel", mouseListener.mouseWheelMoved);
   this.mouseListener = mouseListener;
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.handleMouseEvent = function(ev, type) {
+  this.canvasX = undefined;
+  this.canvasY = undefined;
+  if (ev.canvasX === undefined && ev.clientX !== undefined) {
+    var rect = this.canvas.getBoundingClientRect();
+    ev.canvasX = ev.clientX - rect.left;
+    ev.canvasY = ev.clientY - rect.top;
+  }
+  if (type.indexOf("touch") === 0) {
+    // Force a different margin for touch events
+    PlanController.INDICATOR_PIXEL_MARGIN = 15;
+    this.pointerType = 1;
+    var touches = ev.targetTouches;
+    if (ev.targetTouches.length == 0) {
+      // touchend case
+      touches = ev.changedTouches;
+    }
+    var rect = this.canvas.getBoundingClientRect();
+    if (touches.length == 1) {
+      ev.canvasX = touches[0].clientX - rect.left;
+      ev.canvasY = touches[0].clientY - rect.top;
+      this.canvasX = ev.canvasX;
+      this.canvasY = ev.canvasY;
+    } else if (touches.length == 2) {
+      ev.canvasX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
+      ev.canvasY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
+      this.canvasX = ev.canvasX;
+      this.canvasY = ev.canvasY;
+    }
+    ev.clickCount = 1;
+  }
+  else {
+    PlanController.INDICATOR_PIXEL_MARGIN = 5;
+    this.pointerType = 0;
+  }
+  if (ev.clickCount === undefined) {
+    if (type == "mouseDoubleClicked") {
+      ev.clickCount = 2;
+    } else if (type == "mousePressed" || type == "mouseReleased") {
+      ev.clickCount = 1;
+    } else {
+      ev.clickCount = 0;
+    }
+  }
+  if (type == "mouseWheelMoved") {
+    ev.preventDefault();
+    ev.wheelRotation = (ev.deltaY !== undefined ? ev.deltaX + ev.deltaY : -ev.wheelDelta) / 4;
+  }
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.startLongTouchAnimation = function(controller, x, y) {
+  this.touchOverlay.style.visibility = "visible";
+  if (controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
+    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
+  } else {
+    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif'>2</span>";
+  }
+  this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
+  this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+  if (this.tooltip.style.visibility == "visible") {
+    this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
+  }
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+    this.touchOverlay.children.item(i).classList.add("animated");
+  }
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.stopLongTouchAnimation = function(x, y) {
+  this.touchOverlay.style.visibility = "hidden";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("animated");
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
+  if (indicator == "default" || indicator == "selection") {
+    this.touchOverlay.style.visibility = "hidden";
+  } else {
+    this.touchOverlay.style.visibility = "visible";
+    document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="lib/resources/cursors/' + indicator + '32x32.png"/>';
+    this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
+    this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+    for (var i = 0; i < this.touchOverlay.children.length; i++) {
+      this.touchOverlay.children.item(i).classList.remove("animated");
+      this.touchOverlay.children.item(i).classList.add("indicator");
+    }
+  }
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.stopIndicatorAnimation = function() {
+  this.touchOverlay.style.visibility = "hidden";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("animated");
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+}
 
 /**
  * Adds AWT focus listener to this component that calls back <code>controller</code>
@@ -1365,12 +1400,10 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
  * @private
  */
 PlanComponent.prototype.addFocusListener = function(controller) {
-  // TODO?
-  // this.addFocusListener(new PlanComponent.PlanComponent$15(this, controller));
-  // if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
-  //   this.addPropertyChangeListener("Frame.active", new PlanComponent.PlanComponent$16(this));
-  // }
-};
+  this.container.addEventListener("focusout", function() {
+      controller.escape();
+    });
+}
 
 /**
  * Adds a listener to the controller to follow changes in base plan modification state.
@@ -1399,7 +1432,7 @@ PlanComponent.prototype.addControllerListener = function(controller) {
           plan.repaint();
         }
       });
-};
+}
 
 /**
  * Installs default keys bound to actions.
@@ -1529,7 +1562,7 @@ PlanComponent.prototype.installDefaultKeyboardActions = function() {
   this.container.addEventListener("keyup", function(ev) { 
       return plan.callAction(ev, "keyup"); 
     }, true);
-};
+}
 
 /**
  * Runs the action bound to the key event in parameter.
@@ -1547,7 +1580,7 @@ PlanComponent.prototype.callAction = function(ev, keyType) {
       ev.stopPropagation();
     }
   }
-};
+}
 
 /**
  * Installs keys bound to actions during edition.
@@ -1582,7 +1615,7 @@ PlanComponent.prototype.installEditionKeyboardActions = function() {
       "shift released CONTROL": "DEACTIVATE_DUPLICATION"
     });
   }
-};
+}
 
 /**
  * Creates actions that calls back <code>controller</code> methods.
@@ -1591,6 +1624,7 @@ PlanComponent.prototype.installEditionKeyboardActions = function() {
  */
 PlanComponent.prototype.createActions = function(controller) {
   var plan = this;
+  
   function MoveSelectionAction(dx, dy) {
     this.dx = dx;
     this.dy = dy;
@@ -1598,30 +1632,35 @@ PlanComponent.prototype.createActions = function(controller) {
   MoveSelectionAction.prototype.actionPerformed = function(ev) {
     controller.moveSelection(this.dx / plan.getScale(), this.dy / plan.getScale());
   };
+    
   function ToggleMagnetismAction(toggle) {
     this.toggle = toggle;
   }
   ToggleMagnetismAction.prototype.actionPerformed = function(ev) {
     controller.toggleMagnetism(this.toggle);
   };
+    
   function SetAlignmentActivatedAction(alignmentActivated) {
     this.alignmentActivated = alignmentActivated;
   }
   SetAlignmentActivatedAction.prototype.actionPerformed = function(ev) {
     controller.setAlignmentActivated(this.alignmentActivated);
   };
+    
   function SetDuplicationActivatedAction(duplicationActivated) {
     this.duplicationActivated = duplicationActivated;
   }
   SetDuplicationActivatedAction.prototype.actionPerformed = function(ev) {
     controller.setDuplicationActivated(this.duplicationActivated);
   };
+    
   function SetEditionActivatedAction(editionActivated) {
     this.editionActivated = editionActivated;
   }
   SetEditionActivatedAction.prototype.actionPerformed = function(ev) {
     controller.setEditionActivated(this.editionActivated);
   };
+    
   this.actionMap = {
       "DELETE_SELECTION": { 
           actionPerformed: function() { 
@@ -1650,7 +1689,7 @@ PlanComponent.prototype.createActions = function(controller) {
       "ACTIVATE_EDITIION": new SetEditionActivatedAction(true),
       "DEACTIVATE_EDITIION": new SetEditionActivatedAction(false)
   };
-};
+}
 
 PlanComponent.createCustomCursor = function(name, defaultCursor) {
    if (OperatingSystem.isInternetExplorer()) {
@@ -1669,7 +1708,28 @@ PlanComponent.prototype.getPreferredSize = function() {
   var planBounds = this.getPlanBounds();
   return {width:  this.convertLengthToPixel(planBounds.getWidth() + PlanComponent.MARGIN * 2) + insets.left + insets.right,
           height: this.convertLengthToPixel(planBounds.getHeight() + PlanComponent.MARGIN * 2) + insets.top + insets.bottom};
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.getInsets = function() {
+  return { top: 0, bottom: 0, left: 0, right: 0 };
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.getWidth = function() {
+  return this.view.clientWidth;
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.getHeight = function() {
+  return this.view.clientHeight;
+}
 
 /**
  * Returns the bounds of the plan displayed by this component.
@@ -1712,7 +1772,7 @@ PlanComponent.prototype.getPlanBounds = function() {
     this.planBoundsCacheValid = true;
   }
   return this.planBoundsCache;
-};
+}
 
 /**
  * Returns the collection of walls, furniture, rooms and dimension lines of the home
@@ -1721,7 +1781,7 @@ PlanComponent.prototype.getPlanBounds = function() {
  */
 PlanComponent.prototype.getPaintedItems = function() {
   return this.home.getSelectableViewableItems();
-};
+}
 
 /**
  * Returns the bounds of the given collection of <code>items</code>.
@@ -1737,13 +1797,12 @@ PlanComponent.prototype.getItemsBounds = function(g, items) {
     var itemBounds = this.getItemBounds(g, item);
     if (itemsBounds == null) {
       itemsBounds = itemBounds;
-    }
-    else {
+    } else {
       itemsBounds.add(itemBounds);
     }
   }
   return itemsBounds;
-};
+}
 
 /**
  * Returns the bounds of the given <code>item</code>.
@@ -1863,7 +1922,7 @@ PlanComponent.prototype.getItemBounds = function(g, item) {
     return PlanComponent.COMPASS.createTransformedShape(transform).getBounds2D();
   }
   return itemBounds;
-};
+}
 
 /**
  * Add <code>text</code> bounds to the given rectangle <code>bounds</code>.
@@ -1883,7 +1942,7 @@ PlanComponent.prototype.addTextBounds = function(selectableClass, text, style, x
   this.getTextBounds(text, style, x, y, angle).forEach(function(points) { 
       return bounds.add(points[0], points[1]); 
     });
-};
+}
 
 /**
  * Returns the coordinates of the bounding rectangle of the <code>text</code> centered at
@@ -1897,7 +1956,6 @@ PlanComponent.prototype.addTextBounds = function(selectableClass, text, style, x
  */
 PlanComponent.prototype.getTextBounds = function(text, style, x, y, angle) {
   var fontMetrics = this.getFontMetrics(this.getFont(), style);
-  //let fontMetrics : FontMetrics = this.getFontMetrics(this.getFont(), style);
   var textBounds = null;
   var lines = text.split("\n");
   var g = this.getGraphics();
@@ -1947,12 +2005,12 @@ PlanComponent.prototype.getTextBounds = function(text, style, x, y, angle) {
     }
     return textPoints.slice(0);
   }
-};
+}
 
 /**
- * Returns the AWT font matching a given text style.
- * @param {string} defaultFont
- * @param {TextStyle} textStyle
+ * Returns the HTML font matching a given text style.
+ * @param {string} [defaultFont]
+ * @param {TextStyle} [textStyle]
  * @return {string}
  */
 PlanComponent.prototype.getFont = function(defaultFont, textStyle) {
@@ -1982,13 +2040,30 @@ PlanComponent.prototype.getFont = function(defaultFont, textStyle) {
       if (fontName == null) {
         fontName = new Font(this.font).family;
       }
-      defaultFont = new Font({ style: fontStyle, weight: fontWeight, size: "10px", family: fontName }).toString();
+      defaultFont = new Font({ 
+          style: fontStyle, 
+          weight: fontWeight, 
+          size: "10px", 
+          family: fontName }).toString();
     }
-    font = new Font({ style: fontStyle, weight: fontWeight, size: textStyle.getFontSize() + "px", family: new Font(defaultFont).family }).toString();
+    font = new Font({ 
+        style: fontStyle, 
+        weight: fontWeight, 
+        size: textStyle.getFontSize() + "px", 
+        family: new Font(defaultFont).family }).toString();
     CoreTools.putToMap(this.fonts, textStyle, font);
   }
   return font;
-};
+}
+
+/** 
+ * Sets the default font used to paint text in this component.
+ * @param {string} font a HTML font
+ * @private 
+ */
+PlanComponent.prototype.setFont = function(font) {
+  this.font = font;
+}
 
 /**
  * Returns the font metrics matching a given text style.
@@ -2009,7 +2084,7 @@ PlanComponent.prototype.getFontMetrics = function(defaultFont, textStyle) {
     CoreTools.putToMap(this.fontsMetrics, textStyle, fontMetrics);
   }
   return fontMetrics;
-};
+}
 
 /**
  * Sets whether plan's background should be painted or not.
@@ -2021,7 +2096,7 @@ PlanComponent.prototype.setBackgroundPainted = function(backgroundPainted) {
     this.backgroundPainted = backgroundPainted;
     this.repaint();
   }
-};
+}
 
 /**
  * Returns <code>true</code> if plan's background should be painted.
@@ -2029,7 +2104,7 @@ PlanComponent.prototype.setBackgroundPainted = function(backgroundPainted) {
  */
 PlanComponent.prototype.isBackgroundPainted = function() {
   return this.backgroundPainted;
-};
+}
 
 /**
  * Sets whether the outline of home selected items should be painted or not.
@@ -2040,7 +2115,7 @@ PlanComponent.prototype.setSelectedItemsOutlinePainted = function(selectedItemsO
     this.selectedItemsOutlinePainted = selectedItemsOutlinePainted;
     this.repaint();
   }
-};
+}
 
 /**
  * Returns <code>true</code> if the outline of home selected items should be painted.
@@ -2048,7 +2123,34 @@ PlanComponent.prototype.setSelectedItemsOutlinePainted = function(selectedItemsO
  */
 PlanComponent.prototype.isSelectedItemsOutlinePainted = function() {
   return this.selectedItemsOutlinePainted;
-};
+}
+
+/**
+ * Repaints this component elements when possible.
+ */
+PlanComponent.prototype.repaint = function() {
+  var plan = this;
+  if (!this.canvasNeededRepaint) {
+    this.canvasNeededRepaint = true;
+    requestAnimationFrame(function() {
+        if (plan.canvasNeededRepaint) {
+          plan.canvasNeededRepaint = false;
+          plan.paintComponent(plan.getGraphics());
+        }
+      });
+  }
+}
+
+/**
+ * Returns a <code>Graphics2D</code> object.
+ * @return {Graphics2D}
+ */
+PlanComponent.prototype.getGraphics = function() {
+  if (!this.graphics) {
+    this.graphics = new Graphics2D(this.canvas);
+  }
+  return this.graphics;
+}
 
 /**
  * Paints this component.
@@ -2078,7 +2180,7 @@ PlanComponent.prototype.paintComponent = function(g2D) {
   }
   this.paintContent(g2D, this.getScale(), PlanComponent.PaintMode.PAINT);
   g2D.dispose();
-};
+}
 
 /**
  * Returns the print preferred scale of the plan drawn in this component
@@ -2089,7 +2191,7 @@ PlanComponent.prototype.paintComponent = function(g2D) {
  */
 PlanComponent.prototype.getPrintPreferredScale = function(g, pageFormat) {
   return 1;
-};
+}
 
 /**
  * Returns the stroke width used to paint an item of the given class.
@@ -2102,15 +2204,14 @@ PlanComponent.prototype.getStrokeWidth = function(itemClass, paintMode) {
   var strokeWidth;
   if (Wall === itemClass || Room === itemClass) {
     strokeWidth = PlanComponent.WALL_STROKE_WIDTH;
-  }
-  else {
+  } else {
     strokeWidth = PlanComponent.BORDER_STROKE_WIDTH;
   }
   if (paintMode === PlanComponent.PaintMode.PRINT) {
     strokeWidth *= 0.5;
   }
   return strokeWidth;
-};
+}
 
 /**
  * Returns an image of selected items in plan for transfer purpose.
@@ -2120,11 +2221,10 @@ PlanComponent.prototype.getStrokeWidth = function(itemClass, paintMode) {
 PlanComponent.prototype.createTransferData = function(dataType) {
   if (dataType === TransferableView.DataType.PLAN_IMAGE) {
     return this.getClipboardImage();
-  }
-  else {
+  } else {
     return null;
   }
-};
+}
 
 /**
  * Returns an image of the selected items displayed by this component
@@ -2132,8 +2232,8 @@ PlanComponent.prototype.createTransferData = function(dataType) {
  * @return {HTMLImageElement}
  */
 PlanComponent.prototype.getClipboardImage = function() {
-  return null;
-};
+  throw new UnsupportedOperationException("Not implemented");
+}
 
 /**
  * Returns <code>true</code> if the given format is SVG.
@@ -2142,7 +2242,7 @@ PlanComponent.prototype.getClipboardImage = function() {
  */
 PlanComponent.prototype.isFormatTypeSupported = function(formatType) {
   return false;
-};
+}
 
 /**
  * Writes this plan in the given output stream at SVG (Scalable Vector Graphics) format if this is the requested format.
@@ -2152,7 +2252,7 @@ PlanComponent.prototype.isFormatTypeSupported = function(formatType) {
  */
 PlanComponent.prototype.exportData = function(out, formatType, settings) {
   throw new UnsupportedOperationException("Unsupported format " + formatType);
-};
+}
 
 /**
  * Sets rendering hints used to paint plan.
@@ -2161,7 +2261,7 @@ PlanComponent.prototype.exportData = function(out, formatType, settings) {
  */
 PlanComponent.prototype.setRenderingHints = function(g2D) {
   // TODO
-};
+}
 
 /**
  * Fills the background.
@@ -2174,7 +2274,21 @@ PlanComponent.prototype.paintBackground = function(g2D, backgroundColor) {
     g2D.setColor(backgroundColor);
     g2D.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.isOpaque = function() {
+  return this.opaque === true;
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.setOpaque = function(opaque) {
+  this.opaque = opaque;
+}
 
 /**
  * Paints background image and returns <code>true</code> if an image is painted.
@@ -2217,7 +2331,7 @@ PlanComponent.prototype.paintBackgroundImage = function(g2D, paintMode) {
     return true;
   }
   return false;
-};
+}
 
 /**
  * Returns the foreground color used to draw content.
@@ -2231,7 +2345,17 @@ PlanComponent.prototype.getForegroundColor = function(mode) {
   else {
     return "#000000";
   }
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.getForeground = function() {
+  if (this.foreground == null) {
+    this.foreground = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).color);
+  }
+  return this.foreground;
+}
 
 /**
  * Returns the background color used to draw content.
@@ -2245,7 +2369,17 @@ PlanComponent.prototype.getBackgroundColor = function(mode) {
   else {
     return "#FFFFFF";
   }
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.getBackground = function() {
+  if (this.background == null) {
+    this.background = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).backgroundColor);
+  }
+  return this.background;
+}
 
 /**
  * Returns the image contained in <code>imageContent</code> or an empty image if reading failed.
@@ -2270,7 +2404,7 @@ PlanComponent.prototype.readBackgroundImage = function(imageContent) {
     });
   }
   return this.backgroundImageCache;
-};
+}
 
 /**
  * Paints walls and rooms of lower levels or upper levels to help the user draw in the selected level.
@@ -2307,8 +2441,7 @@ PlanComponent.prototype.paintOtherLevels = function(g2D, planScale, backgroundCo
           } while (++nextElevationLevelIndex < levels.length 
               && (nextLevel = levels[nextElevationLevelIndex]).getElevation() === nextElevation);
         }
-      }
-      else {
+      } else {
         var previousElevationLevelIndex = selectedLevelIndex;
         while (--previousElevationLevelIndex >= 0 
             && levels[previousElevationLevelIndex].getElevation() === selectedLevel.getElevation()) {
@@ -2383,7 +2516,7 @@ PlanComponent.prototype.paintOtherLevels = function(g2D, planScale, backgroundCo
       g2D.setAlpha(oldComposite);
     }
   }
-};
+}
 
 /**
  * Sets the transparency composite to the given percentage and returns the old composite.
@@ -2396,7 +2529,7 @@ PlanComponent.prototype.setTransparency = function(g2D, alpha) {
   var oldAlpha = g2D.getAlpha();
   g2D.setAlpha(alpha);
   return oldAlpha;
-};
+}
 
 /**
  * Paints background grid lines.
@@ -2413,7 +2546,7 @@ PlanComponent.prototype.paintGrid = function(g2D, gridScale) {
   var xMax = this.convertXPixelToModel(Math.max(this.getWidth(), this.canvas.clientWidth));
   var yMax = this.convertYPixelToModel(Math.max(this.getHeight(), this.canvas.clientHeight));
   this.paintGridLines(g2D, gridScale, xMin, xMax, yMin, yMax, gridSize, mainGridSize);
-};
+}
 
 /**
  * Paints background grid lines from <code>xMin</code> to <code>xMax</code>
@@ -2447,7 +2580,22 @@ PlanComponent.prototype.paintGridLines = function(g2D, gridScale, xMin, xMax, yM
       g2D.draw(new java.awt.geom.Line2D.Double(xMin, y, xMax, y));
     }
   }
-};
+}
+
+/**
+ * Returns the color used to paint the grid. 
+ * @private 
+ */
+PlanComponent.prototype.getGridColor = function() {
+  if (this.gridColor == null) {
+    // compute the gray color in between background and foreground colors
+    var background = ColorTools.styleToInt(window.getComputedStyle(this.canvas).backgroundColor);
+    var foreground = ColorTools.styleToInt(window.getComputedStyle(this.canvas).color);
+    var gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
+    this.gridColor = ColorTools.intToHexString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
+  }
+  return this.gridColor;
+}
 
 /**
  * Returns the space between main lines grid.
@@ -2472,7 +2620,7 @@ PlanComponent.prototype.getMainGridSize = function(gridScale) {
     mainGridSize = mainGridSizes[i];
   }
   return mainGridSize;
-};
+}
 
 /**
  * Returns the space between lines grid.
@@ -2497,7 +2645,7 @@ PlanComponent.prototype.getGridSize = function(gridScale) {
     gridSize = gridSizes[i];
   }
   return gridSize;
-};
+}
 
 /**
  * Paints plan items.
@@ -2586,7 +2734,7 @@ PlanComponent.prototype.paintContent = function(g2D, planScale, paintMode) {
     
     this.paintRectangleFeedback(g2D, selectionColor, planScale);
   }
-};
+}
 
 /**
  * Paints home items at the given scale, and with background and foreground colors.
@@ -2657,7 +2805,7 @@ PlanComponent.prototype.paintHomeItems = function(g2D, planScale, backgroundColo
     this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
         planScale, foregroundColor);
   }
-};
+}
 
 /**
  * Returns the color used to draw selection outlines.
@@ -2665,7 +2813,7 @@ PlanComponent.prototype.paintHomeItems = function(g2D, planScale, backgroundColo
  */
 PlanComponent.prototype.getSelectionColor = function() {
   return PlanComponent.getDefaultSelectionColor(this);
-};
+}
 
 /**
  * Returns the default color used to draw selection outlines.
@@ -2692,7 +2840,7 @@ PlanComponent.getDefaultSelectionColor = function(planComponent) {
     }
   }
   return PlanComponent.DEFAULT_SELECTION_COLOR;
-};
+}
 
 /**
  * Returns the color used to draw furniture outline of
@@ -2701,7 +2849,7 @@ PlanComponent.getDefaultSelectionColor = function(planComponent) {
  */
 PlanComponent.prototype.getFurnitureOutlineColor = function() {
   return ColorTools.toRGBAStyle(this.getForeground(), 0.33);
-};
+}
 
 /**
  * Paints rooms.
@@ -2820,7 +2968,7 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
       g2D.draw(roomShape);
     }
   }
-};
+}
 
 /**
  * Fills the given <code>shape</code>.
@@ -2831,7 +2979,7 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
  */
 PlanComponent.prototype.fillShape = function(g2D, shape, paintMode) {
   g2D.fill(shape);
-};
+}
 
 /**
  * Returns <code>true</code> if <code>TextureManager</code> can be used to manage textures.
@@ -2840,7 +2988,7 @@ PlanComponent.prototype.fillShape = function(g2D, shape, paintMode) {
  */
 PlanComponent.isTextureManagerAvailable = function() {
   return true;
-};
+}
 
 /**
  * Paints rooms name and area.
@@ -2884,7 +3032,7 @@ PlanComponent.prototype.paintRoomsNameAndArea = function(g2D, selectedItems, pla
       }
     });
   g2D.setFont(previousFont);
-};
+}
 
 /**
  * Paints the given <code>text</code> centered at the point (<code>x</code>,<code>y</code>).
@@ -2950,7 +3098,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
     g2D.translate(-translationX, -fontMetrics.getHeight());
   }
   g2D.setTransform(previousTransform);
-};
+}
 
 /**
  * Paints the outline of rooms among <code>items</code> and indicators if
@@ -3008,7 +3156,7 @@ PlanComponent.prototype.paintRoomsOutline = function(g2D, items, selectionOutlin
       this.paintRoomAreaOffsetIndicator(g2D, selectedRoom, indicatorPaint, planScale);
     }
   }
-};
+}
 
 /**
  * Paints resize indicators on selectable <code>item</code>.
@@ -3068,7 +3216,7 @@ PlanComponent.prototype.paintPointsResizeIndicators = function(g2D, item, indica
       g2D.setTransform(previousTransform);
     }
   }
-};
+}
 
 /**
  * Returns the shape of the given indicator type.
@@ -3127,7 +3275,7 @@ PlanComponent.prototype.getIndicator = function(item, indicatorType) {
     }
   }
   return null;
-};
+}
 
 /**
  * Paints name indicator on <code>room</code>.
@@ -3146,7 +3294,7 @@ PlanComponent.prototype.paintRoomNameOffsetIndicator = function(g2D, room, indic
     this.paintTextIndicators(g2D, room, this.getLineCount(room.getName()), 
         room.getNameStyle(), xName, yName, room.getNameAngle(), indicatorPaint, planScale);
   }
-};
+}
 
 /**
  * Paints resize indicator on <code>room</code>.
@@ -3165,7 +3313,7 @@ PlanComponent.prototype.paintRoomAreaOffsetIndicator = function(g2D, room, indic
     this.paintTextIndicators(g2D, room, 1, room.getAreaStyle(), xArea, yArea, room.getAreaAngle(), 
         indicatorPaint, planScale);
   }
-};
+}
 
 /**
  * Paints text location and angle indicators at the given coordinates.
@@ -3207,7 +3355,7 @@ PlanComponent.prototype.paintTextIndicators = function(g2D, selectableObject, li
     g2D.draw(this.getIndicator(null, PlanComponent.IndicatorType.ROTATE_TEXT));
     g2D.setTransform(previousTransform);
   }
-};
+}
 
 /**
  * Returns the number of lines in the given <code>text</code>.
@@ -3223,7 +3371,7 @@ PlanComponent.prototype.getLineCount = function(text) {
     }
   }
   return lineCount;
-};
+}
 
 /**
  * Paints walls.
@@ -3254,20 +3402,19 @@ PlanComponent.prototype.paintWalls = function(g2D, selectedItems, planScale, bac
       && this.wallsDoorsOrWindowsModification) {
     oldComposite = this.setTransparency(g2D, 0.5);
   }
-  {
-    var areaEntries = wallAreas.entries == null ? [] : wallAreas.entries;
-    for (var i = 0; i < areaEntries.length; i++) {
-      var areaEntry = areaEntries[i];
-      var wallPattern = areaEntry.getKey() [0].getPattern();
-      this.fillAndDrawWallsArea(g2D, areaEntry.getValue(), planScale, 
-          this.getWallPaint(g2D, wallPaintScale, backgroundColor, foregroundColor, 
-              wallPattern != null ? wallPattern : this.preferences.getWallPattern()), foregroundColor, paintMode);
-    }
+  
+  var areaEntries = wallAreas.entries == null ? [] : wallAreas.entries; // Parse entrySet
+  for (var i = 0; i < areaEntries.length; i++) {
+    var areaEntry = areaEntries[i];
+    var wallPattern = areaEntry.getKey() [0].getPattern();
+    this.fillAndDrawWallsArea(g2D, areaEntry.getValue(), planScale, 
+        this.getWallPaint(g2D, wallPaintScale, backgroundColor, foregroundColor, 
+            wallPattern != null ? wallPattern : this.preferences.getWallPattern()), foregroundColor, paintMode);
   }
   if (oldComposite != null) {
     g2D.setAlpha(oldComposite);
   }
-};
+}
 
 /**
  * Fills and paints the given area.
@@ -3290,7 +3437,7 @@ PlanComponent.prototype.fillAndDrawWallsArea = function(g2D, area, planScale, fi
   g2D.setPaint(drawPaint);
   g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, paintMode) / planScale));
   g2D.draw(area);
-};
+}
 
 /**
  * Paints the outline of walls among <code>items</code> and a resize indicator if
@@ -3392,7 +3539,7 @@ PlanComponent.prototype.paintWallsOutline = function(g2D, items, selectionOutlin
       this.paintWallResizeIndicators(g2D, wall, indicatorPaint, planScale);
     }
   }
-};
+}
 
 /**
  * Returns <code>true</code> if the given item can be viewed in the plan at the selected level.
@@ -3404,7 +3551,7 @@ PlanComponent.prototype.isViewableAtSelectedLevel = function(item) {
   return level == null 
       || (level.isViewable() 
           && item.isAtLevel(this.home.getSelectedLevel()));
-};
+}
 
 /**
  * Paints resize indicators on <code>wall</code>.
@@ -3464,7 +3611,7 @@ PlanComponent.prototype.paintWallResizeIndicators = function(g2D, wall, indicato
     g2D.draw(this.getIndicator(wall, PlanComponent.IndicatorType.RESIZE));
     g2D.setTransform(previousTransform);
   }
-};
+}
 
 /**
  * Returns the walls that belong to the selected level in home.
@@ -3481,7 +3628,7 @@ PlanComponent.prototype.getDrawableWallsInSelectedLevel = function(walls) {
     }
   }
   return wallsInSelectedLevel;
-};
+}
 
 /**
  * Returns areas matching the union of <code>walls</code> shapes sorted by pattern.
@@ -3513,7 +3660,7 @@ PlanComponent.prototype.getWallAreas = function(walls) {
     if (samePattern) {
       CoreTools.putToMap(wallAreas, walls, this.getItemsArea(walls));
     } else {
-      var sortedWalls = {};
+      var sortedWalls = {}; // LinkedHashMap
       walls.forEach(function(wall) {
           var wallPattern = wall.getPattern();
           if (wallPattern == null) {
@@ -3535,7 +3682,7 @@ PlanComponent.prototype.getWallAreas = function(walls) {
     }
     return wallAreas;
   }
-};
+}
 
 /**
  * Returns an area matching the union of all <code>items</code> shapes.
@@ -3549,14 +3696,14 @@ PlanComponent.prototype.getItemsArea = function(items) {
       itemsArea.add(new java.awt.geom.Area(ShapeTools.getShape(item.getPoints(), true, null))); 
     });
   return itemsArea;
-};
+}
 
 /**
  * Modifies the pattern image to substitute the transparent color with backgroundColor and the black color with the foregroundColor.
  * @param {HTMLImageElement} image the orginal pattern image (black over transparent background)
  * @param {string} foregroundColor the foreground color
  * @param {string} backgroundColor the background color
- * @returns {HTMLImageElement} the final pattern image with the substituted colors
+ * @return {HTMLImageElement} the final pattern image with the substituted colors
  * @private
  */
 PlanComponent.prototype.makePatternImage = function(image, foregroundColor, backgroundColor) {
@@ -3578,14 +3725,12 @@ PlanComponent.prototype.makePatternImage = function(image, foregroundColor, back
       updatedImageData.data[i] = (bgColor & 0xFF0000) >> 16;
       updatedImageData.data[i + 1] = (bgColor & 0xFF00) >> 8;
       updatedImageData.data[i + 2] = bgColor & 0xFF;
-    }
-    else if (imageData[i] === 0 && imageData[i + 1] === 0 && imageData[i + 2] === 0) {
+    } else if (imageData[i] === 0 && imageData[i + 1] === 0 && imageData[i + 2] === 0) {
       // Change black pixels to foreground color
       updatedImageData.data[i] = (fgColor & 0xFF0000) >> 16;
       updatedImageData.data[i + 1] = (fgColor & 0xFF00) >> 8;
       updatedImageData.data[i + 2] = fgColor & 0xFF;
-    }
-    else {
+    } else {
       // Change color mixing foreground and background color 
       var percent = 1 - (imageData[i] + imageData[i + 1] + imageData[i + 2]) / 3. / 0xFF;
       updatedImageData.data[i] = Math.min(0xFF, ((fgColor & 0xFF0000) >> 16) * percent + ((bgColor & 0xFF0000) >> 16) * (1 - percent));
@@ -3596,7 +3741,7 @@ PlanComponent.prototype.makePatternImage = function(image, foregroundColor, back
   context.putImageData(updatedImageData, 0, 0);
   image.src = canvas.toDataURL();
   return image;
-};
+}
 
 /**
  * Returns the <code>Paint</code> object used to fill walls.
@@ -3630,7 +3775,7 @@ PlanComponent.prototype.getWallPaint = function(g2D, planScale, backgroundColor,
     this.wallsPatternForegroundCache = foregroundColor;
   }
   return g2D.createPattern(patternImage);
-};
+}
 
 /**
  * Paints home furniture.
@@ -3723,7 +3868,7 @@ PlanComponent.prototype.paintFurniture = function(g2D, furniture, selectedItems,
       }
     }
   }
-};
+}
 
 /**
  * Returns the shape of the wall part of a door or a window.
@@ -3739,7 +3884,7 @@ PlanComponent.prototype.getDoorOrWindowWallPartShape = function(doorOrWindow) {
   var doorOrWindowWallPartShape = new java.awt.geom.GeneralPath();
   doorOrWindowWallPartShape.append(it, false);
   return doorOrWindowWallPartShape;
-};
+}
 
 /**
  * Returns the rectangle of a door or a window.
@@ -3773,7 +3918,7 @@ PlanComponent.prototype.getDoorOrWindowRectangle = function(doorOrWindow, onlyWa
       x, doorOrWindow.getY() - doorOrWindow.getDepth() / 2 + wallDistance, 
       wallWidth, wallThickness);
   return doorOrWindowWallPartRectangle;
-};
+}
 
 /**
  * Paints the shape of a door or a window in the thickness of the wall it intersects.
@@ -3838,7 +3983,7 @@ PlanComponent.prototype.paintDoorOrWindowWallThicknessArea = function(g2D, doorO
     g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, paintMode) / planScale));
     g2D.draw(doorOrWindowWallArea);
   }
-};
+}
 
 /**
  * Paints the sashes of a door or a window.
@@ -3857,7 +4002,7 @@ PlanComponent.prototype.paintDoorOrWindowSashes = function(g2D, doorOrWindow, pl
   for (var i = 0; i < sashes.length; i++) {
     g2D.draw(this.getDoorOrWindowSashShape(doorOrWindow, sashes[i]));
   }
-};
+}
 
 /**
  * Returns the shape of a sash of a door or a window.
@@ -3887,7 +4032,7 @@ PlanComponent.prototype.getDoorOrWindowSashShape = function(doorOrWindow, sash) 
   var sashShape = new java.awt.geom.GeneralPath();
   sashShape.append(it, false);
   return sashShape;
-};
+}
 
 /**
  * Paints home furniture visible name.
@@ -3929,7 +4074,7 @@ PlanComponent.prototype.paintFurnitureName = function(g2D, furniture, selectedIt
     }
   }
   g2D.setFont(previousFont);
-};
+}
 
 /**
  * Paints the outline of furniture among <code>items</code> and indicators if
@@ -4010,7 +4155,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
         plan.paintPieceOFFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
       }
     });
-};
+}
 
 /**
  * Returns <code>piece</code> if it belongs to home furniture or the group to which <code>piece</code> belongs.
@@ -4030,7 +4175,7 @@ PlanComponent.prototype.getPieceOfFurnitureInHomeFurniture = function(piece, hom
     }
   }
   return piece;
-};
+}
 
 /**
  * Paints <code>icon</code> with <code>g2D</code>.
@@ -4093,7 +4238,7 @@ PlanComponent.prototype.paintPieceOfFurnitureIcon = function(g2D, piece, icon, p
   // Revert g2D transformation to previous value
   g2D.setTransform(previousTransform);
   // g2D.setClip(previousClip);
-};
+}
 
 /**
  * Paints <code>piece</code> top icon with <code>g2D</code>.
@@ -4128,7 +4273,7 @@ PlanComponent.prototype.paintPieceOfFurnitureTop = function(g2D, piece, pieceSha
       }
       CoreTools.putToMap(this.furnitureTopViewIconsCache, topViewIconKey, icon);
     } else {
-      for (var i = 0; i < this.furnitureTopViewIconsCache.entries.length; i++) {
+      for (var i = 0; i < this.furnitureTopViewIconsCache.entries.length; i++) { // Parse keySet
         var key = this.furnitureTopViewIconsCache.entries[i].key;
         if (key.equals(topViewIconKey)) {
           topViewIconKey = key;
@@ -4159,7 +4304,7 @@ PlanComponent.prototype.paintPieceOfFurnitureTop = function(g2D, piece, pieceSha
     icon.paintIcon(g2D, (-icon.getIconWidth() / 2 | 0), (-icon.getIconHeight() / 2 | 0));
     g2D.setTransform(previousTransform);
   }
-};
+}
 
 /**
  * Paints rotation, elevation, height and resize indicators on <code>piece</code>.
@@ -4248,7 +4393,7 @@ PlanComponent.prototype.paintPieceOFFurnitureIndicators = function(g2D, piece, i
       this.paintTextIndicators(g2D, piece, this.getLineCount(piece.getName()), piece.getNameStyle(), xName, yName, piece.getNameAngle(), indicatorPaint, planScale);
     }
   }
-};
+}
 
 /**
  * Paints polylines.
@@ -4321,7 +4466,7 @@ PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems,
       }
     }
   }
-};
+}
 
 /**
  * Paints polyline arrow at the given point and orientation.
@@ -4360,7 +4505,7 @@ PlanComponent.prototype.paintArrow = function(g2D, point, angle, arrowStyle, thi
     }
     g2D.setTransform(oldTransform);
   }
-};
+}
 
 /**
  * Paints dimension lines.
@@ -4455,7 +4600,7 @@ PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, sele
       && indicatorPaint != null) {
     this.paintDimensionLineResizeIndicator(g2D, selectedItems[0], indicatorPaint, planScale);
   }
-};
+}
 
 /**
  * Paints resize indicator on a given dimension line.
@@ -4502,7 +4647,7 @@ PlanComponent.prototype.paintDimensionLineResizeIndicator = function(g2D, dimens
     g2D.draw(resizeIndicator);
     g2D.setTransform(previousTransform);
   }
-};
+}
 
 /**
  * Paints home labels.
@@ -4578,7 +4723,7 @@ PlanComponent.prototype.paintLabels = function(g2D, labels, selectedItems, selec
     }
   }
   g2D.setFont(previousFont);
-};
+}
 
 /**
  * Paints the compass.
@@ -4603,7 +4748,7 @@ PlanComponent.prototype.paintCompass = function(g2D, selectedItems, planScale, f
     g2D.fill(PlanComponent.COMPASS);
     g2D.setTransform(previousTransform);
   }
-};
+}
 
 /**
  * Paints the outline of the compass when it's belongs to <code>items</code>.
@@ -4640,7 +4785,7 @@ PlanComponent.prototype.paintCompassOutline = function(g2D, items, selectionOutl
       this.paintCompassIndicators(g2D, compass, indicatorPaint, planScale);
     }
   }
-};
+}
 
 /**
  * @private
@@ -4667,7 +4812,7 @@ PlanComponent.prototype.paintCompassIndicators = function(g2D, compass, indicato
     g2D.draw(this.getIndicator(compass, PlanComponent.IndicatorType.RESIZE));
     g2D.setTransform(previousTransform);
   }
-};
+}
 
 /**
  * Paints wall location feedback.
@@ -4758,8 +4903,7 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
       if (deltaYToClosestWall > 0) {
         g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, 
             x, y - deltaYToClosestWall - 25 / planScale));
-      }
-      else {
+      } else {
         g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, 
             x, y - deltaYToClosestWall + 25 / planScale));
       }
@@ -4768,7 +4912,7 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
       this.paintPointFeedback(g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke);
     }
   }
-};
+}
 
 /**
  * Returns the items viewed in the plan at the selected level.
@@ -4789,7 +4933,7 @@ PlanComponent.prototype.getViewedItems = function(homeItems, otherLevelItems) {
     }
   }
   return viewedWalls;
-};
+}
 
 /**
  * Paints point feedback.
@@ -4818,7 +4962,7 @@ PlanComponent.prototype.paintPointFeedback = function(g2D, locationFeedback, fee
       locationFeedback.getY(), 
       locationFeedback.getX() + 5.0 / planScale, 
       locationFeedback.getY()));
-};
+}
 
 /**
  * Returns <code>true</code> if <code>wall</code> start or end point
@@ -4832,7 +4976,7 @@ PlanComponent.prototype.paintPointFeedback = function(g2D, locationFeedback, fee
 PlanComponent.prototype.equalsWallPoint = function(x, y, wall) {
   return x === wall.getXStart() && y === wall.getYStart() 
          || x === wall.getXEnd() && y === wall.getYEnd();
-};
+}
 
 /**
  * Paints room location feedback.
@@ -4919,7 +5063,7 @@ PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, 
       this.paintPointFeedback(g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke);
     }
   }
-};
+}
 
 /**
  * Paints dimension line location feedback.
@@ -5048,7 +5192,7 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
       this.paintPointFeedback(g2D, locationFeedback, feedbackPaint, planScale, pointPaint, pointStroke);
     }
   }
-};
+}
 
 /**
  * Returns <code>true</code> if <code>dimensionLine</code> start or end point
@@ -5062,7 +5206,7 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
 PlanComponent.prototype.equalsDimensionLinePoint = function(x, y, dimensionLine) {
   return x === dimensionLine.getXStart() && y === dimensionLine.getYStart() 
          || x === dimensionLine.getXEnd() && y === dimensionLine.getYEnd();
-};
+}
 
 /**
  * Paints an arc centered at <code>center</code> point that goes
@@ -5098,7 +5242,7 @@ PlanComponent.prototype.paintAngleFeedback = function(g2D, center, point1, point
   g2D.draw(new java.awt.geom.Line2D.Double(0, 0, radius * Math.cos(angle1), -radius * Math.sin(angle1)));
   g2D.draw(new java.awt.geom.Line2D.Double(0, 0, radius * Math.cos(angle1 + extent), -radius * Math.sin(angle1 + extent)));
   g2D.setTransform(previousTransform);
-};
+}
 
 /**
  * Paints the observer camera at its current location, if home camera is the observer camera.
@@ -5168,7 +5312,7 @@ PlanComponent.prototype.paintCamera = function(g2D, selectedItems, selectionOutl
       this.paintCameraRotationIndicators(g2D, camera, indicatorPaint, planScale);
     }
   }
-};
+}
 
 /**
  * @private
@@ -5206,7 +5350,7 @@ PlanComponent.prototype.paintCameraRotationIndicators = function(g2D, camera, in
       g2D.setTransform(previousTransform);
     }
   }
-};
+}
 
 /**
  * Paints rectangle feedback.
@@ -5223,7 +5367,7 @@ PlanComponent.prototype.paintRectangleFeedback = function(g2D, selectionColor, p
     g2D.setStroke(new java.awt.BasicStroke(1 / planScale));
     g2D.draw(this.rectangleFeedback);
   }
-};
+}
 
 /**
  * Sets rectangle selection feedback coordinates.
@@ -5236,7 +5380,7 @@ PlanComponent.prototype.setRectangleFeedback = function(x0, y0, x1, y1) {
   this.rectangleFeedback = new java.awt.geom.Rectangle2D.Float(x0, y0, 0, 0);
   this.rectangleFeedback.add(x1, y1);
   this.repaint();
-};
+}
 
 /**
  * Ensures selected items are visible at screen and moves
@@ -5261,7 +5405,28 @@ PlanComponent.prototype.makeSelectionVisible = function() {
         }
       });
   }
-};
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.scrollRectToVisible = function(rectangle) {
+  if (this.isScrolled()) {
+    var dx = 0;
+    var dy = 0;
+    if (rectangle.x < 0) {
+      dx = rectangle.x;
+    } else if (rectangle.getX() + rectangle.getWidth() > this.scrollPane.clientWidth) {
+      dx = rectangle.getX() + rectangle.getWidth() - this.scrollPane.clientWidth;
+    }
+    if (rectangle.y < 0) {
+      dy = rectangle.y;
+    } else if (rectangle.getY() + rectangle.getHeight() > this.scrollPane.clientHeight) {
+      dy = rectangle.getY() + rectangle.getHeight() - this.scrollPane.clientHeight;
+    }
+    this.moveView(this.convertPixelToLength(dx), this.convertPixelToLength(dy));
+  }
+}
 
 /**
  * Returns the bounds of the selected items.
@@ -5284,7 +5449,7 @@ PlanComponent.prototype.getSelectionBounds = function(includeCamera) {
     }
     return this.getItemsBounds(g, selectedItems);
   }
-};
+}
 
 /**
  * Ensures the point at (<code>x</code>, <code>y</code>) is visible,
@@ -5295,7 +5460,7 @@ PlanComponent.prototype.getSelectionBounds = function(includeCamera) {
 PlanComponent.prototype.makePointVisible = function(x, y) {
   this.scrollRectToVisible(this.getShapePixelBounds(
       new java.awt.geom.Rectangle2D.Float(x, y, this.getPixelLength(), this.getPixelLength())));
-};
+}
 
 /**
  * Moves the view from (dx, dy) unit in the scrolling zone it belongs to.
@@ -5308,7 +5473,7 @@ PlanComponent.prototype.moveView = function(dx, dy) {
     this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
     this.repaint();
   }
-};
+}
 
 /**
  * Returns the scale used to display the plan.
@@ -5316,7 +5481,7 @@ PlanComponent.prototype.moveView = function(dx, dy) {
  */
 PlanComponent.prototype.getScale = function() {
   return this.scale;
-};
+}
 
 /**
  * Sets the scale used to display the plan.
@@ -5329,7 +5494,7 @@ PlanComponent.prototype.setScale = function(scale) {
     this.scale = scale;
     this.revalidate();
   }
-};
+}
 
 /**
  * Returns <code>x</code> converted in model coordinates space.
@@ -5340,7 +5505,7 @@ PlanComponent.prototype.convertXPixelToModel = function(x) {
   var insets = this.getInsets();
   var planBounds = this.getPlanBounds();
   return this.convertPixelToLength(x - insets.left + (this.isScrolled() ? this.scrollPane.scrollLeft : 0)) - PlanComponent.MARGIN + planBounds.getMinX();
-};
+}
 
 /**
  * Returns <code>y</code> converted in model coordinates space.
@@ -5351,14 +5516,15 @@ PlanComponent.prototype.convertYPixelToModel = function(y) {
   var insets = this.getInsets();
   var planBounds = this.getPlanBounds();
   return this.convertPixelToLength(y - insets.top + (this.isScrolled() ? this.scrollPane.scrollTop : 0)) - PlanComponent.MARGIN + planBounds.getMinY();
-};
+}
 
 /**
  * Returns the length in model units (cm) of the given <code>size</code> in pixels.
+ * @private
  */
 PlanComponent.prototype.convertPixelToLength = function(size) {
   return size * this.getPixelLength();
-};
+}
 
 /**
  * Returns <code>x</code> converted in view coordinates space.
@@ -5370,7 +5536,7 @@ PlanComponent.prototype.convertXModelToPixel = function(x) {
   var insets = this.getInsets();
   var planBounds = this.getPlanBounds();
   return this.convertLengthToPixel(x - planBounds.getMinX() + PlanComponent.MARGIN) + insets.left - (this.isScrolled() ? this.scrollPane.scrollLeft : 0);
-};
+}
 
 /**
  * Returns <code>y</code> converted in view coordinates space.
@@ -5382,14 +5548,15 @@ PlanComponent.prototype.convertYModelToPixel = function(y) {
   var insets = this.getInsets();
   var planBounds = this.getPlanBounds();
   return this.convertLengthToPixel(y - planBounds.getMinY() + PlanComponent.MARGIN) + insets.top - (this.isScrolled() ? this.scrollPane.scrollTop : 0);
-};
+}
 
 /**
  * Returns the size in pixels of the given <code>length</code> in model units (cm).
+ * @private
  */
 PlanComponent.prototype.convertLengthToPixel = function(length) {
   return Math.round(length / this.getPixelLength());
-};
+}
 
 /**
  * Returns <code>x</code> converted in screen coordinates space.
@@ -5398,7 +5565,8 @@ PlanComponent.prototype.convertLengthToPixel = function(length) {
  */
 PlanComponent.prototype.convertXModelToScreen = function(x) {
   return this.canvas.getBoundingClientRect().left + this.convertXModelToPixel(x);
-};
+}
+
 /**
  * Returns <code>y</code> converted in screen coordinates space.
  * @param {number} y
@@ -5406,7 +5574,7 @@ PlanComponent.prototype.convertXModelToScreen = function(x) {
  */
 PlanComponent.prototype.convertYModelToScreen = function(y) {
   return this.canvas.getBoundingClientRect().top + this.convertYModelToPixel(y);
-};
+}
 
 /**
  * Returns the length in centimeters of a pixel with the current scale.
@@ -5415,7 +5583,7 @@ PlanComponent.prototype.convertYModelToScreen = function(y) {
 PlanComponent.prototype.getPixelLength = function() {
   // On contrary to Java version based on resolution scale, we use the actual scale 
   return 1 / this.getScale();
-};
+}
 
 /**
  * Returns the bounds of <code>shape</code> in pixels coordinates space.
@@ -5430,7 +5598,7 @@ PlanComponent.prototype.getShapePixelBounds = function(shape) {
       this.convertYModelToPixel(shapeBounds.getMinY()), 
       this.convertLengthToPixel(shapeBounds.getWidth()), 
       this.convertLengthToPixel(shapeBounds.getHeight()));
-};
+}
 
 /**
  * Sets the cursor of this component.
@@ -5496,7 +5664,32 @@ PlanComponent.prototype.setCursor = function(cursorType) {
         break;
     }
   }
-};
+}
+
+/**
+ * Sets tool tip text displayed as feedback.
+ * @param {string} toolTipFeedback the text displayed in the tool tip
+ *                    or <code>null</code> to make tool tip disappear.
+ */
+PlanComponent.prototype.setToolTipFeedback = function(toolTipFeedback, x, y) {
+  this.tooltip.style.width = "";
+  this.tooltip.style.marginLeft = "";
+  if (toolTipFeedback.indexOf("<html>") === 0) {
+    this.tooltip.style.textAlign = "left";
+  }
+  else {
+    this.tooltip.style.textAlign = "center";
+  }
+  this.tooltip.innerHTML = toolTipFeedback.replace("<html>", "").replace("</html>", "");
+  var containerRect = this.container.getBoundingClientRect();
+  this.tooltip.style.left = containerRect.left + this.convertXModelToPixel(x) + "px";
+  this.tooltip.style.top = containerRect.top + this.convertYModelToPixel(y) + "px";
+  this.tooltip.style.marginTop = -(this.tooltip.clientHeight + (this.pointerType === 1 ? 50 : 20)) + "px";
+  var width = this.tooltip.clientWidth + 10;
+  this.tooltip.style.width = width + "px";
+  this.tooltip.style.marginLeft = -width / 2 + "px";
+  this.tooltip.style.visibility = "visible";
+}
 
 /**
  * Set tool tip edition.
@@ -5507,7 +5700,7 @@ PlanComponent.prototype.setCursor = function(cursorType) {
  */
 PlanComponent.prototype.setToolTipEditedProperties = function(toolTipEditedProperties, toolTipPropertyValues, x, y) {
   // TODO
-};
+}
 
 /**
  * Deletes tool tip text from screen.
@@ -5517,7 +5710,7 @@ PlanComponent.prototype.deleteToolTipFeedback = function() {
   this.tooltip.style.width = "";
   this.tooltip.style.marginLeft = "";
   this.tooltip.style.marginTop = "";
-};
+}
 
 /**
  * Sets whether the resize indicator of selected wall or piece of furniture
@@ -5527,7 +5720,7 @@ PlanComponent.prototype.deleteToolTipFeedback = function() {
 PlanComponent.prototype.setResizeIndicatorVisible = function(resizeIndicatorVisible) {
   this.resizeIndicatorVisible = resizeIndicatorVisible;
   this.repaint();
-};
+}
 
 /**
  * Sets the location point for alignment feedback.
@@ -5543,7 +5736,7 @@ PlanComponent.prototype.setAlignmentFeedback = function(alignedObjectClass, alig
   this.locationFeeback = new java.awt.geom.Point2D.Float(x, y);
   this.showPointFeedback = showPointFeedback;
   this.repaint();
-};
+}
 
 /**
  * Sets the points used to draw an angle in plan view.
@@ -5558,7 +5751,7 @@ PlanComponent.prototype.setAngleFeedback = function(xCenter, yCenter, x1, y1, x2
   this.centerAngleFeedback = new java.awt.geom.Point2D.Float(xCenter, yCenter);
   this.point1AngleFeedback = new java.awt.geom.Point2D.Float(x1, y1);
   this.point2AngleFeedback = new java.awt.geom.Point2D.Float(x2, y2);
-};
+}
 
 /**
  * Sets the feedback of dragged items drawn during a drag and drop operation,
@@ -5568,7 +5761,7 @@ PlanComponent.prototype.setAngleFeedback = function(xCenter, yCenter, x1, y1, x2
 PlanComponent.prototype.setDraggedItemsFeedback = function(draggedItems) {
   this.draggedItemsFeedback = draggedItems;
   this.repaint();
-};
+}
 
 /**
  * Sets the given dimension lines to be drawn as feedback.
@@ -5577,7 +5770,7 @@ PlanComponent.prototype.setDraggedItemsFeedback = function(draggedItems) {
 PlanComponent.prototype.setDimensionLinesFeedback = function(dimensionLines) {
   this.dimensionLinesFeedback = dimensionLines;
   this.repaint();
-};
+}
 
 /**
  * Deletes all elements shown as feedback.
@@ -5594,7 +5787,7 @@ PlanComponent.prototype.deleteFeedback = function() {
   this.draggedItemsFeedback = null;
   this.dimensionLinesFeedback = null;
   this.repaint();
-};
+}
 
 /**
  * Returns <code>true</code>.
@@ -5605,7 +5798,7 @@ PlanComponent.prototype.deleteFeedback = function() {
  */
 PlanComponent.prototype.canImportDraggedItems = function(items, x, y) {
   return true;
-};
+}
 
 /**
  * Returns the size of the given piece of furniture in the horizontal plan,
@@ -5623,7 +5816,7 @@ PlanComponent.prototype.getPieceOfFurnitureSizeInPlan = function(piece) {
   else {
     return PlanComponent.PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan(piece, this.object3dFactory);
   }
-};
+}
 
 /**
  * Returns <code>true</code> if this component is able to compute the size of horizontally rotated furniture.
@@ -5631,797 +5824,393 @@ PlanComponent.prototype.getPieceOfFurnitureSizeInPlan = function(piece) {
  */
 PlanComponent.prototype.isFurnitureSizeInPlanSupported = function() {
   return PlanComponent.WEBGL_AVAILABLE;
-};
-
-PlanComponent.prototype.getPreferredScrollableViewportSize = function() {
-  return this.getPreferredSize();
-};
-
-PlanComponent.prototype.getScrollableBlockIncrement = function(visibleRect, orientation, direction) {
-  if (orientation === javax.swing.SwingConstants.HORIZONTAL) {
-    return (visibleRect.width / 2 | 0);
-  }
-  else {
-    return (visibleRect.height / 2 | 0);
-  }
-};
-
-PlanComponent.prototype.getScrollableTracksViewportHeight = function() {
-  return (this.getParent() instanceof javax.swing.JViewport)
-      && this.getPreferredSize().height < this.getParent().getHeight();
-};
-
-PlanComponent.prototype.getScrollableTracksViewportWidth = function() {
-  return (this.getParent() instanceof javax.swing.JViewport) 
-      && this.getPreferredSize().width < this.getParent().getWidth();
-};
-
-PlanComponent.prototype.getScrollableUnitIncrement = function(visibleRect, orientation, direction) {
-  if (orientation === javax.swing.SwingConstants.HORIZONTAL) {
-    return (visibleRect.width / 10 | 0);
-  } else {
-    return (visibleRect.height / 10 | 0);
-  }
-};
+}
 
 /**
  * Returns the component used as an horizontal ruler for this plan.
  * @return {Object}
  */
 PlanComponent.prototype.getHorizontalRuler = function() {
-  if (this.horizontalRuler == null) {
-    this.horizontalRuler = new PlanComponent.PlanRulerComponent(this, javax.swing.SwingConstants.HORIZONTAL);
-  }
-  return this.horizontalRuler;
-};
+  throw new UnsupportedOperationException("No rulers");
+}
 
 /**
  * Returns the component used as a vertical ruler for this plan.
  * @return {Object}
  */
 PlanComponent.prototype.getVerticalRuler = function() {
-  if (this.verticalRuler == null) {
-    this.verticalRuler = new PlanComponent.PlanRulerComponent(this, javax.swing.SwingConstants.VERTICAL);
-  }
-  return this.verticalRuler;
-};
-
-PlanComponent["__class"] = "com.eteks.sweethome3d.swing.PlanComponent";
-PlanComponent["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.PlanView", "com.eteks.sweethome3d.viewcontroller.View", "javax.swing.Scrollable", "com.eteks.sweethome3d.viewcontroller.ExportableView", "java.awt.print.Printable", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "java.awt.image.ImageObserver", "com.eteks.sweethome3d.viewcontroller.TransferableView", "java.io.Serializable"];
+  throw new UnsupportedOperationException("No rulers");
+}
 
 
 /**
- * PlanComponent namespace.
+ * A proxy for the furniture icon seen from top.
+ * @param {Image} icon
+ * @constructor
+ * @private
  */
-var PlanComponent;
-(function(PlanComponent) {
+PlanComponent.PieceOfFurnitureTopViewIcon = function(image) {
+  this.image = image;
+}
 
-  /**
-   * The circumstances under which the home items displayed by this component will be painted.
-   * @enum
-   * @property {PlanComponent.PaintMode} PAINT
-   * @property {PlanComponent.PaintMode} PRINT
-   * @property {PlanComponent.PaintMode} CLIPBOARD
-   * @property {PlanComponent.PaintMode} EXPORT
-   * @class
-   */
-  (function(PaintMode) {
-    PaintMode[PaintMode["PAINT"] = 0] = "PAINT";
-    PaintMode[PaintMode["PRINT"] = 1] = "PRINT";
-    PaintMode[PaintMode["CLIPBOARD"] = 2] = "CLIPBOARD";
-    PaintMode[PaintMode["EXPORT"] = 3] = "EXPORT";
-  })(PlanComponent.PaintMode || (PlanComponent.PaintMode = {}));
-  var PaintMode = PlanComponent.PaintMode;
+/**
+ * @ignore
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.getIconWidth = function() {
+  return this.image.width;
+}
 
-  (function(ActionType) {
-    ActionType[ActionType["DELETE_SELECTION"] = 0] = "DELETE_SELECTION";
-    ActionType[ActionType["ESCAPE"] = 1] = "ESCAPE";
-    ActionType[ActionType["MOVE_SELECTION_LEFT"] = 2] = "MOVE_SELECTION_LEFT";
-    ActionType[ActionType["MOVE_SELECTION_UP"] = 3] = "MOVE_SELECTION_UP";
-    ActionType[ActionType["MOVE_SELECTION_DOWN"] = 4] = "MOVE_SELECTION_DOWN";
-    ActionType[ActionType["MOVE_SELECTION_RIGHT"] = 5] = "MOVE_SELECTION_RIGHT";
-    ActionType[ActionType["MOVE_SELECTION_FAST_LEFT"] = 6] = "MOVE_SELECTION_FAST_LEFT";
-    ActionType[ActionType["MOVE_SELECTION_FAST_UP"] = 7] = "MOVE_SELECTION_FAST_UP";
-    ActionType[ActionType["MOVE_SELECTION_FAST_DOWN"] = 8] = "MOVE_SELECTION_FAST_DOWN";
-    ActionType[ActionType["MOVE_SELECTION_FAST_RIGHT"] = 9] = "MOVE_SELECTION_FAST_RIGHT";
-    ActionType[ActionType["TOGGLE_MAGNETISM_ON"] = 10] = "TOGGLE_MAGNETISM_ON";
-    ActionType[ActionType["TOGGLE_MAGNETISM_OFF"] = 11] = "TOGGLE_MAGNETISM_OFF";
-    ActionType[ActionType["ACTIVATE_ALIGNMENT"] = 12] = "ACTIVATE_ALIGNMENT";
-    ActionType[ActionType["DEACTIVATE_ALIGNMENT"] = 13] = "DEACTIVATE_ALIGNMENT";
-    ActionType[ActionType["ACTIVATE_DUPLICATION"] = 14] = "ACTIVATE_DUPLICATION";
-    ActionType[ActionType["DEACTIVATE_DUPLICATION"] = 15] = "DEACTIVATE_DUPLICATION";
-    ActionType[ActionType["ACTIVATE_EDITIION"] = 16] = "ACTIVATE_EDITIION";
-    ActionType[ActionType["DEACTIVATE_EDITIION"] = 17] = "DEACTIVATE_EDITIION";
-  })(PlanComponent.ActionType || (PlanComponent.ActionType = {}));
-  var ActionType = PlanComponent.ActionType;
+/**
+ * @ignore
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.getIconHeight = function() {
+  return this.image.height;
+}
 
-  /**
-   * Indicator types that may be displayed on selected items.
-   * @class
-   */
-  var IndicatorType = (function() {
+/**
+ * @ignore
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.paintIcon = function(g, x, y) {
+  g.drawImage(this.image, x, y);
+}
 
-    function IndicatorType(name) {
-      this.name = name;
-    }
+/**
+ * @ignore
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.isWaitIcon = function() {
+  return this.image === TextureManager.getInstance().getWaitImage();
+}
 
-    IndicatorType.prototype.name = function() {
-      return this.name;
-    };
+/**
+ * @ignore
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.isErrorIcon = function() {
+  return this.image === TextureManager.getInstance().getErrorImage();
+}
 
-    /**
-     *
-     * @return {string}
-     */
-    IndicatorType.prototype.toString = function() {
-      return this.name;
-    };
-    return IndicatorType;
-  }());
-  PlanComponent.IndicatorType = IndicatorType;
-  IndicatorType["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.IndicatorType";
-  IndicatorType.ROTATE = new PlanComponent.IndicatorType("ROTATE");
-  IndicatorType.RESIZE = new PlanComponent.IndicatorType("RESIZE");
-  IndicatorType.ELEVATE = new PlanComponent.IndicatorType("ELEVATE");
-  IndicatorType.RESIZE_HEIGHT = new PlanComponent.IndicatorType("RESIZE_HEIGHT");
-  IndicatorType.CHANGE_POWER = new PlanComponent.IndicatorType("CHANGE_POWER");
-  IndicatorType.MOVE_TEXT = new PlanComponent.IndicatorType("MOVE_TEXT");
-  IndicatorType.ROTATE_TEXT = new PlanComponent.IndicatorType("ROTATE_TEXT");
-  IndicatorType.ROTATE_PITCH = new PlanComponent.IndicatorType("ROTATE_PITCH");
-  IndicatorType.ROTATE_ROLL = new PlanComponent.IndicatorType("ROTATE_ROLL");
-  IndicatorType.ARC_EXTENT = new PlanComponent.IndicatorType("ARC_EXTENT");
+/**
+ * @ignore
+ */
+PlanComponent.PieceOfFurnitureTopViewIcon.prototype.setIcon = function(image) {
+  this.image = image;
+}
 
-  /**
-   * Preferences property listener bound to this component with a weak reference to avoid
-   * strong link between preferences and this component.
-   * @param {PlanComponent} planComponent
-   * @class
-   */
-  var UserPreferencesChangeListener = (function() {
 
-    function UserPreferencesChangeListener(planComponent) {
-      if (this.planComponent === undefined)
-        this.planComponent = null;
-      this.planComponent = (planComponent);
-    }
-
-    UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
-      var planComponent = this.planComponent;
-      var preferences = ev.getSource();
-      var property = ev.getPropertyName();
-      if (planComponent == null) {
-        preferences.removePropertyChangeListener(property, this);
-      } else {
-        switch ((property)) {
-        case "LANGUAGE":
-        case "UNIT":
-          //  {
-          //    var array211 = /* entrySet */((m) => { if (m.entries==null) m.entries=[]; return m.entries; })(<any>planComponent.toolTipEditableTextFields);
-          //    for (var i = 0; i < array211.length; i++) {
-          //      var toolTipTextFieldEntry = array211[i];
-          //      PlanComponent.updateToolTipTextFieldFormatterFactory(toolTipTextFieldEntry.getValue(), toolTipTextFieldEntry.getKey(), preferences);
-          //    }
-          //  }
-          //  if (planComponent.horizontalRuler != null) {
-          //      planComponent.horizontalRuler.repaint();
-          //  }
-          //  if (planComponent.verticalRuler != null) {
-          //      planComponent.verticalRuler.repaint();
-          //  }
-          break;
-        case "DEFAULT_FONT_NAME":
-          planComponent.fonts = null;
-          planComponent.fontsMetrics = null;
-          null /*erased method planComponent.revalidate*/;
-          break;
-        case "WALL_PATTERN":
-          planComponent.wallAreasCache = null;
-          break;
-        case "FURNITURE_VIEWED_FROM_TOP":
-          if (planComponent.furnitureTopViewIconKeys != null && !preferences.isFurnitureViewedFromTop()) {
-            planComponent.furnitureTopViewIconKeys = null;
-            planComponent.furnitureTopViewIconsCache = null;
-          }
-          break;
-        case "FURNITURE_MODEL_ICON_SIZE":
-          planComponent.furnitureTopViewIconKeys = null;
-          planComponent.furnitureTopViewIconsCache = null;
-          break;
-        default:
-          break;
-        }
-        planComponent.repaint();
+/**
+ * Creates a plan icon proxy for a <code>piece</code> of furniture.
+ * @param {HomePieceOfFurniture} piece an object containing a plan icon content
+ * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+ * be read immediately in the current thread.
+ * @constructor
+ * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+ * @private
+ */
+PlanComponent.PieceOfFurniturePlanIcon = function(piece, waitingComponent) {
+  PlanComponent.PieceOfFurnitureTopViewIcon.call(this, TextureManager.getInstance().getWaitImage());
+  var planIcon = this;
+  TextureManager.getInstance().loadTexture(piece.getPlanIcon(), false, {
+      textureUpdated: function(textureImage) {
+        planIcon.setIcon(textureImage);
+        waitingComponent.repaint();
+      },
+      textureError: function(error) {
+        planIcon.setIcon(TextureManager.getInstance().getErrorImage());
+        waitingComponent.repaint();
       }
-    };
-    return UserPreferencesChangeListener;
-  }());
-  PlanComponent.UserPreferencesChangeListener = UserPreferencesChangeListener;
-  UserPreferencesChangeListener["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.UserPreferencesChangeListener";
-  UserPreferencesChangeListener["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
+    });
+}
+PlanComponent.PieceOfFurniturePlanIcon.prototype = Object.create(PlanComponent.PieceOfFurnitureTopViewIcon.prototype);
+PlanComponent.PieceOfFurniturePlanIcon.prototype.constructor = PlanComponent.PieceOfFurniturePlanIcon;
 
-  /**
-   * Separated static class to be able to exclude FreeHEP library from classpath
-   * in case the application doesn't use export to SVG format.
-   * @class
-   */
-  var SVGSupport = (function() {
 
-    function SVGSupport() {
-    }
-
-    SVGSupport.exportToSVG = function(out, planComponent) {
-      var homeItems = planComponent.getPaintedItems();
-      var svgItemBounds = planComponent.getItemsBounds(null, homeItems);
-      if (svgItemBounds == null) {
-        svgItemBounds = new java.awt.geom.Rectangle2D.Float();
-      }
-      var svgScale = 1.0;
-      var extraMargin = planComponent.getStrokeWidthExtraMargin(homeItems, PlanComponent.PaintMode.EXPORT);
-      var imageSize = new java.awt.Dimension((Math.ceil(svgItemBounds.getWidth() * svgScale + 2 * extraMargin) | 0), (Math.ceil(svgItemBounds.getHeight() * svgScale + 2 * extraMargin) | 0));
-      var exportG2D = new SVGSupport.SVGSupport$0(out, imageSize);
-      var properties = new org.freehep.util.UserProperties();
-      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.STYLABLE, true);
-      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.WRITE_IMAGES_AS, org.freehep.graphicsio.ImageConstants.PNG);
-      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.TITLE, planComponent.home.getName() != null ? planComponent.home.getName() : "");
-      properties.setProperty(org.freehep.graphicsio.svg.SVGGraphics2D.FOR, java.lang.System.getProperty("user.name", ""));
-      exportG2D.setProperties(properties);
-      exportG2D.startExport();
-      exportG2D.translate(-svgItemBounds.getMinX() + extraMargin, -svgItemBounds.getMinY() + extraMargin);
-      planComponent.paintContent(exportG2D, svgScale, PlanComponent.PaintMode.EXPORT);
-      exportG2D.endExport();
-    };
-    return SVGSupport;
-  }());
-  PlanComponent.SVGSupport = SVGSupport;
-  SVGSupport["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.SVGSupport";
-
-  /**
-   * A proxy for the furniture icon seen from top.
-   * @param {Image} icon
-   * @constructor
-   */
-  var PieceOfFurnitureTopViewIcon = (function() {
-
-    function PieceOfFurnitureTopViewIcon(image) {
-      this.image = image;
-    }
-
-    PieceOfFurnitureTopViewIcon.prototype.getIconWidth = function() {
-      return this.image.width;
-    };
-
-    PieceOfFurnitureTopViewIcon.prototype.getIconHeight = function() {
-      return this.image.height;
-    };
-
-    PieceOfFurnitureTopViewIcon.prototype.paintIcon = function(g, x, y) {
-      g.drawImage(this.image, x, y);
-    };
-
-    PieceOfFurnitureTopViewIcon.prototype.isWaitIcon = function() {
-      return this.image === TextureManager.getInstance().getWaitImage();
-    };
-
-    PieceOfFurnitureTopViewIcon.prototype.isErrorIcon = function() {
-      return this.image === TextureManager.getInstance().getErrorImage();
-    };
-
-    PieceOfFurnitureTopViewIcon.prototype.setIcon = function(image) {
-      this.image = image;
-    };
-
-    return PieceOfFurnitureTopViewIcon;
-  }());
-  PlanComponent.PieceOfFurnitureTopViewIcon = PieceOfFurnitureTopViewIcon;
-
-  /**
-   * Creates a top view icon proxy for a <code>piece</code> of furniture.
-   * @param {HomePieceOfFurniture} piece an object containing a 3D content
-   * @param {Object} object3dFactory a factory with a <code>createObject3D(home, item, waitForLoading)</code> method
-   * @param {Object} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-   *          be read immediately in the current thread.
-   * @param {number} iconSize the size in pixels of the generated icon
-   * @constructor
-   * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-   */
-  var PieceOfFurnitureModelIcon = (function(_super) {
-    __extends(PieceOfFurnitureModelIcon, _super);
-    function PieceOfFurnitureModelIcon(piece, object3dFactory, waitingComponent, iconSize) {
-      _super.call(this, TextureManager.getInstance().getWaitImage());
-      var modelIcon = this;
-      ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
-        modelUpdated: function(modelRoot) {
-          var normalizedPiece = piece.clone();
-          if (normalizedPiece.isResizable()) {
-            normalizedPiece.setModelMirrored(false);
-          }
-          var pieceWidth = normalizedPiece.getWidthInPlan();
-          var pieceDepth = normalizedPiece.getDepthInPlan();
-          var pieceHeight = normalizedPiece.getHeightInPlan();
-          normalizedPiece.setX(0);
-          normalizedPiece.setY(0);
-          normalizedPiece.setElevation(-pieceHeight / 2);
-          normalizedPiece.setLevel(null);
-          normalizedPiece.setAngle(0);
-          if (waitingComponent !== null) {
-            var updater = function() {
-                modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize, 
-                    function(icon) {
-                      modelIcon.setIcon(icon);
-                      waitingComponent.repaint();
-                    });
-              };
-            setTimeout(updater, 0);
-          }
-          else {
-            modelIcon.setIcon(modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize));
-          }
-        },
-        modelError: function(ex) {
-          // In case of problem use a default red box
-          modelIcon.setIcon(TextureManager.getInstance().getErrorImage());
-          if (waitingComponent !== null) {
-            waitingComponent.repaint();
-          }
+/**
+ * Creates a top view icon proxy for a <code>piece</code> of furniture.
+ * @param {HomePieceOfFurniture} piece an object containing a 3D content
+ * @param {Object} object3dFactory a factory with a <code>createObject3D(home, item, waitForLoading)</code> method
+ * @param {Object} waitingComponent a waiting component. If <code>null</code>, the returned icon will
+ *          be read immediately in the current thread.
+ * @param {number} iconSize the size in pixels of the generated icon
+ * @constructor
+ * @extends PlanComponent.PieceOfFurnitureTopViewIcon
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon = function(piece, object3dFactory, waitingComponent, iconSize) {
+  PlanComponent.PieceOfFurnitureTopViewIcon.call(this, TextureManager.getInstance().getWaitImage());
+  var modelIcon = this;
+  ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
+      modelUpdated: function(modelRoot) {
+        var normalizedPiece = piece.clone();
+        if (normalizedPiece.isResizable()) {
+          normalizedPiece.setModelMirrored(false);
         }
-      });
-    }
-
-    /**
-     * Returns the branch group bound to a universe and a canvas for the given
-     * resolution.
-     * @param {number} iconSize
-     * @return {BranchGroup3D}
-     * @private
-     */
-    PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSize) {
-      if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
-        var canvas = document.createElement("canvas");
-        canvas.width = iconSize;
-        canvas.height = iconSize;
-        canvas.style.backgroundColor = "rgba(255, 255, 255, 0)";
-        var canvas3D = new HTMLCanvas3D(canvas);
-        var rotation = mat4.create();
-        mat4.fromXRotation(rotation, -Math.PI / 2);
-        var transform = mat4.create();
-        mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
-        mat4.mul(transform, transform, rotation);
-        canvas3D.setViewPlatformTransform(transform);
-        canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
-        var sceneRoot = new BranchGroup3D();
-        sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
-        var lights = [
-          new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)),
-          new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)),
-          new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)),
-          new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))];
-        for (var i = 0; i < lights.length; i++) {
-          sceneRoot.addChild(lights[i]);
+        var pieceWidth = normalizedPiece.getWidthInPlan();
+        var pieceDepth = normalizedPiece.getDepthInPlan();
+        var pieceHeight = normalizedPiece.getHeightInPlan();
+        normalizedPiece.setX(0);
+        normalizedPiece.setY(0);
+        normalizedPiece.setElevation(-pieceHeight / 2);
+        normalizedPiece.setLevel(null);
+        normalizedPiece.setAngle(0);
+        if (waitingComponent !== null) {
+          var updater = function() {
+              modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize, 
+                  function(icon) {
+                    modelIcon.setIcon(icon);
+                    waitingComponent.repaint();
+                  });
+            };
+          setTimeout(updater, 0);
+        } else {
+          modelIcon.setIcon(modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize));
         }
-        canvas3D.setScene(sceneRoot);
-        PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
-      }
-      else {
-        if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
-          PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
-          PlanComponent.PieceOfFurnitureModelIcon.canvas3D = undefined;
-          return this.getSceneRoot(iconSize);
+      },
+      modelError: function(ex) {
+        // In case of problem use a default red box
+        modelIcon.setIcon(TextureManager.getInstance().getErrorImage());
+        if (waitingComponent !== null) {
+          waitingComponent.repaint();
         }
       }
-      return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
-    };
+    });
+}
+PlanComponent.PieceOfFurnitureModelIcon.prototype = Object.create(PlanComponent.PieceOfFurnitureTopViewIcon.prototype);
+PlanComponent.PieceOfFurnitureModelIcon.prototype.constructor = PlanComponent.PieceOfFurnitureModelIcon;
 
-    /**
-     * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready
-     * or returns the icon itself if <code>iconObserver</code> is not given.
-     * @param {Object3DBranch} pieceNode
-     * @param {number} pieceWidth
-     * @param {number} pieceDepth
-     * @param {number} pieceHeight
-     * @param {number} iconSize
-     * @param {Object} [iconObserver] a function that will receive the icon as parameter
-     * @return {Image} the icon or <code>undefined</code> if <code>iconObserver</code> exists
-     * @private
-     */
-    PieceOfFurnitureModelIcon.prototype.createIcon = function(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver) {
-      var scaleTransform = mat4.create();
-      mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
-      var modelTransformGroup = new TransformGroup3D();
-      modelTransformGroup.setTransform(scaleTransform);
-      modelTransformGroup.addChild(pieceNode);
-      var model = new BranchGroup3D();
-      model.addChild(modelTransformGroup);
-      var sceneRoot = this.getSceneRoot(iconSize);
-      if (iconObserver) {
-        var iconGeneration = function() {
-          sceneRoot.addChild(model);
-          var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
-          if (loadingCompleted) {
-            iconObserver(PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage());
-          }
-          sceneRoot.removeChild(model);
-          if (!loadingCompleted) {
-            setTimeout(iconGeneration, 0);
-          }
-        };
-        iconGeneration();
-        return undefined;
-      }
-      else {
+/**
+ * Returns the branch group bound to a universe and a canvas for the given
+ * resolution.
+ * @param {number} iconSize
+ * @return {BranchGroup3D}
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSize) {
+  if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+    var canvas = document.createElement("canvas");
+    canvas.width = iconSize;
+    canvas.height = iconSize;
+    canvas.style.backgroundColor = "rgba(255, 255, 255, 0)";
+    var canvas3D = new HTMLCanvas3D(canvas);
+    var rotation = mat4.create();
+    mat4.fromXRotation(rotation, -Math.PI / 2);
+    var transform = mat4.create();
+    mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
+    mat4.mul(transform, transform, rotation);
+    canvas3D.setViewPlatformTransform(transform);
+    canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
+    var sceneRoot = new BranchGroup3D();
+    sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
+    var lights = [
+      new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(1.5, -0.8, -1)),
+      new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(-1.5, -0.8, -1)),
+      new DirectionalLight3D(vec3.fromValues(0.6, 0.6, 0.6), vec3.fromValues(0, -0.8, 1)),
+      new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))];
+    for (var i = 0; i < lights.length; i++) {
+      sceneRoot.addChild(lights[i]);
+    }
+    canvas3D.setScene(sceneRoot);
+    PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
+  }
+  else {
+    if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
+      PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
+      delete PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
+      return this.getSceneRoot(iconSize);
+    }
+  }
+  return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
+}
+
+/**
+ * Creates an icon created and scaled from piece model content, and calls <code>iconObserver</code> once the icon is ready
+ * or returns the icon itself if <code>iconObserver</code> is not given.
+ * @param {Object3DBranch} pieceNode
+ * @param {number} pieceWidth
+ * @param {number} pieceDepth
+ * @param {number} pieceHeight
+ * @param {number} iconSize
+ * @param {Object} [iconObserver] a function that will receive the icon as parameter
+ * @return {Image} the icon or <code>undefined</code> if <code>iconObserver</code> exists
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon.prototype.createIcon = function(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, iconObserver) {
+  var scaleTransform = mat4.create();
+  mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
+  var modelTransformGroup = new TransformGroup3D();
+  modelTransformGroup.setTransform(scaleTransform);
+  modelTransformGroup.addChild(pieceNode);
+  var model = new BranchGroup3D();
+  model.addChild(modelTransformGroup);
+  var sceneRoot = this.getSceneRoot(iconSize);
+  if (iconObserver) {
+    var iconGeneration = function() {
         sceneRoot.addChild(model);
-        var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
+        var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
+        if (loadingCompleted) {
+          PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage(iconObserver);
+        }
         sceneRoot.removeChild(model);
-        return icon;
-      }
-    };
-
-    /**
-     * Returns the size of the given piece computed from its vertices.
-     * @param {HomePieceOfFurniture} piece
-     * @param {Object} object3dFactory
-     * @return {Array}
-     * @private
-     */
-    PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function(piece, object3dFactory) {
-      var horizontalRotation = mat4.create();
-      if (piece.getPitch() !== 0) {
-        mat4.fromXRotation(horizontalRotation, -piece.getPitch());
-      }
-      if (piece.getRoll() !== 0) {
-        var rollRotation = mat4.create();
-        mat4.fromZRotation(rollRotation, -piece.getRoll());
-        mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
-      }
-      // Compute bounds of a piece centered at the origin and rotated around the target horizontal angle
-      piece = piece.clone();
-      piece.setX(0);
-      piece.setY(0);
-      piece.setElevation(-piece.getHeight() / 2);
-      piece.setLevel(null);
-      piece.setAngle(0);
-      piece.setRoll(0);
-      piece.setPitch(0);
-      piece.setWidthInPlan(piece.getWidth());
-      piece.setDepthInPlan(piece.getDepth());
-      piece.setHeightInPlan(piece.getHeight());
-      var bounds = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
-      var lower = vec3.create();
-      bounds.getLower(lower);
-      var upper = vec3.create();
-      bounds.getUpper(upper);
-      return [Math.max(0.001, (upper[0] - lower[0])),
-        Math.max(0.001, (upper[2] - lower[2])),
-        Math.max(0.001, (upper[1] - lower[1]))];
-    };
-
-    return PieceOfFurnitureModelIcon;
-  }(PieceOfFurnitureTopViewIcon));
-  PlanComponent.PieceOfFurnitureModelIcon = PieceOfFurnitureModelIcon;
-
-  /**
-   * Creates a plan icon proxy for a <code>piece</code> of furniture.
-   * @param {HomePieceOfFurniture} piece an object containing a plan icon content
-   * @param {java.awt.Component} waitingComponent a waiting component. If <code>null</code>, the returned icon will
-   * be read immediately in the current thread.
-   * @class
-   * @extends PlanComponent.PieceOfFurnitureTopViewIcon
-   */
-  var PieceOfFurniturePlanIcon = (function(_super) {
-    __extends(PieceOfFurniturePlanIcon, _super);
-    function PieceOfFurniturePlanIcon(piece, waitingComponent) {
-      var plan = this;
-      _super.call(this, TextureManager.getInstance().getWaitImage());
-      TextureManager.getInstance().loadTexture(piece.getPlanIcon(), false, {
-        textureUpdated: function(textureImage) {
-          plan.setIcon(textureImage);
-          waitingComponent.repaint();
-        },
-        textureError: function(error) {
-          plan.setIcon(TextureManager.getInstance().getErrorImage());
-          waitingComponent.repaint();
+        if (!loadingCompleted) {
+          setTimeout(iconGeneration, 0);
         }
-      });
-    }
-    return PieceOfFurniturePlanIcon;
-  }(PlanComponent.PieceOfFurnitureTopViewIcon));
-  PlanComponent.PieceOfFurniturePlanIcon = PieceOfFurniturePlanIcon;
-  PieceOfFurniturePlanIcon["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.PieceOfFurniturePlanIcon";
-  PieceOfFurniturePlanIcon["__interfaces"] = ["javax.swing.Icon"];
+      };
+    iconGeneration();
+    return undefined;
+  }
+  else {
+    sceneRoot.addChild(model);
+    var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
+    sceneRoot.removeChild(model);
+    return icon;
+  }
+}
 
-  /**
-   * A map key used to compare furniture with the same top view icon.
-   * @param {HomePieceOfFurniture} piece
-   * @class
-   */
-  var HomePieceOfFurnitureTopViewIconKey = (function() {
-    function HomePieceOfFurnitureTopViewIconKey(piece) {
-      this.piece = piece;
-      this.hash = (piece.getPlanIcon() != null ? piece.getPlanIcon().hashCode() : piece.getModel().hashCode())
-          + (piece.getColor() != null ? 37 * piece.getColor() : 1234);
-      if (piece.isHorizontallyRotated()
-          || piece.getTexture() != null) {
-        this.hashCode +=
-              (piece.getTexture() != null ? 37 * piece.getTexture().hashCode() : 0)
-            + 37 * (piece.getWidthInPlan() | 0)
-            + 37 * (piece.getDepthInPlan() | 0)
-            + 37 * (piece.getHeightInPlan() | 0);
-      }
-      if (piece.getPlanIcon() != null) {
-        this.hashCode +=
-              37 * (function(matrix) { 
-                       return (31 * matrix[0][0] + 31 * matrix[0][1] + 31 * matrix[0][2]
-                             + 37 * matrix[1][0] + 37 * matrix[1][1] + 37 * matrix[1][2]
-                             + 41 * matrix[2][0] + 41 * matrix[2][1] + 41 * matrix[2][2]) | 0; })(piece.getModelRotation())
-            + 37 * (piece.isModelCenteredAtOrigin() ? 1 : 0)
-            + 37 * (piece.isBackFaceShown() ? 1 : 0)
-            + 37 * ((piece.getPitch() * 1000) | 0)
-            + 37 * ((piece.getRoll() * 1000) | 0)
-            + 37 * (function(array) {
-                       var hashCode = 0;
-                       if (array != null) {
-                         for (var i = 0; i < array.length; i++) {
-                           if (array [i] != null) {
-                             hashCode += 37 * array [i].hashCode(); 
-                           }
-                         }
+/**
+ * Returns the size of the given piece computed from its vertices.
+ * @param {HomePieceOfFurniture} piece
+ * @param {Object} object3dFactory
+ * @return {Array}
+ * @private
+ */
+PlanComponent.PieceOfFurnitureModelIcon.computePieceOfFurnitureSizeInPlan = function(piece, object3dFactory) {
+  var horizontalRotation = mat4.create();
+  if (piece.getPitch() !== 0) {
+    mat4.fromXRotation(horizontalRotation, -piece.getPitch());
+  }
+  if (piece.getRoll() !== 0) {
+    var rollRotation = mat4.create();
+    mat4.fromZRotation(rollRotation, -piece.getRoll());
+    mat4.mul(horizontalRotation, horizontalRotation, rollRotation, horizontalRotation);
+  }
+  // Compute bounds of a piece centered at the origin and rotated around the target horizontal angle
+  piece = piece.clone();
+  piece.setX(0);
+  piece.setY(0);
+  piece.setElevation(-piece.getHeight() / 2);
+  piece.setLevel(null);
+  piece.setAngle(0);
+  piece.setRoll(0);
+  piece.setPitch(0);
+  piece.setWidthInPlan(piece.getWidth());
+  piece.setDepthInPlan(piece.getDepth());
+  piece.setHeightInPlan(piece.getHeight());
+  var bounds = ModelManager.getInstance().getBounds(object3dFactory.createObject3D(null, piece, true), horizontalRotation);
+  var lower = vec3.create();
+  bounds.getLower(lower);
+  var upper = vec3.create();
+  bounds.getUpper(upper);
+  return [Math.max(0.001, (upper[0] - lower[0])),
+    Math.max(0.001, (upper[2] - lower[2])),
+    Math.max(0.001, (upper[1] - lower[1]))];
+}
+
+
+/**
+ * A map key used to compare furniture with the same top view icon.
+ * @param {HomePieceOfFurniture} piece
+ * @constructor
+ * @private
+ */
+PlanComponent.HomePieceOfFurnitureTopViewIconKey = function(piece) {
+  this.piece = piece;
+  this.hashCode = (piece.getPlanIcon() != null ? piece.getPlanIcon().hashCode() : piece.getModel().hashCode())
+      + (piece.getColor() != null ? 37 * piece.getColor() : 1234);
+  if (piece.isHorizontallyRotated()
+      || piece.getTexture() != null) {
+    this.hashCode +=
+          (piece.getTexture() != null ? 37 * piece.getTexture().hashCode() : 0)
+        + 37 * (piece.getWidthInPlan() | 0)
+        + 37 * (piece.getDepthInPlan() | 0)
+        + 37 * (piece.getHeightInPlan() | 0);
+  }
+  if (piece.getPlanIcon() != null) {
+    this.hashCode +=
+          37 * (function(matrix) { 
+                   return (31 * matrix[0][0] + 31 * matrix[0][1] + 31 * matrix[0][2]
+                         + 37 * matrix[1][0] + 37 * matrix[1][1] + 37 * matrix[1][2]
+                         + 41 * matrix[2][0] + 41 * matrix[2][1] + 41 * matrix[2][2]) | 0; })(piece.getModelRotation())
+        + 37 * (piece.isModelCenteredAtOrigin() ? 1 : 0)
+        + 37 * (piece.isBackFaceShown() ? 1 : 0)
+        + 37 * ((piece.getPitch() * 1000) | 0)
+        + 37 * ((piece.getRoll() * 1000) | 0)
+        + 37 * (function(array) {
+                   var hashCode = 0;
+                   if (array != null) {
+                     for (var i = 0; i < array.length; i++) {
+                       if (array [i] != null) {
+                         hashCode += 37 * array [i].hashCode(); 
                        }
-                       return hashCode | 0; })(piece.getModelTransformations())
-            + 37 * (function(array) {
-                       var hashCode = 0;
-                       if (array != null) {
-                         for (var i = 0; i < array.length; i++) {
-                           if (array [i] != null) {
-                             hashCode += 37 * array [i].hashCode(); 
-                           }
-                         }
+                     }
+                   }
+                   return hashCode | 0; })(piece.getModelTransformations())
+        + 37 * (function(array) {
+                   var hashCode = 0;
+                   if (array != null) {
+                     for (var i = 0; i < array.length; i++) {
+                       if (array [i] != null) {
+                         hashCode += 37 * array [i].hashCode(); 
                        }
-                       return hashCode | 0; })(piece.getModelMaterials())
-            + (piece.getShininess() != null ? 37 * ((piece.getShininess() * 1000) | 0) : 3456);
-      }
-    }
-    
-    /**
-     * @param {Object} obj
-     * @return {boolean}
-     */
-    HomePieceOfFurnitureTopViewIconKey.prototype.equals = function(obj) {
-      if (obj instanceof HomePieceOfFurnitureTopViewIconKey) {
-        var piece2 = obj.piece;
-        // Test all furniture data that could make change the plan icon
-        // (see HomePieceOfFurniture3D and PlanComponent#addModelListeners for changes conditions)
-        return (this.piece.getPlanIcon() != null
-                ? this.piece.getPlanIcon().equals(piece2.getPlanIcon())
-                : this.piece.getModel().equals(piece2.getModel()))
-            && (this.piece.getColor() == piece2.getColor())
-            && (this.piece.getTexture() == piece2.getTexture()
-                || this.piece.getTexture() != null && this.piece.getTexture().equals(piece2.getTexture()))
-            && (!this.piece.isHorizontallyRotated()
-                    && !piece2.isHorizontallyRotated()
-                    && this.piece.getTexture() == null
-                    && piece2.getTexture() == null
-                || this.piece.getWidthInPlan() == piece2.getWidthInPlan()
-                    && this.piece.getDepthInPlan() == piece2.getDepthInPlan()
-                    && this.piece.getHeightInPlan() == piece2.getHeightInPlan())
-            && (this.piece.getPlanIcon() != null
-                || (function(matrix1, matrix2) { 
-                      return matrix1[0][0] == matrix2[0][0] && matrix1[0][1] == matrix2[0][1] && matrix1[0][2] == matrix2[0][2]
-                          && matrix1[1][0] == matrix2[1][0] && matrix1[1][1] == matrix2[1][1] && matrix1[1][2] == matrix2[1][2]
-                          && matrix1[2][0] == matrix2[2][0] && matrix1[2][1] == matrix2[2][1] && matrix1[2][2] == matrix2[2][2]; })(this.piece.getModelRotation(), piece2.getModelRotation()) 
-                    && this.piece.isModelCenteredAtOrigin() == piece2.isModelCenteredAtOrigin()
-                    && this.piece.isBackFaceShown() == piece2.isBackFaceShown()
-                    && this.piece.getPitch() == piece2.getPitch()
-                    && this.piece.getRoll() == piece2.getRoll()
-                    && (function(array1, array2) { 
-                          if (array1 === array2) return true;
-                          if (array1 == null || array2 == null || array1.length !== array2.length) return false;
-                          for (var i = 0; i < array1.length; i++) {
-                            if (array1[i] !== array2[i] && (array1[i] == null || !array1[i].equals(array2[i]))) return false;
-                          }
-                          return true; })(this.piece.getModelTransformations(), piece2.getModelTransformations()) 
-                    && (function(array1, array2) { 
-                          if (array1 === array2) return true;
-                          if (array1 == null || array2 == null || array1.length !== array2.length) return false;
-                          for (var i = 0; i < array1.length; i++) {
-                            if (array1[i] !== array2[i] && (array1[i] == null || !array1[i].equals(array2[i]))) return false;
-                          }
-                          return true; })(this.piece.getModelMaterials(), piece2.getModelMaterials()) 
-                    && this.piece.getShininess() == piece2.getShininess());
-      }
-      else {
-        return false;
-      }
-    };
-    
-    HomePieceOfFurnitureTopViewIconKey.prototype.hashCode = function() {
-      return this.hash;
-    };
-    
-    return HomePieceOfFurnitureTopViewIconKey;
-  }());
-  PlanComponent.HomePieceOfFurnitureTopViewIconKey = HomePieceOfFurnitureTopViewIconKey;
-  HomePieceOfFurnitureTopViewIconKey["__class"] = "com.eteks.sweethome3d.swing.PlanComponent.HomePieceOfFurnitureTopViewIconKey";
-
-
-  // =======================================================
-  // Anonymous classes (TODO: remove or replace)
-  var PlanComponent$15 = (function() {
-    function PlanComponent$15(__parent, controller) {
-      this.controller = controller;
-      this.__parent = __parent;
-    }
-    /**
-     *
-     * @param {java.awt.event.FocusEvent} ev
-     */
-    PlanComponent$15.prototype.focusLost = function(ev) {
-      this.controller.escape();
-    };
-    return PlanComponent$15;
-  }());
-  PlanComponent.PlanComponent$15 = PlanComponent$15;
-  PlanComponent$15["__interfaces"] = ["java.util.EventListener", "java.awt.event.FocusListener"];
-  var PlanComponent$16 = (function() {
-    function PlanComponent$16(__parent) {
-      this.__parent = __parent;
-    }
-    PlanComponent$16.prototype.propertyChange = function(ev) {
-      if (!(this.__parent.home.getSelectedItems().length == 0)) {
-        this.__parent.repaint();
-      }
-    };
-    return PlanComponent$16;
-  }());
-  PlanComponent.PlanComponent$16 = PlanComponent$16;
-  PlanComponent$16["__interfaces"] = ["java.util.EventListener", "java.beans.PropertyChangeListener"];
-  var PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ = (function() {
-    function PlanComponent$20 /*extends javax.swing.JFormattedTextField*/(__parent) {
-      _super.call(this);
-      this.__parent = __parent;
-    }
-    /**
-     *
-     * @return {java.awt.Dimension}
-     */
-    PlanComponent$20 /*extends javax.swing.JFormattedTextField*/.prototype.getPreferredSize = function() {
-      var preferredSize = _super.prototype.getPreferredSize.call(this);
-      return new java.awt.Dimension(preferredSize.width + 1, preferredSize.height);
-    };
-    return PlanComponent$20 /*extends javax.swing.JFormattedTextField*/;
-  }());
-  PlanComponent.PlanComponent$20 /*extends javax.swing.JFormattedTextField*/ = PlanComponent$20 /*extends javax.swing.JFormattedTextField*/;
-  PlanComponent$20["__interfaces"] = ["javax.swing.Scrollable", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "javax.accessibility.Accessible", "javax.swing.SwingConstants", "java.awt.image.ImageObserver", "java.io.Serializable"];
-  var PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = (function() {
-    function PlanComponent$21 /*implements javax.swing.event.DocumentListener*/(__parent, textField, controller, editableProperty) {
-      this.textField = textField;
-      this.controller = controller;
-      this.editableProperty = editableProperty;
-      this.__parent = __parent;
-    }
-    PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.changedUpdate = function(ev) {
-      try {
-        this.textField.commitEdit();
-        this.controller.updateEditableProperty(this.editableProperty, this.textField.getValue());
-      }
-      catch (ex) {
-        this.controller.updateEditableProperty(this.editableProperty, null);
-      }
-      ;
-    };
-    PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.insertUpdate = function(ev) {
-      this.changedUpdate(ev);
-    };
-    PlanComponent$21 /*implements javax.swing.event.DocumentListener*/.prototype.removeUpdate = function(ev) {
-      this.changedUpdate(ev);
-    };
-    return PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
-  }());
-  PlanComponent.PlanComponent$21 /*implements javax.swing.event.DocumentListener*/ = PlanComponent$21 /*implements javax.swing.event.DocumentListener*/;
-  PlanComponent$21["__interfaces"] = ["java.util.EventListener", "javax.swing.event.DocumentListener"];
-  var PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = (function() {
-    function PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/(__parent) {
-      _super.call(this);
-      this.__parent = __parent;
-    }
-    /**
-     *
-     * @param {java.awt.event.MouseEvent} ev
-     */
-    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mousePressed = function(ev) {
-      this.mouseMoved(ev);
-    };
-    /**
-     *
-     * @param {java.awt.event.MouseEvent} ev
-     */
-    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseReleased = function(ev) {
-      this.mouseMoved(ev);
-    };
-    /**
-     *
-     * @param {java.awt.event.MouseEvent} ev
-     */
-    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseMoved = function(ev) {
-      this.__parent.dispatchEvent(javax.swing.SwingUtilities.convertMouseEvent(this.__parent.toolTipWindow, ev, this.__parent));
-    };
-    /**
-     *
-     * @param {java.awt.event.MouseEvent} ev
-     */
-    PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/.prototype.mouseDragged = function(ev) {
-      this.mouseMoved(ev);
-    };
-    return PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/;
-  }());
-  PlanComponent.PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/ = PlanComponent$24 /*extends javax.swing.event.MouseInputAdapter*/;
-  PlanComponent$24["__interfaces"] = ["java.util.EventListener", "java.awt.event.MouseMotionListener", "javax.swing.event.MouseInputListener", "java.awt.event.MouseWheelListener", "java.awt.event.MouseListener"];
-  var PlanComponent$25 = (function() {
-    function PlanComponent$25(__parent, toolTipEditedProperties) {
-      var _this = this;
-      this.toolTipEditedProperties = toolTipEditedProperties;
-      this.__parent = __parent;
-      if (this.focusedTextFieldIndex === undefined)
-        this.focusedTextFieldIndex = 0;
-      if (this.focusedTextField === undefined)
-        this.focusedTextField = null;
-      (function() {
-        _this.setFocusedTextFieldIndex(0);
-      })();
-    }
-    PlanComponent$25.prototype.setFocusedTextFieldIndex = function(textFieldIndex) {
-      if (this.focusedTextField != null) {
-        this.focusedTextField.getCaret().setVisible(false);
-        this.focusedTextField.getCaret().setSelectionVisible(false);
-        this.focusedTextField.setValue(this.focusedTextField.getValue());
-      }
-      this.focusedTextFieldIndex = textFieldIndex;
-      this.focusedTextField = CoreTools.getFromMap(this.__parent.toolTipEditableTextFields, this.toolTipEditedProperties[textFieldIndex]);
-      if (this.focusedTextField.getText().length === 0) {
-        this.focusedTextField.getCaret().setVisible(false);
-      }
-      else {
-        this.focusedTextField.selectAll();
-      }
-      this.focusedTextField.getCaret().setSelectionVisible(true);
-    };
-    PlanComponent$25.prototype.keyPressed = function(ev) {
-      this.keyTyped(ev);
-    };
-    PlanComponent$25.prototype.keyReleased = function(ev) {
-      if (ev.getKeyCode() !== java.awt.event.KeyEvent.VK_CONTROL && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ALT) {
-        java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(this.focusedTextField, ev);
-      }
-    };
-    PlanComponent$25.prototype.keyTyped = function(ev) {
-      var forwardKeys = this.focusedTextField.getFocusTraversalKeys(java.awt.KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
-      if ((forwardKeys.indexOf((java.awt.AWTKeyStroke.getAWTKeyStrokeForEvent(ev))) >= 0) || ev.getKeyCode() === java.awt.event.KeyEvent.VK_DOWN) {
-        this.setFocusedTextFieldIndex((this.focusedTextFieldIndex + 1) % this.toolTipEditedProperties.length);
-        ev.consume();
-      }
-      else {
-        var backwardKeys = this.focusedTextField.getFocusTraversalKeys(java.awt.KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);
-        if ((backwardKeys.indexOf((java.awt.AWTKeyStroke.getAWTKeyStrokeForEvent(ev))) >= 0) || ev.getKeyCode() === java.awt.event.KeyEvent.VK_UP) {
-          this.setFocusedTextFieldIndex((this.focusedTextFieldIndex - 1 + this.toolTipEditedProperties.length) % this.toolTipEditedProperties.length);
-          ev.consume();
-        }
-        else if ((ev.getKeyCode() === java.awt.event.KeyEvent.VK_HOME || ev.getKeyCode() === java.awt.event.KeyEvent.VK_END) && com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && !com.eteks.sweethome3d.tools.OperatingSystem.isMacOSXLeopardOrSuperior()) {
-          if (ev.getKeyCode() === java.awt.event.KeyEvent.VK_HOME) {
-            this.focusedTextField.setCaretPosition(0);
-          }
-          else if (ev.getKeyCode() === java.awt.event.KeyEvent.VK_END) {
-            this.focusedTextField.setCaretPosition(this.focusedTextField.getText().length);
-          }
-          ev.consume();
-        }
-        else if (ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ESCAPE && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_CONTROL && ev.getKeyCode() !== java.awt.event.KeyEvent.VK_ALT) {
-          java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(this.focusedTextField, ev);
-          this.focusedTextField.getCaret().setVisible(true);
-          this.__parent.toolTipWindow.pack();
-        }
-      }
-    };
-    return PlanComponent$25;
-  }());
-  PlanComponent.PlanComponent$25 = PlanComponent$25;
-  PlanComponent$25["__interfaces"] = ["java.util.EventListener", "java.awt.event.KeyListener"];
-
-})(PlanComponent || (PlanComponent = {}));
+                     }
+                   }
+                   return hashCode | 0; })(piece.getModelMaterials())
+        + (piece.getShininess() != null ? 37 * ((piece.getShininess() * 1000) | 0) : 3456);
+  }
+}
+  
+/**
+ * @param {Object} obj
+ * @return {boolean}
+ * @private
+ */
+PlanComponent.HomePieceOfFurnitureTopViewIconKey.prototype.equals = function(obj) {
+  if (obj instanceof PlanComponent.HomePieceOfFurnitureTopViewIconKey) {
+    var piece2 = obj.piece;
+    // Test all furniture data that could make change the plan icon
+    // (see HomePieceOfFurniture3D and PlanComponent#addModelListeners for changes conditions)
+    return (this.piece.getPlanIcon() != null
+            ? this.piece.getPlanIcon().equals(piece2.getPlanIcon())
+            : this.piece.getModel().equals(piece2.getModel()))
+        && (this.piece.getColor() == piece2.getColor())
+        && (this.piece.getTexture() == piece2.getTexture()
+            || this.piece.getTexture() != null && this.piece.getTexture().equals(piece2.getTexture()))
+        && (!this.piece.isHorizontallyRotated()
+                && !piece2.isHorizontallyRotated()
+                && this.piece.getTexture() == null
+                && piece2.getTexture() == null
+            || this.piece.getWidthInPlan() == piece2.getWidthInPlan()
+                && this.piece.getDepthInPlan() == piece2.getDepthInPlan()
+                && this.piece.getHeightInPlan() == piece2.getHeightInPlan())
+        && (this.piece.getPlanIcon() != null
+            || (function(matrix1, matrix2) { 
+                  return matrix1[0][0] == matrix2[0][0] && matrix1[0][1] == matrix2[0][1] && matrix1[0][2] == matrix2[0][2]
+                      && matrix1[1][0] == matrix2[1][0] && matrix1[1][1] == matrix2[1][1] && matrix1[1][2] == matrix2[1][2]
+                      && matrix1[2][0] == matrix2[2][0] && matrix1[2][1] == matrix2[2][1] && matrix1[2][2] == matrix2[2][2]; })(this.piece.getModelRotation(), piece2.getModelRotation()) 
+                && this.piece.isModelCenteredAtOrigin() == piece2.isModelCenteredAtOrigin()
+                && this.piece.isBackFaceShown() == piece2.isBackFaceShown()
+                && this.piece.getPitch() == piece2.getPitch()
+                && this.piece.getRoll() == piece2.getRoll()
+                && (function(array1, array2) { 
+                      if (array1 === array2) return true;
+                      if (array1 == null || array2 == null || array1.length !== array2.length) return false;
+                      for (var i = 0; i < array1.length; i++) {
+                        if (array1[i] !== array2[i] && (array1[i] == null || !array1[i].equals(array2[i]))) return false;
+                      }
+                      return true; })(this.piece.getModelTransformations(), piece2.getModelTransformations()) 
+                && (function(array1, array2) { 
+                      if (array1 === array2) return true;
+                      if (array1 == null || array2 == null || array1.length !== array2.length) return false;
+                      for (var i = 0; i < array1.length; i++) {
+                        if (array1[i] !== array2[i] && (array1[i] == null || !array1[i].equals(array2[i]))) return false;
+                      }
+                      return true; })(this.piece.getModelMaterials(), piece2.getModelMaterials()) 
+                && this.piece.getShininess() == piece2.getShininess());
+  } else {
+    return false;
+  }
+}
+  
+/**
+ * @private
+ */
+PlanComponent.HomePieceOfFurnitureTopViewIconKey.prototype.hashCode = function() {
+  return this.hashCode;
+}

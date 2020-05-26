@@ -1324,9 +1324,10 @@ HTMLCanvas3D.prototype.isLoadingCompleted = function() {
 
 /**
  * Creates an image of canvas content.
+ * @param {function} [observer] a function that will receive the generated image as parameter.
  * @return {Image} the image of the canvas
  */
-HTMLCanvas3D.prototype.getImage = function() {
+HTMLCanvas3D.prototype.getImage = function(observer) {
   // Return image with possible missing texture images
   if (this.canvasNeededRepaint) {
     this.drawScene();
@@ -1334,7 +1335,19 @@ HTMLCanvas3D.prototype.getImage = function() {
   }
   
   var image = new Image();
+  var imageLoadingListener;
+  if (observer !== undefined) {
+    imageLoadingListener = function(ev) {
+        image.removeEventListener("load", imageLoadingListener);
+        observer(image);
+      };
+    image.addEventListener("load", imageLoadingListener);
+  }
   image.src = this.canvas.toDataURL();
+  if (image.width !== 0 
+      && observer !== undefined) {
+    imageLoadingListener();
+  }
   return image;
 }
 
