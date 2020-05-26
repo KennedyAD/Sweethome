@@ -110,7 +110,24 @@ UserPreferences.prototype.write = function() {
 }
 
 /**
- * Adds the <code>listener</code> in parameter to these preferences. 
+ * Adds the property change <code>listener</code> in parameter to these preferences.
+ * @since 6.4
+ */
+UserPreferences.prototype.addPropertyChangeListener = function(listener) {
+  this.propertyChangeSupport.addPropertyChangeListener(listener);
+}
+
+/**
+ * Removes the property change <code>listener</code> in parameter from these preferences.
+ * @since 6.4
+ */
+UserPreferences.prototype.removePropertyChangeListener = function(listener) {
+  this.propertyChangeSupport.removePropertyChangeListener(listener);
+}
+
+/**
+ * Adds the <code>listener</code> in parameter to these preferences to listen
+ * to the changes of the given <code>property</code>.
  * The listener is a function that will receive in parameter an event of {@link PropertyChangeEvent} class.
  */
 UserPreferences.prototype.addPropertyChangeListener = function(property, listener) {

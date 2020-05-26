@@ -207,7 +207,7 @@ PropertyChangeSupport.prototype.removePropertyChangeListener = function(property
   if (listener) {
     for (var i = this.listeners.length - 1; i >= 0; i--) {
       if (this.listeners[i].propertyName == propertyName
-        && this.listeners[i].listener === listener) {
+          && this.listeners[i].listener === listener) {
         this.listeners.splice(i, 1);
       }
     }
@@ -224,7 +224,7 @@ PropertyChangeSupport.prototype.getPropertyChangeListeners = function(propertyNa
   var listeners = [];
   for (var i = this.listeners.length - 1; i >= 0; i--) {
     if (this.listeners[i].propertyName == propertyName
-      && this.listeners[i].listener === listener) {
+        && this.listeners[i].listener === listener) {
       listeners.push(this.listeners[i]);
     }
   }
@@ -242,7 +242,7 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
     var ev = new PropertyChangeEvent(this.source, propertyName, oldValue, newValue);
     for (var i = 0; i < this.listeners.length; i++) {
       if (!("propertyName" in this.listeners[i])
-        || this.listeners[i].propertyName == propertyName) {
+          || this.listeners[i].propertyName == propertyName) {
         if (typeof (this.listeners[i].listener) === "function") {
           this.listeners[i].listener(ev);
         } else {

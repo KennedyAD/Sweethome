@@ -270,41 +270,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           return true;
         }
         break;
-      case "com.eteks.sweethome3d.model.UserPreferences.Property":
-        if (invocation.getMethodName().equals("values")) {
-          print("[");
-          print("'LANGUAGE',");
-          print("'UNIT',");
-          print("'CURRENCY',");
-          print("'VALUE_ADDED_TAX_ENABLED',");
-          print("'DEFAULT_VALUE_ADDED_TAX_PERCENTAGE',");
-          print("'MAGNETISM_ENABLED',");
-          print("'RULERS_VISIBLE',");
-          print("'GRID_VISIBLE',");
-          print("'DEFAULT_FONT_NAME',");
-          print("'FURNITURE_VIEWED_FROM_TOP',");
-          print("'FURNITURE_MODEL_ICON_SIZE',");
-          print("'ROOM_FLOOR_COLORED_OR_TEXTURED',");
-          print("'WALL_PATTERN',");
-          print("'NEW_WALL_PATTERN',");
-          print("'NEW_WALL_THICKNESS',");
-          print("'NEW_WALL_HEIGHT',");
-          print("'NEW_WALL_SIDEBOARD_THICKNESS',");
-          print("'NEW_WALL_SIDEBOARD_HEIGHT',");
-          print("'NEW_FLOOR_THICKNESS',");
-          print("'RECENT_HOMES',");
-          print("'IGNORED_ACTION_TIP',");
-          print("'FURNITURE_CATALOG_VIEWED_IN_TREE',");
-          print("'NAVIGATION_PANEL_VISIBLE',");
-          print("'AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED',");
-          print("'OBSERVER_CAMERA_SELECTED_AT_CHANGE',");
-          print("'AUTO_SAVE_DELAY_FOR_RECOVERY',");
-          print("'AUTO_COMPLETION_STRINGS',");
-          print("'RECENT_COLORS',");
-          print("'RECENT_TEXTURES'");
-          print("]");
-          return true;
-        }
       case "java.text.Collator":
         switch (invocation.getMethodName()) {
         case "setStrength":
