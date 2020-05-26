@@ -515,9 +515,9 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
                 };
               controller.addPropertyChangeListener("MODIFICATION_STATE", modificationStateListener);
             }
-          }
-          if (plan.invalidFurnitureTopViewIcons.indexOf(ev.getSource()) < 0) {
-            plan.invalidFurnitureTopViewIcons.push(ev.getSource());
+            if (plan.invalidFurnitureTopViewIcons.indexOf(ev.getSource()) < 0) {
+              plan.invalidFurnitureTopViewIcons.push(ev.getSource());
+            }
           }
         }
         plan.revalidate();
