@@ -469,7 +469,7 @@ CoreTools.removeFromMap = function(map, key) {
             && map.entries[i].key.equals(key) 
           || map.entries[i].key === key) {
         var value = map.entries[i].value; // TODO Why prototype is lost?
-        delete map.entries.splice(i, 1);
+        map.entries.splice(i, 1);
         return value;
       }
     }
