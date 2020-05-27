@@ -2,19 +2,25 @@ package com.eteks.sweethome3d.json;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import org.json.JSONObject;
 
 public class PropertiesToJson {
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws IOException {
     String[] sourceProperties = { "../SweetHome3D/src/com/eteks/sweethome3d/package",
         "../SweetHome3D/src/com/eteks/sweethome3d/applet/package",
         "../SweetHome3D/src/com/eteks/sweethome3d/swing/package",
@@ -24,16 +30,15 @@ public class PropertiesToJson {
         "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW" };
     String outputDirectory = "lib/generated";
     String outputName = "localization";
-    new PropertiesToJson().convert(sourceProperties, outputDirectory, outputName, supportedLanguages);
+    new PropertiesToJson().convert(sourceProperties, outputDirectory, null, outputName, supportedLanguages);
     new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/model/LengthUnit" },
-        outputDirectory, "LengthUnit", supportedLanguages);
+        outputDirectory, null, "LengthUnit", supportedLanguages);
     new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-        outputDirectory, "DefaultFurnitureCatalog", supportedLanguages);
+        outputDirectory, "lib/resources/furniture", "DefaultFurnitureCatalog", supportedLanguages);
   }
 
-  public void convert(String[] sourceProperties, String outputDirectory, String outputName, String[] supportedLanguages)
-      throws Exception {
-
+  public void convert(String[] sourceProperties, String outputDirectory, String resourcesOutputDirectory, String outputName, String[] supportedLanguages)
+      throws IOException {
     new File(outputDirectory).mkdirs();
     for (String lang : supportedLanguages) {
       Path outputFilePath = Paths.get(outputDirectory, outputName + lang + ".json");
@@ -52,7 +57,7 @@ public class PropertiesToJson {
             properties.putAll(props);
           }
         }
-        afterLoaded(dir, name, "".equals(lang) ? "en" : lang.substring(1), properties);
+        afterLoaded(dir, resourcesOutputDirectory, name, "".equals(lang) ? "en" : lang.substring(1), properties);
       }
       System.out.println("Writing " + properties.size() + " properties to " + outputFilePath + ".");
       Files.write(outputFilePath, (new JSONObject(properties).toString(2) + "\n").getBytes("UTF-8"),
@@ -61,12 +66,46 @@ public class PropertiesToJson {
 
   }
 
-  private void afterLoaded(File dir, String name, String lang, Properties properties) {
+  private void afterLoaded(File dir, String resourcesOutputDirectory, String name, String lang, Properties properties) throws IOException {
     if ("LengthUnit".equals(name)) {
       System.out.println("***** Adding extra keys for '" + lang + "'");
       properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getGroupingSeparator());
       properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getDecimalSeparator());
+    } else if ("DefaultFurnitureCatalog".equals(name)) {
+      new File(resourcesOutputDirectory).mkdirs();
+      // Copy icon#, planIcon# images and create a .zip file containing the file pointed by model# property
+      for (Object key : properties.keySet()) {
+        String stringKey = (String)key;
+        if (stringKey.startsWith("icon#")
+            || stringKey.startsWith("planIcon#")) {
+          String currentPath = properties.getProperty(stringKey);
+          Path newPath = Paths.get(resourcesOutputDirectory, currentPath.substring(currentPath.lastIndexOf("/")));
+          Files.copy(Paths.get("../SweetHome3D/src", currentPath), newPath, StandardCopyOption.REPLACE_EXISTING);
+
+          properties.setProperty(stringKey, newPath.toString());
+        } else if (stringKey.startsWith("model#")) {
+          String currentPath = properties.getProperty(stringKey);
+          String modelFile = currentPath.substring(currentPath.lastIndexOf("/") + 1);
+          String extension = modelFile.substring(modelFile.lastIndexOf('.'));
+          // Create a .zip file containing the 3D model
+          Path newPath = Paths.get(resourcesOutputDirectory, modelFile.replace(extension, ".zip"));
+          ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath.toFile()));
+          zipOutputStream.putNextEntry(new ZipEntry(modelFile));
+          Files.copy(Paths.get("../SweetHome3D/src", currentPath), zipOutputStream);
+          zipOutputStream.closeEntry();
+          // Include .mtl file if it exists
+          if (".obj".equals(extension)
+              && Paths.get("../SweetHome3D/src", currentPath.replace(".obj", ".mtl")).toFile().exists()) {
+            String materialFile = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".obj", ".mtl");
+            zipOutputStream.putNextEntry(new ZipEntry(materialFile));
+            Files.copy(Paths.get("../SweetHome3D/src", currentPath.replace(".obj", ".mtl")), zipOutputStream);
+            zipOutputStream.closeEntry();
+          }
+          zipOutputStream.close();
+
+          properties.setProperty(stringKey, "jar:" + newPath.toString() + "!/" + modelFile);
+        }
+      }
     }
   }
-
 }

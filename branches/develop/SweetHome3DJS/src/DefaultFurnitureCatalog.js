@@ -358,7 +358,7 @@
     if (optional && contentFile == null) {
       return null;
     }
-    contentFile = contentFile.replace("/com/eteks/sweethome3d/io/resources/", ZIPTools.getScriptFolder() + "resources/catalog/");
+    // contentFile = contentFile.replace("/com/eteks/sweethome3d/io/resources/", ZIPTools.getScriptFolder() + "resources/catalog/");
     var content;
     try {
       var url = null;

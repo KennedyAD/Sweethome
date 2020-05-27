@@ -388,9 +388,6 @@
   </target>
   
   <target name="webResources">
-    <copy todir="lib/resources/catalog">
-      <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/io/resources" />
-    </copy>
     <mkdir dir="tools/json/build"/>
     <javac srcdir="tools/json/src" 
         destdir="tools/json/build/" 
