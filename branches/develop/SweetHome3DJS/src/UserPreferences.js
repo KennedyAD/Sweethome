@@ -77,11 +77,15 @@ UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
 UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) {
   this.supportedLanguages = supportedLanguages;
   // We also initialize the language except if already set and within the supported languages
-  if(!this.language || this.supportedLanguages.indexOf(this.language) === -1) {
-    var navigatorLanguage = navigator.language;
-    this.defaultCountry = navigatorLanguage.substring(navigatorLanguage.indexOf("-") + 1, navigatorLanguage.length).toUpperCase();
-    var defaultLanguage = this.language ? this.language.substring(0, this.language.indexOf("_")) 
-        : navigatorLanguage.substring(0, navigatorLanguage.indexOf("-"));
+  if (!this.language || this.supportedLanguages.indexOf(this.language) === -1) {
+    var defaultLocale = Locale.getDefault();
+    if (defaultLocale === null) {
+      defaultLocale = "en";
+    }
+    this.defaultCountry = defaultLocale.substring(defaultLocale.indexOf("_") + 1, defaultLocale.length);
+    var defaultLanguage = this.language 
+        ? this.language.substring(0, this.language.indexOf("_")) 
+        : defaultLocale.substring(0, defaultLocale.indexOf("_"));
     // Find closest language among supported languages in Sweet Home 3D
     // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
     // unless their exact locale is supported as in Taiwan (zh_TW)
