@@ -103,7 +103,7 @@ public class PropertiesToJson {
           }
           zipOutputStream.close();
 
-          properties.setProperty(stringKey, "jar:" + newPath.toString() + "!/" + modelFile);
+          properties.setProperty(stringKey, "jar:" + newPath + "!/" + modelFile);
         }
       }
     }
