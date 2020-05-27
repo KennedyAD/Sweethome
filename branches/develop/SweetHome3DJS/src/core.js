@@ -386,6 +386,22 @@ CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
 }
 
 /**
+ * Gets all the keys from an array of resource bundles. 
+ *
+ * @param resourceBundles {Object[]} an array of bundle objects to look up the keys into.
+ * @returns the list of keys found in the bundle
+ */
+CoreTools.getKeys = function(resourceBundles) {
+  var keys = {};
+  for (var i = 0; i < resourceBundles.length; i++) {
+    if(resourceBundles[i] != null) {
+      CoreTools.merge(keys,  resourceBundles[i]);
+    }
+  }
+  return Object.getOwnPropertyNames(keys);
+}
+
+/**
  * Gets an object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
  * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)

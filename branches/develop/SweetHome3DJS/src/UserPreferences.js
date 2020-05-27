@@ -33,6 +33,7 @@ function UserPreferences() {
   this.initSupportedLanguages(UserPreferences.DEFAULT_SUPPORTED_LANGUAGES);
   
   this.resourceBundles = [];
+  this.furnitureCatalogResourceBundles = [];
   this.furnitureCatalog = null;
   this.texturesCatalog = null;
   this.patternsCatalog = null;
@@ -226,6 +227,7 @@ UserPreferences.prototype.setLanguage = function(language) {
     var oldLanguage = this.language;
     this.language = language;
     this.resourceBundles = [];
+    this.furnitureCatalogResourceBundles = [];
     // make it accessible to other localized parts (e.g. LengthUnit)
     Locale.setDefault(this.language);
     this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
@@ -284,16 +286,53 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  * @throws IllegalArgumentException if no string for the given key can be found
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
-  if (this.resourceBundles.length == 0) {
-    this.resourceBundles = CoreTools.loadResourceBundles("lib/generated/localization", this.language);
+  this.getResourceBundles(resourceClass);
+  if(resourceClass == "DefaultFurnitureCatalog") {
+    return CoreTools.getStringFromKey.apply(null, [this.furnitureCatalogResourceBundles, resourceKey].concat(Array.prototype.slice.call(arguments, 2))); 
+  } else {
+    // JSweet-generated code interop: if resourceClass is a constructor, it may contain the Java class full name in __class
+    if(resourceClass.__class) {
+      var resourceClassArray = resourceClass.__class.split('.');
+      resourceClass = resourceClassArray[resourceClassArray.length - 1];
+    }
+    var key = resourceClass + "." + resourceKey;
+    return CoreTools.getStringFromKey.apply(null, [this.resourceBundles, key].concat(Array.prototype.slice.call(arguments, 2))); 
+  } 
+}
+
+/**
+ * Returns the keys of the localized property strings of the given resource family.
+ * @throws IllegalArgumentException if the given resourceFamily is not supported
+ */
+UserPreferences.prototype.getLocalizedStringKeys = function(resourceFamily) {
+  if(resourceClass == "DefaultFurnitureCatalog") {
+    var keys = {};
+    for (var i = 0; i < resourceBundles.length; i++) {
+      if(resourceBundles[i] != null) {
+        CoreTools.merge(keys,  resourceBundles[i]);
+      }
+    }
+    return Object.getOwnPropertyNames(keys);
+  } else {
+    throw new IllegalArgumentException("unsupported family");
   }
-  // JSweet-generated code interop: if resourceClass is a constructor, it may contain the Java class full name in __class
-  if(resourceClass.__class) {
-    var resourceClassArray = resourceClass.__class.split('.');
-    resourceClass = resourceClassArray[resourceClassArray.length - 1];
-  }
-  var key = resourceClass + "." + resourceKey;
-  return CoreTools.getStringFromKey.apply(null, [this.resourceBundles, key].concat(Array.prototype.slice.call(arguments, 2)));  
+}
+
+/**
+ * Returns the resource bundle for the given resource family.
+ */
+UserPreferences.prototype.getResourceBundles = function(resourceClass) {
+  if(resourceClass == "DefaultFurnitureCatalog") {
+    if (this.furnitureCatalogResourceBundles.length == 0) {
+      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("lib/generated/DefaultFurnitureCatalog", this.language);
+    }
+    return this.furnitureCatalogResourceBundles;
+  } else {
+    if (this.resourceBundles.length == 0) {
+      this.resourceBundles = CoreTools.loadResourceBundles("lib/generated/localization", this.language);
+    }
+    return this.resourceBundles;
+  } 
 }
 
 /**
@@ -959,7 +998,7 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   patterns.push(new DefaultPatternTexture("crossHatch"));
   var patternsCatalog = new PatternsCatalog(patterns);  
   this.setPatternsCatalog(patternsCatalog);
-  this.setFurnitureCatalog(new FurnitureCatalog());
+  this.setFurnitureCatalog(new DefaultFurnitureCatalog(this));
   this.setTexturesCatalog(new TexturesCatalog());
   
   this.setNavigationPanelVisible(false);

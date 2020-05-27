@@ -504,6 +504,10 @@ var HomePane = (function () {
     setTimeout(function() {
         controller.focusedViewChanged(controller.getPlanController().getView());
       });
+
+    // TODO: this method is not in the view interface
+    this.controller.getFurnitureCatalogController().getView().enableAddHomeFurnitureAction(this.getAction(HomeView.ActionType.ADD_HOME_FURNITURE));
+
     return this;
   }
 

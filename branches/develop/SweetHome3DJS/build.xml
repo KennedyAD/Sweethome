@@ -14,7 +14,7 @@
   <!-- The current version of Sweet Home 3D JS -->
   <property name="version" value="6.3"/>
 
-  <target name="concat" depends="generatedLibraries"
+  <target name="concat" depends="generatedLibraries, webResources"
           description="Concat Javacript files in dist/build directory">
     <mkdir dir="dist/build" />
     <concat destfile="dist/build/viewmodel.min.js" encoding="UTF-8">
@@ -386,4 +386,26 @@
     <!-- Clean build directory -->
     <delete dir="tools/JSweet/build" />
   </target>
+  
+  <target name="webResources">
+    <copy todir="lib/resources/catalog">
+      <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/io/resources" />
+    </copy>
+    <mkdir dir="tools/json/build"/>
+    <javac srcdir="tools/json/src" 
+        destdir="tools/json/build/" 
+        classpath="tools/json/lib/json-20190722.jar" 
+        source="1.8" 
+        encoding="ISO-8859-1"
+        includes="com/eteks/sweethome3d/json/*" />
+    <java classname="com.eteks.sweethome3d.json.PropertiesToJson" fork="true" failonerror="true">
+      <classpath>
+        <pathelement location="tools/json/build" />
+        <pathelement location="tools/json/lib/json-20190722.jar"/>
+      </classpath>
+    </java>
+    <!-- Clean build directory -->
+    <delete dir="tools/json/build" />
+  </target>
+  
 </project>

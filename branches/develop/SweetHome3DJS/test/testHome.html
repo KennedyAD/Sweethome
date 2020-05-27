@@ -63,6 +63,8 @@
 <script type="text/javascript" src="src/graphics2d.js"></script>
 <script type="text/javascript" src="src/PlanComponent.js"></script>
 <script type="text/javascript" src="src/HomePane.js"></script>
+<script type="text/javascript" src="src/DefaultFurnitureCatalog.js"></script>
+<script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
 #canvas2D::selection { background: #0042E0; }
@@ -187,6 +189,27 @@ function testLengthUnit() {
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
   
   assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
+}
+
+/**
+ * Tests furniture catalog.  
+ */
+function testFurnitureCatalog() {
+  var preferences = new DefaultUserPreferences();
+  var furnitureCatalog = preferences.getFurnitureCatalog();
+  assertTrue("Wrong type of furniture catalog", furnitureCatalog instanceof DefaultFurnitureCatalog);
+  assertTrue("Empty furniture catalog", furnitureCatalog.getCategories().length > 0);
+  assertEquals("Unconsistant category count", furnitureCatalog.getCategoriesCount(), furnitureCatalog.getCategories().length);
+  assertEquals("Wrong category", "Bathroom", furnitureCatalog.getCategories()[0].getName());
+  assertEquals("Wrong furniture", "Bath", furnitureCatalog.getCategories()[0].getFurniture()[0].getName());
+  console.log(furnitureCatalog.getCategories()[0]);
+
+  preferences.setLanguage("fr_FR");
+  // TODO: shouldn't we reload the furniture catalog when language changes??
+  preferences.setFurnitureCatalog(new DefaultFurnitureCatalog(preferences));
+  furnitureCatalog = preferences.getFurnitureCatalog();
+  assertEquals("Wrong category", "Chambre", furnitureCatalog.getCategories()[0].getName());
+  assertEquals("Wrong furniture", "Armoire", furnitureCatalog.getCategories()[0].getFurniture()[0].getName());
 }
 
 /**
@@ -503,7 +526,7 @@ function displayHome(home, preferences) {
   preferences.setFurnitureViewedFromTop(true);
   var factory = {
       createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
-        return null;
+        return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
       },
       createFurnitureView: function(home, preferences, furnitureController) {
         return null;
@@ -513,7 +536,6 @@ function displayHome(home, preferences) {
       }, 
       createView3D: function(home, preferences, homeController3D) {
         return new HomeComponent3D("canvas3D", home, preferences, null, homeController3D);
-        
       },
       createHomeView: function(home, preferences, homeController) {
         return new HomePane(home, preferences, homeController);
@@ -543,12 +565,16 @@ function displayHome(home, preferences) {
 <div id="home-pane-toolbar">
 </div>
 
+<div id="furniture-catalog">
+</div>
+
 <canvas id="canvas3D_2" style="display: none; background-color: #CCCCCC; border: 1px solid gray" 
         width="600" height="300" tabIndex="3"></canvas>
 
 <script type="text/javascript">
 testLocalization();
 testLengthUnit();
+testFurnitureCatalog();
 var geomAvailable = typeof java.awt.geom.PathIterator !== "undefined";
 if (geomAvailable) {
   testGeom();

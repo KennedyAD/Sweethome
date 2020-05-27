@@ -27,7 +27,8 @@ public class PropertiesToJson {
     new PropertiesToJson().convert(sourceProperties, outputDirectory, outputName, supportedLanguages);
     new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/model/LengthUnit" },
         outputDirectory, "LengthUnit", supportedLanguages);
-
+    new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
+        outputDirectory, "DefaultFurnitureCatalog", supportedLanguages);
   }
 
   public void convert(String[] sourceProperties, String outputDirectory, String outputName, String[] supportedLanguages)
