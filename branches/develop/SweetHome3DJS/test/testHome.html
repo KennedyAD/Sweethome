@@ -195,6 +195,7 @@ function testLengthUnit() {
  * Tests furniture catalog.  
  */
 function testFurnitureCatalog() {
+  Locale.setDefault("en_US");
   var preferences = new DefaultUserPreferences();
   var furnitureCatalog = preferences.getFurnitureCatalog();
   assertTrue("Wrong type of furniture catalog", furnitureCatalog instanceof DefaultFurnitureCatalog);
@@ -202,9 +203,8 @@ function testFurnitureCatalog() {
   assertEquals("Unconsistant category count", furnitureCatalog.getCategoriesCount(), furnitureCatalog.getCategories().length);
   assertEquals("Wrong category", "Bathroom", furnitureCatalog.getCategories()[0].getName());
   assertEquals("Wrong furniture", "Bath", furnitureCatalog.getCategories()[0].getFurniture()[0].getName());
-  console.log(furnitureCatalog.getCategories()[0]);
-
-  preferences.setLanguage("fr_FR");
+  
+  preferences.setLanguage("fr");
   // TODO: shouldn't we reload the furniture catalog when language changes??
   preferences.setFurnitureCatalog(new DefaultFurnitureCatalog(preferences));
   furnitureCatalog = preferences.getFurnitureCatalog();
@@ -421,8 +421,8 @@ function testHome(geomAvailable) {
       {
         homeLoaded: function(home) {
           assertTrue("No furniture", home.getFurniture().length > 0);
+	      Locale.setDefault("en_US");
           var preferences = new DefaultUserPreferences();
-	      preferences.setLanguage("en");
           displayHome(home, preferences);
           // Add objects to home and make them blink      
           home.addPieceOfFurniture(piece);
