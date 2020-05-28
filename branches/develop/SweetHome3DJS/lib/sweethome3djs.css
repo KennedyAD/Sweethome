@@ -108,7 +108,7 @@
   visibility: visible;
 /*  position: absolute; */
   top: 0px;
-  width: 99%;
+  width: 100%;
   z-index: 2;
   background-color: rgba(0, 0, 0, 0.1);
   padding-top: 1px;
@@ -234,6 +234,7 @@
   background-color: gray;
   border-bottom: solid black 1px;
   margin-bottom: 1em;
+  padding: 4px;
 }
 
 .furniture {

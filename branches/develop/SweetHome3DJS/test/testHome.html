@@ -67,10 +67,44 @@
 <script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
+#home-pane-toolbar {
+  position: absolute;
+  top: 0px;
+  height: 30px;
+}
+body {
+  padding-top: 30px;
+  height: calc(100% - 30px);
+}
+#furniture-catalog {
+  position: absolute;
+  top: 30px;
+  width: 300px;
+  height: calc(100% - 30px);
+  overflow-y: scroll;
+}
+#canvas2D {
+  float: right;
+  width: calc(100% - 300px);
+  height: calc(50% - 2px);
+}
+#canvas3D {
+  float: right;
+  width: calc(100% - 300px);
+  height: calc(50% - 2px);
+}
+.furniture {
+  width: 60px;
+  height: 80px;
+  margin: 5px;
+}
+body {
+  margin: 0px;
+}
 #canvas2D::selection { background: #0042E0; }
 </style>
 </head>
-<body style="margin-top:0px; margin-bottom:0px;">
+<body>
 <script type="text/javascript">
 var animate = false;
 
@@ -556,10 +590,10 @@ function displayHome(home, preferences) {
 }
 </script>
 
-<canvas id="canvas3D" style="width:98%; height:45%; background-color: #CCCCCC; border: 1px solid gray;" 
+<canvas id="canvas3D" style="background-color: #CCCCCC; border: 1px solid gray;" 
         tabIndex="1"></canvas>
 
-<div id="canvas2D" style="width: 98%; height: 50%; background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
+<div id="canvas2D" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
         tabIndex="2" ></div>
 
 <div id="home-pane-toolbar">
