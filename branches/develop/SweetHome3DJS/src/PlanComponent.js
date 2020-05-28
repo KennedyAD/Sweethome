@@ -1248,11 +1248,12 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
               controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
               controller.releaseMouse(xModel, yModel);
             } else if (mouseListener.isLongTouch()
+                       && controller.getMode() !== PlanController.Mode.SELECTION // TODO Remove once editing panels exist
                        && mouseListener.initialPointerLocation != null
                        && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
-              // TODO Emulate double click
-              // controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
-              // controller.releaseMouse(xModel, yModel);
+               // Emulate double click
+               controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+               controller.releaseMouse(xModel, yModel);
             } 
             
             plan.stopIndicatorAnimation();
