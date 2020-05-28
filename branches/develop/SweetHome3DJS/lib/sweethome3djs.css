@@ -220,7 +220,7 @@
 /*******************************/
 
 .furniture-catalog {
-  overflow: scroll;
+  overflow-y: scroll;
 }
 
 .furniture-category {
@@ -243,7 +243,6 @@
   width: 80px;
   height: 100px;
   background-color: white;
-  margin-bottom: 1em;
 }
 
 .furniture.selected {
@@ -257,10 +256,25 @@
   font-size: 10px;
   width: 100%;
   text-align: center;
+  pointer-events: none;
 }
 
 .furniture > .furniture-icon {
   position: absolute;
   top: 0px;
   width: 100%;
+  pointer-events: none;
 }
+
+@media (orientation: portrait) {
+
+  .furniture-catalog {
+    overflow-y: scroll;
+  }
+
+  .furniture-category > .furniture-category-label {
+    display: none;
+  }
+
+}
+

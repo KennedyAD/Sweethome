@@ -67,73 +67,88 @@
 <script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
+
 body {
   margin: 0px;
-  padding-top: 30px;
-  height: calc(100% - 30px);
 }
-#home-pane-toolbar {
-  position: absolute;
-  top: 0px;
-  height: 30px;
-}
-#furniture-catalog {
-  position: absolute;
-  top: 30px;
-  width: 300px;
-  height: calc(100% - 30px);
-  overflow-y: scroll;
-}
-#canvas2D {
-  float: right;
-  width: calc(100% - 300px);
-  height: calc(50% - 2px);
-}
-#canvas3D {
-  float: right;
-  width: calc(100% - 300px);
-  height: calc(50% - 2px);
-}
+
 .furniture {
   width: 60px;
   height: 80px;
   margin: 5px;
 }
-@media (orientation: portrait) {
+
+#home-pane-toolbar {
+  height: 30px;
+}
+
+#home-pane-toolbar, #furniture-catalog, #canvas2D, #canvas3D {
+  position: absolute;
+}
+
+@media (orientation: landscape) {
 
   body {
-   padding-top: 0px;
+    padding-top: 30px;
+    height: calc(100% - 30px);
+  }
+
+  #home-pane-toolbar {
+    top: 0px;
+  }
+
+  #furniture-catalog {
+    top: 30px;
+    width: 300px;
+    height: calc(100% - 30px);
+    overflow-y: scroll; 
+  }
+
+  #canvas2D {
+    top: 30px;
+    left: 300px;
+    width: calc(100% - 300px);
+    height: calc(50% - 2px);
+  }
+
+  #canvas3D {
+    top: calc(50% + 32px);
+    left: 300px;
+    width: calc(100% - 300px);
+    height: calc(50% - 2px);
+  }
+
+}
+
+@media (orientation: portrait) {
+
+  #canvas3D {
+    top: 0%;
+    width: 100%;
+    height: 40%;
+  }
+
+  #canvas2D {
+    top: 40%;
+    width: 100%;
+    height: 40%;
+  }
+
+  #furniture-catalog {
+    top: 80%;
+    width: 100%;
+    height: calc(20% - 32px);
+    overflow-y: scroll; 
   }
 
   #home-pane-toolbar {
     top: calc(100% - 30px);
   }
 
-  #furniture-catalog {
-    position: absolute;
-    top: 0%;
-    width: 100%;
-    height: calc(33.33% - 2px);
-    overflow-y: scroll;
-  }
-
-  #canvas3D {
-    position: absolute;
-    top: 33.33%;
-    width: 100%;
-    height: calc(33.33% - 2px);
-  }
-
-  #canvas2D {
-    position: absolute;
-    top: 66.66%;
-    width: 100%;
-    height: calc(33.33% - 2px);
-  }
-
 }
 
 #canvas2D::selection { background: #0042E0; }
+
 </style>
 </head>
 <body>

@@ -39,7 +39,9 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.container = document.getElementById(containerOrCanvasId);
   var computedStyle = window.getComputedStyle(this.container);
   this.font = [computedStyle.fontStyle, computedStyle.fontSize, computedStyle.fontFamily].join(' ');
-  this.container.style.position = "relative";
+  if(computedStyle.position != "absolute") {
+    this.container.style.position = "relative";
+  }
   if (this.container instanceof HTMLCanvasElement) {
     this.canvas = this.view = this.container; // No scrollPane
     this.canvas.width = this.canvas.clientWidth; 

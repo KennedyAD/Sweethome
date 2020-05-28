@@ -2302,77 +2302,29 @@ var HomePane = (function () {
    * @param {boolean} enabled
    */
   HomePane.prototype.setTransferEnabled = function (enabled) {
-    // var dragAndDropWithTransferHandlerSupported;
-    // try {
-    //     dragAndDropWithTransferHandlerSupported = !javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.dragAndDropWithoutTransferHandler");
-    // }
-    // catch (ex) {
-    //     dragAndDropWithTransferHandlerSupported = false;
-    // }
-    // ;
-    // var catalogView = this.controller.getFurnitureCatalogController().getView();
-    // var furnitureView = this.controller.getFurnitureController().getView();
-    // var planView = this.controller.getPlanController().getView();
-    // if (enabled) {
-    //     if (catalogView != null) {
-    //         catalogView.setTransferHandler(this.catalogTransferHandler);
-    //     }
-    //     if (furnitureView != null) {
-    //         furnitureView.setTransferHandler(this.furnitureTransferHandler);
-    //         if (furnitureView != null && (furnitureView["__interfaces"] != null && furnitureView["__interfaces"].indexOf("javax.swing.Scrollable") >= 0 || furnitureView.constructor != null && furnitureView.constructor["__interfaces"] != null && furnitureView.constructor["__interfaces"].indexOf("javax.swing.Scrollable") >= 0)) {
-    //             furnitureView.getParent().setTransferHandler(this.furnitureTransferHandler);
-    //         }
-    //     }
-    //     if (planView != null) {
-    //         planView.setTransferHandler(this.planTransferHandler);
-    //     }
-    //     if (!dragAndDropWithTransferHandlerSupported) {
-    //         if (catalogView != null) {
-    //             var viewports = SwingTools.findChildren(catalogView, javax.swing.JViewport);
-    //             var catalogComponent = void 0;
-    //             if ( /* size */viewports.length > 0) {
-    //                 catalogComponent = viewports[0].getView();
-    //             }
-    //             else {
-    //                 catalogComponent = catalogView;
-    //             }
-    //             if (this.furnitureCatalogDragAndDropListener == null) {
-    //                 this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
-    //             }
-    //             catalogComponent.addMouseListener(this.furnitureCatalogDragAndDropListener);
-    //             catalogComponent.addMouseMotionListener(this.furnitureCatalogDragAndDropListener);
-    //         }
-    //     }
-    // }
-    // else {
-    //     if (catalogView != null) {
-    //         catalogView.setTransferHandler(null);
-    //     }
-    //     if (furnitureView != null) {
-    //         furnitureView.setTransferHandler(null);
-    //         if (furnitureView != null && (furnitureView["__interfaces"] != null && furnitureView["__interfaces"].indexOf("javax.swing.Scrollable") >= 0 || furnitureView.constructor != null && furnitureView.constructor["__interfaces"] != null && furnitureView.constructor["__interfaces"].indexOf("javax.swing.Scrollable") >= 0)) {
-    //             furnitureView.getParent().setTransferHandler(null);
-    //         }
-    //     }
-    //     if (planView != null) {
-    //         planView.setTransferHandler(null);
-    //     }
-    //     if (!dragAndDropWithTransferHandlerSupported) {
-    //         if (catalogView != null) {
-    //             var viewports = SwingTools.findChildren(catalogView, javax.swing.JViewport);
-    //             var catalogComponent = void 0;
-    //             if ( /* size */viewports.length > 0) {
-    //                 catalogComponent = viewports[0].getView();
-    //             }
-    //             else {
-    //                 catalogComponent = catalogView;
-    //             }
-    //             catalogComponent.removeMouseListener(this.furnitureCatalogDragAndDropListener);
-    //             catalogComponent.removeMouseMotionListener(this.furnitureCatalogDragAndDropListener);
-    //         }
-    //     }
-    // }
-    // this.transferHandlerEnabled = enabled;
+    var catalogView = this.controller.getFurnitureCatalogController().getView();
+    var furnitureView = this.controller.getFurnitureController().getView();
+    var planView = this.controller.getPlanController().getView();
+    if (enabled) {
+      if (catalogView != null) {
+      //   var viewports = SwingTools.findChildren(catalogView, javax.swing.JViewport);
+      //   var catalogComponent = void 0;
+      //   if ( /* size */viewports.length > 0) {
+      //       catalogComponent = viewports[0].getView();
+      //   }
+      //   else {
+      //       catalogComponent = catalogView;
+      //   }
+        if (this.furnitureCatalogDragAndDropListener == null) {
+            this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
+        }
+        this.controller.getFurnitureCatalogController().getView().container.addEventListener(
+          "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        document.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+        document.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
+      }
+    }
+    this.transferHandlerEnabled = enabled;
   };
   /**
    * Returns a mouse listener for catalog that acts as catalog view, furniture view and plan transfer handlers
@@ -2381,7 +2333,182 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.createFurnitureCatalogMouseListener = function () {
-    return new HomePane.HomePane$28(this);
+    console.error("createFurnitureCatalogMouseListener");
+    var homePane = this;
+    var mouseListener = {
+        selectedPiece: null,
+        autoscrolls: null,
+        previousCursor: null,
+        previousView: null,
+        escaped: false,
+        draggedImage: null,
+
+        // {
+        //   getActionMap().put("EscapeDragFromFurnitureCatalog", new AbstractAction() {
+        //       public void actionPerformed(ActionEvent ev) {
+        //         if (!escaped) {
+        //           if (previousView != null) {
+        //             if (previousView == controller.getPlanController().getView()) {
+        //               controller.getPlanController().stopDraggedItems();
+        //             }
+        //             if (previousCursor != null) {
+        //               JComponent component = (JComponent)previousView;
+        //               component.setCursor(previousCursor);
+        //               if (component.getParent() instanceof JViewport) {
+        //                 component.getParent().setCursor(previousCursor);
+        //               }
+        //             }
+        //           }
+        //           escaped = true;
+        //         }
+        //       }
+        //     });
+        // }
+
+        mousePressed: function(ev) {
+          if (ev.button === 0/* && getPointInFurnitureView(ev) != null*/) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            var selectedFurniture = homePane.controller.getFurnitureCatalogController().getSelectedFurniture();
+            if (selectedFurniture.length > 0) {
+              mouseListener.selectedPiece = selectedFurniture[0];
+              mouseListener.previousCursor = null;
+              mouseListener.previousView = null;
+              mouseListener.escaped = false;
+              //InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+              //inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
+              //setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
+            }
+          }
+        },
+        mouseDragged: function(ev) {
+          if (ev.button === 0
+              && mouseListener.selectedPiece != null) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            // Force selection again
+            homePane.controller.getFurnitureCatalogController().setSelectedFurniture([]);
+            homePane.controller.getFurnitureCatalogController().setSelectedFurniture([mouseListener.selectedPiece]);
+
+            if(mouseListener.draggedImage == null) {
+              var img = document.createElement("img");
+              // TODO: container access
+              var originalIcon = homePane.controller.getFurnitureCatalogController().getView().container.querySelector(".furniture.selected .furniture-icon");
+              img.src = originalIcon.src;
+              var style = window.getComputedStyle(originalIcon);
+              img.style.width = style.width;
+              img.style.height = style.height;
+              img.style.position = "absolute";
+              img.style.opacity = 0.6;
+              mouseListener.draggedImage = img;
+              document.body.appendChild(img);
+            }
+            mouseListener.draggedImage.style.left = ev.clientX + "px";
+            mouseListener.draggedImage.style.top = ev.clientY + "px";
+
+            var selectedLevel = homePane.home.getSelectedLevel();
+            if (selectedLevel == null || selectedLevel.isViewable()) {
+              var transferredFurniture = [homePane.controller.getFurnitureController().createHomePieceOfFurniture(mouseListener.selectedPiece)];
+              var view;
+              var pointInView = mouseListener.getPointInPlanView(ev, transferredFurniture);
+              if (pointInView != null) {
+                view = homePane.controller.getPlanController().getView();
+              } else {
+                view = homePane.controller.getFurnitureCatalogController().getView();
+                pointInView = mouseListener.getPointInFurnitureView(ev);
+              }
+
+              if (mouseListener.previousView != view) {
+                if (mouseListener.previousView != null) {
+                  if (mouseListener.previousView == homePane.controller.getPlanController().getView()
+                      && !mouseListener.escaped) {
+                    homePane.controller.getPlanController().stopDraggedItems();
+                  }
+                  var component = mouseListener.previousView;
+                  //component.setCursor(mouseListener.previousCursor);
+                  mouseListener.previousCursor = null;
+                  mouseListener.previousView = null;
+                }
+                if (view != null) {
+                  var component = view;
+                  //mouseListener.previousCursor = component.getCursor();
+                  mouseListener.previousView = view;
+                  if (!mouseListener.escaped) {
+                    //component.setCursor(DragSource.DefaultCopyDrop);
+                    // if (component.getParent() instanceof JViewport) {
+                    //   ((JViewport)component.getParent()).setCursor(DragSource.DefaultCopyDrop);
+                    // }
+                    if (view === homePane.controller.getPlanController().getView()) {
+                      homePane.controller.getPlanController().startDraggedItems(transferredFurniture, pointInView [0], pointInView [1]);
+                    }
+                  }
+                }
+              } else if (pointInView != null) {
+                homePane.controller.getPlanController().moveMouse(pointInView [0], pointInView [1]);
+              }
+            }
+          }
+        },
+        getPointInPlanView: function(ev, transferredFurniture) {
+          var planView = homePane.controller.getPlanController().getView();
+          if (planView != null) {
+            // TODO: create a utility function? 
+            var planComponent = planView.container;
+            var rect = planComponent.getBoundingClientRect();
+            if((ev.clientX >= rect.left) && (ev.clientX < rect.left + rect.width)
+                && (ev.clientY >= rect.top) && (ev.clientY < rect.top + rect.height)) {
+              return [planView.convertXPixelToModel(ev.clientX - rect.left), planView.convertYPixelToModel(ev.clientY - rect.top)];
+            }
+          }
+          return null;
+        },
+        getPointInFurnitureView: function(ev) {
+          var furnitureView = homePane.controller.getFurnitureCatalogController().getView();
+          if (furnitureView != null) {
+            // TODO: create a utility function? 
+            var furnitureComponent = furnitureView.container;
+            var rect = furnitureComponent.getBoundingClientRect();
+            if(ev.clientX >= rect.left && ev.clientX < rect.left + rect.width
+                && ev.clientY >= rect.top && ev.clientY < rect.top + rect.height) {
+              return [0, 0];
+            }
+          }
+          return null;
+        },
+        mouseReleased: function(ev) {
+          if(mouseListener.draggedImage != null) {
+            document.body.removeChild(mouseListener.draggedImage);
+            mouseListener.draggedImage = null;
+          }
+          if (ev.button === 0 && mouseListener.selectedPiece != null) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (!mouseListener.escaped) {
+              var selectedLevel = homePane.home.getSelectedLevel();
+              if (selectedLevel == null || selectedLevel.isViewable()) {
+                var transferredFurniture = [homePane.controller.getFurnitureController().createHomePieceOfFurniture(mouseListener.selectedPiece)];
+                var view;
+                var pointInView = mouseListener.getPointInPlanView(ev, transferredFurniture);
+                if (pointInView != null) {
+                  homePane.controller.getPlanController().stopDraggedItems();
+                  view = homePane.controller.getPlanController().getView();
+                // } else {
+                //   view = homePane.controller.getFurnitureController().getView();
+                //   pointInView = mouseListener.getPointInFurnitureView(ev);
+                }
+                if (pointInView != null) {
+                  homePane.controller.drop(transferredFurniture, view, pointInView [0], pointInView [1]);
+                  var component = mouseListener.previousView;
+                  //component.setCursor(this.previousCursor);
+                }
+                mouseListener.selectedPiece = null;
+              }
+            }
+          }
+        }
+      };
+      return mouseListener;
   };
   /**
    * Returns the main pane with catalog tree, furniture table and plan pane.

@@ -26,6 +26,7 @@
  */
 function FurnitureCatalogListPanel(containerId, catalog, preferences, controller) {
   this.container = document.getElementById(containerId);
+  this.container.classList.add("furniture-catalog");
   this.createComponents(catalog, preferences, controller);
 }
 
@@ -47,7 +48,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
       furnitureContainer.innerHTML = '<div class="furniture-label">' + furniture.name + '</div>';
       categoryContainer.appendChild(furnitureContainer);
       (function(container, furnitureContainer, furniture) {
-        furnitureContainer.addEventListener("click", function() {
+        furnitureContainer.addEventListener("mousedown", function() {
           var furnitureElements = container.querySelectorAll(".furniture");
           for (k = 0; k < furnitureElements.length; k++) {
             furnitureElements[k].classList.remove("selected");
