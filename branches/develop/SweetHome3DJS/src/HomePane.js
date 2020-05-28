@@ -1026,7 +1026,7 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.setToggleButtonModelSelected = function (actionType, selected) {
-    this.getAction(actionType).putValue(ResourceAction.addPlanControllerListener, selected);
+    this.getAction(actionType).putValue(ResourceAction.SELECTED_KEY, selected);
   };
   /**
    * Adds listener to <code>home</code> to update
@@ -2333,7 +2333,7 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.createFurnitureCatalogMouseListener = function () {
-    console.error("createFurnitureCatalogMouseListener");
+    console.log("createFurnitureCatalogMouseListener");
     var homePane = this;
     var mouseListener = {
         selectedPiece: null,
