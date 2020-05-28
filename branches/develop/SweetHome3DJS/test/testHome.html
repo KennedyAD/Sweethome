@@ -67,14 +67,15 @@
 <script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
+body {
+  margin: 0px;
+  padding-top: 30px;
+  height: calc(100% - 30px);
+}
 #home-pane-toolbar {
   position: absolute;
   top: 0px;
   height: 30px;
-}
-body {
-  padding-top: 30px;
-  height: calc(100% - 30px);
 }
 #furniture-catalog {
   position: absolute;
@@ -98,9 +99,40 @@ body {
   height: 80px;
   margin: 5px;
 }
-body {
-  margin: 0px;
+@media (orientation: portrait) {
+
+  body {
+   padding-top: 0px;
+  }
+
+  #home-pane-toolbar {
+    top: calc(100% - 30px);
+  }
+
+  #furniture-catalog {
+    position: absolute;
+    top: 0%;
+    width: 100%;
+    height: calc(33.33% - 2px);
+    overflow-y: scroll;
+  }
+
+  #canvas3D {
+    position: absolute;
+    top: 33.33%;
+    width: 100%;
+    height: calc(33.33% - 2px);
+  }
+
+  #canvas2D {
+    position: absolute;
+    top: 66.66%;
+    width: 100%;
+    height: calc(33.33% - 2px);
+  }
+
 }
+
 #canvas2D::selection { background: #0042E0; }
 </style>
 </head>
