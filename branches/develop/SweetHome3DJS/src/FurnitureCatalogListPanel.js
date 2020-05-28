@@ -69,7 +69,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   }
 }
 
-FurnitureCatalogListPanel.prototype.enableAddHomeFurnitureAction = function (action) {
+FurnitureCatalogListPanel.prototype.addAction = function (action) {
   var button = document.createElement('button');
   button.innerHTML = 'Add';
   button.addEventListener("click", function() { action.actionPerformed(); });

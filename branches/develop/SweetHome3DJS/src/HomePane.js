@@ -506,7 +506,9 @@ var HomePane = (function () {
       });
 
     // TODO: this method is not in the view interface
-    this.controller.getFurnitureCatalogController().getView().enableAddHomeFurnitureAction(this.getAction(HomeView.ActionType.ADD_HOME_FURNITURE));
+    if(this.controller.getFurnitureCatalogController().getView() instanceof FurnitureCatalogListPanel) {
+      this.controller.getFurnitureCatalogController().getView().addAction(this.getAction(HomeView.ActionType.ADD_HOME_FURNITURE));
+    }
 
     return this;
   }
