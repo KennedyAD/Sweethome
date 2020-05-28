@@ -34,7 +34,7 @@
  */
 function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, controller) {
   var plan = this;
-  this.pointerType = 0; // 0 = mouse, 1 = touch
+  this.pointerType = View.PointerType.MOUSE; 
   this.canvasNeededRepaint = false;
   this.container = document.getElementById(containerOrCanvasId);
   var computedStyle = window.getComputedStyle(this.container);
@@ -402,7 +402,7 @@ PlanComponent.initStatics = function() {
   
   PlanComponent.LONG_TOUCH_DELAY = 200; // ms
   PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
-  PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 600; // ms
+  PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
 }
 
 PlanComponent.initStatics();
@@ -981,7 +981,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
       initialPointerLocation: null,
       lastPointerLocation: null,
       distanceLastPinch: null,
-      autoPanning: false,
+      panningAfterPinch: false,
       initialTime: 0,
       autoScroll: null,
       longTouch: null,
@@ -996,22 +996,31 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
           mouseListener.autoScroll = null;
           mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
           mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-          var alignmentActivated = OperatingSystem.isWindows() || OperatingSystem.isMacOSX() 
-              ? ev.shiftKey 
-              : ev.shiftKey && !ev.altKey;
-          var duplicationActivated = OperatingSystem.isMacOSX() 
-              ? ev.altKey 
-              : ev.ctrlKey;
-          var magnetismToggled = OperatingSystem.isWindows() 
-              ? ev.altKey 
-              : (OperatingSystem.isMacOSX() 
-                  ? ev.metaKey 
-                  : ev.shiftKey && ev.altKey);
           controller.pressMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY), 
-              ev.clickCount, ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey, 
-              alignmentActivated, duplicationActivated, magnetismToggled);
+              ev.clickCount, mouseListener.isShiftDown(ev), mouseListener.isAlignmentActivated(ev), 
+              mouseListener.isDuplicationActivated(ev), mouseListener.isMagnetismToggled(ev));
         }
       },
+      isShiftDown : function(ev) {
+        return ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+      }, 
+      isAlignmentActivated : function(ev) {
+        return OperatingSystem.isWindows() || OperatingSystem.isMacOSX() 
+            ? ev.shiftKey 
+            : ev.shiftKey && !ev.altKey;
+      }, 
+      isDuplicationActivated : function(ev) {
+        return OperatingSystem.isMacOSX() 
+            ? ev.altKey 
+            : ev.ctrlKey;
+      }, 
+      isMagnetismToggled : function(ev) {
+        return OperatingSystem.isWindows() 
+            ? ev.altKey 
+            : (OperatingSystem.isMacOSX() 
+                ? ev.metaKey 
+                : ev.shiftKey && ev.altKey);
+      }, 
       mouseReleased: function(ev) {
         if (mouseListener.lastPointerLocation != null) {
           // Stop autoscroll
@@ -1098,21 +1107,29 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             plan.stopLongTouchAnimation();
           }
           
-          mouseListener.autoPanning = false;
           mouseListener.initialTime = Date.now();
           if (ev.targetTouches.length === 1) {
             mouseListener.distanceLastPinch = null;
             mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-            mouseListener.longTouch = setTimeout(function() {
-                plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
-              }, PlanComponent.LONG_TOUCH_DELAY);
-            if (controller.getMode() === PlanController.Mode.SELECTION) {
-              controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
-            } else {
-              controller.pressMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), 
-                  plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]), ev.clickCount, false, false, false, false);              
+            
+            if (controller.getMode() !== PlanController.Mode.PANNING) {
+              mouseListener.longTouch = setTimeout(function() {
+                plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY, 
+                    controller.getMode() !== PlanController.Mode.SELECTION,
+                    function() {
+                      if (controller.getMode() === PlanController.Mode.SELECTION) {
+                        // Simulate shift key press
+                        controller.setAlignmentActivated(true);
+                      }
+                    });
+                  }, PlanComponent.LONG_TOUCH_DELAY);
             }
+            
+            controller.pressMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), 
+                plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]), ev.clickCount, 
+                mouseListener.isShiftDown(ev), mouseListener.isAlignmentActivated(ev), 
+                mouseListener.isDuplicationActivated(ev), mouseListener.isMagnetismToggled(ev), View.PointerType.TOUCH);              
           } else {
             // Cancel autoscroll
             if (mouseListener.autoScroll != null) {
@@ -1120,9 +1137,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
               mouseListener.autoScroll = null;
             }            
             // Additional touch allows to escape current modification 
-            if (controller.isModificationState()) {
-              controller.escape();
-            } 
+            controller.escape();
             
             if (ev.targetTouches.length === 2) {
               mouseListener.initialPointerLocation = null;
@@ -1138,6 +1153,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
           plan.handleMouseEvent(ev, "touchMoved");
           plan.stopIndicatorAnimation();
           mouseListener.longTouchWhenDragged = null;
+          
           if (ev.targetTouches.length == 1) {
             // Handle autoscroll
             if (mouseListener.lastPointerLocation != null) {
@@ -1148,7 +1164,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
               }
               if (mouseListener.autoScroll == null 
                   && !mouseListener.isInCanvas(ev)
-                  && mouseListener.autoPanning 
+                  && controller.getMode() !== PlanController.Mode.PANNING
                   && mouseListener.lastPointerLocation != null) {
                 mouseListener.autoScroll = setInterval(function() {
                     mouseListener.touchMoved(ev);
@@ -1163,54 +1179,20 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             }
             
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-            if (mouseListener.initialPointerLocation != null) {
-              if (controller.getMode() === PlanController.Mode.SELECTION) {
-                var xModel = plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]);
-                var yModel = plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]);
-                var previousSelection = home.getSelectedItems();
-                controller.pressMouse(xModel, yModel, ev.clickCount, mouseListener.isLongTouch(), false, false, false);
-                if (!mouseListener.isLongTouch()) {
-                  var newSelection = home.getSelectedItems();
-                  var selectionChanged = newSelection.length !== previousSelection.length;
-                  // Check if the selection changed
-                  for (var i = 0; !selectionChanged && i < newSelection.length; i++) {
-                    if (previousSelection.indexOf(newSelection [i]) < 0) {
-                      selectionChanged = true;
-                      break;
-                    }
-                  }
-                  if (selectionChanged || previousSelection.length === 0) {
-                    // Cancel selection change and pan
-                    controller.escape();
-                    controller.selectItems(previousSelection);
-                    controller.setMode(PlanController.Mode.PANNING);
-                    controller.pressMouse(xModel, yModel, ev.clickCount, false, false, false, false);
-                    mouseListener.autoPanning = true;
-                  }
-                }
-              }
-              mouseListener.initialPointerLocation = null;
-            }
-            
             controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
 
             if (!mouseListener.autoScroll 
-                && controller.getMode() !== PlanController.Mode.PANNING) {
+                && controller.getMode() !== PlanController.Mode.PANNING
+                && controller.getMode() !== PlanController.Mode.SELECTION) {
               mouseListener.initialTime = Date.now();
               mouseListener.longTouch = setTimeout(function() {
                   mouseListener.longTouchWhenDragged = [ev.canvasX, ev.canvasY];   
-                  plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY);
+                  plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY, true);
                 }, PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING);
             }
           } else if (ev.targetTouches.length == 2
                      && mouseListener.distanceLastPinch != null) {
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-            if (mouseListener.autoPanning) {
-              controller.releaseMouse(plan.convertXPixelToModel(mouseListener.lastPointerLocation[0]), 
-                  plan.convertYPixelToModel(mouseListener.lastPointerLocation[1]));
-              controller.setMode(PlanController.Mode.SELECTION);
-              mouseListener.autoPanning = false;
-            }
             var newDistance = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                 ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
             var scaleDifference = newDistance / mouseListener.distanceLastPinch;
@@ -1235,7 +1217,12 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
       touchEnded: function(ev) {
         if (plan.isEnabled()) {
           plan.handleMouseEvent(ev, "touchEnded");
-          plan.stopIndicatorAnimation();
+          
+          if (mouseListener.panningAfterPinch) {
+            controller.setMode(PlanController.Mode.SELECTION);
+            mouseListener.panningAfterPinch = false;
+          }
+          
           if (ev.targetTouches.length == 0) {
             // Cancel autoscroll
             if (mouseListener.autoScroll != null) {
@@ -1249,50 +1236,33 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
               plan.stopLongTouchAnimation();
             }
           
-            if (mouseListener.autoPanning) {
-              controller.releaseMouse(plan.convertXPixelToModel(mouseListener.lastPointerLocation[0]), 
-                  plan.convertYPixelToModel(mouseListener.lastPointerLocation[1]));
-              delete plan.canvasX;
-              delete plan.canvasY;
-              controller.setMode(PlanController.Mode.SELECTION);
-              mouseListener.autoPanning = false;
-            } else {
-              if (mouseListener.initialPointerLocation != null) {
-                var xModel = plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]);
-                var yModel = plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]);
-                if (controller.getMode() === PlanController.Mode.SELECTION) {
-                  // Press mouse was never fired => do it now
-                  controller.pressMouse(xModel, yModel, 1, mouseListener.isLongTouch(), false, false, false);
-                } else {
-                  if (mouseListener.isLongTouch() 
-                      && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
-                    // Emulate double click
-                    controller.releaseMouse(xModel, yModel);
-                    controller.pressMouse(xModel, yModel, 2, false, false, false, false);
-                  }
-                }
-                mouseListener.initialPointerLocation = null;
-                controller.releaseMouse(xModel, yModel);
-              } else if (mouseListener.longTouchWhenDragged != null && mouseListener.isLongTouch(true)) {
-                // Emulate double click
-                var xModel = plan.convertXPixelToModel(mouseListener.longTouchWhenDragged[0]);
-                var yModel = plan.convertYPixelToModel(mouseListener.longTouchWhenDragged[1]);
-                controller.releaseMouse(xModel, yModel);
-                controller.pressMouse(xModel, yModel, 1, false, false, false, false);
-                controller.releaseMouse(xModel, yModel);
-                controller.pressMouse(xModel, yModel, 2, false, false, false, false);
-                controller.releaseMouse(xModel, yModel);
-              } else {
-                controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), 
-                    plan.convertYPixelToModel(ev.canvasY));
-              }
-              plan.stopIndicatorAnimation();
-            }
+            var xModel = plan.convertXPixelToModel(mouseListener.lastPointerLocation [0]);
+            var yModel = plan.convertYPixelToModel(mouseListener.lastPointerLocation [1]);
+            controller.releaseMouse(xModel, yModel);
+            
+            if (mouseListener.isLongTouch(true)
+                && mouseListener.longTouchWhenDragged != null) {
+              // Emulate double click
+              controller.pressMouse(xModel, yModel, 1, false, false, false, false, View.PointerType.TOUCH);
+              controller.releaseMouse(xModel, yModel);
+              controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+              controller.releaseMouse(xModel, yModel);
+            } else if (mouseListener.isLongTouch()
+                       && mouseListener.initialPointerLocation != null
+                       && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
+              // TODO Emulate double click
+              // controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+              // controller.releaseMouse(xModel, yModel);
+            } 
+            
+            plan.stopIndicatorAnimation();
           } else if (ev.targetTouches.length == 1) {
-            controller.setMode(PlanController.Mode.PANNING);
-            controller.pressMouse(plan.convertXPixelToModel(ev.canvasX), 
-                plan.convertYPixelToModel(ev.canvasY), 1, false, false, false, false);
-            mouseListener.autoPanning = true;
+            if (controller.getMode() === PlanController.Mode.SELECTION) {
+              controller.setMode(PlanController.Mode.PANNING);
+              controller.pressMouse(plan.convertXPixelToModel(ev.canvasX), 
+                  plan.convertYPixelToModel(ev.canvasY), 1, false, false, false, false, View.PointerType.TOUCH);
+              mouseListener.panningAfterPinch = true;
+            }
           } else if (ev.targetTouches.length == 2
                      && mouseListener.distanceLastPinch != null) {
             // If the user keeps 2 finger on screen after releasing other fingers 
@@ -1348,9 +1318,7 @@ PlanComponent.prototype.handleMouseEvent = function(ev, type) {
     ev.canvasY = ev.clientY - rect.top;
   }
   if (type.indexOf("touch") === 0) {
-    // Force a different margin for touch events
-    PlanController.INDICATOR_PIXEL_MARGIN = 15;
-    this.pointerType = 1;
+    this.pointerType = View.PointerType.TOUCH;
     var touches = ev.targetTouches;
     if (ev.targetTouches.length == 0) {
       // touchend case
@@ -1371,8 +1339,7 @@ PlanComponent.prototype.handleMouseEvent = function(ev, type) {
     ev.clickCount = 1;
   }
   else {
-    PlanController.INDICATOR_PIXEL_MARGIN = 5;
-    this.pointerType = 0;
+    this.pointerType = View.PointerType.MOUSE;
   }
   if (ev.clickCount === undefined) {
     if (type == "mouseDoubleClicked") {
@@ -1392,21 +1359,25 @@ PlanComponent.prototype.handleMouseEvent = function(ev, type) {
 /** 
  * @private 
  */
-PlanComponent.prototype.startLongTouchAnimation = function(controller, x, y) {
+PlanComponent.prototype.startLongTouchAnimation = function(controller, x, y, doubleClick, animationPostTask) {
   this.touchOverlay.style.visibility = "visible";
-  if (controller != null && controller.getMode() === PlanController.Mode.SELECTION) {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
-  } else {
+  if (controller != null && doubleClick) {
     document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif'>2</span>";
+  } else {
+    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
   }
   this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
-  this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+  this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
   if (this.tooltip.style.visibility == "visible") {
     this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
   }
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     this.touchOverlay.children.item(i).classList.remove("indicator");
     this.touchOverlay.children.item(i).classList.add("animated");
+  }
+  if (animationPostTask !== undefined) {
+    this.longTouchAnimationPostTask = animationPostTask;
+    setTimeout(animationPostTask, PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY);
   }
 }
 
@@ -1418,6 +1389,10 @@ PlanComponent.prototype.stopLongTouchAnimation = function(x, y) {
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     this.touchOverlay.children.item(i).classList.remove("animated");
     this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+  if (this.longTouchAnimationPostTask !== undefined) {
+    clearTimeout(this.longTouchAnimationPostTask);
+    delete this.longTouchAnimationPostTask;
   }
 }
 
@@ -1431,7 +1406,10 @@ PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
     this.touchOverlay.style.visibility = "visible";
     document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="lib/resources/cursors/' + indicator + '32x32.png"/>';
     this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
-    this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 35) + "px";
+    this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
+    if (this.tooltip.style.visibility == "visible") {
+      this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 65) + "px";
+    }
     for (var i = 0; i < this.touchOverlay.children.length; i++) {
       this.touchOverlay.children.item(i).classList.remove("animated");
       this.touchOverlay.children.item(i).classList.add("indicator");
@@ -5741,7 +5719,8 @@ PlanComponent.prototype.setToolTipFeedback = function(toolTipFeedback, x, y) {
   var containerRect = this.container.getBoundingClientRect();
   this.tooltip.style.left = containerRect.left + this.convertXModelToPixel(x) + "px";
   this.tooltip.style.top = containerRect.top + this.convertYModelToPixel(y) + "px";
-  this.tooltip.style.marginTop = -(this.tooltip.clientHeight + (this.pointerType === 1 ? 50 : 20)) + "px";
+  this.tooltip.style.marginTop = -(this.tooltip.clientHeight 
+      + (this.pointerType === View.PointerType.TOUCH ? (this.touchOverlay.style.visibility == "visible" ? 65 : 50) : 20)) + "px";
   var width = this.tooltip.clientWidth + 10;
   this.tooltip.style.width = width + "px";
   this.tooltip.style.marginLeft = -width / 2 + "px";
