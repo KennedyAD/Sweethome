@@ -108,6 +108,7 @@
   visibility: visible;
 /*  position: absolute; */
   top: 0px;
+  padding-left: 4px;
   width: 100%;
   z-index: 2;
   background-color: rgba(0, 0, 0, 0.1);
@@ -186,7 +187,7 @@
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 705px) {
   #home-pane-toolbar .toolbar-optional  {
     display: none;
   }
@@ -221,6 +222,7 @@
 
 .furniture-catalog {
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .furniture-category {
@@ -233,7 +235,7 @@
   width: 100%;
   background-color: gray;
   border-bottom: solid black 1px;
-  margin-bottom: 1em;
+  margin-bottom: 0.25em;
   padding: 4px;
 }
 
@@ -291,10 +293,13 @@
     display: inline;
     white-space: nowrap;    
   }
-
+  
   .furniture-category > .furniture-category-label {
     display: none;
   }
-
+  
+  .furniture > .furniture-icon {
+    top: 3px;
+  }
 }
 

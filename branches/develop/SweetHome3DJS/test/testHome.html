@@ -70,6 +70,7 @@
 
 html, body {
   overflow-x: hidden;
+  overflow-y: hidden;
 }
 body {
   position: relative;
@@ -138,20 +139,20 @@ body {
   #canvas3D {
     top: 0%;
     width: 100%;
-    height: 40%;
+    height: calc(50% - 65px);
   }
 
   #canvas2D {
-    top: 40%;
+    top: calc(50% - 65px);
     width: 100%;
-    height: 40%;
+    height: calc(50% - 65px);
     z-index: 1;
   }
 
   #furniture-catalog {
-    top: 80%;
+    top: calc(100% - 130px);
     width: 100%;
-    height: calc(20% - 32px);
+    height: calc(130px - 32px);
     overflow-x: scroll; 
     overflow-y: hidden; 
   }
@@ -160,6 +161,22 @@ body {
     top: calc(100% - 30px);
   }
 
+  @supports (-webkit-touch-callout: none) {
+    /* Under iOS, scroll bar is visible only when scrolling */
+    #canvas3D {
+      height: calc(50% - 55px);
+    }
+
+    #canvas2D {
+      top: calc(50% - 55px);
+      height: calc(50% - 55px);
+    }
+
+    #furniture-catalog {
+      top: calc(100% - 110px);
+      height: calc(110px - 32px);
+    }
+  }
 }
 
 #canvas2D::selection { background: #0042E0; }
