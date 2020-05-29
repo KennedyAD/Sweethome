@@ -2322,6 +2322,12 @@ var HomePane = (function () {
           "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
         document.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         document.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
+        var addIcons = this.controller.getFurnitureCatalogController().getView().container.querySelectorAll(".furniture-add-icon");
+        for(i = 0; i < addIcons.length; i++) {
+          addIcons[i].addEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+        }
+        document.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+        document.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.mouseReleased);
       }
     }
     this.transferHandlerEnabled = enabled;
@@ -2333,7 +2339,6 @@ var HomePane = (function () {
    * @private
    */
   HomePane.prototype.createFurnitureCatalogMouseListener = function () {
-    console.log("createFurnitureCatalogMouseListener");
     var homePane = this;
     var mouseListener = {
         selectedPiece: null,
@@ -2364,25 +2369,38 @@ var HomePane = (function () {
         //       }
         //     });
         // }
-
+        getCoords: function(ev) {
+          if(ev.targetTouches) {
+            if(ev.targetTouches.length === 1) {
+              return { clientX: ev.targetTouches[0].clientX, clientY: ev.targetTouches[0].clientY };
+            } else if(ev.targetTouches.length === 0 && ev.changedTouches.length === 1) {
+              return { clientX: ev.changedTouches[0].clientX, clientY: ev.changedTouches[0].clientY };
+            }
+          }
+          return ev;
+        },
         mousePressed: function(ev) {
-          if (ev.button === 0/* && getPointInFurnitureView(ev) != null*/) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            var selectedFurniture = homePane.controller.getFurnitureCatalogController().getSelectedFurniture();
-            if (selectedFurniture.length > 0) {
-              mouseListener.selectedPiece = selectedFurniture[0];
-              mouseListener.previousCursor = null;
-              mouseListener.previousView = null;
-              mouseListener.escaped = false;
-              //InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
-              //inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
-              //setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
+          if (ev.button === 0 || ev.targetTouches/* && getPointInFurnitureView(ev) != null*/) {
+            if(mouseListener.getPointInFurnitureView(ev) == null) {
+              mouseListener.selectedPiece = null;
+            } else {
+              ev.preventDefault();
+              ev.stopPropagation();
+              var selectedFurniture = homePane.controller.getFurnitureCatalogController().getSelectedFurniture();
+              if (selectedFurniture.length > 0) {
+                mouseListener.selectedPiece = selectedFurniture[0];
+                mouseListener.previousCursor = null;
+                mouseListener.previousView = null;
+                mouseListener.escaped = false;
+                //InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+                //inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
+                //setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
+              }
             }
           }
         },
         mouseDragged: function(ev) {
-          if (ev.button === 0
+          if ((ev.button === 0 || ev.targetTouches)
               && mouseListener.selectedPiece != null) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -2401,11 +2419,12 @@ var HomePane = (function () {
               img.style.height = style.height;
               img.style.position = "absolute";
               img.style.opacity = 0.6;
+              img.style.zIndex = 4;
               mouseListener.draggedImage = img;
               document.body.appendChild(img);
             }
-            mouseListener.draggedImage.style.left = ev.clientX + "px";
-            mouseListener.draggedImage.style.top = ev.clientY + "px";
+            mouseListener.draggedImage.style.left = mouseListener.getCoords(ev).clientX + "px";
+            mouseListener.draggedImage.style.top = mouseListener.getCoords(ev).clientY + "px";
 
             var selectedLevel = homePane.home.getSelectedLevel();
             if (selectedLevel == null || selectedLevel.isViewable()) {
@@ -2456,9 +2475,10 @@ var HomePane = (function () {
             // TODO: create a utility function? 
             var planComponent = planView.container;
             var rect = planComponent.getBoundingClientRect();
-            if((ev.clientX >= rect.left) && (ev.clientX < rect.left + rect.width)
-                && (ev.clientY >= rect.top) && (ev.clientY < rect.top + rect.height)) {
-              return [planView.convertXPixelToModel(ev.clientX - rect.left), planView.convertYPixelToModel(ev.clientY - rect.top)];
+            var coords = mouseListener.getCoords(ev);
+            if((coords.clientX >= rect.left) && (coords.clientX < rect.left + rect.width)
+                && (coords.clientY >= rect.top) && (coords.clientY < rect.top + rect.height)) {
+              return [planView.convertXPixelToModel(coords.clientX - rect.left), planView.convertYPixelToModel(coords.clientY - rect.top)];
             }
           }
           return null;
@@ -2469,8 +2489,9 @@ var HomePane = (function () {
             // TODO: create a utility function? 
             var furnitureComponent = furnitureView.container;
             var rect = furnitureComponent.getBoundingClientRect();
-            if(ev.clientX >= rect.left && ev.clientX < rect.left + rect.width
-                && ev.clientY >= rect.top && ev.clientY < rect.top + rect.height) {
+            var coords = mouseListener.getCoords(ev);
+            if(coords.clientX >= rect.left && coords.clientX < rect.left + rect.width
+                && coords.clientY >= rect.top && coords.clientY < rect.top + rect.height) {
               return [0, 0];
             }
           }
@@ -2481,7 +2502,7 @@ var HomePane = (function () {
             document.body.removeChild(mouseListener.draggedImage);
             mouseListener.draggedImage = null;
           }
-          if (ev.button === 0 && mouseListener.selectedPiece != null) {
+          if ((ev.button === 0 || ev.targetTouches) && mouseListener.selectedPiece != null) {
             ev.preventDefault();
             ev.stopPropagation();
             if (!mouseListener.escaped) {
@@ -2502,10 +2523,10 @@ var HomePane = (function () {
                   var component = mouseListener.previousView;
                   //component.setCursor(this.previousCursor);
                 }
-                mouseListener.selectedPiece = null;
               }
             }
           }
+          mouseListener.selectedPiece = null;
         }
       };
       return mouseListener;
@@ -3043,7 +3064,6 @@ var HomePane = (function () {
       catch (ex) {
         console.error(ex.message, ex);
       }
-      ;
       separateWindow = separateFrame;
     }
     else {

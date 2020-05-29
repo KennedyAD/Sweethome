@@ -56,6 +56,16 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
           furnitureContainer.classList.add("selected");
           controller.setSelectedFurniture([furniture]);
         });
+        furnitureContainer.addEventListener("touchstart", function() {
+          var furnitureElements = container.querySelectorAll(".furniture");
+          for (k = 0; k < furnitureElements.length; k++) {
+            furnitureElements[k].classList.remove("selected");
+            furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
+          }
+          furnitureContainer.classList.add("selected");
+          furnitureContainer.querySelector(".furniture-add-icon").style.display = "block";
+          controller.setSelectedFurniture([furniture]);
+        });
         TextureManager.getInstance().loadTexture(furniture.icon, {
           textureUpdated: function(image) {
             image.classList.add("furniture-icon");
@@ -65,6 +75,11 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
             console.error("image cannot be loaded", error);
           }
         });
+        // Create invisible add icon
+        var addIcon = document.createElement("img");
+        addIcon.classList.add("furniture-add-icon");
+        addIcon.style.display = "none";
+        furnitureContainer.appendChild(addIcon);
       })(this.container, furnitureContainer, furniture);
     }
   }

@@ -985,6 +985,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
       autoScroll: null,
       longTouch: null,
       longTouchWhenDragged: null,
+      inTouchAction: false,
       mouseDoubleClicked: function(ev) {
         plan.handleMouseEvent(ev, "mouseDoubleClicked");
         mouseListener.mousePressed(ev);
@@ -1110,7 +1111,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             mouseListener.distanceLastPinch = null;
             mouseListener.initialPointerLocation = 
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-            
+            mouseListener.inTouchAction = true;
             if (controller.getMode() !== PlanController.Mode.PANNING) {
               mouseListener.longTouch = setTimeout(function() {
                 plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY, 
@@ -1139,6 +1140,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             controller.escape();
             
             if (ev.targetTouches.length === 2) {
+              mouseListener.inTouchAction = true;
               mouseListener.initialPointerLocation = null;
               mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                   ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
@@ -1148,7 +1150,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
       },
       touchMoved: function(ev) {
         ev.preventDefault();
-        if (plan.isEnabled()) {
+        if (plan.isEnabled() && mouseListener.inTouchAction) {
           plan.handleMouseEvent(ev, "touchMoved");
           plan.stopIndicatorAnimation();
           mouseListener.longTouchWhenDragged = null;
@@ -1215,9 +1217,9 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
         }
       },
       touchEnded: function(ev) {
-        if (plan.isEnabled()) {
+        if (plan.isEnabled() && mouseListener.inTouchAction) {
           plan.handleMouseEvent(ev, "touchEnded");
-          
+          mouseListener.inTouchAction = false;
           if (mouseListener.panningAfterPinch) {
             controller.setMode(PlanController.Mode.SELECTION);
             mouseListener.panningAfterPinch = false;
@@ -1273,6 +1275,8 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
                 ev.targetTouches[1].clientX, ev.targetTouches[1].clientY)
           }
         }
+        mouseListener.initialPointerLocation = null;
+        mouseListener.lastPointerLocation = null;
       },
       distance: function(x1, y1, x2, y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -1357,6 +1361,7 @@ PlanComponent.prototype.handleMouseEvent = function(ev, type) {
     ev.preventDefault();
     ev.wheelRotation = (ev.deltaY !== undefined ? ev.deltaX + ev.deltaY : -ev.wheelDelta) / 4;
   }
+  ev.stopPropagation();
 }
 
 /** 

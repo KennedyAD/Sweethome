@@ -266,10 +266,30 @@
   pointer-events: none;
 }
 
+.furniture > .furniture-add-icon {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 32px;
+  height: 32px;
+  background-image: url('resources/cursors/move32x32.png');
+  background-color: rgba(128,128,128,0.5);
+  background-position: center;
+  z-index: 3;
+  -border: solid gray 1px;
+  -border-radius: 50%;
+}
+
 @media (orientation: portrait) {
 
   .furniture-catalog {
-    overflow-y: scroll;
+    overflow: scroll;
+    white-space: nowrap;
+  }
+
+  .furniture-category {
+    display: inline;
+    white-space: nowrap;    
   }
 
   .furniture-category > .furniture-category-label {
