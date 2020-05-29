@@ -543,10 +543,9 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
                     || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
                     || "X" == ev.getPropertyName() 
                     || "Y" == ev.getPropertyName() 
-                    || "LEVEL" == ev.getPropertyName())) {
-         if (CoreTools.removeFromMap(plan.doorOrWindowWallThicknessAreasCache, ev.getSource()) != null) {
-           plan.revalidate();
-         }
+                    || "LEVEL" == ev.getPropertyName())
+                 && CoreTools.removeFromMap(plan.doorOrWindowWallThicknessAreasCache, ev.getSource()) != null) {
+        plan.revalidate();
       } else {
         plan.revalidate();
       }
@@ -1380,8 +1379,7 @@ PlanComponent.prototype.startLongTouchAnimation = function(controller, x, y, dou
     this.touchOverlay.children.item(i).classList.add("animated");
   }
   if (animationPostTask !== undefined) {
-    this.longTouchAnimationPostTask = animationPostTask;
-    setTimeout(animationPostTask, PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY);
+    this.longTouchAnimationPostTask = setTimeout(animationPostTask, PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY);
   }
 }
 
@@ -5507,7 +5505,8 @@ PlanComponent.prototype.makePointVisible = function(x, y) {
  * @param {number} dy
  */
 PlanComponent.prototype.moveView = function(dx, dy) {
-  if (this.isScrolled()) {
+  if (this.isScrolled() 
+      && (dx != 0 || dy != 0)) {
     this.scrollPane.scrollLeft += this.convertLengthToPixel(dx);
     this.scrollPane.scrollTop += this.convertLengthToPixel(dy);
     this.repaint();
