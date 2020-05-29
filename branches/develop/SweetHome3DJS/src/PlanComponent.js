@@ -982,7 +982,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
       lastPointerLocation: null,
       distanceLastPinch: null,
       panningAfterPinch: false,
-      initialTime: 0,
+      longTouchStartTime: 0,
       autoScroll: null,
       longTouch: null,
       longTouchWhenDragged: null,
@@ -1091,7 +1091,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
         }
       },
       isLongTouch: function(dragging) {
-        return Date.now() - mouseListener.initialTime 
+        return Date.now() - mouseListener.longTouchStartTime 
             > ((dragging 
                 ? PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING 
                 : PlanComponent.LONG_TOUCH_DELAY) + PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY);
@@ -1107,10 +1107,9 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             plan.stopLongTouchAnimation();
           }
           
-          mouseListener.initialTime = Date.now();
           if (ev.targetTouches.length === 1) {
             mouseListener.distanceLastPinch = null;
-            mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+            mouseListener.initialPointerLocation = 
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             
             if (controller.getMode() !== PlanController.Mode.PANNING) {
@@ -1124,6 +1123,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
                       }
                     });
                   }, PlanComponent.LONG_TOUCH_DELAY);
+              mouseListener.longTouchStartTime = Date.now();
             }
             
             controller.pressMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), 
@@ -1173,6 +1173,7 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             }
             
             if (mouseListener.longTouch != null) {
+              // Cancel long touch animation only when pointer moved during the past 200 ms
               clearTimeout(mouseListener.longTouch);
               mouseListener.longTouch = null;
               plan.stopLongTouchAnimation();
@@ -1184,11 +1185,11 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             if (!mouseListener.autoScroll 
                 && controller.getMode() !== PlanController.Mode.PANNING
                 && controller.getMode() !== PlanController.Mode.SELECTION) {
-              mouseListener.initialTime = Date.now();
               mouseListener.longTouch = setTimeout(function() {
                   mouseListener.longTouchWhenDragged = [ev.canvasX, ev.canvasY];   
                   plan.startLongTouchAnimation(controller, ev.canvasX, ev.canvasY, true);
                 }, PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING);
+              mouseListener.longTouchStartTime = Date.now();
             }
           } else if (ev.targetTouches.length == 2
                      && mouseListener.distanceLastPinch != null) {
@@ -1240,21 +1241,23 @@ PlanComponent.prototype.addMouseListeners = function(home, controller) {
             var yModel = plan.convertYPixelToModel(mouseListener.lastPointerLocation [1]);
             controller.releaseMouse(xModel, yModel);
             
-            if (mouseListener.isLongTouch(true)
-                && mouseListener.longTouchWhenDragged != null) {
-              // Emulate double click
-              controller.pressMouse(xModel, yModel, 1, false, false, false, false, View.PointerType.TOUCH);
-              controller.releaseMouse(xModel, yModel);
-              controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
-              controller.releaseMouse(xModel, yModel);
-            } else if (mouseListener.isLongTouch()
-                       && controller.getMode() !== PlanController.Mode.SELECTION // TODO Remove once editing panels exist
-                       && mouseListener.initialPointerLocation != null
-                       && mouseListener.distance(ev.canvasX, ev.canvasY, mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
-               // Emulate double click
-               controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
-               controller.releaseMouse(xModel, yModel);
-            } 
+            if (controller.getMode() !== PlanController.Mode.SELECTION) { // TODO Remove once editing panels exist
+              if (mouseListener.isLongTouch(true)
+                  && mouseListener.longTouchWhenDragged != null) {
+                // Emulate double click
+                controller.pressMouse(xModel, yModel, 1, false, false, false, false, View.PointerType.TOUCH);
+                controller.releaseMouse(xModel, yModel);
+                controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+                controller.releaseMouse(xModel, yModel);
+              } else if (mouseListener.isLongTouch()
+                         && mouseListener.initialPointerLocation != null
+                         && mouseListener.distance(ev.canvasX, ev.canvasY, 
+                             mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
+                 // Emulate double click
+                 controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+                 controller.releaseMouse(xModel, yModel);
+              }
+            }
             
             plan.stopIndicatorAnimation();
           } else if (ev.targetTouches.length == 1) {
