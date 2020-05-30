@@ -169,6 +169,19 @@ FurnitureCatalogListPanel.prototype.showTooltip = function (furnitureContainer, 
   this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(furnitureContainer.model);
   var icon = this.toolTipDiv.querySelector("img");
   icon.src = furnitureContainer.querySelector("img.furniture-icon").src;
+  var rect = this.toolTipDiv.getBoundingClientRect();
+  if(rect.x < 0) {
+    this.toolTipDiv.style.left = ev.clientX + 10 - rect.x;
+  }
+  if(rect.y < 0) {
+    this.toolTipDiv.style.left = ev.clientY + 10 - rect.y;
+  }
+  if(rect.x + rect.width > window.innerWidth) {
+    this.toolTipDiv.style.left = ev.clientX + 10 - (rect.x + rect.width - window.innerWidth);
+  }
+  if(rect.y + rect.height > window.innerHeight) {
+    this.toolTipDiv.style.top = ev.clientY + 10 - (rect.y + rect.height - window.innerHeight);
+  }
 }
 
 /** @private */
@@ -229,7 +242,7 @@ FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(item
   if (tipTextCreator != null) {
     tipText += "<br>" + tipTextCreator;
   }
-  tipText += "<br/><img/>";
+  tipText += "<br/><img height='100px'/>";
   tipText += "</center>";
   return tipText;
 } 
