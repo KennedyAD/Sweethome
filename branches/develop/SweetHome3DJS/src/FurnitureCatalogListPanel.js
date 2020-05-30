@@ -27,6 +27,8 @@
 function FurnitureCatalogListPanel(containerId, catalog, preferences, controller) {
   this.container = document.getElementById(containerId);
   this.container.classList.add("furniture-catalog");
+  this.controller = controller;
+  this.preferences = preferences;
   this.createComponents(catalog, preferences, controller);
 }
 
@@ -35,53 +37,152 @@ function FurnitureCatalogListPanel(containerId, catalog, preferences, controller
  * @private
  */
 FurnitureCatalogListPanel.prototype.createComponents = function (catalog, preferences, controller) {
+  var furnitureCatalogListPanel = this;
+
+  this.toolTipDiv = document.createElement("div");
+  this.toolTipDiv.classList.add("furniture-tooltip");
+  this.toolTipDiv.style.display = "none";
+  this.toolTipDiv.style.position = "absolute";
+  this.toolTipDiv.style.zIndex = 10;
+  // this.toolTipDiv.addEventListener("mousemove", function(ev) {
+  //   furnitureCatalogListPanel.container.dispatchEvent(ev);
+  // });
+  document.body.appendChild(this.toolTipDiv);
+
   for(i = 0; i < catalog.getCategoriesCount() ; i++) {
     var category = catalog.getCategories()[i];
     var categoryContainer = document.createElement("div");
     categoryContainer.className = "furniture-category";
     categoryContainer.innerHTML = '<div class="furniture-category-label">' + category.name + '</div>';
     this.container.appendChild(categoryContainer);
+
     for(j = 0; j < category.getFurnitureCount(); j++) {
       var furniture = category.getFurniture()[j];
       var furnitureContainer = document.createElement("div");
+      furnitureContainer.model = furniture;
       furnitureContainer.className = "furniture";
       furnitureContainer.innerHTML = '<div class="furniture-label">' + furniture.name + '</div>';
       categoryContainer.appendChild(furnitureContainer);
-      (function(container, furnitureContainer, furniture) {
-        furnitureContainer.addEventListener("mousedown", function() {
-          var furnitureElements = container.querySelectorAll(".furniture");
-          for (k = 0; k < furnitureElements.length; k++) {
-            furnitureElements[k].classList.remove("selected");
-          }
-          furnitureContainer.classList.add("selected");
-          controller.setSelectedFurniture([furniture]);
-        });
-        furnitureContainer.addEventListener("touchstart", function() {
-          var furnitureElements = container.querySelectorAll(".furniture");
-          for (k = 0; k < furnitureElements.length; k++) {
-            furnitureElements[k].classList.remove("selected");
-            furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
-          }
-          furnitureContainer.classList.add("selected");
-          furnitureContainer.querySelector(".furniture-add-icon").style.display = "block";
-          controller.setSelectedFurniture([furniture]);
-        });
-        TextureManager.getInstance().loadTexture(furniture.icon, {
-          textureUpdated: function(image) {
-            image.classList.add("furniture-icon");
-            furnitureContainer.appendChild(image);
-          },
-          textureError:  function(error) {
-            console.error("image cannot be loaded", error);
-          }
-        });
-        // Create invisible add icon
-        var addIcon = document.createElement("img");
-        addIcon.classList.add("furniture-add-icon");
-        addIcon.style.display = "none";
-        furnitureContainer.appendChild(addIcon);
-      })(this.container, furnitureContainer, furniture);
+      this.createFurniturePanel(furnitureContainer, furniture);
     }
+  }
+
+  // Tooltip management
+  var currentFurnitureContainer;
+  document.addEventListener("mousemove", function(ev) {
+    var rect = furnitureCatalogListPanel.container.getBoundingClientRect();
+    var coords = ev;
+    if((coords.clientX >= rect.left) && (coords.clientX < rect.left + furnitureCatalogListPanel.container.clientWidth)
+        && (coords.clientY >= rect.top) && (coords.clientY < rect.top + furnitureCatalogListPanel.container.clientHeight)) {
+      if(furnitureCatalogListPanel.toolTipDiv.style.display == "none") {
+        if(furnitureCatalogListPanel.showTooltipTimeOut) {
+          clearTimeout(furnitureCatalogListPanel.showTooltipTimeOut);
+        }
+        furnitureCatalogListPanel.showTooltipTimeOut = setTimeout(function() {
+          currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
+          furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
+        }, 1000);
+      } else {
+        if(currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
+          currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer;
+          furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev);
+        }
+        if(furnitureCatalogListPanel.hideTooltipTimeOut) {
+          clearTimeout(furnitureCatalogListPanel.hideTooltipTimeOut);
+        }
+        furnitureCatalogListPanel.hideTooltipTimeOut = setTimeout(function() { 
+          furnitureCatalogListPanel.hideTooltip(); 
+        }, 3000);
+      }
+    } else {
+      furnitureCatalogListPanel.currentFurnitureContainer = undefined;
+      furnitureCatalogListPanel.hideTooltip();
+    }
+  });
+
+  // container.addEventListener("mouseout", function(ev) {
+  //   var rect = container.getBoundingClientRect();
+  //   var coords = ev;
+  //   if((coords.clientX >= rect.left) && (coords.clientX < rect.left + rect.width)
+  //     && (coords.clientY >= rect.top) && (coords.clientY < rect.top + rect.height)) {
+  //     if(showTooltipTimeOut) {
+  //       clearTimeout(showTooltipTimeOut);
+  //     }
+  //     if(hideTooltipTimeOut) {
+  //       clearTimeout(hideTooltipTimeOut);
+  //     }
+  //     this.hideTooltip();
+  //   });
+}
+
+FurnitureCatalogListPanel.prototype.createFurniturePanel = function(furnitureContainer, furniture) {
+
+  var furnitureCatalogListPanel = this;
+
+  furnitureContainer.addEventListener("mousemove", function(ev) {
+    furnitureCatalogListPanel.currentFurnitureContainer = furnitureContainer;
+  });
+
+  furnitureContainer.addEventListener("mousedown", function() {
+    var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
+    for (k = 0; k < furnitureElements.length; k++) {
+      furnitureElements[k].classList.remove("selected");
+    }
+    furnitureContainer.classList.add("selected");
+    furnitureCatalogListPanel.controller.setSelectedFurniture([furniture]);
+    furnitureCatalogListPanel.hideTooltip();
+  });
+
+  furnitureContainer.addEventListener("touchstart", function() {
+    var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
+    for (k = 0; k < furnitureElements.length; k++) {
+      furnitureElements[k].classList.remove("selected");
+      furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
+    }
+    furnitureContainer.classList.add("selected");
+    furnitureContainer.querySelector(".furniture-add-icon").style.display = "block";
+    furnitureCatalogListPanel.controller.setSelectedFurniture([furniture]);
+  });
+
+  TextureManager.getInstance().loadTexture(furniture.icon, {
+    textureUpdated: function(image) {
+      image.classList.add("furniture-icon");
+      furnitureContainer.appendChild(image);
+    },
+    textureError:  function(error) {
+      console.error("image cannot be loaded", error);
+    }
+  });
+
+  // Create invisible add icon
+  var addIcon = document.createElement("img");
+  addIcon.classList.add("furniture-add-icon");
+  addIcon.style.display = "none";
+  furnitureContainer.appendChild(addIcon);
+}
+
+/** @private */
+FurnitureCatalogListPanel.prototype.showTooltip = function (furnitureContainer, ev) {
+  this.toolTipDiv.style.left = ev.clientX + 10;
+  this.toolTipDiv.style.top = ev.clientY + 10;
+  this.toolTipDiv.style.display = "block";
+  this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(furnitureContainer.model);
+  var icon = this.toolTipDiv.querySelector("img");
+  icon.src = furnitureContainer.querySelector("img.furniture-icon").src;
+}
+
+/** @private */
+FurnitureCatalogListPanel.prototype.hideTooltip = function () {
+  if(this.hideTooltipTimeOut) {
+    clearTimeout(this.hideTooltipTimeOut);
+    this.hideTooltipTimeOut = undefined;
+  }
+  if(this.showTooltipTimeOut) {
+    clearTimeout(this.showTooltipTimeOut);
+    this.showTooltipTimeOut = undefined;
+  }
+  if(this.toolTipDiv.style.display != "none") {
+    this.toolTipDiv.style.display = "none";
   }
 }
 
@@ -92,5 +193,44 @@ FurnitureCatalogListPanel.prototype.addAction = function (action) {
   this.container.appendChild(button);
 }
 
+/** @private */
+FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(item) {
+  if (this.preferences != null) {
+    var creator = item.getCreator();
+    if (creator != null && creator.length > 0) {
+      tipTextCreator = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipCreator", creator);
+    }
+    var tipTextModelSize;
+    var format = this.preferences.getLengthUnit().getFormatWithUnit();
+    if (item instanceof CatalogPieceOfFurniture) {
+      var piece = item;
+      tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipPieceOfFurnitureDimensions",
+        format.format(piece.getWidth()), format.format(piece.getDepth()), format.format(piece.getHeight()));
+      if (piece.getModelSize() != null && piece.getModelSize() > 0) {
+        tipTextModelSize = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipModelSize",
+          Math.max(1, Math.round(piece.getModelSize() / 1000)));
+      }
+    } else if (item instanceof CatalogTexture) {
+      var piece = item;
+      tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions",
+        format.format(piece.getWidth()), format.format(piece.getHeight()));
+    }
+  }
 
+  var tipText = "<center>";
+  tipText += "- <b>" + item.getCategory().getName() + "</b> -<br>";
+  tipText += "<b>" + item.getName() + "</b>";
+  if (tipTextDimensions != null) {
+    tipText += "<br>" + tipTextDimensions;
+  }
+  if (tipTextModelSize != null) {
+    tipText += "<br>" + tipTextModelSize;
+  }
+  if (tipTextCreator != null) {
+    tipText += "<br>" + tipTextCreator;
+  }
+  tipText += "<br/><img/>";
+  tipText += "</center>";
+  return tipText;
+} 
 
