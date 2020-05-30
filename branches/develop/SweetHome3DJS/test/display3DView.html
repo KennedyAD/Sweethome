@@ -1,7 +1,7 @@
 <!--
-   viewHomeWithStructure.html  
+   display3DView.html  
    
-   Sweet Home 3D, Copyright (c) 2016-2018 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
    
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,8 +40,10 @@
 
 <script type="text/javascript" src="lib/generated/geom.js"></script>
 <script type="text/javascript" src="lib/stroke.min.js"></script>
-<!-- swingundo.js isn't required if SweetHome3D.js includes only viewer classes  -->
+<!-- swingundo.js isn't required if SweetHome3D.js includes only viewer classes  
+     (set "transpilationTarget" set to "SweetHome3DJSViewer" in build.xml) -->
 <!-- <script type="text/javascript" src="lib/generated/swingundo.js"></script>  -->
+<script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
 <script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
 <script type="text/javascript" src="src/ShapeTools.js"></script>
 <script type="text/javascript" src="src/HomeRecorder.js"></script>
@@ -80,16 +82,18 @@
       <label class="viewerComponent" for="virtualVisit" style="visibility: hidden;">Virtual visit</label>
     <select id="levelsAndCameras" class="viewerComponent" style="visibility: hidden;"></select>
     <button id="changeColorButton" style="visibility: hidden;"
-            onclick="var furniture = homeComponent.getHome().getFurniture(); furniture [Math.floor(Math.random() * furniture.length)].setColor(Math.floor(0xFFFFFF * Math.random()));">Set randomly color of a piece</button>
+            onclick="var furniture = homeComponent.getHome().getFurniture(); var piece = furniture [Math.floor(Math.random() * furniture.length)]; if (piece.isTexturable()) piece.setColor(Math.floor(0xFFFFFF * Math.random()));">Set randomly color of a piece</button>
     <label id="info"></label>
   </div>
 </div>
 
 <script type="text/javascript">
-  var homeUrl = "test/resources/SweetHome3DExample3.zip";
+  var homeUrl = "test/resources/SweetHome3DExample6.sh3d";
   var onerror = function(err) {
       if (err == "No WebGL") {
         alert("Sorry, your browser doesn't support WebGL.");
+      } else if (typeof err === "string" && err.indexOf("No Home.xml entry") == 0) {
+        alert("Ensure your home file was saved with Sweet Home 3D 5.3 or a newer version.");
       } else {
         console.log(err.stack);
         alert("Error: " + (err.message  ? err.constructor.name + " " +  err.message  : err));
@@ -106,8 +110,10 @@
         progress.value = 100 + percentage * 100;
         if (percentage === 1) {
           document.getElementById("viewerProgressDiv").style.visibility = "hidden";
-          // Start animation once all models are loaded
-          homeComponent.startRotationAnimation(2);
+          if (homeComponent.getHome() === homeComponent.getHome().getTopCamera()) {
+            // Start animation once all models are loaded
+	        homeComponent.startRotationAnimation(2);
+          }
           document.getElementById("info").innerHTML = "Home <i>" + homeComponent.getHome().getName() + "</i> with " + homeComponent.getHome().getFurniture().length + " pieces"; 
           document.getElementById("changeColorButton").style.visibility = "visible";
         }
@@ -132,8 +138,12 @@
                                                  // attribute set "UP", "DOWN", "LEFT", "RIGHT"... to replace the default navigation panel, "none" if missing 
           aerialViewButtonId: "aerialView",      // Id of the aerial view radio button, radio buttons hidden if missing  
           virtualVisitButtonId: "virtualVisit",  // Id of the aerial view radio button, radio buttons hidden if missing  
-          levelsAndCamerasListId: "levelsAndCameras"   // Id of the levels select component, hidden if missing or no levels
-      /*, selectableLevels: ["Level 0", "Level 1"] */  // List of displayed levels, all viewable levels if missing
+          levelsAndCamerasListId: "levelsAndCameras",  // Id of the levels select component, hidden if missing or no levels
+          level: "Roof",                         // Selected level, default level if missing
+          selectableLevels: ["Basement", "Ground floor", "1st floor", "Roof"],  // List of displayed levels, all viewable levels if missing
+          camera: "Exterior view",               // Selected camera, default camera if missing
+          selectableCameras: ["Exterior view", "Main room", "Kitchen"],  // List of displayed cameras, no camera if missing
+          activateCameraSwitchKey: false         // Switch between top view / virtual visit with space bar if not false or missing  
          });  
 </script>
 

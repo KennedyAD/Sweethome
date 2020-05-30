@@ -1,7 +1,7 @@
 <!--
    testHome.html 
    
-   Sweet Home 3D, Copyright (c) 2016-2019 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
    
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -75,6 +75,7 @@ html, body {
 body {
   position: relative;
   margin: 0px;
+  height: 100%;
 }
 
 .furniture {
@@ -88,7 +89,7 @@ body {
   white-space: nowrap;
 }
 
-#home-pane-toolbar, #furniture-catalog, #canvas2D, #canvas3D {
+#home-pane-toolbar, #furniture-catalog, #home-plan, #home-3D-view {
   position: absolute;
 }
 
@@ -110,14 +111,14 @@ body {
     overflow-y: scroll; 
   }
 
-  #canvas2D {
+  #home-plan {
     top: 30px;
     left: 300px;
     width: calc(100% - 300px);
     height: calc(50% - 2px);
   }
 
-  #canvas3D {
+  #home-3D-view {
     top: calc(50% + 32px);
     left: 300px;
     width: calc(100% - 300px);
@@ -136,13 +137,13 @@ body {
     margin-bottom: 0px;
   }
 
-  #canvas3D {
+  #home-3D-view {
     top: 0%;
     width: 100%;
     height: calc(50% - 65px);
   }
 
-  #canvas2D {
+  #home-plan {
     top: calc(50% - 65px);
     width: 100%;
     height: calc(50% - 65px);
@@ -163,11 +164,11 @@ body {
 
   @supports (-webkit-touch-callout: none) {
     /* Under iOS, scroll bar is visible only when scrolling */
-    #canvas3D {
+    #home-3D-view {
       height: calc(50% - 55px);
     }
 
-    #canvas2D {
+    #home-plan {
       top: calc(50% - 55px);
       height: calc(50% - 55px);
     }
@@ -179,15 +180,13 @@ body {
   }
 }
 
-#canvas2D::selection { background: #0042E0; }
+#home-plan::selection { background: #0042E0; }
 
 </style>
 </head>
 <body>
+
 <script type="text/javascript">
-
-var animate = false;
-
 function assertEquals(message, expected, actual) {
   if (typeof expected === "number"
           && Math.abs(actual - expected) > 1E-5
@@ -229,6 +228,8 @@ function testLocalization() {
   assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   preferences.setLanguage("zh_CN");
   assertEquals("Unexpected resource value", "版权", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  
+  console.log("End of testLocalization");          
 }
 
 function testLengthUnit() {
@@ -303,6 +304,8 @@ function testLengthUnit() {
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
   
   assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
+  
+  console.log("End of testLengthUnit");          
 }
 
 /**
@@ -324,6 +327,8 @@ function testFurnitureCatalog() {
   furnitureCatalog = preferences.getFurnitureCatalog();
   assertEquals("Wrong category", "Chambre", furnitureCatalog.getCategories()[0].getName());
   assertEquals("Wrong furniture", "Armoire", furnitureCatalog.getCategories()[0].getFurniture()[0].getName());
+  
+  console.log("End of testFurnitureCatalog");          
 }
 
 /**
@@ -531,161 +536,10 @@ function testHome(geomAvailable) {
   home.addPolyline(polyline);
   assertEquals("Wrong number of polylines", 1, home.getPolylines().length);
   
-  new HomeRecorder().readHome("test/resources/HomeTest.sh3d", 
-      {
-        homeLoaded: function(home) {
-          assertTrue("No furniture", home.getFurniture().length > 0);
-	      Locale.setDefault("en_US");
-          var preferences = new DefaultUserPreferences();
-          displayHome(home, preferences);
-          // Add objects to home and make them blink      
-          home.addPieceOfFurniture(piece);
-          piece.setX(-150);
-          piece.setY(250);
-          home.addWall(wall1);
-          home.addWall(wall2);
-          home.addRoom(room);
-          home.addLabel(label);
-          home.addPolyline(polyline);
-          var movedObjects = [wall1, wall2, room, label, polyline];
-          for (var i = 0; i < movedObjects.length; i++) {
-            movedObjects [i].move(-250, -550);
-          }
-          
-          // Create a group with smaller objects placed on top of piece
-          var piece3 = piece.clone();
-          piece3.setColor(0xFFFF0000);
-          var piece4 = piece.clone();
-          piece4.setColor(0xFF0000FF);
-          piece4.setElevation(piece3.getHeight());
-          piece4.setWidth(piece3.getWidth() / 2);
-          piece4.setDepth(piece3.getDepth() / 2);
-          piece4.setHeight(piece3.getHeight() / 2);
-          var group = new HomeFurnitureGroup([piece3, piece4], 0, false, "Group");
-          group.setElevation(piece.getHeight());
-          group.setWidth(group.getWidth() / 2);
-          group.setDepth(group.getDepth() / 2);
-          group.setHeight(group.getHeight() / 2);
-          group.setAngle(Math.PI / 4);
-          piece4.setPitch(Math.PI / 6);
-          piece4.setRoll(Math.PI / 6);
-          home.addPieceOfFurniture(group);
-          
-          var thicknessDelta = 0.5;
-          var lengthDelta = -5;
-          var elevationDelta = -5;
-          var dashOffsetDelta = 0.05;
-          setInterval(function() {
-              if (animate) {
-                // Remove / add piece to make it blink and test GC for objects handling
-                if (home.getFurniture().indexOf(piece) >= 0) {
-                  home.deletePieceOfFurniture(piece);
-                } else {
-                  home.addPieceOfFurniture(piece);
-                }
-                // Change wall and room color
-                var patterns = preferences.getPatternsCatalog().getPatterns();
-                wall1.setPattern(patterns [(patterns.indexOf(wall1.getPattern()) + 1) % patterns.length])                
-                wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
-                room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
-                // Update label with current time
-                label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
-              }
-            }, 500);
-          setInterval(function() {
-              if (animate) {
-                // Change objects location
-                wall1.setThickness(wall1.getThickness() + thicknessDelta);
-                if (wall1.getThickness() > 15 || wall1.getThickness() < 1) {
-                  thicknessDelta = -thicknessDelta;
-                }
-                wall2.setXEnd(wall2.getXEnd() + lengthDelta);
-                if (wall2.getLength() >= 140 || wall2.getLength() < 20) {
-                  lengthDelta = -lengthDelta;
-                }
-                label.setElevation(label.getElevation() + elevationDelta);
-                if (label.getElevation() >= 100 || label.getElevation() < 10) {
-                  elevationDelta = -elevationDelta;
-                }
-                polyline.setDashOffset(Math.max(polyline.getDashOffset() + dashOffsetDelta, 0));
-                if (polyline.getDashOffset() >= 100 || polyline.getDashOffset() <= 0) {
-                  dashOffsetDelta = -dashOffsetDelta;
-                }
-              }
-            }, 100);
-          
-          // View a clone of the home in the second canvas
-          visitHome(home.clone(), preferences);
-          
-          console.log("End of testHome");          
-        },
-        homeError: function(err) {
-          console.error(err);
-          //alert(err);
-        },
-        progression: function(part, info, percentage) {
-        }
-      });
+  console.log("End of testHome");          
 }
 
-function visitHome(home, preferences) {
-  home.setCamera(home.getObserverCamera());
-  var controller = new HomeController3D(home, preferences);
-  new HomeComponent3D("canvas3D_2", home, preferences, null, controller);
-}
-
-var homeController;
-
-function displayHome(home, preferences) {
-  preferences.setFurnitureViewedFromTop(true);
-  var factory = {
-      createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
-        return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
-      },
-      createFurnitureView: function(home, preferences, furnitureController) {
-        return null;
-      },
-      createPlanView: function(home, preferences, planController) {
-        return new PlanComponent("canvas2D", home, preferences, planController);
-      }, 
-      createView3D: function(home, preferences, homeController3D) {
-        return new HomeComponent3D("canvas3D", home, preferences, null, homeController3D);
-      },
-      createHomeView: function(home, preferences, homeController) {
-        return new HomePane(home, preferences, homeController);
-      }, 
-      createLabelView: function (home, preferences, labelController) {
-        return {
-          displayView: function(parentView) {
-            labelController.setText(prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text")));
-            labelController.createLabel();
-          }
-        }
-      }
-  }
-  factory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
-  
-  homeController = new HomeController(home, preferences, factory);
-  homeController.getView();
-}
-</script>
-
-<canvas id="canvas3D" style="background-color: #CCCCCC; border: 1px solid gray;" 
-        tabIndex="1"></canvas>
-
-<div id="canvas2D" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
-        tabIndex="2" ></div>
-
-<div id="home-pane-toolbar">
-</div>
-
-<div id="furniture-catalog">
-</div>
-
-<canvas id="canvas3D_2" style="display: none; background-color: #CCCCCC; border: 1px solid gray" 
-        width="600" height="300" tabIndex="3"></canvas>
-
-<script type="text/javascript">
+//Run unit tests
 testLocalization();
 testLengthUnit();
 testFurnitureCatalog();
@@ -694,6 +548,102 @@ if (geomAvailable) {
   testGeom();
 }
 testHome(geomAvailable);
+</script>
+
+<canvas id="home-3D-view" style="background-color: #CCCCCC; border: 1px solid gray;" 
+        tabIndex="1"></canvas>
+
+<div id="home-plan" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
+        tabIndex="2" ></div>
+
+<div id="home-pane-toolbar"></div>
+
+<div id="furniture-catalog"></div>
+
+<script type="text/javascript">
+
+// Define HomeApplication implementation
+function SweetHome3DJSApplication() {
+  HomeApplication.call(this);
+  this.addHomesListener(function(ev) {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        application.createHomeController(ev.getItem()).getView();
+      }
+    });
+}
+SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
+SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
+
+SweetHome3DJSApplication.prototype.getVersion = function() {
+  return "6.3.2 Beta";
+}
+
+SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
+  return new HomeRecorder();
+}
+
+SweetHome3DJSApplication.prototype.getUserPreferences = function() {
+  if (this.preferences == null) {
+    this.preferences = new DefaultUserPreferences();
+    this.preferences.setFurnitureViewedFromTop(true);
+  }
+  return this.preferences;
+}
+
+SweetHome3DJSApplication.prototype.getViewFactory = function() {
+  if (this.viewFactory == null) {
+    this.viewFactory = {
+        createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
+          return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
+        },
+        createFurnitureView: function(home, preferences, furnitureController) {
+          return null;
+        },
+        createPlanView: function(home, preferences, planController) {
+          return new PlanComponent("home-plan", home, preferences, planController);
+        }, 
+        createView3D: function(home, preferences, homeController3D) {
+          return new HomeComponent3D("home-3D-view", home, preferences, null, homeController3D);
+        },
+        createHomeView: function(home, preferences, homeController) {
+          return new HomePane(home, preferences, homeController);
+        }, 
+        createLabelView: function (home, preferences, labelController) {
+          return {
+            displayView: function(parentView) {
+              labelController.setText(prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text")));
+              labelController.createLabel();
+            }
+          }
+        }
+      };
+    this.viewFactory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
+  }
+  return this.viewFactory;
+}
+
+SweetHome3DJSApplication.prototype.createHomeController = function(home) {
+  return new HomeController(home, this.getUserPreferences(), this.getViewFactory());
+  // TODO Should be: return new HomeController(home, this, this.getViewFactory());
+}
+
+
+Locale.setDefault("en_US");
+var application = new SweetHome3DJSApplication();
+// Read and display test file 
+// TODO Should be performed in HomeController.open
+application.getHomeRecorder().readHome("test/resources/HomeTest.sh3d", 
+    {
+      homeLoaded: function(home) {
+        application.addHome(home);
+      },
+      homeError: function(err) {
+        console.error(err);
+        //alert(err);
+      },
+      progression: function(part, info, percentage) {
+      }
+    });
 </script>
 
 </body>

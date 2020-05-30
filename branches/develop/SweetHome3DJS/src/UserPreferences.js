@@ -82,10 +82,14 @@ UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) 
     if (defaultLocale === null) {
       defaultLocale = "en";
     }
-    this.defaultCountry = defaultLocale.substring(defaultLocale.indexOf("_") + 1, defaultLocale.length);
-    var defaultLanguage = this.language 
-        ? this.language.substring(0, this.language.indexOf("_")) 
-        : defaultLocale.substring(0, defaultLocale.indexOf("_"));
+    this.defaultCountry = "";
+    var defaultLanguage = defaultLocale;
+    if (defaultLocale.indexOf("_") > 0) {
+      this.defaultCountry = defaultLocale.substring(defaultLocale.indexOf("_") + 1, defaultLocale.length);
+      defaultLanguage = this.language 
+          ? this.language.substring(0, this.language.indexOf("_")) 
+          : defaultLocale.substring(0, defaultLocale.indexOf("_"));
+    }
     // Find closest language among supported languages in Sweet Home 3D
     // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
     // unless their exact locale is supported as in Taiwan (zh_TW)
@@ -1002,7 +1006,9 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   patterns.push(new DefaultPatternTexture("crossHatch"));
   var patternsCatalog = new PatternsCatalog(patterns);  
   this.setPatternsCatalog(patternsCatalog);
-  this.setFurnitureCatalog(new DefaultFurnitureCatalog(this));
+  this.setFurnitureCatalog(typeof DefaultFurnitureCatalog === "function"
+      ? new DefaultFurnitureCatalog(this)
+      : new FurnitureCatalog(this));
   this.setTexturesCatalog(new TexturesCatalog());
   
   this.setNavigationPanelVisible(false);
