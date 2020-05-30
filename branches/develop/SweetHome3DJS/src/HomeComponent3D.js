@@ -1935,6 +1935,7 @@ HomeComponent3D.prototype.addObject = function(group, homeObject, index,
  * @param {HomePieceOfFurniture} piece
  * @param {boolean} listenToHomeUpdates
  * @param {boolean} waitForLoading
+ * @private
  */
 HomeComponent3D.prototype.addPieceOfFurniture = function(group, piece, listenToHomeUpdates, waitForLoading) {
   if (piece instanceof HomeFurnitureGroup) {
@@ -1969,6 +1970,7 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
 /**
  * Detaches from the scene the branches matching <code>piece</code> or its children if it's a group.
  * @param {HomePieceOfFurniture} piece
+ * @private
  */
 HomeComponent3D.prototype.deletePieceOfFurniture = function(piece) {
   if (piece instanceof HomeFurnitureGroup) {
