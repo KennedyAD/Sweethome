@@ -123,10 +123,15 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           "com.eteks.sweethome3d.model.HomeRecorder.*(..)",
           "com.eteks.sweethome3d.viewcontroller.ExportableView.exportData(..)",
           "com.eteks.sweethome3d.viewcontroller.HelpController",
+          // Ignore damaged files management
           "com.eteks.sweethome3d.viewcontroller.HomeController.REPAIRED_*",
           "com.eteks.sweethome3d.viewcontroller.HomeController.*Damaged*(..)",
           "com.eteks.sweethome3d.viewcontroller.HomeController.*Invalid*(..)",
           "com.eteks.sweethome3d.viewcontroller.HomeController.getError*(..)",
+          // Ignore updates management
+          "com.eteks.sweethome3d.viewcontroller.HomeController.*Update*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.Update*",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.getPropertyValue(..)",
           "com.eteks.sweethome3d.viewcontroller.PrintPreviewController",
           "com.eteks.sweethome3d.viewcontroller.ThreadedTaskController",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.checkUpdates()",
