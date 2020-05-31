@@ -985,7 +985,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       autoScroll: null,
       longTouch: null,
       longTouchWhenDragged: null,
-      inTouchAction: false,
+      touchStartedInPlanComponent: false,
       mouseDoubleClicked: function(ev) {
         plan.handleMouseEvent(ev, "mouseDoubleClicked");
         mouseListener.mousePressed(ev);
@@ -1071,7 +1071,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.mousePressed(ev);
         } else {
           // Multi touch support for IE and Edge
-          mouseListener.copyPointerToTargetTouches(ev);
+          mouseListener.copyPointerToTargetTouches(ev, false);
           mouseListener.touchStarted(ev);
         }
       },
@@ -1084,16 +1084,19 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.windowMouseMoved(ev);
         } else {
           // Multi touch support for IE and Edge
-          mouseListener.copyPointerToTargetTouches(ev);
-          mouseListener.touchMoved(ev);
+          if (mouseListener.copyPointerToTargetTouches(ev, false)) {
+            mouseListener.touchMoved(ev);
+          } else {
+            ev.preventDefault();
+          }
         }
       },
       windowPointerReleased : function(ev) {
         if (ev.pointerType == "mouse") {
           mouseListener.windowMouseReleased(ev);
         } else {
-          delete mouseListener.pointerTouches [ev.pointerId];
-          mouseListener.copyPointerToTargetTouches(ev);
+          // Multi touch support for IE and Edge
+          mouseListener.copyPointerToTargetTouches(ev, true);
           mouseListener.touchEnded(ev);
         }
       },
@@ -1112,7 +1115,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.distanceLastPinch = null;
             mouseListener.initialPointerLocation = 
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-            mouseListener.inTouchAction = true;
+            mouseListener.touchStartedInPlanComponent = true;
             if (controller.getMode() !== PlanController.Mode.PANNING) {
               var character = controller.getMode() === PlanController.Mode.SELECTION
                   ? '&#x21EA;'
@@ -1148,7 +1151,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             controller.escape();
             
             if (ev.targetTouches.length === 2) {
-              mouseListener.inTouchAction = true;
+              mouseListener.touchStartedInPlanComponent = true;
               mouseListener.initialPointerLocation = null;
               mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                   ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
@@ -1158,7 +1161,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       },
       touchMoved: function(ev) {
         ev.preventDefault();
-        if (plan.isEnabled() && mouseListener.inTouchAction) {
+        if (plan.isEnabled() && mouseListener.touchStartedInPlanComponent) {
           plan.handleMouseEvent(ev, "touchMoved");
           plan.stopIndicatorAnimation();
           mouseListener.longTouchWhenDragged = null;
@@ -1225,9 +1228,10 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         }
       },
       touchEnded: function(ev) {
-        if (plan.isEnabled() && mouseListener.inTouchAction) {
+        if (plan.isEnabled() && mouseListener.touchStartedInPlanComponent) {
           plan.handleMouseEvent(ev, "touchEnded");
-          mouseListener.inTouchAction = false;
+          mouseListener.touchStartedInPlanComponent = false;
+
           if (mouseListener.panningAfterPinch) {
             controller.setMode(PlanController.Mode.SELECTION);
             mouseListener.panningAfterPinch = false;
@@ -1261,7 +1265,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               } else if (mouseListener.isLongTouch()
                          && mouseListener.initialPointerLocation != null
                          && mouseListener.distance(ev.canvasX, ev.canvasY, 
-                             mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
+                               mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation [1]) < 5) {
                  // Emulate double click
                  controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
                  controller.releaseMouse(xModel, yModel);
@@ -1286,14 +1290,42 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         mouseListener.initialPointerLocation = null;
         mouseListener.lastPointerLocation = null;
       },
-      copyPointerToTargetTouches : function(ev) {
-        // Copy the IE and Edge pointer location to ev.targetTouches
-        mouseListener.pointerTouches [ev.pointerId] = {clientX : ev.clientX, clientY : ev.clientY};
-        ev.targetTouches = [];
+      copyPointerToTargetTouches : function(ev, touchEnded) {
+        // Copy the IE and Edge pointer location to ev.targetTouches and returns true if pointer moved of more than a pixel
+        var previousTargetTouches = [];
         for (var attribute in mouseListener.pointerTouches) {
           if (mouseListener.pointerTouches.hasOwnProperty(attribute)) {
-            ev.targetTouches.push(mouseListener.pointerTouches [attribute]);
+            previousTargetTouches.push(mouseListener.pointerTouches [attribute]);
           }
+        }
+        var previousChangedTouch = mouseListener.pointerTouches [ev.pointerId];
+        
+        var changedTouch = {clientX : ev.clientX, clientY : ev.clientY};
+        if (touchEnded) {
+          delete mouseListener.pointerTouches [ev.pointerId];
+        } else {
+          mouseListener.pointerTouches [ev.pointerId] = changedTouch;
+        } 
+        targetTouches = [];
+        for (var attribute in mouseListener.pointerTouches) {
+          if (mouseListener.pointerTouches.hasOwnProperty(attribute)) {
+            targetTouches.push(mouseListener.pointerTouches [attribute]);
+          }
+        }
+        ev.changedTouches = [changedTouch];
+        
+        if (targetTouches.length !== previousTargetTouches.length
+            || targetTouches.length > 1
+            || targetTouches.length === 1
+                && mouseListener.distance(previousChangedTouch.clientX, previousChangedTouch.clientY,
+                      targetTouches [0].clientX, targetTouches [0].clientY) > 1.25) {
+          ev.targetTouches = targetTouches;
+          return true;
+        } else {
+          // When one touch is used, ignore pressure change and too close moves 
+          mouseListener.pointerTouches [ev.pointerId] = previousChangedTouch;
+          ev.targetTouches = previousTargetTouches;
+          return false;
         }
       },
       isLongTouch: function(dragging) {

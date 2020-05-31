@@ -76,6 +76,9 @@ body {
   position: relative;
   margin: 0px;
   height: 100%;
+  -ms-user-select: none;       
+  user-select: none;    
+  touch-action: none;
 }
 
 .furniture {
@@ -94,7 +97,7 @@ body {
 }
 
 @media (orientation: landscape) {
-
+	
   body {
     padding-top: 30px;
     height: calc(100% - 30px);
@@ -130,7 +133,7 @@ body {
 @media (orientation: portrait) {
 
   .furniture {
-    -width: 60px;
+    width: 60px;
     height: 100%;
     margin: 5px;
     margin-top: 0px;

@@ -764,7 +764,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       buttonPressed : -1,
       pointerTouches : {},
       distanceLastPinch : -1,
-      
+      touchStartedInComponent3D : false,
       mousePressed : function(ev) {
         userActionsListener.xLastMove = ev.clientX;
         userActionsListener.yLastMove = ev.clientY;
@@ -815,6 +815,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       },
       touchStarted : function(ev) {
         ev.preventDefault();
+        this.touchStartedInComponent3D = true;
         if (ev.targetTouches.length == 1) {
           userActionsListener.xLastMove = ev.targetTouches [0].pageX;
           userActionsListener.yLastMove = ev.targetTouches [0].pageY;
@@ -830,21 +831,24 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       },
       touchMoved : function(ev) {
         ev.preventDefault();
-        if (ev.targetTouches.length == 1) {
-          if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
-            userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
-          } else {
-            userActionsListener.moved(ev.targetTouches [0].pageX,  ev.targetTouches [0].pageY, false, false);
+        if (this.touchStartedInComponent3D) {
+          if (ev.targetTouches.length == 1) {
+            if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
+              userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
+            } else {
+              userActionsListener.moved(ev.targetTouches [0].pageX,  ev.targetTouches [0].pageY, false, false);
+            }
+          } else if (ev.targetTouches.length == 2) {
+            var newDistance = userActionsListener.distance(ev.targetTouches [0], ev.targetTouches [1]);
+            var scaleDifference = newDistance / userActionsListener.distanceLastPinch;
+            userActionsListener.zoomed((1 - scaleDifference) * 50, false);
+            userActionsListener.distanceLastPinch = newDistance;
           }
-        } else if (ev.targetTouches.length == 2) {
-          var newDistance = userActionsListener.distance(ev.targetTouches [0], ev.targetTouches [1]);
-          var scaleDifference = newDistance / userActionsListener.distanceLastPinch;
-          userActionsListener.zoomed((1 - scaleDifference) * 50, false);
-          userActionsListener.distanceLastPinch = newDistance;
         }
       },
       touchEnded : function(ev) {
         userActionsListener.buttonPressed = -1;
+        this.touchStartedInComponent3D = false;
       },
       copyPointerToTargetTouches : function(ev) {
         // Copy the IE and Edge pointer location to ev.targetTouches
