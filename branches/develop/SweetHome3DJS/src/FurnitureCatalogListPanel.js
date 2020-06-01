@@ -79,8 +79,10 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
           clearTimeout(furnitureCatalogListPanel.showTooltipTimeOut);
         }
         furnitureCatalogListPanel.showTooltipTimeOut = setTimeout(function() {
-          currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
-          furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
+          if (furnitureCatalogListPanel.currentFurnitureContainer !== undefined) {
+            currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
+            furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
+          }
         }, 1000);
       } else {
         if(currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
