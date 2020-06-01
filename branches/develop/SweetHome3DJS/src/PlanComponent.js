@@ -985,7 +985,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       autoScroll: null,
       longTouch: null,
       longTouchWhenDragged: null,
-      touchStartedInPlanComponent: false,
+      actionStartedInPlanComponent: false,
       mouseDoubleClicked: function(ev) {
         plan.handleMouseEvent(ev, "mouseDoubleClicked");
         mouseListener.mousePressed(ev);
@@ -996,6 +996,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.autoScroll = null;
           mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
           mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+          mouseListener.actionStartedInPlanComponent = true;
           controller.pressMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY), 
               ev.clickCount, mouseListener.isShiftDown(ev), mouseListener.isAlignmentActivated(ev), 
               mouseListener.isDuplicationActivated(ev), mouseListener.isMagnetismToggled(ev));
@@ -1039,13 +1040,14 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
         }
         
-        if (mouseListener.initialPointerLocation != null 
-            && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
-                && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
-          mouseListener.initialPointerLocation = null;
-        }
-        if (mouseListener.initialPointerLocation == null) {
-          if (plan.isEnabled()) {
+        if (mouseListener.actionStartedInPlanComponent) {
+          if (mouseListener.initialPointerLocation != null 
+              && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
+                  && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+            mouseListener.initialPointerLocation = null;
+          }
+          if (mouseListener.initialPointerLocation == null
+              && plan.isEnabled()) {
             controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
           }
         }
@@ -1058,12 +1060,14 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.autoScroll = null;
           }
           
-          if (plan.isEnabled() && ev.button === 0) {
+          if (mouseListener.actionStartedInPlanComponent 
+              && plan.isEnabled() && ev.button === 0) {
             plan.handleMouseEvent(ev, "mouseReleased");
             controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
           }
           mouseListener.initialPointerLocation = null;
           mouseListener.lastPointerLocation = null;
+          mouseListener.actionStartedInPlanComponent = false;
         }
       },
       pointerPressed : function(ev) {
@@ -1115,7 +1119,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.distanceLastPinch = null;
             mouseListener.initialPointerLocation = 
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-            mouseListener.touchStartedInPlanComponent = true;
+            mouseListener.actionStartedInPlanComponent = true;
             if (controller.getMode() !== PlanController.Mode.PANNING) {
               var character = controller.getMode() === PlanController.Mode.SELECTION
                   ? '&#x21EA;'
@@ -1151,7 +1155,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             controller.escape();
             
             if (ev.targetTouches.length === 2) {
-              mouseListener.touchStartedInPlanComponent = true;
+              mouseListener.actionStartedInPlanComponent = true;
               mouseListener.initialPointerLocation = null;
               mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                   ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
@@ -1161,7 +1165,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       },
       touchMoved: function(ev) {
         ev.preventDefault();
-        if (plan.isEnabled() && mouseListener.touchStartedInPlanComponent) {
+        if (mouseListener.actionStartedInPlanComponent
+            && plan.isEnabled()) {
           plan.handleMouseEvent(ev, "touchMoved");
           plan.stopIndicatorAnimation();
           mouseListener.longTouchWhenDragged = null;
@@ -1228,9 +1233,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         }
       },
       touchEnded: function(ev) {
-        if (plan.isEnabled() && mouseListener.touchStartedInPlanComponent) {
+        if (mouseListener.actionStartedInPlanComponent 
+            && plan.isEnabled()) {
           plan.handleMouseEvent(ev, "touchEnded");
-          mouseListener.touchStartedInPlanComponent = false;
 
           if (mouseListener.panningAfterPinch) {
             controller.setMode(PlanController.Mode.SELECTION);
@@ -1289,6 +1294,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         }
         mouseListener.initialPointerLocation = null;
         mouseListener.lastPointerLocation = null;
+        mouseListener.actionStartedInPlanComponent = false;
       },
       copyPointerToTargetTouches : function(ev, touchEnded) {
         // Copy the IE and Edge pointer location to ev.targetTouches and returns true if pointer moved of more than a pixel

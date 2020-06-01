@@ -2105,11 +2105,14 @@ var HomePane = (function () {
     this.addActionToToolBar(HomeView.ActionType.PASTE, toolBar); 
     this.addSeparator(toolBar);
     
+    this.addActionToToolBar(HomeView.ActionType.ADD_HOME_FURNITURE, toolBar, "toolbar-optional"); 
+    this.addSeparator(toolBar);
+    
     this.addToggleActionToToolBar(HomeView.ActionType.SELECT, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.PAN, toolBar, "toolbar-optional"); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_WALLS, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_ROOMS, toolBar); 
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_POLYLINES, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_POLYLINES, toolBar, "toolbar-optional"); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_DIMENSION_LINES, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_LABELS, toolBar); 
     this.addSeparator(toolBar);
@@ -2316,18 +2319,32 @@ var HomePane = (function () {
       //       catalogComponent = catalogView;
       //   }
         if (this.furnitureCatalogDragAndDropListener == null) {
-            this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
+          this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
         }
+        // TODO Remove reference to view's container
         this.controller.getFurnitureCatalogController().getView().container.addEventListener(
-          "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
-        document.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
-        document.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
+            "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+        window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
         var addIcons = this.controller.getFurnitureCatalogController().getView().container.querySelectorAll(".furniture-add-icon");
-        for(i = 0; i < addIcons.length; i++) {
+        for (i = 0; i < addIcons.length; i++) {
           addIcons[i].addEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
         }
-        document.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
-        document.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.mouseReleased);
+        window.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+        window.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.mouseReleased);
+      }
+    } else {
+      if (catalogView != null) {
+        this.controller.getFurnitureCatalogController().getView().container.removeEventListener(
+            "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        window.removeEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+        window.removeEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
+        var addIcons = this.controller.getFurnitureCatalogController().getView().container.querySelectorAll(".furniture-add-icon");
+        for (i = 0; i < addIcons.length; i++) {
+          addIcons[i].removeEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+        }
+        window.removeEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+        window.removeEventListener("touchend", this.furnitureCatalogDragAndDropListener.mouseReleased);
       }
     }
     this.transferHandlerEnabled = enabled;
@@ -2369,16 +2386,6 @@ var HomePane = (function () {
         //       }
         //     });
         // }
-        getCoords: function(ev) {
-          if(ev.targetTouches) {
-            if(ev.targetTouches.length === 1) {
-              return { clientX: ev.targetTouches[0].clientX, clientY: ev.targetTouches[0].clientY };
-            } else if(ev.targetTouches.length === 0 && ev.changedTouches.length === 1) {
-              return { clientX: ev.changedTouches[0].clientX, clientY: ev.changedTouches[0].clientY };
-            }
-          }
-          return ev;
-        },
         mousePressed: function(ev) {
           if (ev.button === 0 || ev.targetTouches/* && getPointInFurnitureView(ev) != null*/) {
             if(mouseListener.getPointInFurnitureView(ev) == null) {
@@ -2403,7 +2410,6 @@ var HomePane = (function () {
           if ((ev.button === 0 || ev.targetTouches)
               && mouseListener.selectedPiece != null) {
             ev.preventDefault();
-            ev.stopPropagation();
 
             // Force selection again
             homePane.controller.getFurnitureCatalogController().setSelectedFurniture([]);
@@ -2423,8 +2429,8 @@ var HomePane = (function () {
               mouseListener.draggedImage = img;
               document.body.appendChild(img);
             }
-            mouseListener.draggedImage.style.left = mouseListener.getCoords(ev).clientX + "px";
-            mouseListener.draggedImage.style.top = mouseListener.getCoords(ev).clientY + "px";
+            mouseListener.draggedImage.style.left = mouseListener.getCoordinates(ev).clientX + "px";
+            mouseListener.draggedImage.style.top = mouseListener.getCoordinates(ev).clientY + "px";
 
             var selectedLevel = homePane.home.getSelectedLevel();
             if (selectedLevel == null || selectedLevel.isViewable()) {
@@ -2473,15 +2479,28 @@ var HomePane = (function () {
           var planView = homePane.controller.getPlanController().getView();
           if (planView != null) {
             // TODO: create a utility function? 
+            // Remove reference to container: add getBoundingClientRect() or getBounds() to all views?
             var planComponent = planView.container;
             var rect = planComponent.getBoundingClientRect();
-            var coords = mouseListener.getCoords(ev);
-            if((coords.clientX >= rect.left) && (coords.clientX < rect.left + rect.width)
-                && (coords.clientY >= rect.top) && (coords.clientY < rect.top + rect.height)) {
+            var coords = mouseListener.getCoordinates(ev);
+            if (coords.clientX >= rect.left 
+                && coords.clientX < rect.left + rect.width
+                && coords.clientY >= rect.top 
+                && coords.clientY < rect.top + rect.height) {
               return [planView.convertXPixelToModel(coords.clientX - rect.left), planView.convertYPixelToModel(coords.clientY - rect.top)];
             }
           }
           return null;
+        },
+        getCoordinates: function(ev) {
+          if (ev.targetTouches) {
+            if (ev.targetTouches.length === 1) {
+              return { clientX: ev.targetTouches[0].clientX, clientY: ev.targetTouches[0].clientY };
+            } else if (ev.targetTouches.length === 0 && ev.changedTouches.length === 1) {
+              return { clientX: ev.changedTouches[0].clientX, clientY: ev.changedTouches[0].clientY };
+            }
+          }
+          return ev;
         },
         getPointInFurnitureView: function(ev) {
           var furnitureView = homePane.controller.getFurnitureCatalogController().getView();
@@ -2489,8 +2508,8 @@ var HomePane = (function () {
             // TODO: create a utility function? 
             var furnitureComponent = furnitureView.container;
             var rect = furnitureComponent.getBoundingClientRect();
-            var coords = mouseListener.getCoords(ev);
-            if(coords.clientX >= rect.left && coords.clientX < rect.left + rect.width
+            var coords = mouseListener.getCoordinates(ev);
+            if (coords.clientX >= rect.left && coords.clientX < rect.left + rect.width
                 && coords.clientY >= rect.top && coords.clientY < rect.top + rect.height) {
               return [0, 0];
             }
@@ -2504,7 +2523,6 @@ var HomePane = (function () {
           }
           if ((ev.button === 0 || ev.targetTouches) && mouseListener.selectedPiece != null) {
             ev.preventDefault();
-            ev.stopPropagation();
             if (!mouseListener.escaped) {
               var selectedLevel = homePane.home.getSelectedLevel();
               if (selectedLevel == null || selectedLevel.isViewable()) {

@@ -764,23 +764,23 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       buttonPressed : -1,
       pointerTouches : {},
       distanceLastPinch : -1,
-      touchStartedInComponent3D : false,
+      actionStartedInComponent3D : false,
       mousePressed : function(ev) {
         userActionsListener.xLastMove = ev.clientX;
         userActionsListener.yLastMove = ev.clientY;
         userActionsListener.buttonPressed  = ev.button;
-        userActionsListener.mousePressedInCanvas = true;
+        userActionsListener.actionStartedInComponent3D = true;
         ev.stopPropagation();
       },
       windowMouseMoved : function(ev) {
-        if (userActionsListener.mousePressedInCanvas) {
+        if (userActionsListener.actionStartedInComponent3D) {
           userActionsListener.moved(ev.clientX, ev.clientY, ev.altKey, ev.shiftKey);
         }
       },
       windowMouseReleased : function(ev) {
         userActionsListener.buttonPressed = -1;
-        if (userActionsListener.mousePressedInCanvas) {
-          delete userActionsListener.mousePressedInCanvas;
+        if (userActionsListener.actionStartedInComponent3D) {
+          delete userActionsListener.actionStartedInComponent3D;
         }
       },
       pointerPressed : function(ev) {
@@ -815,7 +815,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       },
       touchStarted : function(ev) {
         ev.preventDefault();
-        this.touchStartedInComponent3D = true;
+        this.actionStartedInComponent3D = true;
         if (ev.targetTouches.length == 1) {
           userActionsListener.xLastMove = ev.targetTouches [0].pageX;
           userActionsListener.yLastMove = ev.targetTouches [0].pageY;
@@ -831,7 +831,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       },
       touchMoved : function(ev) {
         ev.preventDefault();
-        if (this.touchStartedInComponent3D) {
+        if (this.actionStartedInComponent3D) {
           if (ev.targetTouches.length == 1) {
             if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
               userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
@@ -848,7 +848,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       },
       touchEnded : function(ev) {
         userActionsListener.buttonPressed = -1;
-        this.touchStartedInComponent3D = false;
+        this.actionStartedInComponent3D = false;
       },
       copyPointerToTargetTouches : function(ev) {
         // Copy the IE and Edge pointer location to ev.targetTouches
