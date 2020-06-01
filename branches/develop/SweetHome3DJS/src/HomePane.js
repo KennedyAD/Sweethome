@@ -522,7 +522,7 @@ var HomePane = (function () {
    * @param {string|HomeView.ActionType} actionType
    */
   HomePane.prototype.getAction = function (actionType) {
-    if (typeof actionType == "string") {
+    if (typeof actionType === 'string') {
       return this.actionMap[actionType];
     } else {
       return this.actionMap[HomeView.ActionType[actionType]];
@@ -2321,30 +2321,57 @@ var HomePane = (function () {
         if (this.furnitureCatalogDragAndDropListener == null) {
           this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
         }
+        
         // TODO Remove reference to view's container
-        this.controller.getFurnitureCatalogController().getView().container.addEventListener(
-            "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
-        window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
-        window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
         var addIcons = this.controller.getFurnitureCatalogController().getView().container.querySelectorAll(".furniture-add-icon");
-        for (i = 0; i < addIcons.length; i++) {
-          addIcons[i].addEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+        if (OperatingSystem.isEdgeOrInternetExplorer()
+            && window.PointerEvent) {
+          // Multi touch support for IE and Edge
+          for (i = 0; i < addIcons.length; i++) {
+            addIcons[i].addEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
+          }
+          this.controller.getFurnitureCatalogController().getView().container.addEventListener(
+              "mousedown", this.furnitureCatalogDragAndDropListener.pointerMousePressed);
+          // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
+          window.addEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
+          window.addEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
+        } else {
+          for (i = 0; i < addIcons.length; i++) {
+            addIcons[i].addEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+          }
+          window.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+          window.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
+          this.controller.getFurnitureCatalogController().getView().container.addEventListener(
+              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+          window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+          window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
         }
-        window.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
-        window.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.mouseReleased);
+
       }
     } else {
       if (catalogView != null) {
-        this.controller.getFurnitureCatalogController().getView().container.removeEventListener(
-            "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
-        window.removeEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
-        window.removeEventListener("mouseup", this.furnitureCatalogDragAndDropListener.mouseReleased);
         var addIcons = this.controller.getFurnitureCatalogController().getView().container.querySelectorAll(".furniture-add-icon");
-        for (i = 0; i < addIcons.length; i++) {
-          addIcons[i].removeEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+        if (OperatingSystem.isEdgeOrInternetExplorer()
+            && window.PointerEvent) {
+          for (i = 0; i < addIcons.length; i++) {
+            addIcons[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
+          }
+          this.controller.getFurnitureCatalogController().getView().container.removeEventListener(
+              "mousedown", this.furnitureCatalogDragAndDropListener.pointerMousePressed);
+          // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
+          window.removeEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
+          window.removeEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
+        } else {
+          for (i = 0; i < addIcons.length; i++) {
+            addIcons[i].removeEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+          }
+          window.removeEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+          window.removeEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
+          this.controller.getFurnitureCatalogController().getView().container.removeEventListener(
+              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+          window.removeEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
+          window.removeEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
         }
-        window.removeEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
-        window.removeEventListener("touchend", this.furnitureCatalogDragAndDropListener.mouseReleased);
       }
     }
     this.transferHandlerEnabled = enabled;
@@ -2359,11 +2386,11 @@ var HomePane = (function () {
     var homePane = this;
     var mouseListener = {
         selectedPiece: null,
-        autoscrolls: null,
         previousCursor: null,
         previousView: null,
         escaped: false,
         draggedImage: null,
+        pointerTouches : {},
 
         // {
         //   getActionMap().put("EscapeDragFromFurnitureCatalog", new AbstractAction() {
@@ -2388,9 +2415,9 @@ var HomePane = (function () {
         // }
         mousePressed: function(ev) {
           if (ev.button === 0 || ev.targetTouches/* && getPointInFurnitureView(ev) != null*/) {
-            if(mouseListener.getPointInFurnitureView(ev) == null) {
-              mouseListener.selectedPiece = null;
-            } else {
+//            if(mouseListener.getPointInFurnitureView(ev) == null) {
+//              mouseListener.selectedPiece = null;
+//            } else {
               ev.preventDefault();
               ev.stopPropagation();
               var selectedFurniture = homePane.controller.getFurnitureCatalogController().getSelectedFurniture();
@@ -2403,15 +2430,17 @@ var HomePane = (function () {
                 //inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
                 //setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
               }
-            }
+//            }
           }
         },
         mouseDragged: function(ev) {
-          if ((ev.button === 0 || ev.targetTouches)
+          if (((ev.buttons & 1) == 1 || ev.targetTouches)
               && mouseListener.selectedPiece != null) {
             ev.preventDefault();
+            ev.stopPropagation();
 
             // Force selection again
+            // TODO Is it still required?
             homePane.controller.getFurnitureCatalogController().setSelectedFurniture([]);
             homePane.controller.getFurnitureCatalogController().setSelectedFurniture([mouseListener.selectedPiece]);
 
@@ -2440,7 +2469,7 @@ var HomePane = (function () {
               if (pointInView != null) {
                 view = homePane.controller.getPlanController().getView();
               } else {
-                view = homePane.controller.getFurnitureCatalogController().getView();
+                view = homePane.controller.getFurnitureController().getView();
                 pointInView = mouseListener.getPointInFurnitureView(ev);
               }
 
@@ -2451,19 +2480,20 @@ var HomePane = (function () {
                     homePane.controller.getPlanController().stopDraggedItems();
                   }
                   var component = mouseListener.previousView;
-                  //component.setCursor(mouseListener.previousCursor);
+                  if (view && typeof view.setCursor === 'function') {
+                    view.setCursor(mouseListener.previousCursor);
+                  }
                   mouseListener.previousCursor = null;
                   mouseListener.previousView = null;
                 }
                 if (view != null) {
                   var component = view;
-                  //mouseListener.previousCursor = component.getCursor();
+                  mouseListener.previousCursor = "default";
                   mouseListener.previousView = view;
                   if (!mouseListener.escaped) {
-                    //component.setCursor(DragSource.DefaultCopyDrop);
-                    // if (component.getParent() instanceof JViewport) {
-                    //   ((JViewport)component.getParent()).setCursor(DragSource.DefaultCopyDrop);
-                    // }
+                    if (typeof view.setCursor === "function") {
+                      view.setCursor("copy");
+                    }
                     if (view === homePane.controller.getPlanController().getView()) {
                       homePane.controller.getPlanController().startDraggedItems(transferredFurniture, pointInView [0], pointInView [1]);
                     }
@@ -2516,7 +2546,7 @@ var HomePane = (function () {
           }
           return null;
         },
-        mouseReleased: function(ev) {
+        windowMouseReleased: function(ev) {
           if(mouseListener.draggedImage != null) {
             document.body.removeChild(mouseListener.draggedImage);
             mouseListener.draggedImage = null;
@@ -2532,22 +2562,58 @@ var HomePane = (function () {
                 if (pointInView != null) {
                   homePane.controller.getPlanController().stopDraggedItems();
                   view = homePane.controller.getPlanController().getView();
-                // } else {
-                //   view = homePane.controller.getFurnitureController().getView();
-                //   pointInView = mouseListener.getPointInFurnitureView(ev);
+                  // } else {
+                  //   view = homePane.controller.getFurnitureController().getView();
+                  //   pointInView = mouseListener.getPointInFurnitureView(ev);
                 }
                 if (pointInView != null) {
                   homePane.controller.drop(transferredFurniture, view, pointInView [0], pointInView [1]);
-                  var component = mouseListener.previousView;
-                  //component.setCursor(this.previousCursor);
+                  var view = mouseListener.previousView;
+                  if (view && typeof view.setCursor === "function") {
+                    view.setCursor(this.previousCursor);
+                  }
                 }
               }
             }
           }
           mouseListener.selectedPiece = null;
+        },
+        pointerPressed : function(ev) {
+          if (ev.pointerType != "mouse") {
+            // Multi touch support for IE and Edge
+            mouseListener.copyPointerToTargetTouches(ev);
+          }
+          mouseListener.mousePressed(ev);
+        },
+        pointerMousePressed : function(ev) {
+          // Required to avoid click simulation
+          ev.stopPropagation();
+        },
+        windowPointerMoved : function(ev) {
+          if (ev.pointerType != "mouse") {
+            // Multi touch support for IE and Edge
+            mouseListener.copyPointerToTargetTouches(ev);
+          }
+          mouseListener.mouseDragged(ev);
+        },
+        windowPointerReleased : function(ev) {
+          if (ev.pointerType != "mouse") {
+            delete mouseListener.pointerTouches [ev.pointerId];
+          }
+          mouseListener.windowMouseReleased(ev);
+        },
+        copyPointerToTargetTouches : function(ev) {
+          // Copy the IE and Edge pointer location to ev.targetTouches
+          mouseListener.pointerTouches [ev.pointerId] = {clientX : ev.clientX, clientY : ev.clientY};
+          ev.targetTouches = [];
+          for (var attribute in mouseListener.pointerTouches) {
+            if (mouseListener.pointerTouches.hasOwnProperty(attribute)) {
+              ev.targetTouches.push(mouseListener.pointerTouches [attribute]);
+            }
+          }
         }
       };
-      return mouseListener;
+    return mouseListener;
   };
   /**
    * Returns the main pane with catalog tree, furniture table and plan pane.

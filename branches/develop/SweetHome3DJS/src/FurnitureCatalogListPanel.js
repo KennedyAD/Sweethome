@@ -135,16 +135,22 @@ FurnitureCatalogListPanel.prototype.createFurniturePanel = function(furnitureCon
     furnitureCatalogListPanel.hideTooltip();
   });
 
-  furnitureContainer.addEventListener("touchstart", function() {
-    var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
-    for (k = 0; k < furnitureElements.length; k++) {
-      furnitureElements[k].classList.remove("selected");
-      furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
-    }
-    furnitureContainer.classList.add("selected");
-    furnitureContainer.querySelector(".furniture-add-icon").style.display = "block";
-    furnitureCatalogListPanel.controller.setSelectedFurniture([furniture]);
-  });
+  var touchListener = function(ev) {
+      var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
+      for (k = 0; k < furnitureElements.length; k++) {
+        furnitureElements[k].classList.remove("selected");
+        furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
+      }
+      furnitureContainer.classList.add("selected");
+      furnitureContainer.querySelector(".furniture-add-icon").style.display = "block";
+      furnitureCatalogListPanel.controller.setSelectedFurniture([furniture]);
+    };
+  if (OperatingSystem.isEdgeOrInternetExplorer()
+      && window.PointerEvent) {
+    furnitureContainer.addEventListener("pointerdown", touchListener);
+  } else {
+    furnitureContainer.addEventListener("touchstart", touchListener);
+  }
 
   TextureManager.getInstance().loadTexture(furniture.icon, {
     textureUpdated: function(image) {
