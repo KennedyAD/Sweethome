@@ -565,7 +565,7 @@ function Font(cssFontDecriptor) {
     Font.element.style.display = 'none';
     document.body.appendChild(Font.element);
   }
-  if (typeof cssFontDecriptor == 'string') {
+  if (typeof cssFontDecriptor === 'string') {
     Font.element.style.font = cssFontDecriptor;
   }
   else {

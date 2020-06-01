@@ -414,7 +414,7 @@ CoreTools.getFromMap = function(map, key) {
     if (map.entries == null) {
       map.entries = []; 
     }
-    var keyHashCode = typeof key.hashCode == "function" ? key.hashCode() : undefined;
+    var keyHashCode = typeof key.hashCode === 'function' ? key.hashCode() : undefined;
     for (var i = 0; i < map.entries.length; i++) {
       if ((keyHashCode === undefined || map.entries[i].keyHashCode === keyHashCode)
             && map.entries[i].key.equals !== undefined 
@@ -441,7 +441,7 @@ CoreTools.putToMap = function(map, key, value) {
     if (map.entries == null) {
       map.entries = [];
     }
-    var keyHashCode = typeof key.hashCode == "function" ? key.hashCode() : undefined;
+    var keyHashCode = typeof key.hashCode === 'function' ? key.hashCode() : undefined;
     for (var i = 0; i < map.entries.length; i++) {
       if ((keyHashCode === undefined || map.entries[i].keyHashCode === keyHashCode)
             && map.entries[i].key.equals !== undefined 
@@ -456,7 +456,7 @@ CoreTools.putToMap = function(map, key, value) {
                  getKey: function () { return this.key; }, 
                  getValue: function () { return this.value; } 
                 };
-    if (typeof key.hashCode == "function") {
+    if (typeof key.hashCode === 'function') {
       entry.keyHashCode = key.hashCode(); 
     }
     map.entries.push(entry);
@@ -478,7 +478,7 @@ CoreTools.removeFromMap = function(map, key) {
     }
     return value !== undefined ? value : null;
   } else {
-    var keyHashCode = typeof key.hashCode == "function" ? key.hashCode() : undefined;
+    var keyHashCode = typeof key.hashCode === 'function' ? key.hashCode() : undefined;
     for (var i = 0; i < map.entries.length; i++) {
       if ((keyHashCode === undefined || map.entries[i].keyHashCode === keyHashCode)
             && map.entries[i].key.equals !== undefined 
