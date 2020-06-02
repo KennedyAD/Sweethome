@@ -266,6 +266,14 @@ HTMLCanvas3D.prototype.getCanvas = function() {
 }
 
 /**
+ * Returns the HTML element used to view this component at screen.
+ * @see #getCanvas
+ */
+HTMLCanvas3D.prototype.getHTMLElement = function() {
+  return this.getCanvas();
+}
+
+/**
  * Returns the depth bits count in WebGL.
  */
 HTMLCanvas3D.prototype.getDepthBits = function() {

@@ -33,6 +33,13 @@ function FurnitureCatalogListPanel(containerId, catalog, preferences, controller
 }
 
 /**
+ * Returns the HTML element used to view this component at screen.
+ */
+HomeComponent3D.prototype.getHTMLElement = function() {
+  return this.container;
+}
+
+/**
  * Creates the components displayed by this panel.
  * @private
  */
@@ -118,7 +125,6 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
 }
 
 FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(pieceContainer, piece) {
-
   var furnitureCatalogListPanel = this;
 
   pieceContainer.addEventListener("mousemove", function(ev) {
@@ -136,6 +142,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
   });
 
   var touchListener = function(ev) {
+      ev.preventDefault();
       var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
       for (k = 0; k < furnitureElements.length; k++) {
         furnitureElements[k].classList.remove("selected");
@@ -148,9 +155,11 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
   if (OperatingSystem.isEdgeOrInternetExplorer()
       && window.PointerEvent) {
     pieceContainer.addEventListener("pointerdown", touchListener);
-    pieceContainer.addEventListener('contextmenu', function(ev){
+    var defaultListener = function(ev) {
         ev.preventDefault();
-      });
+      };
+    pieceContainer.addEventListener("mousedown", defaultListener);
+    pieceContainer.addEventListener('contextmenu', defaultListener);
   } else {
     pieceContainer.addEventListener("touchstart", touchListener);
   }

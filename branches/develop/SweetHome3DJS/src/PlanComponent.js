@@ -477,6 +477,12 @@ PlanComponent.IndicatorType.ROTATE_PITCH = new PlanComponent.IndicatorType("ROTA
 PlanComponent.IndicatorType.ROTATE_ROLL = new PlanComponent.IndicatorType("ROTATE_ROLL");
 PlanComponent.IndicatorType.ARC_EXTENT = new PlanComponent.IndicatorType("ARC_EXTENT");
 
+/**
+ * Returns the HTML element used to view this component at screen.
+ */
+PlanComponent.prototype.getHTMLElement = function() {
+  return this.container;
+}
 
 /**
  * Adds home items and selection listeners on this component to receive
@@ -6135,7 +6141,7 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
   }
   else {
-    if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getCanvas().width !== iconSize) {
+    if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getHTMLElement().width !== iconSize) {
       PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
       delete PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
       return this.getSceneRoot(iconSize);

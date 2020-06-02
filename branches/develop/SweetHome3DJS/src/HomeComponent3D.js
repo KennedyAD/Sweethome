@@ -105,6 +105,13 @@ HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, co
 }
 
 /**
+ * Returns the HTML element used to view this component at screen.
+ */
+HomeComponent3D.prototype.getHTMLElement = function() {
+  return this.canvas3D.getHTMLElement();
+}
+
+/**
  * Disposes the 3D shapes geometries displayed by this component. 
  * @package
  * @ignore
@@ -146,7 +153,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     navigationPanelDiv = document.createElement("div")
     navigationPanelDiv.setAttribute("id", "div" + Math.floor(Math.random() * 1E10));
     navigationPanelDiv.style.position = "absolute";
-    var canvas = this.canvas3D.getCanvas();
+    var canvas = this.canvas3D.getHTMLElement();
     this.windowSizeListener = function() {
         var canvasBounds = canvas.getBoundingClientRect();
         navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
@@ -157,7 +164,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     this.windowSizeListener();
     // Search the first existing zIndex among parents
     var parentZIndex = 0;
-    for (var element = this.canvas3D.getCanvas();  
+    for (var element = this.canvas3D.getHTMLElement();  
          element && element.style && isNaN(parentZIndex = parseInt(element.style.zIndex));
          element = element.parentElement) {
     }
@@ -220,7 +227,7 @@ HomeComponent3D.prototype.getSimulatedKeyElements = function(element) {
         // that contains no colon or that starts with canvas id followed by a colon
         var simulatedKey = child.getAttribute("data-simulated-key");
         if (simulatedKey.indexOf(":") === -1
-            || simulatedKey.indexOf(this.canvas3D.getCanvas().getAttribute("id") + ":") === 0) {
+            || simulatedKey.indexOf(this.canvas3D.getHTMLElement().getAttribute("id") + ":") === 0) {
           simulatedKeyElements.push(child);
         }
       }
@@ -301,21 +308,21 @@ HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
     if (OperatingSystem.isEdgeOrInternetExplorer()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
-      canvas3D.getCanvas().removeEventListener("pointerdown", this.userActionsListener.pointerPressed);
-      canvas3D.getCanvas().removeEventListener("mousedown", this.userActionsListener.pointerMousePressed);
+      canvas3D.getHTMLElement().removeEventListener("pointerdown", this.userActionsListener.pointerPressed);
+      canvas3D.getHTMLElement().removeEventListener("mousedown", this.userActionsListener.pointerMousePressed);
       window.removeEventListener("pointermove", this.userActionsListener.windowPointerMoved);
       window.removeEventListener("pointerup", this.userActionsListener.windowPointerReleased);
-      canvas3D.getCanvas().removeEventListener('contextmenu', userActionsListener.contextMenu);
+      canvas3D.getHTMLElement().removeEventListener('contextmenu', userActionsListener.contextMenu);
     } else {
-      canvas3D.getCanvas().removeEventListener("touchstart", this.userActionsListener.touchStarted);
-      canvas3D.getCanvas().removeEventListener("touchmove", this.userActionsListener.touchMoved);
-      canvas3D.getCanvas().removeEventListener("touchend", this.userActionsListener.touchEnded);
-      canvas3D.getCanvas().removeEventListener("mousedown", this.userActionsListener.mousePressed);
+      canvas3D.getHTMLElement().removeEventListener("touchstart", this.userActionsListener.touchStarted);
+      canvas3D.getHTMLElement().removeEventListener("touchmove", this.userActionsListener.touchMoved);
+      canvas3D.getHTMLElement().removeEventListener("touchend", this.userActionsListener.touchEnded);
+      canvas3D.getHTMLElement().removeEventListener("mousedown", this.userActionsListener.mousePressed);
       window.removeEventListener("mousemove", this.userActionsListener.windowMouseMoved);
       window.removeEventListener("mouseup", this.userActionsListener.windowMouseReleased);
     }
-    canvas3D.getCanvas().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
-    canvas3D.getCanvas().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
+    canvas3D.getHTMLElement().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
+    canvas3D.getHTMLElement().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
   }
 }
 
@@ -393,7 +400,7 @@ HomeComponent3D.prototype.updateView = function(camera) {
         frontClipDistance = Math.max(frontClipDistance, 0.1 * distanceToClosestBoxSide);
       }
     }
-    var canvasBounds = this.canvas3D.getCanvas().getBoundingClientRect();
+    var canvasBounds = this.canvas3D.getHTMLElement().getBoundingClientRect();
     if (camera.getZ() > 0 && canvasBounds.width !== 0 && canvasBounds.height !== 0) {
       var halfVerticalFieldOfView = Math.atan(Math.tan(fieldOfView / 2) * canvasBounds.height / canvasBounds.width);
       var fieldOfViewBottomAngle = camera.getPitch() + halfVerticalFieldOfView;
@@ -916,23 +923,23 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
   if (OperatingSystem.isEdgeOrInternetExplorer()
       && window.PointerEvent) {
     // Multi touch support for IE and Edge
-    canvas3D.getCanvas().addEventListener("pointerdown", userActionsListener.pointerPressed);
-    canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.pointerMousePressed);
+    canvas3D.getHTMLElement().addEventListener("pointerdown", userActionsListener.pointerPressed);
+    canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.pointerMousePressed);
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", userActionsListener.windowPointerMoved);
     window.addEventListener("pointerup", userActionsListener.windowPointerReleased);
-    canvas3D.getCanvas().addEventListener('contextmenu', userActionsListener.contextMenu);
+    canvas3D.getHTMLElement().addEventListener('contextmenu', userActionsListener.contextMenu);
   } else {
-    canvas3D.getCanvas().addEventListener("touchstart", userActionsListener.touchStarted);
-    canvas3D.getCanvas().addEventListener("touchmove", userActionsListener.touchMoved);
-    canvas3D.getCanvas().addEventListener("touchend", userActionsListener.touchEnded);
-    canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.mousePressed);
+    canvas3D.getHTMLElement().addEventListener("touchstart", userActionsListener.touchStarted);
+    canvas3D.getHTMLElement().addEventListener("touchmove", userActionsListener.touchMoved);
+    canvas3D.getHTMLElement().addEventListener("touchend", userActionsListener.touchEnded);
+    canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.mousePressed);
     // Add mousemove and mouseup event listeners to window to capture mouse events out of the canvas 
     window.addEventListener("mousemove", userActionsListener.windowMouseMoved);
     window.addEventListener("mouseup", userActionsListener.windowMouseReleased);
   }
-  canvas3D.getCanvas().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
-  canvas3D.getCanvas().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
+  canvas3D.getHTMLElement().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
+  canvas3D.getHTMLElement().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
 
   this.userActionsListener = userActionsListener;
 }
@@ -979,7 +986,7 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
       "pressed END" : "ELEVATE_CAMERA_DOWN",
   };
   var component3D = this;
-  this.canvas3D.getCanvas().addEventListener("keydown", 
+  this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
         component3D.callAction(ev, "keydown");
       }, false);
