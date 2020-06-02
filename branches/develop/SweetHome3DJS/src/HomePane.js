@@ -2533,7 +2533,7 @@ var HomePane = (function () {
           return ev;
         },
         getPointInFurnitureView: function(ev) {
-          var furnitureView = homePane.controller.getFurnitureCatalogController().getView();
+          var furnitureView = homePane.controller.getFurnitureController().getView();
           if (furnitureView != null) {
             // TODO: create a utility function? 
             var furnitureComponent = furnitureView.container;
