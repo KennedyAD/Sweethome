@@ -1,8 +1,7 @@
 /*
- * DO NOT MODIFY: this source code has been automatically generated from Java
- *                with JSweet (http://www.jsweet.org)
+ * graphics2d.js
  *
- * Sweet Home 3D, Copyright (c) 2017 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +22,8 @@
  * This class is a wrapper that implements 2D drawing functions on a canvas.
  * Creates a new instance wrapping the given HTML canvas.
  * @constructor
+ * @author Renaud Pawlak
+ * @author Emmanuel Puybaret
  */
 function Graphics2D(canvas) {
   this.context = canvas.getContext("2d");
