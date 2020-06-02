@@ -309,6 +309,19 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           return true;
         }
         break;
+      case "java.util.UUID":
+        switch (invocation.getMethodName()) {
+        case "randomUUID":
+          printMacroName(invocation.getMethodName());
+          // From https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
+          print("(function() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {"
+              + " var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);"
+              + " return v.toString(16);"
+              + " });"
+              + "})()");
+          return true;
+        }
+        break;
       case "java.math.BigDecimal":
         // Support for Java big decimal (method are mapped to their Big.js equivalent)
         switch (invocation.getMethodName()) {
