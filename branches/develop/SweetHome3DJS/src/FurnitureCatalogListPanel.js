@@ -35,7 +35,7 @@ function FurnitureCatalogListPanel(containerId, catalog, preferences, controller
 /**
  * Returns the HTML element used to view this component at screen.
  */
-HomeComponent3D.prototype.getHTMLElement = function() {
+FurnitureCatalogListPanel.prototype.getHTMLElement = function() {
   return this.container;
 }
 
@@ -217,13 +217,6 @@ FurnitureCatalogListPanel.prototype.hideTooltip = function () {
   if(this.toolTipDiv.style.display != "none") {
     this.toolTipDiv.style.display = "none";
   }
-}
-
-FurnitureCatalogListPanel.prototype.addAction = function (action) {
-  var button = document.createElement('button');
-  button.innerHTML = 'Add';
-  button.addEventListener("click", function() { action.actionPerformed(); });
-  this.container.appendChild(button);
 }
 
 /** @private */
