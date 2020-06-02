@@ -242,8 +242,10 @@
 .furniture {
   position: relative;
   display: inline-block;
-  width: 80px;
-  height: 100px;
+  width: 70px;
+  height: 80px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   background-color: white;
 }
 
@@ -256,7 +258,7 @@
   position: absolute;
   bottom: 2px;
   font-size: 10px;
-  width: 100%;
+  width: 70px;
   text-align: center;
   pointer-events: none;
 }
@@ -264,8 +266,12 @@
 .furniture > .furniture-icon {
   position: absolute;
   top: 0px;
-  width: 100%;
+  width: 56px;
+  /* Required for proportional sizing under IE */
   height: auto;
+  /* Center the icon: (.furniture.width - .furniture-icon.width) / 2 */
+  margin-left: 7px;
+  margin-right: 7px;
   pointer-events: none;
 }
 
@@ -298,10 +304,23 @@
   .furniture-category > .furniture-category-label {
     display: none;
   }
+
+  .furniture {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    white-space: normal;
+  }
   
   .furniture > .furniture-icon {
     top: 3px;
   }
+
+  .furniture-category .furniture:last-child {
+    padding-right: 10px;
+    margin-right: 10px;
+    border-right: dashed 1px rgba(0, 0, 0, 0.4);
+  }
+
 }
 
 .furniture-tooltip {

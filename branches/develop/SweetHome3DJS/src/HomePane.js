@@ -451,8 +451,14 @@ ResourceAction["__interfaces"] = ["java.util.EventListener", "java.lang.Cloneabl
  */
 var HomePane = (function () {
 
-  function HomePane(home, preferences, controller) {
+  function HomePane(containerId, home, preferences, controller) {
     // _this.specialKeysListener = new HomePane.HomePane$0(_this);
+    if (containerId != null) {
+      this.container = document.getElementById(containerId);
+    }
+    if (!this.container) {
+      this.container = document.body;
+    }
     this.home = home;
     this.preferences = preferences;
     this.controller = controller;
@@ -512,7 +518,7 @@ var HomePane = (function () {
    * Returns the HTML element used to view this component at screen.
    */
   HomePane.prototype.getHTMLElement = function() {
-    return document.body;
+    return this.container;
   }
   
   HomePane.prototype.getActionMap = function () {

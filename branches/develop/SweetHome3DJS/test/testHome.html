@@ -81,12 +81,6 @@ body {
   touch-action: none;
 }
 
-.furniture {
-  width: 60px;
-  height: 80px;
-  margin: 5px;
-}
-
 #home-pane-toolbar {
   height: 30px;
   white-space: nowrap;
@@ -98,7 +92,7 @@ body {
 
 @media (orientation: landscape) {
 	
-  body {
+  #home-pane {
     padding-top: 30px;
     height: calc(100% - 30px);
   }
@@ -131,14 +125,6 @@ body {
 }
 
 @media (orientation: portrait) {
-
-  .furniture {
-    width: 60px;
-    height: 100%;
-    margin: 5px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-  }
 
   #home-3D-view {
     top: 0%;
@@ -553,15 +539,19 @@ if (geomAvailable) {
 testHome(geomAvailable);
 </script>
 
-<canvas id="home-3D-view" style="background-color: #CCCCCC; border: 1px solid gray;" 
-        tabIndex="1"></canvas>
+<div id="home-pane">
 
-<div id="home-plan" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
-        tabIndex="2" ></div>
+  <canvas id="home-3D-view" style="background-color: #CCCCCC; border: 1px solid gray;" 
+          tabIndex="1"></canvas>
 
-<div id="home-pane-toolbar"></div>
+  <div id="home-plan" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
+          tabIndex="2" ></div>
 
-<div id="furniture-catalog"></div>
+  <div id="home-pane-toolbar"></div>
+
+  <div id="furniture-catalog"></div>
+
+</div>
 
 <script type="text/javascript">
 
@@ -609,7 +599,7 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
           return new HomeComponent3D("home-3D-view", home, preferences, null, homeController3D);
         },
         createHomeView: function(home, preferences, homeController) {
-          return new HomePane(home, preferences, homeController);
+          return new HomePane("home-pane", home, preferences, homeController);
         }, 
         createLabelView: function (home, preferences, labelController) {
           return {
