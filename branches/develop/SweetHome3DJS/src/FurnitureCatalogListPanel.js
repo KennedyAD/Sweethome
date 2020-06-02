@@ -142,7 +142,6 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
   });
 
   var touchListener = function(ev) {
-      ev.preventDefault();
       var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
       for (k = 0; k < furnitureElements.length; k++) {
         furnitureElements[k].classList.remove("selected");
