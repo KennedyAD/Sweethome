@@ -305,6 +305,7 @@ HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
       canvas3D.getCanvas().removeEventListener("mousedown", this.userActionsListener.pointerMousePressed);
       window.removeEventListener("pointermove", this.userActionsListener.windowPointerMoved);
       window.removeEventListener("pointerup", this.userActionsListener.windowPointerReleased);
+      canvas3D.getCanvas().removeEventListener('contextmenu', userActionsListener.contextMenu);
     } else {
       canvas3D.getCanvas().removeEventListener("touchstart", this.userActionsListener.touchStarted);
       canvas3D.getCanvas().removeEventListener("touchmove", this.userActionsListener.touchMoved);
@@ -813,6 +814,9 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
           userActionsListener.touchEnded(ev);
         }
       },
+      contextMenu : function(ev){
+        ev.preventDefault();
+      },
       touchStarted : function(ev) {
         ev.preventDefault();
         this.actionStartedInComponent3D = true;
@@ -917,6 +921,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", userActionsListener.windowPointerMoved);
     window.addEventListener("pointerup", userActionsListener.windowPointerReleased);
+    canvas3D.getCanvas().addEventListener('contextmenu', userActionsListener.contextMenu);
   } else {
     canvas3D.getCanvas().addEventListener("touchstart", userActionsListener.touchStarted);
     canvas3D.getCanvas().addEventListener("touchmove", userActionsListener.touchMoved);

@@ -1106,6 +1106,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.touchEnded(ev);
         }
       },
+      contextMenu : function(ev){
+        ev.preventDefault();
+      },
       touchStarted: function(ev) {
         ev.preventDefault();
         if (plan.isEnabled()) {
@@ -1298,18 +1301,19 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         mouseListener.actionStartedInPlanComponent = false;
       },
       copyPointerToTargetTouches : function(ev, touchEnded) {
-        // Copy the IE and Edge pointer location to ev.targetTouches
-        mouseListener.pointerTouches [ev.pointerId] = {clientX : ev.clientX, clientY : ev.clientY};
+        // Copy the IE and Edge pointer location to ev.targetTouches or ev.changedTouches
+        if (touchEnded) {
+          ev.changedTouches = [mouseListener.pointerTouches [ev.pointerId]];
+          delete mouseListener.pointerTouches [ev.pointerId];
+        } else {
+          mouseListener.pointerTouches [ev.pointerId] = {clientX : ev.clientX, clientY : ev.clientY};
+        }
         ev.targetTouches = [];
         for (var attribute in mouseListener.pointerTouches) {
           if (mouseListener.pointerTouches.hasOwnProperty(attribute)) {
             ev.targetTouches.push(mouseListener.pointerTouches [attribute]);
           }
         }
-        ev.changedTouches = [mouseListener.pointerTouches [ev.pointerId]];
-        if (touchEnded) {
-          delete mouseListener.pointerTouches [ev.pointerId];
-        } 
       },
       updateCoordinates : function(ev, type) {
         // Updates canvasX and canvasY properties and return true if they changed
@@ -1422,6 +1426,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", mouseListener.windowPointerMoved);
     window.addEventListener("pointerup", mouseListener.windowPointerReleased);
+    this.canvas.addEventListener('contextmenu', mouseListener.contextMenu);
   } else {
     this.canvas.addEventListener("touchstart", mouseListener.touchStarted);
     this.canvas.addEventListener("touchmove", mouseListener.touchMoved);

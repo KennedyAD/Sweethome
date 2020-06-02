@@ -57,13 +57,13 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
     this.container.appendChild(categoryContainer);
 
     for(j = 0; j < category.getFurnitureCount(); j++) {
-      var furniture = category.getFurniture()[j];
-      var furnitureContainer = document.createElement("div");
-      furnitureContainer.model = furniture;
-      furnitureContainer.className = "furniture";
-      furnitureContainer.innerHTML = '<div class="furniture-label">' + furniture.name + '</div>';
-      categoryContainer.appendChild(furnitureContainer);
-      this.createFurniturePanel(furnitureContainer, furniture);
+      var piece = category.getFurniture()[j];
+      var pieceContainer = document.createElement("div");
+      pieceContainer.pieceOfFurniture = piece;
+      pieceContainer.className = "furniture";
+      pieceContainer.innerHTML = '<div class="furniture-label">' + piece.name + '</div>';
+      categoryContainer.appendChild(pieceContainer);
+      this.createPieceOfFurniturePanel(pieceContainer, piece);
     }
   }
 
@@ -117,21 +117,21 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   //   });
 }
 
-FurnitureCatalogListPanel.prototype.createFurniturePanel = function(furnitureContainer, furniture) {
+FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(pieceContainer, piece) {
 
   var furnitureCatalogListPanel = this;
 
-  furnitureContainer.addEventListener("mousemove", function(ev) {
-    furnitureCatalogListPanel.currentFurnitureContainer = furnitureContainer;
+  pieceContainer.addEventListener("mousemove", function(ev) {
+    furnitureCatalogListPanel.currentFurnitureContainer = pieceContainer;
   });
 
-  furnitureContainer.addEventListener("mousedown", function() {
+  pieceContainer.addEventListener("mousedown", function() {
     var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
     for (k = 0; k < furnitureElements.length; k++) {
       furnitureElements[k].classList.remove("selected");
     }
-    furnitureContainer.classList.add("selected");
-    furnitureCatalogListPanel.controller.setSelectedFurniture([furniture]);
+    pieceContainer.classList.add("selected");
+    furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
     furnitureCatalogListPanel.hideTooltip();
   });
 
@@ -141,21 +141,24 @@ FurnitureCatalogListPanel.prototype.createFurniturePanel = function(furnitureCon
         furnitureElements[k].classList.remove("selected");
         furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
       }
-      furnitureContainer.classList.add("selected");
-      furnitureContainer.querySelector(".furniture-add-icon").style.display = "block";
-      furnitureCatalogListPanel.controller.setSelectedFurniture([furniture]);
+      pieceContainer.classList.add("selected");
+      pieceContainer.querySelector(".furniture-add-icon").style.display = "block";
+      furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
     };
   if (OperatingSystem.isEdgeOrInternetExplorer()
       && window.PointerEvent) {
-    furnitureContainer.addEventListener("pointerdown", touchListener);
+    pieceContainer.addEventListener("pointerdown", touchListener);
+    pieceContainer.addEventListener('contextmenu', function(ev){
+        ev.preventDefault();
+      });
   } else {
-    furnitureContainer.addEventListener("touchstart", touchListener);
+    pieceContainer.addEventListener("touchstart", touchListener);
   }
 
-  TextureManager.getInstance().loadTexture(furniture.icon, {
+  TextureManager.getInstance().loadTexture(piece.icon, {
     textureUpdated: function(image) {
       image.classList.add("furniture-icon");
-      furnitureContainer.appendChild(image);
+      pieceContainer.appendChild(image);
     },
     textureError:  function(error) {
       console.error("image cannot be loaded", error);
@@ -166,17 +169,17 @@ FurnitureCatalogListPanel.prototype.createFurniturePanel = function(furnitureCon
   var addIcon = document.createElement("img");
   addIcon.classList.add("furniture-add-icon");
   addIcon.style.display = "none";
-  furnitureContainer.appendChild(addIcon);
+  pieceContainer.appendChild(addIcon);
 }
 
 /** @private */
-FurnitureCatalogListPanel.prototype.showTooltip = function (furnitureContainer, ev) {
+FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) {
   this.toolTipDiv.style.left = ev.clientX + 10;
   this.toolTipDiv.style.top = ev.clientY + 10;
   this.toolTipDiv.style.display = "block";
-  this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(furnitureContainer.model);
+  this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(pieceContainer.pieceOfFurniture);
   var icon = this.toolTipDiv.querySelector("img");
-  icon.src = furnitureContainer.querySelector("img.furniture-icon").src;
+  icon.src = pieceContainer.querySelector("img.furniture-icon").src;
   var rect = this.toolTipDiv.getBoundingClientRect();
   if(rect.x < 0) {
     this.toolTipDiv.style.left = ev.clientX + 10 - rect.x;
@@ -215,32 +218,25 @@ FurnitureCatalogListPanel.prototype.addAction = function (action) {
 }
 
 /** @private */
-FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(item) {
+FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(piece) {
   if (this.preferences != null) {
-    var creator = item.getCreator();
+    var creator = piece.getCreator();
     if (creator != null && creator.length > 0) {
       tipTextCreator = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipCreator", creator);
     }
     var tipTextModelSize;
     var format = this.preferences.getLengthUnit().getFormatWithUnit();
-    if (item instanceof CatalogPieceOfFurniture) {
-      var piece = item;
-      tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipPieceOfFurnitureDimensions",
-        format.format(piece.getWidth()), format.format(piece.getDepth()), format.format(piece.getHeight()));
-      if (piece.getModelSize() != null && piece.getModelSize() > 0) {
-        tipTextModelSize = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipModelSize",
-          Math.max(1, Math.round(piece.getModelSize() / 1000)));
-      }
-    } else if (item instanceof CatalogTexture) {
-      var piece = item;
-      tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions",
-        format.format(piece.getWidth()), format.format(piece.getHeight()));
+    tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipPieceOfFurnitureDimensions",
+      format.format(piece.getWidth()), format.format(piece.getDepth()), format.format(piece.getHeight()));
+    if (piece.getModelSize() != null && piece.getModelSize() > 0) {
+      tipTextModelSize = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipModelSize",
+        Math.max(1, Math.round(piece.getModelSize() / 1000)));
     }
   }
 
   var tipText = "<center>";
-  tipText += "- <b>" + item.getCategory().getName() + "</b> -<br>";
-  tipText += "<b>" + item.getName() + "</b>";
+  tipText += "- <b>" + piece.getCategory().getName() + "</b> -<br>";
+  tipText += "<b>" + piece.getName() + "</b>";
   if (tipTextDimensions != null) {
     tipText += "<br>" + tipTextDimensions;
   }
