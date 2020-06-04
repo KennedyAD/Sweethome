@@ -118,7 +118,7 @@
 
 #home-pane-toolbar .toolbar-button-group {
   display: inline-block;
-  height: 26px;
+  margin-top: 1px;
 }
 
 #home-pane-toolbar .toolbar-button {
