@@ -585,6 +585,9 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
 
 SweetHome3DJSApplication.prototype.getViewFactory = function() {
   if (this.viewFactory == null) {
+    var dummyDialogView = {
+        displayView: function(parent) { }
+      }; 
     this.viewFactory = {
         createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
           return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
@@ -601,14 +604,85 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
         createHomeView: function(home, preferences, homeController) {
           return new HomePane("home-pane", home, preferences, homeController);
         }, 
-        createLabelView: function (home, preferences, labelController) {
+        createWizardView: function(preferences, wizardController) {
+          return dummyDialogView;
+        },
+        createBackgroundImageWizardStepsView: function(backgroundImage, preferences, backgroundImageWizardController) {
+          return null;
+        },
+        createImportedFurnitureWizardStepsView: function(piece, modelName, importHomePiece, preferences, importedFurnitureWizardController) {
+          return null;
+        },
+        createImportedTextureWizardStepsView: function(texture, textureName, preferences, importedTextureWizardController) {
+          return null;
+        },
+        createUserPreferencesView: function(preferences, userPreferencesController) {
+          return dummyDialogView;
+        },
+        createLevelView: function(preferences, levelController) {
+          return dummyDialogView;
+        },
+        createHomeFurnitureView: function(preferences,  homeFurnitureController) {
+          return dummyDialogView;
+        },
+        createWallView: function(preferences,  wallController) {
+          return dummyDialogView;
+        },
+        createRoomView: function(preferences, roomController) {
+          return dummyDialogView;
+        },
+        createPolylineView: function(preferences, polylineController) {
+          return dummyDialogView;
+        },
+        createLabelView: function(modification, preferences, labelController) {
           return {
-            displayView: function(parentView) {
-              labelController.setText(prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text")));
-              labelController.createLabel();
-            }
-          }
-        }
+              displayView: function(parentView) {
+                var text = prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text"), 
+                    modification ? labelController.getText() :  "Text")
+                if (text != null) {
+                  labelController.setText(text);
+                  if (modification) {
+                    labelController.modifyLabels();
+                  } else {
+                    labelController.createLabel(); 
+                  }
+                }
+              }
+            };
+        },
+        createCompassView: function(preferences, compassController) {
+          return dummyDialogView;
+        },
+        createObserverCameraView: function(preferences, home3DAttributesController) {
+          return dummyDialogView;
+        },
+        createHome3DAttributesView: function(preferences, home3DAttributesController) {
+          return dummyDialogView;
+        },
+        createTextureChoiceView: function(preferences, textureChoiceController) {
+          return null;
+        },
+        createBaseboardChoiceView(preferences, baseboardChoiceController) {
+          return null;
+        },
+        createModelMaterialsView(preferences, modelMaterialsController) {
+          return null;
+        },
+        createPageSetupView: function(preferences, pageSetupController) {
+          return dummyDialogView;
+        },
+        createPrintPreviewView: function(home, preferences, homeController, printPreviewController) {
+          return dummyDialogView;
+        },
+        createPhotoView: function(home, preferences, photoController) {
+          return dummyDialogView;
+        },
+        createPhotosView: function(home, preferences, photosController) {
+          return dummyDialogView;
+        },
+        createVideoView: function(home, preferences, videoController) {
+          return dummyDialogView;
+        },
       };
     this.viewFactory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
   }

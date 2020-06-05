@@ -880,7 +880,7 @@ UserPreferences.prototype.addAutoCompletionString = function(property, autoCompl
     var propertyAutoCompletionStrings = this.autoCompletionStrings [property];
     if (propertyAutoCompletionStrings === undefined) {
       propertyAutoCompletionStrings = [];
-    } else if (!propertyAutoCompletionStrings.contains(autoCompletionString)) {
+    } else if (propertyAutoCompletionStrings.indexOf(autoCompletionString) < 0) {
       propertyAutoCompletionStrings = propertyAutoCompletionStrings.slice(0);
     } else {
       return;
