@@ -1293,6 +1293,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             } 
             
             plan.stopIndicatorAnimation();
+            mouseListener.actionStartedInPlanComponent = false;
           } else if (ev.targetTouches.length == 1) {
             if (controller.getMode() === PlanController.Mode.SELECTION) {
               controller.setMode(PlanController.Mode.PANNING);
@@ -1307,7 +1308,6 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                 ev.targetTouches[1].clientX, ev.targetTouches[1].clientY)
           }
         }
-        mouseListener.actionStartedInPlanComponent = false;
       },
       copyPointerToTargetTouches : function(ev, touchEnded) {
         // Copy the IE and Edge pointer location to ev.targetTouches or ev.changedTouches

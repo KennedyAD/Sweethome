@@ -74,7 +74,7 @@ var ResourceAction = (function () {
     if (this.enabled != enabled) {
       this.enabled = enabled;
       if (this.changeSupport != null) {
-        this.changeSupport.firePropertyChange("enabled", !enabled, enabled);
+        this.firePropertyChange("enabled", !enabled, enabled);
       }
     }
   }
@@ -143,10 +143,21 @@ var ResourceAction = (function () {
       }
     }
     if (this.changeSupport != null) {
-      this.changeSupport.firePropertyChange(key, oldValue, newValue);
+      this.firePropertyChange(key, oldValue, newValue);
     }
   }
 
+  /**
+   * @protected
+   */
+  ResourceAction.prototype.firePropertyChange = function(propertyName, oldValue, newValue) {
+    if (this.changeSupport == null 
+        || (oldValue != null && newValue != null && oldValue == newValue)) {
+      return;
+    }
+    this.changeSupport.firePropertyChange(propertyName, oldValue, newValue);
+  }  
+  
   /**
    * Returns an array of <code>Object</code>s which are keys for
    * which values have been set for this <code>AbstractAction</code>,
