@@ -5796,7 +5796,6 @@ PlanComponent.prototype.setCursor = function(cursorType) {
         break;
       case PlanView.CursorType.SELECTION:
       default:
-        this.stopIndicatorAnimation();
         this.setCursor('default');
         break;
     }
