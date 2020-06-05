@@ -988,7 +988,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       lastTargetTouches : [],
       distanceLastPinch: null,
       panningAfterPinch: false,
-      lastTouchStartedTimeStamp: 0,
+      firstTouchStartedTimeStamp: 0,
       longTouchStartTime: 0,
       autoScroll: null,
       longTouch: null,
@@ -1131,13 +1131,13 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             if (mouseListener.initialPointerLocation != null
                 && mouseListener.distance(ev.canvasX, ev.canvasY,
                       mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5
-                && ev.timeStamp - mouseListener.lastTouchStartedTimeStamp <= 500) { 
+                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= 500) { 
               clickCount = 2;
-              mouseListener.lastTouchStartedTimeStamp = 0;
+              mouseListener.firstTouchStartedTimeStamp = 0;
               mouseListener.initialPointerLocation = null;
             } else {
+              mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
               mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
-              mouseListener.lastTouchStartedTimeStamp = ev.timeStamp;
             }
             
             mouseListener.distanceLastPinch = null;
@@ -1194,6 +1194,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           if (mouseListener.updateCoordinates(ev, "touchMoved")) {
             plan.stopIndicatorAnimation();
             mouseListener.longTouchWhenDragged = null;
+            mouseListener.initialPointerLocation = null;
             
             if (ev.targetTouches.length == 1) {
               // Handle autoscroll
@@ -1290,7 +1291,12 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               controller.releaseMouse(xModel, yModel);
               controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
               controller.releaseMouse(xModel, yModel);
-            } 
+            } else if (mouseListener.isLongTouch()
+                       && mouseListener.initialPointerLocation != null) {
+              // Emulate double click
+              controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+              controller.releaseMouse(xModel, yModel);
+            }
             
             plan.stopIndicatorAnimation();
             mouseListener.actionStartedInPlanComponent = false;
@@ -5754,8 +5760,7 @@ PlanComponent.prototype.setCursor = function(cursorType) {
         // No break;
       case PlanView.CursorType.MOVE:
         if (this.lastTouchX 
-            && this.lastTouchY 
-            && cursorType !== PlanView.CursorType.DRAW) {
+            && this.lastTouchY) {
           this.startIndicatorAnimation(this.lastTouchX, this.lastTouchY, PlanView.CursorType[cursorType].toLowerCase());
         }
         break;
