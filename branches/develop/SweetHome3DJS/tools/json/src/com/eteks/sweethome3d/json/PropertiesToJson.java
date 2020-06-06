@@ -10,10 +10,12 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import org.json.JSONObject;
@@ -71,20 +73,32 @@ public class PropertiesToJson {
       System.out.println("***** Adding extra keys for '" + lang + "'");
       properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getGroupingSeparator());
       properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getDecimalSeparator());
+    } else if ("package".equals(name)) {
+      for (Iterator<Entry<Object, Object>> it = properties.entrySet().iterator(); it.hasNext(); ) {
+        String key = (String)it.next().getKey();
+        int acceleratorKeyIndex = key.indexOf(".AcceleratorKey");
+        if (acceleratorKeyIndex >= 0
+            && !Arrays.asList("HomePane.UNDO", "HomePane.REDO", "HomePane.DELETE",
+                    "HomePane.CUT", "HomePane.COPY", "HomePane.PASTE").
+                contains(key.substring(0, acceleratorKeyIndex))) {
+          // Keep only accelerators that won't clash with browser ones
+          it.remove();
+        }
+      }
     } else if ("DefaultFurnitureCatalog".equals(name)) {
       new File(resourcesOutputDirectory).mkdirs();
       // Copy icon#, planIcon# images and create a .zip file containing the file pointed by model# property
-      for (Object key : properties.keySet()) {
-        String stringKey = (String)key;
-        if (stringKey.startsWith("icon#")
-            || stringKey.startsWith("planIcon#")) {
-          String currentPath = properties.getProperty(stringKey);
+      for (Entry<Object, Object> entry : properties.entrySet()) {
+        String key = (String)entry.getKey();
+        if (key.startsWith("icon#")
+            || key.startsWith("planIcon#")) {
+          String currentPath = properties.getProperty(key);
           Path newPath = Paths.get(resourcesOutputDirectory, currentPath.substring(currentPath.lastIndexOf("/")));
           Files.copy(Paths.get("../SweetHome3D/src", currentPath), newPath, StandardCopyOption.REPLACE_EXISTING);
 
-          properties.setProperty(stringKey, newPath.toString());
-        } else if (stringKey.startsWith("model#")) {
-          String currentPath = properties.getProperty(stringKey);
+          entry.setValue(newPath.toString());
+        } else if (key.startsWith("model#")) {
+          String currentPath = properties.getProperty(key);
           String modelFile = currentPath.substring(currentPath.lastIndexOf("/") + 1);
           String extension = modelFile.substring(modelFile.lastIndexOf('.'));
           // Create a .zip file containing the 3D model
@@ -103,7 +117,7 @@ public class PropertiesToJson {
           }
           zipOutputStream.close();
 
-          properties.setProperty(stringKey, "jar:" + newPath + "!/" + modelFile);
+          entry.setValue("jar:" + newPath + "!/" + modelFile);
         }
       }
     }
