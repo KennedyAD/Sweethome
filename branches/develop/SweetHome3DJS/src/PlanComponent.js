@@ -1438,6 +1438,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
     // Multi touch support for IE and Edge
     this.canvas.addEventListener("pointerdown", mouseListener.pointerPressed);
     this.canvas.addEventListener("mousedown", mouseListener.pointerMousePressed);
+    this.canvas.addEventListener("dblclick", mouseListener.mouseDoubleClicked);
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", mouseListener.windowPointerMoved);
     window.addEventListener("pointerup", mouseListener.windowPointerReleased);
