@@ -209,11 +209,13 @@ ModelLoader.prototype.loadTextureImages = function(node, images, zip, zipUrl, sy
               var imageData = imageEntry.asBinary();
               var base64Image = btoa(imageData);
               var extension = imageEntryName.substring(imageEntryName.lastIndexOf('.') + 1).toLowerCase();
-              var mimeType = extension == "jpg"
+              var mimeType = ZIPTools.isJPEGImage(imageData)
                   ? "image/jpeg" 
-                  : ("image/" + extension);
+                  : (ZIPTools.isPNGImage(imageData) 
+                      ? "image/png"
+                      : ("image/" + extension));
               // Detect quickly if a PNG image use transparency
-              image.transparent = ZIPTools.isTranparentImage(imageData);
+              image.transparent = ZIPTools.isTransparentImage(imageData);
               image.src = "data:" + mimeType + ";base64," + base64Image;
             } else {
               appearance.setTextureImage(null);

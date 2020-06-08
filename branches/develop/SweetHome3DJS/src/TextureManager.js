@@ -202,7 +202,7 @@ TextureManager.prototype.load = function(url, synchronous, loadingTextureObserve
               var imageData = imageEntry.asBinary();
               var base64Image = btoa(imageData);
               // Detect quickly if the image is a PNG using transparency
-              textureImage.transparent = ZIPTools.isTranparentImage(imageData);
+              textureImage.transparent = ZIPTools.isTransparentImage(imageData);
               textureImage.src = "data:image;base64," + base64Image;
               // If image is already here or if image loading must be synchronous 
               if (textureImage.width !== 0
