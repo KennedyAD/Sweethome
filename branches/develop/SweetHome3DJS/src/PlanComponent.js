@@ -1187,9 +1187,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         }
       },
       touchMoved: function(ev) {
-        ev.preventDefault();
         if (mouseListener.actionStartedInPlanComponent
             && plan.isEnabled()) {
+          ev.preventDefault();
           ev.stopPropagation();
           if (mouseListener.updateCoordinates(ev, "touchMoved")) {
             plan.stopIndicatorAnimation();

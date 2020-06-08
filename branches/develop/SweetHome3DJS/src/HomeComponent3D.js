@@ -841,8 +841,8 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         }
       },
       touchMoved : function(ev) {
-        ev.preventDefault();
         if (this.actionStartedInComponent3D) {
+          ev.preventDefault();
           if (ev.targetTouches.length == 1) {
             if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
               userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
