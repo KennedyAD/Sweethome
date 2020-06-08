@@ -1319,12 +1319,22 @@ HTMLCanvas3D.prototype.repaint = function() {
 
 
 /**
- * Returns <code>true</code> if all data are ready to be displayed.
+ * Returns <code>true</code> if all data of the scene are ready to be displayed.
  */
 HTMLCanvas3D.prototype.isLoadingCompleted = function() {
-  // Check texture images loading is ended 
-  for (var i = 0; i < this.textures.length; i++) {
-    if (!this.textures [i].image.bound) {
+  return this.isTextureLoadingCompleted(this.backgroundGeometries)
+      && this.isTextureLoadingCompleted(this.sceneGeometries);
+}
+
+/**
+ * Returns <code>true</code> if all the textures used by the given geometries are loaded.
+ * @private
+ */
+HTMLCanvas3D.prototype.isTextureLoadingCompleted = function(geometries) {
+  for (var i = 0; i < geometries.length; i++) {
+    var texture = geometries [i].texture;
+    if (texture !== undefined 
+        && !texture.image.bound) {
       return false;
     }
   }

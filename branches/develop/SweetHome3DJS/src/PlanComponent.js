@@ -1209,8 +1209,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                     && controller.getMode() !== PlanController.Mode.PANNING
                     && mouseListener.lastPointerLocation != null) {
                   mouseListener.autoScroll = setInterval(function() {
-                    mouseListener.touchMoved(ev);
-                  }, 10);
+                      mouseListener.touchMoved(ev);
+                    }, 10);
                 }
               }
               
@@ -6179,10 +6179,11 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.createIcon = function(pieceNod
   model.addChild(modelTransformGroup);
   var sceneRoot = this.getSceneRoot(iconSize);
   if (iconObserver) {
+    var observingStart = Date.now();
     var iconGeneration = function() {
         sceneRoot.addChild(model);
         var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
-        if (loadingCompleted) {
+        if (loadingCompleted || (Date.now() - observingStart) > 5000) {
           PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage(iconObserver);
         }
         sceneRoot.removeChild(model);
