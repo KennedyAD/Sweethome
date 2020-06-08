@@ -884,7 +884,7 @@ HTMLCanvas3D.prototype.prepareTexture = function(textureImage) {
   // Create texture
   var texture = this.gl.createTexture();
   texture.image = textureImage;
-  if (textureImage.width != 0) {
+  if (textureImage.width !== 0) {
     this.bindTextureAndRepaint(texture, true);
   } else {
     var canvas3D = this;
@@ -1194,7 +1194,8 @@ HTMLCanvas3D.prototype.drawGeometry = function(geometry, viewPlatformInvertedTra
     
     vec3.set(this.geometryDiffuseColor, 1, 1, 1);
     if (textureEnabled 
-        && geometry.texture !== undefined) {
+        && geometry.texture !== undefined
+        && geometry.texture.image.bound) {
       this.gl.activeTexture(this.gl.TEXTURE0);
       if (geometry.textureCoordinatesGeneration) {
         this.gl.uniform4fv(this.shaderProgram.planeS, geometry.textureCoordinatesGeneration.planeS);
