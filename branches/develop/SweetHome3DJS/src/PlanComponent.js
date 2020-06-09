@@ -6126,7 +6126,7 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     var canvas = document.createElement("canvas");
     canvas.width = iconSize;
     canvas.height = iconSize;
-    canvas.style.backgroundColor = "rgba(255, 255, 255, 0)";
+    canvas.style.backgroundColor = "rgba(0, 0, 0, 0)";
     var canvas3D = new HTMLCanvas3D(canvas);
     var rotation = mat4.create();
     mat4.fromXRotation(rotation, -Math.PI / 2);
