@@ -209,22 +209,42 @@ ZIPTools.disposeZIP = function(url) {
 }
 
 /**
+ * Returns true if the given image data describes a JPEG file.
+ * @package
+ * @ignore
+ */
+ZIPTools.isJPEGImage = function(imageData) {
+  return imageData.charAt(0).charCodeAt(0) === 0xFF 
+      && imageData.charAt(1).charCodeAt(0) === 0xD8 
+      && imageData.charAt(2).charCodeAt(0) === 0xFF;
+}
+
+/**
  * Returns true if the given image data describes a transparent PNG file.
  * @package
  * @ignore
  */
-ZIPTools.isTranparentImage = function(imageData) {
+ZIPTools.isPNGImage = function(imageData) {
   return imageData.charAt(0).charCodeAt(0) === 0x89 
-  && imageData.charAt(1).charCodeAt(0) === 0x50 
-  && imageData.charAt(2).charCodeAt(0) === 0x4e 
-  && imageData.charAt(3).charCodeAt(0) === 0x47 
-  && imageData.charAt(4).charCodeAt(0) === 0x0d 
-  && imageData.charAt(5).charCodeAt(0) === 0x0a 
-  && imageData.charAt(6).charCodeAt(0) === 0x1a 
-  && imageData.charAt(7).charCodeAt(0) === 0x0a
-  && (imageData.charAt(25).charCodeAt(0) === 4
-      || imageData.charAt(25).charCodeAt(0) === 6
-      || (imageData.indexOf("PLTE") !== -1 && imageData.indexOf("tRNS") !== -1));
+      && imageData.charAt(1).charCodeAt(0) === 0x50 
+      && imageData.charAt(2).charCodeAt(0) === 0x4E 
+      && imageData.charAt(3).charCodeAt(0) === 0x47 
+      && imageData.charAt(4).charCodeAt(0) === 0x0D 
+      && imageData.charAt(5).charCodeAt(0) === 0x0A 
+      && imageData.charAt(6).charCodeAt(0) === 0x1A 
+      && imageData.charAt(7).charCodeAt(0) === 0x0A;
+}
+
+/**
+ * Returns true if the given image data describes a transparent PNG file.
+ * @package
+ * @ignore
+ */
+ZIPTools.isTransparentImage = function(imageData) {
+  return ZIPTools.isPNGImage(imageData)
+      && (imageData.charAt(25).charCodeAt(0) === 4
+          || imageData.charAt(25).charCodeAt(0) === 6
+          || (imageData.indexOf("PLTE") !== -1 && imageData.indexOf("tRNS") !== -1));
 }
 
 /**
