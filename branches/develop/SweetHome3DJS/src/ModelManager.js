@@ -171,9 +171,7 @@ ModelManager.prototype.getCenter = function(node) {
   bounds.getLower(lower);
   var upper = vec3.create();
   bounds.getUpper(upper);
-  return vec3.fromValues((lower.getX() + upper.getX()) / 2,
-      (lower.getY() + upper.getY()) / 2,
-      (lower.getZ() + upper.getZ()) / 2);
+  return vec3.fromValues((lower[0] + upper[0]) / 2, (lower[1] + upper[1]) / 2, (lower[2] + upper[2]) / 2);
 }
 
 /**

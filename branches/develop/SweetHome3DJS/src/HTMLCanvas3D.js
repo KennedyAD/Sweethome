@@ -641,7 +641,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
  * @param {IndexedGeometryArray3D} nodeGeometry
  * @param {Appearance3D} nodeAppearance
  * @param {WebGLTexture} texture
- * @param {Node3D}  node
+ * @param {Shape3D} node
  * @param {Array}   sharedGeometries
  * @param {Array}   sceneGeometries
  * @param {Array}   backgroundGeometries
@@ -658,7 +658,8 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
     // Search if node geometry is already used
     for (var i = 0; i < sharedGeometries.length; i++) {
       if (sharedGeometries [i].nodeGeometry === nodeGeometry) {
-        geometry = {node : node,
+        geometry = {node   : node,
+                    center : sharedGeometries [i].center,
                     nodeGeometry : nodeGeometry,
                     vertexCount  : sharedGeometries [i].vertexCount, 
                     vertexBuffer : sharedGeometries [i].vertexBuffer, 
@@ -672,7 +673,15 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
   }
   
   if (geometry === null) {
+    var bounds = node.getBounds();
+    var lower = vec3.create();
+    bounds.getLower(lower);
+    var upper = vec3.create();
+    bounds.getUpper(upper);
+    var center = vec3.fromValues((lower [0] + upper [0]) / 2, (lower [1] + upper [1]) / 2, (lower [2] + upper [2]) / 2);
+
     geometry = {node : node,
+                center : center,
                 nodeGeometry : nodeGeometry,
                 vertexCount  : nodeGeometry.vertexIndices.length};
     geometry.vertexBuffer = this.prepareBuffer(nodeGeometry.vertices, nodeGeometry.vertexIndices);
@@ -687,6 +696,7 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
     if (!node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
       sharedGeometries.push(
           {nodeGeometry : nodeGeometry,
+           center       : center,
            vertexCount  : geometry.vertexCount, 
            vertexBuffer : geometry.vertexBuffer, 
            textureCoordinatesBuffer : geometry.textureCoordinatesBuffer,
@@ -943,6 +953,7 @@ HTMLCanvas3D.prototype.bindTextureAndRepaint = function(texture, bindOnly) {
 HTMLCanvas3D.prototype.bindTexture = function(texture) {
   this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
   this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+  this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texture.image);
   this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
   if (Appearance3D.isPowerOfTwo(texture.image.width) && Appearance3D.isPowerOfTwo(texture.image.height)) {
@@ -1061,32 +1072,38 @@ HTMLCanvas3D.prototype.drawScene = function() {
 
   // Second draw opaque geometries
   this.gl.enable(this.gl.DEPTH_TEST);
+  var transparentGeometries = [];
   for (var i = 0; i < this.sceneGeometries.length; i++) {
     var geometry = this.sceneGeometries [i];
-    if (geometry.transparency === 1 
-        && (geometry.texture === undefined
-            || !geometry.texture.image.transparent)) {
-      this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
+    if (geometry.visible) {
+      if ((geometry.transparency === undefined
+              || geometry.transparency === 1)
+          && (geometry.texture === undefined
+              || !geometry.texture.image.transparent)) {
+        this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
+      } else if (geometry.transparency > 0) {
+        transparentGeometries.push(geometry);
+      }
     }
   }
-  // Then draw geometries which use a transparent texture 
+  
+  // Then draw geometries which are transparent or use a transparent texture 
   this.gl.enable(this.gl.BLEND);
-  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-  for (var i = 0; i < this.sceneGeometries.length; i++) {
-    var geometry = this.sceneGeometries [i];
-    if (geometry.texture !== undefined
-        && geometry.texture.image.transparent) {
-      this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
-    }
+  this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
+  // Sort transparent geometries from the farthest to the closest
+  var center = vec3.create();
+  for (var i = 0; i < transparentGeometries.length; i++) {
+    var geometry = transparentGeometries [i];
+    vec3.transformMat4(center, geometry.center, geometry.transform);
+    vec3.transformMat4(center, center, viewPlatformInvertedTransform);
+    geometry.zOrder = center [2];
   }
-  // And other geometries which are transparent 
-  for (var i = 0; i < this.sceneGeometries.length; i++) {
-    var geometry = this.sceneGeometries [i];
-    if (geometry.transparency < 1 
-        && (geometry.texture === undefined
-            || !geometry.texture.image.transparent)) {
-      this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
-    }
+  transparentGeometries.sort(function(geometry1, geometry2) {
+      return geometry1.zOrder - geometry2.zOrder;
+    });
+  for (var i = 0; i < transparentGeometries.length; i++) {
+    var geometry = transparentGeometries [i];
+    this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
   }
   
   // Keep track of the number of frames drawn per second
@@ -1110,130 +1127,106 @@ HTMLCanvas3D.prototype.drawScene = function() {
  */
 HTMLCanvas3D.prototype.drawGeometry = function(geometry, viewPlatformInvertedTransform, ambientLightColor, 
                                                lightingEnabled, textureEnabled, transparencyEnabled) {
-  if (geometry.visible
-      && (geometry.transparency === undefined 
-          || geometry.transparency > 0)) {
-    // Call face management methods only if cullFace changed from previous geometry  
-    if (geometry.cullFace !== this.shaderCullFace) {
-      this.shaderCullFace = geometry.cullFace;
-      if (this.shaderCullFace !== undefined) {
-        if (this.shaderCullFace === Appearance3D.CULL_NONE) {
-          this.gl.disable(this.gl.CULL_FACE);
-        } else {
-          this.gl.enable(this.gl.CULL_FACE);
-          this.gl.cullFace(this.shaderCullFace === Appearance3D.CULL_BACK
-              ? this.gl.BACK : this.gl.FRONT);
-        }
+  // Call face management methods only if cullFace changed from previous geometry  
+  if (geometry.cullFace !== this.shaderCullFace) {
+    this.shaderCullFace = geometry.cullFace;
+    if (this.shaderCullFace !== undefined) {
+      if (this.shaderCullFace === Appearance3D.CULL_NONE) {
+        this.gl.disable(this.gl.CULL_FACE);
       } else {
         this.gl.enable(this.gl.CULL_FACE);
-        this.gl.cullFace(this.gl.BACK);
+        this.gl.cullFace(this.shaderCullFace === Appearance3D.CULL_BACK
+            ? this.gl.BACK : this.gl.FRONT);
       }
+    } else {
+      this.gl.enable(this.gl.CULL_FACE);
+      this.gl.cullFace(this.gl.BACK);
+    }
+  }
+
+  mat4.copy(this.geometryModelViewTransform, viewPlatformInvertedTransform);
+  mat4.mul(this.geometryModelViewTransform, this.geometryModelViewTransform, geometry.transform);
+  // Call uniformMatrix4fv only if geometryModelViewTransform changed from previous geometry
+  if (!mat4.exactEquals(this.shaderModelViewTransform, this.geometryModelViewTransform)) {
+    mat4.copy(this.shaderModelViewTransform, this.geometryModelViewTransform);
+    this.gl.uniformMatrix4fv(this.shaderProgram.modelViewTransform, false, this.shaderModelViewTransform);
+  }
+
+  // Call uniform1i only if lightingEnabled changed from previous geometry
+  if (this.shaderLightingEnabled !== lightingEnabled) {
+    this.shaderLightingEnabled = lightingEnabled;
+    this.gl.uniform1i(this.shaderProgram.lightingEnabled, this.shaderLightingEnabled);
+  }
+  if (lightingEnabled) {
+    if (geometry.ambientColor !== undefined
+        && geometry.texture === undefined) {
+      vec3.mul(this.geometryAmbientColor, geometry.ambientColor, ambientLightColor);
+    } else {
+      vec3.set(this.geometryAmbientColor, 0, 0, 0);
+    }
+    // Call uniform3fv only if geometryAmbientColor changed from previous geometry
+    if (!vec3.exactEquals(this.shaderAmbientColor, this.geometryAmbientColor)) {
+      vec3.copy(this.shaderAmbientColor, this.geometryAmbientColor);
+      this.gl.uniform3fv(this.shaderProgram.ambientColor, this.shaderAmbientColor);
     }
 
-    mat4.copy(this.geometryModelViewTransform, viewPlatformInvertedTransform);
-    mat4.mul(this.geometryModelViewTransform, this.geometryModelViewTransform, geometry.transform);
-    // Call uniformMatrix4fv only if geometryModelViewTransform changed from previous geometry
-    if (!mat4.exactEquals(this.shaderModelViewTransform, this.geometryModelViewTransform)) {
-      mat4.copy(this.shaderModelViewTransform, this.geometryModelViewTransform);
-      this.gl.uniformMatrix4fv(this.shaderProgram.modelViewTransform, false, this.shaderModelViewTransform);
+    if (!this.ignoreShininess
+        && geometry.specularColor !== undefined 
+        && geometry.shininess !== undefined) {
+      // Call uniform1f only if shininess changed from previous geometry
+      if (this.shaderShininess !== geometry.shininess) {
+        this.shaderShininess = geometry.shininess;
+        this.gl.uniform1f(this.shaderProgram.shininess, this.shaderShininess);
+      }
+      vec3.copy(this.geometrySpecularColor, geometry.specularColor);
+    } else {
+      vec3.set(this.geometrySpecularColor, 0, 0, 0);
+    }
+    // Call uniform3fv only if geometrySpecularColor changed from previous geometry
+    if (!vec3.exactEquals(this.shaderSpecularColor, this.geometrySpecularColor)) {
+      vec3.copy(this.shaderSpecularColor, this.geometrySpecularColor);
+      this.gl.uniform3fv(this.shaderProgram.vertexSpecularColor, this.shaderSpecularColor);
     }
 
-    // Call uniform1i only if lightingEnabled changed from previous geometry
-    if (this.shaderLightingEnabled !== lightingEnabled) {
-      this.shaderLightingEnabled = lightingEnabled;
-      this.gl.uniform1i(this.shaderProgram.lightingEnabled, this.shaderLightingEnabled);
+    mat3.fromMat4(this.geometryNormalTransform, this.geometryModelViewTransform);
+    // Call uniformMatrix3fv only if geometryNormalTransform changed from previous geometry
+    if (!mat3.exactEquals(this.shaderNormalTransform, this.geometryNormalTransform)) {
+      mat3.copy(this.shaderNormalTransform, this.geometryNormalTransform);
+      this.gl.uniformMatrix3fv(this.shaderProgram.normalTransform, false, this.shaderNormalTransform);
     }
-    if (lightingEnabled) {
-      if (geometry.ambientColor !== undefined
-          && geometry.texture === undefined) {
-        vec3.mul(this.geometryAmbientColor, geometry.ambientColor, ambientLightColor);
-      } else {
-        vec3.set(this.geometryAmbientColor, 0, 0, 0);
+    // Call uniform1i only if type of geometry changed from previous geometry
+    if (this.shaderIgnoreNormal !== (geometry.mode === this.gl.LINES)) {
+      this.shaderIgnoreNormal = geometry.mode === this.gl.LINES;
+      this.gl.uniform1i(this.shaderProgram.ignoreNormal, this.shaderIgnoreNormal);
+    }
+    // Call uniform1i only if backFaceNormalFlip changed from previous geometry
+    if (this.shaderBackFaceNormalFlip !== geometry.backFaceNormalFlip) {
+      this.shaderBackFaceNormalFlip = geometry.backFaceNormalFlip;
+      this.gl.uniform1i(this.shaderProgram.backFaceNormalFlip, this.shaderBackFaceNormalFlip);
+    }
+  } 
+  
+  vec3.set(this.geometryDiffuseColor, 1, 1, 1);
+  if (textureEnabled 
+      && geometry.texture !== undefined
+      && geometry.texture.image.bound) {
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    if (geometry.textureCoordinatesGeneration) {
+      this.gl.uniform4fv(this.shaderProgram.planeS, geometry.textureCoordinatesGeneration.planeS);
+      this.gl.uniform4fv(this.shaderProgram.planeT, geometry.textureCoordinatesGeneration.planeT);
+      // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
+      if (!this.shaderTextureCoordinatesGenerated) {
+        this.shaderTextureCoordinatesGenerated = true;
+        this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, true);
       }
-      // Call uniform3fv only if geometryAmbientColor changed from previous geometry
-      if (!vec3.exactEquals(this.shaderAmbientColor, this.geometryAmbientColor)) {
-        vec3.copy(this.shaderAmbientColor, this.geometryAmbientColor);
-        this.gl.uniform3fv(this.shaderProgram.ambientColor, this.shaderAmbientColor);
-      }
-
-      if (!this.ignoreShininess
-          && geometry.specularColor !== undefined 
-          && geometry.shininess !== undefined) {
-        // Call uniform1f only if shininess changed from previous geometry
-        if (this.shaderShininess !== geometry.shininess) {
-          this.shaderShininess = geometry.shininess;
-          this.gl.uniform1f(this.shaderProgram.shininess, this.shaderShininess);
-        }
-        vec3.copy(this.geometrySpecularColor, geometry.specularColor);
-      } else {
-        vec3.set(this.geometrySpecularColor, 0, 0, 0);
-      }
-      // Call uniform3fv only if geometrySpecularColor changed from previous geometry
-      if (!vec3.exactEquals(this.shaderSpecularColor, this.geometrySpecularColor)) {
-        vec3.copy(this.shaderSpecularColor, this.geometrySpecularColor);
-        this.gl.uniform3fv(this.shaderProgram.vertexSpecularColor, this.shaderSpecularColor);
-      }
-
-      mat3.fromMat4(this.geometryNormalTransform, this.geometryModelViewTransform);
-      // Call uniformMatrix3fv only if geometryNormalTransform changed from previous geometry
-      if (!mat3.exactEquals(this.shaderNormalTransform, this.geometryNormalTransform)) {
-        mat3.copy(this.shaderNormalTransform, this.geometryNormalTransform);
-        this.gl.uniformMatrix3fv(this.shaderProgram.normalTransform, false, this.shaderNormalTransform);
-      }
-      // Call uniform1i only if type of geometry changed from previous geometry
-      if (this.shaderIgnoreNormal !== (geometry.mode === this.gl.LINES)) {
-        this.shaderIgnoreNormal = geometry.mode === this.gl.LINES;
-        this.gl.uniform1i(this.shaderProgram.ignoreNormal, this.shaderIgnoreNormal);
-      }
-      // Call uniform1i only if backFaceNormalFlip changed from previous geometry
-      if (this.shaderBackFaceNormalFlip !== geometry.backFaceNormalFlip) {
-        this.shaderBackFaceNormalFlip = geometry.backFaceNormalFlip;
-        this.gl.uniform1i(this.shaderProgram.backFaceNormalFlip, this.shaderBackFaceNormalFlip);
-      }
-    } 
-    
-    vec3.set(this.geometryDiffuseColor, 1, 1, 1);
-    if (textureEnabled 
-        && geometry.texture !== undefined
-        && geometry.texture.image.bound) {
-      this.gl.activeTexture(this.gl.TEXTURE0);
-      if (geometry.textureCoordinatesGeneration) {
-        this.gl.uniform4fv(this.shaderProgram.planeS, geometry.textureCoordinatesGeneration.planeS);
-        this.gl.uniform4fv(this.shaderProgram.planeT, geometry.textureCoordinatesGeneration.planeT);
-        // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
-        if (!this.shaderTextureCoordinatesGenerated) {
-          this.shaderTextureCoordinatesGenerated = true;
-          this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, true);
-        }
-      } else if (geometry.textureCoordinatesBuffer === null) {
-        // Default way to generate missing texture coordinates
-        this.gl.uniform4fv(this.shaderProgram.planeS, HTMLCanvas3D.VEC4_DEFAULT_PLANE_S);
-        this.gl.uniform4fv(this.shaderProgram.planeT, HTMLCanvas3D.VEC4_DEFAULT_PLANE_T);
-        // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
-        if (!this.shaderTextureCoordinatesGenerated) {
-          this.shaderTextureCoordinatesGenerated = true;
-          this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, true);
-        }
-      } else {
-        // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
-        if (this.shaderTextureCoordinatesGenerated) {
-          this.shaderTextureCoordinatesGenerated = false;
-          this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, false);
-        }
-      }
-      var geometryTextureTransform = geometry.textureTransform !== undefined 
-          ? geometry.textureTransform 
-          : HTMLCanvas3D.MAT3_IDENTITY;
-      // Call uniformMatrix3fv only if geometryTextureTransform changed from previous geometry
-      if (!mat3.exactEquals(this.shaderTextureTransform, geometryTextureTransform)) {
-        mat3.copy(this.shaderTextureTransform, geometryTextureTransform);
-        this.gl.uniformMatrix3fv(this.shaderProgram.textureCoordTransform, false, this.shaderTextureTransform);
-      }
-      this.gl.bindTexture(this.gl.TEXTURE_2D, geometry.texture);
-      // Call uniform1i only if useTextures changed from previous geometry
-      if (!this.shaderUseTextures) {
-        this.shaderUseTextures = true;
-        this.gl.uniform1i(this.shaderProgram.useTextures, true);
+    } else if (geometry.textureCoordinatesBuffer === null) {
+      // Default way to generate missing texture coordinates
+      this.gl.uniform4fv(this.shaderProgram.planeS, HTMLCanvas3D.VEC4_DEFAULT_PLANE_S);
+      this.gl.uniform4fv(this.shaderProgram.planeT, HTMLCanvas3D.VEC4_DEFAULT_PLANE_T);
+      // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
+      if (!this.shaderTextureCoordinatesGenerated) {
+        this.shaderTextureCoordinatesGenerated = true;
+        this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, true);
       }
     } else {
       // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
@@ -1241,52 +1234,72 @@ HTMLCanvas3D.prototype.drawGeometry = function(geometry, viewPlatformInvertedTra
         this.shaderTextureCoordinatesGenerated = false;
         this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, false);
       }
-      // Call uniform1i only if useTextures changed from previous geometry
-      if (this.shaderUseTextures) {
-        this.shaderUseTextures = false;
-        this.gl.uniform1i(this.shaderProgram.useTextures, false);
-      }
-      if (geometry.diffuseColor !== undefined) {
-        vec3.copy(this.geometryDiffuseColor, geometry.diffuseColor);
-      }
     }
-    // Call uniform3fv only if geometryDiffuseColor changed from previous geometry
-    if (!vec3.exactEquals(this.shaderDiffuseColor, this.geometryDiffuseColor)) {
-      vec3.copy(this.shaderDiffuseColor, this.geometryDiffuseColor);
-      this.gl.uniform3fv(this.shaderProgram.vertexDiffuseColor, this.shaderDiffuseColor);
+    var geometryTextureTransform = geometry.textureTransform !== undefined 
+        ? geometry.textureTransform 
+        : HTMLCanvas3D.MAT3_IDENTITY;
+    // Call uniformMatrix3fv only if geometryTextureTransform changed from previous geometry
+    if (!mat3.exactEquals(this.shaderTextureTransform, geometryTextureTransform)) {
+      mat3.copy(this.shaderTextureTransform, geometryTextureTransform);
+      this.gl.uniformMatrix3fv(this.shaderProgram.textureCoordTransform, false, this.shaderTextureTransform);
     }
-    
-    this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, geometry.vertexBuffer);
-    this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
-    if (lightingEnabled 
-        && geometry.mode === this.gl.TRIANGLES) {
-      this.gl.enableVertexAttribArray(this.shaderProgram.normalAttribute);
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, geometry.normalBuffer);
-      this.gl.vertexAttribPointer(this.shaderProgram.normalAttribute, 3, this.gl.FLOAT, false, 0, 0);
-    } else {
-      this.gl.disableVertexAttribArray(this.shaderProgram.normalAttribute);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, geometry.texture);
+    // Call uniform1i only if useTextures changed from previous geometry
+    if (!this.shaderUseTextures) {
+      this.shaderUseTextures = true;
+      this.gl.uniform1i(this.shaderProgram.useTextures, true);
     }
-    if (textureEnabled
-        && geometry.textureCoordinatesBuffer !== null
-        && geometry.texture !== undefined) {
-      this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, geometry.textureCoordinatesBuffer);
-      this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, 2, this.gl.FLOAT, false, 0, 0);
-    } else {
-      this.gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+  } else {
+    // Call uniform1i only if textureCoordinatesGenerated changed from previous geometry
+    if (this.shaderTextureCoordinatesGenerated) {
+      this.shaderTextureCoordinatesGenerated = false;
+      this.gl.uniform1i(this.shaderProgram.textureCoordinatesGenerated, false);
     }
-  
-    // Manage transparency
-    var alpha = geometry.transparency && transparencyEnabled  ? geometry.transparency  : 1;
-    // Call uniform1f only if alpha changed from previous geometry
-    if (this.shaderAlpha !== alpha) {
-      this.shaderAlpha = alpha;
-      this.gl.uniform1f(this.shaderProgram.alpha, this.shaderAlpha);
+    // Call uniform1i only if useTextures changed from previous geometry
+    if (this.shaderUseTextures) {
+      this.shaderUseTextures = false;
+      this.gl.uniform1i(this.shaderProgram.useTextures, false);
     }
-    
-    this.gl.drawArrays(geometry.mode, 0, geometry.vertexCount);
+    if (geometry.diffuseColor !== undefined) {
+      vec3.copy(this.geometryDiffuseColor, geometry.diffuseColor);
+    }
   }
+  // Call uniform3fv only if geometryDiffuseColor changed from previous geometry
+  if (!vec3.exactEquals(this.shaderDiffuseColor, this.geometryDiffuseColor)) {
+    vec3.copy(this.shaderDiffuseColor, this.geometryDiffuseColor);
+    this.gl.uniform3fv(this.shaderProgram.vertexDiffuseColor, this.shaderDiffuseColor);
+  }
+  
+  this.gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+  this.gl.bindBuffer(this.gl.ARRAY_BUFFER, geometry.vertexBuffer);
+  this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
+  if (lightingEnabled 
+      && geometry.mode === this.gl.TRIANGLES) {
+    this.gl.enableVertexAttribArray(this.shaderProgram.normalAttribute);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, geometry.normalBuffer);
+    this.gl.vertexAttribPointer(this.shaderProgram.normalAttribute, 3, this.gl.FLOAT, false, 0, 0);
+  } else {
+    this.gl.disableVertexAttribArray(this.shaderProgram.normalAttribute);
+  }
+  if (textureEnabled
+      && geometry.textureCoordinatesBuffer !== null
+      && geometry.texture !== undefined) {
+    this.gl.enableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, geometry.textureCoordinatesBuffer);
+    this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, 2, this.gl.FLOAT, false, 0, 0);
+  } else {
+    this.gl.disableVertexAttribArray(this.shaderProgram.textureCoordAttribute);
+  }
+
+  // Manage transparency
+  var alpha = geometry.transparency && transparencyEnabled  ? geometry.transparency  : 1;
+  // Call uniform1f only if alpha changed from previous geometry
+  if (this.shaderAlpha !== alpha) {
+    this.shaderAlpha = alpha;
+    this.gl.uniform1f(this.shaderProgram.alpha, this.shaderAlpha);
+  }
+  
+  this.gl.drawArrays(geometry.mode, 0, geometry.vertexCount);
 }
 
 /**
