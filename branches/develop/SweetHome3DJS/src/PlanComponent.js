@@ -1368,6 +1368,14 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             plan.lastTouchY = ev.canvasY;
           } 
           ev.clickCount = 1;
+
+          if (updated) {
+            // Make a copy of touches because old iOS reuse the same ev.targetTouches array between events
+            mouseListener.lastTargetTouches = [];
+            for (var i = 0; touches[i] !== undefined; i++) {
+              mouseListener.lastTargetTouches.push({clientX: touches[i].clientX, clientY: touches[i].clientY});
+            }
+          }
         } else {
           plan.pointerType = View.PointerType.MOUSE;
           ev.canvasX = ev.clientX - rect.left;
@@ -1389,9 +1397,6 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               : -ev.wheelDelta) / 4;
         }
         
-        if (plan.pointerType === View.PointerType.TOUCH && updated) {
-          mouseListener.lastTargetTouches = ev.targetTouches;
-        }
         return updated;
       },
       isLongTouch: function(dragging) {
