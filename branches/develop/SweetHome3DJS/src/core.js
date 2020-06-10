@@ -585,7 +585,7 @@ OperatingSystem.isInternetExplorer = function() {
 
 /**
  * This utility function merges all the source object properties into the destination object.
- * It has to be used in replacement of Object.assign that is now supported in IE.
+ * It has to be used in replacement of Object.assign that is not supported in IE.
  * @param {Object} destination
  * @param {Object} source
  * @returns {Object} the destination object
