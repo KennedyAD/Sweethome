@@ -36,6 +36,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.QualifiedNameable;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.jsweet.JSweetConfig;
@@ -586,4 +587,15 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     return super.substituteInstanceof(exprStr, expr, type);
   }
 
+  @Override
+  public String getVariableInitialValue(VariableElement variable) {
+    if(variable.getModifiers().contains(Modifier.TRANSIENT)) {
+      return "(<any>Object.defineProperty(this, '" + variable.getSimpleName() + "', <any>{ value: "
+          + super.getVariableInitialValue(variable)
+          + ", writable: true, configurable: true, enumerable: true, transient: true }))." + variable.getSimpleName();
+    } else {
+      return super.getVariableInitialValue(variable);
+    }
+  }
+  
 }

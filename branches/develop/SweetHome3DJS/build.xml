@@ -12,7 +12,7 @@
 -->
 <project basedir="." default="build" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.3"/>
+  <property name="version" value="6.4"/>
 
   <target name="concat" depends="generatedLibraries, webResources"
           description="Concat Javacript files in dist/build directory">
@@ -50,6 +50,39 @@
         <file name="viewHome.js" />
       </filelist>
     </concat>
+    <concat destfile="dist/build/sweethome3d.min.js" encoding="UTF-8">
+      <fileset dir="lib/generated" includes="SweetHome3D.js" />
+      <filelist dir="src">
+        <file name="URLContent.js"/>
+        <file name="scene3d.js"/>
+        <file name="HTMLCanvas3D.js"/>
+        <file name="ShapeTools.js"/>
+        <file name="ModelManager.js"/>
+        <file name="ModelLoader.js"/>
+        <file name="OBJLoader.js"/>
+        <file name="Max3DSLoader.js"/>
+        <file name="DAELoader.js"/>
+        <file name="Triangulator.js"/>
+        <file name="HomeRecorder.js"/>
+        <file name="HomeComponent3D.js"/>
+        <file name="Object3DBranch.js"/>
+        <file name="HomePieceOfFurniture3D.js"/>
+        <file name="Room3D.js"/>
+        <file name="Wall3D.js"/>
+        <file name="Ground3D.js"/>
+        <file name="Polyline3D.js"/>
+        <file name="Label3D.js"/>
+        <file name="TextureManager.js"/>
+        <file name="UserPreferences.js"/>
+        <file name="LengthUnit.js"/>
+        <file name="graphics2d.js"/>
+        <file name="PlanComponent.js"/>
+        <file name="HomePane.js"/>
+        <file name="DefaultFurnitureCatalog.js"/>
+        <file name="FurnitureCatalogListPanel.js"/>
+        <file name="SweetHome3DJSApplication.js"/>
+      </filelist>
+    </concat>
   </target>
 
   <target name="dist" depends="concat" 
@@ -65,7 +98,7 @@
     </path>
     <property name="yuicompressor.jar" refid="yuicompressor.jar" />
     <!-- Minify Javascript files -->
-    <java jar="${yuicompressor.jar}" fork="true">
+<!--    <java jar="${yuicompressor.jar}" fork="true">
       <arg value="dist/build/viewmodel.min.js" />
       <arg value="-o" />
       <arg value="dist/build/viewmodel.min.js" />
@@ -74,7 +107,7 @@
       <arg value="dist/build/viewhome.min.js" />
       <arg value="-o" />
       <arg value="dist/build/viewhome.min.js" />
-    </java>
+    </java> -->
     <java jar="${yuicompressor.jar}" fork="true">
       <arg value="src/core.js" />
       <arg value="-o" />
@@ -96,6 +129,18 @@
       <arg value="dist/build/triangulator.min.js" />
     </java>
 
+    <!-- Add header.js GNU GPL header to sweethome3d.min.js -->
+    <copy file="dist/build/sweethome3d.min.js" tofile="dist/sweethome3d.min.js"/>
+    <!--<concat destfile="dist/sweethome3d.min.js" encoding="UTF-8">
+      <header file="src/SweetHome3DJSApplication.js" />
+      <filterchain>
+        <headfilter lines="19" />
+        <tokenfilter>
+          <replacestring from="SweetHome3DJSApplication.js" to="sweethome3d.min.js  version ${version}" />
+        </tokenfilter>
+      </filterchain>
+      <file name="dist/build/sweethome3d.min.js" />
+    </concat>-->
     <!-- Add viewModel.js GNU GPL header to viewmodel.min.js -->
     <concat destfile="dist/viewmodel.min.js" encoding="UTF-8">
       <header file="src/viewModel.js" />
@@ -142,7 +187,7 @@
     <concat destfile="dist/geom.min.js" encoding="UTF-8" append="true">
       <file name="lib/generated/geom.js" />
       <filterchain>
-        <headfilter lines="1" skip="5" />
+        <headfilter lines="1" skip="13" />
       </filterchain>
     </concat>
     <concat destfile="dist/geom.min.js" encoding="UTF-8" append="true">
@@ -391,18 +436,51 @@
     <mkdir dir="tools/json/build"/>
     <javac srcdir="tools/json/src" 
         destdir="tools/json/build/" 
-        classpath="tools/json/lib/json-20190722.jar" 
+        classpath="tools/json/lib/gson-2.8.6.jar" 
         source="1.8" 
         encoding="ISO-8859-1"
         includes="com/eteks/sweethome3d/json/*" />
     <java classname="com.eteks.sweethome3d.json.PropertiesToJson" fork="true" failonerror="true">
       <classpath>
         <pathelement location="tools/json/build" />
-        <pathelement location="tools/json/lib/json-20190722.jar"/>
+        <pathelement location="tools/json/lib/gson-2.8.6.jar"/>
       </classpath>
     </java>
     <!-- Clean build directory -->
     <delete dir="tools/json/build" />
+  </target>
+  
+  <target name="deploy">
+    <echo>WARNING: run 'dist' task if source elements have been modified</echo>
+    <fail message="Please build SweetHome3D jar before deploy.">
+        <condition>
+            <not>
+                <available file="../SweetHome3D/install/SweetHome3D-${version}.jar" />
+            </not>
+        </condition>
+    </fail>
+    <delete dir="deploy/WEB-INF/classes" />
+    <delete dir="deploy/WEB-INF/lib" />
+    <delete dir="deploy/test/resources" />
+    <mkdir dir="deploy/WEB-INF/classes" />
+    <mkdir dir="deploy/WEB-INF/lib" />
+    <mkdir dir="deploy/test/resources" />
+    <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
+    <copy file="tools/json/lib/gson-2.8.6.jar" todir="deploy/WEB-INF/lib" />
+    <copy file="test/resources/HomeTest.sh3d" todir="deploy/test/resources" />
+    <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
+           source="1.8" encoding="ISO-8859-1">
+      <classpath>
+        <fileset dir="deploy/WEB-INF/lib" />
+      </classpath>
+    </javac>
+    <copy todir="deploy/lib">
+      <fileset dir="lib" />
+    </copy>
+    <copy todir="deploy/lib">
+      <fileset dir="dist" />
+    </copy>
+    
   </target>
   
 </project>

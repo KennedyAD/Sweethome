@@ -715,7 +715,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
   var labelChangeListener = function(ev) { 
       return plan.revalidate(); 
     };
-  if (home.getLabels() != null) {
+  if (home.getLabels() != null) {
     home.getLabels().forEach(function(label) { 
         return label.addPropertyChangeListener(labelChangeListener); 
       });
