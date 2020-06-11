@@ -68,7 +68,7 @@ ShapeTools.getStroke = function (thickness, capStyle, joinStyle, dashPattern, da
   
   var dashPhase = 0;
   if (dashPattern != null) {
-    if(!Array.isArray(dashPattern)) {
+    if (!Array.isArray(dashPattern)) {
       dashPattern = undefined;
       dashPhase = undefined;
     } else {
