@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -98,21 +101,30 @@ public class PropertiesToJson {
 
           entry.setValue(newPath.toString());
         } else if (key.startsWith("model#")) {
+          int index = Integer.parseInt(key.substring("model#".length()));
           String currentPath = properties.getProperty(key);
           String modelFile = currentPath.substring(currentPath.lastIndexOf("/") + 1);
           String extension = modelFile.substring(modelFile.lastIndexOf('.'));
           // Create a .zip file containing the 3D model
           Path newPath = Paths.get(resourcesOutputDirectory, modelFile.replace(extension, ".zip"));
           ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath.toFile()));
-          zipOutputStream.putNextEntry(new ZipEntry(modelFile));
-          Files.copy(Paths.get("../SweetHome3D/src", currentPath), zipOutputStream);
-          zipOutputStream.closeEntry();
-          // Include .mtl file if it exists
-          if (".obj".equals(extension)
-              && Paths.get("../SweetHome3D/src", currentPath.replace(".obj", ".mtl")).toFile().exists()) {
-            String materialFile = currentPath.substring(currentPath.lastIndexOf("/") + 1).replace(".obj", ".mtl");
-            zipOutputStream.putNextEntry(new ZipEntry(materialFile));
-            Files.copy(Paths.get("../SweetHome3D/src", currentPath.replace(".obj", ".mtl")), zipOutputStream);
+          if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
+            // Include multiPart files in same folder
+            Path folder = Paths.get("../SweetHome3D/src", currentPath).getParent();
+            Files.walkFileTree(folder,
+                new SimpleFileVisitor<Path>() {
+                  @Override
+                  public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    String multiPartEntry = folder.relativize(file).toString();
+                    zipOutputStream.putNextEntry(new ZipEntry(multiPartEntry));
+                    Files.copy(file, zipOutputStream);
+                    zipOutputStream.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                  }
+                });
+          } else {
+            zipOutputStream.putNextEntry(new ZipEntry(modelFile));
+            Files.copy(Paths.get("../SweetHome3D/src", currentPath), zipOutputStream);
             zipOutputStream.closeEntry();
           }
           zipOutputStream.close();
