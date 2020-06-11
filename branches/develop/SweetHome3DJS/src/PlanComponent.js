@@ -5540,7 +5540,7 @@ PlanComponent.prototype.makeSelectionVisible = function() {
           var pixelBounds = plan.getShapePixelBounds(selectionBounds);
           pixelBounds = new java.awt.geom.Rectangle2D.Float(pixelBounds.getX() - 5, pixelBounds.getY() - 5, 
               pixelBounds.getWidth() + 10, pixelBounds.getHeight() + 10);
-          var visibleRectangle = new java.awt.geom.Rectangle2D.Float(plan.scrollPane.scrollLeft, plan.scrollPane.scrollTop, 
+          var visibleRectangle = new java.awt.geom.Rectangle2D.Float(0, 0, 
               plan.scrollPane.clientWidth, plan.scrollPane.clientHeight);
           if (!pixelBounds.intersects(visibleRectangle)) {
             plan.scrollRectToVisible(pixelBounds);
@@ -5629,14 +5629,29 @@ PlanComponent.prototype.getScale = function() {
 
 /**
  * Sets the scale used to display the plan.
- * If this component is displayed in a viewport the view position is updated
+ * If this component is displayed in a scrolled panel the view position is updated
  * to ensure the center's view will remain the same after the scale change.
  * @param {number} scale
  */
 PlanComponent.prototype.setScale = function(scale) {
   if (this.scale !== scale) {
+    var xViewCenterPosition = 0;
+    var yViewCenterPosition = 0;
+    if (this.isScrolled()) {
+      xViewCenterPosition = this.convertXPixelToModel(this.scrollPane.clientWidth / 2);
+      yViewCenterPosition = this.convertYPixelToModel(this.scrollPane.clientHeight / 2);
+    }
+
     this.scale = scale;
     this.revalidate();
+    
+    if (this.isScrolled()
+        && !isNaN(xViewCenterPosition)) {
+      var viewWidth = this.convertPixelToLength(this.scrollPane.clientWidth);
+      var viewHeight = this.convertPixelToLength(this.scrollPane.clientHeight);
+      this.scrollPane.scrollLeft += this.convertXModelToPixel(xViewCenterPosition - viewWidth / 2);
+      this.scrollPane.scrollTop += this.convertYModelToPixel(yViewCenterPosition - viewHeight / 2);
+    }
   }
 }
 
