@@ -1032,6 +1032,9 @@ function DefaultPatternTexture(name) {
   this.image = new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png");
 }
 
+DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";
+DefaultPatternTexture["__interfaces"] = ["com.eteks.sweethome3d.model.TextureImage"];
+
 /**
  * Returns the name of this texture.
  * @return {string}
@@ -1087,6 +1090,3 @@ DefaultPatternTexture.prototype.equals = function (obj) {
     return false;
   }
 }
-
-DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";
-DefaultPatternTexture["__interfaces"] = ["com.eteks.sweethome3d.model.TextureImage"];

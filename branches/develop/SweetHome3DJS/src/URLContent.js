@@ -28,6 +28,7 @@ function URLContent(url) {
   this.url = url;
 }
 
+URLContent["__class"] = "com.eteks.sweethome3d.tools.URLContent";
 URLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 /**
@@ -113,6 +114,7 @@ function HomeURLContent(url) {
 HomeURLContent.prototype = Object.create(URLContent.prototype);
 HomeURLContent.prototype.constructor = HomeURLContent;
 
+HomeURLContent["__class"] = "com.eteks.sweethome3d.io.HomeURLContent";
 HomeURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 /**

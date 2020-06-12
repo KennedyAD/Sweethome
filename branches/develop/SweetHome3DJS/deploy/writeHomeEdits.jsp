@@ -38,7 +38,7 @@
 		   HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
 		   Home home = recorder.readHome(file.getPath());
 
-		    List<UndoableEdit> edits = new HomeEditsDeserializer(home, baseUrl).deserializeEdits(jsonEdits);
+		    List<UndoableEdit> edits = new HomeEditsDeserializer(home, file, baseUrl).deserializeEdits(jsonEdits);
         for(UndoableEdit edit : edits) {
           edit.redo();
           count++;

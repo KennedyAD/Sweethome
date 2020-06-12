@@ -20,6 +20,7 @@
 package com.eteks.sweethome3d.io;
 
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
@@ -60,7 +61,7 @@ import sun.misc.Unsafe;
 /**
  * A class to deserialize undoable edits sent from a SweetHome3D client (see
  * IncrementalHomeRecorder).
- * 
+ *
  * @author Renaud Pawlak
  */
 public class HomeEditsDeserializer {
@@ -68,9 +69,10 @@ public class HomeEditsDeserializer {
   // TODO: create JUnit tests instead
   public static void main(String[] args) throws Exception {
     HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
-    Home home = recorder.readHome("test/resources/HomeTest.sh3d");
-    List<UndoableEdit> edits = new HomeEditsDeserializer(home,
-        "file:///Users/renaudpawlak/Documents/workspace-sh3d/SweetHome3DJS").deserializeEdits(
+    File file = new File("test/resources/HomeTest.sh3d");
+    Home home = recorder.readHome(file.getPath());
+    List<UndoableEdit> edits = new HomeEditsDeserializer(home, file,
+        new File(".").toURI().toURL().toString()).deserializeEdits(
           "["
         + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylineResizingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoPolylineResizeName\",\"controller\":true,\"oldX\":-55.91092,\"oldY\":177.5383,\"polyline\":\"polyline-778b729f-47a8-4c70-a086-be423eceba59\",\"pointIndex\":1,\"newX\":-80.99411,\"newY\":165.1319}"
         + ","
@@ -92,22 +94,27 @@ public class HomeEditsDeserializer {
     recorder.writeHome(home, "test/resources/HomeTest2.sh3d");
   }
 
-  private Map<String, HomeObject> homeObjects;
-  private HomeController homeController;
   private Home home;
+  private File homeFile;
   private String baseUrl;
+  private DefaultUserPreferences preferences;
+  private HomeController homeController;
+  private Map<String, HomeObject> homeObjects;
 
   /**
    * Creates a new home edit deserializer.
-   * 
-   * @param home    the target home (where the edit will be applied)
-   * @param baseUrl the base URL (server) for the resources found within the home
+   *
+   * @param home     the target home (where the edit will be applied)
+   * @param homeFile the file path from which <code>home</code> was read
+   * @param baseUrl  the base URL (server) for the resources found within the home
    */
-  public HomeEditsDeserializer(Home home, String baseUrl) {
+  public HomeEditsDeserializer(Home home, File homeFile, String baseUrl) {
     super();
     this.home = home;
+    this.homeFile = homeFile;
     this.baseUrl = baseUrl;
-    this.homeController = new HomeController(home, new DefaultUserPreferences(), new ViewFactoryAdapter() {
+    this.preferences = new DefaultUserPreferences();
+    this.homeController = new HomeController(home, this.preferences, new ViewFactoryAdapter() {
       @Override
       public PlanView createPlanView(Home home, UserPreferences preferences, PlanController planController) {
         return new DummyPlanView();
@@ -150,16 +157,21 @@ public class HomeEditsDeserializer {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T deserialize(Class<T> type, Object value) throws Exception {
+  private <T, U> T deserialize(Class<T> type, Object value) throws Exception {
     if (value instanceof JSONObject) {
-      if (Content.class.isAssignableFrom(type)) {
+      if (DefaultPatternTexture.class.getName().equals(((JSONObject) value).getString("_type"))) {
+        value = this.preferences.getPatternsCatalog().getPattern(((JSONObject) value).getString("name"));
+      } else if (Content.class.isAssignableFrom(type)) {
         String url = ((JSONObject) value).getString("url");
         if (url.startsWith("jar:")) {
-          url = "jar:" + baseUrl + "/" + url.substring(4);
+          if (HomeURLContent.class.getName().equals(((JSONObject) value).getString("_type"))) {
+            value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
+          } else {
+            value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
+          }
         } else if (!url.contains(":")) {
-          url = baseUrl + "/" + url;
+          value = new URLContent(new URL(baseUrl + "/" + url));
         }
-        value = new URLContent(new URL(url));
       } else {
         value = deserializeObject(type, (JSONObject) value);
       }
@@ -195,7 +207,7 @@ public class HomeEditsDeserializer {
     }
     return (T) value;
   }
-    
+
   @SuppressWarnings("unchecked")
   private <T> T deserializeArray(Class<T> type, JSONArray json) throws Exception {
     if (type.isArray()) {
@@ -268,12 +280,12 @@ public class HomeEditsDeserializer {
     if(field != null) {
       field.set(instance, new PropertyChangeSupport(instance));
     }
-    
+
     for (String key : json.keySet()) {
       Object value = json.get(key);
       field = getField(clazz, key);
-      if(field != null && !value.equals(JSONObject.NULL)) { 
-        System.out.println("deserializing "+key+" --- "+field);
+      if(field != null && !value.equals(JSONObject.NULL)) {
+        System.out.println("deserializing "+key+" --- "+field + " " + clazz);
         field.set(instance, deserialize(field.getType(), value));
       }
     }
@@ -282,7 +294,7 @@ public class HomeEditsDeserializer {
 
   /**
    * Desearializes a list of edits passed as a JSON string.
-   * 
+   *
    * @param jsonEdits the edits as a JSON string
    * @return a list of undoable edits (to be applied to the target home)
    */
