@@ -24,8 +24,8 @@ out.clear();
 String homeName = request.getParameter("home");
 
 if (homeName != null) {
-  File file = new File(new File(getServletContext().getRealPath("/")).getParentFile(),
-										  homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
+  File file = new File(getServletContext().getRealPath("/"),
+					   homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
   response.setIntHeader("Content-length", (int) file.length());
   response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
   InputStream input = null;

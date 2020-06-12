@@ -32,7 +32,7 @@
    int count = 0;
    
    if (homeName != null) {
-       file = new File(new File(getServletContext().getRealPath("/")).getParentFile(),
+       file = new File(getServletContext().getRealPath("/"),
                homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
 
 		   HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
