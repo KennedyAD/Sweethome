@@ -98,7 +98,7 @@
     </path>
     <property name="yuicompressor.jar" refid="yuicompressor.jar" />
     <!-- Minify Javascript files -->
-<!--    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true">
       <arg value="dist/build/viewmodel.min.js" />
       <arg value="-o" />
       <arg value="dist/build/viewmodel.min.js" />
@@ -107,7 +107,12 @@
       <arg value="dist/build/viewhome.min.js" />
       <arg value="-o" />
       <arg value="dist/build/viewhome.min.js" />
-    </java> -->
+    </java> 
+  	<java jar="${yuicompressor.jar}" fork="true">
+      <arg value="dist/build/sweethome3d.min.js" />
+      <arg value="-o" />
+      <arg value="dist/build/sweethome3d.min.js" />
+    </java> 
     <java jar="${yuicompressor.jar}" fork="true">
       <arg value="src/core.js" />
       <arg value="-o" />
@@ -131,7 +136,7 @@
 
     <!-- Add header.js GNU GPL header to sweethome3d.min.js -->
     <copy file="dist/build/sweethome3d.min.js" tofile="dist/sweethome3d.min.js"/>
-    <!--<concat destfile="dist/sweethome3d.min.js" encoding="UTF-8">
+    <concat destfile="dist/sweethome3d.min.js" encoding="UTF-8">
       <header file="src/SweetHome3DJSApplication.js" />
       <filterchain>
         <headfilter lines="19" />
@@ -140,7 +145,7 @@
         </tokenfilter>
       </filterchain>
       <file name="dist/build/sweethome3d.min.js" />
-    </concat>-->
+    </concat>
     <!-- Add viewModel.js GNU GPL header to viewmodel.min.js -->
     <concat destfile="dist/viewmodel.min.js" encoding="UTF-8">
       <header file="src/viewModel.js" />
