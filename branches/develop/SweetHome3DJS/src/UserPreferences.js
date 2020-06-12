@@ -1088,4 +1088,5 @@ DefaultPatternTexture.prototype.equals = function (obj) {
   }
 }
 
+DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";
 DefaultPatternTexture["__interfaces"] = ["com.eteks.sweethome3d.model.TextureImage"];
