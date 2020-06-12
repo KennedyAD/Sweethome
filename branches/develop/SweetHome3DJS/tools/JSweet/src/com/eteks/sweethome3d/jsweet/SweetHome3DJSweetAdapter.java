@@ -592,7 +592,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     if(variable.getModifiers().contains(Modifier.TRANSIENT)) {
       return "(<any>Object.defineProperty(this, '" + variable.getSimpleName() + "', <any>{ value: "
           + super.getVariableInitialValue(variable)
-          + ", writable: true, configurable: true, enumerable: true, transient: true }))." + variable.getSimpleName();
+          + ", writable: true, configurable: true, enumerable: true, _transient: true }))." + variable.getSimpleName();
     } else {
       return super.getVariableInitialValue(variable);
     }

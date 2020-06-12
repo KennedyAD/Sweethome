@@ -171,7 +171,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
         destination[propertyName] = true;
         continue;
       }
-      if (Object.getOwnPropertyDescriptor(origin, propertyName).transient === true) {
+      if (Object.getOwnPropertyDescriptor(origin, propertyName)['_transient'] === true) {
         continue;
       }
       if (skippedPropertyNames.indexOf(propertyName) === -1) {
