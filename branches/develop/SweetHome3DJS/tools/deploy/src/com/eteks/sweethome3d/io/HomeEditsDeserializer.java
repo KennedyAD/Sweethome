@@ -159,12 +159,17 @@ public class HomeEditsDeserializer {
   @SuppressWarnings("unchecked")
   private <T, U> T deserialize(Class<T> type, Object value) throws Exception {
     if (value instanceof JSONObject) {
-      if (DefaultPatternTexture.class.getName().equals(((JSONObject) value).getString("_type"))) {
-        value = this.preferences.getPatternsCatalog().getPattern(((JSONObject) value).getString("name"));
+      JSONObject jsonObject = (JSONObject)value;
+      if (DefaultPatternTexture.class.getName().equals(jsonObject.getString("_type"))) {
+        try {
+          value = this.preferences.getPatternsCatalog().getPattern(jsonObject.getString("name"));
+        } catch (IllegalArgumentException ex) {
+          value = null; // Ignore unknown pattern
+        }
       } else if (Content.class.isAssignableFrom(type)) {
-        String url = ((JSONObject) value).getString("url");
+        String url = jsonObject.getString("url");
         if (url.startsWith("jar:")) {
-          if (HomeURLContent.class.getName().equals(((JSONObject) value).getString("_type"))) {
+          if (HomeURLContent.class.getName().equals(jsonObject.getString("_type"))) {
             value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
           } else {
             value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));

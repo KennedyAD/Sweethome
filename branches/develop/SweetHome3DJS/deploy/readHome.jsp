@@ -17,6 +17,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -->
+<%@page import="com.eteks.sweethome3d.io.HomeFileRecorder"%>
+<%@page import="com.eteks.sweethome3d.model.Home"%>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.*" %>
 <%
@@ -26,6 +28,10 @@ String homeName = request.getParameter("home");
 if (homeName != null) {
   File file = new File(getServletContext().getRealPath("/"),
 					   homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
+  if (!file.exists()) {
+	new HomeFileRecorder(9, false, null, false, true).writeHome(new Home(), file.getPath());
+  }
+  
   response.setIntHeader("Content-length", (int) file.length());
   response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
   InputStream input = null;
