@@ -441,14 +441,14 @@
     <mkdir dir="tools/json/build"/>
     <javac srcdir="tools/json/src" 
         destdir="tools/json/build/" 
-        classpath="tools/json/lib/gson-2.8.6.jar" 
+        classpath="tools/json/lib/json-20190722.jar" 
         source="1.8" 
         encoding="ISO-8859-1"
         includes="com/eteks/sweethome3d/json/*" />
     <java classname="com.eteks.sweethome3d.json.PropertiesToJson" fork="true" failonerror="true">
       <classpath>
         <pathelement location="tools/json/build" />
-        <pathelement location="tools/json/lib/gson-2.8.6.jar"/>
+        <pathelement location="tools/json/lib/json-20190722.jar"/>
       </classpath>
     </java>
     <!-- Clean build directory -->
@@ -471,7 +471,7 @@
     <mkdir dir="deploy/WEB-INF/lib" />
     <mkdir dir="deploy/test/resources" />
     <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
-    <copy file="tools/json/lib/gson-2.8.6.jar" todir="deploy/WEB-INF/lib" />
+    <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
     <copy file="test/resources/HomeTest.sh3d" todir="deploy/test/resources" />
     <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
            source="1.8" encoding="ISO-8859-1">

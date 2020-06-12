@@ -19,11 +19,14 @@
  */
 package com.eteks.sweethome3d.io;
 
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Type;
-import java.net.MalformedURLException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -32,27 +35,18 @@ import java.util.Properties;
 
 import javax.swing.undo.UndoableEdit;
 
-import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.Compass;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeDoorOrWindow;
-import com.eteks.sweethome3d.model.HomeEnvironment;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
-import com.eteks.sweethome3d.model.HomeLight;
 import com.eteks.sweethome3d.model.HomeObject;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.HomeRecorder;
-import com.eteks.sweethome3d.model.Label;
-import com.eteks.sweethome3d.model.Level;
-import com.eteks.sweethome3d.model.ObserverCamera;
-import com.eteks.sweethome3d.model.Polyline;
-import com.eteks.sweethome3d.model.Room;
 import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.TextStyle;
 import com.eteks.sweethome3d.model.UserPreferences;
-import com.eteks.sweethome3d.model.Wall;
 import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
@@ -60,13 +54,8 @@ import com.eteks.sweethome3d.viewcontroller.PlanController.EditableProperty;
 import com.eteks.sweethome3d.viewcontroller.PlanView;
 import com.eteks.sweethome3d.viewcontroller.View;
 import com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
+
+import sun.misc.Unsafe;
 
 /**
  * A class to deserialize undoable edits sent from a SweetHome3D client (see
@@ -82,15 +71,20 @@ public class HomeEditsDeserializer {
     Home home = recorder.readHome("test/resources/HomeTest.sh3d");
     List<UndoableEdit> edits = new HomeEditsDeserializer(home,
         "file:///Users/renaudpawlak/Documents/workspace-sh3d/SweetHome3DJS").deserializeEdits(
-            // "[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylineResizingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoPolylineResizeName\",\"controller\":true,\"oldX\":-55.91092,\"oldY\":177.5383,\"polyline\":\"polyline-778b729f-47a8-4c70-a086-be423eceba59\",\"pointIndex\":1,\"newX\":-80.99411,\"newY\":165.1319}]"
-            // "[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsMovingUndoableEdit\",\"controller\":true,\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoMoveSelectionName\",\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"allLevelsSelection\":false,\"itemsArray\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"dx\":-18.666666666666657,\"dy\":-6.666666666666629}]"
-            // "[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LabelController.LabelModificationUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoModifyLabelsName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"oldSelection\":[\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\"],\"modifiedLabels\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LabelController.ModifiedLabel\",\"label\":\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\",\"text\":\"Sloping
-            // wall\\nwith\\nblack top in
-            // 3D\",\"style\":{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":false,\"alignment\":0},\"color\":null,\"pitch\":0,\"elevation\":0}],\"text\":\"Sloping
-            // wall2\\nwith\\nblack top in
-            // 3D\",\"alignment\":0,\"fontName\":null,\"fontNameSet\":true,\"fontSize\":18,\"defaultStyle\":{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":false,\"alignment\":1},\"color\":null,\"pitch\":0,\"pitchEnabled\":true,\"elevation\":0}]"
-            // "[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.TextStyleModificationUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoModifyTextStyleName\",\"controller\":true,\"oldSelection\":[\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\"],\"allLevelsSelection\":false,\"oldStyles\":[{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":false,\"alignment\":0}],\"items\":[\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\"],\"styles\":[{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":true,\"alignment\":0}]}]"
-            "[{\"_type\":\"javax.swing.undo.CompoundEdit\",\"hasBeenDone\":true,\"alive\":true,\"inProgress\":false,\"edits\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.FurnitureController.FurnitureAdditionUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoAddFurnitureName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"allLevelsSelection\":false,\"oldSelection\":[],\"oldBasePlanLocked\":false,\"newFurniture\":[\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\"],\"newFurnitureIndex\":[5],\"newFurnitureGroups\":null,\"newFurnitureLevels\":null,\"furnitureLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsAdditionEndUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoAddItemsName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"items\":[\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\"]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LocalizedUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoDropName\"}],\"_newObjects\":{\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\":{\"_type\":\"com.eteks.sweethome3d.model.HomePieceOfFurniture\",\"id\":\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\",\"catalogId\":\"eTeks#bed\",\"name\":\"Bed\",\"nameVisible\":false,\"nameXOffset\":0,\"nameYOffset\":0,\"nameStyle\":null,\"nameAngle\":0,\"description\":null,\"information\":null,\"icon\":{\"url\":\"lib/resources/furniture/bed.png\"},\"planIcon\":null,\"model\":{\"url\":\"jar:lib/resources/furniture/bed.zip!/bed.obj\"},\"modelSize\":24868,\"width\":144.6,\"widthInPlan\":144.6,\"depth\":193.10000000000002,\"depthInPlan\":193.10000000000002,\"height\":52.800000000000004,\"heightInPlan\":52.800000000000004,\"elevation\":0,\"dropOnTopElevation\":0.8390151515151515,\"movable\":true,\"doorOrWindow\":false,\"modelMaterials\":null,\"color\":null,\"texture\":null,\"shininess\":null,\"modelRotation\":[[1,0,0],[0,1,0],[0,0,1]],\"modelCenteredAtOrigin\":true,\"modelTransformations\":null,\"staircaseCutOutShape\":null,\"creator\":\"eTeks\",\"backFaceShown\":false,\"resizable\":true,\"deformable\":true,\"texturable\":true,\"horizontallyRotatable\":true,\"price\":null,\"valueAddedTaxPercentage\":null,\"currency\":null,\"visible\":true,\"x\":584.8154773374969,\"y\":97.940583,\"angle\":0,\"pitch\":0,\"roll\":0,\"modelMirrored\":false,\"level\":null,\"shapeCache\":{\"_type\":\"java.awt.geom.GeneralPath\",\"pointTypes\":[0,1,1,1,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"numTypes\":6,\"numCoords\":10,\"windingRule\":1,\"floatCoords\":[512.5154773374969,1.3905829999999924,657.1154773374969,1.3905829999999924,657.1154773374969,194.49058300000002,512.5154773374969,194.49058300000002,512.5154773374969,1.3905829999999924,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}}}}]");
+          "["
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylineResizingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoPolylineResizeName\",\"controller\":true,\"oldX\":-55.91092,\"oldY\":177.5383,\"polyline\":\"polyline-778b729f-47a8-4c70-a086-be423eceba59\",\"pointIndex\":1,\"newX\":-80.99411,\"newY\":165.1319}"
+        + ","
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsMovingUndoableEdit\",\"controller\":true,\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoMoveSelectionName\",\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"allLevelsSelection\":false,\"itemsArray\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"dx\":-18.666666666666657,\"dy\":-6.666666666666629}"
+        + ","
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LabelController.LabelModificationUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoModifyLabelsName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"oldSelection\":[\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\"],\"modifiedLabels\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LabelController.ModifiedLabel\",\"label\":\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\",\"text\":\"Sloping wall\\nwith\\nblack top in 3D\",\"style\":{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":false,\"alignment\":0},\"color\":null,\"pitch\":0,\"elevation\":0}],\"text\":\"Sloping wall2\\nwith\\nblack top in 3D\",\"alignment\":0,\"fontName\":null,\"fontNameSet\":true,\"fontSize\":18,\"defaultStyle\":{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":false,\"alignment\":1},\"color\":null,\"pitch\":0,\"pitchEnabled\":true,\"elevation\":0}"
+        + ","
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.TextStyleModificationUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoModifyTextStyleName\",\"controller\":true,\"oldSelection\":[\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\"],\"allLevelsSelection\":false,\"oldStyles\":[{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":false,\"alignment\":0}],\"items\":[\"label-8ffffcc7-1222-42e9-80ed-ddc1ab07856e\"],\"styles\":[{\"_type\":\"com.eteks.sweethome3d.model.TextStyle\",\"fontName\":null,\"fontSize\":18,\"bold\":false,\"italic\":true,\"alignment\":0}]}"
+        + ","
+        + "{\"_type\":\"javax.swing.undo.CompoundEdit\",\"hasBeenDone\":true,\"alive\":true,\"inProgress\":false,\"edits\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.FurnitureController.FurnitureAdditionUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoAddFurnitureName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"allLevelsSelection\":false,\"oldSelection\":[],\"oldBasePlanLocked\":false,\"newFurniture\":[\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\"],\"newFurnitureIndex\":[5],\"newFurnitureGroups\":null,\"newFurnitureLevels\":null,\"furnitureLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsAdditionEndUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoAddItemsName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"items\":[\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\"]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LocalizedUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoDropName\"}],\"_newObjects\":{\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\":{\"_type\":\"com.eteks.sweethome3d.model.HomePieceOfFurniture\",\"id\":\"pieceOfFurniture-6db92359-c5e0-4120-9125-b6a6b5dff31b\",\"catalogId\":\"eTeks#bed\",\"name\":\"Bed\",\"nameVisible\":false,\"nameXOffset\":0,\"nameYOffset\":0,\"nameStyle\":null,\"nameAngle\":0,\"description\":null,\"information\":null,\"icon\":{\"url\":\"lib/resources/furniture/bed.png\"},\"planIcon\":null,\"model\":{\"url\":\"jar:lib/resources/furniture/bed.zip!/bed.obj\"},\"modelSize\":24868,\"width\":144.6,\"widthInPlan\":144.6,\"depth\":193.10000000000002,\"depthInPlan\":193.10000000000002,\"height\":52.800000000000004,\"heightInPlan\":52.800000000000004,\"elevation\":0,\"dropOnTopElevation\":0.8390151515151515,\"movable\":true,\"doorOrWindow\":false,\"modelMaterials\":null,\"color\":null,\"texture\":null,\"shininess\":null,\"modelRotation\":[[1,0,0],[0,1,0],[0,0,1]],\"modelCenteredAtOrigin\":true,\"modelTransformations\":null,\"staircaseCutOutShape\":null,\"creator\":\"eTeks\",\"backFaceShown\":false,\"resizable\":true,\"deformable\":true,\"texturable\":true,\"horizontallyRotatable\":true,\"price\":null,\"valueAddedTaxPercentage\":null,\"currency\":null,\"visible\":true,\"x\":584.8154773374969,\"y\":97.940583,\"angle\":0,\"pitch\":0,\"roll\":0,\"modelMirrored\":false,\"level\":null,\"shapeCache\":{\"_type\":\"java.awt.geom.GeneralPath\",\"pointTypes\":[0,1,1,1,1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"numTypes\":6,\"numCoords\":10,\"windingRule\":1,\"floatCoords\":[512.5154773374969,1.3905829999999924,657.1154773374969,1.3905829999999924,657.1154773374969,194.49058300000002,512.5154773374969,194.49058300000002,512.5154773374969,1.3905829999999924,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}}}}"
+        + ","
+        + "{\"_type\":\"javax.swing.undo.CompoundEdit\",\"hasBeenDone\":true,\"alive\":true,\"inProgress\":false,\"edits\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsDeletionStartUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"controller\":true,\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"allLevelsSelection\":false,\"selectedItems\":[\"pieceOfFurniture-6b4c53e1-745e-4581-930b-c8e3a07a0d6b\"]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.FurnitureController.FurnitureDeletionUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoDeleteSelectionName\",\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\",\"oldSelection\":[\"pieceOfFurniture-6b4c53e1-745e-4581-930b-c8e3a07a0d6b\"],\"basePlanLocked\":false,\"allLevelsSelection\":false,\"furniture\":[\"pieceOfFurniture-6b4c53e1-745e-4581-930b-c8e3a07a0d6b\"],\"furnitureIndex\":[4],\"furnitureGroups\":[null],\"furnitureLevels\":[null]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsDeletionUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoDeleteSelectionName\",\"controller\":true,\"basePlanLocked\":false,\"allLevelsSelection\":false,\"deletedItems\":[],\"joinedDeletedWalls\":[],\"rooms\":[],\"roomsIndices\":[],\"roomsLevels\":[],\"dimensionLines\":[],\"dimensionLinesLevels\":[],\"polylines\":[],\"polylinesIndices\":[],\"polylinesLevels\":[],\"labels\":[],\"labelsLevels\":[]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsDeletionEndUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"controller\":true,\"home\":\"http://localhost:8080/readHome.jsp?home=test/resources/HomeTest.sh3d\"}],\"_newObjects\":{}}"
+        + "]"
+    );
     System.out.println(edits);
     for (UndoableEdit edit : edits) {
       edit.redo();
@@ -125,153 +119,188 @@ public class HomeEditsDeserializer {
     }
   }
 
+  Unsafe unsafe = null;
+
+  private Unsafe getUnsafe() {
+    if (unsafe == null) {
+      try {
+        Field f = Unsafe.class.getDeclaredField("theUnsafe");
+        f.setAccessible(true);
+        unsafe = (Unsafe) f.get(null);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return unsafe;
+  }
+
+  private Field getField(Class<?> clazz, String name) {
+    try {
+      Field field = clazz.getDeclaredField(name);
+      if (!field.isAccessible()) {
+        field.setAccessible(true);
+      }
+      return field;
+    } catch (NoSuchFieldException e) {
+      if (clazz.getSuperclass() != Object.class) {
+        return getField(clazz.getSuperclass(), name);
+      }
+    }
+    return null;
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T deserialize(Class<T> type, Object value) throws Exception {
+    if (value instanceof JSONObject) {
+      if (Content.class.isAssignableFrom(type)) {
+        String url = ((JSONObject) value).getString("url");
+        if (url.startsWith("jar:")) {
+          url = "jar:" + baseUrl + "/" + url.substring(4);
+        } else if (!url.contains(":")) {
+          url = baseUrl + "/" + url;
+        }
+        value = new URLContent(new URL(url));
+      } else {
+        value = deserializeObject(type, (JSONObject) value);
+      }
+    } else if (value instanceof JSONArray) {
+      value = deserializeArray(type, (JSONArray) value);
+    } else {
+      if (value == JSONObject.NULL) {
+        value = null;
+      } else if (HomeObject.class.isAssignableFrom(type) || Selectable.class.isAssignableFrom(type)) {
+        if (homeObjects.containsKey(value)) {
+          value = (T) homeObjects.get(value);
+        } else {
+          throw new RuntimeException("Cannot find referenced home object " + type + ": " + value);
+        }
+      } else if(Home.class.isAssignableFrom(type)) {
+        // TODO: check that the URL is consistent
+        value = home;
+      } else if (type.isEnum()) {
+        value = Array.get(type.getMethod("values").invoke(null), (Integer)value);
+      } else if (PlanController.class.isAssignableFrom(type)) {
+        value = homeController.getPlanController();
+      } else if (float.class == type || Float.class == type) {
+        value = ((Number) value).floatValue();
+      }  else if (int.class == type || Integer.class == type) {
+        value = ((Number) value).intValue();
+      }  else if (long.class == type || Long.class == type) {
+        value = ((Number) value).longValue();
+      }  else if (byte.class == type || Byte.class == type) {
+        value = ((Number) value).byteValue();
+      }  else if (short.class == type || Short.class == type) {
+        value = ((Number) value).shortValue();
+      }
+    }
+    return (T) value;
+  }
+    
+  @SuppressWarnings("unchecked")
+  private <T> T deserializeArray(Class<T> type, JSONArray json) throws Exception {
+    if (type.isArray()) {
+      Object target = Array.newInstance(type.getComponentType(), json.length());
+      for (int i = 0; i < json.length(); i++) {
+        Array.set(target, i, deserialize(type.getComponentType(), json.get(i)));
+      }
+      return (T) target;
+    } else if (List.class.isAssignableFrom(type)) {
+      List<Object> target;
+      if(type.isInterface()) {
+        target = new ArrayList<>();
+      } else {
+        target = (List<Object>)type.newInstance();
+      }
+      for (int i = 0; i < json.length(); i++) {
+        target.add(deserialize(Object.class, json.get(i)));
+      }
+      return (T) target;
+    } else {
+      throw new RuntimeException("Unsupported collection type " + type);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T deserializeObject(Class<T> type, JSONObject json) throws Exception {
+    T instance = null;
+    Class<T> clazz = null;
+
+    // Deserialize the objects created by the edit (placed in _newObject protocol
+    // field)
+    if (json.has("_newObjects")) {
+      JSONObject map = json.getJSONObject("_newObjects");
+      for (String key : map.keySet()) {
+        homeObjects.put(key, deserializeObject(HomeObject.class, map.getJSONObject(key)));
+      }
+    }
+
+    // Force UndoableEdit.hasBeenDone to false so that redo() can be called
+    if (json.has("hasBeenDone")) {
+      json.put("hasBeenDone", false);
+    }
+
+    if (json.has("_type")) {
+      String typeName = json.getString("_type");
+      String[] typeNameParts = typeName.split("\\.");
+
+      if (Character.isUpperCase(typeNameParts[typeNameParts.length - 2].charAt(0))) {
+        typeName = String.join(".", Arrays.copyOfRange(typeNameParts, 0, typeNameParts.length - 1));
+        typeName += "$" + typeNameParts[typeNameParts.length - 1];
+      }
+
+      try {
+        clazz = (Class<T>) Class.forName(typeName);
+      } catch (Exception e) {
+        // Should not happen
+        throw new RuntimeException("Cannot find type " + typeName, e);
+      }
+    } else {
+      clazz = type;
+    }
+    try {
+      Constructor<T> constructor = clazz.getConstructor();
+      instance = constructor.newInstance();
+    } catch (Exception e) {
+      instance = (T) getUnsafe().allocateInstance(clazz);
+    }
+
+    Field field = getField(clazz, "propertyChangeSupport");
+    if(field != null) {
+      field.set(instance, new PropertyChangeSupport(instance));
+    }
+    
+    for (String key : json.keySet()) {
+      Object value = json.get(key);
+      field = getField(clazz, key);
+      if(field != null && !value.equals(JSONObject.NULL)) { 
+        System.out.println("deserializing "+key+" --- "+field);
+        field.set(instance, deserialize(field.getType(), value));
+      }
+    }
+    return instance;
+  }
+
   /**
    * Desearializes a list of edits passed as a JSON string.
    * 
    * @param jsonEdits the edits as a JSON string
    * @return a list of undoable edits (to be applied to the target home)
    */
-  public List<UndoableEdit> deserializeEdits(String jsonEdits) {
+  public List<UndoableEdit> deserializeEdits(String jsonEdits) throws Exception {
 
-    final GsonBuilder gsonBuilder = new GsonBuilder();
-
-    JsonDeserializer<Object> typeAdapter = new JsonDeserializer<Object>() {
-      @Override
-      public Object deserialize(final JsonElement json, final java.lang.reflect.Type type,
-          final JsonDeserializationContext context) throws JsonParseException {
-
-        System.out.println("deserialize " + json + " => " + type + " / " + json.isJsonPrimitive());
-
-        if (json.isJsonPrimitive() && type instanceof Class && (HomeObject.class.isAssignableFrom(((Class<?>) type))
-            || Selectable.class.isAssignableFrom(((Class<?>) type)))) {
-          String id = json.getAsString();
-          if (homeObjects.containsKey(id)) {
-            return homeObjects.get(id);
-          } else {
-            throw new RuntimeException("Cannot find referenced home object " + type + ": " + id);
-          }
-        }
-
-        JsonObject jsonObject = json.getAsJsonObject();
-
-        // Deserialize the objects created by the edit (placed in _newObject protocol
-        // field)
-        if (jsonObject.has("_newObjects")) {
-          Map<String, HomeObject> newHomeObjects = gsonBuilder.create().fromJson(
-              jsonObject.get("_newObjects"),
-              new TypeToken<Map<String, HomeObject>>() {}.getType());
-          
-          for (Map.Entry<String, HomeObject> entry : newHomeObjects.entrySet()) {
-            homeObjects.put(entry.getKey(), entry.getValue());
-          }
-        }
-
-        // Force UndoableEdit.hasBeenDone to false so that redo() can be called
-        if (jsonObject.has("hasBeenDone")) {
-          jsonObject.addProperty("hasBeenDone", false);
-        }
-
-        // Use _type to determine actual target Java class
-        if (jsonObject.has("_type")) {
-          JsonElement jsonType = jsonObject.get("_type");
-          String typeName = jsonType.getAsString();
-          String[] typeNameParts = typeName.split("\\.");
-          
-          if (Character.isUpperCase(typeNameParts[typeNameParts.length - 2].charAt(0))) {
-            typeName = String.join(".", Arrays.copyOfRange(typeNameParts, 0, typeNameParts.length - 1));
-            typeName += "$" + typeNameParts[typeNameParts.length - 1];
-          }
-          
-          if (!typeName.equals(type.getTypeName())) {
-            Class<?> clazz = null;
-            try {
-              clazz = Class.forName(typeName);
-            } catch (Exception e) {
-              // Should not happen
-              throw new RuntimeException("Cannot find type " + typeName, e);
-            }
-            return gsonBuilder.create().fromJson(jsonObject, clazz);
-          }
-        }
-
-        // Basic fields deserialization (with the Content type exception)
-        return new GsonBuilder().registerTypeAdapter(Content.class, new JsonDeserializer<Content>() {
-          @Override
-          public Content deserialize(JsonElement element, Type type, JsonDeserializationContext context)
-              throws JsonParseException {
-            try {
-              String url = element.getAsJsonObject().get("url").getAsString();
-              if (url.startsWith("jar:")) {
-                url = "jar:" + baseUrl + "/" + url.substring(4);
-              } else if (!url.contains(":")) {
-                url = baseUrl + "/" + url;
-              }
-              return new URLContent(new URL(url));
-            } catch (MalformedURLException e) {
-              e.printStackTrace();
-              return null;
-            }
-          }
-        }).create().fromJson(json, type);
-      }
-    };
-    
-    // TODO: use a TypeAdapter factory to have a global handling of all types
-    gsonBuilder.registerTypeAdapter(UndoableEdit.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(HomeObject.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Camera.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(ObserverCamera.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Compass.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(DimensionLine.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(HomeEnvironment.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(HomePieceOfFurniture.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(HomeDoorOrWindow.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(HomeFurnitureGroup.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(HomeLight.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Label.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Level.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Polyline.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Room.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Wall.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Selectable.class, typeAdapter);
-    gsonBuilder.registerTypeAdapter(Content.class, typeAdapter);
-
-    // TODO: make generic handler for enums
-    gsonBuilder.registerTypeAdapter(TextStyle.Alignment.class, new JsonDeserializer<TextStyle.Alignment>() {
-      @Override
-      public TextStyle.Alignment deserialize(JsonElement element, Type type, JsonDeserializationContext context)
-          throws JsonParseException {
-        int value = element.getAsInt();
-        return TextStyle.Alignment.values()[value];
-      }
-    });
-
-    gsonBuilder.registerTypeAdapter(PlanController.class, new JsonDeserializer<PlanController>() {
-      @Override
-      public PlanController deserialize(JsonElement element, Type type, JsonDeserializationContext context)
-          throws JsonParseException {
-        if (homeController.getPlanController() != null) {
-          return homeController.getPlanController();
-        } else {
-          throw new RuntimeException("home controller should have a plan controller");
-        }
-      }
-    });
-    gsonBuilder.registerTypeAdapter(Home.class, new JsonDeserializer<Home>() {
-      @Override
-      public Home deserialize(JsonElement element, Type type, JsonDeserializationContext context)
-          throws JsonParseException {
-        // TODO: check id and throw exception if not equal
-        return home;
-      }
-    });
-
-    return gsonBuilder.create().fromJson(jsonEdits, new TypeToken<List<UndoableEdit>>() {}.getType());
-
+    JSONArray jsonArray = new JSONArray(jsonEdits);
+    List<UndoableEdit> list = new ArrayList<UndoableEdit>();
+    // System.out.println("deserializing "+jsonArray.length()+" edit(s)");
+    for (int i = 0; i < jsonArray.length(); i++) {
+      list.add(deserializeObject(UndoableEdit.class, jsonArray.getJSONObject(i)));
+    }
+    return list;
   }
 
-  // We need a dummy view for the controller because it calls setScale when opening a new home.
-  // TODO: check if we can just get rid of this by avoiding calling setScale when the view is null.
+  // We need a dummy view for the controller because it calls setScale when
+  // opening a new home.
+  // TODO: check if we can just get rid of this by avoiding calling setScale when
+  // the view is null.
   private static class DummyPlanView implements PlanView {
     @Override
     public boolean isFormatTypeSupported(FormatType formatType) {

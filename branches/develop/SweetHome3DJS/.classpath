@@ -10,7 +10,7 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="tools/JSweet/lib/jsweet-core-5-20170726.jar"/>
 	<classpathentry kind="lib" path="/SweetHome3D/libtest/AppleJavaExtensions.jar"/>
-	<classpathentry kind="lib" path="tools/json/lib/gson-2.8.6.jar"/>
+	<classpathentry kind="lib" path="tools/json/lib/json-20190722.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jsweet-transpiler"/>
 	<classpathentry kind="lib" path="/Applications/Development/apache-tomcat-9.0.35/lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="/Applications/Development/apache-tomcat-9.0.35/lib/tomcat-api.jar"/>

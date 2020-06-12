@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.google.gson.GsonBuilder;
+import org.json.JSONObject;
 
 public class PropertiesToJson {
 
@@ -65,7 +65,7 @@ public class PropertiesToJson {
         afterLoaded(dir, resourcesOutputDirectory, name, "".equals(lang) ? "en" : lang.substring(1), properties);
       }
       System.out.println("Writing " + properties.size() + " properties to " + outputFilePath + ".");
-      Files.write(outputFilePath, (new GsonBuilder().setPrettyPrinting().create().toJson(properties) + "\n").getBytes("UTF-8"),
+      Files.write(outputFilePath, (new JSONObject(properties).toString(2) + "\n").getBytes("UTF-8"),
           StandardOpenOption.APPEND);
     }
 
