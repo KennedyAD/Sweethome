@@ -310,6 +310,16 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           return true;
         }
         break;
+      case "java.util.TreeMap":
+        switch (invocation.getMethodName()) {
+        case "lastKey":
+          printMacroName(invocation.getMethodName());
+          print("(function(map) {"
+              + "return map.entries[map.entries.length - 1].key;"
+              + "})(").print(invocation.getTargetExpression()).print(")");
+          return true;
+        }
+        break;
       case "java.util.UUID":
         switch (invocation.getMethodName()) {
         case "randomUUID":
@@ -597,5 +607,5 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
       return super.getVariableInitialValue(variable);
     }
   }
-  
+
 }
