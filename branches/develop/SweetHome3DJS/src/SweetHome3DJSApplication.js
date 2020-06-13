@@ -160,6 +160,10 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
     return origin.id;
   } else {
     var destination = {};
+    if(origin.id !== undefined) {
+      // new object case
+      newObjects[origin.id] = destination;
+    }
     if(origin.constructor && origin.constructor.__class) {
       destination._type = origin.constructor.__class;
     }
@@ -183,8 +187,6 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
       }
     }
     if(origin.id !== undefined) {
-      // new object case
-      newObjects[origin.id] = destination;
       return origin.id;
     } else {
       return destination;
