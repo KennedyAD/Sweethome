@@ -119,7 +119,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
                                 edit,
                                 newObjects,
                                 ["properties", "propertyChangeSupport", "object3D"], 
-                                [UserPreferences],
+                                [UserPreferences, HomeFurnitureGroup.LocationAndSizeChangeListener],
                                 [Boolean, String, Number]);
   console.info(key, processedEdit, JSON.stringify(processedEdit), newObjects);
   processedEdit._newObjects = newObjects;

@@ -26,10 +26,12 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -42,6 +44,7 @@ import org.json.JSONObject;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeObject;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.HomeRecorder;
@@ -158,6 +161,21 @@ public class HomeEditsDeserializer {
     return null;
   }
 
+  private Method getMethod(Class<?> clazz, String name, Class<?> ... parameterTypes) {
+    try {
+      Method method = clazz.getDeclaredMethod(name, parameterTypes);
+      if (!method.isAccessible()) {
+        method.setAccessible(true);
+      }
+      return method;
+    } catch (NoSuchMethodException e) {
+      if (clazz.getSuperclass() != Object.class) {
+        return getMethod(clazz.getSuperclass(), name, parameterTypes);
+      }
+    }
+    return null;
+  }
+
   @SuppressWarnings("unchecked")
   private <T, U> T deserialize(Class<T> type, Object value) throws Exception {
     if (value instanceof JSONObject) {
@@ -242,7 +260,7 @@ public class HomeEditsDeserializer {
   private <T> T deserializeObject(Class<T> type, JSONObject json) throws Exception {
     return fillInstance(createInstance(type, json), json);
   }
-  
+
   @SuppressWarnings("unchecked")
   private <T> T createInstance(Class<T> type, JSONObject json) throws Exception {
     T instance = null;
@@ -256,7 +274,7 @@ public class HomeEditsDeserializer {
       for (String key : map.keySet()) {
         homeObjects.put(key, createInstance(HomeObject.class, map.getJSONObject(key)));
       }
-      // Pass 2: fill instances for new objects (instances have been created in pass 1 
+      // Pass 2: fill instances for new objects (instances have been created in pass 1
       // so that (cross) references can be looked up)
       for (String key : map.keySet()) {
         fillInstance(homeObjects.get(key), map.getJSONObject(key));
@@ -297,21 +315,30 @@ public class HomeEditsDeserializer {
 
   private <T> T fillInstance(T instance, JSONObject json) throws Exception {
     Field field = getField(instance.getClass(), "propertyChangeSupport");
-    if(field != null) {
+    if (field != null) {
       field.set(instance, new PropertyChangeSupport(instance));
     }
 
     for (String key : json.keySet()) {
       Object value = json.get(key);
       field = getField(instance.getClass(), key);
-      if(field != null && !value.equals(JSONObject.NULL)) {
+      if (field != null && !value.equals(JSONObject.NULL)) {
         System.out.println("deserializing "+key+" --- "+field + " " + instance.getClass());
         field.set(instance, deserialize(field.getType(), value));
       }
     }
+
+    if (instance instanceof HomeFurnitureGroup) {
+      // Convert ids to furniture
+      List furniture = (List)getField(instance.getClass(), "furniture").get(instance);
+      for (int i = 0; i < furniture.size(); i++) {
+        furniture.set(i, homeObjects.get(furniture.get(i)));
+      }
+      getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
+    }
     return instance;
   }
-  
+
   /**
    * Desearializes a list of edits passed as a JSON string.
    *
