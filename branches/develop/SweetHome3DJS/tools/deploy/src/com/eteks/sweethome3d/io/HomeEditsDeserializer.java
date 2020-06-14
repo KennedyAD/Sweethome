@@ -21,8 +21,6 @@ package com.eteks.sweethome3d.io;
 
 import java.beans.PropertyChangeSupport;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -31,10 +29,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.swing.undo.UndoableEdit;
 
@@ -42,22 +38,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeObject;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.TextStyle;
-import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.swing.SwingViewFactory;
 import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
-import com.eteks.sweethome3d.viewcontroller.PlanController.EditableProperty;
-import com.eteks.sweethome3d.viewcontroller.PlanView;
-import com.eteks.sweethome3d.viewcontroller.View;
-import com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter;
 
 import sun.misc.Unsafe;
 
@@ -119,12 +108,9 @@ public class HomeEditsDeserializer {
     this.homeFile = homeFile;
     this.baseUrl = baseUrl;
     this.preferences = new DefaultUserPreferences();
-    this.homeController = new HomeController(home, this.preferences, new ViewFactoryAdapter() {
-      @Override
-      public PlanView createPlanView(Home home, UserPreferences preferences, PlanController planController) {
-        return new DummyPlanView();
-      }
-    });
+    // SwingViewFactory is needed to provide a plan component with setScale and getTextBounds methods
+    // Caution: be sure to run JSP server with -Djava.awt.headless=true
+    this.homeController = new HomeController(home, this.preferences, new SwingViewFactory());
     this.homeObjects = new HashMap<String, HomeObject>();
     for (HomeObject homeObject : home.getHomeObjects()) {
       this.homeObjects.put(homeObject.getId(), homeObject);
@@ -355,153 +341,4 @@ public class HomeEditsDeserializer {
     }
     return list;
   }
-
-  // We need a dummy view for the controller because it calls setScale when
-  // opening a new home.
-  // TODO: check if we can just get rid of this by avoiding calling setScale when
-  // the view is null.
-  private static class DummyPlanView implements PlanView {
-    @Override
-    public boolean isFormatTypeSupported(FormatType formatType) {
-      return false;
-    }
-
-    @Override
-    public void exportData(OutputStream out, FormatType formatType, Properties settings) throws IOException {
-    }
-
-    @Override
-    public Object createTransferData(DataType dataType) {
-      return null;
-    }
-
-    @Override
-    public void setRectangleFeedback(float x0, float y0, float x1, float y1) {
-    }
-
-    @Override
-    public void makeSelectionVisible() {
-    }
-
-    @Override
-    public void makePointVisible(float x, float y) {
-    }
-
-    @Override
-    public float getScale() {
-      return 0;
-    }
-
-    @Override
-    public void setScale(float scale) {
-    }
-
-    @Override
-    public float getPrintPreferredScale(float preferredWidth, float preferredHeight) {
-      return 0;
-    }
-
-    @Override
-    public void moveView(float dx, float dy) {
-    }
-
-    @Override
-    public float convertXPixelToModel(int x) {
-      return 0;
-    }
-
-    @Override
-    public float convertYPixelToModel(int y) {
-      return 0;
-    }
-
-    @Override
-    public int convertXModelToScreen(float x) {
-      return 0;
-    }
-
-    @Override
-    public int convertYModelToScreen(float y) {
-      return 0;
-    }
-
-    @Override
-    public float getPixelLength() {
-      return 0;
-    }
-
-    @Override
-    public float[][] getTextBounds(String text, TextStyle style, float x, float y, float angle) {
-      return null;
-    }
-
-    @Override
-    public void setCursor(CursorType cursorType) {
-    }
-
-    @Override
-    public void setToolTipFeedback(String toolTipFeedback, float x, float y) {
-    }
-
-    @Override
-    public void setToolTipEditedProperties(EditableProperty[] toolTipEditedProperties, Object[] toolTipPropertyValues,
-        float x, float y) {
-    }
-
-    @Override
-    public void deleteToolTipFeedback() {
-    }
-
-    @Override
-    public void setResizeIndicatorVisible(boolean resizeIndicatorVisible) {
-    }
-
-    @Override
-    public void setAlignmentFeedback(Class<? extends Selectable> alignedObjectClass, Selectable alignedObject, float x,
-        float y, boolean showPoint) {
-    }
-
-    @Override
-    public void setAngleFeedback(float xCenter, float yCenter, float x1, float y1, float x2, float y2) {
-    }
-
-    @Override
-    public void setDraggedItemsFeedback(List<Selectable> draggedItems) {
-    }
-
-    @Override
-    public void setDimensionLinesFeedback(List<DimensionLine> dimensionLines) {
-    }
-
-    @Override
-    public void deleteFeedback() {
-    }
-
-    @Override
-    public View getHorizontalRuler() {
-      return null;
-    }
-
-    @Override
-    public View getVerticalRuler() {
-      return null;
-    }
-
-    @Override
-    public boolean canImportDraggedItems(List<Selectable> items, int x, int y) {
-      return false;
-    }
-
-    @Override
-    public float[] getPieceOfFurnitureSizeInPlan(HomePieceOfFurniture piece) {
-      return null;
-    }
-
-    @Override
-    public boolean isFurnitureSizeInPlanSupported() {
-      return false;
-    }
-
-  }
-
 }
