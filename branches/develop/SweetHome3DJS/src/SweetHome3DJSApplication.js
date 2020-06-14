@@ -55,11 +55,11 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
     // TODO: have a UUID
     home.id = url;
     console.info("home loaded", home, home.id, home.getHomeObjects());
-    recorder.ids = {};
+    recorder.existingHomeObjects = {};
     home.getHomeObjects().forEach(function(homeObject) {
-      recorder.ids[homeObject.id] = homeObject.id;
+      recorder.existingHomeObjects[homeObject.id] = homeObject.id;
     });
-    console.info("collected ids: ", home, recorder.ids);
+    console.info("collected ids: ", home, recorder.existingHomeObjects);
     console.info(Object.getOwnPropertyNames(home));
     homeLoaded(home);
     home.name = homeName;
@@ -101,14 +101,14 @@ IncrementalHomeRecorder.prototype.onUndoableEdit = function(home, undoableEditEv
     console.info("RESULT = " + xhr.responseText);
     this.commitEdits();
     //return JSON.parse(xhr.responseText);
-  } catch(e) {
-    console.error(e);
+  } catch (ex) {
+    console.error(ex);
   }  
 }
 
 /** @private */
 IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
-  if(this.editCounters[home.id] === undefined) {
+  if (this.editCounters[home.id] === undefined) {
     this.editCounters[home.id] = 0;
   } else {
     this.editCounters[home.id] = this.editCounters[home.id] + 1;
@@ -125,10 +125,13 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
   processedEdit._newObjects = newObjects;
   // TODO: use local storage
   //localStorage.setItem(key, toJSON(o));
-  if(!this.queue) {
+  if (!this.queue) {
     this.queue = [];
   }
   this.queue.push(processedEdit);
+  
+  // Add possible new objects to existing ones 
+  CoreTools.merge(this.existingHomeObjects, newObjects);
 }
 
 /** @private */
@@ -154,24 +157,24 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
   } else if (origin == null || origin !== Object(origin) 
             || preservedTypes.some(function(preservedType) { return origin instanceof preservedType; })) {
     return origin;
-  } else if (origin.id !== undefined && (this.ids[origin.id] !== undefined // already in home
-                                        || newObjects[origin.id] !== undefined  // already in new objects
-                                        || origin instanceof Home)) { // home always exists
+  } else if (origin.id !== undefined && (this.existingHomeObjects[origin.id] !== undefined // Already in home
+                                        || newObjects[origin.id] !== undefined  // Already in new objects
+                                        || origin instanceof Home)) { // Home always exists
     return origin.id;
   } else {
     var destination = {};
-    if(origin.id !== undefined) {
-      // new object case
+    if (origin.id !== undefined) {
+      // New object case
       newObjects[origin.id] = destination;
     }
-    if(origin.constructor && origin.constructor.__class) {
+    if (origin.constructor && origin.constructor.__class) {
       destination._type = origin.constructor.__class;
     }
     var propertyNames = Object.getOwnPropertyNames(origin);
     for (var j = 0; j < propertyNames.length; j++) {
       var propertyName = propertyNames[j];
-      // hack: controllers are not serialized but a dummy field is necessary for deserialization
-      if(propertyName === 'controller') {
+      // Hack: controllers are not serialized but a dummy field is necessary for deserialization
+      if (propertyName === 'controller') {
         destination[propertyName] = true;
         continue;
       }
@@ -180,13 +183,13 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
       }
       if (skippedPropertyNames.indexOf(propertyName) === -1) {
         var propertyValue = origin[propertyName];
-        if (typeof propertyValue !== 'function' && 
-            !skippedTypes.some(function(skippedType) { return propertyValue instanceof skippedType; })) {
+        if (typeof propertyValue !== 'function' 
+            && !skippedTypes.some(function(skippedType) { return propertyValue instanceof skippedType; })) {
           destination[propertyName] = this.substituteIdentifiableObjects(propertyValue, newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
         }
       }
     }
-    if(origin.id !== undefined) {
+    if (origin.id !== undefined) {
       return origin.id;
     } else {
       return destination;
@@ -204,7 +207,7 @@ function SweetHome3DJSApplication(serverBaseUrl) {
   this.homeControllers = {};
   this.serverBaseUrl = serverBaseUrl;
   var application = this;
-  if(serverBaseUrl) {
+  if (serverBaseUrl) {
     this.addHomesListener(function(ev) {
         if (ev.getType() == CollectionEvent.Type.ADD) {
           var homeController = this.application.createHomeController(ev.getItem());
@@ -235,8 +238,8 @@ SweetHome3DJSApplication.prototype.getHomeController = function(home) {
 }
 
 SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
-  if(!this.homeRecorder) {
-    if(this.serverBaseUrl) {
+  if (!this.homeRecorder) {
+    if (this.serverBaseUrl) {
       this.homeRecorder = new IncrementalHomeRecorder(this, this.serverBaseUrl);
     } else {
       this.homeRecorder = new HomeRecorder();
