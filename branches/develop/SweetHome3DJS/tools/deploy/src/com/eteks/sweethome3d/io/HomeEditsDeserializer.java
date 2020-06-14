@@ -300,14 +300,16 @@ public class HomeEditsDeserializer {
   }
 
   private <T> T fillInstance(T instance, JSONObject json) throws Exception {
-    Field field = getField(instance.getClass(), "propertyChangeSupport");
-    if (field != null) {
-      field.set(instance, new PropertyChangeSupport(instance));
+    for (Class<?> type = instance.getClass(); type != Object.class; type = type.getSuperclass()) {
+      Field field = getField(type, "propertyChangeSupport");
+      if (field != null) {
+        field.set(instance, new PropertyChangeSupport(instance));
+      }
     }
 
     for (String key : json.keySet()) {
       Object value = json.get(key);
-      field = getField(instance.getClass(), key);
+      Field field = getField(instance.getClass(), key);
       if (field != null && !value.equals(JSONObject.NULL)) {
         System.out.println("deserializing "+key+" --- "+field + " " + instance.getClass());
         field.set(instance, deserialize(field.getType(), value));
