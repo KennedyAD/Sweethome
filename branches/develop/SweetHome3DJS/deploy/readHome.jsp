@@ -17,10 +17,12 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -->
+<%@page import="java.nio.file.attribute.FileAttribute"%>
 <%@page import="com.eteks.sweethome3d.io.HomeFileRecorder"%>
 <%@page import="com.eteks.sweethome3d.model.Home"%>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.*" %>
+<%@page import="java.nio.file.*"%>
 <%
 out.clear();
 String homeName = request.getParameter("home");
@@ -31,6 +33,16 @@ if (homeName != null) {
   if (!file.exists()) {
 	new HomeFileRecorder(9, false, null, false, true).writeHome(new Home(), file.getPath());
   }
+  
+  // Create a copy of the file and store it as a session attribute
+  Path tempFile = Files.createTempFile("open-", ".sh3d");
+  Files.copy(file.toPath(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+  File previousOpenedFile = (File)request.getSession().getAttribute(file.getCanonicalPath());
+  if (previousOpenedFile != null) {
+    previousOpenedFile.delete();
+  }
+  request.getSession().setAttribute(file.getCanonicalPath(), tempFile.toFile());
+  // TODO When temporary files should be deleted?
   
   response.setIntHeader("Content-length", (int) file.length());
   response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());

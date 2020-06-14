@@ -32,18 +32,28 @@
    int count = 0;
    
    if (homeName != null) {
-       file = new File(getServletContext().getRealPath("/"),
-               homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
+     file = new File(getServletContext().getRealPath("/"),
+    	 homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
 
-		   HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
-		   Home home = recorder.readHome(file.getPath());
+     // Retrieve home file copy stored in session attribute
+     File openedFile = (File)request.getSession().getAttribute(file.getCanonicalPath());
 
-		    List<UndoableEdit> edits = new HomeEditsDeserializer(home, file, baseUrl).deserializeEdits(jsonEdits);
-        for(UndoableEdit edit : edits) {
-          edit.redo();
-          count++;
-        }
-        recorder.writeHome(home, file.getPath());
-        
-   } %>
+     if (openedFile != null) {
+       HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
+       Home home = recorder.readHome(file.getPath());
+
+       List<UndoableEdit> edits = new HomeEditsDeserializer(home, openedFile, baseUrl).deserializeEdits(jsonEdits);
+       for (UndoableEdit edit : edits) {
+         edit.redo();
+         count++;
+       }
+    
+       recorder.writeHome(home, file.getPath());    
+%>
 Wrote <%= count %> edits to <%= file %>.
+<%       
+     } else {
+       throw new ServletException(homeName + " not opened by client");
+     } 
+   }
+%>
