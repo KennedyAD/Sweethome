@@ -25,6 +25,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -134,16 +136,19 @@ public class HomeEditsDeserializer {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T deserialize(Class<T> type, Object value) throws ReflectiveOperationException  {
-    if (value instanceof JSONObject) {
-      JSONObject jsonObject = (JSONObject)value;
+  private <T> T deserialize(Type valueType, Object jsonValue) throws ReflectiveOperationException  {
+    Class<T> valueClass = valueType instanceof Class<?> ? (Class<T>)valueType : null;
+    Object value;
+    if (jsonValue instanceof JSONObject) {
+      JSONObject jsonObject = (JSONObject)jsonValue;
       if (DefaultPatternTexture.class.getName().equals(jsonObject.getString("_type"))) {
         try {
           value = this.preferences.getPatternsCatalog().getPattern(jsonObject.getString("name"));
         } catch (IllegalArgumentException ex) {
           value = null; // Ignore unknown pattern
         }
-      } else if (Content.class.isAssignableFrom(type)) {
+      } else if (valueClass != null
+                 && Content.class.isAssignableFrom(valueClass)) {
         String url = jsonObject.getString("url");
         try {
           if (url.startsWith("jar:")) {
@@ -152,69 +157,90 @@ public class HomeEditsDeserializer {
             } else {
               value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
             }
-          } else if (!url.contains(":")) {
+          } else if (url.contains(":")) {
+            value = new URLContent(new URL(url));
+          } else {
             value = new URLContent(new URL(baseUrl + "/" + url));
           }
         } catch (MalformedURLException ex) {
           throw new IllegalArgumentException("Can't build URL ", ex);
         }
       } else {
-        value = deserializeObject(type, (JSONObject)value);
+        value = deserializeObject(valueClass, (JSONObject)jsonValue);
       }
-    } else if (value instanceof JSONArray) {
-      value = deserializeArray(type, (JSONArray)value);
+    } else if (jsonValue instanceof JSONArray) {
+      value = deserializeArray(valueType, (JSONArray)jsonValue);
+    } else if (jsonValue == JSONObject.NULL) {
+      value = null;
+    } else if (valueClass != null
+               && (HomeObject.class.isAssignableFrom(valueClass) || Selectable.class.isAssignableFrom(valueClass))) {
+      if (this.homeObjects.containsKey(jsonValue)) {
+        value = (T)this.homeObjects.get(jsonValue);
+      } else {
+        throw new RuntimeException("Cannot find referenced home object " + valueType + ": " + jsonValue);
+      }
+    } else if (valueClass != null
+               && Home.class.isAssignableFrom(valueClass)) {
+      // TODO: check that the URL is consistent
+      value = this.home;
+    } else if (valueClass != null
+               && valueClass.isEnum()) {
+      value = valueClass.getEnumConstants() [(Integer)jsonValue];
+    } else if (valueClass != null
+               && PlanController.class.isAssignableFrom(valueClass)) {
+      value = this.homeController.getPlanController();
+    } else if (float.class == valueType || Float.class == valueType) {
+      value = ((Number)jsonValue).floatValue();
+    } else if (int.class == valueType || Integer.class == valueType) {
+      value = ((Number)jsonValue).intValue();
+    } else if (long.class == valueType || Long.class == valueType) {
+      value = ((Number)jsonValue).longValue();
+    } else if (byte.class == valueType || Byte.class == valueType) {
+      value = ((Number)jsonValue).byteValue();
+    } else if (short.class == valueType || Short.class == valueType) {
+      value = ((Number)jsonValue).shortValue();
     } else {
-      if (value == JSONObject.NULL) {
-        value = null;
-      } else if (HomeObject.class.isAssignableFrom(type) || Selectable.class.isAssignableFrom(type)) {
-        if (this.homeObjects.containsKey(value)) {
-          value = (T)this.homeObjects.get(value);
-        } else {
-          throw new RuntimeException("Cannot find referenced home object " + type + ": " + value);
-        }
-      } else if (Home.class.isAssignableFrom(type)) {
-        // TODO: check that the URL is consistent
-        value = this.home;
-      } else if (type.isEnum()) {
-        value = type.getEnumConstants() [(Integer)value];
-      } else if (PlanController.class.isAssignableFrom(type)) {
-        value = this.homeController.getPlanController();
-      } else if (float.class == type || Float.class == type) {
-        value = ((Number) value).floatValue();
-      }  else if (int.class == type || Integer.class == type) {
-        value = ((Number) value).intValue();
-      }  else if (long.class == type || Long.class == type) {
-        value = ((Number) value).longValue();
-      }  else if (byte.class == type || Byte.class == type) {
-        value = ((Number) value).byteValue();
-      }  else if (short.class == type || Short.class == type) {
-        value = ((Number) value).shortValue();
-      }
+      value = jsonValue;
     }
-    return (T) value;
+    return (T)value;
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T deserializeArray(Class<T> type, JSONArray json) throws ReflectiveOperationException, JSONException {
-    if (type.isArray()) {
-      Object target = Array.newInstance(type.getComponentType(), json.length());
-      for (int i = 0; i < json.length(); i++) {
-        Array.set(target, i, deserialize(type.getComponentType(), json.get(i)));
+  private <T> T deserializeArray(Type arrayType, JSONArray jsonArray) throws ReflectiveOperationException, JSONException {
+    Class<T> arrayClass = arrayType instanceof Class<?> ? (Class<T>)arrayType : null;
+    if (arrayClass != null
+        && arrayClass.isArray()) {
+      Object array = Array.newInstance(arrayClass.getComponentType(), jsonArray.length());
+      for (int i = 0; i < jsonArray.length(); i++) {
+        Array.set(array, i, deserialize(arrayClass.getComponentType(), jsonArray.get(i)));
       }
-      return (T) target;
-    } else if (List.class.isAssignableFrom(type)) {
-      List<Object> target;
-      if (type.isInterface()) {
-        target = new ArrayList<>();
+      return (T)array;
+    } else if (arrayClass != null
+                  && List.class.isAssignableFrom(arrayClass)
+               || arrayType instanceof ParameterizedType
+                   && ((ParameterizedType)arrayType).getRawType() instanceof Class<?>
+                   && List.class.isAssignableFrom((Class<?>)((ParameterizedType)arrayType).getRawType())) {
+
+      List<?> list;
+      if (arrayClass != null
+          && !arrayClass.isInterface()) {
+        list = (List<?>)arrayClass.newInstance();
+      } else if (arrayType instanceof ParameterizedType
+                 && !((Class<?>)((ParameterizedType)arrayType).getRawType()).isInterface()) {
+        list = (List<?>)((Class<?>)((ParameterizedType)arrayType).getRawType()).newInstance();
       } else {
-        target = (List<Object>)type.newInstance();
+        list = new ArrayList<>();
       }
-      for (int i = 0; i < json.length(); i++) {
-        target.add(deserialize(Object.class, json.get(i)));
+
+      for (int i = 0; i < jsonArray.length(); i++) {
+        list.add(deserialize(arrayType instanceof ParameterizedType
+                ? ((ParameterizedType)arrayType).getActualTypeArguments() [0]
+                : Object.class,
+            jsonArray.get(i)));
       }
-      return (T) target;
+      return (T)list;
     } else {
-      throw new RuntimeException("Unsupported collection type " + type);
+      throw new RuntimeException("Unsupported collection type " + arrayType);
     }
   }
 
@@ -223,31 +249,40 @@ public class HomeEditsDeserializer {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T createInstance(Class<T> type, JSONObject json) throws ReflectiveOperationException, JSONException {
-    T instance = null;
-    Class<T> clazz = null;
+  private <T> T createInstance(Class<T> defaultType, JSONObject jsonValue) throws ReflectiveOperationException, JSONException {
+    Class<T> instanceType;
 
     // Deserialize the objects created by the edit (placed in _newObject protocol field)
-    if (json.has("_newObjects")) {
-      JSONObject map = json.getJSONObject("_newObjects");
+    if (jsonValue.has("_newObjects")) {
+      JSONObject newObjects = jsonValue.getJSONObject("_newObjects");
       // Pass 1: create instances for new objects
-      for (String key : map.keySet()) {
-        this.homeObjects.put(key, createInstance(HomeObject.class, map.getJSONObject(key)));
+      for (String key : newObjects.keySet()) {
+        HomeObject homeObject = createInstance(HomeObject.class, newObjects.getJSONObject(key));
+        this.homeObjects.put(key, homeObject);
+
+        // Reinstantiate propertyChangeSupport fields
+        for (Class<?> type = homeObject.getClass(); type != Object.class; type = type.getSuperclass()) {
+          Field field = getField(type, "propertyChangeSupport");
+          if (field != null) {
+            field.set(homeObject, new PropertyChangeSupport(homeObject));
+          }
+        }
       }
+
       // Pass 2: fill instances for new objects (instances have been created in pass 1
       // so that (cross) references can be looked up)
-      for (String key : map.keySet()) {
-        fillInstance(homeObjects.get(key), map.getJSONObject(key));
+      for (String key : newObjects.keySet()) {
+        fillInstance(this.homeObjects.get(key), newObjects.getJSONObject(key));
       }
     }
 
     // Force UndoableEdit.hasBeenDone to false so that redo() can be called
-    if (json.has("hasBeenDone")) {
-      json.put("hasBeenDone", false);
+    if (jsonValue.has("hasBeenDone")) {
+      jsonValue.put("hasBeenDone", false);
     }
 
-    if (json.has("_type")) {
-      String typeName = json.getString("_type");
+    if (jsonValue.has("_type")) {
+      String typeName = jsonValue.getString("_type");
       String[] typeNameParts = typeName.split("\\.");
 
       if (Character.isUpperCase(typeNameParts[typeNameParts.length - 2].charAt(0))) {
@@ -256,64 +291,51 @@ public class HomeEditsDeserializer {
       }
 
       try {
-        clazz = (Class<T>)Class.forName(typeName);
+        instanceType = (Class<T>)Class.forName(typeName);
       } catch (ClassNotFoundException ex) {
         // Should not happen
         throw new RuntimeException("Cannot find type " + typeName, ex);
       }
     } else {
-      clazz = type;
+      instanceType = defaultType;
     }
+
     try {
-      Constructor<T> constructor = clazz.getConstructor();
-      instance = constructor.newInstance();
+      Constructor<T> constructor = instanceType.getConstructor();
+      return constructor.newInstance();
     } catch (Exception e) {
-      instance = (T) getUnsafe().allocateInstance(clazz);
+      return (T) getUnsafe().allocateInstance(instanceType);
     }
-    return instance;
   }
 
-  private <T> T fillInstance(T instance, JSONObject json) throws ReflectiveOperationException {
-    for (Class<?> type = instance.getClass(); type != Object.class; type = type.getSuperclass()) {
-      Field field = getField(type, "propertyChangeSupport");
-      if (field != null) {
-        field.set(instance, new PropertyChangeSupport(instance));
-      }
-    }
-
-    for (String key : json.keySet()) {
-      Object value = json.get(key);
+  private <T> T fillInstance(T instance, JSONObject jsonObject) throws ReflectiveOperationException {
+    for (String key : jsonObject.keySet()) {
+      Object jsonValue = jsonObject.get(key);
       Field field = getField(instance.getClass(), key);
-      if (field != null && !value.equals(JSONObject.NULL)) {
-        System.out.println("deserializing "+key+" --- "+field + " " + instance.getClass());
-        field.set(instance, deserialize(field.getType(), value));
+      if (field != null && !jsonValue.equals(JSONObject.NULL)) {
+        System.out.println("deserializing "+key+" --- "+field.getGenericType() + " " + instance.getClass());
+        field.set(instance, deserialize(field.getGenericType(), jsonValue));
       }
     }
 
     if (instance instanceof HomeFurnitureGroup) {
-      // Convert ids to furniture
-      List furniture = (List)getField(instance.getClass(), "furniture").get(instance);
-      for (int i = 0; i < furniture.size(); i++) {
-        furniture.set(i, homeObjects.get(furniture.get(i)));
-      }
       getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
     }
     return instance;
   }
 
   /**
-   * Desearializes a list of edits passed as a JSON string.
-   *
+   * Returns a list of edits deserialized from a JSON string.
    * @param jsonEdits the edits as a JSON string
    * @return a list of undoable edits (to be applied to the target home)
    */
   public List<UndoableEdit> deserializeEdits(String jsonEdits) throws JSONException, ReflectiveOperationException {
-    JSONArray jsonArray = new JSONArray(jsonEdits);
-    List<UndoableEdit> list = new ArrayList<UndoableEdit>();
+    JSONArray jsonEditsArray = new JSONArray(jsonEdits);
+    List<UndoableEdit> edits = new ArrayList<UndoableEdit>();
     // System.out.println("deserializing "+jsonArray.length()+" edit(s)");
-    for (int i = 0; i < jsonArray.length(); i++) {
-      list.add(deserializeObject(UndoableEdit.class, jsonArray.getJSONObject(i)));
+    for (int i = 0; i < jsonEditsArray.length(); i++) {
+      edits.add(deserializeObject(UndoableEdit.class, jsonEditsArray.getJSONObject(i)));
     }
-    return list;
+    return edits;
   }
 }
