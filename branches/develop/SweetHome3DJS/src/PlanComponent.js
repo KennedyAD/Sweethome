@@ -3206,7 +3206,9 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
   var font;
   if (outlineColor != null) {
     stroke = new java.awt.BasicStroke(style.getFontSize() * 0.05);
-    var outlineStyle = style.deriveStyle(style.getFontSize() - stroke.getLineWidth());
+    // Call directly the overloaded deriveStyle method that takes a float parameter 
+    // to avoid confusion with the one that takes a TextStyle.Alignment parameter
+    var outlineStyle = style.deriveStyle$float(style.getFontSize() - stroke.getLineWidth());
     font = this.getFont(defaultFont, outlineStyle);
     g2D.setStroke(stroke);
   } else {
@@ -4713,7 +4715,9 @@ PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, sele
           lengthStyle = plan.preferences.getDefaultTextStyle(dimensionLine.constructor);
         }
         if (feedback && plan.getFont() != null) {
-          lengthStyle = lengthStyle.deriveStyle(parseInt(new Font(plan.getFont()).size) / planScale);
+          // Call directly the overloaded deriveStyle method that takes a float parameter 
+          // to avoid confusion with the one that takes a TextStyle.Alignment parameter
+          lengthStyle = lengthStyle.deriveStyle$float(parseInt(new Font(plan.getFont()).size) / planScale);
         }
         var font = plan.getFont(previousFont, lengthStyle);
         var lengthFontMetrics = plan.getFontMetrics(font, lengthStyle);

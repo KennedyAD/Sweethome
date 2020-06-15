@@ -99,7 +99,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.model.Compass.getSunElevation(..)",
         "com.eteks.sweethome3d.model.Content.openStream(..)",
         "com.eteks.sweethome3d.model.LengthUnit",
-        "com.eteks.sweethome3d.model.TextStyle.deriveStyle(com.eteks.sweethome3d.model.TextStyle.Alignment)",
         "com.eteks.sweethome3d.model.UserPreferences",
         "com.eteks.sweethome3d.tools",
         "com.eteks.sweethome3d.io.*",
@@ -237,23 +236,22 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
       return true;
     }
     switch (className) {
-    // This is a hack until we have actual locale support (just create JS Date
-    // objects)
-    case "java.util.GregorianCalendar":
-      if (newClass.getArguments().size() == 1) {
-        if (newClass.getArguments().get(0) instanceof LiteralElement) {
-          Object value = ((LiteralElement) newClass.getArguments().get(0)).getValue();
-          if (!(value instanceof String && "UTC".equals(value))) {
+      // This is a hack until we have actual locale support (just create JS Date objects)
+      case "java.util.GregorianCalendar":
+        if (newClass.getArguments().size() == 1) {
+          if (newClass.getArguments().get(0) instanceof LiteralElement) {
+            Object value = ((LiteralElement) newClass.getArguments().get(0)).getValue();
+            if (!(value instanceof String && "UTC".equals(value))) {
+              // This will use the user's locale
+              print("new Date()");
+              return true;
+            }
+          } else {
             // This will use the user's locale
             print("new Date()");
             return true;
           }
-        } else {
-          // This will use the user's locale
-          print("new Date()");
-          return true;
         }
-      }
     }
     return super.substituteNewClass(newClass);
   }
@@ -263,196 +261,196 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     if (invocation.getTargetExpression() != null) {
       Element targetType = invocation.getTargetExpression().getTypeAsElement();
       switch (targetType.toString()) {
-      // Override invocations to LengthUnit so that it is not handled as a
-      // complex enum and use the JS implementation instead
-      case "com.eteks.sweethome3d.model.LengthUnit":
-        print(invocation.getTargetExpression()).print(".").print(invocation.getMethodName()).print("(")
-            .printArgList(invocation.getArguments()).print(")");
-        return true;
-      case "com.eteks.sweethome3d.model.TextStyle.Alignment":
-        switch (invocation.getMethodName()) {
-        case "hashCode":
-          print("0");
+        // Override invocations to LengthUnit so that it is not handled as a
+        // complex enum and use the JS implementation instead
+        case "com.eteks.sweethome3d.model.LengthUnit":
+          print(invocation.getTargetExpression()).print(".").print(invocation.getMethodName()).print("(")
+              .printArgList(invocation.getArguments()).print(")");
           return true;
-        }
-        break;
-      case "java.text.Collator":
-        switch (invocation.getMethodName()) {
-        case "setStrength":
-          printMacroName(invocation.getMethodName());
-          // Erase setStrength completely
-          print(invocation.getTargetExpression());
-          return true;
-        }
-        break;
-      case "java.util.Arrays":
-        switch (invocation.getMethodName()) {
-        // WARNING: we assume that this method will be used to log arrays so we
-        // just pass the array as is to the log function... this may fail if a
-        // string is actually expected
-        case "deepToString":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getArgument(0));
-          return true;
-        case "deepHashCode":
-          printMacroName(invocation.getMethodName());
-          print("(function(array) { function deepHashCode(array) {"
-              + " if (array == null) return 0; var hashCode = 1;"
-              + " for (var i = 0; i < array.length; i++) { var elementHashCode = 1;"
-              + " if (Array.isArray(array[i])) elementHashCode = deepHashCode(array[i]);"
-              + " else if (typeof array[i] == 'number') elementHashCode = (array[i] * 1000) | 0;"
-              + " hashCode = 31 * hashCode + elementHashCode;"
-              + " }"
-              + " return hashCode;"
-              + " }"
-              + "return deepHashCode"
-              + "})(").print(invocation.getArgument(0)).print(")");
-          return true;
-        }
-        break;
-      case "java.util.TreeMap":
-        switch (invocation.getMethodName()) {
-        case "lastKey":
-          printMacroName(invocation.getMethodName());
-          print("(function(map) {"
-              + "return map.entries[map.entries.length - 1].key;"
-              + "})(").print(invocation.getTargetExpression()).print(")");
-          return true;
-        case "put":
-          printMacroName(invocation.getMethodName());
-          print("(function (m, k, v) {"
-              + "if (m.entries == null) m.entries = [];"
-              + "for (var i = 0; i < m.entries.length; i++)"
-              + "  if (m.entries[i].key.equals != null"
-              + "        && m.entries[i].key.equals(k)"
-              + "      || m.entries[i].key === k) {"
-              + "     var pv = m.entries[i].value;"
-              + "     m.entries[i].value = v;"
-              + "     return pv;"
-              + "   }"
-              + "m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } });"
-              + "m.entries.sort(function(e1, e2) { return (e1.key.compareTo != null) ? e1.key.compareTo(e2) : (e1.key - e2.key); });"
-              + "return null;"
-              + "})(").print(invocation.getTargetExpression()).print(",").printArgList(invocation.getArguments()).print(")");
-          return true;
-        }
-        break;
-      case "java.util.UUID":
-        switch (invocation.getMethodName()) {
-        case "randomUUID":
-          printMacroName(invocation.getMethodName());
-          // From https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
-          print("(function() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {"
-              + " var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);"
-              + " return v.toString(16);"
-              + " });"
-              + "})()");
-          return true;
-        }
-        break;
-      case "java.math.BigDecimal":
-        // Support for Java big decimal (method are mapped to their Big.js equivalent)
-        switch (invocation.getMethodName()) {
-        case "multiply":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression()).print(".times(").printArgList(invocation.getArguments()).print(")");
-          return true;
-        case "add":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression()).print(".plus(").printArgList(invocation.getArguments()).print(")");
-          return true;
-        case "subtract":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression()).print(".minus(").printArgList(invocation.getArguments()).print(")");
-          return true;
-        case "scale":
-          printMacroName(invocation.getMethodName());
-          // Always have a scale of 2 (we only have currencies, so 2 is a standard)
-          print("2");
-          return true;
-        case "setScale":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression()).print(".round(").print(invocation.getArguments().get(0)).print(")");
-          return true;
-        case "compareTo":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression()).print(".cmp(").print(invocation.getArguments().get(0)).print(")");
-          return true;
-        case "equals":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression()).print(".eq(").print(invocation.getArguments().get(0)).print(")");
-          return true;
-        }
-        break;
-      case "java.lang.Class":
-        switch (invocation.getMethodName()) {
-        case "getResource":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getArgument(0));
-          return true;
-        }
-        break;
-      case "java.util.Currency":
-        switch (invocation.getMethodName()) {
-        case "getDefaultFractionDigits":
-          if (invocation.getTargetExpression() instanceof MethodInvocationElement) {
-            if ("getInstance".equals(
-                ((MethodInvocationElement) invocation.getTargetExpression()).getMethod().getSimpleName().toString())) {
-              printMacroName(invocation.getMethodName());
-              print("(['JPY','VND'].indexOf(");
-              print(((MethodInvocationElement) invocation.getTargetExpression()).getArgument(0));
-              print(") >= 0 ? 0 : 2)");
+        case "com.eteks.sweethome3d.model.TextStyle.Alignment":
+          switch (invocation.getMethodName()) {
+            case "hashCode":
+              print("0");
               return true;
-            }
+          }
+          break;
+        case "java.text.Collator":
+          switch (invocation.getMethodName()) {
+            case "setStrength":
+              printMacroName(invocation.getMethodName());
+              // Erase setStrength completely
+              print(invocation.getTargetExpression());
+              return true;
+          }
+          break;
+        case "java.util.Arrays":
+          switch (invocation.getMethodName()) {
+          // WARNING: we assume that this method will be used to log arrays so we
+          // just pass the array as is to the log function... this may fail if a
+          // string is actually expected
+          case "deepToString":
+            printMacroName(invocation.getMethodName());
+            print(invocation.getArgument(0));
+            return true;
+          case "deepHashCode":
+            printMacroName(invocation.getMethodName());
+            print("(function(array) { function deepHashCode(array) {"
+                + " if (array == null) return 0; var hashCode = 1;"
+                + " for (var i = 0; i < array.length; i++) { var elementHashCode = 1;"
+                + " if (Array.isArray(array[i])) elementHashCode = deepHashCode(array[i]);"
+                + " else if (typeof array[i] == 'number') elementHashCode = (array[i] * 1000) | 0;"
+                + " hashCode = 31 * hashCode + elementHashCode;"
+                + " }"
+                + " return hashCode;"
+                + " }"
+                + "return deepHashCode"
+                + "})(").print(invocation.getArgument(0)).print(")");
+            return true;
+          }
+          break;
+        case "java.util.TreeMap":
+          switch (invocation.getMethodName()) {
+          case "lastKey":
+            printMacroName(invocation.getMethodName());
+            print("(function(map) {"
+                + "return map.entries[map.entries.length - 1].key;"
+                + "})(").print(invocation.getTargetExpression()).print(")");
+            return true;
+          case "put":
+            printMacroName(invocation.getMethodName());
+            print("(function (m, k, v) {"
+                + "if (m.entries == null) m.entries = [];"
+                + "for (var i = 0; i < m.entries.length; i++)"
+                + "  if (m.entries[i].key.equals != null"
+                + "        && m.entries[i].key.equals(k)"
+                + "      || m.entries[i].key === k) {"
+                + "     var pv = m.entries[i].value;"
+                + "     m.entries[i].value = v;"
+                + "     return pv;"
+                + "   }"
+                + "m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } });"
+                + "m.entries.sort(function(e1, e2) { return (e1.key.compareTo != null) ? e1.key.compareTo(e2) : (e1.key - e2.key); });"
+                + "return null;"
+                + "})(").print(invocation.getTargetExpression()).print(",").printArgList(invocation.getArguments()).print(")");
+            return true;
+          }
+          break;
+        case "java.util.UUID":
+          switch (invocation.getMethodName()) {
+            case "randomUUID":
+              printMacroName(invocation.getMethodName());
+              // From https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
+              print("(function() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {"
+                  + " var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);"
+                  + " return v.toString(16);"
+                  + " });"
+                  + "})()");
+              return true;
+          }
+          break;
+        case "java.math.BigDecimal":
+          // Support for Java big decimal (method are mapped to their Big.js equivalent)
+          switch (invocation.getMethodName()) {
+            case "multiply":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression()).print(".times(").printArgList(invocation.getArguments()).print(")");
+              return true;
+            case "add":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression()).print(".plus(").printArgList(invocation.getArguments()).print(")");
+              return true;
+            case "subtract":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression()).print(".minus(").printArgList(invocation.getArguments()).print(")");
+              return true;
+            case "scale":
+              printMacroName(invocation.getMethodName());
+              // Always have a scale of 2 (we only have currencies, so 2 is a standard)
+              print("2");
+              return true;
+            case "setScale":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression()).print(".round(").print(invocation.getArguments().get(0)).print(")");
+              return true;
+            case "compareTo":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression()).print(".cmp(").print(invocation.getArguments().get(0)).print(")");
+              return true;
+            case "equals":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression()).print(".eq(").print(invocation.getArguments().get(0)).print(")");
+              return true;
+          }
+          break;
+        case "java.lang.Class":
+          switch (invocation.getMethodName()) {
+            case "getResource":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getArgument(0));
+              return true;
+          }
+          break;
+        case "java.util.Currency":
+          switch (invocation.getMethodName()) {
+            case "getDefaultFractionDigits":
+              if (invocation.getTargetExpression() instanceof MethodInvocationElement) {
+                if ("getInstance".equals(
+                    ((MethodInvocationElement) invocation.getTargetExpression()).getMethod().getSimpleName().toString())) {
+                  printMacroName(invocation.getMethodName());
+                  print("(['JPY','VND'].indexOf(");
+                  print(((MethodInvocationElement) invocation.getTargetExpression()).getArgument(0));
+                  print(") >= 0 ? 0 : 2)");
+                  return true;
+                }
+              }
+          }
+          break;
+        case "java.text.DateFormat":
+          switch (invocation.getMethodName()) {
+            case "getDateTimeInstance":
+               print("toLocaleDateString(this.preferences.getLanguage().replace('_', '-'))");
+               return true;
+            case "format":
+               print("new Date().").print(invocation.getTargetExpression());
+               return true;
+          }
+          break;
+        case "java.lang.System":
+          switch (invocation.getMethodName()) {
+            case "getProperty":
+               if (invocation.getArgument(0).toString().equals("\"com.eteks.sweethome3d.deploymentInformation\"")) {
+                 print("'JS'");
+                 return true;
+               }
+          }
+          break;
+        }
+
+        // Map model Property enums to strings
+        if (targetType.getKind() == ElementKind.ENUM && targetType.toString().endsWith("Property")) {
+          switch (invocation.getMethodName()) {
+            case "name":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression());
+              return true;
+            case "valueOf":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getArgument(0));
+              return true;
+            case "equals":
+              printMacroName(invocation.getMethodName());
+              print("(").print(invocation.getTargetExpression()).print(" == ").print(invocation.getArguments().get(0))
+                  .print(")");
+              return true;
           }
         }
-        break;
-      case "java.text.DateFormat":
-        switch (invocation.getMethodName()) {
-        case "getDateTimeInstance":
-           print("toLocaleDateString(this.preferences.getLanguage().replace('_', '-'))");
-           return true;
-        case "format":
-           print("new Date().").print(invocation.getTargetExpression());
-           return true;
-        }
-        break;
-      case "java.lang.System":
-        switch (invocation.getMethodName()) {
-        case "getProperty":
-           if (invocation.getArgument(0).toString().equals("\"com.eteks.sweethome3d.deploymentInformation\"")) {
-             print("'JS'");
-             return true;
-           }
-        }
-        break;
-      }
-
-      // Map model Property enums to strings
-      if (targetType.getKind() == ElementKind.ENUM && targetType.toString().endsWith("Property")) {
-        switch (invocation.getMethodName()) {
-        case "name":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getTargetExpression());
-          return true;
-        case "valueOf":
-          printMacroName(invocation.getMethodName());
-          print(invocation.getArgument(0));
-          return true;
-        case "equals":
-          printMacroName(invocation.getMethodName());
-          print("(").print(invocation.getTargetExpression()).print(" == ").print(invocation.getArguments().get(0))
-              .print(")");
+        // Special case for the AspectRatio enum
+        if (targetType.toString().endsWith(".AspectRatio") && invocation.getMethodName().equals("getValue")) {
+          print(
+              "{FREE_RATIO:null,VIEW_3D_RATIO:null,RATIO_4_3:4/3,RATIO_3_2:1.5,RATIO_16_9:16/9,RATIO_2_1:2/1,SQUARE_RATIO:1}[")
+                  .print(invocation.getTargetExpression()).print("]");
           return true;
         }
-      }
-      // Special case for the AspectRatio enum
-      if (targetType.toString().endsWith(".AspectRatio") && invocation.getMethodName().equals("getValue")) {
-        print(
-            "{FREE_RATIO:null,VIEW_3D_RATIO:null,RATIO_4_3:4/3,RATIO_3_2:1.5,RATIO_16_9:16/9,RATIO_2_1:2/1,SQUARE_RATIO:1}[")
-                .print(invocation.getTargetExpression()).print("]");
-        return true;
-      }
     }
 
     // Provide a partial default simple JavaScript implementation for String.format
@@ -477,17 +475,17 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
   @Override
   public boolean substituteVariableAccess(VariableAccessElement variableAccess) {
     switch (variableAccess.getTargetElement().toString()) {
-    case "java.text.Collator":
-      switch (variableAccess.getVariableName()) {
-      case "CANONICAL_DECOMPOSITION":
-      case "FULL_DECOMPOSITION":
-      case "IDENTICAL":
-      case "NO_DECOMPOSITION":
-      case "PRIMARY":
-      case "SECONDARY":
-      case "TERTIARY":
-        print("undefined");
-        return true;
+      case "java.text.Collator":
+        switch (variableAccess.getVariableName()) {
+        case "CANONICAL_DECOMPOSITION":
+        case "FULL_DECOMPOSITION":
+        case "IDENTICAL":
+        case "NO_DECOMPOSITION":
+        case "PRIMARY":
+        case "SECONDARY":
+        case "TERTIARY":
+          print("undefined");
+          return true;
       }
       break;
     }
@@ -504,34 +502,34 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
   public boolean substituteExecutable(ExecutableElement executable) {
     if (executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.viewcontroller.HomeController")) {
       switch(executable.getSimpleName().toString()) {
-      case "newHomeFromExample":
-      case "open":
-      case "close":
-        if (executable.getParameters().size() > 0) {
+        case "newHomeFromExample":
+        case "open":
+        case "close":
+          if (executable.getParameters().size() > 0) {
+            return true;
+          }
+        case "save":
+        case "saveAs":
+          if (!executable.getModifiers().contains(Modifier.PUBLIC)) {
+            return true;
+          }
+        case "saveAndCompress":
+        case "saveAsAndCompress":
+        case "exportToCSV":
+        case "exportToSVG":
+        case "exportToOBJ":
+        case "createPhotos":
+        case "createPhoto":
+        case "createVideo":
+        case "setupPage":
+        case "previewPrint":
+        case "print":
+        case "printToPDF":
+        case "help":
+          // Implements main I/O HomeController methods with empty code
+          print("public ").print(executable.getSimpleName().toString()).print("(");
+          print(")\n    {\n    }\n");
           return true;
-        }
-      case "save":
-      case "saveAs":
-        if (!executable.getModifiers().contains(Modifier.PUBLIC)) {
-          return true;
-        }
-      case "saveAndCompress":
-      case "saveAsAndCompress":
-      case "exportToCSV":
-      case "exportToSVG":
-      case "exportToOBJ":
-      case "createPhotos":
-      case "createPhoto":
-      case "createVideo":
-      case "setupPage":
-      case "previewPrint":
-      case "print":
-      case "printToPDF":
-      case "help":
-        // Implements main I/O HomeController methods with empty code
-        print("public ").print(executable.getSimpleName().toString()).print("(");
-        print(")\n    {\n    }\n");
-        return true;
       }
     }
     return super.substituteExecutable(executable);
