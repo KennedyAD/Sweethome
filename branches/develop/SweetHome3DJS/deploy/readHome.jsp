@@ -28,8 +28,8 @@ out.clear();
 String homeName = request.getParameter("home");
 
 if (homeName != null) {
-  File file = new File(getServletContext().getRealPath("/"),
-					   homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
+  String homesFolder = getServletContext().getRealPath("/homes");
+  File file = new File(homesFolder, homeName + ".sh3d");
   if (!file.exists()) {
 	new HomeFileRecorder(9, false, null, false, true).writeHome(new Home(), file.getPath());
   }

@@ -165,7 +165,7 @@ body {
 </div>
 
 <script type="text/javascript">
-var homeName = '<%= homeName == null ? "test/resources/HomeTest.sh3d" : homeName %>';
+var homeName = '<%= homeName == null ? "HomeTest" : homeName %>';
 Locale.setDefault("en_US");
 var application = new SweetHome3DJSApplication(window.location.protocol + '//' + window.location.host);
 // Read and display test file 

@@ -28,12 +28,11 @@
    String jsonEdits = request.getParameter("edits");
    String url = request.getRequestURL().toString();
    String baseUrl = url.substring(0, url.length() - request.getRequestURI().length());   
-   File file = null;
    int count = 0;
    
    if (homeName != null) {
-     file = new File(getServletContext().getRealPath("/"),
-    	 homeName.endsWith(".sh3d") ? homeName : homeName + ".sh3d");
+     String homesFolder = getServletContext().getRealPath("/homes");
+     File file = new File(homesFolder, homeName + ".sh3d");
 
      // Retrieve home file copy stored in session attribute
      File openedFile = (File)request.getSession().getAttribute(file.getCanonicalPath());

@@ -12,7 +12,7 @@
 -->
 <project basedir="." default="build" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.4"/>
+  <property name="version" value="6.4.beta"/>
 
   <target name="concat" depends="generatedLibraries, webResources"
           description="Concat Javacript files in dist/build directory">
@@ -112,7 +112,7 @@
       <arg value="dist/build/sweethome3d.min.js" />
       <arg value="-o" />
       <arg value="dist/build/sweethome3d.min.js" />
-    </java> 
+    </java>
     <java jar="${yuicompressor.jar}" fork="true">
       <arg value="src/core.js" />
       <arg value="-o" />
@@ -472,9 +472,10 @@
     <mkdir dir="deploy/test/resources" />
     <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
     <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
-    <copy file="test/resources/HomeTest.sh3d" todir="deploy/test/resources" />
+    <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
     <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
-           source="1.8" encoding="ISO-8859-1">
+           source="1.8" encoding="ISO-8859-1"
+           debug="false" debuglevel="lines,vars,source">
       <classpath>
         <fileset dir="deploy/WEB-INF/lib" />
       </classpath>
