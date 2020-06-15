@@ -2349,7 +2349,7 @@ var HomePane = (function () {
             addIcons[i].addEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
           }
           this.controller.getFurnitureCatalogController().getView().getHTMLElement().addEventListener(
-              "mousedown", this.furnitureCatalogDragAndDropListener.pointerMousePressed);
+              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
           // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
           window.addEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
           window.addEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
@@ -2364,7 +2364,6 @@ var HomePane = (function () {
           window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
         }
-
       }
     } else {
       if (catalogView != null) {
@@ -2375,7 +2374,7 @@ var HomePane = (function () {
             addIcons[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
           }
           this.controller.getFurnitureCatalogController().getView().getHTMLElement().removeEventListener(
-              "mousedown", this.furnitureCatalogDragAndDropListener.pointerMousePressed);
+              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
           // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
           window.removeEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
           window.removeEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
@@ -2442,9 +2441,9 @@ var HomePane = (function () {
               mouseListener.previousCursor = null;
               mouseListener.previousView = null;
               mouseListener.escaped = false;
-              //InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
-              //inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
-              //setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
+              // InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+              // inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
+              // setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
             }
             mouseListener.actionStartedInFurnitureCatalog = true;
           }
@@ -2593,10 +2592,6 @@ var HomePane = (function () {
             mouseListener.copyPointerToTargetTouches(ev);
           }
           mouseListener.mousePressed(ev);
-        },
-        pointerMousePressed : function(ev) {
-          // Required to avoid click simulation
-          ev.stopPropagation();
         },
         windowPointerMoved : function(ev) {
           if (ev.pointerType != "mouse") {

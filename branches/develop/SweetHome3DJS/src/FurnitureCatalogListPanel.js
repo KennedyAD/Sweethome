@@ -153,7 +153,12 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
     };
   if (OperatingSystem.isEdgeOrInternetExplorer()
       && window.PointerEvent) {
-    pieceContainer.addEventListener("pointerdown", touchListener);
+    pieceContainer.addEventListener("pointerdown", function(ev) {
+        if (ev.pointerType != "mouse") {
+          touchListener(ev);
+          ev.preventDefault();
+        }
+      });
     var defaultListener = function(ev) {
         ev.preventDefault();
       };
