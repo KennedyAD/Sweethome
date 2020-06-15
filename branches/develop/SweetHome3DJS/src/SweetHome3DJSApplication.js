@@ -75,7 +75,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
   var recorder = this;
   var listener = {
     undoableEditHappened: function(undoableEditEvent) {
-      recorder.onUndoableEdit(home, undoableEditEvent);
+      recorder.sendUndoableEdits(home, undoableEditEvent);
     }
   };
   this.undoableEditListeners[home.id] = listener;
@@ -89,8 +89,10 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
   this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
 }
 
-/** @private */
-IncrementalHomeRecorder.prototype.onUndoableEdit = function(home, undoableEditEvent) {
+/** 
+ * @private 
+ */
+IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home, undoableEditEvent) {
   this.storeEdit(home, undoableEditEvent.getEdit());
   try {
     var xhr = new XMLHttpRequest();
@@ -106,7 +108,9 @@ IncrementalHomeRecorder.prototype.onUndoableEdit = function(home, undoableEditEv
   }  
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
   if (this.editCounters[home.id] === undefined) {
     this.editCounters[home.id] = 0;
@@ -134,19 +138,25 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
   CoreTools.merge(this.existingHomeObjects, newObjects);
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 IncrementalHomeRecorder.prototype.getStoredEdits = function() {
   // TODO: use local storage
   return this.queue;
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 IncrementalHomeRecorder.prototype.commitEdits = function() {
   // TODO: use local storage
   this.queue = [];
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origin, newObjects, skippedPropertyNames, skippedTypes, preservedTypes) {
   if (Array.isArray(origin)) {
     var destination = origin.slice(0);
@@ -199,7 +209,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
 
 
 /**
- * Define HomeApplication implementation.
+ * Defines <code>HomeApplication</code> implementation for JavaScript.
  * @param {string} serverBaseUrl the server's base URL (if undefined, will use local files for testing)
  */
 function SweetHome3DJSApplication(serverBaseUrl) {
