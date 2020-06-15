@@ -12,7 +12,7 @@
 -->
 <project basedir="." default="build" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.4.beta"/>
+  <property name="version" value="6.4"/>
 
   <target name="concat" depends="generatedLibraries, webResources"
           description="Concat Javacript files in dist/build directory">
@@ -466,10 +466,10 @@
     </fail>
     <delete dir="deploy/WEB-INF/classes" />
     <delete dir="deploy/WEB-INF/lib" />
-    <delete dir="deploy/test/resources" />
+    <delete file="deploy/homes/HomeTest.sh3d" />
     <mkdir dir="deploy/WEB-INF/classes" />
     <mkdir dir="deploy/WEB-INF/lib" />
-    <mkdir dir="deploy/test/resources" />
+    <mkdir dir="deploy/homes" />
     <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
     <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
     <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
