@@ -56,14 +56,14 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   // });
   document.body.appendChild(this.toolTipDiv);
 
-  for(i = 0; i < catalog.getCategoriesCount() ; i++) {
+  for (i = 0; i < catalog.getCategoriesCount() ; i++) {
     var category = catalog.getCategories()[i];
     var categoryContainer = document.createElement("div");
     categoryContainer.className = "furniture-category";
     categoryContainer.innerHTML = '<div class="furniture-category-label">' + category.name + '</div>';
     this.container.appendChild(categoryContainer);
 
-    for(j = 0; j < category.getFurnitureCount(); j++) {
+    for (j = 0; j < category.getFurnitureCount(); j++) {
       var piece = category.getFurniture()[j];
       var pieceContainer = document.createElement("div");
       pieceContainer.pieceOfFurniture = piece;
@@ -79,10 +79,10 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   document.addEventListener("mousemove", function(ev) {
     var rect = furnitureCatalogListPanel.container.getBoundingClientRect();
     var coords = ev;
-    if((coords.clientX >= rect.left) && (coords.clientX < rect.left + furnitureCatalogListPanel.container.clientWidth)
+    if ((coords.clientX >= rect.left) && (coords.clientX < rect.left + furnitureCatalogListPanel.container.clientWidth)
         && (coords.clientY >= rect.top) && (coords.clientY < rect.top + furnitureCatalogListPanel.container.clientHeight)) {
-      if(furnitureCatalogListPanel.toolTipDiv.style.display == "none") {
-        if(furnitureCatalogListPanel.showTooltipTimeOut) {
+      if (furnitureCatalogListPanel.toolTipDiv.style.display == "none") {
+        if (furnitureCatalogListPanel.showTooltipTimeOut) {
           clearTimeout(furnitureCatalogListPanel.showTooltipTimeOut);
         }
         furnitureCatalogListPanel.showTooltipTimeOut = setTimeout(function() {
@@ -92,11 +92,11 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
           }
         }, 1000);
       } else {
-        if(currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
+        if (currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
           currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer;
           furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev);
         }
-        if(furnitureCatalogListPanel.hideTooltipTimeOut) {
+        if (furnitureCatalogListPanel.hideTooltipTimeOut) {
           clearTimeout(furnitureCatalogListPanel.hideTooltipTimeOut);
         }
         furnitureCatalogListPanel.hideTooltipTimeOut = setTimeout(function() { 
@@ -109,19 +109,9 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
     }
   });
 
-  // container.addEventListener("mouseout", function(ev) {
-  //   var rect = container.getBoundingClientRect();
-  //   var coords = ev;
-  //   if((coords.clientX >= rect.left) && (coords.clientX < rect.left + rect.width)
-  //     && (coords.clientY >= rect.top) && (coords.clientY < rect.top + rect.height)) {
-  //     if(showTooltipTimeOut) {
-  //       clearTimeout(showTooltipTimeOut);
-  //     }
-  //     if(hideTooltipTimeOut) {
-  //       clearTimeout(hideTooltipTimeOut);
-  //     }
-  //     this.hideTooltip();
-  //   });
+  this.container.addEventListener("mouseleave", function(ev) {
+     furnitureCatalogListPanel.hideTooltip();
+   });
 }
 
 FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(pieceContainer, piece) {
@@ -194,31 +184,31 @@ FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) 
   var icon = this.toolTipDiv.querySelector("img");
   icon.src = pieceContainer.querySelector("img.furniture-icon").src;
   var rect = this.toolTipDiv.getBoundingClientRect();
-  if(rect.x < 0) {
+  if (rect.x < 0) {
     this.toolTipDiv.style.left = ev.clientX + 10 - rect.x;
   }
-  if(rect.y < 0) {
+  if (rect.y < 0) {
     this.toolTipDiv.style.left = ev.clientY + 10 - rect.y;
   }
-  if(rect.x + rect.width > window.innerWidth) {
+  if (rect.x + rect.width > window.innerWidth) {
     this.toolTipDiv.style.left = ev.clientX + 10 - (rect.x + rect.width - window.innerWidth);
   }
-  if(rect.y + rect.height > window.innerHeight) {
+  if (rect.y + rect.height > window.innerHeight) {
     this.toolTipDiv.style.top = ev.clientY + 10 - (rect.y + rect.height - window.innerHeight);
   }
 }
 
 /** @private */
 FurnitureCatalogListPanel.prototype.hideTooltip = function () {
-  if(this.hideTooltipTimeOut) {
+  if (this.hideTooltipTimeOut) {
     clearTimeout(this.hideTooltipTimeOut);
     this.hideTooltipTimeOut = undefined;
   }
-  if(this.showTooltipTimeOut) {
+  if (this.showTooltipTimeOut) {
     clearTimeout(this.showTooltipTimeOut);
     this.showTooltipTimeOut = undefined;
   }
-  if(this.toolTipDiv.style.display != "none") {
+  if (this.toolTipDiv.style.display != "none") {
     this.toolTipDiv.style.display = "none";
   }
 }
