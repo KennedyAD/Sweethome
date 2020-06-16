@@ -1,3 +1,22 @@
+/*
+ * PropertiesToJson.java
+ *
+ * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 package com.eteks.sweethome3d.json;
 
 import java.io.File;
@@ -23,8 +42,11 @@ import java.util.zip.ZipOutputStream;
 
 import org.json.JSONObject;
 
+/**
+ * Converts Sweet Home 3D .properties file to .json files.
+ * @author Emmanuel Puybaret
+ */
 public class PropertiesToJson {
-
   public static void main(String[] args) throws IOException {
     String[] sourceProperties = { "../SweetHome3D/src/com/eteks/sweethome3d/package",
         "../SweetHome3D/src/com/eteks/sweethome3d/applet/package",
@@ -33,13 +55,13 @@ public class PropertiesToJson {
         "../SweetHome3D/src/com/sun/swing/internal/plaf/basic/resources/basic" };
     String[] supportedLanguages = { "", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
         "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW" };
-    String outputDirectory = "lib/generated";
+    String outputDirectory = "lib/resources";
     String outputName = "localization";
     new PropertiesToJson().convert(sourceProperties, outputDirectory, null, outputName, supportedLanguages);
     new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/model/LengthUnit" },
         outputDirectory, null, "LengthUnit", supportedLanguages);
     new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-        outputDirectory, "lib/resources/furniture", "DefaultFurnitureCatalog", supportedLanguages);
+        outputDirectory, "lib/resources/models", "DefaultFurnitureCatalog", supportedLanguages);
   }
 
   public void convert(String[] sourceProperties, String outputDirectory, String resourcesOutputDirectory, String outputName, String[] supportedLanguages)

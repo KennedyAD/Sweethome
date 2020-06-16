@@ -332,12 +332,12 @@ UserPreferences.prototype.getLocalizedStringKeys = function(resourceFamily) {
 UserPreferences.prototype.getResourceBundles = function(resourceClass) {
   if(resourceClass == "DefaultFurnitureCatalog") {
     if (this.furnitureCatalogResourceBundles.length == 0) {
-      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("lib/generated/DefaultFurnitureCatalog", this.language);
+      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("lib/resources/DefaultFurnitureCatalog", this.language);
     }
     return this.furnitureCatalogResourceBundles;
   } else {
     if (this.resourceBundles.length == 0) {
-      this.resourceBundles = CoreTools.loadResourceBundles("lib/generated/localization", this.language);
+      this.resourceBundles = CoreTools.loadResourceBundles("lib/resources/localization", this.language);
     }
     return this.resourceBundles;
   } 
@@ -1029,7 +1029,12 @@ DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
  */
 function DefaultPatternTexture(name) {
   this.name = name;
-  this.image = new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png");
+  this.image = Object.defineProperty(this, 'image', 
+       {value: new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png"), 
+        writable: true, 
+        configurable: true, 
+        enumerable: true, 
+        _transient: true}).image;
 }
 
 DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";
