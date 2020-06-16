@@ -48,52 +48,53 @@ import org.json.JSONObject;
  */
 public class PropertiesToJson {
   public static void main(String[] args) throws IOException {
+    String outputDirectory = "lib/resources";
+    String[] supportedLanguages = { "", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
+        "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW" };
     String[] sourceProperties = { "../SweetHome3D/src/com/eteks/sweethome3d/package",
         "../SweetHome3D/src/com/eteks/sweethome3d/applet/package",
         "../SweetHome3D/src/com/eteks/sweethome3d/swing/package",
         "../SweetHome3D/src/com/eteks/sweethome3d/viewcontroller/package",
         "../SweetHome3D/src/com/sun/swing/internal/plaf/basic/resources/basic" };
-    String[] supportedLanguages = { "", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
-        "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW" };
-    String outputDirectory = "lib/resources";
-    String outputName = "localization";
-    new PropertiesToJson().convert(sourceProperties, outputDirectory, null, outputName, supportedLanguages);
-    new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/model/LengthUnit" },
-        outputDirectory, null, "LengthUnit", supportedLanguages);
-    new PropertiesToJson().convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-        outputDirectory, "lib/resources/models", "DefaultFurnitureCatalog", supportedLanguages);
+
+    convert(sourceProperties,
+        outputDirectory, "localization", null, supportedLanguages);
+    convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/model/LengthUnit" },
+        outputDirectory, "LengthUnit", null, supportedLanguages);
+    convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
+        outputDirectory, "DefaultFurnitureCatalog", "lib/resources/models", supportedLanguages);
   }
 
-  public void convert(String[] sourceProperties, String outputDirectory, String resourcesOutputDirectory, String outputName, String[] supportedLanguages)
+  private static void convert(String[] sourceProperties, String outputDirectory, String outputName, String resourcesOutputDirectory, String[] supportedLanguages)
       throws IOException {
     new File(outputDirectory).mkdirs();
-    for (String lang : supportedLanguages) {
-      Path outputFilePath = Paths.get(outputDirectory, outputName + lang + ".json");
+    for (String language : supportedLanguages) {
+      Path outputFilePath = Paths.get(outputDirectory, outputName + language + ".json");
       System.out.println("Generating " + outputFilePath + "...");
       outputFilePath.toFile().delete();
       outputFilePath.toFile().createNewFile();
-      Properties properties = new Properties();
+
+      Properties mergedProperties = new Properties();
       for (String sourceProperty : sourceProperties) {
-        File dir = new File(sourceProperty).getParentFile();
+        File directory = new File(sourceProperty).getParentFile();
         String name = new File(sourceProperty).getName();
-        for (File file : dir.listFiles()) {
-          if (file.getName().equals(name + lang + ".properties")) {
-            Properties props = new Properties();
-            props.load(new FileInputStream(file));
-            System.out.println("Loading " + props.size() + " properties from " + file + ".");
-            properties.putAll(props);
+        for (File file : directory.listFiles()) {
+          if (file.getName().equals(name + language + ".properties")) {
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(file));
+            System.out.println("Loading " + properties.size() + " properties from " + file + ".");
+            mergedProperties.putAll(properties);
           }
         }
-        afterLoaded(dir, resourcesOutputDirectory, name, "".equals(lang) ? "en" : lang.substring(1), properties);
+        afterLoaded(resourcesOutputDirectory, name, "".equals(language) ? "en" : language.substring(1), mergedProperties);
       }
-      System.out.println("Writing " + properties.size() + " properties to " + outputFilePath + ".");
-      Files.write(outputFilePath, (new JSONObject(properties).toString(2) + "\n").getBytes("UTF-8"),
+      System.out.println("Writing " + mergedProperties.size() + " properties to " + outputFilePath + ".");
+      Files.write(outputFilePath, (new JSONObject(mergedProperties).toString(2) + "\n").getBytes("UTF-8"),
           StandardOpenOption.APPEND);
     }
-
   }
 
-  private void afterLoaded(File dir, String resourcesOutputDirectory, String name, String lang, Properties properties) throws IOException {
+  private static void afterLoaded(String resourcesOutputDirectory, String name, String lang, Properties properties) throws IOException {
     if ("LengthUnit".equals(name)) {
       System.out.println("***** Adding extra keys for '" + lang + "'");
       properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getGroupingSeparator());
@@ -151,7 +152,7 @@ public class PropertiesToJson {
           }
           zipOutputStream.close();
 
-          entry.setValue("jar:" + newPath + "!/" + modelFile);
+          entry.setValue(newPath + "!/" + modelFile);
         }
       }
     }
