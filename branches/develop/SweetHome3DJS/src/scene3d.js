@@ -296,7 +296,9 @@ Shape3D.prototype.clone = function() {
  * @author Emmanuel Puybaret
  */
 function Background3D(group) {
+  Node3D.call(this);
   this.geometry = group;
+  group.parent = this;
 } 
 Background3D.prototype = Object.create(Node3D.prototype);
 Background3D.prototype.constructor = Background3D;
