@@ -63,6 +63,8 @@ public class PropertiesToJson {
         outputDirectory, "LengthUnit", null, supportedLanguages);
     convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
         outputDirectory, "DefaultFurnitureCatalog", "lib/resources/models", supportedLanguages);
+    convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
+        outputDirectory, "DefaultTexturesCatalog", "lib/resources/textures", supportedLanguages);
   }
 
   private static void convert(String[] sourceProperties, String outputDirectory, String outputName, String resourcesOutputDirectory, String[] supportedLanguages)
@@ -153,6 +155,19 @@ public class PropertiesToJson {
           zipOutputStream.close();
 
           entry.setValue(newPath + "!/" + modelFile);
+        }
+      }
+    } else if ("DefaultTexturesCatalog".equals(name)) {
+      new File(resourcesOutputDirectory).mkdirs();
+      // Copy image#
+      for (Entry<Object, Object> entry : properties.entrySet()) {
+        String key = (String)entry.getKey();
+        if (key.startsWith("image#")) {
+          String currentPath = properties.getProperty(key);
+          Path newPath = Paths.get(resourcesOutputDirectory, currentPath.substring(currentPath.lastIndexOf("/")));
+          Files.copy(Paths.get("../SweetHome3D/src", currentPath), newPath, StandardCopyOption.REPLACE_EXISTING);
+
+          entry.setValue(newPath.toString());
         }
       }
     }
