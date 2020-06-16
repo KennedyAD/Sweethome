@@ -17,50 +17,59 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -->
-<%@page import="java.nio.file.attribute.FileAttribute"%>
-<%@page import="com.eteks.sweethome3d.io.HomeFileRecorder"%>
-<%@page import="com.eteks.sweethome3d.model.Home"%>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.*" %>
 <%@page import="java.nio.file.*"%>
+<%@page import="java.nio.file.attribute.FileAttribute"%>
+<%@page import="java.util.zip.*"%>
+<%@page import="com.eteks.sweethome3d.model.Home"%>
+<%@page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
 <%
-out.clear();
+  out.clear();
 String homeName = request.getParameter("home");
 
 if (homeName != null) {
   String homesFolder = getServletContext().getRealPath("/homes");
-  File file = new File(homesFolder, homeName + ".sh3d");
-  if (!file.exists()) {
-	new HomeFileRecorder(9, false, null, false, true).writeHome(new Home(), file.getPath());
+  File homeFile = new File(homesFolder, homeName + ".sh3d");
+  if (!homeFile.exists()) {
+    // Create a new empty home
+    new HomeServerRecorder(9, null).writeHome(new Home(), homeFile.getPath());
   }
   
-  // Create a copy of the file and store it as a session attribute
-  Path tempFile = Files.createTempFile("open-", ".sh3d");
-  Files.copy(file.toPath(), tempFile, StandardCopyOption.REPLACE_EXISTING);
-  File previousOpenedFile = (File)request.getSession().getAttribute(file.getCanonicalPath());
+  Path referenceCopy = null;
+  if (HomeServerRecorder.isFileWithContent(homeFile)) {
+    // Create a copy of the file and store it as a session attribute
+    // to be able to reference some of its content during edition
+    referenceCopy = Files.createTempFile("open-", ".sh3d");
+    Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
+  }
+  
+  File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
   if (previousOpenedFile != null) {
     previousOpenedFile.delete();
   }
-  request.getSession().setAttribute(file.getCanonicalPath(), tempFile.toFile());
-  // TODO When temporary files should be deleted?
+  if (referenceCopy != null) {
+    request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
+    // TODO When temporary files should be deleted?
+  }
   
-  response.setIntHeader("Content-length", (int) file.length());
-  response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
+  response.setIntHeader("Content-length", (int)homeFile.length());
+  response.setHeader("Content-Disposition", "attachment; filename=" + homeFile.getName());
   InputStream input = null;
   OutputStream output = response.getOutputStream();
   try {
-    input = new FileInputStream(file);
+    input = new FileInputStream(homeFile);
     byte[] buffer = new byte[8096];
     int size;
     while ((size = input.read(buffer)) != -1) {
-			output.write(buffer, 0, size);
-		}
+      output.write(buffer, 0, size);
+    }
   } finally {
     if (input != null) {
-	    input.close();
+      input.close();
     }
     if (output != null) {
-			output.close();
+      output.close();
     }
   }
 }

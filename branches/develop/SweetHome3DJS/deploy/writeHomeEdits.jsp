@@ -1,7 +1,7 @@
 <!--
    writeHomeEdits.jsp 
    
-   Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
    
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,9 +17,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -->
-<%@page import="javax.swing.undo.UndoableEdit"%>
-<%@page import="java.util.*" %>
 <%@page import="java.io.*" %>
+<%@page import="java.net.URL"%>
+<%@page import="java.util.*" %>
+<%@page import="java.nio.file.*"%>
+<%@page import="javax.swing.undo.UndoableEdit"%>
 <%@page import="com.eteks.sweethome3d.model.*" %>
 <%@page import="com.eteks.sweethome3d.io.*" %>
 <%@page import="com.eteks.sweethome3d.viewcontroller.*" %>
@@ -32,24 +34,36 @@
    
    if (homeName != null) {
      String homesFolder = getServletContext().getRealPath("/homes");
-     File file = new File(homesFolder, homeName + ".sh3d");
+     File   homeFile = new File(homesFolder, homeName + ".sh3d");
 
      // Retrieve home file copy stored in session attribute
-     File openedFile = (File)request.getSession().getAttribute(file.getCanonicalPath());
+     File referenceCopy = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());     
 
-     if (openedFile != null) {
-       HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
-       Home home = recorder.readHome(file.getPath());
-
-       List<UndoableEdit> edits = new HomeEditsDeserializer(home, openedFile, baseUrl).deserializeEdits(jsonEdits);
-       for (UndoableEdit edit : edits) {
-         edit.redo();
-         count++;
+     if (referenceCopy != null
+         || !HomeServerRecorder.isFileWithContent(homeFile)) {
+       // Get home recorder stored as an application attribute
+       HomeRecorder homeRecorder = (HomeRecorder)getServletContext().getAttribute("homeRecorder");
+       if (homeRecorder == null) {
+	     URL serverBase = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath());
+	     UserPreferences preferences = new ServerUserPreferences(
+	         new URL [] {new URL(serverBase, "lib/resources/DefaultFurnitureCatalog.json")}, serverBase,
+	         new URL [] {new URL(serverBase, "lib/resources/DefaultTexturesCatalog.json")}, serverBase);
+	     homeRecorder = new HomeServerRecorder(0, preferences);
+	     getServletContext().setAttribute("serverRecorder", homeRecorder);
        }
-    
-       recorder.writeHome(home, file.getPath());    
+
+       synchronized(homeName.intern()) {
+         // Reading a given home then saving it can't be done in two different threads at the same moment   
+         Home home = homeRecorder.readHome(homeFile.getPath());
+         List<UndoableEdit> edits = new HomeEditsDeserializer(home, referenceCopy, baseUrl).deserializeEdits(jsonEdits);
+         for (UndoableEdit edit : edits) {
+           edit.redo();
+           count++;
+         }    
+         homeRecorder.writeHome(home, homeFile.getPath());
+       }
 %>
-Wrote <%= count %> edits to <%= file %>.
+Wrote <%= count %> edits to <%= homeFile %>.
 <%       
      } else {
        throw new ServletException(homeName + " not opened by client");
