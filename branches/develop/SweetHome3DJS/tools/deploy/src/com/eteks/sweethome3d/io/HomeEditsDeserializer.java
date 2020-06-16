@@ -488,7 +488,11 @@ public class HomeEditsDeserializer {
 
     @Override
     public float[] getPieceOfFurnitureSizeInPlan(HomePieceOfFurniture piece) {
-      throw new UnsupportedOperationException();
+      if (piece.getRoll() == 0 && piece.getPitch() == 0) {
+        return new float [] {piece.getWidth(), piece.getDepth(), piece.getHeight()};
+      } else {
+        throw new UnsupportedOperationException();
+      }
     }
 
     @Override
