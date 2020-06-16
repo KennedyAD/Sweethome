@@ -21,6 +21,8 @@ package com.eteks.sweethome3d.io;
 
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -34,6 +36,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.undo.UndoableEdit;
 
@@ -42,14 +45,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.eteks.sweethome3d.model.Content;
+import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeObject;
+import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.swing.SwingViewFactory;
+import com.eteks.sweethome3d.model.TextStyle;
+import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
+import com.eteks.sweethome3d.viewcontroller.PlanController.EditableProperty;
+import com.eteks.sweethome3d.viewcontroller.PlanView;
+import com.eteks.sweethome3d.viewcontroller.View;
+import com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter;
 
 import sun.misc.Unsafe;
 
@@ -81,28 +91,32 @@ public class HomeEditsDeserializer {
     this.baseUrl = baseUrl;
     // Default user preferences are needed to decode default wall patterns
     this.preferences = new DefaultUserPreferences();
-    // SwingViewFactory is needed to provide a plan component with setScale and getTextBounds methods
-    // Caution: be sure to run JSP server with -Djava.awt.headless=true
-    this.homeController = new HomeController(home, this.preferences, new SwingViewFactory());
+    this.homeController = new HomeController(home, this.preferences,
+        new ViewFactoryAdapter() {
+          @Override
+          public PlanView createPlanView(Home home, UserPreferences preferences, PlanController planController) {
+            return new DummyPlanView();
+          }
+        });
     this.homeObjects = new HashMap<String, HomeObject>();
     for (HomeObject homeObject : home.getHomeObjects()) {
       this.homeObjects.put(homeObject.getId(), homeObject);
     }
   }
 
-  Unsafe unsafe = null;
+  private Unsafe unsafe = null;
 
   private Unsafe getUnsafe() {
-    if (unsafe == null) {
+    if (this.unsafe == null) {
       try {
-        Field f = Unsafe.class.getDeclaredField("theUnsafe");
-        f.setAccessible(true);
-        unsafe = (Unsafe) f.get(null);
-      } catch (Exception e) {
-        e.printStackTrace();
+        Field field = Unsafe.class.getDeclaredField("theUnsafe");
+        field.setAccessible(true);
+        this.unsafe = (Unsafe)field.get(null);
+      } catch (ReflectiveOperationException ex) {
+        ex.printStackTrace();
       }
     }
-    return unsafe;
+    return this.unsafe;
   }
 
   private Field getField(Class<?> type, String name) {
@@ -112,7 +126,7 @@ public class HomeEditsDeserializer {
         field.setAccessible(true);
       }
       return field;
-    } catch (NoSuchFieldException e) {
+    } catch (NoSuchFieldException ex) {
       if (type.getSuperclass() != Object.class) {
         return getField(type.getSuperclass(), name);
       }
@@ -127,7 +141,7 @@ public class HomeEditsDeserializer {
         method.setAccessible(true);
       }
       return method;
-    } catch (NoSuchMethodException e) {
+    } catch (NoSuchMethodException ex) {
       if (type.getSuperclass() != Object.class) {
         return getMethod(type.getSuperclass(), name, parameterTypes);
       }
@@ -303,8 +317,8 @@ public class HomeEditsDeserializer {
     try {
       Constructor<T> constructor = instanceType.getConstructor();
       return constructor.newInstance();
-    } catch (Exception e) {
-      return (T) getUnsafe().allocateInstance(instanceType);
+    } catch (ReflectiveOperationException ex) {
+      return (T)getUnsafe().allocateInstance(instanceType);
     }
   }
 
@@ -313,7 +327,7 @@ public class HomeEditsDeserializer {
       Object jsonValue = jsonObject.get(key);
       Field field = getField(instance.getClass(), key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
-        System.out.println("deserializing "+key+" --- "+field.getGenericType() + " " + instance.getClass());
+        System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
         field.set(instance, deserialize(field.getGenericType(), jsonValue));
       }
     }
@@ -332,10 +346,154 @@ public class HomeEditsDeserializer {
   public List<UndoableEdit> deserializeEdits(String jsonEdits) throws JSONException, ReflectiveOperationException {
     JSONArray jsonEditsArray = new JSONArray(jsonEdits);
     List<UndoableEdit> edits = new ArrayList<UndoableEdit>();
-    // System.out.println("deserializing "+jsonArray.length()+" edit(s)");
     for (int i = 0; i < jsonEditsArray.length(); i++) {
       edits.add(deserializeObject(UndoableEdit.class, jsonEditsArray.getJSONObject(i)));
     }
     return edits;
+  }
+
+  // Dummy view able to perform some plan controller tasks during undoable edits operations (setScale, makeSelectionVisible).
+  // Scale is ignored and one pixel = one centimeter.
+  private static class DummyPlanView implements PlanView {
+    @Override
+    public float getScale() {
+      return 1;
+    }
+
+    @Override
+    public void setScale(float scale) {
+    }
+
+    @Override
+    public void makeSelectionVisible() {
+    }
+
+    @Override
+    public void makePointVisible(float x, float y) {
+    }
+
+    @Override
+    public void moveView(float dx, float dy) {
+    }
+
+    @Override
+    public boolean isFormatTypeSupported(FormatType formatType) {
+      return false;
+    }
+
+    @Override
+    public void exportData(OutputStream out, FormatType formatType, Properties settings) throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object createTransferData(DataType dataType) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public float getPrintPreferredScale(float preferredWidth, float preferredHeight) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public float convertXPixelToModel(int x) {
+      return x;
+    }
+
+    @Override
+    public float convertYPixelToModel(int y) {
+      return y;
+    }
+
+    @Override
+    public int convertXModelToScreen(float x) {
+      return (int)x;
+    }
+
+    @Override
+    public int convertYModelToScreen(float y) {
+      return (int)y;
+    }
+
+    @Override
+    public float getPixelLength() {
+      return 1;
+    }
+
+    @Override
+    public float[][] getTextBounds(String text, TextStyle style, float x, float y, float angle) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCursor(CursorType cursorType) {
+    }
+
+    @Override
+    public void setRectangleFeedback(float x0, float y0, float x1, float y1) {
+    }
+
+    @Override
+    public void setToolTipFeedback(String toolTipFeedback, float x, float y) {
+    }
+
+    @Override
+    public void setToolTipEditedProperties(EditableProperty[] toolTipEditedProperties, Object[] toolTipPropertyValues, float x, float y) {
+    }
+
+    @Override
+    public void deleteToolTipFeedback() {
+    }
+
+    @Override
+    public void setResizeIndicatorVisible(boolean resizeIndicatorVisible) {
+    }
+
+    @Override
+    public void setAlignmentFeedback(Class<? extends Selectable> alignedObjectClass, Selectable alignedObject,
+                                     float x, float y, boolean showPoint) {
+    }
+
+    @Override
+    public void setAngleFeedback(float xCenter, float yCenter, float x1, float y1, float x2, float y2) {
+    }
+
+    @Override
+    public void setDraggedItemsFeedback(List<Selectable> draggedItems) {
+    }
+
+    @Override
+    public void setDimensionLinesFeedback(List<DimensionLine> dimensionLines) {
+    }
+
+    @Override
+    public void deleteFeedback() {
+    }
+
+    @Override
+    public View getHorizontalRuler() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public View getVerticalRuler() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean canImportDraggedItems(List<Selectable> items, int x, int y) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public float[] getPieceOfFurnitureSizeInPlan(HomePieceOfFurniture piece) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isFurnitureSizeInPlanSupported() {
+      return false;
+    }
   }
 }
