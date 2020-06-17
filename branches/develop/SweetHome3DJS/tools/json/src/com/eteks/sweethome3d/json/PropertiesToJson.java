@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -44,30 +45,45 @@ import org.json.JSONObject;
 
 /**
  * Converts Sweet Home 3D .properties file to .json files.
+ * @author Renaud Pawlak
  * @author Emmanuel Puybaret
  */
 public class PropertiesToJson {
   public static void main(String[] args) throws IOException {
-    String outputDirectory = "lib/resources";
-    String[] supportedLanguages = { "", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
-        "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW" };
-    String[] sourceProperties = { "../SweetHome3D/src/com/eteks/sweethome3d/package",
-        "../SweetHome3D/src/com/eteks/sweethome3d/applet/package",
-        "../SweetHome3D/src/com/eteks/sweethome3d/swing/package",
-        "../SweetHome3D/src/com/eteks/sweethome3d/viewcontroller/package",
-        "../SweetHome3D/src/com/sun/swing/internal/plaf/basic/resources/basic" };
+    String[] supportedLanguages = {"", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
+        "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW"};
 
-    convert(sourceProperties,
-        outputDirectory, "localization", null, supportedLanguages);
-    convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/model/LengthUnit" },
-        outputDirectory, "LengthUnit", null, supportedLanguages);
-    convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-        outputDirectory, "DefaultFurnitureCatalog", "lib/resources/models", supportedLanguages);
-    convert(new String[] { "../SweetHome3D/src/com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
-        outputDirectory, "DefaultTexturesCatalog", "lib/resources/textures", supportedLanguages);
+    if (args.length >= 5) {
+      convert(args [0],               // Source root
+          new String [] {args [1]},   // Source properties file
+          args [2],                   // Output directory
+          args [3],                   // Output name
+          args [4],                   // Resources output directory
+          args.length > 5 ? Boolean.parseBoolean(args [5]) : false,
+          supportedLanguages);
+    } else {
+      String    sourceRoot = "../SweetHome3D/src";
+      String [] sourceProperties = {"com/eteks/sweethome3d/package",
+          "com/eteks/sweethome3d/applet/package",
+          "com/eteks/sweethome3d/swing/package",
+          "com/eteks/sweethome3d/viewcontroller/package",
+          "com/sun/swing/internal/plaf/basic/resources/basic"};
+      String outputDirectory = "lib/resources";
+
+      convert(sourceRoot, sourceProperties,
+          outputDirectory, "localization", null, false, supportedLanguages);
+      convert(sourceRoot, new String[] { "com/eteks/sweethome3d/model/LengthUnit" },
+          outputDirectory, "LengthUnit", null, false, supportedLanguages);
+      convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
+          outputDirectory, "DefaultFurnitureCatalog", "lib/resources/models", true, supportedLanguages);
+      convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
+          outputDirectory, "DefaultTexturesCatalog", "lib/resources/textures", true, supportedLanguages);
+    }
   }
 
-  private static void convert(String[] sourceProperties, String outputDirectory, String outputName, String resourcesOutputDirectory, String[] supportedLanguages)
+  private static void convert(String sourceRoot, String[] sourcePropertyFiles,
+                              String outputDirectory, String outputName, String resourcesOutputDirectory,
+                              boolean copyResources, String[] supportedLanguages)
       throws IOException {
     new File(outputDirectory).mkdirs();
     for (String language : supportedLanguages) {
@@ -77,18 +93,19 @@ public class PropertiesToJson {
       outputFilePath.toFile().createNewFile();
 
       Properties mergedProperties = new Properties();
-      for (String sourceProperty : sourceProperties) {
-        File directory = new File(sourceProperty).getParentFile();
-        String name = new File(sourceProperty).getName();
+      for (String sourcePropertyFile : sourcePropertyFiles) {
+        File sourceFile = new File(sourceRoot, sourcePropertyFile);
+        File directory = sourceFile.getParentFile();
+        String propertyFileName = sourceFile.getName();
         for (File file : directory.listFiles()) {
-          if (file.getName().equals(name + language + ".properties")) {
+          if (file.getName().equals(propertyFileName + language + ".properties")) {
             Properties properties = new Properties();
             properties.load(new FileInputStream(file));
             System.out.println("Loading " + properties.size() + " properties from " + file + ".");
             mergedProperties.putAll(properties);
           }
         }
-        afterLoaded(resourcesOutputDirectory, name, "".equals(language) ? "en" : language.substring(1), mergedProperties);
+        afterLoaded(mergedProperties, sourceRoot, resourcesOutputDirectory, propertyFileName, copyResources, "".equals(language) ? "en" : language.substring(1));
       }
       System.out.println("Writing " + mergedProperties.size() + " properties to " + outputFilePath + ".");
       Files.write(outputFilePath, (new JSONObject(mergedProperties).toString(2) + "\n").getBytes("UTF-8"),
@@ -96,12 +113,13 @@ public class PropertiesToJson {
     }
   }
 
-  private static void afterLoaded(String resourcesOutputDirectory, String name, String lang, Properties properties) throws IOException {
-    if ("LengthUnit".equals(name)) {
-      System.out.println("***** Adding extra keys for '" + lang + "'");
-      properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getGroupingSeparator());
-      properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(lang)).getDecimalSeparator());
-    } else if ("package".equals(name)) {
+  private static void afterLoaded(Properties properties, String sourceRoot, String resourcesOutputDirectory, String propertyFileBaseName,
+                                  boolean copyResources, String language) throws IOException {
+    if ("LengthUnit".equals(propertyFileBaseName)) {
+      System.out.println("***** Adding extra keys for '" + language + "'");
+      properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getGroupingSeparator());
+      properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getDecimalSeparator());
+    } else if ("package".equals(propertyFileBaseName)) {
       for (Iterator<Entry<Object, Object>> it = properties.entrySet().iterator(); it.hasNext(); ) {
         String key = (String)it.next().getKey();
         int acceleratorKeyIndex = key.indexOf(".AcceleratorKey");
@@ -113,62 +131,87 @@ public class PropertiesToJson {
           it.remove();
         }
       }
-    } else if ("DefaultFurnitureCatalog".equals(name)) {
-      new File(resourcesOutputDirectory).mkdirs();
-      // Copy icon#, planIcon# images and create a .zip file containing the file pointed by model# property
-      for (Entry<Object, Object> entry : properties.entrySet()) {
-        String key = (String)entry.getKey();
-        if (key.startsWith("icon#")
-            || key.startsWith("planIcon#")) {
-          String currentPath = properties.getProperty(key);
-          Path newPath = Paths.get(resourcesOutputDirectory, currentPath.substring(currentPath.lastIndexOf("/")));
-          Files.copy(Paths.get("../SweetHome3D/src", currentPath), newPath, StandardCopyOption.REPLACE_EXISTING);
+    } else {
+      if (propertyFileBaseName.endsWith("FurnitureCatalog")) {
+        // Copy icon#, planIcon# images and create a .zip file containing the file pointed by model# property
+        updateImageEntries(properties, sourceRoot, "icon#", resourcesOutputDirectory, copyResources);
+        updateImageEntries(properties, sourceRoot, "planIcon#", resourcesOutputDirectory, copyResources);
 
-          entry.setValue(newPath.toString());
-        } else if (key.startsWith("model#")) {
-          int index = Integer.parseInt(key.substring("model#".length()));
-          String currentPath = properties.getProperty(key);
-          String modelFile = currentPath.substring(currentPath.lastIndexOf("/") + 1);
-          String extension = modelFile.substring(modelFile.lastIndexOf('.'));
-          // Create a .zip file containing the 3D model
-          Path newPath = Paths.get(resourcesOutputDirectory, modelFile.replace(extension, ".zip"));
-          ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath.toFile()));
-          if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
-            // Include multiPart files in same folder
-            Path folder = Paths.get("../SweetHome3D/src", currentPath).getParent();
-            Files.walkFileTree(folder,
-                new SimpleFileVisitor<Path>() {
+        for (Entry<Object, Object> entry : properties.entrySet()) {
+          String key = (String)entry.getKey();
+          if (key.startsWith("model#")) {
+            int index = Integer.parseInt(key.substring("model#".length()));
+            String currentPath = properties.getProperty(key);
+            String modelFile = currentPath.substring(currentPath.lastIndexOf("/") + 1);
+            String extension = modelFile.substring(modelFile.lastIndexOf('.'));
+
+            // Create a .zip file containing the 3D model
+            String newPath = resourcesOutputDirectory + "/" + modelFile.replace(extension, ".zip");
+            Path modelPath = Paths.get(sourceRoot, currentPath);
+            Path modelFolder = modelPath.getParent();
+            if (copyResources && resourcesOutputDirectory != null) {
+              new File(resourcesOutputDirectory).mkdirs();
+              ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath));
+              if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
+                // Include multiPart files in same folder
+                Files.walkFileTree(modelFolder,
+                    new SimpleFileVisitor<Path>() {
+                      @Override
+                      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        String multiPartEntry = modelFolder.relativize(file).toString();
+                        zipOutputStream.putNextEntry(new ZipEntry(multiPartEntry));
+                        Files.copy(file, zipOutputStream);
+                        zipOutputStream.closeEntry();
+                        return FileVisitResult.CONTINUE;
+                      }
+                    });
+              } else {
+                zipOutputStream.putNextEntry(new ZipEntry(modelFile));
+                Files.copy(modelPath, zipOutputStream);
+                zipOutputStream.closeEntry();
+              }
+              zipOutputStream.close();
+            }
+
+            String modelSizeKey = "modelSize#" + key.substring(key.indexOf('#') + 1);
+            if (properties.get(modelSizeKey) == null) {
+              AtomicLong size = new AtomicLong();
+              if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
+                Files.walkFileTree(modelFolder, new SimpleFileVisitor<Path>() {
                   @Override
                   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    String multiPartEntry = folder.relativize(file).toString();
-                    zipOutputStream.putNextEntry(new ZipEntry(multiPartEntry));
-                    Files.copy(file, zipOutputStream);
-                    zipOutputStream.closeEntry();
+                    size.addAndGet(file.toFile().length());
                     return FileVisitResult.CONTINUE;
                   }
                 });
-          } else {
-            zipOutputStream.putNextEntry(new ZipEntry(modelFile));
-            Files.copy(Paths.get("../SweetHome3D/src", currentPath), zipOutputStream);
-            zipOutputStream.closeEntry();
+              } else {
+                size.addAndGet(modelPath.toFile().length());
+              }
+              properties.put(modelSizeKey, size.longValue());
+            }
+
+            entry.setValue((newPath.toString().contains("://") ? "jar:" : "") + newPath + "!/" + modelFile);
           }
-          zipOutputStream.close();
-
-          entry.setValue(newPath + "!/" + modelFile);
         }
+      } else if (propertyFileBaseName.endsWith("TexturesCatalog")) {
+        updateImageEntries(properties, sourceRoot, "image#", resourcesOutputDirectory, copyResources);
       }
-    } else if ("DefaultTexturesCatalog".equals(name)) {
-      new File(resourcesOutputDirectory).mkdirs();
-      // Copy image#
-      for (Entry<Object, Object> entry : properties.entrySet()) {
-        String key = (String)entry.getKey();
-        if (key.startsWith("image#")) {
-          String currentPath = properties.getProperty(key);
-          Path newPath = Paths.get(resourcesOutputDirectory, currentPath.substring(currentPath.lastIndexOf("/")));
-          Files.copy(Paths.get("../SweetHome3D/src", currentPath), newPath, StandardCopyOption.REPLACE_EXISTING);
+    }
+  }
 
-          entry.setValue(newPath.toString());
+  private static void updateImageEntries(Properties properties, String sourceRoot, String imagePrefix,
+                                         String resourcesOutputDirectory, boolean copyResources) throws IOException {
+    for (Entry<Object, Object> entry : properties.entrySet()) {
+      String key = (String)entry.getKey();
+      if (key.startsWith(imagePrefix)) {
+        String currentPath = properties.getProperty(key);
+        String newPath = resourcesOutputDirectory + "/" + currentPath.substring(currentPath.lastIndexOf("/") + 1);
+        if (copyResources && resourcesOutputDirectory != null) {
+          new File(resourcesOutputDirectory).mkdirs();
+          Files.copy(Paths.get(sourceRoot, currentPath), Paths.get(newPath), StandardCopyOption.REPLACE_EXISTING);
         }
+
+        entry.setValue(newPath.toString());
       }
     }
   }
