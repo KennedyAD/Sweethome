@@ -28,8 +28,7 @@
 <% out.clear();
    String homeName = request.getParameter("home");
    String jsonEdits = request.getParameter("edits");
-   String url = request.getRequestURL().toString();
-   String baseUrl = url.substring(0, url.length() - request.getRequestURI().length());   
+   URL serverBaseUrl = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath());
    int count = 0;
    
    if (homeName != null) {
@@ -44,10 +43,9 @@
        // Get home recorder stored as an application attribute
        HomeRecorder homeRecorder = (HomeRecorder)getServletContext().getAttribute("homeRecorder");
        if (homeRecorder == null) {
-	     URL serverBase = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath());
 	     UserPreferences preferences = new ServerUserPreferences(
-	         new URL [] {new URL(serverBase, "lib/resources/DefaultFurnitureCatalog.json")}, serverBase,
-	         new URL [] {new URL(serverBase, "lib/resources/DefaultTexturesCatalog.json")}, serverBase);
+	         new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
+	         new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultTexturesCatalog.json")}, serverBaseUrl);
 	     homeRecorder = new HomeServerRecorder(0, preferences);
 	     getServletContext().setAttribute("serverRecorder", homeRecorder);
        }
@@ -55,7 +53,7 @@
        synchronized(homeName.intern()) {
          // Reading a given home then saving it can't be done in two different threads at the same moment   
          Home home = homeRecorder.readHome(homeFile.getPath());
-         List<UndoableEdit> edits = new HomeEditsDeserializer(home, referenceCopy, baseUrl).deserializeEdits(jsonEdits);
+         List<UndoableEdit> edits = new HomeEditsDeserializer(home, referenceCopy, serverBaseUrl.toString()).deserializeEdits(jsonEdits);
          for (UndoableEdit edit : edits) {
            edit.redo();
            count++;
