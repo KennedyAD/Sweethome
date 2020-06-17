@@ -36,7 +36,7 @@ function DefaultFurnitureCatalog(preferences, furnitureCatalogUrls, furnitureRes
   if (furnitureCatalogUrls != null) {
     for (var i = 0; i < furnitureCatalogUrls.length; i++) {
       var furnitureCatalogUrl = furnitureCatalogUrls [i];
-      var resourceBundle = CoreTools.loadResourceBundles(pluginFurnitureCatalogURL.substring(furnitureCatalogUrl.lastIndexOf(".json")), Locale.getDefault())
+      var resourceBundle = CoreTools.loadResourceBundles(furnitureCatalogUrl.substring(0, furnitureCatalogUrl.lastIndexOf(".json")), Locale.getDefault())
       this.readFurniture(resourceBundle, furnitureCatalogUrl, furnitureResourcesUrlBase, identifiedFurniture);
     }
   }
@@ -221,7 +221,8 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
   var creationDate = null;
   if (creationDateString != null) {
     try {
-      creationDate = Date.parse(creationDateString).getTime(); // format: "yyyy-MM-dd"
+      var dateParts = creationDateString.split(/-/);
+      creationDate = new Date(dateParts[0], dateParts[1], dateParts[2]).getTime(); // Format: "yyyy-MM-dd"
     } catch (ex) {
       throw new IllegalArgumentException("Can\'t parse date " + creationDateString, ex);
     }
@@ -252,8 +253,6 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
   var modelSize = null;
   if (modelSizeString != null) {
     modelSize = parseInt(modelSizeString);
-  } else {
-    modelSize = ContentDigestManager.getInstance().getContentSize(model);
   }
   var creator = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.CREATOR, index), null);
   var resizable = this.getOptionalBoolean(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.RESIZABLE, index), true);
