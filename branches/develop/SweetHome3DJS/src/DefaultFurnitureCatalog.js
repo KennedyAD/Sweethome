@@ -17,9 +17,9 @@
  */
 
 /**
- * Creates a default furniture catalog read from resources and
- * furniture plugin folder if <code>furniturePluginUrls</code> isn't <code>null</code>.
- * @param {UserPreferences} preferences
+ * Creates a default furniture catalog read through resources referenced by <code>preferences</code> or
+ * from <code>furnitureCatalogUrls</code> if called with two parameters
+ * @param {UserPreferences} [preferences]
  * @param {Array} [furnitureCatalogUrls]
  * @param {String} [furnitureResourcesUrlBase]
  * @constructor
@@ -31,13 +31,18 @@ function DefaultFurnitureCatalog(preferences, furnitureCatalogUrls, furnitureRes
   this.libraries = [];
   
   var identifiedFurniture = [];
-  this.readDefaultFurnitureCatalogs(preferences, identifiedFurniture);
-  
-  if (furnitureCatalogUrls != null) {
-    for (var i = 0; i < furnitureCatalogUrls.length; i++) {
-      var furnitureCatalogUrl = furnitureCatalogUrls [i];
-      var resourceBundle = CoreTools.loadResourceBundles(furnitureCatalogUrl.substring(0, furnitureCatalogUrl.lastIndexOf(".json")), Locale.getDefault())
-      this.readFurniture(resourceBundle, furnitureCatalogUrl, furnitureResourcesUrlBase, identifiedFurniture);
+  if (furnitureCatalogUrls === undefined) {
+    this.readDefaultFurnitureCatalogs(preferences, identifiedFurniture);
+  } else {
+    // Two parameters furnitureCatalogUrls, furnitureResourcesUrlBase
+    furnitureResourcesUrlBase = furnitureCatalogUrls;
+    furnitureCatalogUrls = preferences;
+    if (furnitureCatalogUrls != null) {
+      for (var i = 0; i < furnitureCatalogUrls.length; i++) {
+        var furnitureCatalogUrl = furnitureCatalogUrls [i];
+        var resourceBundle = CoreTools.loadResourceBundles(furnitureCatalogUrl.substring(0, furnitureCatalogUrl.lastIndexOf(".json")), Locale.getDefault())
+        this.readFurniture(resourceBundle, furnitureCatalogUrl, furnitureResourcesUrlBase, identifiedFurniture);
+      }
     }
   }
 }
