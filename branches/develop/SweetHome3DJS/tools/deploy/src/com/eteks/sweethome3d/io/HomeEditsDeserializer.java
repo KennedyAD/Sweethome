@@ -148,7 +148,7 @@ public class HomeEditsDeserializer {
     }
     return result;
   }
-  
+
   private Method getMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
     try {
       Method method = type.getDeclaredMethod(name, parameterTypes);
@@ -348,7 +348,7 @@ public class HomeEditsDeserializer {
         field.set(instance, this.homeController.getPlanController());
       }
     }
-    
+
     if (instance instanceof HomeFurnitureGroup) {
       getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
     }
@@ -508,7 +508,7 @@ public class HomeEditsDeserializer {
       if (piece.getRoll() == 0 && piece.getPitch() == 0) {
         return new float [] {piece.getWidth(), piece.getDepth(), piece.getHeight()};
       } else {
-        throw new UnsupportedOperationException();
+        return null; // Size in plan will be computed proportionally or reset by undoable edit
       }
     }
 
