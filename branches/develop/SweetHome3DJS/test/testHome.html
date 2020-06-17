@@ -556,13 +556,14 @@ testHome(geomAvailable);
 
 <script type="text/javascript">
 
+// If true, requires the server to be properly started on localhost:8080
+var useServer = false;
+
 Locale.setDefault("en_US");
-var application = new SweetHome3DJSApplication();
-// Uncomment to test with incremental recording
-//var application = new SweetHome3DJSApplication("http://localhost:8080");
+var application = new SweetHome3DJSApplication(useServer ? "http://localhost:8080" : undefined);
 // Read and display test file 
 // TODO Should be performed in HomeController.open
-application.getHomeRecorder().readHome("test/resources/HomeTest.sh3d", 
+application.getHomeRecorder().readHome(useServer ? "HomeTest" : "test/resources/HomeTest.sh3d", 
     {
       homeLoaded: function(home) {
         application.addHome(home);
