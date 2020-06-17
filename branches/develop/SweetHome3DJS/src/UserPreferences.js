@@ -1008,7 +1008,7 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   this.setPatternsCatalog(patternsCatalog);
   this.setFurnitureCatalog(typeof DefaultFurnitureCatalog === "function"
       ? new DefaultFurnitureCatalog(this)
-      : new FurnitureCatalog(this));
+      : new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
   
   this.setNavigationPanelVisible(false);
