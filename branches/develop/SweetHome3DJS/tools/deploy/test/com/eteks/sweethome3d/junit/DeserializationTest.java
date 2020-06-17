@@ -107,5 +107,44 @@ public class DeserializationTest extends TestCase {
     tempFile.delete();
     savedFile.delete();
   }
+
+  public void testMovingEdit () throws RecorderException, JSONException, IOException, ReflectiveOperationException {
+    HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
+    File file = new File("test/resources/HomeTest.sh3d");
+    Home home = recorder.readHome(file.getPath());
+
+    File tempFile = File.createTempFile("open-", ".sh3d");
+    Files.copy(file.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    Optional<HomeObject> homeObject = (Optional<HomeObject>)home.getHomeObjects().stream().filter(o -> "polyline-778b729f-47a8-4c70-a086-be423eceba59".equals(o.getId())).findFirst();
+    assertTrue(homeObject.isPresent());
+    assertTrue(homeObject.get() instanceof Polyline);
+    Polyline polyline = (Polyline)homeObject.get();
+    assertEquals(68.08908081, polyline.getPoints()[1][0], 0.0001);
+    assertEquals(182.87162780, polyline.getPoints()[1][1], 0.0001);
+    
+    List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
+          "["
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PieceOfFurnitureMovingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoMoveSelectionName\",\"oldAngle\":4.3597717,\"oldDepth\":49.899998,\"oldElevation\":0,\"oldDoorOrWindowBoundToWall\":false,\"piece\":\"pieceOfFurniture-6b4c53e1-745e-4581-930b-c8e3a07a0d6b\",\"dx\":429.33333333333337,\"dy\":20,\"newAngle\":4.3597717,\"newDepth\":49.899998,\"newElevation\":0,\"_newObjects\":{}}"
+        + ","      
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsMovingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoMoveSelectionName\",\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"allLevelsSelection\":false,\"itemsArray\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"dx\":-18.666666666666657,\"dy\":-6.666666666666629}"
+        + "]"
+    );
+    assertEquals(2, edits.size());
+    for (UndoableEdit edit : edits) {
+      edit.redo();
+    }
+
+    assertEquals(68.08908081 - 18.666666666666657, polyline.getPoints()[1][0], 0.0001);
+    assertEquals(182.87162780 - 6.666666666666629, polyline.getPoints()[1][1], 0.0001);
+
+    File savedFile = File.createTempFile("save-", ".sh3d");
+    recorder.writeHome(home, savedFile.getPath());
+    assertTrue("Empty file", savedFile.length() > 0);
+
+    tempFile.delete();
+    savedFile.delete();
+  }
+  
+
   
 }
