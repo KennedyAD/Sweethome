@@ -183,11 +183,6 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
     var propertyNames = Object.getOwnPropertyNames(origin);
     for (var j = 0; j < propertyNames.length; j++) {
       var propertyName = propertyNames[j];
-      // Hack: controllers are not serialized but a dummy field is necessary for deserialization
-      if (propertyName === 'controller') {
-        destination[propertyName] = true;
-        continue;
-      }
       if (Object.getOwnPropertyDescriptor(origin, propertyName)['_transient'] === true) {
         continue;
       }

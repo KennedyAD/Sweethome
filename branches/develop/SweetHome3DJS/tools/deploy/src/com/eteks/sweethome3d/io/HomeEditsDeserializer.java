@@ -134,6 +134,21 @@ public class HomeEditsDeserializer {
     return null;
   }
 
+  private List<Field> getFields(Class<?> type) {
+    List<Field> result = new ArrayList<Field>();
+    Field[] fields = type.getDeclaredFields();
+    for (Field field : fields) {
+      if (!field.isAccessible()) {
+        field.setAccessible(true);
+      }
+      result.add(field);
+    }
+    if (type.getSuperclass() != Object.class) {
+      result.addAll(getFields(type.getSuperclass()));
+    }
+    return result;
+  }
+  
   private Method getMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
     try {
       Method method = type.getDeclaredMethod(name, parameterTypes);
@@ -194,15 +209,8 @@ public class HomeEditsDeserializer {
         throw new RuntimeException("Cannot find referenced home object " + valueType + ": " + jsonValue);
       }
     } else if (valueClass != null
-               && Home.class.isAssignableFrom(valueClass)) {
-      // TODO: check that the URL is consistent
-      value = this.home;
-    } else if (valueClass != null
                && valueClass.isEnum()) {
       value = valueClass.getEnumConstants() [(Integer)jsonValue];
-    } else if (valueClass != null
-               && PlanController.class.isAssignableFrom(valueClass)) {
-      value = this.homeController.getPlanController();
     } else if (float.class == valueType || Float.class == valueType) {
       value = ((Number)jsonValue).floatValue();
     } else if (int.class == valueType || Integer.class == valueType) {
@@ -332,6 +340,15 @@ public class HomeEditsDeserializer {
       }
     }
 
+    for(Field field : getFields(instance.getClass())) {
+      if (Home.class.isAssignableFrom(field.getType())) {
+        // TODO: check that the URL is consistent
+        field.set(instance, this.home);
+      } else if (PlanController.class.isAssignableFrom(field.getType())) {
+        field.set(instance, this.homeController.getPlanController());
+      }
+    }
+    
     if (instance instanceof HomeFurnitureGroup) {
       getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
     }
