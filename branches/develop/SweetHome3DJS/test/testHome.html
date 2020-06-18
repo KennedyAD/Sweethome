@@ -211,7 +211,7 @@ function testLocalization() {
   preferences.setLanguage("zh");
   assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   preferences.setLanguage("zh_CN");
-  assertEquals("Unexpected resource value", "版", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  assertEquals("Unexpected resource value", "版权", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   
   console.log("End of testLocalization");          
 }
