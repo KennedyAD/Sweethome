@@ -75,11 +75,27 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
   var recorder = this;
   var listener = {
     undoableEditHappened: function(undoableEditEvent) {
-      recorder.sendUndoableEdits(home, undoableEditEvent);
+      recorder.storeEdit(home, undoableEditEvent.getEdit());
+      recorder.sendUndoableEdits(home);
     }
   };
   this.undoableEditListeners[home.id] = listener;
   this.application.getHomeController(home).getUndoableEditSupport().addUndoableEditListener(listener);
+  var undoManager = this.application.getHomeController(home).undoManager;
+  var coreUndo = undoManager.undo;
+  var coreRedo = undoManager.redo;
+  this.application.getHomeController(home).undoManager.undo = function() {
+    console.info("UNDO", undoManager.editToBeUndone());
+    recorder.storeEdit(home, undoManager.editToBeUndone(), true);
+    coreUndo.call(undoManager);
+    recorder.sendUndoableEdits(home);
+  }
+  this.application.getHomeController(home).undoManager.redo = function() {
+    console.info("REDO", undoManager.editToBeRedone());
+    recorder.storeEdit(home, undoManager.editToBeRedone());
+    coreRedo.call(undoManager);
+    recorder.sendUndoableEdits(home);
+  }
 }
 
 /**
@@ -92,8 +108,7 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home, undoableEditEvent) {
-  this.storeEdit(home, undoableEditEvent.getEdit());
+IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   try {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', this.baseUrl + "/writeHomeEdits.jsp", false);
@@ -111,7 +126,7 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home, undoableEdi
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
+IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   if (this.editCounters[home.id] === undefined) {
     this.editCounters[home.id] = 0;
   } else {
@@ -122,11 +137,14 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit) {
   var processedEdit = this.substituteIdentifiableObjects(
                                 edit,
                                 newObjects,
-                                ["object3D"], 
-                                [UserPreferences, HomeFurnitureGroup.LocationAndSizeChangeListener, PropertyChangeSupport, PlanController],
+                                ["object3D", "hasBeenDone", "alive", "presentationNameKey"], 
+                                [UserPreferences, HomeFurnitureGroup.LocationAndSizeChangeListener, PropertyChangeSupport, PlanController, Home],
                                 [Boolean, String, Number]);
   console.info(key, processedEdit, JSON.stringify(processedEdit), newObjects);
   processedEdit._newObjects = newObjects;
+  if (undoAction) {
+    processedEdit._action = "undo";
+  }
   // TODO: use local storage
   //localStorage.setItem(key, toJSON(o));
   if (!this.queue) {
@@ -183,9 +201,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
     var propertyNames = Object.getOwnPropertyNames(origin);
     for (var j = 0; j < propertyNames.length; j++) {
       var propertyName = propertyNames[j];
-      if (Object.getOwnPropertyDescriptor(origin, propertyName)['_transient'] === true) {
-        continue;
-      }
+      // if (origin.constructor && origin.constructor.__transients && origin.constructor.__transients.indexOf(propertyName) != -1) {
+      //   continue;
+      // }
       if (skippedPropertyNames.indexOf(propertyName) === -1) {
         var propertyValue = origin[propertyName];
         if (typeof propertyValue !== 'function' 

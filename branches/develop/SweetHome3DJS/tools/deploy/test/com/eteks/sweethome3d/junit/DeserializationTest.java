@@ -89,13 +89,11 @@ public class DeserializationTest extends TestCase {
     
     List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
           "["
-        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylineResizingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoPolylineResizeName\",\"oldX\":-55.91092,\"oldY\":177.5383,\"polyline\":\"polyline-778b729f-47a8-4c70-a086-be423eceba59\",\"pointIndex\":1,\"newX\":-80.99411,\"newY\":165.1319}"
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylineResizingUndoableEdit\",\"oldX\":-55.91092,\"oldY\":177.5383,\"polyline\":\"polyline-778b729f-47a8-4c70-a086-be423eceba59\",\"pointIndex\":1,\"newX\":-80.99411,\"newY\":165.1319}"
         + "]"
     );
     assertEquals(1, edits.size());
-    for (UndoableEdit edit : edits) {
-      edit.redo();
-    }
+    HomeEditsDeserializer.applyEdits(edits);
 
     assertEquals(-80.99411, polyline.getPoints()[1][0], 0.0001);
     assertEquals(165.1319, polyline.getPoints()[1][1], 0.0001);
@@ -124,15 +122,13 @@ public class DeserializationTest extends TestCase {
     
     List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
           "["
-        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PieceOfFurnitureMovingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoMoveSelectionName\",\"oldAngle\":4.3597717,\"oldDepth\":49.899998,\"oldElevation\":0,\"oldDoorOrWindowBoundToWall\":false,\"piece\":\"pieceOfFurniture-6b4c53e1-745e-4581-930b-c8e3a07a0d6b\",\"dx\":429.33333333333337,\"dy\":20,\"newAngle\":4.3597717,\"newDepth\":49.899998,\"newElevation\":0,\"_newObjects\":{}}"
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PieceOfFurnitureMovingUndoableEdit\",\"oldAngle\":4.3597717,\"oldDepth\":49.899998,\"oldElevation\":0,\"oldDoorOrWindowBoundToWall\":false,\"piece\":\"pieceOfFurniture-6b4c53e1-745e-4581-930b-c8e3a07a0d6b\",\"dx\":429.33333333333337,\"dy\":20,\"newAngle\":4.3597717,\"newDepth\":49.899998,\"newElevation\":0}"
         + ","      
-        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsMovingUndoableEdit\",\"hasBeenDone\":true,\"alive\":true,\"presentationNameKey\":\"undoMoveSelectionName\",\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"allLevelsSelection\":false,\"itemsArray\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"dx\":-18.666666666666657,\"dy\":-6.666666666666629}"
+        + "{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsMovingUndoableEdit\",\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"allLevelsSelection\":false,\"itemsArray\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"dx\":-18.666666666666657,\"dy\":-6.666666666666629}"
         + "]"
     );
     assertEquals(2, edits.size());
-    for (UndoableEdit edit : edits) {
-      edit.redo();
-    }
+    HomeEditsDeserializer.applyEdits(edits);
 
     assertEquals(68.08908081 - 18.666666666666657, polyline.getPoints()[1][0], 0.0001);
     assertEquals(182.87162780 - 6.666666666666629, polyline.getPoints()[1][1], 0.0001);
@@ -145,6 +141,35 @@ public class DeserializationTest extends TestCase {
     savedFile.delete();
   }
   
+  public void testCopyPasteEdit () throws RecorderException, JSONException, IOException, ReflectiveOperationException {
+    HomeRecorder recorder = new HomeFileRecorder(0, false, null, false, true);
+    File file = new File("test/resources/HomeTest.sh3d");
+    Home home = recorder.readHome(file.getPath());
+
+    File tempFile = File.createTempFile("open-", ".sh3d");
+    Files.copy(file.toPath(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    Optional<HomeObject> homeObject = (Optional<HomeObject>)home.getHomeObjects().stream().filter(o -> "polyline-778b729f-47a8-4c70-a086-be423eceba59".equals(o.getId())).findFirst();
+    assertTrue(homeObject.isPresent());
+    assertTrue(homeObject.get() instanceof Polyline);
+    Polyline polyline = (Polyline)homeObject.get();
+    assertEquals(68.08908081, polyline.getPoints()[1][0], 0.0001);
+    assertEquals(182.87162780, polyline.getPoints()[1][1], 0.0001);
+    
+    List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
+          "["
+        + "{\"_type\":\"javax.swing.undo.CompoundEdit\",\"edits\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.FurnitureController.FurnitureAdditionUndoableEdit\",\"allLevelsSelection\":false,\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"oldBasePlanLocked\":false,\"newFurniture\":[],\"newFurnitureIndex\":[],\"newFurnitureGroups\":null,\"newFurnitureLevels\":null,\"furnitureLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylinesCreationUndoableEdit\",\"oldSelection\":[],\"oldBasePlanLocked\":false,\"oldAllLevelsSelection\":false,\"newPolylines\":[\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\"],\"polylinesIndex\":[3],\"polylinesLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsAdditionEndUndoableEdit\",\"items\":[\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\"]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LocalizedUndoableEdit\"}],\"_newObjects\":{\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\":{\"_type\":\"com.eteks.sweethome3d.model.Polyline\",\"id\":\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\",\"properties\":null,\"points\":[[653.3392233333334,193.13189666666662],[605.4224133333333,205.53829666666664],[618.4499133333334,246.36086666666662],[583.4999133333333,257.85329666666667]],\"thickness\":3,\"capStyleName\":null,\"joinStyleName\":null,\"dashStyleName\":null,\"dashPattern\":null,\"dashOffset\":0.4,\"startArrowStyleName\":null,\"endArrowStyleName\":null,\"closedPath\":false,\"color\":-1638351,\"elevation\":0,\"level\":null}}}"
+        + "]"
+    );
+    assertEquals(1, edits.size());
+    HomeEditsDeserializer.applyEdits(edits);
+
+    File savedFile = File.createTempFile("save-", ".sh3d");
+    recorder.writeHome(home, savedFile.getPath());
+    assertTrue("Empty file", savedFile.length() > 0);
+
+    tempFile.delete();
+    savedFile.delete();
+  }
 
   
 }

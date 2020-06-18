@@ -25,8 +25,10 @@ import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -36,10 +38,10 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.QualifiedNameable;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.jsweet.JSweetConfig;
+import org.jsweet.transpiler.Java2TypeScriptTranslator;
 import org.jsweet.transpiler.extension.AnnotationManager;
 import org.jsweet.transpiler.extension.PrinterAdapter;
 import org.jsweet.transpiler.model.CaseElement;
@@ -613,14 +615,21 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
   }
 
   @Override
-  public String getVariableInitialValue(VariableElement variable) {
-    if(variable.getModifiers().contains(Modifier.TRANSIENT)) {
-      return "(<any>Object.defineProperty(this, '" + variable.getSimpleName() + "', <any>{ value: "
-          + super.getVariableInitialValue(variable)
-          + ", writable: true, configurable: true, enumerable: true, _transient: true }))." + variable.getSimpleName();
-    } else {
-      return super.getVariableInitialValue(variable);
+  public void afterType(TypeElement type) {
+    if (!hasAnnotationType(type, JSweetConfig.ANNOTATION_ERASED)
+        && !types().isAssignable(type.asType(), util().getType(Throwable.class))) {
+      List<String> transientFields = new ArrayList<>();
+      for (Element e : util().getAllMembers(type)) {
+        if (e.getModifiers().contains(Modifier.TRANSIENT)) {
+          transientFields.add(e.getSimpleName().toString());
+        }
+      }
+      if (!transientFields.isEmpty()) {
+        print(type.getSimpleName()).print("['__transients'] = ['").print(String.join("', '", transientFields))
+            .print("'];");
+      }
     }
+    super.afterType(type);
   }
-
+  
 }

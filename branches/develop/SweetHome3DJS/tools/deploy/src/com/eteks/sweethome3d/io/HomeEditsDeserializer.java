@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
 
 import org.json.JSONArray;
@@ -77,6 +78,27 @@ public class HomeEditsDeserializer {
   private DefaultUserPreferences  preferences;
   private Map<String, HomeObject> homeObjects;
 
+  /**
+   * Applies a list of edits that have been deserialized. Most of the time, edits are
+   * redone, but they maybe undone in case of an undo action.
+   * 
+   * @param edits the list of edits to be run
+   * @return the number of edits that have been applied
+   */
+  public static int applyEdits(List<UndoableEdit> edits) {
+    int count = 0;
+    for (UndoableEdit edit : edits) {
+      if (edit.canRedo()) {
+        edit.redo();
+        count++;
+      } else {
+        edit.undo();
+        count++;
+      }
+    }
+    return count;
+  }
+  
   /**
    * Creates a new home edit deserializer.
    *
@@ -298,11 +320,6 @@ public class HomeEditsDeserializer {
       }
     }
 
-    // Force UndoableEdit.hasBeenDone to false so that redo() can be called
-    if (jsonValue.has("hasBeenDone")) {
-      jsonValue.put("hasBeenDone", false);
-    }
-
     if (jsonValue.has("_type")) {
       String typeName = jsonValue.getString("_type");
       String[] typeNameParts = typeName.split("\\.");
@@ -331,24 +348,33 @@ public class HomeEditsDeserializer {
   }
 
   private <T> T fillInstance(T instance, JSONObject jsonObject) throws ReflectiveOperationException {
-    for (String key : jsonObject.keySet()) {
-      Object jsonValue = jsonObject.get(key);
-      Field field = getField(instance.getClass(), key);
-      if (field != null && !jsonValue.equals(JSONObject.NULL)) {
-        System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
-        field.set(instance, deserialize(field.getGenericType(), jsonValue));
-      }
-    }
-
     for(Field field : getFields(instance.getClass())) {
       if (Home.class.isAssignableFrom(field.getType())) {
-        // TODO: check that the URL is consistent
         field.set(instance, this.home);
       } else if (PlanController.class.isAssignableFrom(field.getType())) {
         field.set(instance, this.homeController.getPlanController());
       }
     }
+    
+    for (String key : jsonObject.keySet()) {
+      Object jsonValue = jsonObject.get(key);
+      Field field = getField(instance.getClass(), key);
+      if (field != null /*&& field.get(instance) == null*/ && !jsonValue.equals(JSONObject.NULL)) {
+        System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
+        field.set(instance, deserialize(field.getGenericType(), jsonValue));
+      }
+    }
 
+    if (instance instanceof UndoableEdit) {
+      getField(instance.getClass(), "hasBeenDone").set(instance,
+          jsonObject.has("_action") && "undo".equals(jsonObject.getString("_action")));
+      getField(instance.getClass(), "alive").set(instance, true);
+    }
+    
+    if (instance instanceof CompoundEdit) {
+      getField(instance.getClass(), "inProgress").set(instance, false);
+    }
+    
     if (instance instanceof HomeFurnitureGroup) {
       getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
     }
