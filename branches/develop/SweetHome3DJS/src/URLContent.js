@@ -118,6 +118,22 @@ HomeURLContent["__class"] = "com.eteks.sweethome3d.io.HomeURLContent";
 HomeURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 /**
+ * Content read from a URL with no dependency on other content when this URL is a JAR entry.
+ * @constructor
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+function SimpleURLContent(url) {
+  URLContent.call(this, url);
+}
+SimpleURLContent.prototype = Object.create(URLContent.prototype);
+SimpleURLContent.prototype.constructor = SimpleURLContent;
+
+SimpleURLContent["__class"] = "com.eteks.sweethome3d.tools.SimpleURLContent";
+SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+
+/**
  * ZIP reading utilities.
  * @class
  * @author Emmanuel Puybaret

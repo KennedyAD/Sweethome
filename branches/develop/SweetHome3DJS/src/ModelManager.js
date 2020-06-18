@@ -22,9 +22,13 @@
 //          scene3d.js
 //          ModelLoader.js
 //          OBJLoader.js
-//          HomeObject.js
+// Uses     HomeObject.js 
 //          HomePieceOfFurniture.js
+//          HomeMaterial.js
+//          HomeTexture.js
+//          CatalogTexture.js
 //          ShapeTools.js
+// (used classes are not needed to view 3D models)
 
 /**
  * Singleton managing 3D models cache.
@@ -959,6 +963,103 @@ ModelManager.prototype.isDeformed = function(node) {
     }
   }
   return false;
+}
+
+/**
+ * Returns the materials used by the children shapes of the given <code>node</code>,
+ * attributing their <code>creator</code> to them.
+ * @param {Node3D} node
+ * @param {string} [creator]
+ */
+ModelManager.prototype.getMaterials = function(node, creator) {
+  if (creator === undefined) {
+    creator = null;
+  }
+
+  var appearances = [];
+  this.searchAppearances(node, appearances);
+  var materials = [];
+  for (var i = 0; i < appearances.length; i++) {
+    var appearance = appearances[i];
+    var color = null;
+    var shininess = null;
+    var diffuseColor = appearance.getDiffuseColor();
+    if (diffuseColor != null) {
+      color = 0xFF000000
+          | (Math.round(diffuseColor[0] * 255) << 16)
+          | (Math.round(diffuseColor[1] * 255) << 8)
+          | Math.round(diffuseColor[2] * 255);
+      shininess = appearance.getShininess() != null ? appearance.getShininess() / 128 : null;
+    }
+    var appearanceTexture = appearance.getTextureImage();
+    var texture = null;
+    if (appearanceTexture != null) {
+      var textureImageUrl = appearanceTexture.url;
+      if (textureImageUrl != null) {
+        var textureImage = new SimpleURLContent(textureImageUrl);
+        var textureImageName = textureImageUrl.substring(textureImageUrl.lastIndexOf('/') + 1);
+        var lastPoint = textureImageName.lastIndexOf('.');
+        if (lastPoint !== -1) {
+          textureImageName = textureImageName.substring(0, lastPoint);
+        }
+        texture = new HomeTexture(
+            new CatalogTexture(null, textureImageName, textureImage, -1, -1, creator));
+      }
+    }
+    var materialName = appearance.getName();
+    if (materialName === undefined) {
+      materialName = null;
+    }
+    var homeMaterial = new HomeMaterial(materialName, color, texture, shininess);
+    for (var j = 0; j < materials.length; j++) {
+      if (materials [j].getName() == homeMaterial.getName()) {
+        // Don't add twice materials with the same name
+        homeMaterial = null;
+        break;
+      }
+    }
+    if (homeMaterial != null) {
+      materials.push(homeMaterial);
+    }
+  }
+  materials.sort(function (m1, m2) {
+      var name1 = m1.getName();
+      var name2 = m2.getName();
+      if (name1 != null) {
+        if (name2 != null) {
+          return name1.localeCompare(name2);
+        } else {
+          return 1;
+        }
+      } else if (name2 != null) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+  return materials;
+}
+
+/**
+ * @param {Node3D} node
+ * @param {Array} appearances
+ * @private
+ */
+ModelManager.prototype.searchAppearances = function(node, appearances) {
+  if (node instanceof Group3D) {
+    var children = node.getChildren();
+    for (var i = 0; i < children.length; i++) {
+      this.searchAppearances(children [i], appearances);
+    }
+  } else if (node instanceof Link3D) {
+    this.searchAppearances(node.getSharedGroup(), appearances);
+  } else if (node instanceof Shape3D) {
+    var appearance = node.getAppearance();
+    if (appearance !== null 
+        && appearances.indexOf(appearance) == -1) {
+      appearances.push(appearance);
+    }
+  }
 }
 
 /**
