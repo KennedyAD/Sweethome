@@ -182,23 +182,18 @@ function assertEquals(message, expected, actual) {
       || typeof expected !== "number"
            && expected != actual) {
     var report = message + ": " + actual + " not equal to " + expected;
-    console.log(report);
-    console.trace();
-    //alert(report);
-    throw new Error(report);
+    fail(report);
   }
 }
 
 function assertTrue(message, condition) {
   if (!condition) {
-    console.log(message);
-    console.trace();
-    //alert(message);
-    throw new Error(message);
+    fail(message);
   }
 }
 
 function fail(message) {
+  alert(message);
   throw new Error(message);
 }
 
@@ -216,7 +211,7 @@ function testLocalization() {
   preferences.setLanguage("zh");
   assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   preferences.setLanguage("zh_CN");
-  assertEquals("Unexpected resource value", "版权", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  assertEquals("Unexpected resource value", "版", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
   
   console.log("End of testLocalization");          
 }
