@@ -54,6 +54,7 @@ import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.TextStyle;
 import com.eteks.sweethome3d.model.UserPreferences;
+import com.eteks.sweethome3d.tools.SimpleURLContent;
 import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
@@ -81,7 +82,7 @@ public class HomeEditsDeserializer {
   /**
    * Applies a list of edits that have been deserialized. Most of the time, edits are
    * redone, but they maybe undone in case of an undo action.
-   * 
+   *
    * @param edits the list of edits to be run
    * @return the number of edits that have been applied
    */
@@ -98,7 +99,7 @@ public class HomeEditsDeserializer {
     }
     return count;
   }
-  
+
   /**
    * Creates a new home edit deserializer.
    *
@@ -202,12 +203,14 @@ public class HomeEditsDeserializer {
                  && Content.class.isAssignableFrom(valueClass)) {
         String url = jsonObject.getString("url");
         try {
-          if (url.startsWith("jar:")) {
-            if (HomeURLContent.class.getName().equals(jsonObject.getString("_type"))) {
-              value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
-            } else {
-              value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
-            }
+          if (SimpleURLContent.class.getName().equals(jsonObject.getString("_type"))) {
+            value = new SimpleURLContent(new URL(url.contains("://")
+                ? url
+                : "jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
+          } else if (HomeURLContent.class.getName().equals(jsonObject.getString("_type"))) {
+            value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
+          } else if (url.startsWith("jar:")) {
+            value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
           } else if (url.contains(":")) {
             value = new URLContent(new URL(url));
           } else {
@@ -355,7 +358,7 @@ public class HomeEditsDeserializer {
         field.set(instance, this.homeController.getPlanController());
       }
     }
-    
+
     for (String key : jsonObject.keySet()) {
       Object jsonValue = jsonObject.get(key);
       Field field = getField(instance.getClass(), key);
@@ -370,11 +373,11 @@ public class HomeEditsDeserializer {
           jsonObject.has("_action") && "undo".equals(jsonObject.getString("_action")));
       getField(instance.getClass(), "alive").set(instance, true);
     }
-    
+
     if (instance instanceof CompoundEdit) {
       getField(instance.getClass(), "inProgress").set(instance, false);
     }
-    
+
     if (instance instanceof HomeFurnitureGroup) {
       getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
     }
