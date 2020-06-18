@@ -642,11 +642,11 @@ function testHomeModifications() {
   planController.moveMouse(400, 0);
   planController.pressMouse(400, 0, 1, false, false);
   planController.releaseMouse(400, 0);
-  planController.moveMouse(200, 0);
-  planController.pressMouse(200, 0, 1, false, false);
-  planController.releaseMouse(200, 0);
-  planController.pressMouse(200, 0, 2, false, false);
-  planController.releaseMouse(200, 0);
+  planController.moveMouse(220, 0);
+  planController.pressMouse(220, 0, 1, false, false);
+  planController.releaseMouse(220, 0);
+  planController.pressMouse(220, 0, 2, false, false);
+  planController.releaseMouse(220, 0);
   assertEquals("Wrong walls count", 4, home.getSelectedItems().length); 
   planController.setMode(PlanController.Mode.SELECTION);
   // Modify walls
@@ -657,6 +657,16 @@ function testHomeModifications() {
   assertEquals("Wrong color", 0xFF770000, home.getSelectedItems() [0].getRightSideColor()); 
   homeController.undo();
   assertEquals("Wrong color", null, home.getSelectedItems() [0].getRightSideColor()); 
+  planController.joinSelectedWalls();
+  planController.reverseSelectedWallsDirection();
+  // Select one wall and split it
+  planController.pressMouse(300, 0, 1, false, false);
+  planController.releaseMouse(300, 0);
+  var length = home.getSelectedItems() [0].getLength();
+  planController.splitSelectedWall();
+  assertEquals("Wall not half smaller", length / 2, home.getSelectedItems() [0].getLength()); 
+  homeController.undo();
+  assertEquals("Wrong wall length", length, home.getSelectedItems() [0].getLength());   
 
   // Draw a room by double clicking within walls
   planController.setMode(PlanController.Mode.ROOM_CREATION);
@@ -673,8 +683,85 @@ function testHomeModifications() {
   controller.getWallSidesBaseboardController().setVisible(true);
   controller.getWallSidesBaseboardController().setColor(0xFF000044);
   controller.modifyRooms();
+  assertEquals("Wrong color", 0xFF444477, home.getSelectedItems() [0].getFloorColor()); 
   homeController.undo();
+  assertEquals("Wrong undone color", null, home.getSelectedItems() [0].getFloorColor()); 
 
+  // Draw a round polygon
+  planController.setMode(PlanController.Mode.POLYLINE_CREATION);
+  planController.pressMouse(0, 100, 1, false, false);
+  planController.moveMouse(0, 140);
+  planController.releaseMouse(0, 140);
+  planController.pressMouse(0, 140, 1, false, false);
+  planController.releaseMouse(0, 140);
+  planController.moveMouse(40, 140);
+  planController.pressMouse(40, 140, 1, false, false);
+  planController.releaseMouse(40, 140);
+  planController.moveMouse(40, 100);
+  planController.pressMouse(40, 0, 1, false, false);
+  planController.releaseMouse(40, 100);
+  planController.moveMouse(0, 100);
+  planController.pressMouse(0, 100, 1, false, false);
+  planController.releaseMouse(0, 100);
+  planController.pressMouse(0, 100, 2, false, false);
+  planController.releaseMouse(0, 100);
+  assertEquals("Wrong polyline count", 1, home.getSelectedItems().length); 
+  planController.setMode(PlanController.Mode.SELECTION);
+  // Modify polylines
+  controller = new PolylineController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+  controller.setJoinStyle(Polyline.JoinStyle.CURVED);
+  controller.setColor(0xFF007700);
+  controller.setElevation(10);
+  controller.modifyPolylines();
+  assertEquals("Wrong elevation", 10, home.getSelectedItems() [0].getElevation()); 
+  homeController.undo();
+  assertEquals("Wrong undone elevation", 0, home.getSelectedItems() [0].getElevation()); 
+  
+  // Add a text
+  planController.setMode(PlanController.Mode.LABEL_CREATION);
+  controller = new LabelController(home, 100, 200, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+  controller.setText("Hello");
+  controller.setElevation(5);
+  controller.createLabel();
+  assertEquals("Wrong label count", 1, home.getSelectedItems().length); 
+  planController.setMode(PlanController.Mode.SELECTION);
+  // Modify labels
+  controller = new LabelController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+  controller.setFontSize(30);
+  controller.modifyLabels();
+  assertEquals("Wrong font size", 30, home.getSelectedItems() [0].getStyle().getFontSize()); 
+  homeController.undo();
+  assertEquals("Wrong undone font size", 18, home.getSelectedItems() [0].getStyle().getFontSize()); 
+
+  // Modify level
+  controller = new LevelController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+  controller.setElevation(150);
+  controller.setFloorThickness(50);
+  controller.modifyLevels();
+  assertEquals("Wrong elevation", 150, home.getSelectedLevel().getElevation()); 
+  homeController.undo();
+  assertEquals("Wrong elevation", 262, home.getSelectedLevel().getElevation()); 
+
+  // Modify 3D view
+  controller = new Home3DAttributesController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+  controller.setGroundColor(0xFF333333);
+  controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
+  controller.setWallsAlpha(0.5);
+  controller.setBackgroundImageVisibleOnGround3D(false);
+  controller.modify3DAttributes();
+  assertEquals("Wrong walls alpha", 0.5, home.getEnvironment().getWallsAlpha()); 
+  homeController.undo();
+  assertEquals("Wrong undone walls alpha", 0, home.getEnvironment().getWallsAlpha()); 
+
+  // Modify compass
+  controller = new CompassController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+  controller.setDiameter(100);
+  controller.setNorthDirectionInDegrees(0);
+  controller.modifyCompass();
+  assertEquals("Wrong walls diameter", 100, home.getCompass().getDiameter()); 
+  homeController.undo();
+  assertEquals("Wrong undone diameter", 62, home.getCompass().getDiameter()); 
+  
   planController.deleteSelectedLevel();
   assertEquals("Wrong level count", 1, home.getLevels().length); 
   homeController.undo();
