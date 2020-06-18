@@ -146,10 +146,11 @@ public class PropertiesToJson {
             String extension = modelFile.substring(modelFile.lastIndexOf('.'));
 
             // Create a .zip file containing the 3D model
-            String newPath = resourcesOutputDirectory + "/" + modelFile.replace(extension, ".zip");
+            String newPath = (resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "")
+                + modelFile.replace(extension, ".zip");
             Path modelPath = Paths.get(sourceRoot, currentPath);
             Path modelFolder = modelPath.getParent();
-            if (copyResources && resourcesOutputDirectory != null) {
+            if (copyResources) {
               new File(resourcesOutputDirectory).mkdirs();
               ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath));
               if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
@@ -205,8 +206,9 @@ public class PropertiesToJson {
       String key = (String)entry.getKey();
       if (key.startsWith(imagePrefix)) {
         String currentPath = properties.getProperty(key);
-        String newPath = resourcesOutputDirectory + "/" + currentPath.substring(currentPath.lastIndexOf("/") + 1);
-        if (copyResources && resourcesOutputDirectory != null) {
+        String newPath = (resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "")
+            + currentPath.substring(currentPath.lastIndexOf("/") + 1);
+        if (copyResources) {
           new File(resourcesOutputDirectory).mkdirs();
           Files.copy(Paths.get(sourceRoot, currentPath), Paths.get(newPath), StandardCopyOption.REPLACE_EXISTING);
         }
