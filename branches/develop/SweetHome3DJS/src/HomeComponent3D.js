@@ -1497,7 +1497,7 @@ HomeComponent3D.prototype.addLevelListener = function(group) {
       } else if ("ELEVATION" == propertyName) {
         component3D.updateObjects(component3D.homeObjects.slice(0));          
         component3D.groundChangeListener(null);
-      } else if ("BACKGROUND_IMAGE" == propertyName()) {
+      } else if ("BACKGROUND_IMAGE" == propertyName) {
         component3D.groundChangeListener(null);
       } else if ("FLOOR_THICKNESS" == propertyName) {
         component3D.updateObjects(component3D.home.getWalls());          
