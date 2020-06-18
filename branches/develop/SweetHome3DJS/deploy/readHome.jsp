@@ -50,7 +50,8 @@ if (homeName != null) {
   }
   if (referenceCopy != null) {
     request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
-    // TODO When temporary files should be deleted?
+    // TODO How to handle homes saved once the session has expired ?
+    // TODO Delete temporary files when user quits 
   }
   
   response.setIntHeader("Content-length", (int)homeFile.length());
