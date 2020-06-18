@@ -50,7 +50,7 @@
 		     getServletContext().setAttribute("serverRecorder", homeRecorder);
        }
 
-       synchronized(homeName.intern()) {
+       synchronized (homeFile.getAbsolutePath().intern()) {
          // Reading a given home then saving it can't be done in two different threads at the same moment   
          Home home = homeRecorder.readHome(homeFile.getPath());
          List<UndoableEdit> edits = new HomeEditsDeserializer(home, referenceCopy, serverBaseUrl.toString()).deserializeEdits(jsonEdits);

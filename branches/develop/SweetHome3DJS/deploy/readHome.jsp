@@ -42,36 +42,35 @@ if (homeName != null) {
     // to be able to reference some of its content during edition
     referenceCopy = Files.createTempFile("open-", ".sh3d");
     Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
-  }
-  
-  File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
-  if (previousOpenedFile != null) {
-    previousOpenedFile.delete();
-  }
-  if (referenceCopy != null) {
+    
+    File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
+    if (previousOpenedFile != null) {
+      previousOpenedFile.delete();
+    }
     request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
     // TODO How to handle homes saved once the session has expired ?
-    // TODO Delete temporary files when user quits 
+    // TODO Delete temporary files when user quits
+    homeFile = referenceCopy.toFile();
   }
+  
   
   response.setIntHeader("Content-length", (int)homeFile.length());
   response.setHeader("Content-Disposition", "attachment; filename=" + homeFile.getName());
-  InputStream input = null;
-  OutputStream output = response.getOutputStream();
-  try {
-    input = new FileInputStream(homeFile);
-    byte[] buffer = new byte[8096];
-    int size;
-    while ((size = input.read(buffer)) != -1) {
-      output.write(buffer, 0, size);
+  byte [] homeFileContent;
+  synchronized (homeFile.getAbsolutePath().intern()) {
+    try (InputStream input = new FileInputStream(homeFile);
+         ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+      byte[] buffer = new byte[8096];
+      int size;
+      while ((size = input.read(buffer)) != -1) {
+        output.write(buffer, 0, size);
+      }
+      homeFileContent = output.toByteArray();
     }
-  } finally {
-    if (input != null) {
-      input.close();
-    }
-    if (output != null) {
-      output.close();
-    }
+  }
+  
+  try (OutputStream serlvetOut = response.getOutputStream()) {
+    serlvetOut.write(homeFileContent);
   }
 }
 %>
