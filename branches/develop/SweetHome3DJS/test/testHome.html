@@ -590,6 +590,10 @@ function testHomeModifications() {
   homeController.getFurnitureCatalogController().setSelectedFurniture([firstPiece]);
   homeController.addHomeFurniture();
   assertEquals("Wong id", home.getSelectedItems() [0].getCatalogId(), firstPiece.getId());
+  // Adding a piece not movable will unlock the plan automatically
+  if (firstPiece.isMovable()) {
+    planController.unlockBasePlan();
+  }
   assertTrue("Base plan still locked", !home.isBasePlanLocked());
   // Add another piece to selection
   planController.pressMouse(x, y, 1, true, false);
@@ -600,6 +604,7 @@ function testHomeModifications() {
   planController.flipVertically();
   homeController.undo();
 
+  planController.unlockBasePlan();
   planController.selectAll();
   planController.increaseTextSize();
   planController.decreaseTextSize();
@@ -767,6 +772,8 @@ function testHomeModifications() {
   homeController.undo();
   assertEquals("Wrong level count", 2, home.getLevels().length);
   homeController.redo();
+  
+  console.log("End of testHomeModifications");          
 }
 
 // Run unit tests
