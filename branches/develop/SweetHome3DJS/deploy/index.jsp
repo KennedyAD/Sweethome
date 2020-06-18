@@ -166,7 +166,6 @@ body {
 
 <script type="text/javascript">
 var homeName = '<%= homeName == null ? "HomeTest" : homeName %>';
-Locale.setDefault("en_US");
 var application = new SweetHome3DJSApplication('<%= new java.net.URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath()).toString() %>');
 // Read and display test file 
 // TODO Should be performed in HomeController.open
