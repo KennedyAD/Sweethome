@@ -523,7 +523,166 @@ function testHome(geomAvailable) {
   console.log("End of testHome");          
 }
 
-//Run unit tests
+/**
+ * Test modifications in the edited home.
+ */
+function testHomeModifications() {
+  var home = application.getHomes() [0];
+  var homeController = application.getHomeController(home);
+  var planController = homeController.getPlanController();
+
+  planController.selectItem(home.getFurniture() [0]);
+  assertTrue("First piece isn't a group", home.getSelectedItems() [0]);
+  planController.ungroupSelectedFurniture();
+  planController.groupSelectedFurniture();
+  homeController.undo();
+  assertEquals("Selection wrong selection count", 3, home.getSelectedItems().length);
+  homeController.undo();
+  assertEquals("Selection wrong selection count", 1, home.getSelectedItems().length);
+  homeController.redo();
+  homeController.redo();
+  assertEquals("Selection wrong selection count", 1, home.getSelectedItems().length);
+
+  // Select and move a piece
+  planController.selectItem(home.getFurniture() [0].getFurniture() [1]);
+  var x = home.getSelectedItems()[0].getX();
+  var y = home.getSelectedItems()[0].getY();
+  planController.pressMouse(x, y, 1, false, false);
+  planController.moveMouse(x - 10, y - 10);
+  planController.releaseMouse(x - 10, y - 10);
+  assertTrue("Selection doesn't contain one piece", 1, home.getSelectedItems().length);
+  // Add to selection a sibling piece
+  planController.pressMouse(home.getFurniture() [0].getFurniture() [0].getX(), home.getFurniture() [0].getFurniture() [0].getY(), 1, true, false)
+  planController.releaseMouse(home.getFurniture() [0].getFurniture() [0].getX(), home.getFurniture() [0].getFurniture() [0].getY())
+  // Align them
+  planController.alignSelectedFurnitureOnTop()
+  homeController.undo();
+  planController.alignSelectedFurnitureOnLeft()
+  homeController.undo();
+  planController.alignSelectedFurnitureSideBySide();
+  homeController.undo();
+  // Add to selection a third piece and distribute them
+  planController.pressMouse(home.getFurniture() [0].getFurniture() [2].getX(), home.getFurniture() [0].getFurniture() [2].getY(), 1, true, false)
+  planController.releaseMouse(home.getFurniture() [0].getFurniture() [2].getX(), home.getFurniture() [0].getFurniture() [2].getY())
+  planController.distributeSelectedFurnitureHorizontally();
+  // Change lead item in selection
+  planController.pressMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY(), 1, true, false)
+  planController.releaseMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY())
+  planController.pressMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY(), 1, true, false)
+  planController.releaseMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY())
+  planController.alignSelectedFurnitureOnFrontSide();
+  // Furniture should be located at the same place as in the original file
+  assertTrue("Wrong X", x - home.getSelectedItems()[2].getX() < 0.01);
+  assertTrue("Wrong Y", y - home.getSelectedItems()[2].getY() < 0.01);
+
+  // Handle background image
+  homeController.hideBackgroundImage();
+  homeController.showBackgroundImage();
+  homeController.deleteBackgroundImage();
+  assertEquals("Background image still here", null, home.getBackgroundImage());
+  homeController.undo();
+
+  planController.lockBasePlan();
+  planController.unlockBasePlan();
+  homeController.undo();
+  assertTrue("Base plan not locked", home.isBasePlanLocked());
+  var firstPiece = application.getUserPreferences().getFurnitureCatalog().getCategories() [0].getFurniture() [0];
+  homeController.getFurnitureCatalogController().setSelectedFurniture([firstPiece]);
+  homeController.addHomeFurniture();
+  assertEquals("Wong id", home.getSelectedItems() [0].getCatalogId(), firstPiece.getId());
+  assertTrue("Base plan still locked", !home.isBasePlanLocked());
+  // Add another piece to selection
+  planController.pressMouse(x, y, 1, true, false);
+  planController.releaseMouse(x, y);
+  assertTrue("Selection doesn't contain one piece", 2, home.getSelectedItems().length);
+  planController.flipHorizontally();
+  homeController.undo();
+  planController.flipVertically();
+  homeController.undo();
+
+  planController.selectAll();
+  planController.increaseTextSize();
+  planController.decreaseTextSize();
+  planController.toggleItalicStyle();
+  planController.toggleBoldStyle();
+  homeController.undo();
+  homeController.undo();
+  homeController.delete();
+  // TODO Last item added to plan still here in 3D view
+  homeController.undo();
+  // Select and cut / paste new item to a new level
+  planController.pressMouse(0, 0, 1, false, false);
+  planController.releaseMouse(0, 0);
+  homeController.getView().getActionMap() ['CUT'].actionPerformed();
+  planController.addLevel();
+  assertEquals("Wrong level count", 2, home.getLevels().length); 
+  homeController.getView().getActionMap() ['PASTE'].actionPerformed();
+  assertEquals("Wrong level", home.getLevels() [1], home.getSelectedItems() [0].getLevel()); 
+  // Modify furniture
+  var controller = new HomeFurnitureController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+  controller.setAngleInDegrees(45);
+  controller.setNameVisible(true);
+  controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
+  controller.setPitch(0.787);
+  controller.modifyFurniture();
+  assertEquals("Wrong pitch", 0.787, home.getSelectedItems() [0].getPitch()); 
+  homeController.undo();
+  assertEquals("Wrong undone pitch", 0, home.getSelectedItems() [0].getPitch()); 
+
+  // Draw 4 joined walls
+  planController.setMode(PlanController.Mode.WALL_CREATION);
+  planController.pressMouse(200, 0, 1, false, false);
+  planController.moveMouse(200, 150);
+  planController.releaseMouse(200, 150);
+  planController.pressMouse(200, 150, 1, false, false);
+  planController.releaseMouse(200, 150);
+  planController.moveMouse(400, 150);
+  planController.pressMouse(400, 150, 1, false, false);
+  planController.releaseMouse(400, 150);
+  planController.moveMouse(400, 0);
+  planController.pressMouse(400, 0, 1, false, false);
+  planController.releaseMouse(400, 0);
+  planController.moveMouse(200, 0);
+  planController.pressMouse(200, 0, 1, false, false);
+  planController.releaseMouse(200, 0);
+  planController.pressMouse(200, 0, 2, false, false);
+  planController.releaseMouse(200, 0);
+  assertEquals("Wrong walls count", 4, home.getSelectedItems().length); 
+  planController.setMode(PlanController.Mode.SELECTION);
+  // Modify walls
+  controller = new WallController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+  controller.setPattern(application.getUserPreferences().getPatternsCatalog().getPatterns() [3]);
+  controller.setRightSideColor(0xFF770000);
+  controller.modifyWalls();
+  assertEquals("Wrong color", 0xFF770000, home.getSelectedItems() [0].getRightSideColor()); 
+  homeController.undo();
+  assertEquals("Wrong color", null, home.getSelectedItems() [0].getRightSideColor()); 
+
+  // Draw a room by double clicking within walls
+  planController.setMode(PlanController.Mode.ROOM_CREATION);
+  planController.pressMouse(250, 100, 1, false, false);
+  planController.releaseMouse(250, 100);
+  planController.pressMouse(250, 100, 2, false, false);
+  planController.releaseMouse(250, 100);
+  planController.setMode(PlanController.Mode.SELECTION);
+  assertEquals("Wrong room count", 1, home.getSelectedItems().length); 
+  // Modify rooms
+  controller = new RoomController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+  controller.setFloorPaint(RoomController.RoomPaint.COLORED);
+  controller.setFloorColor(0xFF444477);
+  controller.getWallSidesBaseboardController().setVisible(true);
+  controller.getWallSidesBaseboardController().setColor(0xFF000044);
+  controller.modifyRooms();
+  homeController.undo();
+
+  planController.deleteSelectedLevel();
+  assertEquals("Wrong level count", 1, home.getLevels().length); 
+  homeController.undo();
+  assertEquals("Wrong level count", 2, home.getLevels().length);
+  homeController.redo();
+}
+
+// Run unit tests
 testLocalization();
 testLengthUnit();
 testFurnitureCatalog();
@@ -561,10 +720,11 @@ application.getHomeRecorder().readHome(useServer ? "HomeTest" : "test/resources/
     {
       homeLoaded: function(home) {
         application.addHome(home);
+        setTimeout(testHomeModifications);
       },
       homeError: function(err) {
         console.error(err);
-        //alert(err);
+        alert(err);
       },
       progression: function(part, info, percentage) {
       }
