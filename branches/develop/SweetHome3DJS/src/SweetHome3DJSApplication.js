@@ -57,8 +57,8 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
     console.info("home loaded", home, home.id, home.getHomeObjects());
     recorder.existingHomeObjects = {};
     home.getHomeObjects().forEach(function(homeObject) {
-      recorder.existingHomeObjects[homeObject.id] = homeObject.id;
-    });
+        recorder.existingHomeObjects[homeObject.id] = homeObject.id;
+      });
     console.info("collected ids: ", home, recorder.existingHomeObjects);
     console.info(Object.getOwnPropertyNames(home));
     homeLoaded(home);
@@ -103,6 +103,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
   this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
+  // TODO Clean up recorder.existingHomeObjects
 }
 
 /** 
@@ -227,27 +228,24 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
  */
 function SweetHome3DJSApplication(serverBaseUrl) {
   HomeApplication.call(this);
-  this.homeControllers = {};
+  this.homeControllers = [];
   this.serverBaseUrl = serverBaseUrl;
   var application = this;
-  if (serverBaseUrl) {
-    this.addHomesListener(function(ev) {
-        if (ev.getType() == CollectionEvent.Type.ADD) {
-          var homeController = this.application.createHomeController(ev.getItem());
-          application.homeControllers[ev.getItem().id] = homeController; 
+  this.addHomesListener(function(ev) {
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+        var homeController = this.application.createHomeController(ev.getItem());
+        application.homeControllers.push(homeController); 
+        if (serverBaseUrl) {
           application.getHomeRecorder().addHome(ev.getItem());
-          homeController.getView();
-        } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-          application.getHomeRecorder().deleteHome(ev.getItem());
         }
-      });
-  } else {
-    this.addHomesListener(function(ev) {
-        if (ev.getType() == CollectionEvent.Type.ADD) {
-          this.application.createHomeController(ev.getItem()).getView();
+        homeController.getView();
+      } else if (ev.getType() == CollectionEvent.Type.DELETE) {
+        application.homeControllers.splice(getHomes.indexOf(home), 1); 
+        if (serverBaseUrl) {
+          application.getHomeRecorder().removeHome(ev.getItem());
         }
-      });
-  }
+      }
+    });
 }
 SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
 SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
@@ -257,7 +255,7 @@ SweetHome3DJSApplication.prototype.getVersion = function() {
 }
 
 SweetHome3DJSApplication.prototype.getHomeController = function(home) {
-  return this.homeControllers[home.id];
+  return this.homeControllers[this.getHomes().indexOf(home)];
 }
 
 SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
