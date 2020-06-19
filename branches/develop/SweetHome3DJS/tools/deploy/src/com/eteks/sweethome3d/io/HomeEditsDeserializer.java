@@ -22,6 +22,7 @@ package com.eteks.sweethome3d.io;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -306,14 +307,6 @@ public class HomeEditsDeserializer {
       for (String key : newObjects.keySet()) {
         HomeObject homeObject = createInstance(HomeObject.class, newObjects.getJSONObject(key));
         this.homeObjects.put(key, homeObject);
-
-        // Reinstantiate propertyChangeSupport fields
-        for (Class<?> type = homeObject.getClass(); type != Object.class; type = type.getSuperclass()) {
-          Field field = getField(type, "propertyChangeSupport");
-          if (field != null) {
-            field.set(homeObject, new PropertyChangeSupport(homeObject));
-          }
-        }
       }
 
       // Pass 2: fill instances for new objects (instances have been created in pass 1
@@ -356,13 +349,17 @@ public class HomeEditsDeserializer {
         field.set(instance, this.home);
       } else if (PlanController.class.isAssignableFrom(field.getType())) {
         field.set(instance, this.homeController.getPlanController());
+      } else if (PropertyChangeSupport.class.isAssignableFrom(field.getType())) {
+        // TODO: Probably not useful since we call readObject
+        // Reinstantiate propertyChangeSupport fields
+        field.set(instance, new PropertyChangeSupport(instance));
       }
     }
 
     for (String key : jsonObject.keySet()) {
       Object jsonValue = jsonObject.get(key);
       Field field = getField(instance.getClass(), key);
-      if (field != null /*&& field.get(instance) == null*/ && !jsonValue.equals(JSONObject.NULL)) {
+      if (field != null && !jsonValue.equals(JSONObject.NULL)) {
         System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
         field.set(instance, deserialize(field.getGenericType(), jsonValue));
       }
@@ -381,6 +378,24 @@ public class HomeEditsDeserializer {
     if (instance instanceof HomeFurnitureGroup) {
       getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
     }
+
+    // Invoke readObject methods for local initializations
+    for (Class<?> type = instance.getClass(); type != Object.class; type = type.getSuperclass()) {
+      Method readObjectMethod = getMethod(type, "readObject", ObjectInputStream.class);
+      if (readObjectMethod != null) {
+        try {
+          readObjectMethod.invoke(instance, new ObjectInputStream() {
+            @Override
+            public void defaultReadObject() throws IOException, ClassNotFoundException {
+              // do nothing
+            }
+          });
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    
     return instance;
   }
 

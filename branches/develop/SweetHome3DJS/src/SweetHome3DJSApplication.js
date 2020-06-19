@@ -202,9 +202,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
     var propertyNames = Object.getOwnPropertyNames(origin);
     for (var j = 0; j < propertyNames.length; j++) {
       var propertyName = propertyNames[j];
-      // if (origin.constructor && origin.constructor.__transients && origin.constructor.__transients.indexOf(propertyName) != -1) {
-      //   continue;
-      // }
+      if (origin.constructor && origin.constructor.__transients && origin.constructor.__transients.indexOf(propertyName) != -1) {
+        continue;
+      }
       if (skippedPropertyNames.indexOf(propertyName) === -1) {
         var propertyValue = origin[propertyName];
         if (typeof propertyValue !== 'function' 

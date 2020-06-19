@@ -19,12 +19,16 @@
  */
 package com.eteks.sweethome3d.junit;
 
+import static def.dom.Globals.orientation;
+import static org.junit.Assert.assertNotEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.swing.undo.UndoableEdit;
 
@@ -84,8 +88,6 @@ public class DeserializationTest extends TestCase {
     assertTrue(homeObject.isPresent());
     assertTrue(homeObject.get() instanceof Polyline);
     Polyline polyline = (Polyline)homeObject.get();
-    assertEquals(68.08908081, polyline.getPoints()[1][0], 0.0001);
-    assertEquals(182.87162780, polyline.getPoints()[1][1], 0.0001);
     
     List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
           "["
@@ -97,7 +99,7 @@ public class DeserializationTest extends TestCase {
 
     assertEquals(-80.99411, polyline.getPoints()[1][0], 0.0001);
     assertEquals(165.1319, polyline.getPoints()[1][1], 0.0001);
-
+    
     File savedFile = File.createTempFile("save-", ".sh3d");
     recorder.writeHome(home, savedFile.getPath());
     assertTrue("Empty file", savedFile.length() > 0);
@@ -117,8 +119,8 @@ public class DeserializationTest extends TestCase {
     assertTrue(homeObject.isPresent());
     assertTrue(homeObject.get() instanceof Polyline);
     Polyline polyline = (Polyline)homeObject.get();
-    assertEquals(68.08908081, polyline.getPoints()[1][0], 0.0001);
-    assertEquals(182.87162780, polyline.getPoints()[1][1], 0.0001);
+    float orgX = polyline.getPoints()[1][0];
+    float orgY = polyline.getPoints()[1][1];
     
     List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
           "["
@@ -130,8 +132,8 @@ public class DeserializationTest extends TestCase {
     assertEquals(2, edits.size());
     HomeEditsDeserializer.applyEdits(edits);
 
-    assertEquals(68.08908081 - 18.666666666666657, polyline.getPoints()[1][0], 0.0001);
-    assertEquals(182.87162780 - 6.666666666666629, polyline.getPoints()[1][1], 0.0001);
+    assertEquals(orgX - 18.666666666666657, polyline.getPoints()[1][0], 0.0001);
+    assertEquals(orgY - 6.666666666666629, polyline.getPoints()[1][1], 0.0001);
 
     File savedFile = File.createTempFile("save-", ".sh3d");
     recorder.writeHome(home, savedFile.getPath());
@@ -151,18 +153,21 @@ public class DeserializationTest extends TestCase {
     Optional<HomeObject> homeObject = (Optional<HomeObject>)home.getHomeObjects().stream().filter(o -> "polyline-778b729f-47a8-4c70-a086-be423eceba59".equals(o.getId())).findFirst();
     assertTrue(homeObject.isPresent());
     assertTrue(homeObject.get() instanceof Polyline);
-    Polyline polyline = (Polyline)homeObject.get();
-    assertEquals(68.08908081, polyline.getPoints()[1][0], 0.0001);
-    assertEquals(182.87162780, polyline.getPoints()[1][1], 0.0001);
+    List<HomeObject> polylines = home.getHomeObjects().stream().filter(o -> o instanceof Polyline).collect(Collectors.toList());
+    int originalCount = polylines.size();
+    assertEquals(7, originalCount);
     
     List<UndoableEdit> edits = new HomeEditsDeserializer(home, tempFile, new File(".").toURI().toURL().toString()).deserializeEdits(
           "["
-        + "{\"_type\":\"javax.swing.undo.CompoundEdit\",\"edits\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.FurnitureController.FurnitureAdditionUndoableEdit\",\"allLevelsSelection\":false,\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"oldBasePlanLocked\":false,\"newFurniture\":[],\"newFurnitureIndex\":[],\"newFurnitureGroups\":null,\"newFurnitureLevels\":null,\"furnitureLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylinesCreationUndoableEdit\",\"oldSelection\":[],\"oldBasePlanLocked\":false,\"oldAllLevelsSelection\":false,\"newPolylines\":[\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\"],\"polylinesIndex\":[3],\"polylinesLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsAdditionEndUndoableEdit\",\"items\":[\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\"]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LocalizedUndoableEdit\"}],\"_newObjects\":{\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\":{\"_type\":\"com.eteks.sweethome3d.model.Polyline\",\"id\":\"polyline-78fb01da-921d-4246-a38b-1e83ff09f404\",\"properties\":null,\"points\":[[653.3392233333334,193.13189666666662],[605.4224133333333,205.53829666666664],[618.4499133333334,246.36086666666662],[583.4999133333333,257.85329666666667]],\"thickness\":3,\"capStyleName\":null,\"joinStyleName\":null,\"dashStyleName\":null,\"dashPattern\":null,\"dashOffset\":0.4,\"startArrowStyleName\":null,\"endArrowStyleName\":null,\"closedPath\":false,\"color\":-1638351,\"elevation\":0,\"level\":null}}}"
+        + "{\"_type\":\"javax.swing.undo.CompoundEdit\",\"inProgress\":false,\"edits\":[{\"_type\":\"com.eteks.sweethome3d.viewcontroller.FurnitureController.FurnitureAdditionUndoableEdit\",\"allLevelsSelection\":false,\"oldSelection\":[\"polyline-778b729f-47a8-4c70-a086-be423eceba59\"],\"oldBasePlanLocked\":false,\"newFurniture\":[],\"newFurnitureIndex\":[],\"newFurnitureGroups\":null,\"newFurnitureLevels\":null,\"furnitureLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.PolylinesCreationUndoableEdit\",\"oldSelection\":[],\"oldBasePlanLocked\":false,\"oldAllLevelsSelection\":false,\"newPolylines\":[\"polyline-f0fb19e5-1f01-44cb-8495-9acef8744519\"],\"polylinesIndex\":[7],\"polylinesLevel\":null,\"newBasePlanLocked\":false},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.PlanController.ItemsAdditionEndUndoableEdit\",\"items\":[\"polyline-f0fb19e5-1f01-44cb-8495-9acef8744519\"]},{\"_type\":\"com.eteks.sweethome3d.viewcontroller.LocalizedUndoableEdit\"}],\"_newObjects\":{\"polyline-f0fb19e5-1f01-44cb-8495-9acef8744519\":{\"_type\":\"com.eteks.sweethome3d.model.Polyline\",\"id\":\"polyline-f0fb19e5-1f01-44cb-8495-9acef8744519\",\"properties\":null,\"points\":[[110.00589,229.46523],[62.08908,241.87163],[75.116577,282.6942],[40.166579999999996,294.18665]],\"thickness\":3,\"capStyleName\":null,\"joinStyleName\":\"CURVED\",\"dashStyleName\":\"DASH\",\"dashPattern\":null,\"dashOffset\":0.4,\"startArrowStyleName\":\"OPEN\",\"endArrowStyleName\":null,\"closedPath\":false,\"color\":-1638351,\"elevation\":0,\"level\":null}}}"
         + "]"
     );
     assertEquals(1, edits.size());
     HomeEditsDeserializer.applyEdits(edits);
 
+    polylines = home.getHomeObjects().stream().filter(o -> o instanceof Polyline).collect(Collectors.toList());
+    assertEquals(originalCount + 1, polylines.size());
+    
     File savedFile = File.createTempFile("save-", ".sh3d");
     recorder.writeHome(home, savedFile.getPath());
     assertTrue("Empty file", savedFile.length() > 0);
