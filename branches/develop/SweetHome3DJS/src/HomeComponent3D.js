@@ -185,7 +185,22 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
       var simulatedElement = ev.target;
       var repeatKeyAction = function() {
           var attribute = simulatedElement.getAttribute("data-simulated-key");
-          component3D.callAction(attribute.substring(attribute.indexOf(":") + 1), ev);
+          var keyName = attribute.substring(attribute.indexOf(":") + 1);
+          var keyStroke = ""; 
+          if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
+            keyStroke += "control ";
+          }
+          if (ev.altKey || keyName.indexOf("alt ") != -1) {
+            keyStroke += "alt ";
+          }
+          if (ev.metaKey || keyName.indexOf("meta ") != -1) {
+            keyStroke += "meta ";
+          }
+          if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
+            keyStroke += "shift ";
+          }
+          keyStroke += "pressed " + keyName;
+          component3D.callAction(keyStroke, ev);
         };
       var stopInterval = function(ev) {
           window.clearInterval(intervalId);
@@ -988,16 +1003,15 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
   var component3D = this;
   this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
-        component3D.callAction(ev, "keydown");
+        component3D.callAction(convertKeyboardEventToKeyStroke(ev, "keydown"), ev);
       }, false);
 }
 
 /**
- * Runs the action bound to the key event in parameter.
+ * Runs the action bound to the key stroke in parameter.
  * @private 
  */
-HomeComponent3D.prototype.callAction = function(ev, keyType) {
-  var keyStroke = convertKeyboardEventToKeyStroke(ev, keyType);
+HomeComponent3D.prototype.callAction = function(keyStroke, ev) {
   if (keyStroke !== undefined) {
     var actionKey = this.inputMap [keyStroke];
     if (actionKey !== undefined) {

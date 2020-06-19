@@ -717,16 +717,16 @@ function convertKeyboardEventToKeyStroke(ev, keyEventType) {
   var keyStroke = ""; 
   var keyName = convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [ev.keyCode];
   if (keyName) {
-    if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
+    if (ev.ctrlKey) {
       keyStroke += "control ";
     }
-    if (ev.altKey || keyName.indexOf("alt ") != -1) {
+    if (ev.altKey) {
       keyStroke += "alt ";
     }
-    if (ev.metaKey || keyName.indexOf("meta ") != -1) {
+    if (ev.metaKey) {
       keyStroke += "meta ";
     }
-    if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
+    if (ev.shiftKey) {
       keyStroke += "shift ";
     }
     var nameWithoutVK = keyName.indexOf('VK_') === 0
