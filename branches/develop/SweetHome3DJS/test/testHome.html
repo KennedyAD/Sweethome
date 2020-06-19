@@ -813,7 +813,7 @@ application.getHomeRecorder().readHome(useServer ? "HomeTest" : "test/resources/
     {
       homeLoaded: function(home) {
         application.addHome(home);
-        setTimeout(testHomeModifications);
+        setTimeout(testHomeModifications, 1000);
       },
       homeError: function(err) {
         console.error(err);
