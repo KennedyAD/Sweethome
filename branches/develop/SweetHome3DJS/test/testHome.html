@@ -589,7 +589,7 @@ function testHomeModifications() {
   var firstPiece = application.getUserPreferences().getFurnitureCatalog().getCategories() [0].getFurniture() [0];
   homeController.getFurnitureCatalogController().setSelectedFurniture([firstPiece]);
   homeController.addHomeFurniture();
-  assertEquals("Wong id", home.getSelectedItems() [0].getCatalogId(), firstPiece.getId());
+  assertEquals("Wrong id", home.getSelectedItems() [0].getCatalogId(), firstPiece.getId());
   // Adding a piece not movable will unlock the plan automatically
   if (firstPiece.isMovable()) {
     planController.unlockBasePlan();
