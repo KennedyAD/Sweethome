@@ -19,7 +19,6 @@
  */
 package com.eteks.sweethome3d.io;
 
-import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -49,7 +48,6 @@ import org.json.JSONObject;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeObject;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Selectable;
@@ -67,8 +65,9 @@ import com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter;
 import sun.misc.Unsafe;
 
 /**
- * A class used to to deserialize undoable edits sent from a SweetHome3D client
+ * A class used to deserialize undoable edits sent from a SweetHome3D client
  * (see <code>IncrementalHomeRecorder</code>).
+ * 
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
  */
@@ -158,7 +157,7 @@ public class HomeEditsDeserializer {
     return null;
   }
 
-  private List<Field> getFields(Class<?> type) {
+  private List<Field> getDeclaredFields(Class<?> type) {
     List<Field> result = new ArrayList<Field>();
     Field[] fields = type.getDeclaredFields();
     for (Field field : fields) {
@@ -167,12 +166,9 @@ public class HomeEditsDeserializer {
       }
       result.add(field);
     }
-    if (type.getSuperclass() != Object.class) {
-      result.addAll(getFields(type.getSuperclass()));
-    }
     return result;
   }
-
+  
   private Method getMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
     try {
       Method method = type.getDeclaredMethod(name, parameterTypes);
@@ -232,7 +228,7 @@ public class HomeEditsDeserializer {
       if (this.homeObjects.containsKey(jsonValue)) {
         value = (T)this.homeObjects.get(jsonValue);
       } else {
-        throw new RuntimeException("Cannot find referenced home object " + valueType + ": " + jsonValue);
+        throw new RuntimeException("Cannot find referenced home object " + valueType.getTypeName() + ": " + jsonValue);
       }
     } else if (valueClass != null
                && valueClass.isEnum()) {
@@ -343,22 +339,18 @@ public class HomeEditsDeserializer {
     }
   }
 
-  private <T> T fillInstance(T instance, JSONObject jsonObject) throws ReflectiveOperationException {
-    for(Field field : getFields(instance.getClass())) {
+  private <T> T defaultFillInstance(Class<?> type, T instance, JSONObject jsonObject) throws ReflectiveOperationException {
+    for(Field field : getDeclaredFields(instance.getClass())) {
       if (Home.class.isAssignableFrom(field.getType())) {
         field.set(instance, this.home);
       } else if (PlanController.class.isAssignableFrom(field.getType())) {
         field.set(instance, this.homeController.getPlanController());
-      } else if (PropertyChangeSupport.class.isAssignableFrom(field.getType())) {
-        // TODO: Probably not useful since we call readObject
-        // Reinstantiate propertyChangeSupport fields
-        field.set(instance, new PropertyChangeSupport(instance));
       }
     }
 
     for (String key : jsonObject.keySet()) {
       Object jsonValue = jsonObject.get(key);
-      Field field = getField(instance.getClass(), key);
+      Field field = getField(type, key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
         System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
         field.set(instance, deserialize(field.getGenericType(), jsonValue));
@@ -375,24 +367,35 @@ public class HomeEditsDeserializer {
       getField(instance.getClass(), "inProgress").set(instance, false);
     }
 
-    if (instance instanceof HomeFurnitureGroup) {
-      getMethod(instance.getClass(), "addFurnitureListener").invoke(instance);
-    }
-
-    // Invoke readObject methods for local initializations
+    return instance;
+  }
+  
+  private <T> T fillInstance(T instance, JSONObject jsonObject) throws ReflectiveOperationException {
+    List<Class<?>> hierarchy = new ArrayList<Class<?>>();
     for (Class<?> type = instance.getClass(); type != Object.class; type = type.getSuperclass()) {
+      hierarchy.add(0, type);
+    }
+    
+    for (Class<?> type : hierarchy) {
+      // Invoke readObject methods for local initializations if exists (otherwise fallback to default)
       Method readObjectMethod = getMethod(type, "readObject", ObjectInputStream.class);
       if (readObjectMethod != null) {
         try {
           readObjectMethod.invoke(instance, new ObjectInputStream() {
             @Override
             public void defaultReadObject() throws IOException, ClassNotFoundException {
-              // do nothing
+              try {
+                defaultFillInstance(type, instance, jsonObject);
+              } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+              }
             }
           });
         } catch (Exception e) {
           e.printStackTrace();
         }
+      } else {
+        defaultFillInstance(type, instance, jsonObject);
       }
     }
     
