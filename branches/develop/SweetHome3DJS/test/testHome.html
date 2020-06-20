@@ -468,7 +468,7 @@ function testGeom() {
 /**
  * Tests Home, HomeComponent3D and HomeController3D classes.
  */
-function testHome(geomAvailable) {
+function testHome() {
   // Create a home with furniture
   var catalogPiece = new CatalogPieceOfFurniture("eTeks#Test", "Cube", "Test", null, ["Test"], null, 5, 
       new URLContent("test/resources/cube.png"), null, new URLContent("test/resources/cube.zip"), 100, 100, 100, 0, 1, 
@@ -494,9 +494,7 @@ function testHome(geomAvailable) {
   home.addPieceOfFurniture(group);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   assertEquals("Wrong number of pieces in group", 2, group.getFurniture().length);
-  if (geomAvailable) {
-      assertEquals("Wrong width", 150 + 50 * Math.sqrt(2), group.getWidth());
-  }
+  assertEquals("Wrong width", 150 + 50 * Math.sqrt(2), group.getWidth());
   home.deletePieceOfFurniture(piece);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   assertEquals("Wrong number of pieces in group", 1, group.getFurniture().length);
@@ -533,6 +531,7 @@ function testHomeModifications() {
   var home = application.getHomes() [0];
   var homeController = application.getHomeController(home);
   var planController = homeController.getPlanController();
+  var planView = planController.getView();
   
   var secondPieceInFurnitureGroup = home.getFurniture() [0].getFurniture() [1];
   var xPiece = secondPieceInFurnitureGroup.getX();
@@ -575,15 +574,16 @@ function testHomeModifications() {
       assertTrue("Group name invisible", home.getSelectedItems() [0].isNameVisible());
     },
     function() {
-      // Duplicate group
-      planController.pressMouse(xPiece, yPiece, 1, false, true);
+      // Duplicate group without magnetism enabled
+      planController.pressMouse(xPiece, yPiece, 1, false, false, true,
+          application.getUserPreferences().isMagnetismEnabled());
       planController.moveMouse(xPiece + 200, yPiece + 200);
       planController.releaseMouse(xPiece + 200, yPiece + 200);
       assertTrue("First piece isn't a group", home.getSelectedItems() [0] instanceof HomeFurnitureGroup);
       assertEquals("Wrong X in original group", xPiece, secondPieceInFurnitureGroup.getX());
       assertEquals("Wrong Y in original group", yPiece, secondPieceInFurnitureGroup.getY());
-      assertTrue("Wrong X in duplicate group", xPiece + 200 - home.getSelectedItems() [0].getFurniture() [1].getX() < 0.01);
-      assertTrue("Wrong Y in duplicate group", yPiece + 200 - home.getSelectedItems() [0].getFurniture() [1].getY() < 0.01);
+      assertTrue("Wrong X in duplicate group", Math.abs(xPiece + 200 - home.getSelectedItems() [0].getFurniture() [1].getX()) < 0.01);
+      assertTrue("Wrong Y in duplicate group", Math.abs(yPiece + 200 - home.getSelectedItems() [0].getFurniture() [1].getY()) < 0.01);
     },
     function() {
       var count = home.getFurniture().length;
@@ -643,8 +643,8 @@ function testHomeModifications() {
     function() {
       planController.alignSelectedFurnitureOnFrontSide();
       // Furniture should be located at the same place as in the original file
-      assertTrue("Wrong X", xPiece - home.getSelectedItems()[2].getX() < 0.01);
-      assertTrue("Wrong Y", yPiece - home.getSelectedItems()[2].getY() < 0.01);
+      assertTrue("Wrong X", Math.abs(xPiece - home.getSelectedItems()[2].getX()) < 0.01);
+      assertTrue("Wrong Y", Math.abs(yPiece - home.getSelectedItems()[2].getY()) < 0.01);
     },
     function() {
       // Handle background image
@@ -759,6 +759,81 @@ function testHomeModifications() {
       assertEquals("Wrong level", home.getLevels() [1], home.getSelectedItems() [0].getLevel()); 
     },
     function() {
+      // Drag and drop rotate indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [0];
+      planView.makePointVisible(indicatorLocation [0] - 1, indicatorLocation [1] - 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var size = piece.getWidth();
+      var indicatorLocation = piece.getPoints() [0];
+      var angle = piece.getAngle();
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 1);
+      planController.pressMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + size, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] + size, indicatorLocation [1]);
+      assertTrue("Angle didn't change", Math.abs(piece.getAngle() - angle) > 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Drag and drop elevation indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [1];
+      planView.makePointVisible(indicatorLocation [0] + 1, indicatorLocation [1] - 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [1];
+      var elevation = piece.getElevation();
+      planController.moveMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 1);
+      planController.pressMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 5);
+      planController.releaseMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 5);
+      assertTrue("Wrong elevation", Math.abs(piece.getElevation() - 4 - elevation) < 0.01);
+    },
+    function() {
+      // Drag and drop resize indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [2];
+      planView.makePointVisible(indicatorLocation [0] + 1, indicatorLocation [1] + 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [2];
+      var width = piece.getWidth();
+      var depth = piece.getDepth();
+      planController.moveMouse(indicatorLocation [0] + 1, indicatorLocation [1] + 1);
+      planController.pressMouse(indicatorLocation [0] + 1, indicatorLocation [1] + 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 5, indicatorLocation [1] + 5);
+      planController.releaseMouse(indicatorLocation [0] + 5, indicatorLocation [1] + 5);
+      assertTrue("Wrong width", Math.abs(piece.getWidth() - 4 - width) < 0.01);
+      assertTrue("Wrong depth", Math.abs(piece.getDepth() - 4 - depth) < 0.1);
+    },
+    function() {
+      // Drag and drop height indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [3];
+      planView.makePointVisible(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [3];
+      var height = piece.getHeight();
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+      planController.pressMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 3);
+      planController.releaseMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 3);
+      assertTrue("Wrong height", Math.abs(piece.getHeight() - 4 - height) < 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
       // Modify furniture
       var controller = new HomeFurnitureController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
       controller.setAngleInDegrees(45);
@@ -769,6 +844,24 @@ function testHomeModifications() {
       controller.setPitch(0.787);
       controller.modifyFurniture();
       assertEquals("Wrong pitch", 0.787, home.getSelectedItems() [0].getPitch()); 
+    },
+    function() {
+      // Drag and drop pitch indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [3];
+      planView.makePointVisible(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [3];
+      var pitch = piece.getPitch();
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+      planController.pressMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 10, indicatorLocation [1] + 1);
+      planController.releaseMouse(indicatorLocation [0] + 10, indicatorLocation [1] + 1);
+      assertTrue("Pitch didn't change", Math.abs(piece.getPitch() - pitch) > 0.01);
+    },
+    function() {
+      homeController.undo();
     },
     function() {
       // Copy to paste style later
@@ -830,6 +923,23 @@ function testHomeModifications() {
       assertEquals("Wrong wall Y start", 0, home.getSelectedItems() [0].getYStart()); 
     },
     function() {
+      // Drag and drop wall size indicator
+      var wall = home.getSelectedItems() [3];
+      var wallXStart = wall.getXStart();
+      var indicatorLocation = [wallXStart, wall.getYStart()];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] - 3, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] - 3, indicatorLocation [1]);
+      assertTrue("Wrong wall X start", Math.abs(wall.getXStart() + 3 - wallXStart) < 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
       // Modify walls
       var controller = new WallController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
       controller.setPattern(application.getUserPreferences().getPatternsCatalog().getPatterns() [3]);
@@ -863,6 +973,24 @@ function testHomeModifications() {
       var length = home.getSelectedItems() [0].getLength();
       homeController.undo();
       assertEquals("Wrong wall length", length * 2, home.getSelectedItems() [0].getLength());   
+    },
+    function() {
+      // Drag and drop wall arc extent indicator
+      var wall = home.getSelectedItems() [0];
+      var wallArcExtent = wall.getArcExtent();
+      var wallLength = wall.getLength();
+      var indicatorLocation = [(wall.getXStart() + wall.getXEnd()) / 2, (wall.getYStart() + wall.getYEnd()) / 2];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1] - wallLength / 2);
+      planController.releaseMouse(indicatorLocation [0], indicatorLocation [1] - wallLength / 2);
+      assertTrue("Wrong wall arc extent", Math.abs(wall.getArcExtent() - Math.PI) < 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
     },
     function() {
       // Draw a room by double clicking within walls
@@ -900,12 +1028,27 @@ function testHomeModifications() {
       homeController.redo();
     },
     function() {
-      // Delete point fromm room
+      // Delete point from room
       var room = home.getSelectedItems() [0];
       var roomPoints = room.getPoints();
       var count = roomPoints.length;
       planController.deletePointFromSelectedRoom(roomPoints [1][0], roomPoints [1][1]);
       assertEquals("Wrong room points count", count - 1, room.getPoints().length); 
+    },
+    function() {
+      // Move first point of room without magnetism enabled
+      var room = home.getSelectedItems() [0];
+      var indicatorLocation = room.getPoints() [0];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false, false,
+          application.getUserPreferences().isMagnetismEnabled());
+      planController.moveMouse(indicatorLocation [0] - 10, indicatorLocation [1]  - 10);
+      planController.releaseMouse(indicatorLocation [0] - 10, indicatorLocation [1]  - 10);
+      assertTrue("Wrong room point", Math.abs(room.getPoints() [0][0] + 10 - indicatorLocation[0]) < 0.01); 
+      assertTrue("Wrong room point", Math.abs(room.getPoints() [0][1] + 10 - indicatorLocation[1]) < 0.01); 
+    },
+    function() {
+      homeController.undo();
     },
     function() {
       // Modify rooms
@@ -970,6 +1113,20 @@ function testHomeModifications() {
       assertEquals("Wrong undone elevation", 0, home.getSelectedItems() [0].getElevation()); 
     },
     function() {
+      // Move first point of polyline without magnetism enabled
+      var polyline = home.getSelectedItems() [0];
+      var indicatorLocation = polyline.getPoints() [0];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false, false,
+          application.getUserPreferences().isMagnetismEnabled());
+      planController.moveMouse(indicatorLocation [0] - 10, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] - 10, indicatorLocation [1]);
+      assertTrue("Wrong polyline point", Math.abs(polyline.getPoints() [0][0] + 10 - indicatorLocation[0]) < 0.01); 
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
       // Draw a dimension line
       planController.setMode(PlanController.Mode.DIMENSION_LINE_CREATION);
     },
@@ -994,6 +1151,20 @@ function testHomeModifications() {
       planController.releaseMouse(xMiddle, wallPoints [0][1] + 20);
       assertEquals("Wrong dimension line count", 1, home.getSelectedItems().length); 
       assertTrue("Wrong type", home.getSelectedItems() [0] instanceof DimensionLine); 
+    },
+    function() {
+      planController.setMode(PlanController.Mode.SELECTION);
+    },
+    function() {
+      // Drag and drop dimension line size indicator
+      var dimensionLine = home.getSelectedItems() [0];
+      var dimensionLineXEnd = dimensionLine.getXEnd();
+      var indicatorLocation = [dimensionLineXEnd, dimensionLine.getYEnd()];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      assertTrue("Wrong dimension line X end", Math.abs(dimensionLine.getXEnd() - 20 - dimensionLineXEnd) < 0.01);
     },
     function() {
       // Add a text
@@ -1046,12 +1217,33 @@ function testHomeModifications() {
       assertEquals("Wrong undone walls alpha", 0, home.getEnvironment().getWallsAlpha()); 
     },
     function() {
+      planController.selectItem(home.getCompass());
+      planView.makeSelectionVisible();
+    },
+    function() {
       // Modify compass
       var controller = new CompassController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
       controller.setDiameter(100);
       controller.setNorthDirectionInDegrees(0);
       controller.modifyCompass();
       assertEquals("Wrong compass diameter", 100, home.getCompass().getDiameter()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone diameter", 62, home.getCompass().getDiameter()); 
+    },
+    function() {
+      // Drag and drop compass size indicator
+      var compass = home.getSelectedItems() [0];
+      var diameter = compass.getDiameter();
+      var compassPoints = compass.getPoints();
+      var indicatorLocation = [(compassPoints [1][0] + compassPoints [2][0]) / 2,
+                               (compassPoints [1][1] + compassPoints [2][1]) / 2];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      assertTrue("Compass size not change", Math.abs(compass.getDiameter() - diameter) > 0.1);
     },
     function() {
       homeController.undo();
@@ -1096,7 +1288,7 @@ testLocalization();
 testLengthUnit();
 testFurnitureCatalog();
 testGeom();
-testHome(geomAvailable);
+testHome();
 </script>
 
 <!--  HTML Elements of the user interface -->
