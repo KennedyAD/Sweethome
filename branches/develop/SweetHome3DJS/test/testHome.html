@@ -564,6 +564,15 @@ function testHomeModifications() {
     function() {
       homeController.redo();
       assertEquals("Selection wrong selection count", 1, home.getSelectedItems().length);
+      assertTrue("Group name visible", !home.getSelectedItems() [0].isNameVisible());
+    },
+    function() {
+      // Undo again to keep group name visible
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+      assertTrue("Group name invisible", home.getSelectedItems() [0].isNameVisible());
     },
     function() {
       // Duplicate group
@@ -1086,20 +1095,16 @@ function runActions(actions, index) {
 testLocalization();
 testLengthUnit();
 testFurnitureCatalog();
-var geomAvailable = typeof java.awt.geom.PathIterator !== "undefined";
-if (geomAvailable) {
-  testGeom();
-}
+testGeom();
 testHome(geomAvailable);
 </script>
 
+<!--  HTML Elements of the user interface -->
 <div id="home-pane">
 
-  <canvas id="home-3D-view" style="background-color: #CCCCCC; border: 1px solid gray;" 
-          tabIndex="1"></canvas>
+  <canvas id="home-3D-view" style="background-color: #CCCCCC; border: 1px solid gray;" tabIndex="1"></canvas>
 
-  <div id="home-plan" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
-          tabIndex="2" ></div>
+  <div id="home-plan" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000" tabIndex="2" ></div>
 
   <div id="home-pane-toolbar"></div>
 
@@ -1108,7 +1113,6 @@ testHome(geomAvailable);
 </div>
 
 <script type="text/javascript">
-
 // If true, requires the server to be properly started on localhost:8080
 var useServer = false;
 
