@@ -1305,7 +1305,8 @@ testHome();
 </div>
 
 <script type="text/javascript">
-// If true, requires the server to be properly started on localhost:8080
+// If true, requires the server to be properly started on localhost:8080 with a ROOT path 
+// and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
 var useServer = false;
 
 var application = new SweetHome3DJSApplication(useServer ? "http://localhost:8080" : undefined);
