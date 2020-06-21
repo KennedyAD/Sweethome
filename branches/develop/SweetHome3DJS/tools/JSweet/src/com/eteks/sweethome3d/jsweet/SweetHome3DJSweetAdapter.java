@@ -41,7 +41,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 import org.jsweet.JSweetConfig;
-import org.jsweet.transpiler.Java2TypeScriptTranslator;
 import org.jsweet.transpiler.extension.AnnotationManager;
 import org.jsweet.transpiler.extension.PrinterAdapter;
 import org.jsweet.transpiler.model.CaseElement;
@@ -204,11 +203,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     // Replace some Java implementations with some JavaScript-specific
     // implementations
 
-    // Ignore polyline thickness because BasicStroke#createStrokedShape isn't
-    // available
-    addAnnotation(
-        "@Replace('if (this.shapeCache == null) { this.shapeCache = this.getPolylinePath(); } return this.shapeCache; ')",
-        "com.eteks.sweethome3d.model.Polyline.getShape()");
     // Manage content without contentContext
     addAnnotation(
         "@Replace('if (contentFile == null) { return null; } else if (contentFile.indexOf('://') >= 0) { return new URLContent(contentFile); } else { return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); }')",
@@ -254,6 +248,10 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             return true;
           }
         }
+      case "java.awt.BasicStroke":
+        // Hack to access java.awt.BasicStroke class available in stroke.min.js
+        print("new java['awt']['BasicStroke'](").printArgList(newClass.getArguments()).print(")");
+        return true;
     }
     return super.substituteNewClass(newClass);
   }
@@ -631,5 +629,5 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     super.afterType(type);
   }
-  
+
 }
