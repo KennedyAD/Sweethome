@@ -511,6 +511,7 @@
         <include name="THIRDPARTY-LICENSE-GLMATRIX.TXT"/>
         <include name="THIRDPARTY-LICENSE-JSXMLSAXPARSER.TXT"/>
         <include name="THIRDPARTY-LICENSE-JSZIP.TXT"/>
+      	<include name="THIRDPARTY-LICENSE-JSON-ORG.TXT"/>
         <include name="THIRDPARTY-LICENSE-OPEN-JDK.TXT"/>
       </zipfileset>
     </zip>
