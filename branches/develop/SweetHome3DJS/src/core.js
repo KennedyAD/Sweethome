@@ -273,8 +273,8 @@ var Locale = {}
  * Gets the default locale.
  */
 Locale.getDefault = function() {
-  if (window && window.defaultLocaleLanguage) {
-    return window.defaultLocaleLanguage;
+  if (window && window.defaultLocaleLanguageAndCountry) {
+    return window.defaultLocaleLanguageAndCountry;
   } else if (navigator && navigator.language && navigator.language.indexOf('-') >= 0) {
     var locale = navigator.language.split('-');
     return locale[0] + "_" + locale[1].toUpperCase();
@@ -288,7 +288,7 @@ Locale.getDefault = function() {
  */
 Locale.setDefault = function(language) {
   if (window) {
-    window.defaultLocaleLanguage = language;
+    window.defaultLocaleLanguageAndCountry = language;
   }
 }
 

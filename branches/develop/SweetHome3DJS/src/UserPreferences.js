@@ -107,7 +107,19 @@ UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) 
     if (this.language === undefined) {
       this.language = "en";
     }
+    this.updateDefaultLocale();
+  }
+}
+
+/**
+ * Updates default locale from preferences language.
+ * @private
+ */
+UserPreferences.prototype.updateDefaultLocale = function() {
+  if (this.language.indexOf("_") !== -1) {
     Locale.setDefault(this.language);
+  } else {
+    Locale.setDefault(this.language + "_" + this.defaultCountry);
   }
 }
 
@@ -332,12 +344,12 @@ UserPreferences.prototype.getLocalizedStringKeys = function(resourceFamily) {
 UserPreferences.prototype.getResourceBundles = function(resourceClass) {
   if(resourceClass == "DefaultFurnitureCatalog") {
     if (this.furnitureCatalogResourceBundles.length == 0) {
-      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("lib/resources/DefaultFurnitureCatalog", this.language);
+      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("lib/resources/DefaultFurnitureCatalog", Locale.getDefault());
     }
     return this.furnitureCatalogResourceBundles;
   } else {
     if (this.resourceBundles.length == 0) {
-      this.resourceBundles = CoreTools.loadResourceBundles("lib/resources/localization", this.language);
+      this.resourceBundles = CoreTools.loadResourceBundles("lib/resources/localization", Locale.getDefault());
     }
     return this.resourceBundles;
   } 
@@ -1012,7 +1024,7 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   this.setTexturesCatalog(new TexturesCatalog());
   
   this.setNavigationPanelVisible(false);
-  this.setUnit(LengthUnit.CENTIMETER);
+  this.setUnit(Locale.getDefault() == "en_US" ? LengthUnit.INCH : LengthUnit.CENTIMETER);
   this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
   this.setNewWallPattern(this.getWallPattern());
 }
@@ -1029,16 +1041,12 @@ DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
  */
 function DefaultPatternTexture(name) {
   this.name = name;
-  this.image = Object.defineProperty(this, 'image', 
-       {value: new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png"), 
-        writable: true, 
-        configurable: true, 
-        enumerable: true, 
-        _transient: true}).image;
+  this.image = new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png");
 }
 
 DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";
 DefaultPatternTexture["__interfaces"] = ["com.eteks.sweethome3d.model.TextureImage"];
+DefaultPatternTexture['__transients'] = ["image"];
 
 /**
  * Returns the name of this texture.

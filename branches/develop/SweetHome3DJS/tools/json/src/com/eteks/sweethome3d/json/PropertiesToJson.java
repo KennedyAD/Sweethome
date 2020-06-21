@@ -50,8 +50,8 @@ import org.json.JSONObject;
  */
 public class PropertiesToJson {
   public static void main(String[] args) throws IOException {
-    String[] supportedLanguages = {"", "_bg", "_cs", "_de", "_el", "_en", "_es", "_fr", "_it", "_ja", "_hu", "_nl",
-        "_pl", "_pt", "_ru", "_sv", "_vi", "_zh_CN", "_zh_TW"};
+    String[] supportedLanguages = {"", "bg", "cs", "de", "el", "en_AU", "en_CA", "en_US", "es", "fr", "it", "ja", "hu", "nl",
+        "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"};
 
     if (args.length >= 5) {
       convert(args [0],               // Source root
@@ -83,33 +83,32 @@ public class PropertiesToJson {
 
   private static void convert(String sourceRoot, String[] sourcePropertyFiles,
                               String outputDirectory, String outputName, String resourcesOutputDirectory,
-                              boolean copyResources, String[] supportedLanguages)
-      throws IOException {
+                              boolean copyResources, String[] supportedLanguages) throws IOException {
     new File(outputDirectory).mkdirs();
     for (String language : supportedLanguages) {
-      Path outputFilePath = Paths.get(outputDirectory, outputName + language + ".json");
-      System.out.println("Generating " + outputFilePath + "...");
-      outputFilePath.toFile().delete();
-      outputFilePath.toFile().createNewFile();
-
       Properties mergedProperties = new Properties();
       for (String sourcePropertyFile : sourcePropertyFiles) {
         File sourceFile = new File(sourceRoot, sourcePropertyFile);
         File directory = sourceFile.getParentFile();
         String propertyFileName = sourceFile.getName();
         for (File file : directory.listFiles()) {
-          if (file.getName().equals(propertyFileName + language + ".properties")) {
+          if ("".equals(language) && file.getName().equals(propertyFileName + ".properties")
+              || !"".equals(language) && file.getName().matches(propertyFileName + "_" + language + ".properties")) {
             Properties properties = new Properties();
             properties.load(new FileInputStream(file));
             System.out.println("Loading " + properties.size() + " properties from " + file + ".");
             mergedProperties.putAll(properties);
           }
         }
-        afterLoaded(mergedProperties, sourceRoot, resourcesOutputDirectory, propertyFileName, copyResources, "".equals(language) ? "en" : language.substring(1));
+        afterLoaded(mergedProperties, sourceRoot, resourcesOutputDirectory, propertyFileName, copyResources,
+            "".equals(language) ? "en" : language);
       }
-      System.out.println("Writing " + mergedProperties.size() + " properties to " + outputFilePath + ".");
-      Files.write(outputFilePath, (new JSONObject(mergedProperties).toString(2) + "\n").getBytes("UTF-8"),
-          StandardOpenOption.APPEND);
+      if (mergedProperties.size() > 0) {
+        Path outputFilePath = Paths.get(outputDirectory, outputName + ("".equals(language) ? "" : "_") + language + ".json");
+        System.out.println("Writing " + mergedProperties.size() + " properties to " + outputFilePath + ".");
+        Files.write(outputFilePath, (new JSONObject(mergedProperties).toString(2) + "\n").getBytes("UTF-8"),
+            StandardOpenOption.CREATE);
+      }
     }
   }
 
