@@ -69,8 +69,8 @@ if (homeName != null) {
     }
   }
   
-  try (OutputStream serlvetOut = response.getOutputStream()) {
-    serlvetOut.write(homeFileContent);
+  try (OutputStream servletOut = response.getOutputStream()) {
+    servletOut.write(homeFileContent);
   }
 }
 %>
