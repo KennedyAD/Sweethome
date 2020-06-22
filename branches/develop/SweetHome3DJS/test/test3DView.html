@@ -146,6 +146,7 @@ function test3DView() {
                 var patterns = preferences.getPatternsCatalog().getPatterns();
                 wall1.setPattern(patterns [(patterns.indexOf(wall1.getPattern()) + 1) % patterns.length])                
                 wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
+                // Ground around room will be computed only for a home file which doesn't include a precomputed structure
                 room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
                 // Update label with current time
                 label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
