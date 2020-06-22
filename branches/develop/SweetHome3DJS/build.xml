@@ -387,12 +387,36 @@
     </path>
     <property name="yuicompressor.jar" refid="yuicompressor.jar" />
     <!-- Minify Javascript files -->
+    <java jar="${yuicompressor.jar}" fork="true">
+      <arg value="lib/generated/swingundo.js" />
+      <arg value="-o" />
+      <arg value="dist/build/swingundo.min.js" />
+    </java>
   	<java jar="${yuicompressor.jar}" fork="true">
       <arg value="dist/build/sweethome3d.min.js" />
       <arg value="-o" />
       <arg value="dist/build/sweethome3d.min.js" />
     </java>
   	
+    <!-- Add core.js GNU GPL header to swingundo.min.js -->
+    <concat destfile="dist/swingundo.min.js" encoding="UTF-8">
+      <file file="src/core.js" />
+      <filterchain>
+        <headfilter lines="24" />
+        <tokenfilter>
+          <replacestring from="core.js" to="swingundo.min.js  version ${version}" />
+        </tokenfilter>
+      </filterchain>
+    </concat>
+    <concat destfile="dist/swingundo.min.js" encoding="UTF-8" append="true">
+      <file name="lib/generated/swingundo.js" />
+      <filterchain>
+        <headfilter lines="1" skip="5" />
+      </filterchain>
+    </concat>
+    <concat destfile="dist/swingundo.min.js" encoding="UTF-8" append="true">
+      <file name="dist/build/swingundo.min.js" />
+    </concat>
     <!-- Add header.js GNU GPL header to sweethome3d.min.js -->
     <copy file="dist/build/sweethome3d.min.js" tofile="dist/sweethome3d.min.js"/>
     <concat destfile="dist/sweethome3d.min.js" encoding="UTF-8">
@@ -477,7 +501,7 @@
       </classpath>
     </javac>
     <copy todir="deploy/lib">
-      <fileset dir="lib" />
+      <fileset dir="lib" excludes="generated/**" />
     </copy>
     <copy todir="deploy/lib">
       <fileset dir="dist" />

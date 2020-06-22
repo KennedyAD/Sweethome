@@ -37,8 +37,8 @@
 <script type="text/javascript" src="lib/core.min.js"></script>
 <script type="text/javascript" src="lib/geom.min.js"></script>
 <script type="text/javascript" src="lib/stroke.min.js"></script>
-<script type="text/javascript" src="lib/generated/swingundo.js"></script>
-<script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="lib/swingundo.min.js"></script>
+<script type="text/javascript" src="lib/batik-svgpathparser.min.js"></script>
 <script type="text/javascript" src="lib/triangulator.min.js"></script>
 <script type="text/javascript" src="lib/sweethome3d.min.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
