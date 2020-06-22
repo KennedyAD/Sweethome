@@ -246,10 +246,10 @@ UserPreferences.prototype.setLanguage = function(language) {
   if (language != this.language && this.isLanguageEditable()) {
     var oldLanguage = this.language;
     this.language = language;
+    // Make it accessible to other localized parts (e.g. LengthUnit)
+    this.updateDefaultLocale();
     this.resourceBundles = [];
     this.furnitureCatalogResourceBundles = [];
-    // make it accessible to other localized parts (e.g. LengthUnit)
-    Locale.setDefault(this.language);
     this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
   }
 }
