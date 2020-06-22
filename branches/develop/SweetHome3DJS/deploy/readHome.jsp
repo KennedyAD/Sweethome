@@ -1,4 +1,4 @@
-<!--
+<%--
    readHome.jsp 
    
    Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--->
+--%>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.*" %>
 <%@page import="java.nio.file.*"%>
@@ -24,53 +24,50 @@
 <%@page import="java.util.zip.*"%>
 <%@page import="com.eteks.sweethome3d.model.Home"%>
 <%@page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
-<%
-  out.clear();
-String homeName = request.getParameter("home");
+<% out.clear();
+   String homeName = request.getParameter("home");
 
-if (homeName != null) {
-  String homesFolder = getServletContext().getRealPath("/homes");
-  File homeFile = new File(homesFolder, homeName + ".sh3d");
-  if (!homeFile.exists()) {
-    // Create a new empty home
-    new HomeServerRecorder(9, null).writeHome(new Home(), homeFile.getPath());
-  }
+   if (homeName != null) {
+     String homesFolder = getServletContext().getRealPath("/homes");
+     File homeFile = new File(homesFolder, homeName + ".sh3d");
+     if (!homeFile.exists()) {
+       // Create a new empty home
+       new HomeServerRecorder(9, null).writeHome(new Home(), homeFile.getPath());
+     }
   
-  Path referenceCopy = null;
-  if (HomeServerRecorder.isFileWithContent(homeFile)) {
-    // Create a copy of the file and store it as a session attribute
-    // to be able to reference some of its content during edition
-    referenceCopy = Files.createTempFile("open-", ".sh3d");
-    Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
+     Path referenceCopy = null;
+     if (HomeServerRecorder.isFileWithContent(homeFile)) {
+       // Create a copy of the file and store it as a session attribute
+       // to be able to reference some of its content during edition
+       referenceCopy = Files.createTempFile("open-", ".sh3d");
+       Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
     
-    File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
-    if (previousOpenedFile != null) {
-      previousOpenedFile.delete();
-    }
-    request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
-    // TODO How to handle homes saved once the session has expired ?
-    // TODO Delete temporary files when user quits
-    homeFile = referenceCopy.toFile();
-  }
+       File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
+       if (previousOpenedFile != null) {
+         previousOpenedFile.delete();
+       }
+       request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
+       // TODO How to handle homes saved once the session has expired ?
+       // TODO Delete temporary files when user quits
+       homeFile = referenceCopy.toFile();
+     }
   
+     response.setIntHeader("Content-length", (int)homeFile.length());
+     response.setHeader("Content-Disposition", "attachment; filename=" + homeFile.getName());
+     byte [] homeFileContent;
+     synchronized (homeFile.getAbsolutePath().intern()) {
+       try (InputStream input = new FileInputStream(homeFile);
+            ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+         byte[] buffer = new byte[8096];
+         int size;
+         while ((size = input.read(buffer)) != -1) {
+           output.write(buffer, 0, size);
+         }
+         homeFileContent = output.toByteArray();
+       }
+     }
   
-  response.setIntHeader("Content-length", (int)homeFile.length());
-  response.setHeader("Content-Disposition", "attachment; filename=" + homeFile.getName());
-  byte [] homeFileContent;
-  synchronized (homeFile.getAbsolutePath().intern()) {
-    try (InputStream input = new FileInputStream(homeFile);
-         ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-      byte[] buffer = new byte[8096];
-      int size;
-      while ((size = input.read(buffer)) != -1) {
-        output.write(buffer, 0, size);
-      }
-      homeFileContent = output.toByteArray();
-    }
-  }
-  
-  try (OutputStream servletOut = response.getOutputStream()) {
-    servletOut.write(homeFileContent);
-  }
-}
-%>
+     try (OutputStream servletOut = response.getOutputStream()) {
+       servletOut.write(homeFileContent);
+     }
+   } %>
