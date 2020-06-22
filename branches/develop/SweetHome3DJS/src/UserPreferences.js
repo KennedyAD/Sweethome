@@ -56,6 +56,7 @@ function UserPreferences() {
   this.newWallHeight = 250;
   this.newWallBaseboardThickness = 1;
   this.newWallBaseboardHeight = 7;
+  this.newRoomFloorColor = null;
   this.newFloorThickness = 12;
   this.recentHomes = [];
   this.autoSaveDelayForRecovery;
@@ -452,7 +453,6 @@ UserPreferences.prototype.isObserverCameraSelectedAtChange = function() {
 /**
  * Returns <code>true</code> if magnetism is enabled.
  * @return <code>true</code> by default.
- * @ignore
  */
 UserPreferences.prototype.isMagnetismEnabled = function() {
   return this.magnetismEnabled;
@@ -463,7 +463,6 @@ UserPreferences.prototype.isMagnetismEnabled = function() {
  * listeners of this change. 
  * @param magnetismEnabled <code>true</code> if magnetism is enabled,
  *          <code>false</code> otherwise.
- * @ignore
  */
 UserPreferences.prototype.setMagnetismEnabled = function(magnetismEnabled) {
   if (this.magnetismEnabled !== magnetismEnabled) {
@@ -500,7 +499,6 @@ UserPreferences.prototype.setRulersVisible = function(rulersVisible) {
 /**
  * Returns <code>true</code> if plan grid visible.
  * @return <code>true</code> by default.
- * @ignore
  */
 UserPreferences.prototype.isGridVisible = function() {
   return this.gridVisible;
@@ -511,7 +509,6 @@ UserPreferences.prototype.isGridVisible = function() {
  * listeners of this change. 
  * @param gridVisible <code>true</code> if grid is visible,
  *          <code>false</code> otherwise.
- * @ignore
  */
 UserPreferences.prototype.setGridVisible = function(gridVisible) {
   if (this.gridVisible !== gridVisible) {
@@ -524,7 +521,6 @@ UserPreferences.prototype.setGridVisible = function(gridVisible) {
 /**
  * Returns the name of the font that should be used by default or <code>null</code> 
  * if the default font should be the default one in the application.
- * @ignore
  */
 UserPreferences.prototype.getDefaultFontName = function() {
   return this.defaultFontName;
@@ -532,7 +528,6 @@ UserPreferences.prototype.getDefaultFontName = function() {
 
 /**
  * Sets the name of the font that should be used by default.
- * @ignore
  */
 UserPreferences.prototype.setDefaultFontName = function(defaultFontName) {
   if (defaultFontName != this.defaultFontName) {
@@ -544,7 +539,6 @@ UserPreferences.prototype.setDefaultFontName = function(defaultFontName) {
 
 /**
  * Returns <code>true</code> if furniture should be viewed from its top in plan.
- * @ignore
  */
 UserPreferences.prototype.isFurnitureViewedFromTop = function() {
   return this.furnitureViewedFromTop;
@@ -555,7 +549,6 @@ UserPreferences.prototype.isFurnitureViewedFromTop = function() {
  * listeners of this change. 
  * @param furnitureViewedFromTop if <code>true</code> the furniture 
  *    should be viewed from its top.
- * @ignore
  */
 UserPreferences.prototype.setFurnitureViewedFromTop = function(furnitureViewedFromTop) {
   if (this.furnitureViewedFromTop !== furnitureViewedFromTop) {
@@ -568,7 +561,6 @@ UserPreferences.prototype.setFurnitureViewedFromTop = function(furnitureViewedFr
 /**
  * Returns the size used to generate icons of furniture viewed from top.
  * @since 5.5
- * @ignore
  */
 UserPreferences.prototype.getFurnitureModelIconSize = function() {
   return this.furnitureModelIconSize;
@@ -577,7 +569,6 @@ UserPreferences.prototype.getFurnitureModelIconSize = function() {
 /**
  * Sets the name of the font that should be used by default.
  * @since 5.5
- * @ignore
  */
 UserPreferences.prototype.setFurnitureModelIconSize = function(furnitureModelIconSize) {
   if (furnitureModelIconSize !== this.furnitureModelIconSize) {
@@ -588,10 +579,8 @@ UserPreferences.prototype.setFurnitureModelIconSize = function(furnitureModelIco
 }
 
 /**
- * Returns <code>true</code> if room floors should be rendered with color or texture 
- * in plan.
+ * Returns <code>true</code> if room floors should be rendered with color or texture in plan.
  * @return <code>false</code> by default.
- * @ignore
  */
 UserPreferences.prototype.isRoomFloorColoredOrTextured = function() {
   return this.roomFloorColoredOrTextured;
@@ -602,7 +591,6 @@ UserPreferences.prototype.isRoomFloorColoredOrTextured = function() {
  * and notifies listeners of this change. 
  * @param roomFloorColoredOrTextured <code>true</code> if floor color 
  *          or texture is used, <code>false</code> otherwise.
- * @ignore
  */
 UserPreferences.prototype.setFloorColoredOrTextured = function(roomFloorColoredOrTextured) {
   if (this.roomFloorColoredOrTextured !== roomFloorColoredOrTextured) {
@@ -636,7 +624,6 @@ UserPreferences.prototype.setWallPattern = function(wallPattern) {
 
 /**
  * Returns the pattern used for new walls in plan or <code>null</code> if it's not set.
- * @ignore
  */
 UserPreferences.prototype.getNewWallPattern = function() {
   return this.newWallPattern;
@@ -645,7 +632,6 @@ UserPreferences.prototype.getNewWallPattern = function() {
 /**
  * Sets how new walls should be displayed in plan, and notifies
  * listeners of this change.
- * @ignore
  */
 UserPreferences.prototype.setNewWallPattern = function(newWallPattern) {
   if (this.newWallPattern !== newWallPattern) {
@@ -658,7 +644,6 @@ UserPreferences.prototype.setNewWallPattern = function(newWallPattern) {
 
 /**
  * Returns default thickness of new walls in home. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallThickness = function() {
   return this.newWallThickness;
@@ -667,7 +652,6 @@ UserPreferences.prototype.getNewWallThickness = function() {
 /**
  * Sets default thickness of new walls in home, and notifies
  * listeners of this change.  
- * @ignore
  */
 UserPreferences.prototype.setNewWallThickness = function(newWallThickness) {
   if (this.newWallThickness !== newWallThickness) {
@@ -680,7 +664,6 @@ UserPreferences.prototype.setNewWallThickness = function(newWallThickness) {
 
 /**
  * Returns default wall height of new home walls. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallHeight = function() {
   return this.newWallHeight;
@@ -689,7 +672,6 @@ UserPreferences.prototype.getNewWallHeight = function() {
 /**
  * Sets default wall height of new walls, and notifies
  * listeners of this change. 
- * @ignore
  */
 UserPreferences.prototype.setNewWallHeight = function(newWallHeight) {
   if (this.newWallHeight !== newWallHeight) {
@@ -702,7 +684,6 @@ UserPreferences.prototype.setNewWallHeight = function(newWallHeight) {
 
 /**
  * Returns default baseboard thickness of new walls in home. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallBaseboardThickness = function() {
   return this.newWallBaseboardThickness;
@@ -711,7 +692,6 @@ UserPreferences.prototype.getNewWallBaseboardThickness = function() {
 /**
  * Sets default baseboard thickness of new walls in home, and notifies
  * listeners of this change.  
- * @ignore
  */
 UserPreferences.prototype.setNewWallBaseboardThickness = function(newWallBaseboardThickness) {
   if (this.newWallBaseboardThickness !== newWallBaseboardThickness) {
@@ -724,7 +704,6 @@ UserPreferences.prototype.setNewWallBaseboardThickness = function(newWallBaseboa
 
 /**
  * Returns default baseboard height of new home walls. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallBaseboardHeight = function() {
   return this.newWallBaseboardHeight;
@@ -733,7 +712,6 @@ UserPreferences.prototype.getNewWallBaseboardHeight = function() {
 /**
  * Sets default baseboard height of new walls, and notifies
  * listeners of this change. 
- * @ignore
  */
 UserPreferences.prototype.setNewWallBaseboardHeight = function(newWallBaseboardHeight) {
   if (this.newWallBaseboardHeight !== newWallBaseboardHeight) {
@@ -745,8 +723,29 @@ UserPreferences.prototype.setNewWallBaseboardHeight = function(newWallBaseboardH
 }
 
 /**
+ * Returns the default color of new rooms in home.
+ * @since 6.4
+ */
+UserPreferences.prototype.getNewRoomFloorColor = function() {
+  return this.newRoomFloorColor;
+}
+
+/**
+ * Sets the default color of new rooms in home, and notifies
+ * listeners of this change.
+ * @since 6.4
+ */
+UserPreferences.prototype.setNewRoomFloorColor = function(newRoomFloorColor) {
+  if (this.newRoomFloorColor !== newRoomFloorColor) {
+    var oldRoomFloorColor = this.newRoomFloorColor;
+    this.newRoomFloorColor = newRoomFloorColor;
+    this.propertyChangeSupport.firePropertyChange("NEW_ROOM_FLOOR_COLOR",
+        oldRoomFloorColor, newRoomFloorColor);
+  }
+}
+
+/**
  * Returns default thickness of the floor of new levels in home. 
- * @ignore
  */
 UserPreferences.prototype.getNewFloorThickness = function() {
   return this.newFloorThickness;
@@ -755,7 +754,6 @@ UserPreferences.prototype.getNewFloorThickness = function() {
 /**
  * Sets default thickness of the floor of new levels in home, and notifies
  * listeners of this change.  
- * @ignore
  */
 UserPreferences.prototype.setNewFloorThickness = function(newFloorThickness) {
   if (this.newFloorThickness !== newFloorThickness) {
@@ -1023,10 +1021,11 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
       : new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
   
-  this.setNavigationPanelVisible(false);
+  this.setNavigationPanelVisible(true);
   this.setUnit(Locale.getDefault() == "en_US" ? LengthUnit.INCH : LengthUnit.CENTIMETER);
-  this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
-  this.setNewWallPattern(this.getWallPattern());
+  this.setWallPattern(patternsCatalog.getPattern("reversedHatchUp"));
+  this.setNewWallPattern(patternsCatalog.getPattern("reversedHatchUp"));
+  this.setNewRoomFloorColor(0xFF9999A0);
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
