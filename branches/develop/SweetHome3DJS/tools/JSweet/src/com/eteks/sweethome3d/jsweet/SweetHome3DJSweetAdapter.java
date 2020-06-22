@@ -446,9 +446,8 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         }
         // Special case for the AspectRatio enum
         if (targetType.toString().endsWith(".AspectRatio") && invocation.getMethodName().equals("getValue")) {
-          print(
-              "{FREE_RATIO:null,VIEW_3D_RATIO:null,RATIO_4_3:4/3,RATIO_3_2:1.5,RATIO_16_9:16/9,RATIO_2_1:2/1,SQUARE_RATIO:1}[")
-                  .print(invocation.getTargetExpression()).print("]");
+          print("{FREE_RATIO:null,VIEW_3D_RATIO:null,RATIO_4_3:4/3,RATIO_3_2:1.5,RATIO_16_9:16/9,RATIO_2_1:2/1,SQUARE_RATIO:1}[")
+              .print(invocation.getTargetExpression()).print("]");
           return true;
         }
     }
@@ -477,16 +476,16 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     switch (variableAccess.getTargetElement().toString()) {
       case "java.text.Collator":
         switch (variableAccess.getVariableName()) {
-        case "CANONICAL_DECOMPOSITION":
-        case "FULL_DECOMPOSITION":
-        case "IDENTICAL":
-        case "NO_DECOMPOSITION":
-        case "PRIMARY":
-        case "SECONDARY":
-        case "TERTIARY":
-          print("undefined");
-          return true;
-      }
+          case "CANONICAL_DECOMPOSITION":
+          case "FULL_DECOMPOSITION":
+          case "IDENTICAL":
+          case "NO_DECOMPOSITION":
+          case "PRIMARY":
+          case "SECONDARY":
+          case "TERTIARY":
+            print("undefined");
+            return true;
+        }
       break;
     }
     // Map *Property enums to strings
