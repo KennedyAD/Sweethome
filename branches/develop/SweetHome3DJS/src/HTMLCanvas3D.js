@@ -281,7 +281,7 @@ HTMLCanvas3D.prototype.getDepthBits = function() {
 }
 
 /**
- * Sets the field of view of this canvas.
+ * Sets the field of view of this component.
  * @param {number} fieldOfView
  */
 HTMLCanvas3D.prototype.setFieldOfView = function(fieldOfView) {
@@ -361,7 +361,7 @@ HTMLCanvas3D.prototype.updateViewportSize = function() {
 
 /**
  * Displays the given scene in the canvas.
- * @param {Node3D} scene  the scene to view in this canvas
+ * @param {Node3D} scene  the scene to view in this component
  * @param onprogression   progression call back
  */
 HTMLCanvas3D.prototype.setScene = function(scene, onprogression) {
@@ -395,7 +395,7 @@ HTMLCanvas3D.prototype.setScene = function(scene, onprogression) {
 }
 
 /**
- * Returns the scene viewed in this canvas.
+ * Returns the scene viewed in this component.
  * @return {Node3D} 
  * @package
  * @ignore
@@ -452,9 +452,10 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
       parentTransforms = mat4.mul(mat4.create(), parentTransforms, nodeTransform);
       if (node.getCapability(TransformGroup3D.ALLOW_TRANSFORM_WRITE)) {
         // Add listener to update the scene when transformation changes
-        node.addPropertyChangeListener("TRANSFORM", 
-            function(ev) {
-              if (canvas3D.isInSceneTree(node)) {
+        node.addPropertyChangeListener("TRANSFORM",
+            {
+              canvas3D : canvas3D, 
+              propertyChange : function(ev) {
                 var oldInvert = mat4.invert(mat4.create(), ev.getOldValue());
                 mat4.mul(parentTransforms, parentTransforms, oldInvert);
                 mat4.mul(parentTransforms, parentTransforms, ev.getNewValue());
@@ -477,13 +478,14 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
       // Add listener to group to update the scene when children change
       node.addChildrenListener(
           {  
+            canvas3D : canvas3D, 
             childAdded : function(ev) {
               canvas3D.prepareScene(ev.child, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms);
               canvas3D.repaint();
             },
             childRemoved : function(ev) {
               canvas3D.removeDisplayedItems(ev.child, sharedGeometries, background ? backgroundGeometries : sceneGeometries, lights);
-              // TODO Should remove listeners on the children of deleted item ?
+              canvas3D.removeNodeListeners(ev.child);
               canvas3D.repaint();
             }
           });
@@ -514,10 +516,10 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
           node, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, parentTransforms);
     }
     if (node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
-      node.addPropertyChangeListener(
-          function(ev) {
-            if (canvas3D.isInSceneTree(node)
-                && "GEOMETRY" == ev.getPropertyName()) {
+      node.addPropertyChangeListener("GEOMETRY",
+          {
+            canvas3D : canvas3D,
+            propertyChange : function(ev) {
               if (ev.getOldValue()) {
                 removedGeometry = ev.getOldValue();
                 for (var i = 0; i < sceneGeometries.length; i++) {
@@ -549,8 +551,9 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
 
     if (nodeAppearance !== HTMLCanvas3D.DEFAULT_APPEARANCE) {
       nodeAppearance.addPropertyChangeListener(
-          function(ev) {
-            if (canvas3D.isInSceneTree(node)) {
+          {
+            canvas3D : canvas3D, 
+            propertyChange : function(ev) {
               var geometries = background ? backgroundGeometries : sceneGeometries;
               for (var i = 0; i < geometries.length; i++) {
                 var geometry = geometries [i];
@@ -617,21 +620,19 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
     }
     lights.push(light);
     
-    node.addPropertyChangeListener(
-        function(ev) {
-          for (var i = 0; i < lights.length; i++) {
-            var light = lights [i];
-            if (lights [i].node === node) {
-              var newValue = ev.getNewValue();
-              switch (ev.getPropertyName()) {
-                case "COLOR" : 
-                  light.color = newValue;
-                  break;
+    node.addPropertyChangeListener("COLOR",
+        {
+          canvas3D : canvas3D, 
+          propertyChange : function(ev) {
+            for (var i = 0; i < lights.length; i++) {
+              var light = lights [i];
+              if (lights [i].node === node) {
+                light.color = ev.getNewValue();
+                break;
               }
-              break;
             }
+            canvas3D.repaint();
           }
-          canvas3D.repaint();
         });
   }
 }
@@ -755,21 +756,6 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
 }
 
 /**
- * Returns <code>true</code> if the given <code>node</code> belongs to scene tree.
- * @param {Node3D}  node
- */
-HTMLCanvas3D.prototype.isInSceneTree = function(node) {
-  while (node.getParent() != null) {
-    if (node.getParent() === this.scene) {
-      return true;
-    } else {
-      return this.isInSceneTree(node.getParent());
-    }
-  }
-  return false;
-}
-
-/**
  * Updates the transformation applied to the children of the given node.
  * @param {Node3D}  node
  * @param [Array]   geometries
@@ -874,6 +860,34 @@ HTMLCanvas3D.prototype.removeDisplayedItems = function(node, sharedGeometries, g
       }
     }
   }
+}
+
+/**
+ * Removes the listeners set on the given <code>node<code> and its children by this component.  
+ * @param {Node3D}  node
+ * @private  
+ */
+HTMLCanvas3D.prototype.removeNodeListeners = function(node) {
+  var listeners = node.getPropertyChangeListeners();
+  for (var i = 0; i < listeners.length; i++) {
+    if (listeners [i].canvas3D === this) {
+      node.removePropertyChangeListener(listeners [i]);
+    }
+  }
+  if (node instanceof Group3D) {
+    listeners = node.getChildrenListeners();
+    for (var i = 0; i < listeners.length; i++) {
+      if (listeners [i].canvas3D === this) {
+        node.removeChildrenListener(listeners [i]);
+      }
+    }
+    var children = node.getChildren();
+    for (var i = 0; i < children.length; i++) {
+      this.removeNodeListeners(children [i]);
+    }
+  } else if (node instanceof Link3D) {
+    this.removeNodeListeners(node.getSharedGroup());
+  } 
 }
 
 /**
@@ -1311,7 +1325,7 @@ HTMLCanvas3D.prototype.getFramesPerSecond = function() {
 }
 
 /**
- * Repaints as soon as possible the scene of this canvas.
+ * Repaints as soon as possible the scene of this component.
  */
 HTMLCanvas3D.prototype.repaint = function() {
   if (!this.canvasNeededRepaint) {
@@ -1384,7 +1398,7 @@ HTMLCanvas3D.prototype.getImage = function(observer) {
 }
 
 /**
- * Frees buffers and other resources used by this canvas.
+ * Frees buffers and other resources used by this component.
  */
 HTMLCanvas3D.prototype.clear = function() {
   for (var i = 0; i < this.textures.length; i++) {
@@ -1432,7 +1446,7 @@ HTMLCanvas3D.prototype.clearGeometryBuffers = function(geometry) {
 }
 
 /**
- * Sets the projection policy of this canvas.
+ * Sets the projection policy of this component.
  * @param {number} projectionPolicy PARALLEL_PROJECTION or PERSPECTIVE_PROJECTION 
  */
 HTMLCanvas3D.prototype.setProjectionPolicy = function(projectionPolicy) {

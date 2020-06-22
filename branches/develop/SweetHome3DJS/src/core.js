@@ -217,18 +217,21 @@ PropertyChangeSupport.prototype.removePropertyChangeListener = function(property
 /**
  * Returns an array of all the listeners that were added to the
  * PropertyChangeSupport object with addPropertyChangeListener().
- * @param {string} [propertyName] the name of an optional property to listen
+ * @param {string} [propertyName] the name of an optional listened property
  * @return [Array]
  */
 PropertyChangeSupport.prototype.getPropertyChangeListeners = function(propertyName) {
-  var listeners = [];
-  for (var i = this.listeners.length - 1; i >= 0; i--) {
-    if (this.listeners[i].propertyName == propertyName
-        && this.listeners[i].listener === listener) {
-      listeners.push(this.listeners[i]);
+  if (propertyName === undefined) {
+    return this.listeners.slice(0);
+  } else {
+    var listeners = [];
+    for (var i = this.listeners.length - 1; i >= 0; i--) {
+      if (this.listeners[i].propertyName == propertyName) {
+        listeners.push(this.listeners[i]);
+      }
     }
+    return listeners;
   }
-  return listeners;
 }
 
 /**
