@@ -43,11 +43,11 @@
        // Get home recorder stored as an application attribute
        HomeRecorder homeRecorder = (HomeRecorder)getServletContext().getAttribute("homeRecorder");
        if (homeRecorder == null) {
-		     UserPreferences preferences = new ServerUserPreferences(
-		         new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
-		         new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultTexturesCatalog.json")}, serverBaseUrl);
-		     homeRecorder = new HomeServerRecorder(0, preferences);
-		     getServletContext().setAttribute("homeRecorder", homeRecorder);
+         UserPreferences preferences = new ServerUserPreferences(
+             new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
+             new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultTexturesCatalog.json")}, serverBaseUrl);
+         homeRecorder = new HomeServerRecorder(0, preferences);
+         getServletContext().setAttribute("homeRecorder", homeRecorder);
        }
 
        synchronized (homeFile.getAbsolutePath().intern()) {
