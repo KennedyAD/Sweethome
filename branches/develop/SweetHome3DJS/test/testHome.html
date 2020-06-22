@@ -949,7 +949,7 @@ function testHomeModifications() {
     },
     function() {
       homeController.undo();
-      assertEquals("Wrong color", null, home.getSelectedItems() [0].getRightSideColor()); 
+      assertTrue("Wrong undone color", 0xFF770000 !== home.getSelectedItems() [0].getRightSideColor()); 
     },
     function() {
     },
@@ -1062,7 +1062,7 @@ function testHomeModifications() {
     },
     function() {
       homeController.undo();
-      assertEquals("Wrong undone color", null, home.getSelectedItems() [0].getFloorColor()); 
+      assertTrue("Wrong undone color", 0xFF444477 !== home.getSelectedItems() [0].getFloorColor()); 
     },
     function() {
       // Draw a round polygon
