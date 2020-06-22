@@ -47,7 +47,7 @@
 		         new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
 		         new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultTexturesCatalog.json")}, serverBaseUrl);
 		     homeRecorder = new HomeServerRecorder(0, preferences);
-		     getServletContext().setAttribute("serverRecorder", homeRecorder);
+		     getServletContext().setAttribute("homeRecorder", homeRecorder);
        }
 
        synchronized (homeFile.getAbsolutePath().intern()) {
