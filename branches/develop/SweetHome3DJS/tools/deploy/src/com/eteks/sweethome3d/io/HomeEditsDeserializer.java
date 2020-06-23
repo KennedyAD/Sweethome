@@ -67,7 +67,7 @@ import sun.misc.Unsafe;
 /**
  * A class used to deserialize undoable edits sent from a SweetHome3D client
  * (see <code>IncrementalHomeRecorder</code>).
- * 
+ *
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
  */
@@ -168,7 +168,7 @@ public class HomeEditsDeserializer {
     }
     return result;
   }
-  
+
   private Method getMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
     try {
       Method method = type.getDeclaredMethod(name, parameterTypes);
@@ -206,7 +206,7 @@ public class HomeEditsDeserializer {
                 : "jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
           } else if (HomeURLContent.class.getName().equals(jsonObject.getString("_type"))) {
             value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
-          } else if (url.startsWith("jar:")) {
+          } else if (url.startsWith("jar:") && !url.contains("://")) {
             value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
           } else if (url.contains(":")) {
             value = new URLContent(new URL(url));
@@ -369,13 +369,13 @@ public class HomeEditsDeserializer {
 
     return instance;
   }
-  
+
   private <T> T fillInstance(T instance, JSONObject jsonObject) throws ReflectiveOperationException {
     List<Class<?>> hierarchy = new ArrayList<Class<?>>();
     for (Class<?> type = instance.getClass(); type != Object.class; type = type.getSuperclass()) {
       hierarchy.add(0, type);
     }
-    
+
     for (Class<?> type : hierarchy) {
       // Invoke readObject methods for local initializations if exists (otherwise fallback to default)
       Method readObjectMethod = getMethod(type, "readObject", ObjectInputStream.class);
@@ -398,7 +398,7 @@ public class HomeEditsDeserializer {
         defaultFillInstance(type, instance, jsonObject);
       }
     }
-    
+
     return instance;
   }
 
