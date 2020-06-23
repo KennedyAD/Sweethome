@@ -137,7 +137,7 @@ LengthUnit.MILLIMETER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = CoreTools.loadResourceBundles("lib/resources/LengthUnit", this.formatLocale);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.name = CoreTools.getStringFromKey(resource, "millimeterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
@@ -202,7 +202,7 @@ LengthUnit.CENTIMETER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = CoreTools.loadResourceBundles("lib/resources/LengthUnit", this.formatLocale);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.name = CoreTools.getStringFromKey(resource, "centimeterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
@@ -266,7 +266,7 @@ LengthUnit.METER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("lib/resources/LengthUnit", this.formatLocale);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.name = CoreTools.getStringFromKey(resource, "meterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
@@ -330,7 +330,7 @@ LengthUnit.INCH.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("lib/resources/LengthUnit", this.formatLocale);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.name = CoreTools.getStringFromKey(resource, "inchUnit");
     this.lengthFormat = new InchFormat(this.name);
     this.lengthFormatWithUnit = new InchFormat(this.name);
@@ -393,7 +393,7 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("lib/resources/LengthUnit", this.formatLocale);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.name = CoreTools.getStringFromKey(resource, "inchUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");

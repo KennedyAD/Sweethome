@@ -260,8 +260,8 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
  * Format is a base class for formatting locale-sensitive
  * information such as dates, messages, and numbers.
  * Adapted from java.text.Format.
- *
  * @constructor
+ * @ignore
  */
 function Format() {
 } 
@@ -270,10 +270,16 @@ Format.prototype.format = function(object) {
   return "" + object;
 }
 
+/**
+ * Locale class.
+ * @class
+ * @ignore
+ */
 var Locale = {}
 
 /**
- * Gets the default locale.
+ * Returns the default locale.
+ * @returns {string} an ISO 639 language code, possibly followed by a underscore and an ISO 3166 country code
  */
 Locale.getDefault = function() {
   if (window && window.defaultLocaleLanguageAndCountry) {
@@ -288,6 +294,7 @@ Locale.getDefault = function() {
 
 /**
  * Sets the default locale.
+ * @param {string} language an ISO 639 language code, possibly followed by a underscore and an ISO 3166 country code
  */
 Locale.setDefault = function(language) {
   if (window) {
@@ -295,10 +302,156 @@ Locale.setDefault = function(language) {
   }
 }
 
+/**
+ * KeyStroke class.
+ * @class
+ * @ignore
+ */
+var KeyStroke = {}
+
+/**
+ * Returns a string describing the key event in parameter. 
+ * @param {KeyboardEvent} ev
+ * @param {string} [keyEventType] "keyup", "keydown" or "keypress"
+ * @returns {string} a string describing the key stroke event
+ */
+KeyStroke.getKeyStrokeForEvent = function(ev, keyEventType) {
+  if (convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS === undefined) {
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS = new Array(223);
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [8]  = "BACK_SPACE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [9]  = "TAB";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [13] = "ENTER";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [16] = "SHIFT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [17] = "CONTROL";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [18] = "ALT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [19] = "PAUSE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [20] = "CAPS_LOCK";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [27] = "ESCAPE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [33] = "PAGE_UP";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [34] = "PAGE_DOWN";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [35] = "END";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [36] = "HOME";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [37] = "LEFT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [38] = "UP";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [39] = "RIGHT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [40] = "DOWN";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [45] = "INSERT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [46] = "DELETE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [48] = "0";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [49] = "1";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [50] = "2";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [51] = "3";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [52] = "4";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [53] = "5";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [54] = "6";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [55] = "7";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [56] = "8";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [57] = "9";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [65] = "A";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [66] = "B";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [67] = "C";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [68] = "D";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [69] = "E";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [70] = "F";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [71] = "G";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [72] = "H";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [73] = "I";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [74] = "J";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [75] = "K";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [76] = "L";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [77] = "M";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [78] = "N";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [79] = "O";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [80] = "P";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [81] = "Q";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [82] = "R";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [83] = "S";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [84] = "T";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [85] = "U";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [86] = "V";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [87] = "W";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [88] = "X";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [89] = "Y";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [90] = "Z";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [91] = "META";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [92] = "META";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [96] = "NUMPAD0";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [97] = "NUMPAD1";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [98] = "NUMPAD2";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [99] = "NUMPAD3";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [100] = "NUMPAD4";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [101] = "NUMPAD5";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [102] = "NUMPAD6";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [103] = "NUMPAD7";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [104] = "NUMPAD8";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [105] = "NUMPAD9";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [106] = "MULTIPLY";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [107] = "ADD";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [109] = "VK_SUBTRACT";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [110] = "VK_DECIMAL";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [111] = "VK_DIVIDE";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [112] = "F1";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [113] = "F2";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [114] = "F3";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [115] = "F4";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [116] = "F5";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [117] = "F6";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [118] = "F7";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [119] = "F8";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [120] = "F9";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [121] = "F10";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [122] = "F11";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [123] = "F12";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [144] = "VK_NUM_LOCK";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [145] = "VK_SCROLL_LOCK";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [186] = "VK_SEMICOLON";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [187] = "VK_EQUALS";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [188] = "VK_COMMA";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [190] = "VK_PERIOD";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [191] = "VK_SLASH";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [219] = "VK_OPEN_BRACKET";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [220] = "VK_BACK_SLASH";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [221] = "VK_CLOSE_BRACKET";
+    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [222] = "VK_QUOTE";
+  }
+  
+  var keyStroke = ""; 
+  var keyName = convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [ev.keyCode];
+  if (keyName) {
+    if (ev.ctrlKey) {
+      keyStroke += "control ";
+    }
+    if (ev.altKey) {
+      keyStroke += "alt ";
+    }
+    if (ev.metaKey) {
+      keyStroke += "meta ";
+    }
+    if (ev.shiftKey) {
+      keyStroke += "shift ";
+    }
+    var nameWithoutVK = keyName.indexOf('VK_') === 0
+        ? keyName.substring(3)
+        : keyName;
+    if (keyEventType !== undefined) {
+      keyStroke += (keyEventType == "keyup" ? "released " : "pressed "); 
+    }
+    keyStroke += nameWithoutVK;
+  } 
+  return keyStroke;
+}
+
 // =================================================================
 // Additional core utilities
 // =================================================================
 
+/**
+ * Tools for application.
+ * @class
+ * @ignore
+ * @author Renaud Pawlak
+ * @author Emmanuel Puybaret
+ */
 var CoreTools = {};
 
 /**
@@ -306,21 +459,25 @@ var CoreTools = {};
  * @param url {string}  the url of the JSON resource to be loaded
  * @returns an object that corresponds to the loaded JSON
  */
-CoreTools.loadJSON =  function(url) {
+CoreTools.loadJSON = function(url) {
   try {
+    if (url.indexOf('/') !== 0 && url.indexOf('://') < 0) {
+      // Relative URLs based on scripts folder
+      url = ZIPTools.getScriptFolder() + url;
+    }
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, false);
-    // it is not allowed to change response type for a synchronous XHR
+    // It is not allowed to change response type for a synchronous XHR
     // xhr.responseType = 'json';
     xhr.send();
     return JSON.parse(xhr.responseText);
-  } catch(e) {
+  } catch (ex) {
     return undefined;
   }
 }
 
 /**
- * Formats a string with the given args.
+ * Formats a string with the given <code>args</code>.
  * @param {string} formatString a string containing optional place holders (%s, %d)
  * @param {*[]|...*} args an array of arguments to be applied to formatString
  * @returns the formatted string
@@ -397,7 +554,7 @@ CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
 CoreTools.getKeys = function(resourceBundles) {
   var keys = {};
   for (var i = 0; i < resourceBundles.length; i++) {
-    if(resourceBundles[i] != null) {
+    if (resourceBundles[i] != null) {
       CoreTools.merge(keys,  resourceBundles[i]);
     }
   }
@@ -524,66 +681,11 @@ CoreTools.valuesFromMap = function(map) {
 CoreTools.sortArray = function(array, comparator) { 
   if (comparator.compare) {
     array.sort(function(e1, e2) {
-      return comparator.compare(e1,e2);
-    });
+        return comparator.compare(e1,e2);
+      });
   } else {
    array.sort(comparator);  
   }
-}
-
-
-var OperatingSystem = {}
-
-OperatingSystem.isLinux = function() {
-  if (navigator && navigator.platform) {
-    return navigator.platform.indexOf("Linux") !== -1;
-  } else {
-    return false;
-  }
-}
-
-OperatingSystem.isWindows = function() {
-  if (navigator && navigator.platform) {
-    return navigator.platform.indexOf("Windows") !== -1 || navigator.platform.indexOf("Win") !== -1;
-  } else {
-    return false;
-  }
-}
-
-OperatingSystem.isMacOSX = function() {
-  if (navigator && navigator.platform) {
-    return navigator.platform.indexOf("Mac") !== -1;
-  } else {
-    return false;
-  }
-}
-
-OperatingSystem.getName = function() {
-  if (OperatingSystem.isMacOSX()) {
-    return "Mac OS X";
-  } else if (OperatingSystem.isLinux()) {
-    return "Linux";
-  } else if (OperatingSystem.isWindows()) {
-    return "Windows";
-  } else {
-    return "Other";
-  }
-}
-
-/**
- * Returns <code>true</code> if the current browser is Edge or Internet Explorer.
- */
-OperatingSystem.isEdgeOrInternetExplorer = function() {
-  // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
-  return (document.documentMode || /Edg/.test(navigator.userAgent));
-}
-
-/**
- * Returns <code>true</code> if the current browser is Internet Explorer.
- */
-OperatingSystem.isInternetExplorer = function() {
-  // IE test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
-  return document.documentMode;
 }
 
 /**
@@ -607,138 +709,6 @@ CoreTools.merge = function(destination, source) {
  */
 CoreTools.intersection = function(array1, array2) {
   return array1.filter(function(n) {
-    return array2.indexOf(n) !== -1;
-  });  
-}
-
-/**
- * Returns a string describing the key event in parameter. 
- * @param {KeyboardEvent} ev
- * @param {string} [keyEventType] "keyup", "keydown" or "keypress"
- * @returns
- */
-function convertKeyboardEventToKeyStroke(ev, keyEventType) {
-  if (convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS === undefined) {
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS = new Array(223);
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [8]  = "BACK_SPACE";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [9]  = "TAB";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [13] = "ENTER";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [16] = "SHIFT";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [17] = "CONTROL";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [18] = "ALT";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [19] = "PAUSE";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [20] = "CAPS_LOCK";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [27] = "ESCAPE";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [33] = "PAGE_UP";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [34] = "PAGE_DOWN";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [35] = "END";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [36] = "HOME";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [37] = "LEFT";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [38] = "UP";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [39] = "RIGHT";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [40] = "DOWN";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [45] = "INSERT";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [46] = "DELETE";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [48] = "0";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [49] = "1";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [50] = "2";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [51] = "3";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [52] = "4";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [53] = "5";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [54] = "6";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [55] = "7";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [56] = "8";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [57] = "9";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [65] = "A";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [66] = "B";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [67] = "C";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [68] = "D";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [69] = "E";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [70] = "F";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [71] = "G";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [72] = "H";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [73] = "I";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [74] = "J";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [75] = "K";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [76] = "L";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [77] = "M";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [78] = "N";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [79] = "O";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [80] = "P";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [81] = "Q";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [82] = "R";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [83] = "S";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [84] = "T";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [85] = "U";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [86] = "V";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [87] = "W";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [88] = "X";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [89] = "Y";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [90] = "Z";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [91] = "META";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [92] = "META";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [96] = "NUMPAD0";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [97] = "NUMPAD1";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [98] = "NUMPAD2";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [99] = "NUMPAD3";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [100] = "NUMPAD4";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [101] = "NUMPAD5";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [102] = "NUMPAD6";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [103] = "NUMPAD7";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [104] = "NUMPAD8";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [105] = "NUMPAD9";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [106] = "MULTIPLY";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [107] = "ADD";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [109] = "VK_SUBTRACT";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [110] = "VK_DECIMAL";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [111] = "VK_DIVIDE";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [112] = "F1";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [113] = "F2";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [114] = "F3";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [115] = "F4";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [116] = "F5";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [117] = "F6";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [118] = "F7";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [119] = "F8";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [120] = "F9";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [121] = "F10";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [122] = "F11";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [123] = "F12";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [144] = "VK_NUM_LOCK";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [145] = "VK_SCROLL_LOCK";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [186] = "VK_SEMICOLON";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [187] = "VK_EQUALS";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [188] = "VK_COMMA";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [190] = "VK_PERIOD";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [191] = "VK_SLASH";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [219] = "VK_OPEN_BRACKET";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [220] = "VK_BACK_SLASH";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [221] = "VK_CLOSE_BRACKET";
-    convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [222] = "VK_QUOTE";
-  }
-  
-  var keyStroke = ""; 
-  var keyName = convertKeyboardEventToKeyStroke.KEY_CODE_TEXTS [ev.keyCode];
-  if (keyName) {
-    if (ev.ctrlKey) {
-      keyStroke += "control ";
-    }
-    if (ev.altKey) {
-      keyStroke += "alt ";
-    }
-    if (ev.metaKey) {
-      keyStroke += "meta ";
-    }
-    if (ev.shiftKey) {
-      keyStroke += "shift ";
-    }
-    var nameWithoutVK = keyName.indexOf('VK_') === 0
-        ? keyName.substring(3)
-        : keyName;
-    if (keyEventType !== undefined) {
-      keyStroke += (keyEventType == "keyup" ? "released " : "pressed "); 
-    }
-    keyStroke += nameWithoutVK;
-  } 
-  return keyStroke;
+      return array2.indexOf(n) !== -1;
+    });  
 }

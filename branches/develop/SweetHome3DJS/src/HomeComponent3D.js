@@ -1003,7 +1003,7 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
   var component3D = this;
   this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
-        component3D.callAction(convertKeyboardEventToKeyStroke(ev, "keydown"), ev);
+        component3D.callAction(KeyStroke.getKeyStrokeForEvent(ev, "keydown"), ev);
       }, false);
 }
 

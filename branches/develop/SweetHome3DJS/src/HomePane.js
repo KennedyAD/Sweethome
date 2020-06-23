@@ -502,7 +502,7 @@ var HomePane = (function () {
     // Keyboard accelerators management
     var homePane = this;
     document.addEventListener("keydown", function (ev) {
-        var keyStroke = convertKeyboardEventToKeyStroke(ev);
+        var keyStroke = KeyStroke.getKeyStrokeForEvent(ev);
         if (keyStroke !== undefined) {
           // Search action matching shortcut and call its actionPerformed method
           for (var actionType in homePane.actionMap) {

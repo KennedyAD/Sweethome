@@ -308,11 +308,11 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
   this.getResourceBundles(resourceClass);
-  if(resourceClass == "DefaultFurnitureCatalog") {
+  if (resourceClass == "DefaultFurnitureCatalog") {
     return CoreTools.getStringFromKey.apply(null, [this.furnitureCatalogResourceBundles, resourceKey].concat(Array.prototype.slice.call(arguments, 2))); 
   } else {
     // JSweet-generated code interop: if resourceClass is a constructor, it may contain the Java class full name in __class
-    if(resourceClass.__class) {
+    if (resourceClass.__class) {
       var resourceClassArray = resourceClass.__class.split('.');
       resourceClass = resourceClassArray[resourceClassArray.length - 1];
     }
@@ -326,10 +326,10 @@ UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceK
  * @throws IllegalArgumentException if the given resourceFamily is not supported
  */
 UserPreferences.prototype.getLocalizedStringKeys = function(resourceFamily) {
-  if(resourceClass == "DefaultFurnitureCatalog") {
+  if (resourceClass == "DefaultFurnitureCatalog") {
     var keys = {};
     for (var i = 0; i < resourceBundles.length; i++) {
-      if(resourceBundles[i] != null) {
+      if (resourceBundles[i] != null) {
         CoreTools.merge(keys,  resourceBundles[i]);
       }
     }
@@ -343,14 +343,14 @@ UserPreferences.prototype.getLocalizedStringKeys = function(resourceFamily) {
  * Returns the resource bundle for the given resource family.
  */
 UserPreferences.prototype.getResourceBundles = function(resourceClass) {
-  if(resourceClass == "DefaultFurnitureCatalog") {
+  if (resourceClass == "DefaultFurnitureCatalog") {
     if (this.furnitureCatalogResourceBundles.length == 0) {
-      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("lib/resources/DefaultFurnitureCatalog", Locale.getDefault());
+      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("resources/DefaultFurnitureCatalog", Locale.getDefault());
     }
     return this.furnitureCatalogResourceBundles;
   } else {
     if (this.resourceBundles.length == 0) {
-      this.resourceBundles = CoreTools.loadResourceBundles("lib/resources/localization", Locale.getDefault());
+      this.resourceBundles = CoreTools.loadResourceBundles("resources/localization", Locale.getDefault());
     }
     return this.resourceBundles;
   } 
@@ -1021,7 +1021,7 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
       : new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
   
-  this.setNavigationPanelVisible(true);
+  this.setNavigationPanelVisible(false);
   this.setUnit(Locale.getDefault() == "en_US" ? LengthUnit.INCH : LengthUnit.CENTIMETER);
   this.setWallPattern(patternsCatalog.getPattern("reversedHatchUp"));
   this.setNewWallPattern(patternsCatalog.getPattern("reversedHatchUp"));

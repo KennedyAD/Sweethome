@@ -1509,7 +1509,7 @@ PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
     this.touchOverlay.style.visibility = "hidden";
   } else {
     this.touchOverlay.style.visibility = "visible";
-    document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="lib/resources/cursors/' + indicator + '32x32.png"/>';
+    document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="' + ZIPTools.getScriptFolder() + 'resources/cursors/' + indicator + '32x32.png"/>';
     this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
     this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
     if (this.tooltip.style.visibility == "visible") {
@@ -1709,7 +1709,7 @@ PlanComponent.prototype.installDefaultKeyboardActions = function() {
  * @private
  */
 PlanComponent.prototype.callAction = function(ev, keyType) {
-  var keyStroke = convertKeyboardEventToKeyStroke(ev, keyType);
+  var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, keyType);
   if (keyStroke !== undefined) {
     var actionKey = this.inputMap[keyStroke];
     if (actionKey !== undefined) {
@@ -1835,7 +1835,8 @@ PlanComponent.createCustomCursor = function(name, defaultCursor) {
    if (OperatingSystem.isInternetExplorer()) {
      return defaultCursor;
    } else {
-     return 'url("lib/resources/cursors/' + name + '16x16' + (OperatingSystem.isMacOSX() ? '-macosx' : '') + '.png") 8 8, ' + defaultCursor;
+     return 'url("' + ZIPTools.getScriptFolder() + '/resources/cursors/' 
+                 + name + '16x16' + (OperatingSystem.isMacOSX() ? '-macosx' : '') + '.png") 8 8, ' + defaultCursor;
    }
 }
 
