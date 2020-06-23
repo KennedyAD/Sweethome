@@ -2239,7 +2239,7 @@ var HomePane = (function () {
         if (!icon) {
           icon = newAction.getValue(ResourceAction.SMALL_ICON);
         }
-        button.style.backgroundImage = "url('lib/"+ icon + "')";
+        button.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/"+ icon + "')";
         button.style.backgroundPosition = "center";
         button.style.backgroundRepeat = "no-repeat";
         var shortDescription = newAction.getValue(ResourceAction.SHORT_DESCRIPTION);
