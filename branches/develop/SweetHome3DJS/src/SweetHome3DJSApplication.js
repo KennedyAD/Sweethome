@@ -30,71 +30,81 @@
  * A home recorder that is able to save the application homes incrementally by sending undoable edits 
  * to the SH3D server.
  * @param {SweetHome3DJSApplication} application
- * @param {string} baseUrl the server's base URL
+ * @param {{readHomeURL: string,
+ *          writeHomeEditsURL: string} [serviceUrls] the URLs of services required on server
+ * @constructor
+ * @author Renaud Pawlak
+ * @author Emmanuel Puybaret
  */
-function IncrementalHomeRecorder(application, baseUrl) {
+function IncrementalHomeRecorder(application, serviceUrls) {
   HomeRecorder.call(this);
   this.application = application;
   this.undoableEditListeners = {};
   this.editCounters = {};
-  this.baseUrl = baseUrl;
+  this.serviceUrls = serviceUrls;
 }
 IncrementalHomeRecorder.prototype = Object.create(HomeRecorder.prototype);
 IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
 
 /**
  * Reads a home with this recorder.
- * @param {string} homeName the home name on the server
+ * @param {string} homeName the home name on the server 
+ *                          or the URL of the home if <code>readHomeURL</code> service is missing 
  * @param {Object} observer an object to be notified with loading statuses 
  */
 IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
-  var homeLoaded = observer.homeLoaded;
-  var recorder = this;
-  var url = this.baseUrl + "/readHome.jsp?home=" + homeName;
-  observer.homeLoaded = function(home) {
-    // TODO: have a UUID
-    home.id = url;
-    console.info("home loaded", home, home.id, home.getHomeObjects());
-    recorder.existingHomeObjects = {};
-    home.getHomeObjects().forEach(function(homeObject) {
-        recorder.existingHomeObjects[homeObject.id] = homeObject.id;
-      });
-    console.info("collected ids: ", home, recorder.existingHomeObjects);
-    console.info(Object.getOwnPropertyNames(home));
-    homeLoaded(home);
-    home.name = homeName;
+  if (this.serviceUrls !== undefined
+      && this.serviceUrls.readHomeURL !== undefined) {
+    // Replace % sequence by %% except %s before formating readHomeURL with home name 
+    var readHomeUrl = CoreTools.format(this.serviceUrls.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
+    homeName = readHomeUrl;
   }
-  HomeRecorder.prototype.readHome.call(this, url, observer);
+  HomeRecorder.prototype.readHome.call(this, homeName, observer);
 }
 
 /**
  * Adds a home to be incrementally saved by this recorder.
  */
 IncrementalHomeRecorder.prototype.addHome = function(home) {
-  console.info("addHome", home.id, this.application.getHomeController(home));
-  var recorder = this;
-  var listener = {
-    undoableEditHappened: function(undoableEditEvent) {
-      recorder.storeEdit(home, undoableEditEvent.getEdit());
+  if (this.serviceUrls !== undefined
+      && this.serviceUrls.writeHomeEditsURL !== undefined) {
+    var recorder = this;
+    // TODO: have a UUID
+    home.id = HomeObject.createId("home");
+    
+    // TODO Remove logs
+    console.info("addHome", home.id, this.application.getHomeController(home));
+
+    this.existingHomeObjects = {};
+    home.getHomeObjects().forEach(function(homeObject) {
+        recorder.existingHomeObjects[homeObject.id] = homeObject.id;
+      });
+    console.info("collected ids: ", home, recorder.existingHomeObjects);
+    console.info(Object.getOwnPropertyNames(home));
+
+    var listener = {
+        undoableEditHappened: function(undoableEditEvent) {
+          recorder.storeEdit(home, undoableEditEvent.getEdit());
+          recorder.sendUndoableEdits(home);
+        }
+      };
+    this.undoableEditListeners[home.id] = listener;
+    this.application.getHomeController(home).getUndoableEditSupport().addUndoableEditListener(listener);
+    var undoManager = this.application.getHomeController(home).undoManager;
+    var coreUndo = undoManager.undo;
+    var coreRedo = undoManager.redo;
+    this.application.getHomeController(home).undoManager.undo = function() {
+        console.info("UNDO", undoManager.editToBeUndone());
+        recorder.storeEdit(home, undoManager.editToBeUndone(), true);
+        coreUndo.call(undoManager);
+        recorder.sendUndoableEdits(home);
+      };
+    this.application.getHomeController(home).undoManager.redo = function() {
+      console.info("REDO", undoManager.editToBeRedone());
+      recorder.storeEdit(home, undoManager.editToBeRedone());
+      coreRedo.call(undoManager);
       recorder.sendUndoableEdits(home);
-    }
-  };
-  this.undoableEditListeners[home.id] = listener;
-  this.application.getHomeController(home).getUndoableEditSupport().addUndoableEditListener(listener);
-  var undoManager = this.application.getHomeController(home).undoManager;
-  var coreUndo = undoManager.undo;
-  var coreRedo = undoManager.redo;
-  this.application.getHomeController(home).undoManager.undo = function() {
-    console.info("UNDO", undoManager.editToBeUndone());
-    recorder.storeEdit(home, undoManager.editToBeUndone(), true);
-    coreUndo.call(undoManager);
-    recorder.sendUndoableEdits(home);
-  }
-  this.application.getHomeController(home).undoManager.redo = function() {
-    console.info("REDO", undoManager.editToBeRedone());
-    recorder.storeEdit(home, undoManager.editToBeRedone());
-    coreRedo.call(undoManager);
-    recorder.sendUndoableEdits(home);
+    };
   }
 }
 
@@ -102,8 +112,11 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
  * Removes a home previously added with #addHome(home).
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
-  this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
-  // TODO Clean up recorder.existingHomeObjects
+  if (this.serviceUrls !== undefined
+      && this.serviceUrls['writeHomeEditsURL'] !== undefined) {
+    this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
+    // TODO Clean up recorder.existingHomeObjects for the given home
+  }
 }
 
 /** 
@@ -112,10 +125,11 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
 IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', this.baseUrl + "/writeHomeEdits.jsp", false);
+    xhr.open('POST', this.serviceUrls['writeHomeEditsURL'], false);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send('home=' + encodeURIComponent(home.name) + '&' +
              'edits=' + encodeURIComponent(JSON.stringify(this.getStoredEdits())));
+    // TODO Remove log
     console.info("RESULT = " + xhr.responseText);
     this.commitEdits();
     //return JSON.parse(xhr.responseText);
@@ -139,7 +153,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
                                 edit,
                                 newObjects,
                                 ["object3D", "hasBeenDone", "alive", "presentationNameKey"], 
-                                [UserPreferences, HomeFurnitureGroup.LocationAndSizeChangeListener, PropertyChangeSupport, PlanController, Home],
+                                [UserPreferences, PlanController, Home],
                                 [Boolean, String, Number]);
   console.info(key, processedEdit, JSON.stringify(processedEdit), newObjects);
   processedEdit._newObjects = newObjects;
@@ -224,26 +238,28 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
 
 /**
  * Defines <code>HomeApplication</code> implementation for JavaScript.
- * @param {string} serverBaseUrl the server's base URL (if undefined, will use local files for testing)
+ * @param {{furnitureCatalogURLs: [string]
+ *          furnitureResourcesURLBase: string
+ *          texturesCatalogURLs: [string]
+ *          texturesResourcesURLBase: string,
+ *          readHomeURL: string,
+ *          writeHomeEditsURL: string}} [params] the URLs of resources and services required on server 
+ *                                                  (if undefined, will use local files for testing)
  */
-function SweetHome3DJSApplication(serverBaseUrl) {
+function SweetHome3DJSApplication(params) {
   HomeApplication.call(this);
   this.homeControllers = [];
-  this.serverBaseUrl = serverBaseUrl;
+  this.params = params;
   var application = this;
   this.addHomesListener(function(ev) {
       if (ev.getType() == CollectionEvent.Type.ADD) {
         var homeController = this.application.createHomeController(ev.getItem());
         application.homeControllers.push(homeController); 
-        if (serverBaseUrl) {
-          application.getHomeRecorder().addHome(ev.getItem());
-        }
+        application.getHomeRecorder().addHome(ev.getItem());
         homeController.getView();
       } else if (ev.getType() == CollectionEvent.Type.DELETE) {
         application.homeControllers.splice(getHomes.indexOf(home), 1); 
-        if (serverBaseUrl) {
-          application.getHomeRecorder().removeHome(ev.getItem());
-        }
+        application.getHomeRecorder().removeHome(ev.getItem());
       }
     });
 }
@@ -260,18 +276,18 @@ SweetHome3DJSApplication.prototype.getHomeController = function(home) {
 
 SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
   if (!this.homeRecorder) {
-    if (this.serverBaseUrl) {
-      this.homeRecorder = new IncrementalHomeRecorder(this, this.serverBaseUrl);
-    } else {
-      this.homeRecorder = new HomeRecorder();
-    }
+    this.homeRecorder = new IncrementalHomeRecorder(this, this.params);
   }
   return this.homeRecorder;
 }
 
 SweetHome3DJSApplication.prototype.getUserPreferences = function() {
   if (this.preferences == null) {
-    this.preferences = new DefaultUserPreferences();
+    this.preferences = this.params !== undefined 
+      ? new DefaultUserPreferences(
+            this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase, 
+            this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase)
+      : new DefaultUserPreferences();
     this.preferences.setFurnitureViewedFromTop(true);
   }
   return this.preferences;

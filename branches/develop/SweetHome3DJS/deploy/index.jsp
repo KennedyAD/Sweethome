@@ -167,17 +167,21 @@ body {
 
 <script type="text/javascript">
 var homeName = '<%= homeName == null ? "HomeTest" : homeName %>';
-var application = new SweetHome3DJSApplication('<%= new java.net.URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath()).toString() %>');
+var urlBase = '<%= new java.net.URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath()).toString() %>';
+var application = new SweetHome3DJSApplication(
+    {readHomeURL:       urlBase + "/readHome.jsp?home=%s",
+     writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp"});
+     
 // Read and display test file 
 // TODO Should be performed in HomeController.open
 application.getHomeRecorder().readHome(homeName, 
     {
       homeLoaded: function(home) {
+        home.setName(homeName);
         application.addHome(home);
       },
       homeError: function(err) {
         console.error(err);
-        //alert(err);
       },
       progression: function(part, info, percentage) {
       }

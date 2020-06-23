@@ -995,13 +995,16 @@ UserPreferences.prototype.getHomeExamples = function() {
 
 /**
  * Default user preferences.
- * @param {boolean} [readCatalogs]
- * @param {UserPreferences} [localizedPreferences]
+ * @param {string[]|boolean}       [furnitureCatalogUrls]
+ * @param {string|UserPreferences} [furnitureResourcesUrlBase]
+ * @param {string[]} [texturesCatalogUrls]
+ * @param {string}   [texturesResourcesUrlBase]
  * @constructor
  * @extends UserPreferences
  * @author Emmanuel Puybaret
  */
-function DefaultUserPreferences(readCatalogs, localizedPreferences) {
+function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase, 
+                                texturesCatalogUrls, texturesResourcesUrlBase) {
   UserPreferences.call(this);
   
   // Build default patterns catalog
@@ -1017,7 +1020,9 @@ function DefaultUserPreferences(readCatalogs, localizedPreferences) {
   var patternsCatalog = new PatternsCatalog(patterns);  
   this.setPatternsCatalog(patternsCatalog);
   this.setFurnitureCatalog(typeof DefaultFurnitureCatalog === "function"
-      ? new DefaultFurnitureCatalog(this)
+      ? (Array.isArray(furnitureCatalogUrls)
+           ? new DefaultFurnitureCatalog(furnitureCatalogUrls, furnitureResourcesUrlBase) 
+           : new DefaultFurnitureCatalog(this))
       : new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
   
