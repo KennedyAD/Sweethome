@@ -602,6 +602,7 @@
         <include name=".project" />
         <!-- Exclude generated libs --> 
         <exclude name="lib/generated/**" />
+        <exclude name="lib/resources/**" />
         <exclude name="tools/JSweet/classes/**" />
         <exclude name="tools/JSweet/lib/generated/**" />
       </fileset>
