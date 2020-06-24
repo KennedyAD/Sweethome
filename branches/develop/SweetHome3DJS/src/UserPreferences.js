@@ -1026,11 +1026,8 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
       : new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
   
-  this.setNavigationPanelVisible(false);
   this.setUnit(Locale.getDefault() == "en_US" ? LengthUnit.INCH : LengthUnit.CENTIMETER);
-  this.setWallPattern(patternsCatalog.getPattern("reversedHatchUp"));
-  this.setNewWallPattern(patternsCatalog.getPattern("reversedHatchUp"));
-  this.setNewRoomFloorColor(0xFF9999A0);
+  this.setNavigationPanelVisible(false);
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
