@@ -1,8 +1,5 @@
 /*
- * DO NOT MODIFY: this source code has been automatically generated from Java
- *                with JSweet (http://www.jsweet.org)
- *
- * Sweet Home 3D, Copyright (c) 2017 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +17,10 @@
  */
 
 /**
- * Creates a panel that displays <code>catalog</code> furniture in a list with a filter combo box
- * and a search field.
+ * Creates a panel that displays <code>catalog</code> furniture in a list.
  * @constructor
+ * @author Emmanuel Puybaret
+ * @author Renaud Pawlak
  */
 function FurnitureCatalogListPanel(containerId, catalog, preferences, controller) {
   this.container = document.getElementById(containerId);
@@ -114,6 +112,9 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
    });
 }
 
+/**
+ * @private
+ */
 FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(pieceContainer, piece) {
   var furnitureCatalogListPanel = this;
 
@@ -175,7 +176,9 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
   pieceContainer.appendChild(addIcon);
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) {
   this.toolTipDiv.style.left = ev.clientX + 10;
   this.toolTipDiv.style.top = ev.clientY + 10;
@@ -198,7 +201,9 @@ FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) 
   }
 }
 
-/** @private */
+/**
+ * @private 
+ */
 FurnitureCatalogListPanel.prototype.hideTooltip = function () {
   if (this.hideTooltipTimeOut) {
     clearTimeout(this.hideTooltipTimeOut);
@@ -213,7 +218,9 @@ FurnitureCatalogListPanel.prototype.hideTooltip = function () {
   }
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(piece) {
   if (this.preferences != null) {
     var creator = piece.getCreator();
