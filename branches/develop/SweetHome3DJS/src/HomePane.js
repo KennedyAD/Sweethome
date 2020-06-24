@@ -1,5 +1,5 @@
 /*
- * Sweet Home 3D, Copyright (c) 2017 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,430 +26,411 @@
  * @param {Object} controller the controller object holding the method to invoke 
  * @param {string} controllerMethod the controller method to invoke
  * @param {Object[]} parameters action parameters
- * @class
+ * @constructor
  * @author Emmanuel Puybaret
  */
-var ResourceAction = (function () {
-
-  var controller;
-  var controllerMethod;
-  var parameters;
-
-  function ResourceAction(preferences, resourceClass, actionPrefix, enabled, controller, controllerMethod, parameters) {
-    if (enabled === undefined) {
-      parameters = controllerMethod;
-      controllerMethod = controller;
-      controller = enabled;
-      enabled = false;      
-    }
-    this.putValue(ResourceAction.RESOURCE_CLASS, resourceClass);
-    this.putValue(ResourceAction.RESOURCE_PREFIX, actionPrefix);
-    this.putValue(ResourceAction.VISIBLE, true);
-    this.readActionProperties(preferences, resourceClass, actionPrefix);
-    this.setEnabled(enabled);
-    this.controller = controller;
-    this.controllerMethod = controllerMethod;
-    this.parameters = parameters;
-    var resourceAction = this;
-    preferences.addPropertyChangeListener("LANGUAGE", {
-      propertyChange : function(ev) {
-        if (resourceAction == null) {
-          (ev.getSource()).removePropertyChangeListener("LANGUAGE", this);
-        } else {
-          resourceAction.readActionProperties(ev.getSource(), 
-              resourceAction.getValue(ResourceAction.RESOURCE_CLASS), resourceAction.getValue(ResourceAction.RESOURCE_PREFIX));
-        }
-      }
-    });
-    return this;
+function ResourceAction(preferences, resourceClass, actionPrefix, enabled, controller, controllerMethod, parameters) {
+  if (enabled === undefined) {
+    parameters = controllerMethod;
+    controllerMethod = controller;
+    controller = enabled;
+    enabled = false;      
   }
-
-  /**
-   * Sets whether the Action is enabled.
-   *
-   * @param {boolean} newValue true to enable the action, false to
-   *                  disable it
-   */
-  ResourceAction.prototype.setEnabled = function (enabled) {
-    if (this.enabled != enabled) {
-      this.enabled = enabled;
-      if (this.changeSupport != null) {
-        this.firePropertyChange("enabled", !enabled, enabled);
+  this.putValue(ResourceAction.RESOURCE_CLASS, resourceClass);
+  this.putValue(ResourceAction.RESOURCE_PREFIX, actionPrefix);
+  this.putValue(ResourceAction.VISIBLE, true);
+  this.readActionProperties(preferences, resourceClass, actionPrefix);
+  this.setEnabled(enabled);
+  this.controller = controller;
+  this.controllerMethod = controllerMethod;
+  this.parameters = parameters;
+  var resourceAction = this;
+  preferences.addPropertyChangeListener("LANGUAGE", {
+    propertyChange : function(ev) {
+      if (resourceAction == null) {
+        (ev.getSource()).removePropertyChangeListener("LANGUAGE", this);
+      } else {
+        resourceAction.readActionProperties(ev.getSource(), 
+            resourceAction.getValue(ResourceAction.RESOURCE_CLASS), resourceAction.getValue(ResourceAction.RESOURCE_PREFIX));
       }
     }
-  }
+  });
+  return this;
+}
+ResourceAction["__interfaces"] = ["java.util.EventListener", "java.lang.Cloneable", "java.awt.event.ActionListener", "javax.swing.Action"];
 
-  /**
-   * Returns true if the action is enabled.
-   *
-   * @return {boolean} true if the action is enabled, false otherwise
-   */
-  ResourceAction.prototype.isEnabled = function () {
+/**
+ * Useful constants that can be used as the storage-retrieval key
+ * when setting or getting one of this object's properties (text
+ * or icon).
+ */
+/**
+ * Not currently used.
+ */
+ResourceAction.DEFAULT = "Default";
+/**
+ * The key used for storing the <code>String</code> name
+ * for the action, used for a menu or button.
+ */
+ResourceAction.NAME = "Name";
+/**
+ * The key used for storing a short <code>String</code>
+ * description for the action, used for tooltip text.
+ */
+ResourceAction.SHORT_DESCRIPTION = "ShortDescription";
+/**
+ * The key used for storing a longer <code>String</code>
+ * description for the action, could be used for context-sensitive help.
+ */
+ResourceAction.LONG_DESCRIPTION = "LongDescription";
+/**
+ * The key used for storing a small <code>Icon</code>, such
+ * as <code>ImageIcon</code>.  This is typically used with
+ * menus such as <code>JMenuItem</code>.
+ * <p>
+ * If the same <code>Action</code> is used with menus and buttons you'll
+ * typically specify both a <code>SMALL_ICON</code> and a
+ * <code>LARGE_ICON_KEY</code>.  The menu will use the
+ * <code>SMALL_ICON</code> and the button will use the
+ * <code>LARGE_ICON_KEY</code>.
+ */
+ResourceAction.SMALL_ICON = "SmallIcon";
+
+/**
+ * The key used to determine the command <code>String</code> for the
+ * <code>ActionEvent</code> that will be created when an
+ * <code>Action</code> is going to be notified as the result of
+ * residing in a <code>Keymap</code> associated with a
+ * <code>JComponent</code>.
+ */
+ResourceAction.ACTION_COMMAND_KEY = "ActionCommandKey";
+
+/**
+ * The key used for storing a <code>KeyStroke</code> to be used as the
+ * accelerator for the action.
+ */
+ResourceAction.ACCELERATOR_KEY = "AcceleratorKey";
+
+/**
+ * The key used for storing an <code>Integer</code> that corresponds to
+ * one of the <code>KeyEvent</code> key codes.  The value is
+ * commonly used to specify a mnemonic.  For example:
+ * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A)</code>
+ * sets the mnemonic of <code>myAction</code> to 'a', while
+ * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.getExtendedKeyCodeForChar('\u0444'))</code>
+ * sets the mnemonic of <code>myAction</code> to Cyrillic letter "Ef".
+ */
+ResourceAction.MNEMONIC_KEY = "MnemonicKey";
+
+/**
+ * The key used for storing a <code>Boolean</code> that corresponds
+ * to the selected state.  This is typically used only for components
+ * that have a meaningful selection state.  For example,
+ * <code>JRadioButton</code> and <code>JCheckBox</code> make use of
+ * this but instances of <code>JMenu</code> don't.
+ * <p>
+ * This property differs from the others in that it is both read
+ * by the component and set by the component.  For example,
+ * if an <code>Action</code> is attached to a <code>JCheckBox</code>
+ * the selected state of the <code>JCheckBox</code> will be set from
+ * that of the <code>Action</code>.  If the user clicks on the
+ * <code>JCheckBox</code> the selected state of the <code>JCheckBox</code>
+ * <b>and</b> the <code>Action</code> will <b>both</b> be updated.
+ */
+ResourceAction.SELECTED_KEY = "SwingSelectedKey";
+
+/**
+ * The key used for storing an <code>Integer</code> that corresponds
+ * to the index in the text (identified by the <code>NAME</code>
+ * property) that the decoration for a mnemonic should be rendered at.  If
+ * the value of this property is greater than or equal to the length of
+ * the text, it will treated as -1.
+ */
+ResourceAction.DISPLAYED_MNEMONIC_INDEX_KEY = "SwingDisplayedMnemonicIndexKey";
+
+/**
+ * The key used for storing an <code>Icon</code>.  This is typically
+ * used by buttons, such as <code>JButton</code> and
+ * <code>JToggleButton</code>.
+ * <p>
+ * If the same <code>Action</code> is used with menus and buttons you'll
+ * typically specify both a <code>SMALL_ICON</code> and a
+ * <code>LARGE_ICON_KEY</code>.  The menu will use the
+ * <code>SMALL_ICON</code> and the button the <code>LARGE_ICON_KEY</code>.
+ */
+ResourceAction.LARGE_ICON_KEY = "SwingLargeIconKey";
+
+ResourceAction.RESOURCE_CLASS = "ResourceClass";
+ResourceAction.RESOURCE_PREFIX = "ResourcePrefix";
+ResourceAction.VISIBLE = "Visible";
+ResourceAction.POPUP = "Popup";
+ResourceAction.TOGGLE_BUTTON_GROUP = "ToggleButtonGroup";
+ResourceAction.TOOL_BAR_ICON = "ToolBarIcon";
+
+/**
+ * Sets whether the Action is enabled.
+ * @param {boolean} newValue true to enable the action, false to disable it
+ */
+ResourceAction.prototype.setEnabled = function(enabled) {
+  if (this.enabled != enabled) {
+    this.enabled = enabled;
+    if (this.changeSupport != null) {
+      this.firePropertyChange("enabled", !enabled, enabled);
+    }
+  }
+}
+
+/**
+ * Returns true if the action is enabled.
+ *
+ * @return {boolean} true if the action is enabled, false otherwise
+ */
+ResourceAction.prototype.isEnabled = function() {
+  return this.enabled;
+}
+
+/**
+ * Gets the <code>Object</code> associated with the specified key.
+ *
+ * @param {string} key a string containing the specified <code>key</code>
+ * @return {Object} the binding <code>Object</code> stored with this key; if there
+ *          are no keys, it will return <code>null</code>
+ */
+ResourceAction.prototype.getValue = function(key) {
+  if (key == "enabled") {
     return this.enabled;
   }
-
-  /**
-   * Gets the <code>Object</code> associated with the specified key.
-   *
-   * @param {string} key a string containing the specified <code>key</code>
-   * @return {Object} the binding <code>Object</code> stored with this key; if there
-   *          are no keys, it will return <code>null</code>
-   */
-  ResourceAction.prototype.getValue = function(key) {
-    if (key == "enabled") {
-      return this.enabled;
-    }
-    if (this.arrayTable == null) {
-      return null;
-    }
-    return this.arrayTable[key];
+  if (this.arrayTable == null) {
+    return null;
   }
+  return this.arrayTable[key];
+}
 
-  /**
-   * Sets the <code>Value</code> associated with the specified key.
-   *
-   * @param {string} key  the <code>String</code> that identifies the stored object
-   * @param {Object} newValue the <code>Object</code> to store using this key
-   */
-  ResourceAction.prototype.putValue = function(key, newValue) {
-    var oldValue = null;
-    if (key == "enabled") {
-      // Treat putValue("enabled") the same way as a call to setEnabled.
-      // If we don't do this it means the two may get out of sync, and a
-      // bogus property change notification would be sent.
-      //
-      // To avoid dependencies between putValue & setEnabled this
-      // directly changes enabled. If we instead called setEnabled
-      // to change enabled, it would be possible for stack
-      // overflow in the case where a developer implemented setEnabled
-      // in terms of putValue.
-      if (newValue == null || !(newValue instanceof Boolean)) {
-        newValue = false;
-      }
-      oldValue = enabled;
-      this.enabled = newValue;
+/**
+ * Sets the <code>Value</code> associated with the specified key.
+ *
+ * @param {string} key  the <code>String</code> that identifies the stored object
+ * @param {Object} newValue the <code>Object</code> to store using this key
+ */
+ResourceAction.prototype.putValue = function(key, newValue) {
+  var oldValue = null;
+  if (key == "enabled") {
+    // Treat putValue("enabled") the same way as a call to setEnabled.
+    // If we don't do this it means the two may get out of sync, and a
+    // bogus property change notification would be sent.
+    //
+    // To avoid dependencies between putValue & setEnabled this
+    // directly changes enabled. If we instead called setEnabled
+    // to change enabled, it would be possible for stack
+    // overflow in the case where a developer implemented setEnabled
+    // in terms of putValue.
+    if (newValue == null || !(newValue instanceof Boolean)) {
+      newValue = false;
+    }
+    oldValue = enabled;
+    this.enabled = newValue;
+  } else {
+    if (this.arrayTable == null) {
+      this.arrayTable = {};
+    }
+    if (this.arrayTable[key] != null)
+      oldValue = this.arrayTable[key];
+    // Remove the entry for key if newValue is null
+    // else put in the newValue for key.
+    if (newValue == null) {
+      delete this.arrayTable.key;
     } else {
-      if (this.arrayTable == null) {
-        this.arrayTable = {};
-      }
-      if (this.arrayTable[key] != null)
-        oldValue = this.arrayTable[key];
-      // Remove the entry for key if newValue is null
-      // else put in the newValue for key.
-      if (newValue == null) {
-        delete this.arrayTable.key;
-      } else {
-        this.arrayTable[key] = newValue;
-      }
-    }
-    if (this.changeSupport != null) {
-      this.firePropertyChange(key, oldValue, newValue);
+      this.arrayTable[key] = newValue;
     }
   }
+  if (this.changeSupport != null) {
+    this.firePropertyChange(key, oldValue, newValue);
+  }
+}
 
-  /**
-   * @protected
-   */
-  ResourceAction.prototype.firePropertyChange = function(propertyName, oldValue, newValue) {
-    if (this.changeSupport == null 
-        || (oldValue != null && newValue != null && oldValue == newValue)) {
-      return;
-    }
-    this.changeSupport.firePropertyChange(propertyName, oldValue, newValue);
-  }  
-  
-  /**
-   * Returns an array of <code>Object</code>s which are keys for
-   * which values have been set for this <code>AbstractAction</code>,
-   * or <code>null</code> if no keys have values set.
-   * @return an array of key objects, or <code>null</code> if no
-   *                  keys have values set
-   */
-  ResourceAction.prototype.getKeys = function() {
-    if (this.arrayTable == null) {
+/**
+ * @protected
+ */
+ResourceAction.prototype.firePropertyChange = function(propertyName, oldValue, newValue) {
+  if (this.changeSupport == null 
+      || (oldValue != null && newValue != null && oldValue == newValue)) {
+    return;
+  }
+  this.changeSupport.firePropertyChange(propertyName, oldValue, newValue);
+}  
+
+/**
+ * Returns an array of <code>Object</code> which are keys for
+ * which values have been set for this <code>AbstractAction</code>,
+ * or <code>null</code> if no keys have values set.
+ * @return an array of key objects, or <code>null</code> if no
+ *                  keys have values set
+ */
+ResourceAction.prototype.getKeys = function() {
+  if (this.arrayTable == null) {
+    return null;
+  }
+  return this.arrayTable.getOwnPropertyNames();
+}
+
+/**
+ * Adds a <code>PropertyChangeListener</code> to the listener list.
+ * The listener is registered for all properties.
+ * <p>
+ * A <code>PropertyChangeEvent</code> will get fired in response to setting
+ * a bound property, e.g. <code>setFont</code>, <code>setBackground</code>,
+ * or <code>setForeground</code>.
+ * Note that if the current component is inheriting its foreground,
+ * background, or font from its container, then no event will be
+ * fired in response to a change in the inherited property.
+ *
+ * @param {PropertyChangeListener} listener The <code>PropertyChangeListener</code> to be added
+ */
+ResourceAction.prototype.addPropertyChangeListener = function(listener) {
+  if (this.changeSupport == null) {
+    this.changeSupport = new PropertyChangeSupport(this);
+  }
+  this.changeSupport.addPropertyChangeListener(listener);
+}
+
+/**
+ * Removes a <code>PropertyChangeListener</code> from the listener list.
+ * This removes a <code>PropertyChangeListener</code> that was registered
+ * for all properties.
+ *
+ * @param {PropertyChangeListener} listener  the <code>PropertyChangeListener</code> to be removed
+ */
+ResourceAction.prototype.removePropertyChangeListener = function(listener) {
+  if (this.changeSupport == null) {
+    return;
+  }
+  this.changeSupport.removePropertyChangeListener(listener);
+}
+
+
+/**
+ * Returns an array of all the <code>PropertyChangeListener</code>s added
+ * to this AbstractAction with addPropertyChangeListener().
+ *
+ * @return {PropertyChangeListener[]} all of the <code>PropertyChangeListener</code>s added or an empty
+ *         array if no listeners have been added
+ */
+ResourceAction.prototype.getPropertyChangeListeners = function() {
+  if (this.changeSupport == null) {
+    return new PropertyChangeListener[0];
+  }
+  return this.changeSupport.getPropertyChangeListeners();
+}
+
+
+/**
+ * Reads from the properties of this action.
+ * @param {UserPreferences} preferences
+ * @param {Object} resourceClass
+ * @param {string} actionPrefix
+ * @private
+ */
+ResourceAction.prototype.readActionProperties = function(preferences, resourceClass, actionPrefix) {
+  var propertyPrefix = actionPrefix + ".";
+  this.putValue(ResourceAction.NAME, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.NAME, true));
+  this.putValue(ResourceAction.DEFAULT, this.getValue(ResourceAction.NAME));
+  this.putValue(ResourceAction.POPUP, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.POPUP, true));
+  this.putValue(ResourceAction.SHORT_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.SHORT_DESCRIPTION, false));
+  this.putValue(ResourceAction.LONG_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.LONG_DESCRIPTION, false));
+  var smallIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.SMALL_ICON, false);
+  if (smallIcon != null) {
+    // this.putValue(ResourceAction.SMALL_ICON, SwingTools.getScaledImageIcon(/* getResource */ smallIcon));
+    this.putValue(ResourceAction.SMALL_ICON, smallIcon);
+  }
+  var toolBarIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.TOOL_BAR_ICON, false);
+  if (toolBarIcon != null) {
+    //this.putValue(ResourceAction.TOOL_BAR_ICON, SwingTools.getScaledImageIcon(/* getResource */ toolBarIcon));
+    this.putValue(ResourceAction.TOOL_BAR_ICON, toolBarIcon);
+  }
+  var propertyKey = propertyPrefix + ResourceAction.ACCELERATOR_KEY;
+  var acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey + "." + OperatingSystem.getName(), false);
+  if (acceleratorKey == null) {
+    acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey, false);
+  }
+  if (acceleratorKey != null) {
+    this.putValue(ResourceAction.ACCELERATOR_KEY, acceleratorKey/*javax.swing.KeyStroke.getKeyStroke(acceleratorKey)*/);
+  }
+  var mnemonicKey = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.MNEMONIC_KEY, false);
+  if (mnemonicKey != null) {
+    this.putValue(ResourceAction.MNEMONIC_KEY, mnemonicKey/*javax.swing.KeyStroke.getKeyStroke(mnemonicKey).getKeyCode()*/);
+  }
+}
+
+/**
+ * Returns the value of <code>propertyKey</code> in <code>preferences</code>,
+ * or <code>null</code> if the property doesn't exist.
+ * @param {UserPreferences} preferences
+ * @param {Object} resourceClass
+ * @param {string} propertyKey
+ * @param {boolean} label
+ * @return {string}
+ * @private
+ */
+ResourceAction.prototype.getOptionalString = function(preferences, resourceClass, propertyKey, label) {
+  try {
+    var localizedText = label 
+        ? ResourceAction.getLocalizedLabelText(preferences, resourceClass, propertyKey) 
+        : preferences.getLocalizedString(resourceClass, propertyKey);
+    if (localizedText != null && localizedText.length > 0) {
+      return localizedText;
+    } else {
       return null;
     }
-    return this.arrayTable.getOwnPropertyNames();
+  } catch (ex) {
+    return null;
   }
+}
 
-  /**
-   * Adds a <code>PropertyChangeListener</code> to the listener list.
-   * The listener is registered for all properties.
-   * <p>
-   * A <code>PropertyChangeEvent</code> will get fired in response to setting
-   * a bound property, e.g. <code>setFont</code>, <code>setBackground</code>,
-   * or <code>setForeground</code>.
-   * Note that if the current component is inheriting its foreground,
-   * background, or font from its container, then no event will be
-   * fired in response to a change in the inherited property.
-   *
-   * @param {PropertyChangeListener} listener The <code>PropertyChangeListener</code> to be added
-   */
-  ResourceAction.prototype.addPropertyChangeListener = function(listener) {
-    if (this.changeSupport == null) {
-      this.changeSupport = new PropertyChangeSupport(this);
-    }
-    this.changeSupport.addPropertyChangeListener(listener);
-  }
-
-  /**
-   * Removes a <code>PropertyChangeListener</code> from the listener list.
-   * This removes a <code>PropertyChangeListener</code> that was registered
-   * for all properties.
-   *
-   * @param {PropertyChangeListener} listener  the <code>PropertyChangeListener</code> to be removed
-   */
-  ResourceAction.prototype.removePropertyChangeListener = function(listener) {
-    if (this.changeSupport == null) {
-      return;
-    }
-    this.changeSupport.removePropertyChangeListener(listener);
-  }
-
-
-  /**
-   * Returns an array of all the <code>PropertyChangeListener</code>s added
-   * to this AbstractAction with addPropertyChangeListener().
-   *
-   * @return {PropertyChangeListener[]} all of the <code>PropertyChangeListener</code>s added or an empty
-   *         array if no listeners have been added
-   */
-  ResourceAction.prototype.getPropertyChangeListeners = function() {
-    if (this.changeSupport == null) {
-      return new PropertyChangeListener[0];
-    }
-    return this.changeSupport.getPropertyChangeListeners();
-  }
-
-
-  /**
-   * Reads from the properties of this action.
-   * @param {UserPreferences} preferences
-   * @param {Object} resourceClass
-   * @param {string} actionPrefix
-   * @private
-   */
-  ResourceAction.prototype.readActionProperties = function (preferences, resourceClass, actionPrefix) {
-    var propertyPrefix = actionPrefix + ".";
-    this.putValue(ResourceAction.NAME, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.NAME, true));
-    this.putValue(ResourceAction.DEFAULT, this.getValue(ResourceAction.NAME));
-    this.putValue(ResourceAction.POPUP, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.POPUP, true));
-    this.putValue(ResourceAction.SHORT_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.SHORT_DESCRIPTION, false));
-    this.putValue(ResourceAction.LONG_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.LONG_DESCRIPTION, false));
-    var smallIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.SMALL_ICON, false);
-    if (smallIcon != null) {
-      // this.putValue(ResourceAction.SMALL_ICON, SwingTools.getScaledImageIcon(/* getResource */ smallIcon));
-      this.putValue(ResourceAction.SMALL_ICON, smallIcon);
-    }
-    var toolBarIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.TOOL_BAR_ICON, false);
-    if (toolBarIcon != null) {
-      //this.putValue(ResourceAction.TOOL_BAR_ICON, SwingTools.getScaledImageIcon(/* getResource */ toolBarIcon));
-      this.putValue(ResourceAction.TOOL_BAR_ICON, toolBarIcon);
-    }
-    var propertyKey = propertyPrefix + ResourceAction.ACCELERATOR_KEY;
-    var acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey + "." + OperatingSystem.getName(), false);
-    if (acceleratorKey == null) {
-      acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey, false);
-    }
-    if (acceleratorKey != null) {
-      this.putValue(ResourceAction.ACCELERATOR_KEY, acceleratorKey/*javax.swing.KeyStroke.getKeyStroke(acceleratorKey)*/);
-    }
-    var mnemonicKey = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.MNEMONIC_KEY, false);
-    if (mnemonicKey != null) {
-      this.putValue(ResourceAction.MNEMONIC_KEY, mnemonicKey/*javax.swing.KeyStroke.getKeyStroke(mnemonicKey).getKeyCode()*/);
-    }
-  };
-  /**
-   * Returns the value of <code>propertyKey</code> in <code>preferences</code>,
-   * or <code>null</code> if the property doesn't exist.
-   * @param {UserPreferences} preferences
-   * @param {Object} resourceClass
-   * @param {string} propertyKey
-   * @param {boolean} label
-   * @return {string}
-   * @private
-   */
-  ResourceAction.prototype.getOptionalString = function (preferences, resourceClass, propertyKey, label) {
-    try {
-      var localizedText = label 
-          ? ResourceAction.getLocalizedLabelText(preferences, resourceClass, propertyKey) 
-          : preferences.getLocalizedString(resourceClass, propertyKey);
-      if (localizedText != null && localizedText.length > 0) {
-        return localizedText;
-      } else {
-        return null;
-      }
-    }
-    catch (ex) {
-      return null;
-    }
-  };
-  
-  /**
-   * Returns a localized text for menus items and labels depending on the system.
-   * @param {UserPreferences} preferences
-   * @param {Object} resourceClass
-   * @param {string} propertyKey
-   * @param {Array} label
-   * @return {string}
-   * @private
-   */
-  ResourceAction.getLocalizedLabelText = function(preferences, resourceClass, resourceKey, resourceParameters) {
-    var localizedString = preferences.getLocalizedString(resourceClass, resourceKey, resourceParameters);
-    var language = Locale.getDefault();
-    if (OperatingSystem.isMacOSX()
-        && (language.indexOf("zh") == 0 // CHINESE
-            || language.indexOf("ja") == 0 // JAPANESE
-            || language.indexOf("ko") == 0 // KOREAN
-            || language.indexOf("uk") == 0)) { // Ukrainian
-      var openingBracketIndex = localizedString.indexOf('(');
-      if (openingBracketIndex !== -1) {
-        var closingBracketIndex = localizedString.indexOf(')');
-        if (openingBracketIndex === closingBracketIndex - 2) {
-          var c = localizedString.charAt(openingBracketIndex + 1);
-          if (c >= 'A' && c <= 'Z') {
-            localizedString = localizedString.substring(0, openingBracketIndex)
-                + localizedString.substring(closingBracketIndex + 1);
-          }
+/**
+ * Returns a localized text for menus items and labels depending on the system.
+ * @param {UserPreferences} preferences
+ * @param {Object} resourceClass
+ * @param {string} propertyKey
+ * @param {Array} label
+ * @return {string}
+ * @private
+ */
+ResourceAction.getLocalizedLabelText = function(preferences, resourceClass, resourceKey, resourceParameters) {
+  var localizedString = preferences.getLocalizedString(resourceClass, resourceKey, resourceParameters);
+  var language = Locale.getDefault();
+  if (OperatingSystem.isMacOSX()
+      && (language.indexOf("zh") == 0 // CHINESE
+          || language.indexOf("ja") == 0 // JAPANESE
+          || language.indexOf("ko") == 0 // KOREAN
+          || language.indexOf("uk") == 0)) { // Ukrainian
+    var openingBracketIndex = localizedString.indexOf('(');
+    if (openingBracketIndex !== -1) {
+      var closingBracketIndex = localizedString.indexOf(')');
+      if (openingBracketIndex === closingBracketIndex - 2) {
+        var c = localizedString.charAt(openingBracketIndex + 1);
+        if (c >= 'A' && c <= 'Z') {
+          localizedString = localizedString.substring(0, openingBracketIndex)
+              + localizedString.substring(closingBracketIndex + 1);
         }
       }
     }
-    return localizedString;
   }
+  return localizedString;
+}
 
-  /**
-   * Unsupported operation. Subclasses should override this method if they want
-   * to associate a real action to this class.
-   * @param {java.awt.event.ActionEvent} ev
-   */
-  ResourceAction.prototype.actionPerformed = function (ev) {
-    if (this.controller != null && this.controllerMethod != null) {
-      return this.controller[this.controllerMethod].apply(this.controller, this.parameters);
-    } else {
-      throw new UnsupportedOperationException();
-    }
-  };
+/**
+ * Unsupported operation. Subclasses should override this method if they want
+ * to associate a real action to this class.
+ * @param {java.awt.event.ActionEvent} ev
+ */
+ResourceAction.prototype.actionPerformed = function(ev) {
+  if (this.controller != null && this.controllerMethod != null) {
+    return this.controller[this.controllerMethod].apply(this.controller, this.parameters);
+  } else {
+    throw new UnsupportedOperationException();
+  }
+}
 
-  /**
-   * Useful constants that can be used as the storage-retrieval key
-   * when setting or getting one of this object's properties (text
-   * or icon).
-   */
-  /**
-   * Not currently used.
-   */
-  ResourceAction.DEFAULT = "Default";
-  /**
-   * The key used for storing the <code>String</code> name
-   * for the action, used for a menu or button.
-   */
-  ResourceAction.NAME = "Name";
-  /**
-   * The key used for storing a short <code>String</code>
-   * description for the action, used for tooltip text.
-   */
-  ResourceAction.SHORT_DESCRIPTION = "ShortDescription";
-  /**
-   * The key used for storing a longer <code>String</code>
-   * description for the action, could be used for context-sensitive help.
-   */
-  ResourceAction.LONG_DESCRIPTION = "LongDescription";
-  /**
-   * The key used for storing a small <code>Icon</code>, such
-   * as <code>ImageIcon</code>.  This is typically used with
-   * menus such as <code>JMenuItem</code>.
-   * <p>
-   * If the same <code>Action</code> is used with menus and buttons you'll
-   * typically specify both a <code>SMALL_ICON</code> and a
-   * <code>LARGE_ICON_KEY</code>.  The menu will use the
-   * <code>SMALL_ICON</code> and the button will use the
-   * <code>LARGE_ICON_KEY</code>.
-   */
-  ResourceAction.SMALL_ICON = "SmallIcon";
-
-  /**
-   * The key used to determine the command <code>String</code> for the
-   * <code>ActionEvent</code> that will be created when an
-   * <code>Action</code> is going to be notified as the result of
-   * residing in a <code>Keymap</code> associated with a
-   * <code>JComponent</code>.
-   */
-  ResourceAction.ACTION_COMMAND_KEY = "ActionCommandKey";
-
-  /**
-   * The key used for storing a <code>KeyStroke</code> to be used as the
-   * accelerator for the action.
-   */
-  ResourceAction.ACCELERATOR_KEY = "AcceleratorKey";
-
-  /**
-   * The key used for storing an <code>Integer</code> that corresponds to
-   * one of the <code>KeyEvent</code> key codes.  The value is
-   * commonly used to specify a mnemonic.  For example:
-   * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A)</code>
-   * sets the mnemonic of <code>myAction</code> to 'a', while
-   * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.getExtendedKeyCodeForChar('\u0444'))</code>
-   * sets the mnemonic of <code>myAction</code> to Cyrillic letter "Ef".
-   */
-  ResourceAction.MNEMONIC_KEY = "MnemonicKey";
-
-  /**
-   * The key used for storing a <code>Boolean</code> that corresponds
-   * to the selected state.  This is typically used only for components
-   * that have a meaningful selection state.  For example,
-   * <code>JRadioButton</code> and <code>JCheckBox</code> make use of
-   * this but instances of <code>JMenu</code> don't.
-   * <p>
-   * This property differs from the others in that it is both read
-   * by the component and set by the component.  For example,
-   * if an <code>Action</code> is attached to a <code>JCheckBox</code>
-   * the selected state of the <code>JCheckBox</code> will be set from
-   * that of the <code>Action</code>.  If the user clicks on the
-   * <code>JCheckBox</code> the selected state of the <code>JCheckBox</code>
-   * <b>and</b> the <code>Action</code> will <b>both</b> be updated.
-   * <p>
-   * Note: the value of this field is prefixed with 'Swing' to
-   * avoid possible collisions with existing <code>Actions</code>.
-   */
-  ResourceAction.SELECTED_KEY = "SwingSelectedKey";
-
-  /**
-   * The key used for storing an <code>Integer</code> that corresponds
-   * to the index in the text (identified by the <code>NAME</code>
-   * property) that the decoration for a mnemonic should be rendered at.  If
-   * the value of this property is greater than or equal to the length of
-   * the text, it will treated as -1.
-   * <p>
-   * Note: the value of this field is prefixed with 'Swing' to
-   * avoid possible collisions with existing <code>Actions</code>.
-   */
-  ResourceAction.DISPLAYED_MNEMONIC_INDEX_KEY = "SwingDisplayedMnemonicIndexKey";
-
-  /**
-   * The key used for storing an <code>Icon</code>.  This is typically
-   * used by buttons, such as <code>JButton</code> and
-   * <code>JToggleButton</code>.
-   * <p>
-   * If the same <code>Action</code> is used with menus and buttons you'll
-   * typically specify both a <code>SMALL_ICON</code> and a
-   * <code>LARGE_ICON_KEY</code>.  The menu will use the
-   * <code>SMALL_ICON</code> and the button the <code>LARGE_ICON_KEY</code>.
-   * <p>
-   * Note: the value of this field is prefixed with 'Swing' to
-   * avoid possible collisions with existing <code>Actions</code>.
-   */
-  ResourceAction.LARGE_ICON_KEY = "SwingLargeIconKey";
-
-  ResourceAction.RESOURCE_CLASS = "ResourceClass";
-  ResourceAction.RESOURCE_PREFIX = "ResourcePrefix";
-  ResourceAction.VISIBLE = "Visible";
-  ResourceAction.POPUP = "Popup";
-  ResourceAction.TOGGLE_BUTTON_GROUP = "ToggleButtonGroup";
-  ResourceAction.TOOL_BAR_ICON = "ToolBarIcon";
-  return ResourceAction;
-}());
-ResourceAction["__class"] = "com.eteks.sweethome3d.swing.ResourceAction";
-ResourceAction["__interfaces"] = ["java.util.EventListener", "java.lang.Cloneable", "java.awt.event.ActionListener", "javax.swing.Action", "java.io.Serializable"];
 
 /**
  * Creates home view associated with its controller.
@@ -460,7 +441,7 @@ ResourceAction["__interfaces"] = ["java.util.EventListener", "java.lang.Cloneabl
  * @extends javax.swing.JRootPane
  * @author Emmanuel Puybaret
  */
-var HomePane = (function () {
+var HomePane = (function() {
 
   function HomePane(containerId, home, preferences, controller) {
     // _this.specialKeysListener = new HomePane.HomePane$0(_this);
@@ -501,7 +482,7 @@ var HomePane = (function () {
     
     // Keyboard accelerators management
     var homePane = this;
-    document.addEventListener("keydown", function (ev) {
+    document.addEventListener("keydown", function(ev) {
         var keyStroke = KeyStroke.getKeyStrokeForEvent(ev);
         if (keyStroke !== undefined) {
           // Search action matching shortcut and call its actionPerformed method
@@ -532,7 +513,7 @@ var HomePane = (function () {
     return this.container;
   }
   
-  HomePane.prototype.getActionMap = function () {
+  HomePane.prototype.getActionMap = function() {
     return this.actionMap;
   }
 
@@ -540,7 +521,7 @@ var HomePane = (function () {
    * Convenient shortcut method to access an action.
    * @param {string|HomeView.ActionType} actionType
    */
-  HomePane.prototype.getAction = function (actionType) {
+  HomePane.prototype.getAction = function(actionType) {
     if (typeof actionType === 'string') {
       return this.actionMap[actionType];
     } else {
@@ -555,7 +536,7 @@ var HomePane = (function () {
    * @param {HomeController} controller
    * @private
    */
-  HomePane.prototype.createActions = function (home, preferences, controller) {
+  HomePane.prototype.createActions = function(home, preferences, controller) {
     var ActionType = HomeView.ActionType;
     this.createAction(ActionType.NEW_HOME, preferences, controller, "newHome");
     this.createAction(ActionType.NEW_HOME_FROM_EXAMPLE, preferences, controller, "newHomeFromExample");
@@ -798,7 +779,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createAction = function (actionType, preferences, controller, method) {
+  HomePane.prototype.createAction = function(actionType, preferences, controller, method) {
     var parameters = [];
     for (var i = 4; i < arguments.length; i++) {
       parameters[i - 4] = arguments[i];
@@ -823,7 +804,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createToggleAction = function (actionType, selected, group, preferences, controller, method) {
+  HomePane.prototype.createToggleAction = function(actionType, selected, group, preferences, controller, method) {
     var parameters = [];
     for (var i = 6; i < arguments.length; i++) {
       parameters[i - 6] = arguments[i];
@@ -862,7 +843,7 @@ var HomePane = (function () {
    * @param {boolean} copyAction
    * @private
    */
-  HomePane.prototype.createClipboardAction = function (actionType, preferences, clipboardAction, copyAction) {
+  HomePane.prototype.createClipboardAction = function(actionType, preferences, clipboardAction, copyAction) {
     var action = this.createAction(actionType, preferences);
     var homePane = this;
     action.actionPerformed = function(ev) {
@@ -888,7 +869,7 @@ var HomePane = (function () {
   /**
    * Toogles the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
    */
-  PlanComponent.prototype.toggleToolBar = function () {
+  PlanComponent.prototype.toggleToolBar = function() {
     if (this.toolBar == null) {
       return;
     }
@@ -902,7 +883,7 @@ var HomePane = (function () {
   /**
    * Shows the toolbar for this plan view, if accessible in the HTML page (id = home-pane-toolbar).
    */
-  PlanComponent.prototype.showToolBar = function () {
+  PlanComponent.prototype.showToolBar = function() {
     if (this.toolBar == null) {
       return;
     }
@@ -922,7 +903,7 @@ var HomePane = (function () {
   /**
    * Hides the toolbar after the given timeout.
    */
-  PlanComponent.prototype.setToolBarTimeout = function (timeout) {
+  PlanComponent.prototype.setToolBarTimeout = function(timeout) {
     if (this.toolBar == null) {
       return;
     }
@@ -942,7 +923,7 @@ var HomePane = (function () {
   /**
    * Hides the toolbar.
    */
-  PlanComponent.prototype.hideToolBar = function () {
+  PlanComponent.prototype.hideToolBar = function() {
     if (this.toolBar == null) {
       return;
     }
@@ -962,7 +943,7 @@ var HomePane = (function () {
    * @param {HomeController} controller
    * @private
    */
-  HomePane.prototype.createMenuActions = function (preferences, controller) {
+  HomePane.prototype.createMenuActions = function(preferences, controller) {
     this.menuActionMap = new javax.swing.ActionMap();
     this.createMenuAction(preferences, HomePane.MenuActionType.FILE_MENU);
     this.createMenuAction(preferences, HomePane.MenuActionType.EDIT_MENU);
@@ -985,7 +966,7 @@ var HomePane = (function () {
    * @param {HomePane.MenuActionType} action
    * @private
    */
-  HomePane.prototype.createMenuAction = function (preferences, action) {
+  HomePane.prototype.createMenuAction = function(preferences, action) {
     this.menuActionMap.put(action, new ResourceAction(preferences, HomePane, /* Enum.name */ HomePane.MenuActionType[action], true));
   };
   /**
@@ -993,7 +974,7 @@ var HomePane = (function () {
    * @param {com.eteks.sweethome3d.plugin.Plugin[]} plugins
    * @private
    */
-  HomePane.prototype.createPluginActions = function (plugins) {
+  HomePane.prototype.createPluginActions = function(plugins) {
     this.pluginActions = ([]);
     if (plugins != null) {
       for (var index123 = 0; index123 < plugins.length; index123++) {
@@ -1018,7 +999,7 @@ var HomePane = (function () {
    * @param {HomeController} controller
    * @private
    */
-  HomePane.prototype.createTransferHandlers = function (home, controller) {
+  HomePane.prototype.createTransferHandlers = function(home, controller) {
     this.catalogTransferHandler = new FurnitureCatalogTransferHandler(controller.getContentManager(), controller.getFurnitureCatalogController(), controller.getFurnitureController());
     this.furnitureTransferHandler = new FurnitureTransferHandler(home, controller.getContentManager(), controller);
     this.planTransferHandler = new PlanTransferHandler(home, controller.getContentManager(), controller);
@@ -1029,7 +1010,7 @@ var HomePane = (function () {
    * @param {Home} home
    * @private
    */
-  HomePane.prototype.addHomeListener = function (home) {
+  HomePane.prototype.addHomeListener = function(home) {
     var homePane = this;
     home.addPropertyChangeListener("CAMERA", {
       propertyChange : function(ev) {
@@ -1044,7 +1025,7 @@ var HomePane = (function () {
    * @param {boolean} selected
    * @private
    */
-  HomePane.prototype.setToggleButtonModelSelected = function (actionType, selected) {
+  HomePane.prototype.setToggleButtonModelSelected = function(actionType, selected) {
     this.getAction(actionType).putValue(ResourceAction.SELECTED_KEY, selected);
   };
   /**
@@ -1054,7 +1035,7 @@ var HomePane = (function () {
    * @param {Home} home
    * @private
    */
-  HomePane.prototype.addLevelVisibilityListener = function (home) {
+  HomePane.prototype.addLevelVisibilityListener = function(home) {
     home.getEnvironment().addPropertyChangeListener("ALL_LEVELS_VISIBLE", {
       propertyChange : function(ev) {
         var allLevelsVisible = home.getEnvironment().isAllLevelsVisible();
@@ -1069,7 +1050,7 @@ var HomePane = (function () {
    * @param {UserPreferences} preferences
    * @private
    */
-  HomePane.prototype.addUserPreferencesListener = function (preferences) {
+  HomePane.prototype.addUserPreferencesListener = function(preferences) {
     var listener = new HomePane.UserPreferencesChangeListener(this);
     preferences.addPropertyChangeListener("LANGUAGE", listener);
     preferences.addPropertyChangeListener("CURRENCY", listener);
@@ -1080,7 +1061,7 @@ var HomePane = (function () {
    * @param {UserPreferences} preferences
    * @private
    */
-  HomePane.prototype.initActions = function (preferences) {
+  HomePane.prototype.initActions = function(preferences) {
     this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID).putValue(ResourceAction.VISIBLE, false);
     this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID).putValue(ResourceAction.VISIBLE, false);
     this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, preferences.getCurrency() != null);
@@ -1099,7 +1080,7 @@ var HomePane = (function () {
    * @param {PlanController} planController
    * @private
    */
-  HomePane.prototype.addPlanControllerListener = function (planController) {
+  HomePane.prototype.addPlanControllerListener = function(planController) {
     var homePane = this;
     planController.addPropertyChangeListener("MODE", {
       propertyChange : function(ev) {
@@ -1118,14 +1099,14 @@ var HomePane = (function () {
    * Adds a focus change listener to report to controller focus changes.
    * @private
    */
-  HomePane.prototype.addFocusListener = function () {
+  HomePane.prototype.addFocusListener = function() {
     java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("currentFocusCycleRoot", new HomePane.FocusCycleRootChangeListener(this));
   };
   /**
    * Sets a focus traversal policy that ignores invisible split pane components.
    * @private
    */
-  HomePane.prototype.updateFocusTraversalPolicy = function () {
+  HomePane.prototype.updateFocusTraversalPolicy = function() {
     this.setFocusTraversalPolicy(new HomePane.HomePane$6(this));
     this.setFocusTraversalPolicyProvider(true);
   };
@@ -1137,7 +1118,7 @@ var HomePane = (function () {
    * @return {boolean}
    * @private
    */
-  HomePane.prototype.isChildComponentInvisible = function (splitPane, childComponent) {
+  HomePane.prototype.isChildComponentInvisible = function(splitPane, childComponent) {
     return (javax.swing.SwingUtilities.isDescendingFrom(childComponent, splitPane.getTopComponent()) && (splitPane.getTopComponent().getWidth() === 0 || splitPane.getTopComponent().getHeight() === 0)) || (javax.swing.SwingUtilities.isDescendingFrom(childComponent, splitPane.getBottomComponent()) && (splitPane.getBottomComponent().getWidth() === 0 || splitPane.getBottomComponent().getHeight() === 0));
   };
   /**
@@ -1148,7 +1129,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuBar}
    * @private
    */
-  HomePane.prototype.createMenuBar = function (home, preferences, controller) {
+  HomePane.prototype.createMenuBar = function(home, preferences, controller) {
     var fileMenu = new javax.swing.JMenu(this.menuActionMap.get(HomePane.MenuActionType.FILE_MENU));
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JMenu(HomeView.ActionType.NEW_HOME, fileMenu);
     if ( /* size */preferences.getHomeExamples().length > 0) {
@@ -1319,7 +1300,7 @@ var HomePane = (function () {
           for (var i = 0; i < menuBar.getMenuCount(); i++) {
             {
               var menu = menuBar.getMenu(i);
-              if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+              if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
                 return o1.equals(o2);
               }
               else {
@@ -1348,10 +1329,10 @@ var HomePane = (function () {
     this.removeUselessSeparatorsAndEmptyMenus(menuBar);
     return menuBar;
   };
-  HomePane.prototype.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JMenu = function (actionType, menu) {
+  HomePane.prototype.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JMenu = function(actionType, menu) {
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu(actionType, false, menu);
   };
-  HomePane.prototype.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu = function (actionType, popup, menu) {
+  HomePane.prototype.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu = function(actionType, popup, menu) {
     var action = this.getAction(actionType);
     if (action != null && action.getValue(ResourceAction.NAME) != null) {
       menu.add(popup ? new ResourceAction.PopupMenuItemAction(action) : new ResourceAction.MenuItemAction(action));
@@ -1364,7 +1345,7 @@ var HomePane = (function () {
    * @param {javax.swing.JMenu} menu
    * @private
    */
-  HomePane.prototype.addActionToMenu = function (actionType, popup, menu) {
+  HomePane.prototype.addActionToMenu = function(actionType, popup, menu) {
     if (((typeof actionType === 'number') || actionType === null) && ((typeof popup === 'boolean') || popup === null) && ((menu != null && menu instanceof javax.swing.JMenu) || menu === null)) {
       return this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu(actionType, popup, menu);
     }
@@ -1374,10 +1355,10 @@ var HomePane = (function () {
     else
       throw new Error('invalid overload');
   };
-  HomePane.prototype.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu = function (actionType, radioButton, menu) {
+  HomePane.prototype.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu = function(actionType, radioButton, menu) {
     this.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$boolean$javax_swing_JMenu(actionType, false, radioButton, menu);
   };
-  HomePane.prototype.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$boolean$javax_swing_JMenu = function (actionType, popup, radioButton, menu) {
+  HomePane.prototype.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$boolean$javax_swing_JMenu = function(actionType, popup, radioButton, menu) {
     var action = this.getAction(actionType);
     if (action != null && action.getValue(ResourceAction.NAME) != null) {
       menu.add(this.createToggleMenuItem(action, popup, radioButton));
@@ -1391,7 +1372,7 @@ var HomePane = (function () {
    * @param {javax.swing.JMenu} menu
    * @private
    */
-  HomePane.prototype.addToggleActionToMenu = function (actionType, popup, radioButton, menu) {
+  HomePane.prototype.addToggleActionToMenu = function(actionType, popup, radioButton, menu) {
     if (((typeof actionType === 'number') || actionType === null) && ((typeof popup === 'boolean') || popup === null) && ((typeof radioButton === 'boolean') || radioButton === null) && ((menu != null && menu instanceof javax.swing.JMenu) || menu === null)) {
       return this.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$boolean$javax_swing_JMenu(actionType, popup, radioButton, menu);
     }
@@ -1409,7 +1390,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.createToggleMenuItem = function (action, popup, radioButton) {
+  HomePane.prototype.createToggleMenuItem = function(action, popup, radioButton) {
     var menuItem;
     if (radioButton) {
       menuItem = new javax.swing.JRadioButtonMenuItem();
@@ -1428,7 +1409,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.addActionToPopupMenu = function (actionType, menu) {
+  HomePane.prototype.addActionToPopupMenu = function(actionType, menu) {
     var action = this.getAction(actionType);
     if (action != null && action.getValue(ResourceAction.NAME) != null) {
       menu.add(new ResourceAction.PopupMenuItemAction(action));
@@ -1444,7 +1425,7 @@ var HomePane = (function () {
    * @param {javax.swing.JPopupMenu} menu
    * @private
    */
-  HomePane.prototype.addToggleActionToPopupMenu = function (actionType, radioButton, menu) {
+  HomePane.prototype.addToggleActionToPopupMenu = function(actionType, radioButton, menu) {
     var action = this.getAction(actionType);
     if (action != null && action.getValue(ResourceAction.NAME) != null) {
       menu.add(this.createToggleMenuItem(action, true, radioButton));
@@ -1455,7 +1436,7 @@ var HomePane = (function () {
    * @param {javax.swing.JComponent} component
    * @private
    */
-  HomePane.prototype.removeUselessSeparatorsAndEmptyMenus = function (component) {
+  HomePane.prototype.removeUselessSeparatorsAndEmptyMenus = function(component) {
     for (var i = component.getComponentCount() - 1; i >= 0; i--) {
       {
         var child = component.getComponent(i);
@@ -1483,7 +1464,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenu}
    * @private
    */
-  HomePane.prototype.createAlignOrDistributeMenu = function (home, preferences, popup) {
+  HomePane.prototype.createAlignOrDistributeMenu = function(home, preferences, popup) {
     var alignOrDistributeMenu = new javax.swing.JMenu(this.menuActionMap.get(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU));
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu(HomeView.ActionType.ALIGN_FURNITURE_ON_TOP, popup, alignOrDistributeMenu);
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu(HomeView.ActionType.ALIGN_FURNITURE_ON_BOTTOM, popup, alignOrDistributeMenu);
@@ -1505,7 +1486,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenu}
    * @private
    */
-  HomePane.prototype.createFurnitureSortMenu = function (home, preferences) {
+  HomePane.prototype.createFurnitureSortMenu = function(home, preferences) {
     var sortMenu = new javax.swing.JMenu(this.menuActionMap.get(HomePane.MenuActionType.SORT_HOME_FURNITURE_MENU));
     var sortActions = ({});
     this.addActionToMap(HomeView.ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, sortActions, "CATALOG_ID");
@@ -1531,7 +1512,7 @@ var HomePane = (function () {
     this.addActionToMap(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, sortActions, "PRICE_VALUE_ADDED_TAX_INCLUDED");
     var sortButtonGroup = new javax.swing.ButtonGroup();
     {
-      var array128 = /* entrySet */ (function (m) { if (m.entries == null)
+      var array128 = /* entrySet */ (function(m) { if (m.entries == null)
         m.entries = []; return m.entries; })(sortActions);
       for (var index127 = 0; index127 < array128.length; index127++) {
         var entry = array128[index127];
@@ -1540,7 +1521,7 @@ var HomePane = (function () {
           var sortAction = entry.getValue();
           var sortMenuItem = new javax.swing.JRadioButtonMenuItem();
           sortMenuItem.setModel(new HomePane.HomePane$8(this, furnitureProperty, home));
-          sortMenuItem.setVisible(/* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          sortMenuItem.setVisible(/* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
@@ -1571,15 +1552,15 @@ var HomePane = (function () {
    * @param {string} key
    * @private
    */
-  HomePane.prototype.addActionToMap = function (actionType, actions, key) {
+  HomePane.prototype.addActionToMap = function(actionType, actions, key) {
     var action = this.getAction(actionType);
     if (action != null && action.getValue(ResourceAction.NAME) != null) {
-      /* put */ (function (m, k, v) { if (m.entries == null)
+      /* put */ (function(m, k, v) { if (m.entries == null)
         m.entries = []; for (var i = 0; i < m.entries.length; i++)
           if (m.entries[i].key == null && k == null || m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
             m.entries[i].value = v;
             return;
-          } m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } }); })(actions, key, action);
+          } m.entries.push({ key: k, value: v, getKey: function() { return this.key; }, getValue: function() { return this.value; } }); })(actions, key, action);
     }
   };
   /**
@@ -1589,7 +1570,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenu}
    * @private
    */
-  HomePane.prototype.createFurnitureDisplayPropertyMenu = function (home, preferences) {
+  HomePane.prototype.createFurnitureDisplayPropertyMenu = function(home, preferences) {
     var displayPropertyMenu = new javax.swing.JMenu(this.menuActionMap.get(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU));
     var displayPropertyActions = ({});
     this.addActionToMap(HomeView.ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, displayPropertyActions, "CATALOG_ID");
@@ -1614,7 +1595,7 @@ var HomePane = (function () {
     this.addActionToMap(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, displayPropertyActions, "VALUE_ADDED_TAX");
     this.addActionToMap(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, displayPropertyActions, "PRICE_VALUE_ADDED_TAX_INCLUDED");
     {
-      var array130 = /* entrySet */ (function (m) { if (m.entries == null)
+      var array130 = /* entrySet */ (function(m) { if (m.entries == null)
         m.entries = []; return m.entries; })(displayPropertyActions);
       for (var index129 = 0; index129 < array130.length; index129++) {
         var entry = array130[index129];
@@ -1623,7 +1604,7 @@ var HomePane = (function () {
           var displayPropertyAction = entry.getValue();
           var displayPropertyMenuItem = new javax.swing.JCheckBoxMenuItem();
           displayPropertyMenuItem.setModel(new HomePane.HomePane$11(this, home, furnitureProperty));
-          displayPropertyMenuItem.setVisible(/* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          displayPropertyMenuItem.setVisible(/* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
@@ -1644,7 +1625,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.createLockUnlockBasePlanMenuItem = function (home, popup) {
+  HomePane.prototype.createLockUnlockBasePlanMenuItem = function(home, popup) {
     var actionMap = this.getActionMap();
     var unlockBasePlanAction = actionMap.get(HomeView.ActionType.UNLOCK_BASE_PLAN);
     var lockBasePlanAction = actionMap.get(HomeView.ActionType.LOCK_BASE_PLAN);
@@ -1664,7 +1645,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createLockUnlockBasePlanAction = function (home, popup) {
+  HomePane.prototype.createLockUnlockBasePlanAction = function(home, popup) {
     var actionType = home.isBasePlanLocked() ? HomeView.ActionType.UNLOCK_BASE_PLAN : HomeView.ActionType.LOCK_BASE_PLAN;
     var action = this.getAction(actionType);
     return popup ? new ResourceAction.PopupMenuItemAction(action) : new ResourceAction.MenuItemAction(action);
@@ -1754,7 +1735,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenu}
    * @private
    */
-  HomePane.prototype.createTextStyleMenu = function (home, preferences, popup) {
+  HomePane.prototype.createTextStyleMenu = function(home, preferences, popup) {
     var modifyTextStyleMenu = new javax.swing.JMenu(this.menuActionMap.get(HomePane.MenuActionType.MODIFY_TEXT_STYLE));
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu(HomeView.ActionType.INCREASE_TEXT_SIZE, popup, modifyTextStyleMenu);
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu(HomeView.ActionType.DECREASE_TEXT_SIZE, popup, modifyTextStyleMenu);
@@ -1829,7 +1810,7 @@ var HomePane = (function () {
    * @return {ResourceAction}
    * @private
    */
-  HomePane.prototype.createItalicStyleToggleModel = function (actionType, home, preferences, controller, method) {
+  HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, preferences, controller, method) {
     var action = this.createAction(actionType, preferences, controller, method);
     home.addSelectionListener({
           selectionChanged: function(ev) {
@@ -1879,7 +1860,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.createImportModifyBackgroundImageMenuItem = function (home, popup) {
+  HomePane.prototype.createImportModifyBackgroundImageMenuItem = function(home, popup) {
     var actionMap = this.getActionMap();
     var importBackgroundImageAction = actionMap.get(HomeView.ActionType.IMPORT_BACKGROUND_IMAGE);
     var modifyBackgroundImageAction = actionMap.get(HomeView.ActionType.MODIFY_BACKGROUND_IMAGE);
@@ -1898,7 +1879,7 @@ var HomePane = (function () {
    * @param {PropertyChangeListener} listener
    * @private
    */
-  HomePane.prototype.addBackgroundImageChangeListener = function (home, listener) {
+  HomePane.prototype.addBackgroundImageChangeListener = function(home, listener) {
     home.addPropertyChangeListener("BACKGROUND_IMAGE", listener);
     home.addPropertyChangeListener("SELECTED_LEVEL", listener);
     var levelChangeListener = new HomePane.HomePane$18(this, listener);
@@ -1911,7 +1892,7 @@ var HomePane = (function () {
         }
       }
     }
-    this.home.addLevelsListener(function (ev) {
+    this.home.addLevelsListener(function(ev) {
       switch ((ev.getType())) {
       case CollectionEvent.Type.ADD:
         ev.getItem().addPropertyChangeListener(levelChangeListener);
@@ -1929,7 +1910,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createImportModifyBackgroundImageAction = function (home, popup) {
+  HomePane.prototype.createImportModifyBackgroundImageAction = function(home, popup) {
     var backgroundImage = home.getSelectedLevel() != null ? home.getSelectedLevel().getBackgroundImage() : home.getBackgroundImage();
     var backgroundImageActionType = backgroundImage == null ? HomeView.ActionType.IMPORT_BACKGROUND_IMAGE : HomeView.ActionType.MODIFY_BACKGROUND_IMAGE;
     var backgroundImageAction = this.getAction(backgroundImageActionType);
@@ -1942,7 +1923,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.createHideShowBackgroundImageMenuItem = function (home, popup) {
+  HomePane.prototype.createHideShowBackgroundImageMenuItem = function(home, popup) {
     var actionMap = this.getActionMap();
     var hideBackgroundImageAction = actionMap.get(HomeView.ActionType.HIDE_BACKGROUND_IMAGE);
     var showBackgroundImageAction = actionMap.get(HomeView.ActionType.SHOW_BACKGROUND_IMAGE);
@@ -1962,7 +1943,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createHideShowBackgroundImageAction = function (home, popup) {
+  HomePane.prototype.createHideShowBackgroundImageAction = function(home, popup) {
     var backgroundImage = home.getSelectedLevel() != null ? home.getSelectedLevel().getBackgroundImage() : home.getBackgroundImage();
     var backgroundImageActionType = backgroundImage == null || backgroundImage.isVisible() ? HomeView.ActionType.HIDE_BACKGROUND_IMAGE : HomeView.ActionType.SHOW_BACKGROUND_IMAGE;
     var backgroundImageAction = this.getAction(backgroundImageActionType);
@@ -1975,7 +1956,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.createMakeLevelUnviewableViewableMenuItem = function (home, popup) {
+  HomePane.prototype.createMakeLevelUnviewableViewableMenuItem = function(home, popup) {
     var actionMap = this.getActionMap();
     var makeLevelUnviewableAction = actionMap.get(HomeView.ActionType.MAKE_LEVEL_UNVIEWABLE);
     var makeLevelViewableAction = actionMap.get(HomeView.ActionType.MAKE_LEVEL_VIEWABLE);
@@ -2000,7 +1981,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createMakeLevelUnviewableViewableAction = function (home, popup) {
+  HomePane.prototype.createMakeLevelUnviewableViewableAction = function(home, popup) {
     var selectedLevel = home.getSelectedLevel();
     var levelViewabilityActionType = selectedLevel == null || selectedLevel.isViewable() ? HomeView.ActionType.MAKE_LEVEL_UNVIEWABLE : HomeView.ActionType.MAKE_LEVEL_VIEWABLE;
     var levelViewabilityAction = this.getAction(levelViewabilityActionType);
@@ -2014,7 +1995,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenu}
    * @private
    */
-  HomePane.prototype.createGoToPointOfViewMenu = function (home, preferences, controller) {
+  HomePane.prototype.createGoToPointOfViewMenu = function(home, preferences, controller) {
     var goToPointOfViewAction = this.menuActionMap.get(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
     if (goToPointOfViewAction.getValue(ResourceAction.NAME) != null) {
       var goToPointOfViewMenu = new javax.swing.JMenu(goToPointOfViewAction);
@@ -2033,7 +2014,7 @@ var HomePane = (function () {
    * @param {HomeController} controller
    * @private
    */
-  HomePane.prototype.updateGoToPointOfViewMenu = function (goToPointOfViewMenu, home, controller) {
+  HomePane.prototype.updateGoToPointOfViewMenu = function(goToPointOfViewMenu, home, controller) {
     var storedCameras = home.getStoredCameras();
     goToPointOfViewMenu.removeAll();
     if ( /* isEmpty */(storedCameras.length == 0)) {
@@ -2057,7 +2038,7 @@ var HomePane = (function () {
    * @return {javax.swing.JMenuItem}
    * @private
    */
-  HomePane.prototype.createAttachDetach3DViewMenuItem = function (controller, popup) {
+  HomePane.prototype.createAttachDetach3DViewMenuItem = function(controller, popup) {
     var actionMap = this.getActionMap();
     var display3DViewInSeparateWindowAction = actionMap.get(HomeView.ActionType.DETACH_3D_VIEW);
     var display3DViewInMainWindowAction = actionMap.get(HomeView.ActionType.ATTACH_3D_VIEW);
@@ -2078,7 +2059,7 @@ var HomePane = (function () {
    * @return {Object}
    * @private
    */
-  HomePane.prototype.createAttachDetach3DViewAction = function (controller, popup) {
+  HomePane.prototype.createAttachDetach3DViewAction = function(controller, popup) {
     var view3DRootPane = javax.swing.SwingUtilities.getRootPane(controller.getHomeController3D().getView());
     var display3DViewActionType = view3DRootPane === this ? HomeView.ActionType.DETACH_3D_VIEW : HomeView.ActionType.ATTACH_3D_VIEW;
     var attachmentAction = this.getAction(display3DViewActionType);
@@ -2089,7 +2070,7 @@ var HomePane = (function () {
    * @param {javax.swing.JMenu} openRecentHomeMenu
    * @param {HomeController} controller
    */
-  HomePane.prototype.updateOpenRecentHomeMenu = function (openRecentHomeMenu, controller) {
+  HomePane.prototype.updateOpenRecentHomeMenu = function(openRecentHomeMenu, controller) {
     openRecentHomeMenu.removeAll();
     {
       var array135 = controller.getRecentHomes();
@@ -2144,6 +2125,8 @@ var HomePane = (function () {
     if (lockUnlockBasePlanButton !== null) {
       this.addButtonToToolBar(toolBar, lockUnlockBasePlanButton);
     }
+    this.addActionToToolBar(HomeView.ActionType.FLIP_HORIZONTALLY, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.FLIP_VERTICALLY, toolBar, "toolbar-optional");
     this.addSeparator(toolBar);
     
     this.addActionToToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar, "toolbar-optional");
@@ -2284,7 +2267,7 @@ var HomePane = (function () {
    * @param {HomeView.ActionType} actionType
    * @param {boolean} enabled
    */
-  HomePane.prototype.setEnabled = function (actionType, enabled) {
+  HomePane.prototype.setEnabled = function(actionType, enabled) {
     var action = this.getAction(actionType);
     if (action != null) {
       action.setEnabled(enabled);
@@ -2297,7 +2280,7 @@ var HomePane = (function () {
    * @param {string} undoText
    * @param {string} redoText
    */
-  HomePane.prototype.setUndoRedoName = function (undoText, redoText) {
+  HomePane.prototype.setUndoRedoName = function(undoText, redoText) {
     this.setNameAndShortDescription(HomeView.ActionType.UNDO, undoText);
     this.setNameAndShortDescription(HomeView.ActionType.REDO, redoText);
   };
@@ -2309,7 +2292,7 @@ var HomePane = (function () {
    * @param {string} name
    * @private
    */
-  HomePane.prototype.setNameAndShortDescription = function (actionType, name) {
+  HomePane.prototype.setNameAndShortDescription = function(actionType, name) {
     var action = this.getAction(actionType);
     if (action != null) {
       if (name == null) {
@@ -2323,7 +2306,7 @@ var HomePane = (function () {
    * Enables or disables transfer between components.
    * @param {boolean} enabled
    */
-  HomePane.prototype.setTransferEnabled = function (enabled) {
+  HomePane.prototype.setTransferEnabled = function(enabled) {
     var catalogView = this.controller.getFurnitureCatalogController().getView();
     var furnitureView = this.controller.getFurnitureController().getView();
     var planView = this.controller.getPlanController().getView();
@@ -2399,7 +2382,7 @@ var HomePane = (function () {
    * @return {javax.swing.event.MouseInputAdapter}
    * @private
    */
-  HomePane.prototype.createFurnitureCatalogMouseListener = function () {
+  HomePane.prototype.createFurnitureCatalogMouseListener = function() {
     var homePane = this;
     var mouseListener = {
         selectedPiece: null,
@@ -2627,7 +2610,7 @@ var HomePane = (function () {
    * @return {javax.swing.JComponent}
    * @private
    */
-  HomePane.prototype.createMainPane = function (home, preferences, controller) {
+  HomePane.prototype.createMainPane = function(home, preferences, controller) {
     var catalogFurniturePane = this.createCatalogFurniturePane(home, preferences, controller);
     var planView3DPane = this.createPlanView3DPane(home, preferences, controller);
     if (catalogFurniturePane == null) {
@@ -2657,7 +2640,7 @@ var HomePane = (function () {
    * @param {HomeController} controller
    * @private
    */
-  HomePane.prototype.configureSplitPane = function (splitPane, home, dividerLocationProperty, defaultResizeWeight, showBorder, controller) {
+  HomePane.prototype.configureSplitPane = function(splitPane, home, dividerLocationProperty, defaultResizeWeight, showBorder, controller) {
     splitPane.setContinuousLayout(true);
     splitPane.setOneTouchExpandable(true);
     splitPane.setResizeWeight(defaultResizeWeight);
@@ -2681,7 +2664,7 @@ var HomePane = (function () {
    * @return {javax.swing.JComponent}
    * @private
    */
-  HomePane.prototype.createCatalogFurniturePane = function (home, preferences, controller) {
+  HomePane.prototype.createCatalogFurniturePane = function(home, preferences, controller) {
     var catalogView = controller.getFurnitureCatalogController().getView();
     if (catalogView != null) {
       var catalogViewPopup = new javax.swing.JPopupMenu();
@@ -2769,7 +2752,7 @@ var HomePane = (function () {
    * @return {javax.swing.JComponent}
    * @private
    */
-  HomePane.prototype.createPlanView3DPane = function (home, preferences, controller) {
+  HomePane.prototype.createPlanView3DPane = function(home, preferences, controller) {
     var _this = this;
     var planView = controller.getPlanController().getView();
     if (planView != null) {
@@ -2790,7 +2773,7 @@ var HomePane = (function () {
         planViewPopup.add(selectObjectMenu_1);
         var toggleObjectSelectionAction = this.menuActionMap.get(HomePane.MenuActionType.TOGGLE_SELECTION_MENU);
         if (toggleObjectSelectionAction.getValue(ResourceAction.NAME) != null) {
-          var shiftKeyListener = function (ev) {
+          var shiftKeyListener = function(ev) {
             selectObjectMenu_1.setAction(_this.menuActionMap.get(ev.isShiftDown() ? HomePane.MenuActionType.TOGGLE_SELECTION_MENU : HomePane.MenuActionType.SELECT_OBJECT_MENU));
             return false;
           };
@@ -2908,7 +2891,7 @@ var HomePane = (function () {
       if (selectObjectMenuItem_1 != null) {
         var toggleSelectionAction = this.getAction(HomeView.ActionType.TOGGLE_SELECTION);
         if (toggleSelectionAction.getValue(ResourceAction.NAME) != null) {
-          var shiftKeyListener = function (ev) {
+          var shiftKeyListener = function(ev) {
             selectObjectMenuItem_1.setAction(_this.getAction(ev.isShiftDown() ? HomeView.ActionType.TOGGLE_SELECTION : HomeView.ActionType.SELECT_OBJECT));
             return false;
           };
@@ -2948,7 +2931,7 @@ var HomePane = (function () {
         view3D = SwingTools.createScrollPane(view3D);
       }
       var planView3DPane_1;
-      var detachedView3D = javaemul.internal.BooleanHelper.parseBoolean(home.getProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY));
+      var detachedView3D = javaemul.internal.BooleanHelper.parseBoolean(home.getProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY));
       if (planView != null) {
         var planView3DSplitPane = new javax.swing.JSplitPane(javax.swing.JSplitPane.VERTICAL_SPLIT, planView, view3D);
         planView3DSplitPane.setMinimumSize(new java.awt.Dimension());
@@ -2963,28 +2946,28 @@ var HomePane = (function () {
         planView3DPane_1 = view3D;
       }
       if (detachedView3D) {
-        var dialogX_1 = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY);
-        var dialogY_1 = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_Y_VISUAL_PROPERTY);
-        var dialogWidth_1 = home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_WIDTH_VISUAL_PROPERTY);
-        var dialogHeight_1 = home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_HEIGHT_VISUAL_PROPERTY);
+        var dialogX_1 = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY);
+        var dialogY_1 = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_Y_VISUAL_PROPERTY);
+        var dialogWidth_1 = home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_WIDTH_VISUAL_PROPERTY);
+        var dialogHeight_1 = home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_HEIGHT_VISUAL_PROPERTY);
         if (dialogX_1 != null && dialogY_1 != null && dialogWidth_1 != null && dialogHeight_1 != null) {
-          java.awt.EventQueue.invokeLater(function () {
+          java.awt.EventQueue.invokeLater(function() {
             var view3D = controller.getHomeController3D().getView();
             if (_this.getAction(HomeView.ActionType.DETACH_3D_VIEW).isEnabled() && SwingTools.isRectangleVisibleAtScreen(new java.awt.Rectangle(/* intValue */ (dialogX_1 | 0), /* intValue */ (dialogY_1 | 0), /* intValue */ (dialogWidth_1 | 0), /* intValue */ (dialogHeight_1 | 0)))) {
               _this.detachView$com_eteks_sweethome3d_viewcontroller_View$int$int$int$int(view3D, /* intValue */ (dialogX_1 | 0), /* intValue */ (dialogY_1 | 0), /* intValue */ (dialogWidth_1 | 0), /* intValue */ (dialogHeight_1 | 0));
             }
             else if (planView3DPane_1 != null && planView3DPane_1 instanceof javax.swing.JSplitPane) {
               var splitPane = planView3DPane_1;
-              var dividerLocation = home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY);
+              var dividerLocation = home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY);
               if (dividerLocation != null && /* floatValue */ dividerLocation !== -1.0) {
                 splitPane.setDividerLocation(/* floatValue */ dividerLocation);
               }
-              controller.setHomeProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY, /* valueOf */ new String(false).toString());
+              controller.setHomeProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY, /* valueOf */ new String(false).toString());
             }
           });
           return planView3DPane_1;
         }
-        controller.setHomeProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY, null);
+        controller.setHomeProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view3D.constructor) + HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY, null);
       }
       return planView3DPane_1;
     }
@@ -3001,7 +2984,7 @@ var HomePane = (function () {
    * @param {UserPreferences} preferences
    * @private
    */
-  HomePane.prototype.updateRoomActions = function (addRoomPointMenuItem, deleteRoomPointMenuItem, planController, preferences) {
+  HomePane.prototype.updateRoomActions = function(addRoomPointMenuItem, deleteRoomPointMenuItem, planController, preferences) {
     var popupMenu = (addRoomPointMenuItem != null ? addRoomPointMenuItem : deleteRoomPointMenuItem).getParent();
     popupMenu.addPopupMenuListener(new HomePane.HomePane$41(this, planController.getView(), addRoomPointMenuItem, preferences, planController, deleteRoomPointMenuItem));
   };
@@ -3013,7 +2996,7 @@ var HomePane = (function () {
    * @param {UserPreferences} preferences
    * @private
    */
-  HomePane.prototype.addSelectObjectMenuItems = function (selectObjectMenu, planController, preferences) {
+  HomePane.prototype.addSelectObjectMenuItems = function(selectObjectMenu, planController, preferences) {
     selectObjectMenu.getParent().addPopupMenuListener(new HomePane.HomePane$42(this, planController.getView(), planController, preferences, selectObjectMenu));
   };
   /**
@@ -3025,7 +3008,7 @@ var HomePane = (function () {
    * @param {UserPreferences} preferences
    * @private
    */
-  HomePane.prototype.updatePickingActions = function (selectObjectMenuItem, homeController3D, planController, preferences) {
+  HomePane.prototype.updatePickingActions = function(selectObjectMenuItem, homeController3D, planController, preferences) {
     var popupMenu = selectObjectMenuItem.getParent();
     popupMenu.addPopupMenuListener(new HomePane.HomePane$43(this, homeController3D.getView(), selectObjectMenuItem, planController, homeController3D));
   };
@@ -3036,7 +3019,7 @@ var HomePane = (function () {
    * @param {boolean} visible
    * @private
    */
-  HomePane.prototype.setPlanRulersVisible = function (planScrollPane, controller, visible) {
+  HomePane.prototype.setPlanRulersVisible = function(planScrollPane, controller, visible) {
     if (visible) {
       planScrollPane.setColumnHeaderView(controller.getPlanController().getHorizontalRulerView());
       planScrollPane.setRowHeaderView(controller.getPlanController().getVerticalRulerView());
@@ -3053,14 +3036,14 @@ var HomePane = (function () {
    * @param {javax.swing.JMenuBar} menuBar
    * @private
    */
-  HomePane.prototype.disableMenuItemsDuringDragAndDrop = function (view, menuBar) {
+  HomePane.prototype.disableMenuItemsDuringDragAndDrop = function(view, menuBar) {
     var listener = new HomePane.MouseAndFocusListener(this);
     if (view != null) {
       view.addMouseListener(listener);
       view.addFocusListener(listener);
     }
   };
-  HomePane.prototype.detachView$com_eteks_sweethome3d_viewcontroller_View = function (view) {
+  HomePane.prototype.detachView$com_eteks_sweethome3d_viewcontroller_View = function(view) {
     var component = view;
     var parent = component.getParent();
     if (parent != null && parent instanceof javax.swing.JViewport) {
@@ -3080,10 +3063,10 @@ var HomePane = (function () {
     else {
       dividerLocation = -1;
     }
-    var dialogX = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY);
-    var dialogY = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_Y_VISUAL_PROPERTY);
-    var dialogWidth = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_WIDTH_VISUAL_PROPERTY);
-    var dialogHeight = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_HEIGHT_VISUAL_PROPERTY);
+    var dialogX = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY);
+    var dialogY = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_Y_VISUAL_PROPERTY);
+    var dialogWidth = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_WIDTH_VISUAL_PROPERTY);
+    var dialogHeight = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_HEIGHT_VISUAL_PROPERTY);
     if (dialogX != null && dialogY != null && dialogWidth != null && dialogHeight != null) {
       this.detachView$com_eteks_sweethome3d_viewcontroller_View$int$int$int$int(view, /* intValue */ (dialogX | 0), /* intValue */ (dialogY | 0), /* intValue */ (dialogWidth | 0), /* intValue */ (dialogHeight | 0));
     }
@@ -3094,9 +3077,9 @@ var HomePane = (function () {
       var insets = new javax.swing.JDialog().getInsets();
       this.detachView$com_eteks_sweethome3d_viewcontroller_View$int$int$int$int(view, componentLocation.x - insets.left, componentLocation.y - insets.top, componentSize.width + insets.left + insets.right, componentSize.height + insets.top + insets.bottom);
     }
-    this.controller.setHomeProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY, /* valueOf */ new String(dividerLocation).toString());
+    this.controller.setHomeProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY, /* valueOf */ new String(dividerLocation).toString());
   };
-  HomePane.prototype.detachView$com_eteks_sweethome3d_viewcontroller_View$int$int$int$int = function (view, x, y, width, height) {
+  HomePane.prototype.detachView$com_eteks_sweethome3d_viewcontroller_View$int$int$int$int = function(view, x, y, width, height) {
     var component = view;
     var parent = component.getParent();
     if (parent != null && parent instanceof javax.swing.JViewport) {
@@ -3106,7 +3089,7 @@ var HomePane = (function () {
     var dummyPanel = new javax.swing.JPanel();
     dummyPanel.setMaximumSize(new java.awt.Dimension());
     dummyPanel.setMinimumSize(new java.awt.Dimension());
-    dummyPanel.setName(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor));
+    dummyPanel.setName(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor));
     dummyPanel.setBorder(component.getBorder());
     if (parent != null && parent instanceof javax.swing.JSplitPane) {
       var splitPane = parent;
@@ -3141,10 +3124,10 @@ var HomePane = (function () {
         separateFrame.setJMenuBar(this.createMenuBar(this.home, this.preferences, this.controller));
       }
       try {
-        /* invoke */ /* getMethod */ (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        /* invoke */ /* getMethod */ (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
-            return null; })(javax.swing.JFrame, "setIconImages").fn.apply(separateFrame, [/* invoke */ /* getMethod */ (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+            return null; })(javax.swing.JFrame, "setIconImages").fn.apply(separateFrame, [/* invoke */ /* getMethod */ (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
               return { owner: c, name: p, fn: c.prototype[p] };
               else
                 return null; })(javax.swing.JFrame, "getIconImages").fn.apply(defaultFrame)]);
@@ -3192,7 +3175,7 @@ var HomePane = (function () {
     separateWindow.setBounds(x, y, width, height);
     separateWindow.setLocationByPlatform(!SwingTools.isRectangleVisibleAtScreen(separateWindow.getBounds()));
     separateWindow.setVisible(true);
-    this.controller.setHomeProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY, true.toString());
+    this.controller.setHomeProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY, true.toString());
   };
   /**
    * Detaches a <code>view</code> at the given location and size.
@@ -3203,7 +3186,7 @@ var HomePane = (function () {
    * @param {number} height
    * @private
    */
-  HomePane.prototype.detachView = function (view, x, y, width, height) {
+  HomePane.prototype.detachView = function(view, x, y, width, height) {
     if (((view != null && (view["__interfaces"] != null && view["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.View") >= 0 || view.constructor != null && view.constructor["__interfaces"] != null && view.constructor["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.View") >= 0)) || view === null) && ((typeof x === 'number') || x === null) && ((typeof y === 'number') || y === null) && ((typeof width === 'number') || width === null) && ((typeof height === 'number') || height === null)) {
       return this.detachView$com_eteks_sweethome3d_viewcontroller_View$int$int$int$int(view, x, y, width, height);
     }
@@ -3217,9 +3200,9 @@ var HomePane = (function () {
    * Attaches the given <code>view</code> to home view.
    * @param {Object} view
    */
-  HomePane.prototype.attachView = function (view) {
-    this.controller.setHomeProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY, /* valueOf */ new String(false).toString());
-    var dummyComponent = this.findChild(this, /* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor));
+  HomePane.prototype.attachView = function(view) {
+    this.controller.setHomeProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_VISUAL_PROPERTY, /* valueOf */ new String(false).toString());
+    var dummyComponent = this.findChild(this, /* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor));
     if (dummyComponent != null) {
       var component = view;
       var window_1 = javax.swing.SwingUtilities.getWindowAncestor(component);
@@ -3230,7 +3213,7 @@ var HomePane = (function () {
       if (parent_1 != null && parent_1 instanceof javax.swing.JSplitPane) {
         var splitPane = parent_1;
         splitPane.setDividerSize(javax.swing.UIManager.getInt("SplitPane.dividerSize"));
-        var dividerLocation = this.home.getNumericProperty(/* getName */ (function (c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY);
+        var dividerLocation = this.home.getNumericProperty(/* getName */ (function(c) { return c["__class"] ? c["__class"] : c["name"]; })(view.constructor) + HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY);
         if (dividerLocation != null) {
           splitPane.setDividerLocation(/* floatValue */ dividerLocation);
         }
@@ -3255,11 +3238,11 @@ var HomePane = (function () {
    * @return {java.awt.Component}
    * @private
    */
-  HomePane.prototype.findChild = function (parent, childName) {
+  HomePane.prototype.findChild = function(parent, childName) {
     for (var i = 0; i < parent.getComponentCount(); i++) {
       {
         var child = parent.getComponent(i);
-        if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+        if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
           return o1.equals(o2);
         }
         else {
@@ -3282,13 +3265,13 @@ var HomePane = (function () {
    * Displays a content chooser open dialog to choose the name of a home.
    * @return {string}
    */
-  HomePane.prototype.showOpenDialog = function () {
+  HomePane.prototype.showOpenDialog = function() {
   };
   /**
    * Displays a dialog to let the user choose a home example.
    * @return {string}
    */
-  HomePane.prototype.showNewHomeFromExampleDialog = function () {
+  HomePane.prototype.showNewHomeFromExampleDialog = function() {
   };
   /**
    * Displays a dialog that lets user choose what he wants to do with a damaged home he tries to open it.
@@ -3302,7 +3285,7 @@ var HomePane = (function () {
    * @param {Home} damagedHome
    * @param {*[]} invalidContent
    */
-  HomePane.prototype.confirmOpenDamagedHome = function (homeName, damagedHome, invalidContent) {
+  HomePane.prototype.confirmOpenDamagedHome = function(homeName, damagedHome, invalidContent) {
     var message = this.preferences.getLocalizedString(HomePane, "openDamagedHome.message", homeName, Math.max(1, /* size */ invalidContent.length));
     var title = this.preferences.getLocalizedString(HomePane, "openDamagedHome.title");
     var removeDamagedItems = this.preferences.getLocalizedString(HomePane, "openDamagedHome.removeDamagedItems");
@@ -3321,7 +3304,7 @@ var HomePane = (function () {
    * Displays a content chooser open dialog to choose a language library.
    * @return {string}
    */
-  HomePane.prototype.showImportLanguageLibraryDialog = function () {
+  HomePane.prototype.showImportLanguageLibraryDialog = function() {
   };
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
@@ -3329,7 +3312,7 @@ var HomePane = (function () {
    * @param {string} languageLibraryName
    * @return {boolean}
    */
-  HomePane.prototype.confirmReplaceLanguageLibrary = function (languageLibraryName) {
+  HomePane.prototype.confirmReplaceLanguageLibrary = function(languageLibraryName) {
     var message = this.preferences.getLocalizedString(HomePane, "confirmReplaceLanguageLibrary.message", this.controller.getContentManager().getPresentationName(languageLibraryName, ContentManager.ContentType.LANGUAGE_LIBRARY));
     var title = this.preferences.getLocalizedString(HomePane, "confirmReplaceLanguageLibrary.title");
     var replace = this.preferences.getLocalizedString(HomePane, "confirmReplaceLanguageLibrary.replace");
@@ -3340,7 +3323,7 @@ var HomePane = (function () {
    * Displays a content chooser open dialog to choose a furniture library.
    * @return {string}
    */
-  HomePane.prototype.showImportFurnitureLibraryDialog = function () {
+  HomePane.prototype.showImportFurnitureLibraryDialog = function() {
   };
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
@@ -3348,7 +3331,7 @@ var HomePane = (function () {
    * @param {string} furnitureLibraryName
    * @return {boolean}
    */
-  HomePane.prototype.confirmReplaceFurnitureLibrary = function (furnitureLibraryName) {
+  HomePane.prototype.confirmReplaceFurnitureLibrary = function(furnitureLibraryName) {
     var message = this.preferences.getLocalizedString(HomePane, "confirmReplaceFurnitureLibrary.message", this.controller.getContentManager().getPresentationName(furnitureLibraryName, ContentManager.ContentType.FURNITURE_LIBRARY));
     var title = this.preferences.getLocalizedString(HomePane, "confirmReplaceFurnitureLibrary.title");
     var replace = this.preferences.getLocalizedString(HomePane, "confirmReplaceFurnitureLibrary.replace");
@@ -3359,7 +3342,7 @@ var HomePane = (function () {
    * Displays a content chooser open dialog to choose a textures library.
    * @return {string}
    */
-  HomePane.prototype.showImportTexturesLibraryDialog = function () {
+  HomePane.prototype.showImportTexturesLibraryDialog = function() {
   };
   /**
    * Displays a dialog that lets user choose whether he wants to overwrite
@@ -3367,7 +3350,7 @@ var HomePane = (function () {
    * @param {string} texturesLibraryName
    * @return {boolean}
    */
-  HomePane.prototype.confirmReplaceTexturesLibrary = function (texturesLibraryName) {
+  HomePane.prototype.confirmReplaceTexturesLibrary = function(texturesLibraryName) {
     var message = this.preferences.getLocalizedString(HomePane, "confirmReplaceTexturesLibrary.message", this.controller.getContentManager().getPresentationName(texturesLibraryName, ContentManager.ContentType.TEXTURES_LIBRARY));
     var title = this.preferences.getLocalizedString(HomePane, "confirmReplaceTexturesLibrary.title");
     var replace = this.preferences.getLocalizedString(HomePane, "confirmReplaceTexturesLibrary.replace");
@@ -3380,7 +3363,7 @@ var HomePane = (function () {
    * @param {string} pluginName
    * @return {boolean}
    */
-  HomePane.prototype.confirmReplacePlugin = function (pluginName) {
+  HomePane.prototype.confirmReplacePlugin = function(pluginName) {
     var message = this.preferences.getLocalizedString(HomePane, "confirmReplacePlugin.message", this.controller.getContentManager().getPresentationName(pluginName, ContentManager.ContentType.PLUGIN));
     var title = this.preferences.getLocalizedString(HomePane, "confirmReplacePlugin.title");
     var replace = this.preferences.getLocalizedString(HomePane, "confirmReplacePlugin.replace");
@@ -3392,14 +3375,14 @@ var HomePane = (function () {
    * @param {string} homeName
    * @return {string}
    */
-  HomePane.prototype.showSaveDialog = function (homeName) {
+  HomePane.prototype.showSaveDialog = function(homeName) {
     return this.controller.getContentManager().showSaveDialog(this, this.preferences.getLocalizedString(HomePane, "saveHomeDialog.title"), ContentManager.ContentType.SWEET_HOME_3D, homeName);
   };
   /**
    * Displays <code>message</code> in an error message box.
    * @param {string} message
    */
-  HomePane.prototype.showError = function (message) {
+  HomePane.prototype.showError = function(message) {
     var title = this.preferences.getLocalizedString(HomePane, "error.title");
     javax.swing.JOptionPane.showMessageDialog(this, message, title, javax.swing.JOptionPane.ERROR_MESSAGE);
   };
@@ -3407,7 +3390,7 @@ var HomePane = (function () {
    * Displays <code>message</code> in a message box.
    * @param {string} message
    */
-  HomePane.prototype.showMessage = function (message) {
+  HomePane.prototype.showMessage = function(message) {
     var title = this.preferences.getLocalizedString(HomePane, "message.title");
     javax.swing.JOptionPane.showMessageDialog(this, message, title, javax.swing.JOptionPane.INFORMATION_MESSAGE);
   };
@@ -3417,7 +3400,7 @@ var HomePane = (function () {
    * @param {string} actionTipKey
    * @return {boolean}
    */
-  HomePane.prototype.showActionTipMessage = function (actionTipKey) {
+  HomePane.prototype.showActionTipMessage = function(actionTipKey) {
     var title = this.preferences.getLocalizedString(HomePane, actionTipKey + ".tipTitle");
     var message = this.preferences.getLocalizedString(HomePane, actionTipKey + ".tipMessage");
     if (message.length > 0) {
@@ -3447,7 +3430,7 @@ var HomePane = (function () {
    * if he doesn't want to continue current operation.
    * @param {string} homeName
    */
-  HomePane.prototype.confirmSave = function (homeName) {
+  HomePane.prototype.confirmSave = function(homeName) {
     var message;
     if (homeName != null) {
       message = this.preferences.getLocalizedString(HomePane, "confirmSave.message", "\"" + this.controller.getContentManager().getPresentationName(homeName, ContentManager.ContentType.SWEET_HOME_3D) + "\"");
@@ -3474,7 +3457,7 @@ var HomePane = (function () {
    * @return {boolean} <code>true</code> if user confirmed to save.
    * @param {string} homeName
    */
-  HomePane.prototype.confirmSaveNewerHome = function (homeName) {
+  HomePane.prototype.confirmSaveNewerHome = function(homeName) {
     var message = this.preferences.getLocalizedString(HomePane, "confirmSaveNewerHome.message", this.controller.getContentManager().getPresentationName(homeName, ContentManager.ContentType.SWEET_HOME_3D));
     var title = this.preferences.getLocalizedString(HomePane, "confirmSaveNewerHome.title");
     var save = this.preferences.getLocalizedString(HomePane, "confirmSaveNewerHome.save");
@@ -3486,7 +3469,7 @@ var HomePane = (function () {
    * application or not.
    * @return {boolean} <code>true</code> if user confirmed to exit.
    */
-  HomePane.prototype.confirmExit = function () {
+  HomePane.prototype.confirmExit = function() {
     var message = this.preferences.getLocalizedString(HomePane, "confirmExit.message");
     var title = this.preferences.getLocalizedString(HomePane, "confirmExit.title");
     var quit = this.preferences.getLocalizedString(HomePane, "confirmExit.quit");
@@ -3496,14 +3479,14 @@ var HomePane = (function () {
   /**
    * Displays an about dialog.
    */
-  HomePane.prototype.showAboutDialog = function () {
+  HomePane.prototype.showAboutDialog = function() {
   };
   /**
    * Returns the message displayed in the about dialog.
    * @return {string}
    * @private
    */
-  HomePane.prototype.getAboutMessage = function () {
+  HomePane.prototype.getAboutMessage = function() {
     var messageFormat = this.preferences.getLocalizedString(HomePane, "about.message");
     var aboutVersion = this.controller.getVersion();
     var javaVersion = java.lang.System.getProperty("java.version");
@@ -3520,7 +3503,7 @@ var HomePane = (function () {
     var usedMemoryGigaByte = Math.max(0.1, (runtime.totalMemory() - runtime.freeMemory()) / 1.07374182E9);
     var maxMemoryGigaByte = Math.max(0.1, (runtime.maxMemory()) / 1.07374182E9);
     var format = new java.text.DecimalFormat("#.#");
-    javaVersion += " - " + format.format(usedMemoryGigaByte) + " / " + format.format(maxMemoryGigaByte) + " " + ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+    javaVersion += " - " + format.format(usedMemoryGigaByte) + " / " + format.format(maxMemoryGigaByte) + " " + ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
       return o1.equals(o2);
     }
     else {
@@ -3529,7 +3512,7 @@ var HomePane = (function () {
     var java3dVersion = "<i>not available</i>";
     try {
       if (!javaemul.internal.BooleanHelper.getBoolean("com.eteks.sweethome3d.no3D")) {
-        java3dVersion = (function (m, k) { if (m.entries == null)
+        java3dVersion = (function(m, k) { if (m.entries == null)
           m.entries = []; for (var i = 0; i < m.entries.length; i++)
             if (m.entries[i].key == null && k == null || m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
               return m.entries[i].value;
@@ -3550,7 +3533,7 @@ var HomePane = (function () {
    * @return {javax.swing.text.JTextComponent}
    * @private
    */
-  HomePane.prototype.createEditorPane = function (message) {
+  HomePane.prototype.createEditorPane = function(message) {
     var messagePane = new javax.swing.JEditorPane("text/html", message);
     messagePane.setEditable(false);
     if (SwingTools.getResolutionScale() !== 1) {
@@ -3564,7 +3547,7 @@ var HomePane = (function () {
    * @param {*[]} libraries
    * @private
    */
-  HomePane.prototype.showLibrariesDialog = function (libraries) {
+  HomePane.prototype.showLibrariesDialog = function(libraries) {
     var title = this.preferences.getLocalizedString(HomePane, "libraries.title");
     var librariesLabels = ({});
     /* put */ (librariesLabels[UserPreferences.FURNITURE_LIBRARY_TYPE] = this.preferences.getLocalizedString(HomePane, "libraries.furnitureLibraries"));
@@ -3574,8 +3557,8 @@ var HomePane = (function () {
     var messagePanel = new javax.swing.JPanel(new java.awt.GridBagLayout());
     var row = 0;
     {
-      var array140 = /* entrySet */ (function (o) { var s = []; for (var e in o)
-        s.push({ k: e, v: o[e], getKey: function () { return this.k; }, getValue: function () { return this.v; } }); return s; })(librariesLabels);
+      var array140 = /* entrySet */ (function(o) { var s = []; for (var e in o)
+        s.push({ k: e, v: o[e], getKey: function() { return this.k; }, getValue: function() { return this.v; } }); return s; })(librariesLabels);
       for (var index139 = 0; index139 < array140.length; index139++) {
         var librariesEntry = array140[index139];
         {
@@ -3583,7 +3566,7 @@ var HomePane = (function () {
           for (var index141 = 0; index141 < libraries.length; index141++) {
             var library = libraries[index141];
             {
-              if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+              if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
                 return o1.equals(o2);
               }
               else {
@@ -3611,7 +3594,7 @@ var HomePane = (function () {
    * @return {javax.swing.JTable}
    * @private
    */
-  HomePane.prototype.createLibrariesTable = function (libraries) {
+  HomePane.prototype.createLibrariesTable = function(libraries) {
     var librariesTableModel = new HomePane.HomePane$51(this, libraries);
     var librariesTable = new HomePane.HomePane$52(this, librariesTableModel, libraries);
     var resolutionScale = SwingTools.getResolutionScale();
@@ -3639,16 +3622,16 @@ var HomePane = (function () {
     if (com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionGreaterOrEqual("1.6")) {
       try {
         var desktopClass = eval("java.awt.Desktop");
-        var desktopInstance = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        var desktopInstance = (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
             return null; })(desktopClass, "getDesktop").fn.apply(null);
         var desktopActionClass = eval("java.awt.Desktop$Action");
-        var isSupportedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        var isSupportedMethod = (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
             return null; })(desktopClass, "isSupported");
-        desktopOpenSupport = isSupportedMethod.fn.apply(desktopInstance, [/* invoke */ /* getMethod */ (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        desktopOpenSupport = isSupportedMethod.fn.apply(desktopInstance, [/* invoke */ /* getMethod */ (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
             return null; })(desktopActionClass, "valueOf").fn.apply(null, ["OPEN"])]);
@@ -3668,27 +3651,27 @@ var HomePane = (function () {
    * Opens the folder containing the given library in a system window if possible.
    * @param {string} libraryLocation
    */
-  HomePane.prototype.showLibraryFolderInSystem = function (libraryLocation) {
+  HomePane.prototype.showLibraryFolderInSystem = function(libraryLocation) {
     var folder = new java.io.File(libraryLocation).getParentFile();
     var desktopInstance = null;
     var openMethod = null;
     if (com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionGreaterOrEqual("1.6")) {
       try {
         var desktopClass = eval("java.awt.Desktop");
-        desktopInstance = /* invoke */ /* getMethod */ (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        desktopInstance = /* invoke */ /* getMethod */ (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
             return null; })(desktopClass, "getDesktop").fn.apply(null);
         var desktopActionClass = eval("java.awt.Desktop$Action");
-        var isSupportedMethod = (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        var isSupportedMethod = (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
             return null; })(desktopClass, "isSupported");
-        if (isSupportedMethod.fn.apply(desktopInstance, [/* invoke */ /* getMethod */ (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+        if (isSupportedMethod.fn.apply(desktopInstance, [/* invoke */ /* getMethod */ (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
           return { owner: c, name: p, fn: c.prototype[p] };
           else
             return null; })(desktopActionClass, "valueOf").fn.apply(null, ["OPEN"])])) {
-          openMethod = /* getMethod */ (function (c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
+          openMethod = /* getMethod */ (function(c, p) { if (c.prototype.hasOwnProperty(p) && typeof c.prototype[p] == 'function')
             return { owner: c, name: p, fn: c.prototype[p] };
             else
               return null; })(desktopClass, "open");
@@ -3722,7 +3705,7 @@ var HomePane = (function () {
    * again shown updates will be shown.
    * @return {boolean}
    */
-  HomePane.prototype.showUpdatesMessage = function (updatesMessage, showOnlyMessage) {
+  HomePane.prototype.showUpdatesMessage = function(updatesMessage, showOnlyMessage) {
     if (!showOnlyMessage) {
       {
         var array143 = java.awt.Frame.getFrames();
@@ -3769,14 +3752,14 @@ var HomePane = (function () {
    * or an {@link InterruptedRecorderException}
    * exception if it was interrupted.
    */
-  HomePane.prototype.showPrintDialog = function () {
+  HomePane.prototype.showPrintDialog = function() {
   };
   /**
    * Shows a content chooser save dialog to print a home in a PDF file.
    * @param {string} homeName
    * @return {string}
    */
-  HomePane.prototype.showPrintToPDFDialog = function (homeName) {
+  HomePane.prototype.showPrintToPDFDialog = function(homeName) {
     return this.controller.getContentManager().showSaveDialog(this, this.preferences.getLocalizedString(HomePane, "printToPDFDialog.title"), ContentManager.ContentType.PDF, homeName);
   };
   /**
@@ -3785,7 +3768,7 @@ var HomePane = (function () {
    * Caution !!! This method may be called from an other thread than EDT.
    * @param {string} pdfFile
    */
-  HomePane.prototype.printToPDF = function (pdfFile) {
+  HomePane.prototype.printToPDF = function(pdfFile) {
     var outputStream = null;
     var printInterrupted = false;
     try {
@@ -3824,7 +3807,7 @@ var HomePane = (function () {
    * @param {string} homeName
    * @return {string}
    */
-  HomePane.prototype.showExportToCSVDialog = function (homeName) {
+  HomePane.prototype.showExportToCSVDialog = function(homeName) {
     return this.controller.getContentManager().showSaveDialog(this, this.preferences.getLocalizedString(HomePane, "exportToCSVDialog.title"), ContentManager.ContentType.CSV, homeName);
   };
   /**
@@ -3832,7 +3815,7 @@ var HomePane = (function () {
    * Caution !!! This method may be called from an other thread than EDT.
    * @param {string} csvFile
    */
-  HomePane.prototype.exportToCSV = function (csvFile) {
+  HomePane.prototype.exportToCSV = function(csvFile) {
     var view = this.controller.getFurnitureController().getView();
     var furnitureView;
     if ((view != null && (view["__interfaces"] != null && view["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.ExportableView") >= 0 || view.constructor != null && view.constructor["__interfaces"] != null && view.constructor["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.ExportableView") >= 0)) && (view).isFormatTypeSupported(ExportableView.FormatType.CSV)) {
@@ -3880,7 +3863,7 @@ var HomePane = (function () {
    * @param {string} homeName
    * @return {string}
    */
-  HomePane.prototype.showExportToSVGDialog = function (homeName) {
+  HomePane.prototype.showExportToSVGDialog = function(homeName) {
     return this.controller.getContentManager().showSaveDialog(this, this.preferences.getLocalizedString(HomePane, "exportToSVGDialog.title"), ContentManager.ContentType.SVG, homeName);
   };
   /**
@@ -3888,7 +3871,7 @@ var HomePane = (function () {
    * Caution !!! This method may be called from an other thread than EDT.
    * @param {string} svgFile
    */
-  HomePane.prototype.exportToSVG = function (svgFile) {
+  HomePane.prototype.exportToSVG = function(svgFile) {
     var view = this.controller.getPlanController().getView();
     var planView;
     if ((view != null && (view["__interfaces"] != null && view["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.ExportableView") >= 0 || view.constructor != null && view.constructor["__interfaces"] != null && view.constructor["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.ExportableView") >= 0)) && (view).isFormatTypeSupported(ExportableView.FormatType.SVG)) {
@@ -3936,7 +3919,7 @@ var HomePane = (function () {
    * @param {string} homeName
    * @return {string}
    */
-  HomePane.prototype.showExportToOBJDialog = function (homeName) {
+  HomePane.prototype.showExportToOBJDialog = function(homeName) {
     homeName = this.controller.getContentManager().showSaveDialog(this, this.preferences.getLocalizedString(HomePane, "exportToOBJDialog.title"), ContentManager.ContentType.OBJ, homeName);
     this.exportAllToOBJ = true;
     var selectedItems = this.home.getSelectedItems();
@@ -3956,10 +3939,10 @@ var HomePane = (function () {
     }
     return homeName;
   };
-  HomePane.prototype.exportToOBJ$java_lang_String = function (objFile) {
+  HomePane.prototype.exportToOBJ$java_lang_String = function(objFile) {
     this.exportToOBJ$java_lang_String$com_eteks_sweethome3d_viewcontroller_Object3DFactory(objFile, new Object3DBranchFactory());
   };
-  HomePane.prototype.exportToOBJ$java_lang_String$com_eteks_sweethome3d_viewcontroller_Object3DFactory = function (objFile, object3dFactory) {
+  HomePane.prototype.exportToOBJ$java_lang_String$com_eteks_sweethome3d_viewcontroller_Object3DFactory = function(objFile, object3dFactory) {
     var header = this.preferences != null ? this.preferences.getLocalizedString(HomePane, "exportToOBJ.header", new Date()) : "";
     HomePane.OBJExporter.exportHomeToFile(this.cloneHomeInEventDispatchThread(this.home), objFile, header, this.exportAllToOBJ, object3dFactory);
   };
@@ -3969,7 +3952,7 @@ var HomePane = (function () {
    * @param {string} objFile
    * @param {Object} object3dFactory
    */
-  HomePane.prototype.exportToOBJ = function (objFile, object3dFactory) {
+  HomePane.prototype.exportToOBJ = function(objFile, object3dFactory) {
     if (((typeof objFile === 'string') || objFile === null) && ((object3dFactory != null && (object3dFactory["__interfaces"] != null && object3dFactory["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.Object3DFactory") >= 0 || object3dFactory.constructor != null && object3dFactory.constructor["__interfaces"] != null && object3dFactory.constructor["__interfaces"].indexOf("com.eteks.sweethome3d.viewcontroller.Object3DFactory") >= 0)) || object3dFactory === null)) {
       return this.exportToOBJ$java_lang_String$com_eteks_sweethome3d_viewcontroller_Object3DFactory(objFile, object3dFactory);
     }
@@ -3985,9 +3968,9 @@ var HomePane = (function () {
    * @return {Home}
    * @private
    */
-  HomePane.prototype.cloneHomeInEventDispatchThread = function (home) {
+  HomePane.prototype.cloneHomeInEventDispatchThread = function(home) {
     if (java.awt.EventQueue.isDispatchThread()) {
-      return /* clone */ /* clone */ (function (o) { if (o.clone != undefined) {
+      return /* clone */ /* clone */ (function(o) { if (o.clone != undefined) {
         return o.clone();
       }
       else {
@@ -4002,8 +3985,8 @@ var HomePane = (function () {
     else {
       try {
         var clonedHome_1 = (new java.util.concurrent.atomic.AtomicReference());
-        java.awt.EventQueue.invokeAndWait(function () {
-          clonedHome_1.set(/* clone */ /* clone */ (function (o) { if (o.clone != undefined) {
+        java.awt.EventQueue.invokeAndWait(function() {
+          clonedHome_1.set(/* clone */ /* clone */ (function(o) { if (o.clone != undefined) {
             return o.clone();
           }
           else {
@@ -4035,7 +4018,7 @@ var HomePane = (function () {
    * the selected furniture from catalog or not.
    * @return {boolean} <code>true</code> if user confirmed to delete.
    */
-  HomePane.prototype.confirmDeleteCatalogSelection = function () {
+  HomePane.prototype.confirmDeleteCatalogSelection = function() {
     var message = this.preferences.getLocalizedString(HomePane, "confirmDeleteCatalogSelection.message");
     var title = this.preferences.getLocalizedString(HomePane, "confirmDeleteCatalogSelection.title");
     var __delete = this.preferences.getLocalizedString(HomePane, "confirmDeleteCatalogSelection.delete");
@@ -4047,7 +4030,7 @@ var HomePane = (function () {
    * @return {string} the chosen name or <code>null</code> if the user canceled.
    * @param {string} cameraName
    */
-  HomePane.prototype.showStoreCameraDialog = function (cameraName) {
+  HomePane.prototype.showStoreCameraDialog = function(cameraName) {
     var message = this.preferences.getLocalizedString(HomePane, "showStoreCameraDialog.message");
     var title = this.preferences.getLocalizedString(HomePane, "showStoreCameraDialog.title");
     var storedCameras = this.home.getStoredCameras();
@@ -4057,7 +4040,7 @@ var HomePane = (function () {
       cameraNameChooser = cameraNameTextComponent = new javax.swing.JTextField(cameraName, 20);
     }
     else {
-      var storedCameraNames = (function (s) { var a = []; while (s-- > 0)
+      var storedCameraNames = (function(s) { var a = []; while (s-- > 0)
         a.push(null); return a; })(/* size */ storedCameras.length);
       for (var i = 0; i < storedCameraNames.length; i++) {
         {
@@ -4096,13 +4079,13 @@ var HomePane = (function () {
    * and returns the ones selected by the user to be deleted.
    * @return {Camera[]}
    */
-  HomePane.prototype.showDeletedCamerasDialog = function () {
+  HomePane.prototype.showDeletedCamerasDialog = function() {
   };
   /**
    * Adds a listener to clipboard to follow the changes of its content.
    * @private
    */
-  HomePane.prototype.addClipboardListener = function () {
+  HomePane.prototype.addClipboardListener = function() {
     if (!com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() || com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionGreaterOrEqual("1.8.0_60")) {
       try {
         var flavorListener = new HomePane.HomePane$56(this);
@@ -4119,7 +4102,7 @@ var HomePane = (function () {
    * components are able to handle.
    * @return {boolean}
    */
-  HomePane.prototype.isClipboardEmpty = function () {
+  HomePane.prototype.isClipboardEmpty = function() {
     // if (com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX() && !com.eteks.sweethome3d.tools.OperatingSystem.isJavaVersionGreaterOrEqual("1.8.0_60")) {
     //     try {
     //         this.checkClipboardContainsHomeItemsOrFiles();
@@ -4130,7 +4113,7 @@ var HomePane = (function () {
     // }
     return this.clipboardEmpty;
   };
-  HomePane.prototype.checkClipboardContainsHomeItemsOrFiles = function () {
+  HomePane.prototype.checkClipboardContainsHomeItemsOrFiles = function() {
     var clipboard = this.getToolkit().getSystemClipboard();
     this.clipboardEmpty = !(clipboard.isDataFlavorAvailable(HomeTransferableList.HOME_FLAVOR) || clipboard.isDataFlavorAvailable(java.awt.datatransfer.DataFlavor.javaFileListFlavor));
   };
@@ -4139,7 +4122,7 @@ var HomePane = (function () {
    * or <code>null</code> if clipboard doesn't contain any selectable item.
    * @return {*[]}
    */
-  HomePane.prototype.getClipboardItems = function () {
+  HomePane.prototype.getClipboardItems = function() {
     return this.clipboard;
   };
   /**
@@ -4147,7 +4130,7 @@ var HomePane = (function () {
    * that manages toolkit events.
    * @param {() => void} runnable
    */
-  HomePane.prototype.invokeLater = function (runnable) {
+  HomePane.prototype.invokeLater = function(runnable) {
     setTimeout(runnable);
   };
   HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.MainPaneDividerLocation";
@@ -4167,9 +4150,9 @@ var HomePane = (function () {
 }());
 HomePane["__class"] = "com.eteks.sweethome3d.swing.HomePane";
 HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "com.eteks.sweethome3d.viewcontroller.View", "javax.swing.TransferHandler.HasGetTransferHandler", "java.awt.MenuContainer", "javax.accessibility.Accessible", "java.awt.image.ImageObserver", "java.io.Serializable"];
-(function (HomePane) {
+(function(HomePane) {
   var MenuActionType;
-  (function (MenuActionType) {
+  (function(MenuActionType) {
     MenuActionType[MenuActionType["FILE_MENU"] = 0] = "FILE_MENU";
     MenuActionType[MenuActionType["EDIT_MENU"] = 1] = "EDIT_MENU";
     MenuActionType[MenuActionType["FURNITURE_MENU"] = 2] = "FURNITURE_MENU";
@@ -4191,13 +4174,13 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * @param {HomePane} homePane
    * @class
    */
-  var UserPreferencesChangeListener = /** @class */ (function () {
+  var UserPreferencesChangeListener = /** @class */ (function() {
     function UserPreferencesChangeListener(homePane) {
       if (this.homePane === undefined)
         this.homePane = null;
       this.homePane = (homePane);
     }
-    UserPreferencesChangeListener.prototype.propertyChange = function (ev) {
+    UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
       var homePane = this.homePane;
       var preferences = ev.getSource();
       var property = ev.getPropertyName();
@@ -4215,37 +4198,37 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
           actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
           break;
         case "VALUE_ADDED_TAX_ENABLED":
-          actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, /* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
             return o1 === o2;
           } })(true, ev.getNewValue()));
-          actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, /* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
             return o1 === o2;
           } })(true, ev.getNewValue()));
-          actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, /* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
             return o1 === o2;
           } })(true, ev.getNewValue()));
-          actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, /* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
             return o1 === o2;
           } })(true, ev.getNewValue()));
-          actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, /* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
             return o1 === o2;
           } })(true, ev.getNewValue()));
-          actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, /* equals */ (function (o1, o2) { if (o1 && o1.equals) {
+          actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, /* equals */ (function(o1, o2) { if (o1 && o1.equals) {
             return o1.equals(o2);
           }
           else {
@@ -4266,7 +4249,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * @param {HomePane} homePane
    * @class
    */
-  var FocusCycleRootChangeListener = /** @class */ (function () {
+  var FocusCycleRootChangeListener = /** @class */ (function() {
     function FocusCycleRootChangeListener(homePane) {
       if (this.homePane === undefined)
         this.homePane = null;
@@ -4274,7 +4257,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
         this.focusChangeListener = null;
       this.homePane = (homePane);
     }
-    FocusCycleRootChangeListener.prototype.propertyChange = function (ev) {
+    FocusCycleRootChangeListener.prototype.propertyChange = function(ev) {
       var homePane = this.homePane;
       if (homePane == null) {
         java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("currentFocusCycleRoot", this);
@@ -4300,13 +4283,13 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * strong link between KeyboardFocusManager and this component.
    * @class
    */
-  var FocusOwnerChangeListener = /** @class */ (function () {
+  var FocusOwnerChangeListener = /** @class */ (function() {
     function FocusOwnerChangeListener(homePane) {
       if (this.homePane === undefined)
         this.homePane = null;
       this.homePane = (homePane);
     }
-    FocusOwnerChangeListener.prototype.propertyChange = function (ev) {
+    FocusOwnerChangeListener.prototype.propertyChange = function(ev) {
       var homePane = this.homePane;
       if (homePane == null) {
         java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", this);
@@ -4353,7 +4336,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * @param {javax.swing.JComponent} furnitureCatalogView
    * @class
    */
-  var FurnitureCatalogViewChangeListener = /** @class */ (function () {
+  var FurnitureCatalogViewChangeListener = /** @class */ (function() {
     function FurnitureCatalogViewChangeListener(homePane, furnitureCatalogView) {
       if (this.homePane === undefined)
         this.homePane = null;
@@ -4362,7 +4345,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       this.homePane = (homePane);
       this.furnitureCatalogView = (furnitureCatalogView);
     }
-    FurnitureCatalogViewChangeListener.prototype.propertyChange = function (ev) {
+    FurnitureCatalogViewChangeListener.prototype.propertyChange = function(ev) {
       var homePane = this.homePane;
       if (homePane == null) {
         (ev.getSource()).removePropertyChangeListener("FURNITURE_CATALOG_VIEWED_IN_TREE", this);
@@ -4401,7 +4384,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * @param {HomeController} controller
    * @class
    */
-  var RulersVisibilityChangeListener = /** @class */ (function () {
+  var RulersVisibilityChangeListener = /** @class */ (function() {
     function RulersVisibilityChangeListener(homePane, planScrollPane, controller) {
       if (this.homePane === undefined)
         this.homePane = null;
@@ -4413,7 +4396,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       this.planScrollPane = (planScrollPane);
       this.controller = (controller);
     }
-    RulersVisibilityChangeListener.prototype.propertyChange = function (ev) {
+    RulersVisibilityChangeListener.prototype.propertyChange = function(ev) {
       var homePane = this.homePane;
       var planScrollPane = this.planScrollPane;
       var controller = this.controller;
@@ -4433,17 +4416,17 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * Export to OBJ in a separate class to be able to run HomePane without Java 3D classes.
    * @class
    */
-  var OBJExporter = /** @class */ (function () {
+  var OBJExporter = /** @class */ (function() {
     function OBJExporter() {
     }
-    OBJExporter.exportHomeToFile = function (home, objFile, header, exportAllToOBJ, object3dFactory) {
+    OBJExporter.exportHomeToFile = function(home, objFile, header, exportAllToOBJ, object3dFactory) {
       var writer = null;
       var exportInterrupted = false;
       try {
-        writer = (function () { var __o = new OBJWriter(objFile, header, -1); __o.__delegate = new OBJWriter(objFile, header, -1); return __o; })();
+        writer = (function() { var __o = new OBJWriter(objFile, header, -1); __o.__delegate = new OBJWriter(objFile, header, -1); return __o; })();
         var exportedItems = (exportAllToOBJ ? home.getSelectableViewableItems() : home.getSelectedItems().slice(0));
         var furnitureInGroups = ([]);
-        for (var it = (function (a) { var i = 0; return { next: function () { return i < a.length ? a[i++] : null; }, hasNext: function () { return i < a.length; } }; })(exportedItems); it.hasNext();) {
+        for (var it = (function(a) { var i = 0; return { next: function() { return i < a.length ? a[i++] : null; }, hasNext: function() { return i < a.length; } }; })(exportedItems); it.hasNext();) {
           {
             var selectable = it.next();
             if (selectable != null && selectable instanceof HomeFurnitureGroup) {
@@ -4463,7 +4446,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
           }
           ;
         }
-        /* addAll */ (function (l1, l2) { return l1.push.apply(l1, l2); })(exportedItems, furnitureInGroups);
+        /* addAll */ (function(l1, l2) { return l1.push.apply(l1, l2); })(exportedItems, furnitureInGroups);
         var emptySelection = [];
         home.setSelectedItems(emptySelection);
         if (exportAllToOBJ) {
@@ -4496,7 +4479,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
                 writer.writeNode(node);
               }
               else {
-                writer.writeNode(node, /* getSimpleName */ (function (c) { return c["__class"] ? c["__class"].substring(c["__class"].lastIndexOf('.') + 1) : c["name"].substring(c["name"].lastIndexOf('.') + 1); })(item.constructor).toLowerCase() + "_" + ++i);
+                writer.writeNode(node, /* getSimpleName */ (function(c) { return c["__class"] ? c["__class"].substring(c["__class"].lastIndexOf('.') + 1) : c["name"].substring(c["name"].lastIndexOf('.') + 1); })(item.constructor).toLowerCase() + "_" + ++i);
               }
             }
           }
@@ -4536,7 +4519,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      * @return {java.awt.geom.Rectangle2D}
      * @private
      */
-    OBJExporter.getExportedHomeBounds = function (home) {
+    OBJExporter.getExportedHomeBounds = function(home) {
       var homeBounds = OBJExporter.updateObjectsBounds(null, home.getWalls());
       {
         var array153 = OBJExporter.getVisibleFurniture(home.getFurniture());
@@ -4568,14 +4551,14 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      * @return {HomePieceOfFurniture[]}
      * @private
      */
-    OBJExporter.getVisibleFurniture = function (furniture) {
+    OBJExporter.getVisibleFurniture = function(furniture) {
       var visibleFurniture = ([]);
       for (var index156 = 0; index156 < furniture.length; index156++) {
         var piece = furniture[index156];
         {
           if (piece.isVisible() && (piece.getLevel() == null || piece.getLevel().isViewable())) {
             if (piece != null && piece instanceof HomeFurnitureGroup) {
-              /* addAll */ (function (l1, l2) { return l1.push.apply(l1, l2); })(visibleFurniture, OBJExporter.getVisibleFurniture((piece).getFurniture()));
+              /* addAll */ (function(l1, l2) { return l1.push.apply(l1, l2); })(visibleFurniture, OBJExporter.getVisibleFurniture((piece).getFurniture()));
             }
             else {
               /* add */ (visibleFurniture.push(piece) > 0);
@@ -4592,7 +4575,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      * @return {java.awt.geom.Rectangle2D}
      * @private
      */
-    OBJExporter.updateObjectsBounds = function (objectBounds, items) {
+    OBJExporter.updateObjectsBounds = function(objectBounds, items) {
       for (var index157 = 0; index157 < items.length; index157++) {
         var item = items[index157];
         {
@@ -4624,7 +4607,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * A Swing action adapter to a plug-in action.
    * @class
    */
-  var ActionAdapter = /** @class */ (function () {
+  var ActionAdapter = /** @class */ (function() {
     function ActionAdapter(__parent, pluginAction) {
       this.__parent = __parent;
       if (this.pluginAction === undefined)
@@ -4635,17 +4618,17 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       this.propertyChangeSupport = new javax.swing.event.SwingPropertyChangeSupport(this);
       this.pluginAction.addPropertyChangeListener(new ActionAdapter.ActionAdapter$0(this));
     }
-    ActionAdapter.prototype.actionPerformed = function (ev) {
+    ActionAdapter.prototype.actionPerformed = function(ev) {
       this.pluginAction.execute();
     };
-    ActionAdapter.prototype.addPropertyChangeListener = function (listener) {
+    ActionAdapter.prototype.addPropertyChangeListener = function(listener) {
       this.propertyChangeSupport.addPropertyChangeListener(listener);
     };
-    ActionAdapter.prototype.removePropertyChangeListener = function (listener) {
+    ActionAdapter.prototype.removePropertyChangeListener = function(listener) {
       this.propertyChangeSupport.removePropertyChangeListener(listener);
     };
-    ActionAdapter.prototype.getValue = function (key) {
-      if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+    ActionAdapter.prototype.getValue = function(key) {
+      if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4653,7 +4636,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(ResourceAction.NAME, key)) {
         return this.pluginAction.getPropertyValue("NAME");
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4661,7 +4644,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(ResourceAction.SHORT_DESCRIPTION, key)) {
         return this.pluginAction.getPropertyValue("SHORT_DESCRIPTION");
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4670,16 +4653,16 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
         var smallIcon = this.pluginAction.getPropertyValue("SMALL_ICON");
         return smallIcon != null ? IconManager.getInstance().getIcon(smallIcon, HomePane.DEFAULT_SMALL_ICON_HEIGHT, this.__parent) : null;
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
         return o1 === o2;
       } })(ResourceAction.MNEMONIC_KEY, key)) {
         var mnemonic = this.pluginAction.getPropertyValue("MNEMONIC");
-        return (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(mnemonic) != null ? new Number(mnemonic.charCodeAt(0)).valueOf() : null;
+        return (function(c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(mnemonic) != null ? new Number(mnemonic.charCodeAt(0)).valueOf() : null;
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4687,7 +4670,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(/* name */ "TOOL_BAR", key)) {
         return this.pluginAction.getPropertyValue("TOOL_BAR");
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4699,8 +4682,8 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
         return null;
       }
     };
-    ActionAdapter.prototype.putValue = function (key, value) {
-      if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+    ActionAdapter.prototype.putValue = function(key, value) {
+      if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4708,7 +4691,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(ResourceAction.NAME, key)) {
         this.pluginAction.putPropertyValue("NAME", value);
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4716,14 +4699,14 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(ResourceAction.SHORT_DESCRIPTION, key)) {
         this.pluginAction.putPropertyValue("SHORT_DESCRIPTION", value);
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
         return o1 === o2;
       } })(ResourceAction.SMALL_ICON, key)) {
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4731,7 +4714,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(ResourceAction.MNEMONIC_KEY, key)) {
         this.pluginAction.putPropertyValue("MNEMONIC", new String(String.fromCharCode(/* intValue */ (value | 0))));
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4739,7 +4722,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       } })(/* name */ "TOOL_BAR", key)) {
         this.pluginAction.putPropertyValue("TOOL_BAR", value);
       }
-      else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+      else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
@@ -4748,10 +4731,10 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
         this.pluginAction.putPropertyValue("MENU", value);
       }
     };
-    ActionAdapter.prototype.isEnabled = function () {
+    ActionAdapter.prototype.isEnabled = function() {
       return this.pluginAction.isEnabled();
     };
-    ActionAdapter.prototype.setEnabled = function (enabled) {
+    ActionAdapter.prototype.setEnabled = function(enabled) {
       this.pluginAction.setEnabled(enabled);
     };
     return ActionAdapter;
@@ -4759,16 +4742,16 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
   HomePane.ActionAdapter = ActionAdapter;
   ActionAdapter["__class"] = "com.eteks.sweethome3d.swing.HomePane.ActionAdapter";
   ActionAdapter["__interfaces"] = ["java.util.EventListener", "java.awt.event.ActionListener", "javax.swing.Action"];
-  (function (ActionAdapter) {
-    var ActionAdapter$0 = /** @class */ (function () {
+  (function(ActionAdapter) {
+    var ActionAdapter$0 = /** @class */ (function() {
       function ActionAdapter$0(__parent) {
         this.__parent = __parent;
       }
-      ActionAdapter$0.prototype.propertyChange = function (ev) {
+      ActionAdapter$0.prototype.propertyChange = function(ev) {
         var propertyName = ev.getPropertyName();
         var oldValue = ev.getOldValue();
         var newValue = ev.getNewValue();
-        if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+        if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
           return o1.equals(o2);
         }
         else {
@@ -4778,7 +4761,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
         }
         else {
           if (newValue != null) {
-            if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+            if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
             }
             else {
@@ -4786,7 +4769,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             } })(/* name */ "NAME", propertyName)) {
               this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.NAME, oldValue, newValue));
             }
-            else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+            else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
             }
             else {
@@ -4794,7 +4777,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             } })(/* name */ "SHORT_DESCRIPTION", propertyName)) {
               this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.SHORT_DESCRIPTION, oldValue, newValue));
             }
-            else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+            else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
             }
             else {
@@ -4802,7 +4785,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             } })(/* name */ "MNEMONIC", propertyName)) {
               this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.MNEMONIC_KEY, oldValue != null ? new Number(oldValue.charCodeAt(0)).valueOf() : null, newValue));
             }
-            else if ( /* equals */(function (o1, o2) { if (o1 && o1.equals) {
+            else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
             }
             else {
@@ -4826,7 +4809,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
    * @param {javax.swing.JComponent} component
    * @class
    */
-  var PopupMenuListenerWithMouseLocation = /** @class */ (function () {
+  var PopupMenuListenerWithMouseLocation = /** @class */ (function() {
     function PopupMenuListenerWithMouseLocation(component) {
       if (this.mouseLocation === undefined)
         this.mouseLocation = null;
@@ -4835,10 +4818,10 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       component.addMouseMotionListener(new PopupMenuListenerWithMouseLocation.PopupMenuListenerWithMouseLocation$0(this));
       component.addMouseListener(new PopupMenuListenerWithMouseLocation.PopupMenuListenerWithMouseLocation$1(this));
     }
-    PopupMenuListenerWithMouseLocation.prototype.getMouseLocation = function () {
+    PopupMenuListenerWithMouseLocation.prototype.getMouseLocation = function() {
       return this.mouseLocation;
     };
-    PopupMenuListenerWithMouseLocation.prototype.popupMenuWillBecomeVisible = function (ev) {
+    PopupMenuListenerWithMouseLocation.prototype.popupMenuWillBecomeVisible = function(ev) {
       this.mouseLocation = this.lastMouseMoveLocation;
     };
     return PopupMenuListenerWithMouseLocation;
@@ -4846,8 +4829,8 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
   HomePane.PopupMenuListenerWithMouseLocation = PopupMenuListenerWithMouseLocation;
   PopupMenuListenerWithMouseLocation["__class"] = "com.eteks.sweethome3d.swing.HomePane.PopupMenuListenerWithMouseLocation";
   PopupMenuListenerWithMouseLocation["__interfaces"] = ["java.util.EventListener", "javax.swing.event.PopupMenuListener"];
-  (function (PopupMenuListenerWithMouseLocation) {
-    var PopupMenuListenerWithMouseLocation$0 = /** @class */ (function () {
+  (function(PopupMenuListenerWithMouseLocation) {
+    var PopupMenuListenerWithMouseLocation$0 = /** @class */ (function() {
       function PopupMenuListenerWithMouseLocation$0(__parent) {
         this.__parent = __parent;
       }
@@ -4855,14 +4838,14 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
        *
        * @param {java.awt.event.MouseEvent} ev
        */
-      PopupMenuListenerWithMouseLocation$0.prototype.mouseMoved = function (ev) {
+      PopupMenuListenerWithMouseLocation$0.prototype.mouseMoved = function(ev) {
         this.__parent.lastMouseMoveLocation = ev.getPoint();
       };
       return PopupMenuListenerWithMouseLocation$0;
     }());
     PopupMenuListenerWithMouseLocation.PopupMenuListenerWithMouseLocation$0 = PopupMenuListenerWithMouseLocation$0;
     PopupMenuListenerWithMouseLocation$0["__interfaces"] = ["java.util.EventListener", "java.awt.event.MouseMotionListener"];
-    var PopupMenuListenerWithMouseLocation$1 = /** @class */ (function () {
+    var PopupMenuListenerWithMouseLocation$1 = /** @class */ (function() {
       function PopupMenuListenerWithMouseLocation$1(__parent) {
         this.__parent = __parent;
       }
@@ -4870,14 +4853,14 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
        *
        * @param {java.awt.event.MouseEvent} ev
        */
-      PopupMenuListenerWithMouseLocation$1.prototype.mouseExited = function (ev) {
+      PopupMenuListenerWithMouseLocation$1.prototype.mouseExited = function(ev) {
         this.__parent.lastMouseMoveLocation = null;
       };
       /**
        *
        * @param {java.awt.event.MouseEvent} ev
        */
-      PopupMenuListenerWithMouseLocation$1.prototype.mouseEntered = function (ev) {
+      PopupMenuListenerWithMouseLocation$1.prototype.mouseEntered = function(ev) {
         this.__parent.lastMouseMoveLocation = ev.getPoint();
       };
       return PopupMenuListenerWithMouseLocation$1;
@@ -4885,7 +4868,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
     PopupMenuListenerWithMouseLocation.PopupMenuListenerWithMouseLocation$1 = PopupMenuListenerWithMouseLocation$1;
     PopupMenuListenerWithMouseLocation$1["__interfaces"] = ["java.util.EventListener", "java.awt.event.MouseMotionListener", "java.awt.event.MouseWheelListener", "java.awt.event.MouseListener"];
   })(PopupMenuListenerWithMouseLocation = HomePane.PopupMenuListenerWithMouseLocation || (HomePane.PopupMenuListenerWithMouseLocation = {}));
-  var MouseAndFocusListener = /** @class */ (function () {
+  var MouseAndFocusListener = /** @class */ (function() {
     function MouseAndFocusListener(__parent) {
       this.__parent = __parent;
     }
@@ -4893,7 +4876,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      *
      * @param {java.awt.event.MouseEvent} ev
      */
-    MouseAndFocusListener.prototype.mousePressed = function (ev) {
+    MouseAndFocusListener.prototype.mousePressed = function(ev) {
       if (javax.swing.SwingUtilities.isLeftMouseButton(ev)) {
         this.setMenusEnabled(menuBar, false);
       }
@@ -4902,15 +4885,15 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      *
      * @param {java.awt.event.MouseEvent} ev
      */
-    MouseAndFocusListener.prototype.mouseReleased = function (ev) {
+    MouseAndFocusListener.prototype.mouseReleased = function(ev) {
       if (javax.swing.SwingUtilities.isLeftMouseButton(ev)) {
         this.setMenusEnabled(menuBar, true);
       }
     };
-    MouseAndFocusListener.prototype.focusGained = function (ev) {
+    MouseAndFocusListener.prototype.focusGained = function(ev) {
       this.setMenusEnabled(menuBar, true);
     };
-    MouseAndFocusListener.prototype.focusLost = function (ev) {
+    MouseAndFocusListener.prototype.focusLost = function(ev) {
       this.setMenusEnabled(menuBar, true);
     };
     /**
@@ -4919,9 +4902,9 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      * @param {boolean} enabled
      * @private
      */
-    MouseAndFocusListener.prototype.setMenusEnabled = function (menuBar, enabled) {
+    MouseAndFocusListener.prototype.setMenusEnabled = function(menuBar, enabled) {
       var _this = this;
-      java.awt.EventQueue.invokeLater(function () {
+      java.awt.EventQueue.invokeLater(function() {
         for (var i = 0, n = menuBar.getMenuCount(); i < n; i++) {
           {
             _this.setMenuItemsEnabled(menuBar.getMenu(i), enabled);
@@ -4936,7 +4919,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
      * @param {boolean} enabled
      * @private
      */
-    MouseAndFocusListener.prototype.setMenuItemsEnabled = function (menu, enabled) {
+    MouseAndFocusListener.prototype.setMenuItemsEnabled = function(menu, enabled) {
       for (var i = 0, n = menu.getItemCount(); i < n; i++) {
         {
           var item = menu.getItem(i);
