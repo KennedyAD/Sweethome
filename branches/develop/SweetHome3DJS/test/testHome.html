@@ -47,6 +47,7 @@
 <script type="text/javascript" src="lib/stroke.min.js"></script>
 <script type="text/javascript" src="lib/generated/swingundo.js"></script>
 <script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="src/CoreTools.js"></script>
 <script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
 <script type="text/javascript" src="src/ShapeTools.js"></script>
 <script type="text/javascript" src="src/HomeComponent3D.js"></script>
@@ -1309,12 +1310,19 @@ testHome();
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
 var useServer = false;
 
-var application = new SweetHome3DJSApplication(useServer ? "http://localhost:8080" : undefined);
+var application = useServer
+    ? new SweetHome3DJSApplication(
+          {readHomeURL:       "http://localhost:8080/readHome.jsp?home=%s",
+           writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp"})
+    : new SweetHome3DJSApplication();
+var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
+
 // Read and display test file 
 // TODO Should be performed in HomeController.open
-application.getHomeRecorder().readHome(useServer ? "HomeTest" : "test/resources/HomeTest.sh3d", 
+application.getHomeRecorder().readHome(homeName, 
     {
       homeLoaded: function(home) {
+        home.setName(homeName);
         application.addHome(home);
         setTimeout(testHomeModifications, 1000);
       },
