@@ -26,6 +26,7 @@
 <%@page import="com.eteks.sweethome3d.io.*" %>
 <%@page import="com.eteks.sweethome3d.viewcontroller.*" %>
 <% out.clear();
+   request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
    String jsonEdits = request.getParameter("edits");
    URL serverBaseUrl = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath());
