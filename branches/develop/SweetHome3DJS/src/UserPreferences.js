@@ -1028,6 +1028,8 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
   
   this.setUnit(Locale.getDefault() == "en_US" ? LengthUnit.INCH : LengthUnit.CENTIMETER);
   this.setNavigationPanelVisible(false);
+  this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
+  this.setNewWallPattern(this.getWallPattern());
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
