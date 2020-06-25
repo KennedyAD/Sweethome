@@ -34,10 +34,13 @@ function UserPreferences() {
   
   this.resourceBundles = [];
   this.furnitureCatalogResourceBundles = [];
+  
   this.furnitureCatalog = null;
   this.texturesCatalog = null;
   this.patternsCatalog = null;
   this.currency = null;
+  this.valueAddedTaxEnabled = false
+  this.defaultValueAddedTaxPercentage = null;
   this.unit = null;
   this.furnitureCatalogViewedInTree = true;
   this.aerialViewCenteredOnSelectionEnabled = false;
@@ -367,7 +370,6 @@ UserPreferences.prototype.getCurrency = function() {
 
 /**
  * Sets the default currency in use.
- * @package
  * @ignore
  */
 UserPreferences.prototype.setCurrency = function(currency) {
@@ -375,7 +377,57 @@ UserPreferences.prototype.setCurrency = function(currency) {
 }
 
 /**
+ * Returns <code>true</code> if Value Added Tax should be taken in account in prices.
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.isValueAddedTaxEnabled = function() {
+  return this.valueAddedTaxEnabled;
+}
+
+/**
+ * Sets whether Value Added Tax should be taken in account in prices.
+ * @param valueAddedTaxEnabled if <code>true</code> VAT will be added to prices.
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.setValueAddedTaxEnabled = function(valueAddedTaxEnabled) {
+  if (this.valueAddedTaxEnabled !== valueAddedTaxEnabled) {
+    this.valueAddedTaxEnabled = valueAddedTaxEnabled;
+    this.propertyChangeSupport.firePropertyChange("VALUE_ADDED_TAX_ENABLED",
+        !valueAddedTaxEnabled, valueAddedTaxEnabled);
+  }
+}
+
+/**
+ * Returns the Value Added Tax percentage applied to prices by default, or <code>null</code>
+ * if VAT isn't taken into account in the application.
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.getDefaultValueAddedTaxPercentage = function() {
+  return this.defaultValueAddedTaxPercentage;
+}
+
+/**
+ * Sets the Value Added Tax percentage applied to prices by default.
+ * @param {Big} valueAddedTaxPercentage the default VAT percentage
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.setDefaultValueAddedTaxPercentage = function(valueAddedTaxPercentage) {
+  if (valueAddedTaxPercentage !== this.defaultValueAddedTaxPercentage
+      && (valueAddedTaxPercentage == null || !valueAddedTaxPercentage.eq(this.defaultValueAddedTaxPercentage))) {
+    var oldValueAddedTaxPercentage = this.defaultValueAddedTaxPercentage;
+    this.defaultValueAddedTaxPercentage = valueAddedTaxPercentage;
+    this.propertyChangeSupport.firePropertyChange("DEFAULT_VALUE_ADDED_TAX_PERCENTAGE", oldValueAddedTaxPercentage, valueAddedTaxPercentage);
+
+  }
+}
+
+/**
  * Returns <code>true</code> if the furniture catalog should be viewed in a tree.
+ * @returns {Big} the default VAT percentage
  * @ignore
  */
 UserPreferences.prototype.isFurnitureCatalogViewedInTree = function() {
@@ -1024,9 +1076,26 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
            ? new DefaultFurnitureCatalog(furnitureCatalogUrls, furnitureResourcesUrlBase) 
            : new DefaultFurnitureCatalog(this))
       : new FurnitureCatalog());
-  this.setTexturesCatalog(new TexturesCatalog());
-  
-  this.setUnit(Locale.getDefault() == "en_US" ? LengthUnit.INCH : LengthUnit.CENTIMETER);
+  this.setTexturesCatalog(typeof DefaultTextureCatalog === "function"
+      ? (Array.isArray(texturesCatalogUrls)
+           ? new DefaultTextureCatalog(texturesCatalogUrls, texturesResourcesUrlBase) 
+           : new DefaultTextureCatalog(this))
+      : new TexturesCatalog());
+
+  if (Locale.getDefault() == "en_US") {
+    this.setUnit(LengthUnit.INCH);
+    this.setNewWallThickness(7.62);
+    this.setNewWallHeight(243.84);
+    this.setNewWallBaseboardThickness(0.9525);
+    this.setNewWallBaseboardHeight(6.35);
+  } else {
+    this.setUnit(LengthUnit.CENTIMETER);
+    this.setNewWallThickness(7.5);
+    this.setNewWallHeight(250);
+    this.setNewWallBaseboardThickness(1);
+    this.setNewWallBaseboardHeight(7);
+  }
+
   this.setNavigationPanelVisible(false);
   this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
   this.setNewWallPattern(this.getWallPattern());

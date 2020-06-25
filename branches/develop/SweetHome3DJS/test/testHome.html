@@ -1201,7 +1201,7 @@ function testHomeModifications() {
     },
     function() {
       homeController.undo();
-      assertEquals("Wrong elevation", 262, home.getSelectedLevel().getElevation()); 
+      assertEquals("Wrong elevation", application.getUserPreferences().getNewWallHeight() + application.getUserPreferences().getNewFloorThickness(), home.getSelectedLevel().getElevation()); 
     },
     function() {
       // Modify 3D view
