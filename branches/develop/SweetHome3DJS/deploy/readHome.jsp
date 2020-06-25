@@ -25,6 +25,7 @@
 <%@page import="com.eteks.sweethome3d.model.Home"%>
 <%@page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
 <% out.clear();
+   request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
 
    if (homeName != null) {
