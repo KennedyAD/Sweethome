@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -180,7 +181,7 @@ public class HomeEditsDeserializer {
     }
     return null;
   }
-  
+
   @SuppressWarnings("unchecked")
   private <T> T deserialize(Type valueType, Object jsonValue, boolean undo) throws ReflectiveOperationException  {
     Class<T> valueClass = valueType instanceof Class<?> ? (Class<T>)valueType : null;
@@ -193,6 +194,9 @@ public class HomeEditsDeserializer {
         } catch (IllegalArgumentException ex) {
           value = null; // Ignore unknown pattern
         }
+      } else if (valueClass != null
+                 && BigDecimal.class.isAssignableFrom(valueClass)) {
+        value = new BigDecimal(jsonObject.getString("value"));
       } else if (valueClass != null
                  && Content.class.isAssignableFrom(valueClass)) {
         String url = jsonObject.getString("url");
@@ -293,7 +297,7 @@ public class HomeEditsDeserializer {
   private <T> T createInstance(Class<T> defaultType, JSONObject jsonValue, boolean undo) throws ReflectiveOperationException, JSONException {
     Class<T> instanceType;
 
-    // Deserialize the objects created by the edit (placed in _newObject protocol field)
+    // Deserialize the objects created by the edit (placed in _newObjects protocol field)
     if (jsonValue.has("_newObjects")) {
       JSONObject newObjects = jsonValue.getJSONObject("_newObjects");
       // Pass 1: create instances for new objects
@@ -382,13 +386,13 @@ public class HomeEditsDeserializer {
             public void defaultReadObject() throws IOException, ClassNotFoundException {
               try {
                 defaultFillInstance(type, instance, jsonObject, undo);
-              } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
+              } catch (ReflectiveOperationException ex) {
+                throw new IOException("Can't fill instance", ex);
               }
             }
           });
-        } catch (Exception e) {
-          e.printStackTrace();
+        } catch (IOException ex) {
+          ex.printStackTrace();
         }
       } else {
         defaultFillInstance(type, instance, jsonObject, undo);

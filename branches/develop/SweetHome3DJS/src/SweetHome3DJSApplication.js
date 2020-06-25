@@ -243,6 +243,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
       destination[i] = this.substituteIdentifiableObjects(home, origin[i], newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
     }
     return destination;
+  } else if (origin instanceof Big) {
+    return {value: origin.toString(), 
+            _type: "java.math.BigDecimal"};
   } else if (origin == null || origin !== Object(origin) 
             || preservedTypes.some(function(preservedType) { return origin instanceof preservedType; })) {
     return origin;

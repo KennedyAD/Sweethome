@@ -841,6 +841,8 @@ function testHomeModifications() {
       controller.setNameVisible(true);
       controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
       controller.setPitch(0.787);
+      controller.setPrice(new Big("20.05"));
+      application.getUserPreferences().setCurrency("EUR");
       controller.modifyFurniture();
       assertEquals("Wrong pitch", 0.787, home.getSelectedItems() [0].getPitch()); 
     },
