@@ -1170,7 +1170,7 @@ function testHomeModifications() {
       planController.setMode(PlanController.Mode.LABEL_CREATION);
     },
     function() {
-      var controller = new LabelController(home, 100, 200, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+      var controller = new LabelController(home, 100, 200, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
       controller.setText("Hello");
       controller.setElevation(5);
       controller.createLabel();
