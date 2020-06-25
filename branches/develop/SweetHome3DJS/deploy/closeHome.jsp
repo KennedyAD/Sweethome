@@ -18,13 +18,6 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 <%@page import="java.io.*" %>
-<%@page import="java.net.URL"%>
-<%@page import="java.util.*" %>
-<%@page import="java.nio.file.*"%>
-<%@page import="javax.swing.undo.UndoableEdit"%>
-<%@page import="com.eteks.sweethome3d.model.*" %>
-<%@page import="com.eteks.sweethome3d.io.*" %>
-<%@page import="com.eteks.sweethome3d.viewcontroller.*" %>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
