@@ -145,7 +145,7 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
     if (this.serviceUrls['closeHomeURL'] !== undefined) {
       try {
         var xhr = new XMLHttpRequest();
-        var closeHomeURL = CoreTools.format(this.serviceUrls.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
+        var closeHomeURL = CoreTools.format(this.serviceUrls.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
         xhr.open('GET', closeHomeURL, true); // Asynchronous call required during beforeunload
         xhr.send();
       } catch (ex) {
