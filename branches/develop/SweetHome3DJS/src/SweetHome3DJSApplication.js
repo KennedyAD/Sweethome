@@ -42,9 +42,19 @@ function IncrementalHomeRecorder(application, serviceUrls) {
   this.undoableEditListeners = {};
   this.editCounters = {};
   this.serviceUrls = serviceUrls;
+  this.configuration = {};
 }
 IncrementalHomeRecorder.prototype = Object.create(HomeRecorder.prototype);
 IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
+
+/**
+ * Configures this incremental recorder's behavior.
+ * 
+ * @param {Object} configuration an object containing configuration fields (manual)
+ */
+IncrementalHomeRecorder.prototype.configure = function(configuration) {
+  this.configuration = configuration;
+}
 
 /**
  * Reads a home with this recorder.
@@ -63,6 +73,20 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
 }
 
 /**
+ * @private
+ */
+IncrementalHomeRecorder.prototype.checkPoint = function(home) {
+  var recorder = this;
+  if (!recorder.existingHomeObjects) {
+    recorder.existingHomeObjects = {};
+  }
+  recorder.existingHomeObjects[home.id] = {}
+  home.getHomeObjects().forEach(function(homeObject) {
+    recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
+  });
+}
+
+/**
  * Adds a home to be incrementally saved by this recorder.
  */
 IncrementalHomeRecorder.prototype.addHome = function(home) {
@@ -75,11 +99,9 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     // TODO Remove logs
     console.info("addHome", home.id, this.application.getHomeController(home));
 
-    this.existingHomeObjects = {};
-    home.getHomeObjects().forEach(function(homeObject) {
-        recorder.existingHomeObjects[homeObject.id] = homeObject.id;
-      });
-    console.info("collected ids: ", home, recorder.existingHomeObjects);
+    this.checkPoint(home);
+
+    console.info("collected ids: ", home, this.existingHomeObjects);
     console.info(Object.getOwnPropertyNames(home));
 
     var listener = {
@@ -94,16 +116,22 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     var coreUndo = undoManager.undo;
     var coreRedo = undoManager.redo;
     this.application.getHomeController(home).undoManager.undo = function() {
-        console.info("UNDO", undoManager.editToBeUndone());
-        recorder.storeEdit(home, undoManager.editToBeUndone(), true);
-        coreUndo.call(undoManager);
+      var edit = undoManager.editToBeUndone();
+      console.info("UNDO", edit);
+      coreUndo.call(undoManager);
+      recorder.storeEdit(home, edit, true);
+      if (!recorder.configuration.manual) {
         recorder.sendUndoableEdits(home);
-      };
+      }
+    };
     this.application.getHomeController(home).undoManager.redo = function() {
-      console.info("REDO", undoManager.editToBeRedone());
-      recorder.storeEdit(home, undoManager.editToBeRedone());
+      var edit = undoManager.editToBeRedone();
+      console.info("REDO", edit);
       coreRedo.call(undoManager);
-      recorder.sendUndoableEdits(home);
+      recorder.storeEdit(home, edit);
+      if (!recorder.configuration.manual) {
+        recorder.sendUndoableEdits(home);
+      }
     };
   }
 }
@@ -115,12 +143,12 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
   if (this.serviceUrls !== undefined
       && this.serviceUrls['writeHomeEditsURL'] !== undefined) {
     this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
-    // TODO Clean up recorder.existingHomeObjects for the given home
+    delete existingHomeObjects[home.id];
   }
 }
 
 /** 
- * @private 
+ * Sends to the server all the currently waiting edits for the given home.  
  */
 IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   try {
@@ -149,17 +177,21 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   }
   var key = home.id + "/" + this.editCounters[home.id];
   var newObjects = {};
+  console.info("substitution of edit", edit);
   var processedEdit = this.substituteIdentifiableObjects(
+                                home,
                                 edit,
                                 newObjects,
-                                ["object3D", "hasBeenDone", "alive", "presentationNameKey"], 
+                                ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent"], 
                                 [UserPreferences, PlanController, Home],
                                 [Boolean, String, Number]);
-  console.info(key, processedEdit, JSON.stringify(processedEdit), newObjects);
-  processedEdit._newObjects = newObjects;
+  if (Object.getOwnPropertyNames(newObjects).length > 0) {
+    processedEdit._newObjects = newObjects;
+  }
   if (undoAction) {
     processedEdit._action = "undo";
   }
+  console.info(key, processedEdit, JSON.stringify(processedEdit));
   // TODO: use local storage
   //localStorage.setItem(key, toJSON(o));
   if (!this.queue) {
@@ -167,14 +199,15 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   }
   this.queue.push(processedEdit);
   
-  // Add possible new objects to existing ones 
-  CoreTools.merge(this.existingHomeObjects, newObjects);
+  // Update objects state 
+  this.checkPoint(home);
+  // CoreTools.merge(this.existingHomeObjects[home.id], newObjects);
 }
 
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.getStoredEdits = function() {
+IncrementalHomeRecorder.prototype.getStoredEdits = function(home) {
   // TODO: use local storage
   return this.queue;
 }
@@ -182,7 +215,7 @@ IncrementalHomeRecorder.prototype.getStoredEdits = function() {
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.commitEdits = function() {
+IncrementalHomeRecorder.prototype.commitEdits = function(home) {
   // TODO: use local storage
   this.queue = [];
 }
@@ -190,17 +223,17 @@ IncrementalHomeRecorder.prototype.commitEdits = function() {
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origin, newObjects, skippedPropertyNames, skippedTypes, preservedTypes) {
+IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home, origin, newObjects, skippedPropertyNames, skippedTypes, preservedTypes) {
   if (Array.isArray(origin)) {
     var destination = origin.slice(0);
     for (var i = 0; i < origin.length; i++) {
-      destination[i] = this.substituteIdentifiableObjects(origin[i], newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
+      destination[i] = this.substituteIdentifiableObjects(home, origin[i], newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
     }
     return destination;
   } else if (origin == null || origin !== Object(origin) 
             || preservedTypes.some(function(preservedType) { return origin instanceof preservedType; })) {
     return origin;
-  } else if (origin.id !== undefined && (this.existingHomeObjects[origin.id] !== undefined // Already in home
+  } else if (origin.id !== undefined && (this.existingHomeObjects[home.id][origin.id] !== undefined // Already in home
                                         || newObjects[origin.id] !== undefined  // Already in new objects
                                         || origin instanceof Home)) { // Home always exists
     return origin.id;
@@ -223,7 +256,11 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(origi
         var propertyValue = origin[propertyName];
         if (typeof propertyValue !== 'function' 
             && !skippedTypes.some(function(skippedType) { return propertyValue instanceof skippedType; })) {
-          destination[propertyName] = this.substituteIdentifiableObjects(propertyValue, newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
+          // console.info("prop", propertyName);
+          if (propertyName.indexOf("Controller") > -1 || propertyName.indexOf("__parent") > -1) {
+            console.info("prop", propertyName, origin.constructor, destination._type);
+          }
+          destination[propertyName] = this.substituteIdentifiableObjects(home, propertyValue, newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
         }
       }
     }

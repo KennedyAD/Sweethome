@@ -533,12 +533,10 @@ function testHomeModifications() {
   var homeController = application.getHomeController(home);
   var planController = homeController.getPlanController();
   var planView = planController.getView();
-  
   var secondPieceInFurnitureGroup = home.getFurniture() [0].getFurniture() [1];
   var xPiece = secondPieceInFurnitureGroup.getX();
   var yPiece = secondPieceInFurnitureGroup.getY();
   var firstPieceInCatalog = application.getUserPreferences().getFurnitureCatalog().getCategories() [0].getFurniture() [0];
-  
   runActions([
     function() {
       planController.selectItem(home.getFurniture() [0]);
@@ -1308,7 +1306,7 @@ testHome();
 <script type="text/javascript">
 // If true, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var useServer = false;
+var useServer = true;
 
 var application = useServer
     ? new SweetHome3DJSApplication(
@@ -1317,6 +1315,7 @@ var application = useServer
     : new SweetHome3DJSApplication();
 var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
 
+//application.getHomeRecorder().configure({manual: true});
 // Read and display test file 
 // TODO Should be performed in HomeController.open
 application.getHomeRecorder().readHome(homeName, 
@@ -1324,7 +1323,7 @@ application.getHomeRecorder().readHome(homeName,
       homeLoaded: function(home) {
         home.setName(homeName);
         application.addHome(home);
-        setTimeout(testHomeModifications, 1000);
+        setTimeout(function() { testHomeModifications(); application.getHomeRecorder().sendUndoableEdits(home); }, 1000);
       },
       homeError: function(err) {
         console.error(err);

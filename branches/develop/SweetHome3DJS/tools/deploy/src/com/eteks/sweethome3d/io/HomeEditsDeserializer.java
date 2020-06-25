@@ -169,7 +169,7 @@ public class HomeEditsDeserializer {
     return result;
   }
 
-  private Method getMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
+  private Method getDeclaredMethod(Class<?> type, String name, Class<?> ... parameterTypes) {
     try {
       Method method = type.getDeclaredMethod(name, parameterTypes);
       if (!method.isAccessible()) {
@@ -177,15 +177,12 @@ public class HomeEditsDeserializer {
       }
       return method;
     } catch (NoSuchMethodException ex) {
-      if (type.getSuperclass() != Object.class) {
-        return getMethod(type.getSuperclass(), name, parameterTypes);
-      }
     }
     return null;
   }
-
+  
   @SuppressWarnings("unchecked")
-  private <T> T deserialize(Type valueType, Object jsonValue) throws ReflectiveOperationException  {
+  private <T> T deserialize(Type valueType, Object jsonValue, boolean undo) throws ReflectiveOperationException  {
     Class<T> valueClass = valueType instanceof Class<?> ? (Class<T>)valueType : null;
     Object value;
     if (jsonValue instanceof JSONObject) {
@@ -217,10 +214,10 @@ public class HomeEditsDeserializer {
           throw new IllegalArgumentException("Can't build URL ", ex);
         }
       } else {
-        value = deserializeObject(valueClass, (JSONObject)jsonValue);
+        value = deserializeObject(valueClass, (JSONObject)jsonValue, undo);
       }
     } else if (jsonValue instanceof JSONArray) {
-      value = deserializeArray(valueType, (JSONArray)jsonValue);
+      value = deserializeArray(valueType, (JSONArray)jsonValue, undo);
     } else if (jsonValue == JSONObject.NULL) {
       value = null;
     } else if (valueClass != null
@@ -250,13 +247,13 @@ public class HomeEditsDeserializer {
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T deserializeArray(Type arrayType, JSONArray jsonArray) throws ReflectiveOperationException, JSONException {
+  private <T> T deserializeArray(Type arrayType, JSONArray jsonArray, boolean undo) throws ReflectiveOperationException, JSONException {
     Class<T> arrayClass = arrayType instanceof Class<?> ? (Class<T>)arrayType : null;
     if (arrayClass != null
         && arrayClass.isArray()) {
       Object array = Array.newInstance(arrayClass.getComponentType(), jsonArray.length());
       for (int i = 0; i < jsonArray.length(); i++) {
-        Array.set(array, i, deserialize(arrayClass.getComponentType(), jsonArray.get(i)));
+        Array.set(array, i, deserialize(arrayClass.getComponentType(), jsonArray.get(i), undo));
       }
       return (T)array;
     } else if (arrayClass != null
@@ -280,7 +277,7 @@ public class HomeEditsDeserializer {
         list.add(deserialize(arrayType instanceof ParameterizedType
                 ? ((ParameterizedType)arrayType).getActualTypeArguments() [0]
                 : Object.class,
-            jsonArray.get(i)));
+            jsonArray.get(i), undo));
       }
       return (T)list;
     } else {
@@ -288,12 +285,12 @@ public class HomeEditsDeserializer {
     }
   }
 
-  private <T> T deserializeObject(Class<T> type, JSONObject json) throws ReflectiveOperationException {
-    return fillInstance(createInstance(type, json), json);
+  private <T> T deserializeObject(Class<T> type, JSONObject json, boolean undo) throws ReflectiveOperationException {
+    return fillInstance(createInstance(type, json, undo), json, undo);
   }
 
   @SuppressWarnings("unchecked")
-  private <T> T createInstance(Class<T> defaultType, JSONObject jsonValue) throws ReflectiveOperationException, JSONException {
+  private <T> T createInstance(Class<T> defaultType, JSONObject jsonValue, boolean undo) throws ReflectiveOperationException, JSONException {
     Class<T> instanceType;
 
     // Deserialize the objects created by the edit (placed in _newObject protocol field)
@@ -301,14 +298,14 @@ public class HomeEditsDeserializer {
       JSONObject newObjects = jsonValue.getJSONObject("_newObjects");
       // Pass 1: create instances for new objects
       for (String key : newObjects.keySet()) {
-        HomeObject homeObject = createInstance(HomeObject.class, newObjects.getJSONObject(key));
+        HomeObject homeObject = createInstance(HomeObject.class, newObjects.getJSONObject(key), undo);
         this.homeObjects.put(key, homeObject);
       }
 
       // Pass 2: fill instances for new objects (instances have been created in pass 1
       // so that (cross) references can be looked up)
       for (String key : newObjects.keySet()) {
-        fillInstance(this.homeObjects.get(key), newObjects.getJSONObject(key));
+        fillInstance(this.homeObjects.get(key), newObjects.getJSONObject(key), undo);
       }
     }
 
@@ -339,8 +336,8 @@ public class HomeEditsDeserializer {
     }
   }
 
-  private <T> T defaultFillInstance(Class<?> type, T instance, JSONObject jsonObject) throws ReflectiveOperationException {
-    for(Field field : getDeclaredFields(instance.getClass())) {
+  private <T> T defaultFillInstance(Class<?> type, T instance, JSONObject jsonObject, boolean undo) throws ReflectiveOperationException {
+    for(Field field : getDeclaredFields(type)) {
       if (Home.class.isAssignableFrom(field.getType())) {
         field.set(instance, this.home);
       } else if (PlanController.class.isAssignableFrom(field.getType())) {
@@ -353,13 +350,12 @@ public class HomeEditsDeserializer {
       Field field = getField(type, key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
         System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
-        field.set(instance, deserialize(field.getGenericType(), jsonValue));
+        field.set(instance, deserialize(field.getGenericType(), jsonValue, undo));
       }
     }
 
     if (instance instanceof UndoableEdit) {
-      getField(instance.getClass(), "hasBeenDone").set(instance,
-          jsonObject.has("_action") && "undo".equals(jsonObject.getString("_action")));
+      getField(instance.getClass(), "hasBeenDone").set(instance, undo);
       getField(instance.getClass(), "alive").set(instance, true);
     }
 
@@ -370,7 +366,7 @@ public class HomeEditsDeserializer {
     return instance;
   }
 
-  private <T> T fillInstance(T instance, JSONObject jsonObject) throws ReflectiveOperationException {
+  private <T> T fillInstance(T instance, JSONObject jsonObject, boolean undo) throws ReflectiveOperationException {
     List<Class<?>> hierarchy = new ArrayList<Class<?>>();
     for (Class<?> type = instance.getClass(); type != Object.class; type = type.getSuperclass()) {
       hierarchy.add(0, type);
@@ -378,14 +374,14 @@ public class HomeEditsDeserializer {
 
     for (Class<?> type : hierarchy) {
       // Invoke readObject methods for local initializations if exists (otherwise fallback to default)
-      Method readObjectMethod = getMethod(type, "readObject", ObjectInputStream.class);
+      Method readObjectMethod = getDeclaredMethod(type, "readObject", ObjectInputStream.class);
       if (readObjectMethod != null) {
         try {
           readObjectMethod.invoke(instance, new ObjectInputStream() {
             @Override
             public void defaultReadObject() throws IOException, ClassNotFoundException {
               try {
-                defaultFillInstance(type, instance, jsonObject);
+                defaultFillInstance(type, instance, jsonObject, undo);
               } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
               }
@@ -395,7 +391,7 @@ public class HomeEditsDeserializer {
           e.printStackTrace();
         }
       } else {
-        defaultFillInstance(type, instance, jsonObject);
+        defaultFillInstance(type, instance, jsonObject, undo);
       }
     }
 
@@ -411,7 +407,8 @@ public class HomeEditsDeserializer {
     JSONArray jsonEditsArray = new JSONArray(jsonEdits);
     List<UndoableEdit> edits = new ArrayList<UndoableEdit>();
     for (int i = 0; i < jsonEditsArray.length(); i++) {
-      edits.add(deserializeObject(UndoableEdit.class, jsonEditsArray.getJSONObject(i)));
+      JSONObject jsonObject = jsonEditsArray.getJSONObject(i);
+      edits.add(deserializeObject(UndoableEdit.class, jsonObject, jsonObject.has("_action") && "undo".equals(jsonObject.getString("_action"))));
     }
     return edits;
   }
