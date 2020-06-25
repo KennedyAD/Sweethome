@@ -59,7 +59,7 @@
          homeServerRecorder.writeHome(home, homeFile.getPath());
        }
 %>
-Wrote <%= count %> edits to <%= homeFile %>.
+Wrote <%= count %> edits for <%= homeName %>.
 <%       
      } else {
        throw new ServletException(homeName + " not opened by client");

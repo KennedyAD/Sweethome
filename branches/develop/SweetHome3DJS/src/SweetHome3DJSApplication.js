@@ -31,7 +31,8 @@
  * to the SH3D server.
  * @param {SweetHome3DJSApplication} application
  * @param {{readHomeURL: string,
- *          writeHomeEditsURL: string} [serviceUrls] the URLs of services required on server
+ *          writeHomeEditsURL: string,
+ *          closeHomeURL: string} [serviceUrls] the URLs of services required on server
  * @constructor
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
@@ -116,23 +117,23 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     var coreUndo = undoManager.undo;
     var coreRedo = undoManager.redo;
     this.application.getHomeController(home).undoManager.undo = function() {
-      var edit = undoManager.editToBeUndone();
-      console.info("UNDO", edit);
-      coreUndo.call(undoManager);
-      recorder.storeEdit(home, edit, true);
-      if (!recorder.configuration.manual) {
-        recorder.sendUndoableEdits(home);
-      }
-    };
+        var edit = undoManager.editToBeUndone();
+        console.info("UNDO", edit);
+        coreUndo.call(undoManager);
+        recorder.storeEdit(home, edit, true);
+        if (!recorder.configuration.manual) {
+          recorder.sendUndoableEdits(home);
+        }
+      };
     this.application.getHomeController(home).undoManager.redo = function() {
-      var edit = undoManager.editToBeRedone();
-      console.info("REDO", edit);
-      coreRedo.call(undoManager);
-      recorder.storeEdit(home, edit);
-      if (!recorder.configuration.manual) {
-        recorder.sendUndoableEdits(home);
-      }
-    };
+        var edit = undoManager.editToBeRedone();
+        console.info("REDO", edit);
+        coreRedo.call(undoManager);
+        recorder.storeEdit(home, edit);
+        if (!recorder.configuration.manual) {
+          recorder.sendUndoableEdits(home);
+        }
+      };
   }
 }
 
@@ -140,10 +141,22 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
  * Removes a home previously added with #addHome(home).
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
-  if (this.serviceUrls !== undefined
-      && this.serviceUrls['writeHomeEditsURL'] !== undefined) {
-    this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
-    delete existingHomeObjects[home.id];
+  if (this.serviceUrls !== undefined) {
+    if (this.serviceUrls['closeHomeURL'] !== undefined) {
+      try {
+        var xhr = new XMLHttpRequest();
+        var closeHomeURL = CoreTools.format(this.serviceUrls.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
+        xhr.open('GET', closeHomeURL, true); // Asynchronous call required during beforeunload
+        xhr.send();
+      } catch (ex) {
+        console.error(ex);
+      }  
+    }
+    if (this.serviceUrls['writeHomeEditsURL'] !== undefined) {
+      // TODO Find another way to get home controller because home isn't in application homes already
+      this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
+      delete existingHomeObjects[home.id];
+    }
   }
 }
 
@@ -280,7 +293,8 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
  *          texturesCatalogURLs: [string]
  *          texturesResourcesURLBase: string,
  *          readHomeURL: string,
- *          writeHomeEditsURL: string}} [params] the URLs of resources and services required on server 
+ *          writeHomeEditsURL: string,
+ *          closeHomeURL: string}} [params] the URLs of resources and services required on server 
  *                                                  (if undefined, will use local files for testing)
  */
 function SweetHome3DJSApplication(params) {
@@ -295,8 +309,8 @@ function SweetHome3DJSApplication(params) {
         application.getHomeRecorder().addHome(ev.getItem());
         homeController.getView();
       } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-        application.homeControllers.splice(getHomes.indexOf(home), 1); 
         application.getHomeRecorder().removeHome(ev.getItem());
+        application.homeControllers.splice(ev.getIndex(), 1); 
       }
     });
 }

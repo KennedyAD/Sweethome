@@ -170,8 +170,12 @@ var homeName = '<%= homeName == null ? "HomeTest" : homeName %>';
 var urlBase = '<%= new java.net.URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath()).toString() %>';
 var application = new SweetHome3DJSApplication(
     {readHomeURL:       urlBase + "/readHome.jsp?home=%s",
-     writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp"});
-     
+     writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp",
+     closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",});
+
+// Set a few settings
+application.getUserPreferences().setNewRoomFloorColor(0xFF9999A0);
+
 // Read and display test file 
 // TODO Should be performed in HomeController.open
 application.getHomeRecorder().readHome(homeName, 
@@ -179,6 +183,11 @@ application.getHomeRecorder().readHome(homeName,
       homeLoaded: function(home) {
         home.setName(homeName);
         application.addHome(home);
+        
+        // TODO Should be performed in HomeController.close
+        window.addEventListener("unload", function() {
+            application.deleteHome(home);
+          });
       },
       homeError: function(err) {
         console.error(err);
