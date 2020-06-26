@@ -20,6 +20,7 @@
 package com.eteks.sweethome3d.io;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,27 +44,33 @@ public class HomeServerRecorder {
   private String              homeFileName;
   private String              homeFileWithContent;
   private Home                home;
+  private static byte []      newHomeContent;
 
   public HomeServerRecorder(String homeFileName,
                             UserPreferences preferences) throws RecorderException {
     this.homeFileName = homeFileName;
     File homeFile = new File(homeFileName);
-    try {
-      if (isFileWithContent(homeFile)) {
-        File fileWithContent = File.createTempFile("read-", ".sh3d");
-        fileWithContent.deleteOnExit();
-        Files.copy(homeFile.toPath(), fileWithContent.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        this.homeFileWithContent = fileWithContent.getCanonicalPath();
-        homeFile = fileWithContent;
-      }
+    if (homeFile.exists()) {
+      try {
+        if (isFileWithContent(homeFile)) {
+          File fileWithContent = File.createTempFile("read-", ".sh3d");
+          fileWithContent.deleteOnExit();
+          Files.copy(homeFile.toPath(), fileWithContent.toPath(), StandardCopyOption.REPLACE_EXISTING);
+          this.homeFileWithContent = fileWithContent.getCanonicalPath();
+          homeFile = fileWithContent;
+        }
 
-      try (DefaultHomeInputStream in = new DefaultHomeInputStream(homeFile,
-              ContentRecording.INCLUDE_TEMPORARY_CONTENT, new HomeXMLHandler(preferences),
-              preferences, true)) {
-        this.home = in.readHome();
+        try (DefaultHomeInputStream in = new DefaultHomeInputStream(homeFile,
+                ContentRecording.INCLUDE_TEMPORARY_CONTENT, new HomeXMLHandler(preferences),
+                preferences, true)) {
+          this.home = in.readHome();
+        }
+      } catch (IOException | ClassNotFoundException ex) {
+        throw new RecorderException("Can't read home", ex);
       }
-    } catch (IOException | ClassNotFoundException ex) {
-      throw new RecorderException("Can't read home", ex);
+    } else {
+      // If home file doesn't exist, simply instantiate a new home
+      this.home = new Home();
     }
   }
 
@@ -128,6 +135,24 @@ public class HomeServerRecorder {
     if (this.homeFileWithContent != null) {
       new File(this.homeFileWithContent).delete();
     }
+  }
+
+  /**
+   * Returns the file content of a new home.
+   */
+  public static byte [] getNewHomeContent() throws RecorderException {
+    if (newHomeContent == null) {
+      ByteArrayOutputStream byteArrayOutput = new ByteArrayOutputStream(2048);
+      try (DefaultHomeOutputStream output = new DefaultHomeOutputStream(byteArrayOutput,
+              9, ContentRecording.INCLUDE_TEMPORARY_CONTENT,
+              false, new HomeXMLExporter())) {
+        output.writeHome(new Home());
+      } catch (IOException ex) {
+        throw new RecorderException("Couldn't generate content of an empty home", ex);
+      }
+      newHomeContent = byteArrayOutput.toByteArray();
+    }
+    return newHomeContent.clone();
   }
 
   /**

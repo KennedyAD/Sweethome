@@ -21,8 +21,6 @@
 <%@ page import="java.io.*" %>
 <%@page import="java.nio.file.*"%>
 <%@page import="java.nio.file.attribute.FileAttribute"%>
-<%@page import="java.util.zip.*"%>
-<%@page import="com.eteks.sweethome3d.model.Home"%>
 <%@page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
@@ -31,43 +29,41 @@
    if (homeName != null) {
      String homesFolder = getServletContext().getRealPath("/homes");
      File homeFile = new File(homesFolder, homeName + ".sh3d");
-     if (!homeFile.exists()) {
-       // Create a new empty home
-       new HomeServerRecorder(9, null).writeHome(new Home(), homeFile.getPath());
-     }
   
-     Path referenceCopy = null;
-     if (HomeServerRecorder.isFileWithContent(homeFile)) {
-       // Create a copy of the file and store it as a session attribute
-       // to be able to reference some of its content during edition
-       referenceCopy = Files.createTempFile("open-", ".sh3d");
-       Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
-    
-       File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
-       if (previousOpenedFile != null) {
-         previousOpenedFile.delete();
-       }
-       request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
-       // TODO How to handle homes saved once the session has expired ?
-       // TODO Delete temporary files when user quits
-       homeFile = referenceCopy.toFile();
-     }
-  
-     response.setIntHeader("Content-length", (int)homeFile.length());
-     response.setHeader("Content-Disposition", "attachment; filename=" + homeFile.getName());
      byte [] homeFileContent;
-     synchronized (homeFile.getAbsolutePath().intern()) {
-       try (InputStream input = new FileInputStream(homeFile);
-            ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-         byte[] buffer = new byte[8096];
-         int size;
-         while ((size = input.read(buffer)) != -1) {
-           output.write(buffer, 0, size);
+     if (homeFile.exists()) {
+       if (HomeServerRecorder.isFileWithContent(homeFile)) {
+         // Create a copy of the file and store it as a session attribute
+         // to be able to reference some of its content during edition
+         Path referenceCopy = Files.createTempFile("open-", ".sh3d");
+         Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
+    
+         File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
+         if (previousOpenedFile != null) {
+           previousOpenedFile.delete();
          }
-         homeFileContent = output.toByteArray();
+         request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
+         // Temporary file deleted when user calls closeHome.jsp
+         homeFile = referenceCopy.toFile();
        }
+  
+       synchronized (homeFile.getAbsolutePath().intern()) {
+         try (InputStream input = new FileInputStream(homeFile);
+              ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+           byte[] buffer = new byte[8096];
+           int size;
+           while ((size = input.read(buffer)) != -1) {
+             output.write(buffer, 0, size);
+           }
+           homeFileContent = output.toByteArray();
+         }
+       }
+     } else {
+       homeFileContent = HomeServerRecorder.getNewHomeContent();
      }
   
+     response.setIntHeader("Content-length", homeFileContent.length);
+     response.setHeader("Content-Disposition", "attachment; filename=" + homeFile.getName());
      try (OutputStream servletOut = response.getOutputStream()) {
        servletOut.write(homeFileContent);
      }

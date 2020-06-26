@@ -22,9 +22,8 @@
 <%@page import="java.util.*" %>
 <%@page import="java.nio.file.*"%>
 <%@page import="javax.swing.undo.UndoableEdit"%>
-<%@page import="com.eteks.sweethome3d.model.*" %>
+<%@page import="com.eteks.sweethome3d.model.UserPreferences" %>
 <%@page import="com.eteks.sweethome3d.io.*" %>
-<%@page import="com.eteks.sweethome3d.viewcontroller.*" %>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
@@ -37,9 +36,9 @@
      File   homeFile = new File(homesFolder, homeName + ".sh3d");
 
      // Retrieve home file copy stored in session attribute
-     File referenceCopy = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());     
-
+     File referenceCopy = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
      if (referenceCopy != null
+         || !homeFile.exists()
          || !HomeServerRecorder.isFileWithContent(homeFile)) {
        // Get preferences stored as an application attribute
        UserPreferences serverUserPreferences = (UserPreferences)getServletContext().getAttribute("serverUserPreferences");
