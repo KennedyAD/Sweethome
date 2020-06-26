@@ -41,15 +41,12 @@ import com.eteks.sweethome3d.model.UserPreferences;
  * @author Emmanuel Puybaret
  */
 public class HomeServerRecorder {
-  private String              homeFileName;
   private String              homeFileWithContent;
   private Home                home;
   private static byte []      newHomeContent;
 
-  public HomeServerRecorder(String homeFileName,
+  public HomeServerRecorder(File homeFile,
                             UserPreferences preferences) throws RecorderException {
-    this.homeFileName = homeFileName;
-    File homeFile = new File(homeFileName);
     if (homeFile.exists()) {
       try {
         if (isFileWithContent(homeFile)) {
@@ -81,11 +78,10 @@ public class HomeServerRecorder {
     return this.home;
   }
 
-  public void writeHome(int compressionLevel) throws RecorderException {
-    File homeFile = new File(this.homeFileName);
+  public void writeHome(File homeFile, int compressionLevel) throws RecorderException {
     if (homeFile.exists()
         && !homeFile.canWrite()) {
-      throw new RecorderException("Can't write over file " + this.homeFileName);
+      throw new RecorderException("Can't write over file " + homeFile);
     }
 
     File tempFile = null;
@@ -100,11 +96,11 @@ public class HomeServerRecorder {
       }
 
       // Check disk space
-      if (!isDiskUsableSpaceLargeEnough(tempFile)) {
+      if (!isDiskUsableSpaceLargeEnough(tempFile, homeFile)) {
         // Try to delete temporary files with content
         System.gc();
-        if (!isDiskUsableSpaceLargeEnough(tempFile)) {
-          throw new NotEnoughSpaceRecorderException("Not enough disk space to save file " + this.homeFileName, -1);
+        if (!isDiskUsableSpaceLargeEnough(tempFile, homeFile)) {
+          throw new NotEnoughSpaceRecorderException("Not enough disk space to save file " + homeFile, -1);
         }
       }
 
@@ -119,12 +115,11 @@ public class HomeServerRecorder {
     }
   }
 
-  private boolean isDiskUsableSpaceLargeEnough(File tempFile) throws NotEnoughSpaceRecorderException {
-    File homeFile = new File(this.homeFileName);
-    long usableSpace = homeFile.getUsableSpace();
-    long requiredSpace = tempFile.length();
-    if (homeFile.exists()) {
-      requiredSpace -= homeFile.length();
+  private boolean isDiskUsableSpaceLargeEnough(File copiedFile, File destinationFile) throws NotEnoughSpaceRecorderException {
+    long usableSpace = destinationFile.getUsableSpace();
+    long requiredSpace = copiedFile.length();
+    if (destinationFile.exists()) {
+      requiredSpace -= destinationFile.length();
     }
     return usableSpace == 0
         || usableSpace >= requiredSpace;
