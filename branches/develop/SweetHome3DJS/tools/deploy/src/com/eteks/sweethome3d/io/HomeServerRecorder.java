@@ -47,10 +47,19 @@ public class HomeServerRecorder {
 
   public HomeServerRecorder(File homeFile,
                             UserPreferences preferences) throws RecorderException {
+    this(homeFile, preferences, true);
+  }
+
+  public HomeServerRecorder(File homeFile,
+                            UserPreferences preferences,
+                            boolean checkContent) throws RecorderException {
     if (homeFile.exists()) {
       try {
-        if (isFileWithContent(homeFile)) {
-          File fileWithContent = File.createTempFile("read-", ".sh3d");
+        if (checkContent
+            && isFileWithContent(homeFile)) {
+          int dotIndex = homeFile.getName().lastIndexOf('.');
+          File fileWithContent = File.createTempFile("read-",
+              dotIndex > 0 ? homeFile.getName().substring(dotIndex) : ".sh3d");
           fileWithContent.deleteOnExit();
           Files.copy(homeFile.toPath(), fileWithContent.toPath(), StandardCopyOption.REPLACE_EXISTING);
           this.homeFileWithContent = fileWithContent.getCanonicalPath();

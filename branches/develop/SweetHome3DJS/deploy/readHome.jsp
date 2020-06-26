@@ -43,8 +43,8 @@
            previousOpenedFile.delete();
          }
          request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
-         // Temporary file deleted when user calls closeHome.jsp
          homeFile = referenceCopy.toFile();
+         // Temporary file deleted when user calls closeHome.jsp
        }
   
        synchronized (homeFile.getAbsolutePath().intern()) {
