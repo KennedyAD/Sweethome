@@ -24,74 +24,110 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeRecorder;
+import com.eteks.sweethome3d.model.NotEnoughSpaceRecorderException;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.UserPreferences;
 
 /**
- * Recorder that stores homes on a HTTP server.
+ * A recorder able to read and write homes with minimum temporary files and no <code>Home</code> entry.
  * @author Emmanuel Puybaret
  */
-public class HomeServerRecorder implements HomeRecorder {
-  private int                 compressionLevel;
-  private UserPreferences     preferences;
-  private Map<String, String> filesWithContent = new HashMap<>();
+public class HomeServerRecorder {
+  private String              homeFileName;
+  private String              homeFileWithContent;
+  private Home                home;
 
-  public HomeServerRecorder(int compressionLevel,
-                            UserPreferences preferences) {
-    this.compressionLevel = compressionLevel;
-    this.preferences = preferences;
-  }
-
-  public Home readHome(String name) throws RecorderException {
+  public HomeServerRecorder(String homeFileName,
+                            UserPreferences preferences) throws RecorderException {
+    this.homeFileName = homeFileName;
+    File homeFile = new File(homeFileName);
     try {
-      File file = new File(name);
-      if (isFileWithContent(file)) {
-        Path fileWithContent = Files.createTempFile("read-", ".sh3d");
-        Files.copy(file.toPath(), fileWithContent, StandardCopyOption.REPLACE_EXISTING);
-        this.filesWithContent.put(name, fileWithContent.toFile().getAbsolutePath());
-        file = fileWithContent.toFile();
+      if (isFileWithContent(homeFile)) {
+        File fileWithContent = File.createTempFile("read-", ".sh3d");
+        fileWithContent.deleteOnExit();
+        Files.copy(homeFile.toPath(), fileWithContent.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        this.homeFileWithContent = fileWithContent.getCanonicalPath();
+        homeFile = fileWithContent;
       }
 
-      try (DefaultHomeInputStream in = new DefaultHomeInputStream(file,
-              ContentRecording.INCLUDE_TEMPORARY_CONTENT, new HomeXMLHandler(this.preferences),
-              this.preferences, true)) {
-        return in.readHome();
+      try (DefaultHomeInputStream in = new DefaultHomeInputStream(homeFile,
+              ContentRecording.INCLUDE_TEMPORARY_CONTENT, new HomeXMLHandler(preferences),
+              preferences, true)) {
+        this.home = in.readHome();
       }
     } catch (IOException | ClassNotFoundException ex) {
       throw new RecorderException("Can't read home", ex);
     }
   }
 
-  public void writeHome(Home home, String name) throws RecorderException {
-    // Write home directly and without Java serialized entry
-    try (DefaultHomeOutputStream out = new DefaultHomeOutputStream(
-            new BufferedOutputStream(new FileOutputStream(name)),
-            this.compressionLevel, ContentRecording.INCLUDE_TEMPORARY_CONTENT,
-            false, new HomeXMLExporter())) {
-      out.writeHome(home);
-    } catch (IOException ex) {
-      throw new RecorderException("Can't write home", ex);
+  /**
+   * Returns the read home.
+   */
+  public Home getHome() {
+    return this.home;
+  }
+
+  public void writeHome(int compressionLevel) throws RecorderException {
+    File homeFile = new File(this.homeFileName);
+    if (homeFile.exists()
+        && !homeFile.canWrite()) {
+      throw new RecorderException("Can't write over file " + this.homeFileName);
     }
 
-    if (this.filesWithContent.get(name) != null) {
-      new File(this.filesWithContent.remove(name)).delete();
+    File tempFile = null;
+    try {
+      tempFile = File.createTempFile("save-", ".sweethome3d");
+      // Write home without Java serialized entry
+      try (DefaultHomeOutputStream out = new DefaultHomeOutputStream(
+              new BufferedOutputStream(new FileOutputStream(tempFile)),
+              compressionLevel, ContentRecording.INCLUDE_TEMPORARY_CONTENT,
+              false, new HomeXMLExporter())) {
+        out.writeHome(this.home);
+      }
+
+      // Check disk space
+      if (!isDiskUsableSpaceLargeEnough(tempFile)) {
+        // Try to delete temporary files with content
+        System.gc();
+        if (!isDiskUsableSpaceLargeEnough(tempFile)) {
+          throw new NotEnoughSpaceRecorderException("Not enough disk space to save file " + this.homeFileName, -1);
+        }
+      }
+
+      // Overwriting home file
+      Files.copy(tempFile.toPath(), homeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException ex) {
+      throw new RecorderException("Can't write home", ex);
+    } finally {
+      if (tempFile != null) {
+        tempFile.delete();
+      }
     }
   }
 
+  private boolean isDiskUsableSpaceLargeEnough(File tempFile) throws NotEnoughSpaceRecorderException {
+    File homeFile = new File(this.homeFileName);
+    long usableSpace = homeFile.getUsableSpace();
+    long requiredSpace = tempFile.length();
+    if (homeFile.exists()) {
+      requiredSpace -= homeFile.length();
+    }
+    return usableSpace == 0
+        || usableSpace >= requiredSpace;
+  }
+
   @Override
-  public boolean exists(String name) throws RecorderException {
-    return new File(name).exists();
+  protected void finalize() {
+    if (this.homeFileWithContent != null) {
+      new File(this.homeFileWithContent).delete();
+    }
   }
 
   /**

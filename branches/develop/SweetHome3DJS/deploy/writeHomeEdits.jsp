@@ -41,22 +41,21 @@
 
      if (referenceCopy != null
          || !HomeServerRecorder.isFileWithContent(homeFile)) {
-       // Get home recorder stored as an application attribute
-       HomeRecorder homeServerRecorder = (HomeRecorder)getServletContext().getAttribute("homeServerRecorder");
-       if (homeServerRecorder == null) {
+       // Get preferences stored as an application attribute
+       UserPreferences serverUserPreferences = (UserPreferences)getServletContext().getAttribute("serverUserPreferences");
+       if (serverUserPreferences == null) {
          UserPreferences preferences = new ServerUserPreferences(
              new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
              new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultTexturesCatalog.json")}, serverBaseUrl);
-         homeServerRecorder = new HomeServerRecorder(0, preferences);
-         getServletContext().setAttribute("homeServerRecorder", homeServerRecorder);
+         getServletContext().setAttribute("serverUserPreferences", preferences);
        }
 
-       synchronized (homeFile.getAbsolutePath().intern()) {
+       synchronized (homeFile.getCanonicalPath().intern()) {
          // Reading a given home then saving it can't be done in two different threads at the same moment   
-         Home home = homeServerRecorder.readHome(homeFile.getPath());
-         List<UndoableEdit> edits = new HomeEditsDeserializer(home, referenceCopy, serverBaseUrl.toString()).deserializeEdits(jsonEdits);
+         HomeServerRecorder recorder = new HomeServerRecorder(homeFile.getPath(), serverUserPreferences);
+         List<UndoableEdit> edits = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString()).deserializeEdits(jsonEdits);
          count = HomeEditsDeserializer.applyEdits(edits);
-         homeServerRecorder.writeHome(home, homeFile.getPath());
+         recorder.writeHome(0);
        }
 %>
 Wrote <%= count %> edits for <%= homeName %>.
