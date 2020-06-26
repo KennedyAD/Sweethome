@@ -1317,7 +1317,8 @@ var application = useServer
     : new SweetHome3DJSApplication();
 var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
 
-//application.getHomeRecorder().configure({manual: true});
+// application.getHomeRecorder().configure({manual: true});
+
 // Read and display test file 
 // TODO Should be performed in HomeController.open
 application.getHomeRecorder().readHome(homeName, 
@@ -1325,7 +1326,7 @@ application.getHomeRecorder().readHome(homeName,
       homeLoaded: function(home) {
         home.setName(homeName);
         application.addHome(home);
-        setTimeout(function() { testHomeModifications(); application.getHomeRecorder().sendUndoableEdits(home); }, 1000);
+        setTimeout(testHomeModifications, 1000);
       },
       homeError: function(err) {
         console.error(err);
