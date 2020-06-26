@@ -43,10 +43,10 @@
        // Get preferences stored as an application attribute
        UserPreferences serverUserPreferences = (UserPreferences)getServletContext().getAttribute("serverUserPreferences");
        if (serverUserPreferences == null) {
-         UserPreferences preferences = new ServerUserPreferences(
+         serverUserPreferences = new ServerUserPreferences(
              new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
              new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultTexturesCatalog.json")}, serverBaseUrl);
-         getServletContext().setAttribute("serverUserPreferences", preferences);
+         getServletContext().setAttribute("serverUserPreferences", serverUserPreferences);
        }
 
        synchronized (homeFile.getCanonicalPath().intern()) {
