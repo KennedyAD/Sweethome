@@ -34,7 +34,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -49,6 +52,7 @@ import org.json.JSONObject;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeObject;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Selectable;
@@ -306,9 +310,19 @@ public class HomeEditsDeserializer {
         this.homeObjects.put(key, homeObject);
       }
 
+      // Reorder new objects to ensure HomeFurnitureGroup instances will initialized in last position
+      // TODO Should rather user a JSON list to keep initialization order consistent
+      List<String> objectKeys = new ArrayList<String>(newObjects.keySet());
+      Collections.sort(objectKeys, new Comparator<String>() {
+          @Override
+          public int compare(String key1, String key2) {
+            return homeObjects.get(key1) instanceof HomeFurnitureGroup ? 1 : -1;
+          }
+        });
+
       // Pass 2: fill instances for new objects (instances have been created in pass 1
       // so that (cross) references can be looked up)
-      for (String key : newObjects.keySet()) {
+      for (String key : objectKeys) {
         fillInstance(this.homeObjects.get(key), newObjects.getJSONObject(key), undo);
       }
     }
@@ -353,7 +367,6 @@ public class HomeEditsDeserializer {
       Object jsonValue = jsonObject.get(key);
       Field field = getField(type, key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
-        System.out.println("deserializing " + key + " " + field.getGenericType() + " --- " + instance.getClass());
         field.set(instance, deserialize(field.getGenericType(), jsonValue, undo));
       }
     }
