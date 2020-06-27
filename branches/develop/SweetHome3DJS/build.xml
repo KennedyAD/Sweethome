@@ -476,7 +476,9 @@
     <echo message="install/SweetHome3DJSViewer-${version}.zip ready"/>
   </target>
 	
-  <target name="applicationDeploy">
+  <property name="debug" value="false" />
+  <target name="applicationDeploy" 
+          description="Copies server files in deploy directory">
     <echo>WARNING: run 'applicationDistribution' task if source elements have been modified</echo>
     <fail message="Please build SweetHome3D jar before deploy.">
         <condition>
@@ -496,49 +498,24 @@
     <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
     <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
            source="1.8" encoding="ISO-8859-1"
-           debug="false" debuglevel="lines,vars,source">
+           debug="${debug}" debuglevel="lines,vars,source">
       <classpath>
         <fileset dir="deploy/WEB-INF/lib" />
       </classpath>
     </javac>
     <copy todir="deploy/lib">
       <fileset dir="lib" excludes="generated/**" />
-    </copy>
-    <copy todir="deploy/lib">
       <fileset dir="dist" />
     </copy>
   </target>
 
-  <target name="applicationDeployTest">
-    <echo>WARNING: run 'applicationDistribution' task if source elements have been modified</echo>
-    <fail message="Please build SweetHome3D jar before deploy.">
-        <condition>
-            <not>
-                <available file="../SweetHome3D/install/SweetHome3D-${version}.jar" />
-            </not>
-        </condition>
-    </fail>
-    <delete dir="deploy/WEB-INF/classes" />
-    <delete dir="deploy/WEB-INF/lib" />
-    <delete file="deploy/homes/HomeTest.sh3d" />
-    <mkdir dir="deploy/WEB-INF/classes" />
-    <mkdir dir="deploy/WEB-INF/lib" />
-    <mkdir dir="deploy/homes" />
-    <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
-    <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
-    <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
-    <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
-           source="1.8" encoding="ISO-8859-1"
-           debug="false" debuglevel="lines,vars,source">
-      <classpath>
-        <fileset dir="deploy/WEB-INF/lib" />
-      </classpath>
-    </javac>
+  <target name="applicationDeployTest"
+          description="Copies server and test files in deploy directory">
+  	<antcall target="applicationDeploy">
+      <param name="debug" value="true"/> 
+  	</antcall>
     <copy todir="deploy/lib">
-      <fileset dir="lib" />
-    </copy>
-    <copy todir="deploy/lib">
-      <fileset dir="dist" />
+      <fileset dir="lib" includes="generated/**" />
     </copy>
     <copy todir="deploy/src">
       <fileset dir="src" />
@@ -550,9 +527,13 @@
        the files required for SweetHome3DJS -->
   <target name="applicationBuild" depends="applicationDistribution, applicationDeploy" 
           description="Builds SweetHome3DJS-version.war in install directory">
+  	<antcall target="applicationDeploy">
+      <param name="debug" value="false"/> 
+  	</antcall>
     <mkdir dir="install/SweetHome3DJS-${version}/lib" />
     <copy todir="install/SweetHome3DJS-${version}/lib">
-      <fileset dir="deploy/lib"/>
+      <fileset dir="lib" excludes="generated/**" />
+      <fileset dir="dist"/>
     </copy>
     <copy todir="install/SweetHome3DJS-${version}">
       <fileset dir="deploy" includes="*.jsp"/>
