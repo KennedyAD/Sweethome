@@ -201,6 +201,11 @@
   }
 }
 
+#level-selector {
+  top: 3px;
+  right: 15px;
+}
+
 /* ToolBar animations */
 
 #home-pane-toolbar.show {

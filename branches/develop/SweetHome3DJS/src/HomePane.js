@@ -508,8 +508,6 @@ var HomePane = (function() {
     this.levelSelector.id = "level-selector";
     this.levelSelector.style.display = "inline";
     this.levelSelector.style.position = "absolute";
-    this.levelSelector.style.right = "2em";
-    this.levelSelector.style.top = "0px";
     controller.getPlanController().getView().container.appendChild(this.levelSelector);
     this.updateLevels();
     this.levelSelector.addEventListener('change', function(ev) {
