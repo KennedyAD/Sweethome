@@ -9,15 +9,18 @@
   height: 20px;
   opacity: 0.8;
   z-index: 4;
+  pointer-events: none;
 }
 #touch-overlay-timer > div {
   position: absolute;
   top: -2px;
   left: -2px;
+  pointer-events: none;
 }	
 #touch-overlay-timer > .animated {
 	animation-duration: 3s;
   animation-timing-function: linear;
+  pointer-events: none;
 }
 #touch-overlay-timer-hidder.animated, #touch-overlay-timer-loader1.animated, #touch-overlay-timer-loader2.animated {
   border: 2px solid transparent;
@@ -37,7 +40,7 @@
 	width: 24px;
   height: 24px;
   text-shadow: 2px 2px 4px #777777;
-  
+  pointer-events: none;
 }
 #touch-overlay-timer-bg.animated, #touch-overlay-timer-hidder.animated {
   border-color: #AAAAAA;
