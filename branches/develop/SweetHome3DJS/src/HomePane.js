@@ -2127,6 +2127,7 @@ var HomePane = (function() {
     }
     this.addActionToToolBar(HomeView.ActionType.FLIP_HORIZONTALLY, toolBar, "toolbar-optional");
     this.addActionToToolBar(HomeView.ActionType.FLIP_VERTICALLY, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL, toolBar, "toolbar-optional");
     this.addSeparator(toolBar);
     
     this.addActionToToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar, "toolbar-optional");
