@@ -66,9 +66,7 @@ public class HomeServerRecorder {
           homeFile = fileWithContent;
         }
 
-        try (DefaultHomeInputStream in = new DefaultHomeInputStream(homeFile,
-                ContentRecording.INCLUDE_TEMPORARY_CONTENT, new HomeXMLHandler(preferences),
-                preferences, true)) {
+        try (DefaultHomeInputStream in = createHomeInputStream(homeFile, preferences)) {
           this.home = in.readHome();
         }
       } catch (IOException | ClassNotFoundException ex) {
@@ -87,6 +85,17 @@ public class HomeServerRecorder {
     return this.home;
   }
 
+  /**
+   * Returns the filter input stream used to read a home from the file in parameter.
+   */
+  protected DefaultHomeInputStream createHomeInputStream(File homeFile, UserPreferences preferences) throws IOException {
+    return new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_TEMPORARY_CONTENT,
+        new HomeXMLHandler(preferences), preferences, true);
+  }
+
+  /**
+   * Writes the read home in the given file.
+   */
   public void writeHome(File homeFile, int compressionLevel) throws RecorderException {
     if (homeFile.exists()
         && !homeFile.canWrite()) {
@@ -97,10 +106,7 @@ public class HomeServerRecorder {
     try {
       tempFile = File.createTempFile("save-", ".sweethome3d");
       // Write home without Java serialized entry
-      try (DefaultHomeOutputStream out = new DefaultHomeOutputStream(
-              new BufferedOutputStream(new FileOutputStream(tempFile)),
-              compressionLevel, ContentRecording.INCLUDE_TEMPORARY_CONTENT,
-              false, new HomeXMLExporter())) {
+      try (DefaultHomeOutputStream out = createHomeOutputStream(tempFile, compressionLevel)) {
         out.writeHome(this.home);
       }
 
@@ -122,6 +128,14 @@ public class HomeServerRecorder {
         tempFile.delete();
       }
     }
+  }
+
+  /**
+   * Returns the filter output stream used to write a home in the file in parameter.
+   */
+  protected DefaultHomeOutputStream createHomeOutputStream(File homeFile, int compressionLevel) throws IOException {
+    return new DefaultHomeOutputStream(new BufferedOutputStream(new FileOutputStream(homeFile)),
+        compressionLevel, ContentRecording.INCLUDE_TEMPORARY_CONTENT, false, new HomeXMLExporter());
   }
 
   private boolean isDiskUsableSpaceLargeEnough(File copiedFile, File destinationFile) throws NotEnoughSpaceRecorderException {
