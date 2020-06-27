@@ -191,8 +191,13 @@
 }
 
 @media (max-width: 705px) {
+
+  #home-pane-toolbar {
+    overflow-x: scroll;
+  }
+
   #home-pane-toolbar .toolbar-optional  {
-    display: none;
+    -display: none;
   }
 }
 

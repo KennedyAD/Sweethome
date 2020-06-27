@@ -503,7 +503,49 @@ var HomePane = (function() {
         controller.focusedViewChanged(controller.getPlanController().getView());
       });
 
+    // Create level selector
+    this.levelSelector = document.createElement("select");
+    this.levelSelector.id = "level-selector";
+    this.levelSelector.style.display = "inline";
+    this.levelSelector.style.position = "absolute";
+    this.levelSelector.style.right = "2em";
+    this.levelSelector.style.top = "0px";
+    controller.getPlanController().getView().container.appendChild(this.levelSelector);
+    this.updateLevels();
+    this.levelSelector.addEventListener('change', function(ev) {
+      home.setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
+      homePane.updateLevels();
+    });
+
+    home.addPropertyChangeListener(Home.SELECTED_LEVEL, function() {
+      homePane.updateLevels();
+    });
+    home.addLevelsListener(function() {
+      homePane.updateLevels();
+    }); 
+
     return this;
+  }
+
+  /*
+   * @private
+   */
+  HomePane.prototype.updateLevels = function() {
+    this.levelSelector.innerHTML = "";
+    if (this.home.getLevels().length < 2) {
+      this.levelSelector.style.display = "none";
+    } else {
+      for (var i = 0; i < this.home.getLevels().length; i++) {
+        var option = document.createElement("option");
+        option.value = i;
+        option.innerHTML = this.home.getLevels()[i].getName();
+        if (this.home.getLevels()[i] === this.home.getSelectedLevel()) {
+          option.selected = "selected";
+        }
+        this.levelSelector.appendChild(option);
+      }
+      this.levelSelector.style.display = "inline";
+    }
   }
 
   /**
