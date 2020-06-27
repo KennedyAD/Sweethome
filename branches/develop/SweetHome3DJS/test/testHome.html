@@ -1313,7 +1313,8 @@ var useServer = true;
 var application = useServer
     ? new SweetHome3DJSApplication(
           {readHomeURL:       "http://localhost:8080/readHome.jsp?home=%s",
-           writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp"})
+           writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp",
+           closeHomeURL:      "http://localhost:8080/closeHome.jsp?home=%s"})
     : new SweetHome3DJSApplication();
 var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
 
