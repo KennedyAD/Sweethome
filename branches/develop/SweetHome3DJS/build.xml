@@ -525,7 +525,7 @@
   
   <!-- Builds install/SweetHome3DJS-version.war archive that contains
        the files required for SweetHome3DJS -->
-  <target name="applicationBuild" depends="applicationDistribution, applicationDeploy" 
+  <target name="applicationBuild" depends="applicationDistribution" 
           description="Builds SweetHome3DJS-version.war in install directory">
   	<antcall target="applicationDeploy">
       <param name="debug" value="false"/> 
