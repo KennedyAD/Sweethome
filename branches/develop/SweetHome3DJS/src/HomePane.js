@@ -2167,7 +2167,6 @@ var HomePane = (function() {
     }
     this.addActionToToolBar(HomeView.ActionType.FLIP_HORIZONTALLY, toolBar, "toolbar-optional");
     this.addActionToToolBar(HomeView.ActionType.FLIP_VERTICALLY, toolBar, "toolbar-optional");
-    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL, toolBar, "toolbar-optional");
     this.addSeparator(toolBar);
     
     this.addActionToToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar, "toolbar-optional");
@@ -2175,6 +2174,11 @@ var HomePane = (function() {
     this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_BOLD_STYLE, toolBar, "toolbar-optional");
     this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_ITALIC_STYLE, toolBar, "toolbar-optional");
     this.addSeparator(toolBar);
+
+    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL_AT_SAME_ELEVATION, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.DELETE_LEVEL, toolBar, "toolbar-optional");
+    this.addSeparator(toolBar); 
 
     this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
     this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
