@@ -32,14 +32,13 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.swing.undo.CompoundEdit;
@@ -52,7 +51,6 @@ import org.json.JSONObject;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
-import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeObject;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Selectable;
@@ -303,27 +301,21 @@ public class HomeEditsDeserializer {
 
     // Deserialize the objects created by the edit (placed in _newObjects protocol field)
     if (jsonValue.has("_newObjects")) {
-      JSONObject newObjects = jsonValue.getJSONObject("_newObjects");
+      JSONArray newObjects = jsonValue.getJSONArray("_newObjects");
+      List<Entry<HomeObject, JSONObject>> homeObjectEntryList = new ArrayList<>();
       // Pass 1: create instances for new objects
-      for (String key : newObjects.keySet()) {
-        HomeObject homeObject = createInstance(HomeObject.class, newObjects.getJSONObject(key), undo);
-        this.homeObjects.put(key, homeObject);
+      for (int i = 0; i < newObjects.length(); i++) {
+        JSONObject jsonObject = newObjects.getJSONObject(i);
+        HomeObject homeObject = createInstance(HomeObject.class, jsonObject, undo);
+        this.homeObjects.put(jsonObject.getString("id"), homeObject);
+        // Instance initialization shall apply in reverse order
+        homeObjectEntryList.add(0, new AbstractMap.SimpleEntry<>(homeObject, jsonObject));
       }
-
-      // Reorder new objects to ensure HomeFurnitureGroup instances will initialized in last position
-      // TODO Should rather user a JSON list to keep initialization order consistent
-      List<String> objectKeys = new ArrayList<String>(newObjects.keySet());
-      Collections.sort(objectKeys, new Comparator<String>() {
-          @Override
-          public int compare(String key1, String key2) {
-            return homeObjects.get(key1) instanceof HomeFurnitureGroup ? 1 : -1;
-          }
-        });
 
       // Pass 2: fill instances for new objects (instances have been created in pass 1
       // so that (cross) references can be looked up)
-      for (String key : objectKeys) {
-        fillInstance(this.homeObjects.get(key), newObjects.getJSONObject(key), undo);
+      for (Entry<HomeObject, JSONObject> homeObjectEntry : homeObjectEntryList) {
+        fillInstance(homeObjectEntry.getKey(), homeObjectEntry.getValue(), undo);
       }
     }
 

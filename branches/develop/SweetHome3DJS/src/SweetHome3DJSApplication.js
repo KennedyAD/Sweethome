@@ -32,18 +32,18 @@
  * @param {SweetHome3DJSApplication} application
  * @param {{readHomeURL: string,
  *          writeHomeEditsURL: string,
- *          closeHomeURL: string} [serviceUrls] the URLs of services required on server
+ *          closeHomeURL: string,
+ *          manual: boolean} [configuration] the recorder configuration
  * @constructor
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
  */
-function IncrementalHomeRecorder(application, serviceUrls) {
+function IncrementalHomeRecorder(application, configuration) {
   HomeRecorder.call(this);
   this.application = application;
   this.undoableEditListeners = {};
   this.editCounters = {};
-  this.serviceUrls = serviceUrls;
-  this.configuration = {};
+  this.configuration = configuration;
 }
 IncrementalHomeRecorder.prototype = Object.create(HomeRecorder.prototype);
 IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
@@ -64,12 +64,14 @@ IncrementalHomeRecorder.prototype.configure = function(configuration) {
  * @param {Object} observer an object to be notified with loading statuses 
  */
 IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
-  if (this.serviceUrls !== undefined
-      && this.serviceUrls.readHomeURL !== undefined) {
+  console.info("read home ", this.configuration);
+  if (this.configuration !== undefined
+      && this.configuration.readHomeURL !== undefined) {
     // Replace % sequence by %% except %s before formating readHomeURL with home name 
-    var readHomeUrl = CoreTools.format(this.serviceUrls.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
+    var readHomeUrl = CoreTools.format(this.configuration.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
     homeName = readHomeUrl;
   }
+  console.info("read home "+homeName);
   HomeRecorder.prototype.readHome.call(this, homeName, observer);
 }
 
@@ -91,8 +93,8 @@ IncrementalHomeRecorder.prototype.checkPoint = function(home) {
  * Adds a home to be incrementally saved by this recorder.
  */
 IncrementalHomeRecorder.prototype.addHome = function(home) {
-  if (this.serviceUrls !== undefined
-      && this.serviceUrls.writeHomeEditsURL !== undefined) {
+  if (this.configuration !== undefined
+      && this.configuration.writeHomeEditsURL !== undefined) {
     var recorder = this;
     // TODO: have a UUID
     home.id = HomeObject.createId("home");
@@ -121,7 +123,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         console.info("UNDO", edit);
         coreUndo.call(undoManager);
         recorder.storeEdit(home, edit, true);
-        if (!recorder.configuration.manual) {
+        if (recorder.configuration === undefined || !recorder.configuration.manual) {
           recorder.sendUndoableEdits(home);
         }
       };
@@ -130,7 +132,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         console.info("REDO", edit);
         coreRedo.call(undoManager);
         recorder.storeEdit(home, edit);
-        if (!recorder.configuration.manual) {
+        if (recorder.configuration === undefined || !recorder.configuration.manual) {
           recorder.sendUndoableEdits(home);
         }
       };
@@ -141,18 +143,18 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
  * Removes a home previously added with #addHome(home).
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
-  if (this.serviceUrls !== undefined) {
-    if (this.serviceUrls['closeHomeURL'] !== undefined) {
+  if (this.configuration !== undefined) {
+    if (this.configuration['closeHomeURL'] !== undefined) {
       try {
         var xhr = new XMLHttpRequest();
-        var closeHomeURL = CoreTools.format(this.serviceUrls.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
+        var closeHomeURL = CoreTools.format(this.configuration.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
         xhr.open('GET', closeHomeURL, true); // Asynchronous call required during beforeunload
         xhr.send();
       } catch (ex) {
         console.error(ex);
       }  
     }
-    if (this.serviceUrls['writeHomeEditsURL'] !== undefined) {
+    if (this.configuration['writeHomeEditsURL'] !== undefined) {
       // TODO Find another way to get home controller because home isn't in application homes already
       this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
       delete existingHomeObjects[home.id];
@@ -166,7 +168,7 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
 IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', this.serviceUrls['writeHomeEditsURL'], false);
+    xhr.open('POST', this.configuration['writeHomeEditsURL'], false);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send('home=' + encodeURIComponent(home.name) + '&' +
              'edits=' + encodeURIComponent(JSON.stringify(this.getStoredEdits())));
@@ -190,16 +192,18 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   }
   var key = home.id + "/" + this.editCounters[home.id];
   var newObjects = {};
+  var newObjectList = [];
   console.info("substitution of edit", edit);
   var processedEdit = this.substituteIdentifiableObjects(
                                 home,
                                 edit,
                                 newObjects,
+                                newObjectList,
                                 ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent"], 
                                 [UserPreferences, PlanController, Home],
                                 [Boolean, String, Number]);
-  if (Object.getOwnPropertyNames(newObjects).length > 0) {
-    processedEdit._newObjects = newObjects;
+  if (newObjectList.length > 0) {
+    processedEdit._newObjects = newObjectList;
   }
   if (undoAction) {
     processedEdit._action = "undo";
@@ -214,7 +218,6 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   
   // Update objects state 
   this.checkPoint(home);
-  // CoreTools.merge(this.existingHomeObjects[home.id], newObjects);
 }
 
 /** 
@@ -236,11 +239,11 @@ IncrementalHomeRecorder.prototype.commitEdits = function(home) {
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home, origin, newObjects, skippedPropertyNames, skippedTypes, preservedTypes) {
+IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home, origin, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes) {
   if (Array.isArray(origin)) {
     var destination = origin.slice(0);
     for (var i = 0; i < origin.length; i++) {
-      destination[i] = this.substituteIdentifiableObjects(home, origin[i], newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
+      destination[i] = this.substituteIdentifiableObjects(home, origin[i], newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
     }
     return destination;
   } else if (origin instanceof Big) {
@@ -258,6 +261,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
     if (origin.id !== undefined) {
       // New object case
       newObjects[origin.id] = destination;
+      newObjectList.push(destination);
     }
     if (origin.constructor && origin.constructor.__class) {
       destination._type = origin.constructor.__class;
@@ -276,7 +280,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
           if (propertyName.indexOf("Controller") > -1 || propertyName.indexOf("__parent") > -1) {
             console.info("prop", propertyName, origin.constructor, destination._type);
           }
-          destination[propertyName] = this.substituteIdentifiableObjects(home, propertyValue, newObjects, skippedPropertyNames, skippedTypes, preservedTypes);
+          destination[propertyName] = this.substituteIdentifiableObjects(home, propertyValue, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
         }
       }
     }
