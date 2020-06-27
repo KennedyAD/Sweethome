@@ -509,6 +509,43 @@
     </copy>
   </target>
 
+  <target name="applicationDeployTest">
+    <echo>WARNING: run 'applicationDistribution' task if source elements have been modified</echo>
+    <fail message="Please build SweetHome3D jar before deploy.">
+        <condition>
+            <not>
+                <available file="../SweetHome3D/install/SweetHome3D-${version}.jar" />
+            </not>
+        </condition>
+    </fail>
+    <delete dir="deploy/WEB-INF/classes" />
+    <delete dir="deploy/WEB-INF/lib" />
+    <delete file="deploy/homes/HomeTest.sh3d" />
+    <mkdir dir="deploy/WEB-INF/classes" />
+    <mkdir dir="deploy/WEB-INF/lib" />
+    <mkdir dir="deploy/homes" />
+    <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
+    <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
+    <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
+    <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
+           source="1.8" encoding="ISO-8859-1"
+           debug="false" debuglevel="lines,vars,source">
+      <classpath>
+        <fileset dir="deploy/WEB-INF/lib" />
+      </classpath>
+    </javac>
+    <copy todir="deploy/lib">
+      <fileset dir="lib" />
+    </copy>
+    <copy todir="deploy/lib">
+      <fileset dir="dist" />
+    </copy>
+    <copy todir="deploy/src">
+      <fileset dir="src" />
+    </copy>
+    <copy file="test/testHome.html" todir="deploy" />
+  </target>
+  
   <!-- Builds install/SweetHome3DJS-version.war archive that contains
        the files required for SweetHome3DJS -->
   <target name="applicationBuild" depends="applicationDistribution, applicationDeploy" 
@@ -615,5 +652,6 @@
     <delete dir="install/source" />
 
     <echo message="install/SweetHome3DJS-${version}-src.zip ready for ftp" />
+    
   </target>
 </project>
