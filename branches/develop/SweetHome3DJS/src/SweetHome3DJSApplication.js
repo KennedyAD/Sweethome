@@ -41,7 +41,7 @@
 function IncrementalHomeRecorder(application, configuration) {
   HomeRecorder.call(this);
   this.application = application;
-  this.undoableEditListeners = {};
+  this.undoableEditSupports = {};
   this.editCounters = {};
   this.configuration = configuration;
 }
@@ -83,10 +83,10 @@ IncrementalHomeRecorder.prototype.checkPoint = function(home) {
   if (!recorder.existingHomeObjects) {
     recorder.existingHomeObjects = {};
   }
-  recorder.existingHomeObjects[home.id] = {}
+  recorder.existingHomeObjects[home.id] = {};
   home.getHomeObjects().forEach(function(homeObject) {
-    recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
-  });
+      recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
+    });
 }
 
 /**
@@ -96,7 +96,6 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
   if (this.configuration !== undefined
       && this.configuration.writeHomeEditsURL !== undefined) {
     var recorder = this;
-    // TODO: have a UUID
     home.id = HomeObject.createId("home");
     
     // TODO Remove logs
@@ -107,18 +106,21 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     console.info("collected ids: ", home, this.existingHomeObjects);
     console.info(Object.getOwnPropertyNames(home));
 
+    var homeController = this.application.getHomeController(home);
+    this.undoableEditSupports[home.id] = homeController.getUndoableEditSupport();
     var listener = {
         undoableEditHappened: function(undoableEditEvent) {
           recorder.storeEdit(home, undoableEditEvent.getEdit());
           recorder.sendUndoableEdits(home);
-        }
+        },
+        source: recorder // Additional field to track the listener  
       };
-    this.undoableEditListeners[home.id] = listener;
-    this.application.getHomeController(home).getUndoableEditSupport().addUndoableEditListener(listener);
-    var undoManager = this.application.getHomeController(home).undoManager;
+    this.undoableEditSupports[home.id].addUndoableEditListener(listener);
+    // Caution: direct access to undoManager field of HomeController
+    var undoManager = homeController.undoManager;
     var coreUndo = undoManager.undo;
     var coreRedo = undoManager.redo;
-    this.application.getHomeController(home).undoManager.undo = function() {
+    undoManager.undo = function() {
         var edit = undoManager.editToBeUndone();
         console.info("UNDO", edit);
         coreUndo.call(undoManager);
@@ -127,7 +129,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
           recorder.sendUndoableEdits(home);
         }
       };
-    this.application.getHomeController(home).undoManager.redo = function() {
+    undoManager.redo = function() {
         var edit = undoManager.editToBeRedone();
         console.info("REDO", edit);
         coreRedo.call(undoManager);
@@ -145,19 +147,29 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
   if (this.configuration !== undefined) {
     if (this.configuration['closeHomeURL'] !== undefined) {
-      try {
-        var xhr = new XMLHttpRequest();
-        var closeHomeURL = CoreTools.format(this.configuration.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
-        xhr.open('GET', closeHomeURL, true); // Asynchronous call required during beforeunload
-        xhr.send();
-      } catch (ex) {
-        console.error(ex);
-      }  
+      var closeHomeURL = CoreTools.format(this.configuration.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(closeHomeURL);
+      } else {
+        try {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', closeHomeURL, true); // Asynchronous call required during unload
+          xhr.send();
+        } catch (ex) {
+          console.error(ex); 
+        }
+      }
     }
     if (this.configuration['writeHomeEditsURL'] !== undefined) {
-      // TODO Find another way to get home controller because home isn't in application homes already
-      this.application.getHomeController(home).getUndoableEditSupport().removeUndoableEditListener(this.undoableEditListeners[home.id]);
-      delete existingHomeObjects[home.id];
+      var undoableEditListeners = this.undoableEditSupports[home.id].getUndoableEditListeners();
+      for (var i = 0; i < undoableEditListeners.length; i++) {
+        if (undoableEditListeners [i].source === this) {
+          this.undoableEditSupports[home.id].removeUndoableEditListener(undoableEditListeners[i]);
+          break;
+        }
+      }
+      delete this.undoableEditSupports[home.id];
+      delete this.existingHomeObjects[home.id];
     }
   }
 }
@@ -303,6 +315,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
  *          writeHomeEditsURL: string,
  *          closeHomeURL: string}} [params] the URLs of resources and services required on server 
  *                                                  (if undefined, will use local files for testing)
+ * @constructor
+ * @author Emmanuel Puybaret
+ * @author Renaud Pawlak
  */
 function SweetHome3DJSApplication(params) {
   HomeApplication.call(this);
@@ -316,8 +331,8 @@ function SweetHome3DJSApplication(params) {
         application.getHomeRecorder().addHome(ev.getItem());
         homeController.getView();
       } else if (ev.getType() == CollectionEvent.Type.DELETE) {
-        application.getHomeRecorder().removeHome(ev.getItem());
         application.homeControllers.splice(ev.getIndex(), 1); 
+        application.getHomeRecorder().removeHome(ev.getItem());
       }
     });
 }
