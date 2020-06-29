@@ -352,8 +352,8 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
   } else {
     url = contentFile;
   }
-  // In JavaScript, consider that any URL containing '!' is accessed through jar protocol
-  if (contentFile.indexOf('!') >= 0 && contentFile.indexOf("jar:") !== 0) {
+  // In JavaScript, consider that any URL containing "!/" is accessed through jar protocol
+  if (contentFile.indexOf("!/") >= 0 && contentFile.indexOf("jar:") !== 0) {
     url = "jar:" + url;
   }
   var content = new URLContent(url);

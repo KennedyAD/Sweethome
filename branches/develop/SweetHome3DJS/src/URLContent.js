@@ -45,7 +45,7 @@ URLContent.prototype.getURL = function() {
  * @return {boolean}
  */
 URLContent.prototype.isJAREntry = function() {
-  return this.url.indexOf("jar:") === 0 && this.url.indexOf('!') !== -1; 
+  return this.url.indexOf("jar:") === 0 && this.url.indexOf("!/") !== -1; 
 }
 
 /**
@@ -56,7 +56,7 @@ URLContent.prototype.getJAREntryURL = function() {
   if (!this.isJAREntry()) {
     throw new IllegalStateException("Content isn't a JAR entry");
   }
-  return this.url.substring("jar:".length, this.url.indexOf('!'));
+  return this.url.substring("jar:".length, this.url.indexOf("!/"));
 }
 
 /**
@@ -71,7 +71,7 @@ URLContent.prototype.getJAREntryName = function() {
   if (!this.isJAREntry()) {
     throw new IllegalStateException("Content isn't a JAR entry");
   }
-  return this.url.substring(this.url.indexOf('!') + 2);
+  return this.url.substring(this.url.indexOf("!/") + 2);
 }
 
 /**
