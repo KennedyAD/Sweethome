@@ -76,6 +76,7 @@ html, body {
   overflow-x: hidden;
   overflow-y: hidden;
 }
+
 body {
   position: relative;
   margin: 0px;
@@ -84,6 +85,8 @@ body {
   user-select: none;    
   touch-action: none;
 }
+
+#home-plan::selection { background: #0042E0; }
 
 #home-pane-toolbar {
   height: 30px;
@@ -94,8 +97,8 @@ body {
   position: absolute;
 }
 
-@media (orientation: landscape) {
-	
+@media (hover: hover) {
+
   #home-pane {
     padding-top: 30px;
     height: calc(100% - 30px);
@@ -126,54 +129,139 @@ body {
     height: calc(50% - 2px);
   }
 
-}
+  @media (orientation: portrait) {
 
-@media (orientation: portrait) {
-
-  #home-3D-view {
-    top: 0%;
-    width: 100%;
-    height: calc(50% - 65px);
-  }
-
-  #home-plan {
-    top: calc(50% - 65px);
-    width: 100%;
-    height: calc(50% - 65px);
-    z-index: 1;
-  }
-
-  #furniture-catalog {
-    top: calc(100% - 130px);
-    width: 100%;
-    height: calc(130px - 32px);
-    overflow-x: scroll; 
-    overflow-y: hidden; 
-  }
-
-  #home-pane-toolbar {
-    top: calc(100% - 30px);
-  }
-
-  @supports (-webkit-touch-callout: none) {
-    /* Under iOS, scroll bar is visible only when scrolling */
-    #home-3D-view {
-      height: calc(50% - 55px);
+    #furniture-catalog {
+      width: 160px;
     }
 
     #home-plan {
-      top: calc(50% - 55px);
-      height: calc(50% - 55px);
+      left: 160px;
+      width: calc(100% - 150px);
     }
 
-    #furniture-catalog {
-      top: calc(100% - 110px);
-      height: calc(110px - 32px);
+    #home-3D-view {
+      left: 160px;
+      width: calc(100% - 150px);
     }
+
   }
+
 }
 
-#home-plan::selection { background: #0042E0; }
+@media (hover: none) {
+
+  #home-pane-toolbar {
+    top: calc(100% - 40px);
+    height: 40px;
+  }
+
+  #home-pane-toolbar .toolbar-button {
+    margin-top: 0px;
+    height: calc(100% - 2px);
+  }
+
+  @media (orientation: portrait) {
+
+    #home-3D-view {
+      top: 0%;
+      width: 100%;
+      height: calc(50% - 60px);
+    }
+
+    #home-plan {
+      top: calc(50% - 60px);
+      width: 100%;
+      height: calc(50% - 60px);
+      z-index: 1;
+    }
+
+    /* Funiture catalog horizontal layout */
+
+    .furniture-catalog {
+      overflow: scroll;
+      white-space: nowrap;
+    }
+
+    .furniture-category {
+      display: inline;
+      white-space: nowrap;    
+    }
+    
+    .furniture-category > .furniture-category-label {
+      display: none;
+    }
+
+    .furniture {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      white-space: normal;
+    }
+    
+    .furniture > .furniture-icon {
+      top: 3px;
+    }
+
+    .furniture > .furniture-label {
+      z-index: 2;
+      text-shadow: white 0px -2px;
+    }
+
+    .furniture-category .furniture:last-child {
+      padding-right: 10px;
+      margin-right: 10px;
+      border-right: dashed 1px rgba(0, 0, 0, 0.4);
+    }
+
+    /* End of horizontal layout */
+
+    #furniture-catalog {
+      top: calc(100% - 40px - 80px);
+      width: 100%;
+      height: 80px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+
+  }
+
+  @media (orientation: landscape) {
+
+    #furniture-catalog {
+      top: 0%;
+      left: 0%;
+      width: 150px;
+      height: calc(100% - 40px);
+      overflow-x: hidden; 
+      overflow-y: scroll; 
+    }
+
+    #home-plan {
+      top: 0%;
+      left: 150px;
+      width: calc(50% - 75px);
+      height: calc(100% - 40px);
+      z-index: 1;
+    }
+
+    #home-3D-view {
+      top: 0%;
+      left: calc(50% + 75px);
+      width: calc(50% - 75px);
+      height: calc(100% - 40px);
+    }
+
+  }
+
+}
+
+/* Hide optional buttons when screen is too small */
+
+@media (max-width: 705px) {
+  #home-pane-toolbar .toolbar-optional  {
+    display: none;
+  }
+}
 
 </style>
 </head>
@@ -1308,7 +1396,7 @@ testHome();
 <script type="text/javascript">
 // If true, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var useServer = true;
+var useServer = false;
 
 var application = useServer
     ? new SweetHome3DJSApplication(

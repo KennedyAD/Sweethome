@@ -168,7 +168,6 @@
   opacity: 0.5;
 }
 
-
 @media (min-width: 800px) {
   #home-pane-toolbar .toolbar-button-group {
     padding-right: 8px;
@@ -187,17 +186,6 @@
 
   #home-pane-toolbar .toolbar-button-group {
     margin-right: 4px;
-  }
-}
-
-@media (max-width: 705px) {
-
-  #home-pane-toolbar {
-    overflow-x: scroll;
-  }
-
-  #home-pane-toolbar .toolbar-optional  {
-    -display: none;
   }
 }
 
@@ -236,6 +224,7 @@
 .furniture-catalog {
   overflow-y: scroll;
   overflow-x: hidden;
+  border: 1px solid gray;
   -moz-user-select: none; 
   -ms-user-select: none; 
   -webkit-user-select: none; 
@@ -304,40 +293,6 @@
   z-index: 3;
   -border: solid gray 1px;
   -border-radius: 50%;
-}
-
-@media (orientation: portrait) {
-
-  .furniture-catalog {
-    overflow: scroll;
-    white-space: nowrap;
-  }
-
-  .furniture-category {
-    display: inline;
-    white-space: nowrap;    
-  }
-  
-  .furniture-category > .furniture-category-label {
-    display: none;
-  }
-
-  .furniture {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    white-space: normal;
-  }
-  
-  .furniture > .furniture-icon {
-    top: 3px;
-  }
-
-  .furniture-category .furniture:last-child {
-    padding-right: 10px;
-    margin-right: 10px;
-    border-right: dashed 1px rgba(0, 0, 0, 0.4);
-  }
-
 }
 
 .furniture-tooltip {
