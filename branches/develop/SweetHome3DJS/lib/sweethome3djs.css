@@ -191,7 +191,8 @@
 
 @media (hover: none) {
   #home-pane-toolbar {
-    overflow-x: scroll; 
+    overflow-x: scroll;
+    overflow-y: hidden;
   }
 }
 

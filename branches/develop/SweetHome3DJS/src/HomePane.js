@@ -2135,6 +2135,10 @@ var HomePane = (function() {
    */
   HomePane.prototype.createToolBar = function(home, preferences) {
     var toolBar = document.getElementById("home-pane-toolbar"); 
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
+    this.addSeparator(toolBar); 
+
     this.addActionToToolBar(HomeView.ActionType.UNDO, toolBar); 
     this.addActionToToolBar(HomeView.ActionType.REDO, toolBar); 
     this.addSeparator(toolBar); 
@@ -2152,40 +2156,38 @@ var HomePane = (function() {
     this.addToggleActionToToolBar(HomeView.ActionType.PAN, toolBar, "toolbar-optional"); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_WALLS, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_ROOMS, toolBar); 
-    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_POLYLINES, toolBar, "toolbar-optional"); 
+    this.addToggleActionToToolBar(HomeView.ActionType.CREATE_POLYLINES, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_DIMENSION_LINES, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.CREATE_LABELS, toolBar); 
     this.addSeparator(toolBar);
     
-    var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences, "toolbar-optional");
+    var enableDisableMagnetismButton = this.createEnableDisableMagnetismButton(preferences);
     if (enableDisableMagnetismButton !== null) {
       this.addButtonToToolBar(toolBar, enableDisableMagnetismButton);
     }
-    var lockUnlockBasePlanButton = this.createLockUnlockBasePlanButton(home, "toolbar-optional")
+    var lockUnlockBasePlanButton = this.createLockUnlockBasePlanButton(home)
     if (lockUnlockBasePlanButton !== null) {
       this.addButtonToToolBar(toolBar, lockUnlockBasePlanButton);
     }
-    this.addActionToToolBar(HomeView.ActionType.FLIP_HORIZONTALLY, toolBar, "toolbar-optional");
-    this.addActionToToolBar(HomeView.ActionType.FLIP_VERTICALLY, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.FLIP_HORIZONTALLY, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.FLIP_VERTICALLY, toolBar);
     this.addSeparator(toolBar);
     
-    this.addActionToToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar, "toolbar-optional");
-    this.addActionToToolBar(HomeView.ActionType.DECREASE_TEXT_SIZE, toolBar, "toolbar-optional");
-    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_BOLD_STYLE, toolBar, "toolbar-optional");
-    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_ITALIC_STYLE, toolBar, "toolbar-optional");
+    this.addActionToToolBar(HomeView.ActionType.INCREASE_TEXT_SIZE, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.DECREASE_TEXT_SIZE, toolBar);
+    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_BOLD_STYLE, toolBar);
+    this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_ITALIC_STYLE, toolBar);
     this.addSeparator(toolBar);
 
-    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL, toolBar, "toolbar-optional");
-    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL_AT_SAME_ELEVATION, toolBar, "toolbar-optional");
-    this.addActionToToolBar(HomeView.ActionType.DELETE_LEVEL, toolBar, "toolbar-optional");
-    this.addSeparator(toolBar); 
+    
+    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL_AT_SAME_ELEVATION, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.DELETE_LEVEL, toolBar);
+    this.addSeparator(toolBar);
 
     this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
     this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
-    this.addSeparator(toolBar);
-
-    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
-    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
+    
     return toolBar;
   }
 
