@@ -189,6 +189,12 @@
   }
 }
 
+@media (hover: none) {
+  #home-pane-toolbar {
+    overflow-x: scroll; 
+  }
+}
+
 #level-selector {
   top: 3px;
   right: 15px;
