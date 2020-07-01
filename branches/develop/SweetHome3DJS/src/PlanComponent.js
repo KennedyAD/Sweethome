@@ -2493,7 +2493,7 @@ PlanComponent.prototype.getForegroundColor = function(mode) {
  */
 PlanComponent.prototype.getForeground = function() {
   if (this.foreground == null) {
-    this.foreground = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).color);
+    this.foreground = ColorTools.styleToHexadecimalString(window.getComputedStyle(this.canvas).color);
   }
   return this.foreground;
 }
@@ -2517,7 +2517,7 @@ PlanComponent.prototype.getBackgroundColor = function(mode) {
  */
 PlanComponent.prototype.getBackground = function() {
   if (this.background == null) {
-    this.background = ColorTools.styleToHexString(window.getComputedStyle(this.canvas).backgroundColor);
+    this.background = ColorTools.styleToHexadecimalString(window.getComputedStyle(this.canvas).backgroundColor);
   }
   return this.background;
 }
@@ -2730,10 +2730,10 @@ PlanComponent.prototype.paintGridLines = function(g2D, gridScale, xMin, xMax, yM
 PlanComponent.prototype.getGridColor = function() {
   if (this.gridColor == null) {
     // compute the gray color in between background and foreground colors
-    var background = ColorTools.styleToInt(window.getComputedStyle(this.canvas).backgroundColor);
-    var foreground = ColorTools.styleToInt(window.getComputedStyle(this.canvas).color);
+    var background = ColorTools.styleToInteger(window.getComputedStyle(this.canvas).backgroundColor);
+    var foreground = ColorTools.styleToInteger(window.getComputedStyle(this.canvas).color);
     var gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
-    this.gridColor = ColorTools.intToHexString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
+    this.gridColor = ColorTools.integerToHexadecimalString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
   }
   return this.gridColor;
 }
@@ -2977,7 +2977,7 @@ PlanComponent.getDefaultSelectionColor = function(planComponent) {
         || color == window.getComputedStyle(planComponent.container).backgroundColor) {
       PlanComponent.DEFAULT_SELECTION_COLOR = "#0042E0";
     } else {
-      PlanComponent.DEFAULT_SELECTION_COLOR = ColorTools.styleToHexString(color);
+      PlanComponent.DEFAULT_SELECTION_COLOR = ColorTools.styleToHexadecimalString(color);
     }
   }
   return PlanComponent.DEFAULT_SELECTION_COLOR;
@@ -3041,7 +3041,7 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
       var floorTexture = null;
       if (plan.preferences.isRoomFloorColoredOrTextured() && room.isFloorVisible()) {
         if (room.getFloorColor() != null) {
-          g2D.setPaint(ColorTools.intToHexString(room.getFloorColor()));
+          g2D.setPaint(ColorTools.integerToHexadecimalString(room.getFloorColor()));
         } else {
           floorTexture = room.getFloorTexture();
           if (floorTexture != null) {
@@ -3233,7 +3233,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
     g2D.translate(translationX, 0);
     if (outlineColor != null) {
       var defaultColor = g2D.getColor();
-      g2D.setColor(ColorTools.intToHexString(outlineColor));
+      g2D.setColor(ColorTools.integerToHexadecimalString(outlineColor));
       g2D.drawStringOutline(line, 0, 0);
       g2D.setColor(defaultColor);
     }
@@ -3858,8 +3858,8 @@ PlanComponent.prototype.makePatternImage = function(image, foregroundColor, back
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.drawImage(image, 0, 0);
   var imageData = context.getImageData(0, 0, image.width, image.height).data;
-  var bgColor = ColorTools.hexStringToInt(backgroundColor);
-  var fgColor = ColorTools.hexStringToInt(foregroundColor);
+  var bgColor = ColorTools.hexadecimalStringToInteger(backgroundColor);
+  var fgColor = ColorTools.hexadecimalStringToInteger(foregroundColor);
   var updatedImageData = context.createImageData(image.width, image.height);
   for (var i = 0; i < imageData.length; i += 4) {
     updatedImageData.data[i + 3] = 0xFF;
@@ -4556,7 +4556,7 @@ PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems,
     if (this.isViewableAtSelectedLevel(polyline)) {
       var selected = (selectedItems.indexOf((polyline)) >= 0);
       if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
-        g2D.setPaint(ColorTools.intToHexString(polyline.getColor()));
+        g2D.setPaint(ColorTools.integerToHexadecimalString(polyline.getColor()));
         var thickness = polyline.getThickness();
         g2D.setStroke(ShapeTools.getStroke(thickness, 
             polyline.getCapStyle(), polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset()));
@@ -4826,7 +4826,7 @@ PlanComponent.prototype.paintLabels = function(g2D, labels, selectedItems, selec
           labelStyle = labelStyle.deriveStyle(new Font(this.getFont()).family);
         }
         var color = label.getColor();
-        g2D.setPaint(color != null ? ColorTools.intToHexString(color) : foregroundColor);
+        g2D.setPaint(color != null ? ColorTools.integerToHexadecimalString(color) : foregroundColor);
         this.paintText(g2D, label.constructor, labelText, labelStyle, label.getOutlineColor(), 
             xLabel, yLabel, labelAngle, previousFont);
         

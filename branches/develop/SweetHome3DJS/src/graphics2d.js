@@ -583,7 +583,7 @@ var ColorTools = {};
  * @param {number} color
  * @returns {string} a CSS string
  */
-ColorTools.intToHexString = function (color) {
+ColorTools.integerToHexadecimalString = function (color) {
   return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
 }
 
@@ -592,7 +592,7 @@ ColorTools.intToHexString = function (color) {
  * @param {string} a style containing a color as rgb(...) or rgba(...)
  * @returns {string} the color as a string or an empty string if the given style was not parseable
  */
-ColorTools.styleToHexString = function (style) {
+ColorTools.styleToHexadecimalString = function (style) {
   var prefix = "rgb(";
   var index = style.indexOf(prefix);
   if (index < 0) {
@@ -601,7 +601,7 @@ ColorTools.styleToHexString = function (style) {
   }
   if (index >= 0) {
     var array = style.slice(prefix.length, style.indexOf(")")).split(",");
-    return ColorTools.intToHexString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
+    return ColorTools.integerToHexadecimalString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
   }
   return "";
 }
@@ -611,7 +611,7 @@ ColorTools.styleToHexString = function (style) {
  * @param {string} style a style containing a color as rgb(...) or rgba(...)
  * @returns {number} the color as an integer or -1 if the given style was not parseable
  */
-ColorTools.styleToInt = function (style) {
+ColorTools.styleToInteger = function (style) {
   var prefix = "rgb(";
   var index = style.indexOf(prefix);
   if (index < 0) {
@@ -640,7 +640,7 @@ ColorTools.isTransparent = function (style) {
  * @param {string} colorString color string under the format #RRGGBB
  * @returns {number} the color as an integer or -1 if the given string was not parseable
  */
-ColorTools.hexStringToInt = function (colorString) {
+ColorTools.hexadecimalStringToInteger = function (colorString) {
   if (colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
     colorString = colorString.slice(1);
     return (parseInt(colorString.slice(0, 2), 16) << 16) + (parseInt(colorString.slice(2, 4), 16) << 8) + parseInt(colorString.slice(4, 6), 16);
@@ -655,6 +655,6 @@ ColorTools.hexStringToInt = function (colorString) {
  * @returns {string} the color as an rgba description
  */
 ColorTools.toRGBAStyle = function (colorString, alpha) {
-  var c = ColorTools.hexStringToInt(colorString);
+  var c = ColorTools.hexadecimalStringToInteger(colorString);
   return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
