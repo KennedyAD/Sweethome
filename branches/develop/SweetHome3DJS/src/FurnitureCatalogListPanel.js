@@ -56,10 +56,10 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
 
   for (i = 0; i < catalog.getCategoriesCount() ; i++) {
     var category = catalog.getCategories()[i];
-    var categoryContainer = document.createElement("div");
-    categoryContainer.className = "furniture-category";
-    categoryContainer.innerHTML = '<div class="furniture-category-label">' + category.name + '</div>';
-    this.container.appendChild(categoryContainer);
+    var categoryLabel = document.createElement("div");
+    categoryLabel.className = "furniture-category-label";
+    categoryLabel.innerHTML = category.name;
+    this.container.appendChild(categoryLabel);
 
     for (j = 0; j < category.getFurnitureCount(); j++) {
       var piece = category.getFurniture()[j];
@@ -67,8 +67,14 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
       pieceContainer.pieceOfFurniture = piece;
       pieceContainer.className = "furniture";
       pieceContainer.innerHTML = '<div class="furniture-label">' + piece.name + '</div>';
-      categoryContainer.appendChild(pieceContainer);
+      this.container.appendChild(pieceContainer);
       this.createPieceOfFurniturePanel(pieceContainer, piece);
+    }
+
+    if (i < catalog.getCategoriesCount() - 1) {
+      var categorySeparator = document.createElement("div");
+      categorySeparator.className = "furniture-category-separator";
+      this.container.appendChild(categorySeparator);
     }
   }
 

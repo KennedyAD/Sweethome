@@ -193,6 +193,8 @@
   #home-pane-toolbar {
     overflow-x: scroll;
     overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    background-color: white;
   }
 }
 
@@ -229,6 +231,7 @@
 /*******************************/
 
 .furniture-catalog {
+  -webkit-overflow-scrolling: touch;
   overflow-y: scroll;
   overflow-x: hidden;
   border: 1px solid gray;
@@ -238,11 +241,7 @@
   -webkit-touch-callout: none; /* Disable callouts */
 }
 
-.furniture-category {
-  width: 100%;
-}
-
-.furniture-category > .furniture-category-label {
+.furniture-category-label {
   font-family: Arial;
   color: white;
   width: 100%;
@@ -250,6 +249,10 @@
   border-bottom: solid black 1px;
   margin-bottom: 0.25em;
   padding: 4px;
+}
+
+.furniture-category-separator {
+  display: none;
 }
 
 .furniture {
@@ -291,7 +294,7 @@
 .furniture > .furniture-add-icon {
   position: absolute;
   top: 0px;
-  left: 0px;
+  right: 0px;
   width: 32px;
   height: 32px;
   background-image: url('resources/cursors/move32x32.png');
