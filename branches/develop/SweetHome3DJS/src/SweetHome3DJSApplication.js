@@ -371,6 +371,20 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
     var dummyDialogView = {
         displayView: function(parent) { }
       }; 
+    
+    var colorInput = null;
+    if (!OperatingSystem.isEdgeOrInternetExplorer()) {
+      // Create a dummy color input to propose a minimal color change as editing view 
+      var div = document.createElement("div");
+      colorInput = document.createElement("input");
+      colorInput.type = "color";
+      colorInput.style.width = "1px";
+      colorInput.style.height = "1px";
+      div.appendChild(colorInput);
+      document.getElementById("home-plan").appendChild(div);
+    }
+    
+    var application = this;
     this.viewFactory = {
         createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
           return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
@@ -406,16 +420,95 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
           return dummyDialogView;
         },
         createHomeFurnitureView: function(preferences,  homeFurnitureController) {
-          return dummyDialogView;
+          return {
+              displayView: function(parent) {
+                if (colorInput != null) {
+                  var listener = function() {
+                      colorInput.removeEventListener("change", listener); 
+                      homeFurnitureController.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
+                      homeFurnitureController.setColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                      homeFurnitureController.modifyFurniture();
+                    };
+                  colorInput.value = "#010101"; // Color different from black required on some browsers
+                  colorInput.addEventListener("change", listener);
+                  colorInput.click();
+                }
+              }
+            };
         },
         createWallView: function(preferences,  wallController) {
-          return dummyDialogView;
+          return {
+              displayView: function(parent) {
+                // Find what wall side is the closest to the pointer location
+                var home = wallController.home;
+                var planController = application.getHomeController(home).getPlanController();
+                var x = planController.getXLastMousePress(); 
+                var y = planController.getYLastMousePress();
+                var wall = home.getSelectedItems() [0];
+                var points = wall.getPoints();
+                var leftMinDistance = Number.MAX_VALUE;
+                for (var i = points.length / 2 - 1; i > 0; i--) {
+                  leftMinDistance = Math.min(leftMinDistance,
+                      java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i - 1][0], points[i - 1][1], x, y))
+                }
+                var rightMinDistance = Number.MAX_VALUE;
+                for (var i = points.length / 2; i < points.length - 1; i++) {
+                  rightMinDistance = Math.min(rightMinDistance,
+                      java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], x, y))
+                }
+                var leftSide = leftMinDistance < rightMinDistance;
+                
+                if (colorInput != null) {
+                  var listener = function() {
+                      colorInput.removeEventListener("change", listener);
+                      if (leftSide) {
+                        wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
+                        wallController.setLeftSideColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                      } else {
+                        wallController.setRightSidePaint(WallController.WallPaint.COLORED);
+                        wallController.setRightSideColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                      }
+                      wallController.modifyWalls();
+                    };
+                  colorInput.value = "#010101"; // Color different from black required on some browsers
+                  colorInput.addEventListener("change", listener);
+                  colorInput.click();
+                }
+              }
+            };
         },
         createRoomView: function(preferences, roomController) {
-          return dummyDialogView;
+          return {
+              displayView: function(parent) {
+                if (colorInput != null) {
+                  var listener = function() {
+                      colorInput.removeEventListener("change", listener); 
+                      roomController.setFloorPaint(RoomController.RoomPaint.COLORED);
+                      roomController.setFloorColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                      roomController.modifyRooms();
+                    };
+                  colorInput.value = "#010101"; // Color different from black required on some browsers
+                  colorInput.addEventListener("change", listener);
+                  colorInput.click();
+                }
+              }
+            };
         },
         createPolylineView: function(preferences, polylineController) {
-          return dummyDialogView;
+          return {
+              displayView: function(parent) {
+                if (colorInput != null) {
+                  var listener = function() {
+                      colorInput.removeEventListener("change", listener); 
+                      polylineController.setColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                      polylineController.modifyPolylines();
+                    };
+                  colorInput.value = "#010101"; // Color different from black required on some browsers
+                  colorInput.addEventListener("change", listener);
+                  colorInput.click();
+                }
+              }
+            };
         },
         createLabelView: function(modification, preferences, labelController) {
           return {
