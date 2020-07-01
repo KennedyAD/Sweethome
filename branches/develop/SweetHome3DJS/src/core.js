@@ -287,6 +287,8 @@ Locale.getDefault = function() {
   } else if (navigator && navigator.language && navigator.language.indexOf('-') >= 0) {
     var locale = navigator.language.split('-');
     return locale[0] + "_" + locale[1].toUpperCase();
+  } else if (navigator && navigator.language && navigator.language.length == 2) {
+    return navigator.language;
   } else {
     return null;
   }

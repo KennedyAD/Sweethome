@@ -99,7 +99,8 @@ UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) 
     // unless their exact locale is supported as in Taiwan (zh_TW)
     for (var i = 0; i < this.supportedLanguages.length; i++) {
       var supportedLanguage = this.supportedLanguages[i];
-      if (supportedLanguage == defaultLanguage + "_" + this.defaultCountry) {
+      if (this.defaultCountry != "" && supportedLanguage == defaultLanguage + "_" + this.defaultCountry
+          || this.defaultCountry == "" && supportedLanguage == defaultLanguage) {
         this.language = supportedLanguage;
         break; // Found the exact supported language
       } else if (this.language === undefined
