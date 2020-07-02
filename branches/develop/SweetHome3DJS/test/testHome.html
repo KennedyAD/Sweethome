@@ -100,12 +100,6 @@ body {
 /*
  * No-touch devices common CSS
  */
-
-#home-pane {
-  padding-top: 30px;
-  height: calc(100% - 30px);
-}
-
 #home-pane-toolbar {
   top: 0px;
 }
@@ -152,7 +146,6 @@ body {
 /*
  * Touch devices common CSS - ignored by IE
  */
-
 @media (hover: none) {
 
   body {
@@ -174,7 +167,7 @@ body {
 
     #home-3D-view {
       top: 0%;
-      left: 0px;
+      left: 0%;
       width: calc(100% - 2px);
       height: calc(50% - 60px);
     }
@@ -265,11 +258,12 @@ body {
 }
 
 /* Hide optional buttons when screen is too small */
-
 @media (max-width: 705px) {
+
   #home-pane-toolbar .toolbar-optional  {
     display: none;
   }
+  
 }
 
 </style>
