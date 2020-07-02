@@ -3,20 +3,27 @@
  *
  * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied OpenJDK 8 source code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+// Graphics classes of OpenJDK 8 translated to Javascript
 
 /**
  * This class is a wrapper that implements 2D drawing functions on a canvas.
@@ -43,14 +50,14 @@ Graphics2D.prototype.constructor = Graphics2D;
 /**
  * Clears the canvas.
  */
-Graphics2D.prototype.clear = function () {
+Graphics2D.prototype.clear = function() {
   this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 }
 
 /**
  * Gets the wrapped canvas context.
  */
-Graphics2D.prototype.getContext = function () {
+Graphics2D.prototype.getContext = function() {
   return this.context;
 }
 
@@ -58,7 +65,7 @@ Graphics2D.prototype.getContext = function () {
  * Draws a shape on the canvas using the current stroke.
  * @param {java.awt.Shape} shape the shape to be drawn
  */
-Graphics2D.prototype.draw = function (shape) {
+Graphics2D.prototype.draw = function(shape) {
   this.createPathFromShape(shape);
   this.context.stroke();
 }
@@ -67,7 +74,7 @@ Graphics2D.prototype.draw = function (shape) {
  * @param {java.awt.Shape} shape the shape to create a path from
  * @private
  */
-Graphics2D.prototype.createPathFromShape = function (s) {
+Graphics2D.prototype.createPathFromShape = function(s) {
   this.context.beginPath();
   var it = s.getPathIterator(java.awt.geom.AffineTransform.getTranslateInstance(0, 0));
   var coords = new Array(6);
@@ -100,7 +107,7 @@ Graphics2D.prototype.createPathFromShape = function (s) {
  * Fills a shape on the canvas using the current paint.
  * @param {java.awt.Shape} shape the shape to be filled
  */
-Graphics2D.prototype.fill = function (s) {
+Graphics2D.prototype.fill = function(s) {
   this.createPathFromShape(s);
   this.context.fill();
 }
@@ -112,7 +119,7 @@ Graphics2D.prototype.fill = function (s) {
  * @param {number} y
  * @param {string} [bgcolor]
  */
-Graphics2D.prototype.drawImage = function (img, x, y, bgcolor) {
+Graphics2D.prototype.drawImage = function(img, x, y, bgcolor) {
   this.context.drawImage(img, x, y);
 }
 
@@ -125,7 +132,7 @@ Graphics2D.prototype.drawImage = function (img, x, y, bgcolor) {
  * @param {number} height
  * @param {string} [bgcolor]
  */
-Graphics2D.prototype.drawImageWithSize = function (img, x, y, width, height, bgcolor) {
+Graphics2D.prototype.drawImageWithSize = function(img, x, y, width, height, bgcolor) {
   this.context.drawImage(img, x, y, width, height);
 }
 
@@ -133,7 +140,7 @@ Graphics2D.prototype.drawImageWithSize = function (img, x, y, width, height, bgc
  * Gets the current clip.
  * @returns {java.awt.Shape} the clip as a shape
  */
-Graphics2D.prototype.getClip = function () {
+Graphics2D.prototype.getClip = function() {
   return this._clip;
 }
 
@@ -141,7 +148,7 @@ Graphics2D.prototype.getClip = function () {
  * Sets the current clip.
  * @param {java.awt.Shape} clip the clip as a shape
  */
-Graphics2D.prototype.setClip = function (clip) {
+Graphics2D.prototype.setClip = function(clip) {
   this._clip = clip;
   if (clip != null) {
     this.createPathFromShape(clip);
@@ -153,7 +160,7 @@ Graphics2D.prototype.setClip = function (clip) {
  * Adds the given clip to the current clip.
  * @param {java.awt.Shape} clip the added clip as a shape
  */
-Graphics2D.prototype.clip = function (clip) {
+Graphics2D.prototype.clip = function(clip) {
   this._clip = clip;
   if (clip != null) {
     this.createPathFromShape(clip);
@@ -168,7 +175,7 @@ Graphics2D.prototype.clip = function (clip) {
  * @param {number} width
  * @param {number} height
  */
-Graphics2D.prototype.clipRect = function (x, y, width, height) {
+Graphics2D.prototype.clipRect = function(x, y, width, height) {
   this.setClip(new java.awt.geom.Rectangle2D.Double(x, y, width, height));
 }
 
@@ -177,7 +184,7 @@ Graphics2D.prototype.clipRect = function (x, y, width, height) {
  * @param {number} x
  * @param {number} y
  */
-Graphics2D.prototype.translate = function (x, y) {
+Graphics2D.prototype.translate = function(x, y) {
   this.currentTransform.translate(x, y);
   this.context.translate(x, y);
 }
@@ -188,7 +195,7 @@ Graphics2D.prototype.translate = function (x, y) {
  * @param {number} x
  * @param {number} y
  */
-Graphics2D.prototype.drawStringOutline = function (str, x, y) {
+Graphics2D.prototype.drawStringOutline = function(str, x, y) {
   this.context.strokeText(str, x, y);
 }
 
@@ -198,7 +205,7 @@ Graphics2D.prototype.drawStringOutline = function (str, x, y) {
  * @param {number} x
  * @param {number} y
  */
-Graphics2D.prototype.drawString = function (str, x, y) {
+Graphics2D.prototype.drawString = function(str, x, y) {
   this.context.fillText(str, x, y);
 }
 
@@ -209,7 +216,7 @@ Graphics2D.prototype.drawString = function (str, x, y) {
  * @param {number} width
  * @param {number} height
  */
-Graphics2D.prototype.fillRect = function (x, y, width, height) {
+Graphics2D.prototype.fillRect = function(x, y, width, height) {
   this.context.fillRect(x, y, width, height);
 }
 
@@ -217,7 +224,7 @@ Graphics2D.prototype.fillRect = function (x, y, width, height) {
  * Sets the current stroke and fill style as a CSS style.
  * @param {string} color a CSS style
  */
-Graphics2D.prototype.setColor = function (color) {
+Graphics2D.prototype.setColor = function(color) {
   this.color = color;
   this.context.strokeStyle = color;
   this.context.fillStyle = color;
@@ -226,11 +233,11 @@ Graphics2D.prototype.setColor = function (color) {
 /**
  * Gets the current color.
  */
-Graphics2D.prototype.getColor = function () {
+Graphics2D.prototype.getColor = function() {
   return this.color;
 }
 
-Graphics2D.prototype.setComposite = function (c) {
+Graphics2D.prototype.setComposite = function(c) {
   this.setColor(c);
 }
 
@@ -238,7 +245,7 @@ Graphics2D.prototype.setComposite = function (c) {
  * Sets the alpha component for all subsequent drawing and fill operations.
  * @param {number} alpha
  */
-Graphics2D.prototype.setAlpha = function (alpha) {
+Graphics2D.prototype.setAlpha = function(alpha) {
   this.context.globalAlpha = alpha;
 }
 
@@ -246,7 +253,7 @@ Graphics2D.prototype.setAlpha = function (alpha) {
  * Gets the alpha component of the canvas.
  * @returns {number}
  */
-Graphics2D.prototype.getAlpha = function () {
+Graphics2D.prototype.getAlpha = function() {
   return this.context.globalAlpha;
 }
 
@@ -256,7 +263,7 @@ Graphics2D.prototype.getAlpha = function () {
  * @param {number} [x] the rotation origin (x)
  * @param {number} [y] the rotation origin (y)
  */
-Graphics2D.prototype.rotate = function (theta, x, y) {
+Graphics2D.prototype.rotate = function(theta, x, y) {
   if (typeof x === 'number' && typeof y === 'number') {
     this.currentTransform.rotate(theta, x, y);
     this.context.translate(-x, -y);
@@ -273,7 +280,7 @@ Graphics2D.prototype.rotate = function (theta, x, y) {
  * @param {number} sx the x scale factor
  * @param {number} sy the y scale factor
  */
-Graphics2D.prototype.scale = function (sx, sy) {
+Graphics2D.prototype.scale = function(sx, sy) {
   this.currentTransform.scale(sx, sy);
   this.context.scale(sx, sy);
 }
@@ -283,7 +290,7 @@ Graphics2D.prototype.scale = function (sx, sy) {
  * @param {number} shx the x shear factor
  * @param {number} shy the y shear factor
  */
-Graphics2D.prototype.shear = function (shx, shy) {
+Graphics2D.prototype.shear = function(shx, shy) {
   this.currentTransform.shear(shx, shy);
   this.context.transform(0, shx, shy, 0, 0, 0);
 }
@@ -291,14 +298,14 @@ Graphics2D.prototype.shear = function (shx, shy) {
 /**
  * @ignore
  */
-Graphics2D.prototype.dispose = function () {
+Graphics2D.prototype.dispose = function() {
 }
 
 /**
  * Sets the current font.
  * @param {string} font a CSS font descriptor
  */
-Graphics2D.prototype.setFont = function (font) {
+Graphics2D.prototype.setFont = function(font) {
   this.context.font = font;
 }
 
@@ -306,7 +313,7 @@ Graphics2D.prototype.setFont = function (font) {
  * Gets the current font.
  * @returns {string} a CSS font descriptor
  */
-Graphics2D.prototype.getFont = function () {
+Graphics2D.prototype.getFont = function() {
   return this.context.font;
 }
 
@@ -314,7 +321,7 @@ Graphics2D.prototype.getFont = function () {
  * Sets the fill style as a color.
  * @param {string} color a CSS color descriptor
  */
-Graphics2D.prototype.setBackground = function (color) {
+Graphics2D.prototype.setBackground = function(color) {
   this.background = color;
   this.context.fillStyle = color;
 }
@@ -323,7 +330,7 @@ Graphics2D.prototype.setBackground = function (color) {
  * Gets the fill style.
  * @returns {string} a CSS color descriptor
  */
-Graphics2D.prototype.getBackground = function () {
+Graphics2D.prototype.getBackground = function() {
   return this.background;
 }
 
@@ -331,7 +338,7 @@ Graphics2D.prototype.getBackground = function () {
  * Sets (overrides) the current transform matrix.
  * @param {java.awt.geom.AffineTransform} transform the new transform matrix
  */
-Graphics2D.prototype.setTransform = function (transform) {
+Graphics2D.prototype.setTransform = function(transform) {
   this.currentTransform.setTransform(transform);
   this.context.setTransform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
 }
@@ -340,7 +347,7 @@ Graphics2D.prototype.setTransform = function (transform) {
  * Gets the current transform matrix.
  * @returns {java.awt.geom.AffineTransform} the current transform matrix
  */
-Graphics2D.prototype.getTransform = function () {
+Graphics2D.prototype.getTransform = function() {
   return new java.awt.geom.AffineTransform(this.currentTransform);
 }
 
@@ -348,19 +355,19 @@ Graphics2D.prototype.getTransform = function () {
  * Applies the given transform matrix to the current transform matrix.
  * @param {java.awt.geom.AffineTransform} transform the transform matrix to be applied
  */
-Graphics2D.prototype.transform = function (transform) {
+Graphics2D.prototype.transform = function(transform) {
   this.currentTransform.concatenate(transform);
   this.context.transform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
 }
 
-Graphics2D.prototype.setPaintMode = function () {
+Graphics2D.prototype.setPaintMode = function() {
 }
 
 /**
  * Gets the current paint.
  * @returns {string|CanvasPattern}
  */
-Graphics2D.prototype.getPaint = function () {
+Graphics2D.prototype.getPaint = function() {
   return this.color;
 }
 
@@ -368,7 +375,7 @@ Graphics2D.prototype.getPaint = function () {
  * Sets the current paint.
  * @param {string|CanvasPattern} paint
  */
-Graphics2D.prototype.setPaint = function (paint) {
+Graphics2D.prototype.setPaint = function(paint) {
   if (typeof paint === "string") {
     this.setColor(paint);
   }
@@ -381,7 +388,7 @@ Graphics2D.prototype.setPaint = function (paint) {
 /**
  * Sets the current stroke.
  */
-Graphics2D.prototype.setStroke = function (s) {
+Graphics2D.prototype.setStroke = function(s) {
   this.context.lineWidth = s.getLineWidth();
   if (s.getDashArray() != null) {
     this.context.setLineDash(s.getDashArray());
@@ -420,9 +427,10 @@ Graphics2D.prototype.setStroke = function (s) {
  * @param {HTMLImageElement} image
  * @returns CanvasPattern
  */
-Graphics2D.prototype.createPattern = function (image) {
+Graphics2D.prototype.createPattern = function(image) {
   return this.context.createPattern(image, 'repeat');
 }
+
 
 /**
  * This utility class allows to get the metrics of a given font. Note that this class will approximate
@@ -430,6 +438,8 @@ Graphics2D.prototype.createPattern = function (image) {
  * Builds a font metrics instance for the given font.
  * @param {string} font the given font, in a CSS canvas-compatible representation
  * @constructor
+ * @author Renaud Pawlak
+ * @author Emmanuel Puybaret
  */
 function FontMetrics(font) {
   this.approximated = false;
@@ -443,7 +453,7 @@ FontMetrics.prototype.constructor = FontMetrics;
  * @param {string} aString the string to get the bounds of
  * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
  */
-FontMetrics.prototype.getStringBounds = function (aString) {
+FontMetrics.prototype.getStringBounds = function(aString) {
   this.compute(aString);
   this.cached = false;
   return new java.awt.geom.Rectangle2D.Double(0, -this.ascent, this.width, this.height);
@@ -453,7 +463,7 @@ FontMetrics.prototype.getStringBounds = function (aString) {
  * Gets the font ascent.
  * @returns {number} the font ascent
  */
-FontMetrics.prototype.getAscent = function () {
+FontMetrics.prototype.getAscent = function() {
   if (!this.cached) {
     this.compute("Llp");
   }
@@ -464,7 +474,7 @@ FontMetrics.prototype.getAscent = function () {
  * Gets the font descent.
  * @returns {number} the font descent
  */
-FontMetrics.prototype.getDescent = function () {
+FontMetrics.prototype.getDescent = function() {
   if (!this.cached) {
     this.compute("Llp");
   }
@@ -475,7 +485,7 @@ FontMetrics.prototype.getDescent = function () {
  * Gets the font height.
  * @returns {number} the font height
  */
-FontMetrics.prototype.getHeight = function () {
+FontMetrics.prototype.getHeight = function() {
   if (!this.cached) {
     this.compute("Llp");
   }
@@ -488,7 +498,7 @@ FontMetrics.prototype.getHeight = function () {
  * @param {string} aString the string to compute the dimensions of
  * @private
  */
-FontMetrics.prototype.compute = function (aString) {
+FontMetrics.prototype.compute = function(aString) {
   if (!FontMetrics.context) {
     FontMetrics.context = document.createElement("canvas").getContext("2d");
   }
@@ -518,11 +528,13 @@ FontMetrics.prototype.compute = function (aString) {
   }
 }
 
+
 /**
  * A font utility class.
  * Creates a new font from a CSS font descriptor.
  * @param cssFontDecriptor {string|Object} the font descriptor as a CSS string or an object {style, size, family, weight}
  * @constructor
+ * @author Renaud Pawlak
  */
 function Font(cssFontDecriptor) {
   // font desciptors are normalized by the browser using the getComputedStyle function
@@ -560,7 +572,7 @@ Font.prototype.constructor = Font;
  * Returns the font as a browser-normalized CSS string.
  * @returns {string}
  */
-Font.prototype.toString = function () {
+Font.prototype.toString = function() {
   var font = '';
   if (this.weight != 'normal') {
     font = this.weight + ' ';
@@ -570,91 +582,4 @@ Font.prototype.toString = function () {
   }
   font += this.size + ' ' + this.family;
   return font;
-}
-
-/**
- * A namespace holding utilities for colors.
- */
-var ColorTools = {};
-
-/**
- * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000.
- * Note that the alpha content is ignored.
- * @param {number} color
- * @returns {string} a CSS string
- */
-ColorTools.integerToHexadecimalString = function (color) {
-  return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
-}
-
-/**
- * Returns an hexadecimal color string from a computed style (no alpha).
- * @param {string} a style containing a color as rgb(...) or rgba(...)
- * @returns {string} the color as a string or an empty string if the given style was not parseable
- */
-ColorTools.styleToHexadecimalString = function (style) {
-  var prefix = "rgb(";
-  var index = style.indexOf(prefix);
-  if (index < 0) {
-    prefix = "rgba(";
-    index = style.indexOf(prefix);
-  }
-  if (index >= 0) {
-    var array = style.slice(prefix.length, style.indexOf(")")).split(",");
-    return ColorTools.integerToHexadecimalString((parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]));
-  }
-  return "";
-}
-
-/**
- * Returns a color from a computed style (no alpha).
- * @param {string} style a style containing a color as rgb(...) or rgba(...)
- * @returns {number} the color as an integer or -1 if the given style was not parseable
- */
-ColorTools.styleToInteger = function (style) {
-  var prefix = "rgb(";
-  var index = style.indexOf(prefix);
-  if (index < 0) {
-    prefix = "rgba(";
-    index = style.indexOf(prefix);
-  }
-  if (index >= 0) {
-    var array = style.slice(prefix.length, style.indexOf(")")).split(",");
-    return (parseInt(array[0]) << 16) + (parseInt(array[1]) << 8) + parseInt(array[2]);
-  }
-  return -1;
-}
-
-ColorTools.isTransparent = function (style) {
-  var prefix = "rgba(";
-  var index = style.indexOf(prefix);
-  if (index >= 0) {
-    var array = style.slice(prefix.length, style.indexOf(")")).split(",");
-    return parseFloat(array[3]) === 0;
-  }
-  return false;
-}
-
-/**
- * Returns a color from a color string (no alpha).
- * @param {string} colorString color string under the format #RRGGBB
- * @returns {number} the color as an integer or -1 if the given string was not parseable
- */
-ColorTools.hexadecimalStringToInteger = function (colorString) {
-  if (colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
-    colorString = colorString.slice(1);
-    return (parseInt(colorString.slice(0, 2), 16) << 16) + (parseInt(colorString.slice(2, 4), 16) << 8) + parseInt(colorString.slice(4, 6), 16);
-  }
-  return -1;
-}
-
-/**
- * Returns an rgba style color from an hexadecimal color string (no alpha).
- * @param {string} colorString color string under the format #RRGGBB
- * @param {number} the alpha component (between 0 and 1)
- * @returns {string} the color as an rgba description
- */
-ColorTools.toRGBAStyle = function (colorString, alpha) {
-  var c = ColorTools.hexadecimalStringToInteger(colorString);
-  return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
