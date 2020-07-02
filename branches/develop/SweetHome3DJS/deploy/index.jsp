@@ -25,7 +25,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+<meta name="viewport" content="minimal-ui, user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
 <meta name="format-detection" content="telephone=no">
 <meta name="msapplication-tap-highlight" content="no">
 <title>SweetHome3DJS Test</title>
@@ -58,13 +58,6 @@ body {
   touch-action: none;
 }
 
-@media (hover: none) {
-  body {
-    margin: 10px;
-    height: calc(100% - 20px);
-  }
-}
-
 #home-plan::selection { background: #0042E0; }
 
 #home-pane-toolbar {
@@ -76,59 +69,68 @@ body {
   position: absolute;
 }
 
-@media (hover: hover) {
+/*
+ * No-touch devices common CSS
+ */
 
-  #home-pane {
-    padding-top: 30px;
-    height: calc(100% - 30px);
-  }
+#home-pane {
+  padding-top: 30px;
+  height: calc(100% - 30px);
+}
 
-  #home-pane-toolbar {
-    top: 0px;
-  }
+#home-pane-toolbar {
+  top: 0px;
+}
+
+#furniture-catalog {
+  top: 30px;
+  width: 300px;
+  height: calc(100% - 30px);
+  overflow-y: scroll; 
+}
+
+#home-plan {
+  top: 30px;
+  left: 300px;
+  width: calc(100% - 300px);
+  height: calc(50% - 2px);
+}
+
+#home-3D-view {
+  top: calc(50% + 32px);
+  left: 300px;
+  width: calc(100% - 300px);
+  height: calc(50% - 2px);
+}
+
+@media (orientation: portrait) {
 
   #furniture-catalog {
-    top: 30px;
-    width: 300px;
-    height: calc(100% - 30px);
-    overflow-y: scroll; 
+    width: 160px;
   }
 
   #home-plan {
-    top: 30px;
-    left: 300px;
-    width: calc(100% - 300px);
-    height: calc(50% - 2px);
+    left: 160px;
+    width: calc(100% - 150px);
   }
 
   #home-3D-view {
-    top: calc(50% + 32px);
-    left: 300px;
-    width: calc(100% - 300px);
-    height: calc(50% - 2px);
-  }
-
-  @media (orientation: portrait) {
-
-    #furniture-catalog {
-      width: 160px;
-    }
-
-    #home-plan {
-      left: 160px;
-      width: calc(100% - 150px);
-    }
-
-    #home-3D-view {
-      left: 160px;
-      width: calc(100% - 150px);
-    }
-
+    left: 160px;
+    width: calc(100% - 150px);
   }
 
 }
 
+/*
+ * Touch devices common CSS - ignored by IE
+ */
+
 @media (hover: none) {
+
+  body {
+    margin: 5px;
+    height: calc(100% - 10px);
+  }
 
   #home-pane-toolbar {
     top: calc(100% - 40px);
@@ -144,12 +146,14 @@ body {
 
     #home-3D-view {
       top: 0%;
+      left: 0px;
       width: calc(100% - 2px);
       height: calc(50% - 60px);
     }
 
     #home-plan {
       top: calc(50% - 60px);
+      left: 0px;
       width: calc(100% - 2px);
       height: calc(50% - 60px);
       z-index: 1;
@@ -193,6 +197,7 @@ body {
 
     #furniture-catalog {
       top: calc(100% - 40px - 80px);
+      left: 0px;
       width: calc(100% - 2px);
       height: 78px;
       overflow-x: scroll; 
