@@ -214,7 +214,6 @@
         <file name="LengthUnit.js"/>
         <file name="UserPreferences.js"/>
         <file name="HomeRecorder.js"/>
-        <file name="graphics2d.js"/>
         <file name="PlanComponent.js"/>
         <file name="HomePane.js"/>
         <file name="DefaultFurnitureCatalog.js"/>
@@ -393,6 +392,11 @@
       <arg value="-o" />
       <arg value="dist/build/swingundo.min.js" />
     </java>
+    <java jar="${yuicompressor.jar}" fork="true">
+      <arg value="src/graphics2d.js" />
+      <arg value="-o" />
+      <arg value="dist/build/graphics2d.min.js" />
+    </java>
   	<java jar="${yuicompressor.jar}" fork="true">
       <arg value="dist/build/sweethome3d.min.js" />
       <arg value="-o" />
@@ -417,6 +421,17 @@
     </concat>
     <concat destfile="dist/swingundo.min.js" encoding="UTF-8" append="true">
       <file name="dist/build/swingundo.min.js" />
+    </concat>
+    <!-- Add graphics2d.js GNU GPL header to graphics2d.min.js -->
+    <concat destfile="dist/graphics2d.min.js" encoding="UTF-8">
+      <header file="src/graphics2d.js" />
+      <filterchain>
+        <headfilter lines="24" />
+        <tokenfilter>
+          <replacestring from="graphics2d.js" to="graphics2d.min.js  version ${version}" />
+        </tokenfilter>
+      </filterchain>
+      <file name="dist/build/graphics2d.min.js" />
     </concat>
     <!-- Add header.js GNU GPL header to sweethome3d.min.js -->
     <copy file="dist/build/sweethome3d.min.js" tofile="dist/sweethome3d.min.js"/>
