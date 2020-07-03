@@ -126,6 +126,12 @@ body {
     height: calc(100% - 10px);
   }
 
+  /* No scroll bars under Chrome */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+
   #home-pane-toolbar {
     top: calc(100% - 40px);
     height: 40px;
