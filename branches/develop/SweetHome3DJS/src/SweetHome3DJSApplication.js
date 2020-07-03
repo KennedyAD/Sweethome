@@ -383,6 +383,19 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
       div.appendChild(colorInput);
       document.getElementById("home-plan").appendChild(div);
     }
+    var displayColorPicker = function(defaultColor, changeListener) {
+        if (colorInput != null) {
+          var listener = function() {
+              colorInput.removeEventListener("change", listener); 
+              changeListener(ColorTools.hexadecimalStringToInteger(colorInput.value));
+            };
+          colorInput.value = defaultColor != null && defaultColor != 0
+             ? ColorTools.integerToHexadecimalString(defaultColor)
+             : "#010101"; // Color different from black required on some browsers
+          colorInput.addEventListener("change", listener);
+          colorInput.click();
+        }
+      };
     
     var application = this;
     this.viewFactory = {
@@ -422,24 +435,19 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
         createHomeFurnitureView: function(preferences,  homeFurnitureController) {
           return {
               displayView: function(parent) {
-                if (colorInput != null) {
-                  var listener = function() {
-                      colorInput.removeEventListener("change", listener); 
-                      homeFurnitureController.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
-                      homeFurnitureController.setColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                displayColorPicker(homeFurnitureController.getColor(),
+                    function(selectedColor) {
+                      homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
+                      homeFurnitureController.setColor(selectedColor);
                       homeFurnitureController.modifyFurniture();
-                    };
-                  colorInput.value = "#010101"; // Color different from black required on some browsers
-                  colorInput.addEventListener("change", listener);
-                  colorInput.click();
-                }
+                    });
               }
             };
         },
         createWallView: function(preferences,  wallController) {
           return {
               displayView: function(parent) {
-                // Find what wall side is the closest to the pointer location
+                // Find which wall side is the closest to the pointer location
                 var home = wallController.home;
                 var planController = application.getHomeController(home).getPlanController();
                 var x = planController.getXLastMousePress(); 
@@ -457,56 +465,41 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
                       java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], x, y))
                 }
                 var leftSide = leftMinDistance < rightMinDistance;
-                
-                if (colorInput != null) {
-                  var listener = function() {
-                      colorInput.removeEventListener("change", listener);
+
+                displayColorPicker(leftSide ? wallController.getLeftSideColor() : wallController.getRightSideColor(),
+                    function(selectedColor) {
                       if (leftSide) {
                         wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
-                        wallController.setLeftSideColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                        wallController.setLeftSideColor(selectedColor);
                       } else {
                         wallController.setRightSidePaint(WallController.WallPaint.COLORED);
-                        wallController.setRightSideColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                        wallController.setRightSideColor(selectedColor);
                       }
                       wallController.modifyWalls();
-                    };
-                  colorInput.value = "#010101"; // Color different from black required on some browsers
-                  colorInput.addEventListener("change", listener);
-                  colorInput.click();
-                }
+                    });
               }
             };
         },
         createRoomView: function(preferences, roomController) {
           return {
               displayView: function(parent) {
-                if (colorInput != null) {
-                  var listener = function() {
-                      colorInput.removeEventListener("change", listener); 
+                displayColorPicker(roomController.getFloorColor(),
+                    function(selectedColor) {
                       roomController.setFloorPaint(RoomController.RoomPaint.COLORED);
-                      roomController.setFloorColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                      roomController.setFloorColor(selectedColor);
                       roomController.modifyRooms();
-                    };
-                  colorInput.value = "#010101"; // Color different from black required on some browsers
-                  colorInput.addEventListener("change", listener);
-                  colorInput.click();
-                }
+                    });
               }
             };
         },
         createPolylineView: function(preferences, polylineController) {
           return {
               displayView: function(parent) {
-                if (colorInput != null) {
-                  var listener = function() {
-                      colorInput.removeEventListener("change", listener); 
-                      polylineController.setColor(ColorTools.hexadecimalStringToInteger(colorInput.value));
+                displayColorPicker(polylineController.getColor(),
+                    function(selectedColor) {
+                      polylineController.setColor(selectedColor);
                       polylineController.modifyPolylines();
-                    };
-                  colorInput.value = "#010101"; // Color different from black required on some browsers
-                  colorInput.addEventListener("change", listener);
-                  colorInput.click();
-                }
+                    });
               }
             };
         },
@@ -558,8 +551,9 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
         },
         createVideoView: function(home, preferences, videoController) {
           return dummyDialogView;
-        },
+        }
       };
+    
     this.viewFactory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
   }
   return this.viewFactory;
