@@ -57,7 +57,7 @@
          recorder.writeHome(homeFile, 0);
        }
 %>
-Wrote <%= count %> edits for <%= homeName %>.
+{ "result": <%= count %> }
 <%       
      } else {
        throw new ServletException(homeName + " not opened by client");
