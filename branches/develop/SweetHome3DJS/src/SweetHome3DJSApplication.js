@@ -189,7 +189,6 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     // Save initial state of objects that are not tracked in regular undoable edits 
     home._observerCamera = home.getObserverCamera().clone();
     home._topCamera = home.getTopCamera().clone();
-    home._compass = home.getCompass().clone();
 
     var untrackedStateChangeTracker = function(ev) {
       if (!home.hasUntrackedStateChange) {
@@ -198,7 +197,6 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     }
     home.getObserverCamera().addPropertyChangeListener(untrackedStateChangeTracker);
     home.getTopCamera().addPropertyChangeListener(untrackedStateChangeTracker);
-    home.getCompass().addPropertyChangeListener(untrackedStateChangeTracker);
 
     // Schedule first write if needed
     if (recorder.getAutoWriteDelay() > 0) {
@@ -319,7 +317,6 @@ IncrementalHomeRecorder.prototype.addUntrackedStateChange = function(home) {
     // store current state
     home._observerCamera = home.getObserverCamera().clone();
     home._topCamera = home.getTopCamera().clone();
-    home._compass = home.getCompass().clone();
     var untrackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.UntrackedStateChangeUndoableEdit' };
     untrackedStateChangeUndoableEdit.topCamera = home.getTopCamera().duplicate();
     untrackedStateChangeUndoableEdit.observerCamera = home.getObserverCamera().duplicate();
