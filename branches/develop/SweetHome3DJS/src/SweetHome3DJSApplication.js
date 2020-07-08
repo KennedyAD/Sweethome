@@ -185,6 +185,21 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         recorder.scheduleWrite(home);
       };
 
+    console.info("Watching objects without regular undoable edits scope");
+    // Save initial state of objects that are not tracked in regular undoable edits 
+    home._observerCamera = home.getObserverCamera().clone();
+    home._topCamera = home.getTopCamera().clone();
+    home._compass = home.getCompass().clone();
+
+    var untrackedStateChangeTracker = function(ev) {
+      if (!home.hasUntrackedStateChange) {
+        home.hasUntrackedStateChange = true;
+      }
+    }
+    home.getObserverCamera().addPropertyChangeListener(untrackedStateChangeTracker);
+    home.getTopCamera().addPropertyChangeListener(untrackedStateChangeTracker);
+    home.getCompass().addPropertyChangeListener(untrackedStateChangeTracker);
+
     // Schedule first write if needed
     if (recorder.getAutoWriteDelay() > 0) {
       recorder.scheduleWrite(home);
@@ -246,6 +261,9 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     if (!this.hasEdits(home)) {
       return;
     }
+    if (home.hasUntrackedStateChange) {
+      this.addUntrackedStateChange(home);
+    }
     var recorder = this;
     var transaction = this.beginWriteTransaction(home);
     var xhr = new XMLHttpRequest();
@@ -255,6 +273,10 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
         if (xhr.status === 200) {
           var result = JSON.parse(xhr.responseText);
           if (result && result.result === transaction.edits.length) {
+            recorder.commitWriteTransaction(home, transaction);
+          } else {
+            // Should never happen (what to do then?)
+            console.error(xhr.responseText);
             recorder.commitWriteTransaction(home, transaction);
           }
         } else {
@@ -285,7 +307,24 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.hasEdits = function(home) {
-  return this.queue !== undefined && this.queue.length > 0;
+  return (this.queue !== undefined && this.queue.length > 0) || home.hasUntrackedStateChange;
+}
+
+/** 
+ * @private 
+ */
+IncrementalHomeRecorder.prototype.addUntrackedStateChange = function(home) {
+  if (home.hasUntrackedStateChange) {
+    home.hasUntrackedStateChange = false;
+    // store current state
+    home._observerCamera = home.getObserverCamera().clone();
+    home._topCamera = home.getTopCamera().clone();
+    home._compass = home.getCompass().clone();
+    var untrackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.UntrackedStateChangeUndoableEdit' };
+    untrackedStateChangeUndoableEdit.topCamera = home.getTopCamera().duplicate();
+    untrackedStateChangeUndoableEdit.observerCamera = home.getObserverCamera().duplicate();
+    this.storeEdit(home, untrackedStateChangeUndoableEdit);
+  }
 }
 
 /** 
@@ -382,7 +421,7 @@ IncrementalHomeRecorder.prototype.commitWriteTransaction = function(home, transa
       throw new Error("Unexpected error while saving.");
     }
   }
-  if (this.configuration !== undefined && this.configuration.writeListener && this.configuration.writeListener.onWriteTransactionCommited) {
+  if (this.configuration !== undefined && this.configuration.writeListener && this.configuration.writeListener.onWriteTransactionCommitted) {
     this.configuration.writeListener.onWriteTransactionCommitted(transaction);
   }
   home.ongoingTx = undefined;
