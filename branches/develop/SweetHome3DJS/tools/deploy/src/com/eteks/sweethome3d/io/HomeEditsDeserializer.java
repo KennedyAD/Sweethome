@@ -83,27 +83,6 @@ public class HomeEditsDeserializer {
   private Map<String, HomeObject> homeObjects;
 
   /**
-   * Applies a list of edits that have been deserialized. Most of the time, edits are
-   * redone, but they maybe undone in case of an undo action.
-   *
-   * @param edits the list of edits to be run
-   * @return the number of edits that have been applied
-   */
-  public static int applyEdits(List<UndoableEdit> edits) {
-    int count = 0;
-    for (UndoableEdit edit : edits) {
-      if (edit.canRedo()) {
-        edit.redo();
-        count++;
-      } else {
-        edit.undo();
-        count++;
-      }
-    }
-    return count;
-  }
-
-  /**
    * Creates a new home edit deserializer.
    *
    * @param home     the target home (where the edit will be applied)
@@ -130,6 +109,27 @@ public class HomeEditsDeserializer {
     }
   }
 
+  /**
+   * Applies a list of edits that have been deserialized. Most of the time, edits are
+   * redone, but they maybe undone in case of an undo action.
+   *
+   * @param edits the list of edits to be run
+   * @return the number of edits that have been applied
+   */
+  public int applyEdits(List<UndoableEdit> edits) {
+    int count = 0;
+    for (UndoableEdit edit : edits) {
+      if (edit.canRedo()) {
+        edit.redo();
+        count++;
+      } else {
+        edit.undo();
+        count++;
+      }
+    }
+    return count;
+  }
+  
   private Unsafe unsafe = null;
 
   private Unsafe getUnsafe() {

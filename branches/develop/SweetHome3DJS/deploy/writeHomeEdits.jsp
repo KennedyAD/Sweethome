@@ -52,8 +52,9 @@
        synchronized (homeFile.getCanonicalPath().intern()) {
          // Reading a given home then saving it can't be done in two different threads at the same moment   
          HomeServerRecorder recorder = new HomeServerRecorder(homeFile, serverUserPreferences);
-         List<UndoableEdit> edits = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString()).deserializeEdits(jsonEdits);
-         count = HomeEditsDeserializer.applyEdits(edits);
+         HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString());
+         List<UndoableEdit> edits = deserializer.deserializeEdits(jsonEdits);
+         count = deserializer.applyEdits(edits);
          recorder.writeHome(homeFile, 0);
        }
 %>
