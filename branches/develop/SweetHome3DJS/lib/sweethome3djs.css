@@ -297,9 +297,11 @@
   right: 0px;
   width: 32px;
   height: 32px;
-  background-image: url('resources/cursors/move32x32.png');
+  background-image: url('resources/icons/tango/plan-add-level.png');
+  background-repeat: no-repeat;
   background-color: rgba(128,128,128,0.5);
   background-position: center;
+  background-size: 50%;
   z-index: 3;
   -border: solid gray 1px;
   -border-radius: 50%;
