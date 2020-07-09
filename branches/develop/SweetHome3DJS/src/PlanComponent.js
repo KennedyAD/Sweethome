@@ -1038,7 +1038,12 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           if (mouseListener.autoScroll == null 
               && !mouseListener.isInCanvas(ev)) {
             mouseListener.autoScroll = setInterval(function() {
-                window.dispatchEvent(ev);
+                if (mouseListener.actionStartedInPlanComponent) {
+                  window.dispatchEvent(ev);
+                } else {
+                  clearInterval(mouseListener.autoScroll);
+                  mouseListener.autoScroll = null;
+                }
               }, 10);
           }
           if (mouseListener.autoScroll != null 
@@ -1209,7 +1214,12 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                     && controller.getMode() !== PlanController.Mode.PANNING
                     && mouseListener.lastPointerLocation != null) {
                   mouseListener.autoScroll = setInterval(function() {
-                      mouseListener.touchMoved(ev);
+                      if (mouseListener.actionStartedInPlanComponent) {
+                        mouseListener.touchMoved(ev);
+                      } else {
+                        clearInterval(mouseListener.autoScroll);
+                        mouseListener.autoScroll = null;
+                      }
                     }, 10);
                 }
               }
@@ -1540,7 +1550,10 @@ PlanComponent.prototype.stopIndicatorAnimation = function() {
  * @private
  */
 PlanComponent.prototype.addFocusListener = function(controller) {
+  var plan = this;
   this.container.addEventListener("focusout", function() {
+      plan.mouseListener.lastPointerLocation = null;
+      plan.mouseListener.actionStartedInPlanComponent = false;
       controller.escape();
     });
 }

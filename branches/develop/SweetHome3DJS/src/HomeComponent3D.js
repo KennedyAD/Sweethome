@@ -710,11 +710,7 @@ HomeComponent3D.prototype.moveCameraWithAnimation = function(finalCamera) {
     // Start animation now
     this.cameraInterpolator.startTime = Date.now();
     this.cameraInterpolator.alpha = 0;
-    var component3D = this;
-    requestAnimationFrame(
-        function() {
-          component3D.interpolateUntilAlphaEquals1();
-        });
+    requestAnimationFrame(this.interpolateUntilAlphaEquals1);
   }
 }
 
@@ -733,11 +729,7 @@ HomeComponent3D.prototype.interpolateUntilAlphaEquals1 = function() {
       this.cameraInterpolator.alpha = alpha;
     }
     if (this.cameraInterpolator.alpha < 1) {
-      var component3D = this;
-      requestAnimationFrame(
-          function() {
-            component3D.interpolateUntilAlphaEquals1();
-          });
+      requestAnimationFrame(this.interpolateUntilAlphaEquals1);
     }
   }
 }
@@ -890,7 +882,9 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         return Math.sqrt(Math.pow(p2.pageX - p1.pageX, 2) + Math.pow(p2.pageY - p1.pageY, 2));
       },
       moved : function(x, y, altKey, shiftKey) {
-        if (userActionsListener.buttonPressed === 0) {
+        if ((userActionsListener.xLastMove !== x
+              || userActionsListener.yLastMove !== y)
+            && userActionsListener.buttonPressed === 0) {
           if (altKey) {
             // Mouse move along Y axis while alt is down changes camera location
             var delta = 1.25 * (userActionsListener.yLastMove - y);
