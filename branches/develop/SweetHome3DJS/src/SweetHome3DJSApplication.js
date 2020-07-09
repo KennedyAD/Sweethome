@@ -398,7 +398,7 @@ IncrementalHomeRecorder.prototype.beginWriteTransaction = function(home) {
     throw new Error("cannot start transaction");
   }
   // TODO: use local storage
-  home.ongoingTx = { 'txId': CoreTools.randomUUID(), 'edits': this.queue.slice(0) };
+  home.ongoingTx = { 'txId': UUID.randomUUID(), 'edits': this.queue.slice(0) };
   if (this.configuration !== undefined && this.configuration.writeListener && this.configuration.writeListener.onWriteTransactionStarted) {
     this.configuration.writeListener.onWriteTransactionStarted(home.ongoingTx);
   }

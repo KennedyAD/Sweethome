@@ -92,6 +92,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     // All the Java elements to be ignored (will generate no JS) except the ones
     // starting with !
     addAnnotation("jsweet.lang.Erased",
+        "**.readObjectNoData(..)",
         "**.readObject(..)",
         "**.writeObject(..)",
         "**.serialVersionUID",
@@ -338,13 +339,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         case "java.util.UUID":
           switch (invocation.getMethodName()) {
             case "randomUUID":
-              printMacroName(invocation.getMethodName());
-              // From https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
-              print("(function() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {"
-                  + " var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);"
-                  + " return v.toString(16);"
-                  + " });"
-                  + "})()");
+              print("UUID.randomUUID()");
               return true;
           }
           break;
