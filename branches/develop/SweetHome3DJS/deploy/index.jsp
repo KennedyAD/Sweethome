@@ -270,22 +270,22 @@ var application = new SweetHome3DJSApplication(
     {readHomeURL:       urlBase + "/readHome.jsp?home=%s",
      writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp",
      closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",
-     pingURL:           "http://localhost:8080/ping.jsp",
+     pingURL:           urlBase + "/ping.jsp",
      autoWriteDelay:    5000,
-     writeListener:     {
-       onWriteTransactionStarted(transaction) {
+     writingObserver:   {
+       transactionStarted(transaction) {
          console.info("Transaction started", transaction);
        },
-       onWriteTransactionCommitted(transaction) {
+       transactionCommitted(transaction) {
          console.info("Transaction committed", transaction);
        },
-       onWriteTransactionRollbacked(transaction) {
+       transactionRollbacked(transaction) {
          console.info("Transaction rollbacked", transaction);
        },
-       onGoingOnline() {
+       connectionFound() {
          console.info("Back to online mode");
        },
-       onGoingOffline() {
+       connectionLost() {
          console.info("Lost server connection - going offline");
        }
      }});
