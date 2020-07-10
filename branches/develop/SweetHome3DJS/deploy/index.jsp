@@ -272,6 +272,7 @@ var application = new SweetHome3DJSApplication(
      closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",
      pingURL:           urlBase + "/ping.jsp",
      autoWriteDelay:    5000,
+     autoWriteUntrackableStateChange: true,
      writingObserver:   {
        transactionStarted(transaction) {
          console.info("Transaction started", transaction);

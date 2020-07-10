@@ -26,8 +26,6 @@
 // Requires HomeComponent3D.js
 // Requires HomePane.js
 
-var PROTOCOL_VERSION = 1.0;
-
 /**
  * A home recorder that is able to save the application homes incrementally by sending undoable edits 
  * to the SH3D server.
@@ -37,6 +35,7 @@ var PROTOCOL_VERSION = 1.0;
  *          closeHomeURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
+ *          autoWriteUntrackableStateChange: boolean,
  *          writingObserver: {transactionStarted: Function, 
  *                            transactionCommitted: Function, 
  *                            transactionRollbacked: Function, 
@@ -116,14 +115,12 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
  * @param {Object} observer an object to be notified with loading statuses 
  */
 IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
-  console.info("read home ", this.configuration);
   if (this.configuration !== undefined
       && this.configuration.readHomeURL !== undefined) {
     // Replace % sequence by %% except %s before formating readHomeURL with home name 
     var readHomeUrl = CoreTools.format(this.configuration.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
     homeName = readHomeUrl;
   }
-  console.info("read home "+homeName);
   HomeRecorder.prototype.readHome.call(this, homeName, observer);
 }
 
@@ -150,13 +147,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     var recorder = this;
     home.id = HomeObject.createId("home");
     
-    // TODO Remove logs
-    console.info("addHome", home.id, this.application.getHomeController(home));
-
     this.checkPoint(home);
-
-    console.info("collected ids: ", home, this.existingHomeObjects);
-    console.info(Object.getOwnPropertyNames(home));
 
     var homeController = this.application.getHomeController(home);
     this.undoableEditSupports[home.id] = homeController.getUndoableEditSupport();
@@ -185,19 +176,49 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         recorder.scheduleWrite(home);
       };
 
-    console.info("Watching objects without regular undoable edits scope");
-    // Save initial state of objects that are not tracked in regular undoable edits 
-    home._observerCamera = home.getObserverCamera().clone();
-    home._topCamera = home.getTopCamera().clone();
+    // Watching objects / properties without regular undoable edits scope
+
+    home._planViewportX = home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+    home._planViewportY = home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+    home._planScale = home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
 
     var untrackedStateChangeTracker = function(ev) {
-      if (!home.hasUntrackedStateChange) {
-        console.info(ev);
-        home.hasUntrackedStateChange = true;
+      var fieldName = undefined;
+      var value = undefined;
+      if (ev.source === home.getObserverCamera()) {
+        fieldName = "observerCamera";
+        value = home.getObserverCamera();
+      }
+      if (ev.source === home.getTopCamera()) {
+        fieldName = "topCamera";
+        value = home.getTopCamera();
+      }
+      if (ev.source === home) {
+        switch(ev.propertyName) {
+          case 'CAMERA':
+            fieldName = "camera";
+            value = ev.newValue;
+            break;
+          case 'STORED_CAMERAS':
+            fieldName = "storedCameras";
+            value = ev.newValue.map(function(camera) { camera.duplicate(); });
+            break;
+          case 'SELECTED_LEVEL':
+            fieldName = "selectedLevel";
+            value = ev.newValue;
+            break;
+        }
+      }
+      if (fieldName !== undefined) {
+        if (home.untrackedStateChange === undefined) {
+          home.untrackedStateChange = {};
+        }
+        home.untrackedStateChange[fieldName] = value;        
       }
     }
     home.getObserverCamera().addPropertyChangeListener(untrackedStateChangeTracker);
     home.getTopCamera().addPropertyChangeListener(untrackedStateChangeTracker);
+    home.addPropertyChangeListener(untrackedStateChangeTracker);
 
     // Schedule first write if needed
     if (recorder.getAutoWriteDelay() > 0) {
@@ -260,11 +281,14 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     if (!this.hasEdits(home)) {
       return;
     }
-    if (home.hasUntrackedStateChange) {
-      this.addUntrackedStateChange(home);
-    }
+    this.addUntrackedStateChange(home);
     var recorder = this;
     var transaction = this.beginWriteTransaction(home);
+    var serverErrorHandler = function() {
+      recorder.rollbackWriteTransaction(home, transaction);
+      // TODO: define a retry delay?
+      recorder.scheduleWrite(home, 10000);
+    }
     var request = new XMLHttpRequest();
     request.open('POST', this.configuration['writeHomeEditsURL'], true);
     request.addEventListener('load', function (e) {
@@ -274,53 +298,92 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
           if (result && result.result === transaction.edits.length) {
             recorder.commitWriteTransaction(home, transaction);
           } else {
-            // Should never happen (what to do then?)
+            // Should never happen
             console.error(request.responseText);
-            recorder.commitWriteTransaction(home, transaction);
+            serverErrorHandler();
           }
         } else {
-          // Should never happen (what to do then?)
+          // Should never happen
           console.error(request.statusText);
-          // TODO: we commit to move forward with the edits but we might loose them
-          recorder.commitWriteTransaction(home, transaction);
+          serverErrorHandler();
         }
       }
     });
     request.addEventListener('error', function (e) {
       // There was an error connecting with the server: rollback and retry
-      // TODO: define a retry delay?
-      recorder.rollbackWriteTransaction();
-      recorder.scheduleWrite(home, 10000);
+      serverErrorHandler();
     });
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send('home=' + encodeURIComponent(home.name) + '&' +
              'transactionId=' + transaction.id + '&' +
-             'version=' + PROTOCOL_VERSION + '&' +
+             'version=' + this.application.getVersion() + '&' +
              'edits=' + encodeURIComponent(JSON.stringify(transaction.edits)));
   } catch (ex) {
     console.error(ex);
   }  
 }
 
-/** 
- * @private 
+/**
+ * Schedules the properties that are not tracked by undoable edits (such as visual properties and cameras) 
+ * to be sent during the next run. 
+ *
+ * @param {Home} home the target home
  */
-IncrementalHomeRecorder.prototype.hasEdits = function(home) {
-  return (this.queue !== undefined && this.queue.length > 0) || home.hasUntrackedStateChange;
+IncrementalHomeRecorder.prototype.scheduleUntrackableStateChangeToBeSent = function(home) {
+  this.addUntrackedStateChange(home, true);
 }
 
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.addUntrackedStateChange = function(home) {
-  if (home.hasUntrackedStateChange) {
-    home.hasUntrackedStateChange = false;
-    // store current state
-    home._observerCamera = home.getObserverCamera().clone();
-    home._topCamera = home.getTopCamera().clone();
-    var untrackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.UntrackedStateChangeUndoableEdit' };
-    untrackedStateChangeUndoableEdit.topCamera = home.getTopCamera().duplicate();
-    untrackedStateChangeUndoableEdit.observerCamera = home.getObserverCamera().duplicate();
+IncrementalHomeRecorder.prototype.hasEdits = function(home) {
+  return (this.queue !== undefined && this.queue.length > 0) 
+      || (this.configuration && this.configuration.autoWriteUntrackableStateChange && this.hasUntrackableStateChange(home));
+}
+
+/** 
+ * @private 
+ */
+IncrementalHomeRecorder.prototype.hasUntrackableStateChange = function(home) {
+  return home.untrackedStateChange !== undefined 
+    || home._planViewportX !== home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY)
+    || home._planViewportY !== home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY)
+    || home._planScale !== home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
+}
+
+/** 
+ * @private 
+ */
+IncrementalHomeRecorder.prototype.addUntrackedStateChange = function(home, force) {
+  if (this.hasUntrackableStateChange(home) && (force || (this.configuration && this.configuration.autoWriteUntrackableStateChange))) {    
+    var untrackedStateChangeUndoableEdit = home.untrackedStateChange;
+    if (untrackedStateChangeUndoableEdit === undefined) {
+      untrackedStateChangeUndoableEdit = {};
+    }
+    untrackedStateChangeUndoableEdit._type = 'com.eteks.sweethome3d.io.UntrackedStateChangeUndoableEdit';
+    if (home._planViewportX !== home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY)) {
+      untrackedStateChangeUndoableEdit.planViewportX = home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+    }
+    if (home._planViewportY !== home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY)) {
+      untrackedStateChangeUndoableEdit.planViewportY = home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+    }
+    if (home._planScale !== home.getProperty(PlanController.SCALE_VISUAL_PROPERTY)) {
+      untrackedStateChangeUndoableEdit.planScale = home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
+    }
+    home.untrackedStateChange = undefined;
+    home._planViewportX = home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+    home._planViewportY = home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+    home._planScale = home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
+    // Duplication is required to send the state of the cameras and not only the UUIDs
+    if (untrackedStateChangeUndoableEdit.topCamera !== undefined) {
+      untrackedStateChangeUndoableEdit.topCamera = untrackedStateChangeUndoableEdit.topCamera.duplicate();
+    }
+    if (untrackedStateChangeUndoableEdit.observerCamera !== undefined) {
+      untrackedStateChangeUndoableEdit.observerCamera = untrackedStateChangeUndoableEdit.observerCamera.duplicate();
+    }
+    if (untrackedStateChangeUndoableEdit.storedCameras !== undefined) {
+      untrackedStateChangeUndoableEdit.storedCameras = untrackedStateChangeUndoableEdit.storedCameras.map(function(camera) { camera.duplicate(); });
+    }
     this.storeEdit(home, untrackedStateChangeUndoableEdit);
   }
 }
@@ -363,7 +426,6 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   var key = home.id + "/" + this.editCounters[home.id];
   var newObjects = {};
   var newObjectList = [];
-  //console.info("substitution of edit", edit);
   var processedEdit = this.substituteIdentifiableObjects(
                                 home,
                                 edit,
@@ -378,7 +440,6 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   if (undoAction) {
     processedEdit._action = "undo";
   }
-  //console.info(key, processedEdit, JSON.stringify(processedEdit));
   // TODO: use local storage
   //localStorage.setItem(key, toJSON(o));
   if (!this.queue) {
@@ -530,7 +591,7 @@ SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
 SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
 
 SweetHome3DJSApplication.prototype.getVersion = function() {
-  return "6.4 Beta";
+  return "6.4";
 }
 
 SweetHome3DJSApplication.prototype.getHomeController = function(home) {
