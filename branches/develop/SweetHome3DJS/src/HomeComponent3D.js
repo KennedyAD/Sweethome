@@ -710,7 +710,11 @@ HomeComponent3D.prototype.moveCameraWithAnimation = function(finalCamera) {
     // Start animation now
     this.cameraInterpolator.startTime = Date.now();
     this.cameraInterpolator.alpha = 0;
-    requestAnimationFrame(this.interpolateUntilAlphaEquals1);
+    var component3D = this;
+    requestAnimationFrame(
+        function() {
+          component3D.interpolateUntilAlphaEquals1();
+        });
   }
 }
 
@@ -729,7 +733,11 @@ HomeComponent3D.prototype.interpolateUntilAlphaEquals1 = function() {
       this.cameraInterpolator.alpha = alpha;
     }
     if (this.cameraInterpolator.alpha < 1) {
-      requestAnimationFrame(this.interpolateUntilAlphaEquals1);
+      var component3D = this;
+      requestAnimationFrame(
+          function() {
+            component3D.interpolateUntilAlphaEquals1();
+          });
     }
   }
 }
