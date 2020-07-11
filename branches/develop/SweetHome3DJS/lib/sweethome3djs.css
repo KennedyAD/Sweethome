@@ -16,9 +16,9 @@
   top: -2px;
   left: -2px;
   pointer-events: none;
-}	
+}
 #touch-overlay-timer > .animated {
-	animation-duration: 3s;
+  animation-duration: 0.8s;
   animation-timing-function: linear;
   pointer-events: none;
 }
@@ -31,13 +31,13 @@
   height: 100%;
 }
 #touch-overlay-timer-content {
-	opacity: 0;
-	font-size: 15px;
-	text-align: center;
+  opacity: 0;
+  font-size: 15px;
+  text-align: center;
   --ms-transform: translateY(15%);
-  -transform: translateY(15%);	
+  -transform: translateY(15%);
   margin-top:1px;
-	width: 24px;
+  width: 24px;
   height: 24px;
   text-shadow: 2px 2px 4px #777777;
   pointer-events: none;
@@ -73,8 +73,8 @@
   animation-name: spin2;
 }
 #touch-overlay-timer-content.animated {
-	opacity: 1;
-	animation-name: showcontent;
+  opacity: 1;
+  animation-name: showcontent;
 }
 
 @keyframes hider {
@@ -96,7 +96,7 @@
 }
 
 #touch-overlay-timer > .indicator {
-	visibility: hidden;
+  visibility: hidden;
 }
 #touch-overlay-timer-content.indicator {
   opacity: 1;
