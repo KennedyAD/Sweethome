@@ -993,7 +993,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       longTouchStartTime: 0,
       autoScroll: null,
       longTouch: null,
-      longTouchWhenDragged: null,
+      longTouchWhenDragged: false,
       actionStartedInPlanComponent: false,
       mousePressed: function(ev) {
         if (plan.isEnabled() && ev.button === 0) {
@@ -1113,7 +1113,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.windowMouseReleased(ev);
         } else {
           ev.preventDefault();
-          // Multi touch support for IE and Edge
+          // Multi touch support for IE and legacy Edge
           mouseListener.copyPointerToTargetTouches(ev, true);
           mouseListener.touchEnded(ev);
         }
@@ -1149,6 +1149,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.distanceLastPinch = null;
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             mouseListener.actionStartedInPlanComponent = true;
+            mouseListener.longTouchWhenDragged = false;
             if (controller.getMode() !== PlanController.Mode.PANNING
                 && clickCount == 1) {
               var character = controller.getMode() === PlanController.Mode.SELECTION
@@ -1198,8 +1199,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           ev.preventDefault();
           ev.stopPropagation();
           if (mouseListener.updateCoordinates(ev, "touchMoved")) {
-            plan.stopIndicatorAnimation();
-            mouseListener.longTouchWhenDragged = null;
+            plan.stopIndicatorAnimation();            
             mouseListener.initialPointerLocation = null;
             
             if (ev.targetTouches.length == 1) {
@@ -1239,7 +1239,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                   && controller.getMode() !== PlanController.Mode.PANNING
                   && controller.getMode() !== PlanController.Mode.SELECTION) {
                 mouseListener.longTouch = setTimeout(function() {
-                    mouseListener.longTouchWhenDragged = [ev.canvasX, ev.canvasY];   
+                    mouseListener.longTouchWhenDragged = true;   
                     plan.startLongTouchAnimation(ev.canvasX, ev.canvasY, '2');
                   }, PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING);
                 mouseListener.longTouchStartTime = Date.now();
@@ -1294,19 +1294,20 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             var xModel = plan.convertXPixelToModel(mouseListener.lastPointerLocation [0]);
             var yModel = plan.convertYPixelToModel(mouseListener.lastPointerLocation [1]);
             controller.releaseMouse(xModel, yModel);
-            
-            if (mouseListener.isLongTouch(true)
-                && mouseListener.longTouchWhenDragged != null) {
-              // Emulate double click
-              controller.pressMouse(xModel, yModel, 1, false, false, false, false, View.PointerType.TOUCH);
-              controller.releaseMouse(xModel, yModel);
-              controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
-              controller.releaseMouse(xModel, yModel);
-            } else if (mouseListener.isLongTouch()
-                       && mouseListener.initialPointerLocation != null) {
-              // Emulate double click
-              controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
-              controller.releaseMouse(xModel, yModel);
+            if (controller.getMode() !== PlanController.Mode.SELECTION) {
+              if (mouseListener.isLongTouch(true)
+                  && mouseListener.longTouchWhenDragged) {
+                // Emulate double click
+                controller.pressMouse(xModel, yModel, 1, false, false, false, false, View.PointerType.TOUCH);
+                controller.releaseMouse(xModel, yModel);
+                controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+                controller.releaseMouse(xModel, yModel);
+              } else if (mouseListener.isLongTouch()
+                  && mouseListener.initialPointerLocation != null) {
+                // Emulate double click
+                controller.pressMouse(xModel, yModel, 2, false, false, false, false, View.PointerType.TOUCH);
+                controller.releaseMouse(xModel, yModel);
+              }
             }
             
             plan.stopIndicatorAnimation();
