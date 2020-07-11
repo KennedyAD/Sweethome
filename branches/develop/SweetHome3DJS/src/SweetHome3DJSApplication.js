@@ -623,28 +623,29 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
         displayView: function(parent) { }
       }; 
     
-    var colorInput = null;
-    if (!OperatingSystem.isEdgeOrInternetExplorer()) {
-      // Create a dummy color input to propose a minimal color change as editing view 
-      var div = document.createElement("div");
-      colorInput = document.createElement("input");
-      colorInput.type = "color";
-      colorInput.style.width = "1px";
-      colorInput.style.height = "1px";
-      div.appendChild(colorInput);
-      document.getElementById("home-plan").appendChild(div);
-    }
+    // Creates a dummy color input to propose a minimal color change as editing view 
     var displayColorPicker = function(defaultColor, changeListener) {
-        if (colorInput != null) {
+        if (!OperatingSystem.isInternetExplorerOrLegacyEdge()) {
+          var div = document.createElement("div");
+          colorInput = document.createElement("input");
+          colorInput.type = "color";
+          colorInput.style.width = "1px";
+          colorInput.style.height = "1px";
+          div.appendChild(colorInput);
+          document.getElementById("home-plan").appendChild(div);
+          
           var listener = function() {
               colorInput.removeEventListener("change", listener); 
               changeListener(ColorTools.hexadecimalStringToInteger(colorInput.value));
+              document.getElementById("home-plan").removeChild(div);
             };
           colorInput.value = defaultColor != null && defaultColor != 0
              ? ColorTools.integerToHexadecimalString(defaultColor)
              : "#010101"; // Color different from black required on some browsers
           colorInput.addEventListener("change", listener);
-          colorInput.click();
+          setTimeout(function() {
+              colorInput.click();
+            });
         }
       };
     

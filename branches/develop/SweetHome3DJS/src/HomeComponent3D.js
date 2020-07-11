@@ -320,7 +320,7 @@ HomeComponent3D.prototype.removeHomeListeners = function() {
  */
 HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
   if (this.userActionsListener) {
-    if (OperatingSystem.isEdgeOrInternetExplorer()
+    if (OperatingSystem.isInternetExplorerOrLegacyEdge()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
       canvas3D.getHTMLElement().removeEventListener("pointerdown", this.userActionsListener.pointerPressed);
@@ -937,7 +937,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       }
     };
     
-  if (OperatingSystem.isEdgeOrInternetExplorer()
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
     // Multi touch support for IE and Edge
     canvas3D.getHTMLElement().addEventListener("pointerdown", userActionsListener.pointerPressed);

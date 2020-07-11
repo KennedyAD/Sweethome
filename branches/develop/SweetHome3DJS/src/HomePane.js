@@ -2372,7 +2372,7 @@ var HomePane = (function() {
         }
         
         var addIcons = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture-add-icon");
-        if (OperatingSystem.isEdgeOrInternetExplorer()
+        if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
           // Multi touch support for IE and Edge
           for (i = 0; i < addIcons.length; i++) {
@@ -2398,7 +2398,7 @@ var HomePane = (function() {
     } else {
       if (catalogView != null) {
         var addIcons = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture-add-icon");
-        if (OperatingSystem.isEdgeOrInternetExplorer()
+        if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
           for (i = 0; i < addIcons.length; i++) {
             addIcons[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);

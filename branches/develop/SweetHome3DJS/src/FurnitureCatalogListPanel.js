@@ -148,7 +148,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
       pieceContainer.querySelector(".furniture-add-icon").style.display = "block";
       furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
     };
-  if (OperatingSystem.isEdgeOrInternetExplorer()
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
     pieceContainer.addEventListener("pointerdown", function(ev) {
         if (ev.pointerType != "mouse") {

@@ -1448,7 +1448,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         }
       }
     };
-  if (OperatingSystem.isEdgeOrInternetExplorer()
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
     // Multi touch support for IE and Edge
     this.canvas.addEventListener("pointerdown", mouseListener.pointerPressed);

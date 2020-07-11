@@ -190,11 +190,11 @@ OperatingSystem.getName = function() {
 }
 
 /**
- * Returns <code>true</code> if the current browser is Edge or Internet Explorer.
+ * Returns <code>true</code> if the current browser is Internet Explorer or Edge (note based on Chromium).
  */
-OperatingSystem.isEdgeOrInternetExplorer = function() {
+OperatingSystem.isInternetExplorerOrLegacyEdge = function() {
   // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
-  return (document.documentMode || /Edg/.test(navigator.userAgent));
+  return (document.documentMode || /Edge/.test(navigator.userAgent));
 }
 
 /**
