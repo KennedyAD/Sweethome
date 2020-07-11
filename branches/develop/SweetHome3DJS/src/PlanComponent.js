@@ -164,6 +164,7 @@ PlanComponent.initStatics = function() {
   
   PlanComponent.WALL_STROKE_WIDTH = 1.5;
   PlanComponent.BORDER_STROKE_WIDTH = 1.0;
+  PlanComponent.ALIGNMENT_LINE_OFFSET = 25;
   
   PlanComponent.ERROR_TEXTURE_IMAGE = null;
   PlanComponent.WAIT_TEXTURE_IMAGE = null;
@@ -5047,23 +5048,26 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
     
     g2D.setPaint(feedbackPaint);
     g2D.setStroke(feedbackStroke);
+    var alignmentLineOffset = this.pointerType === View.PointerType.TOUCH 
+        ? PlanComponent.ALIGNMENT_LINE_OFFSET * 2
+        : PlanComponent.ALIGNMENT_LINE_OFFSET;
     if (deltaXToClosestWall !== Infinity) {
       if (deltaXToClosestWall > 0) {
-        g2D.draw(new java.awt.geom.Line2D.Float(x + 25 / planScale, y, 
-            x - deltaXToClosestWall - 25 / planScale, y));
+        g2D.draw(new java.awt.geom.Line2D.Float(x + alignmentLineOffset / planScale, y, 
+            x - deltaXToClosestWall - alignmentLineOffset / planScale, y));
       } else {
-        g2D.draw(new java.awt.geom.Line2D.Float(x - 25 / planScale, y, 
-            x - deltaXToClosestWall + 25 / planScale, y));
+        g2D.draw(new java.awt.geom.Line2D.Float(x - alignmentLineOffset / planScale, y, 
+            x - deltaXToClosestWall + alignmentLineOffset / planScale, y));
       }
     }
     
     if (deltaYToClosestWall !== Infinity) {
       if (deltaYToClosestWall > 0) {
-        g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, 
-            x, y - deltaYToClosestWall - 25 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(x, y + alignmentLineOffset / planScale, 
+            x, y - deltaYToClosestWall - alignmentLineOffset / planScale));
       } else {
-        g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, 
-            x, y - deltaYToClosestWall + 25 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(x, y - alignmentLineOffset / planScale, 
+            x, y - deltaYToClosestWall + alignmentLineOffset / planScale));
       }
     }
     if (showPointFeedback) {
@@ -5200,22 +5204,25 @@ PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, 
     
     g2D.setPaint(feedbackPaint);
     g2D.setStroke(feedbackStroke);
+    var alignmentLineOffset = this.pointerType === View.PointerType.TOUCH 
+        ? PlanComponent.ALIGNMENT_LINE_OFFSET * 2
+        : PlanComponent.ALIGNMENT_LINE_OFFSET;
     if (deltaXToClosestObject !== Infinity) {
       if (deltaXToClosestObject > 0) {
-        g2D.draw(new java.awt.geom.Line2D.Float(x + 25 / planScale, y, 
-            x - deltaXToClosestObject - 25 / planScale, y));
+        g2D.draw(new java.awt.geom.Line2D.Float(x + alignmentLineOffset / planScale, y, 
+            x - deltaXToClosestObject - alignmentLineOffset / planScale, y));
       } else {
-        g2D.draw(new java.awt.geom.Line2D.Float(x - 25 / planScale, y, 
-            x - deltaXToClosestObject + 25 / planScale, y));
+        g2D.draw(new java.awt.geom.Line2D.Float(x - alignmentLineOffset / planScale, y, 
+            x - deltaXToClosestObject + alignmentLineOffset / planScale, y));
       }
     }
     if (deltaYToClosestObject !== Infinity) {
       if (deltaYToClosestObject > 0) {
-        g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, 
-            x, y - deltaYToClosestObject - 25 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(x, y + alignmentLineOffset / planScale, 
+            x, y - deltaYToClosestObject - alignmentLineOffset / planScale));
       } else {
-        g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, 
-            x, y - deltaYToClosestObject + 25 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(x, y - alignmentLineOffset / planScale, 
+            x, y - deltaYToClosestObject + alignmentLineOffset / planScale));
       }
     }
     if (showPointFeedback) {
@@ -5329,22 +5336,25 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
     
     g2D.setPaint(feedbackPaint);
     g2D.setStroke(feedbackStroke);
+    var alignmentLineOffset = this.pointerType === View.PointerType.TOUCH 
+        ? PlanComponent.ALIGNMENT_LINE_OFFSET * 2
+        : PlanComponent.ALIGNMENT_LINE_OFFSET;
     if (deltaXToClosestObject !== Infinity) {
       if (deltaXToClosestObject > 0) {
-        g2D.draw(new java.awt.geom.Line2D.Float(x + 25 / planScale, y, 
-            x - deltaXToClosestObject - 25 / planScale, y));
+        g2D.draw(new java.awt.geom.Line2D.Float(x + alignmentLineOffset / planScale, y, 
+            x - deltaXToClosestObject - alignmentLineOffset / planScale, y));
       } else {
-        g2D.draw(new java.awt.geom.Line2D.Float(x - 25 / planScale, y, 
-            x - deltaXToClosestObject + 25 / planScale, y));
+        g2D.draw(new java.awt.geom.Line2D.Float(x - alignmentLineOffset / planScale, y, 
+            x - deltaXToClosestObject + alignmentLineOffset / planScale, y));
       }
     }
     if (deltaYToClosestObject !== Infinity) {
       if (deltaYToClosestObject > 0) {
-        g2D.draw(new java.awt.geom.Line2D.Float(x, y + 25 / planScale, 
-            x, y - deltaYToClosestObject - 25 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(x, y + alignmentLineOffset / planScale, 
+            x, y - deltaYToClosestObject - alignmentLineOffset / planScale));
       } else {
-        g2D.draw(new java.awt.geom.Line2D.Float(x, y - 25 / planScale, 
-            x, y - deltaYToClosestObject + 25 / planScale));
+        g2D.draw(new java.awt.geom.Line2D.Float(x, y - alignmentLineOffset / planScale, 
+            x, y - deltaYToClosestObject + alignmentLineOffset / planScale));
       }
     }
     if (showPointFeedback) {
