@@ -645,7 +645,7 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
           colorInput.addEventListener("change", listener);
           setTimeout(function() {
               colorInput.click();
-            });
+            }, 100);
         }
       };
     
