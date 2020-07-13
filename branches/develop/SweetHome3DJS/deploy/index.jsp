@@ -406,19 +406,19 @@ var application = new SweetHome3DJSApplication(
      autoWriteDelay:    5000,
      autoWriteUntrackableStateChange: true,
      writingObserver:   {
-       transactionStarted(transaction) {
+       transactionStarted: function(transaction) {
          console.info("Transaction started", transaction);
        },
-       transactionCommitted(transaction) {
+       transactionCommitted: function(transaction) {
          console.info("Transaction committed", transaction);
        },
-       transactionRollbacked(transaction) {
+       transactionRollbacked: function(transaction) {
          console.info("Transaction rollbacked", transaction);
        },
-       connectionFound() {
+       connectionFound: function() {
          console.info("Back to online mode");
        },
-       connectionLost() {
+       connectionLost: function() {
          console.info("Lost server connection - going offline");
        }
      }
