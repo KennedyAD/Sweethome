@@ -88,14 +88,16 @@ body {
   top: 30px;
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 2px);
+  height: calc(50% - 15px);
+  font-family: sans-serif;
+  border-bottom: 2px solid gray; 
 }
 
 #home-3D-view {
-  top: calc(50% + 32px);
+  top: calc(50% + 17px);
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 2px);
+  height: calc(50% - 17px);
 }
 
 @media (orientation: portrait) {
@@ -106,12 +108,12 @@ body {
 
   #home-plan {
     left: 160px;
-    width: calc(100% - 150px);
+    width: calc(100% - 160px);
   }
 
   #home-3D-view {
     left: 160px;
-    width: calc(100% - 150px);
+    width: calc(100% - 160px);
   }
 
 }
@@ -149,14 +151,16 @@ body {
       left: 0%;
       width: calc(100% - 2px);
       height: calc(50% - 60px);
+      border: 1px solid gray; 
     }
 
     #home-plan {
       top: calc(50% - 60px);
       left: 0px;
       width: calc(100% - 2px);
-      height: calc(50% - 60px);
+      height: calc(50% - 59.5px);
       z-index: 1;
+      border: 1px solid gray;
     }
 
     /* Funiture catalog horizontal layout */
@@ -222,14 +226,142 @@ body {
       left: 150px;
       width: calc(50% - 75px - 2px);
       height: calc(100% - 40px - 2px);
+      border: 1px solid gray;
       z-index: 1;
     }
 
     #home-3D-view {
       top: 0%;
       left: calc(50% + 75px);
-      width: calc(50% - 75px - 2px);
+      width: calc(50% - 75px - 1px);
       height: calc(100% - 40px - 2px);
+      border: 1px solid gray; 
+      border-left: 0px; 
+    }
+
+  }
+
+}
+
+/*
+ * Touch devices common CSS - ignored by IE
+ */
+@media (hover: none) {
+
+  body {
+    margin: 5px;
+    height: calc(100% - 10px);
+  }
+
+  /* No scroll bars under Chrome */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+
+  #home-pane-toolbar {
+    top: calc(100% - 40px);
+    height: 40px;
+  }
+
+  #home-pane-toolbar .toolbar-button {
+    margin-top: 0px;
+    height: calc(100% - 2px);
+  }
+
+  @media (orientation: portrait) {
+
+    #home-3D-view {
+      top: 0%;
+      left: 0%;
+      width: calc(100% - 2px);
+      height: calc(50% - 60px);
+      border: 1px solid gray; 
+    }
+
+    #home-plan {
+      top: calc(50% - 60px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: calc(50% - 59.5px);
+      z-index: 1;
+      border: 1px solid gray;
+    }
+
+    /* Funiture catalog horizontal layout */
+
+    .furniture-catalog {
+      overflow: scroll;
+      white-space: nowrap;
+    }
+
+    .furniture-category-label {
+      display: none;
+    }
+
+    .furniture {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      white-space: normal;
+    }
+    
+    .furniture > .furniture-icon {
+      top: 3px;
+    }
+
+    .furniture > .furniture-label {
+      z-index: 2;
+      text-shadow: white 0px -2px;
+    }
+
+    .furniture-category-separator {
+      display: inline-block;
+      height: 80px;
+      padding-right: 10px;
+      margin-right: 10px;
+      border-right: dashed 1px rgba(0, 0, 0, 0.4);
+    }
+
+    /* End of horizontal layout */
+
+    #furniture-catalog {
+      top: calc(100% - 40px - 80px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: 78px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+
+  }
+
+  @media (orientation: landscape) {
+
+    #furniture-catalog {
+      top: 0%;
+      left: 0%;
+      width: 150px;
+      height: calc(100% - 40px - 2px);
+      overflow-x: hidden; 
+      overflow-y: scroll; 
+    }
+
+    #home-plan {
+      top: 0%;
+      left: 150px;
+      width: calc(50% - 75px - 1.5px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray;
+      z-index: 1;
+    }
+
+    #home-3D-view {
+      top: 0%;
+      left: calc(50% + 75px);
+      width: calc(50% - 75px - 1px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray; 
+      border-left: 0px; 
     }
 
   }
@@ -251,10 +383,10 @@ body {
 
 <div id="home-pane">
 
-  <canvas id="home-3D-view" style="background-color: #CCCCCC; border: 1px solid gray;" 
+  <canvas id="home-3D-view" style="background-color: #CCCCCC;" 
           tabIndex="1"></canvas>
 
-  <div id="home-plan" style="background-color: #FFFFFF; border: 1px solid gray; font-family: sans-serif; color: #000000"         
+  <div id="home-plan" style="background-color: #FFFFFF; color: #000000"         
           tabIndex="2" ></div>
 
   <div id="home-pane-toolbar"></div>
@@ -289,7 +421,8 @@ var application = new SweetHome3DJSApplication(
        connectionLost() {
          console.info("Lost server connection - going offline");
        }
-     }});
+     }
+    });
 
 // Set a few settings
 application.getUserPreferences().setNewRoomFloorColor(0xFF9999A0);
