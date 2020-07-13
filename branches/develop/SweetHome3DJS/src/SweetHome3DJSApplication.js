@@ -806,7 +806,7 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
         }
       };
     
-    this.viewFactory.__interfaces = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
+    this.viewFactory.constructor = { __interfaces: ["com.eteks.sweethome3d.viewcontroller.ViewFactory"] };
   }
   return this.viewFactory;
 }
