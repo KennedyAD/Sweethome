@@ -40,7 +40,8 @@
  *                            transactionCommitted: Function, 
  *                            transactionRollbacked: Function, 
  *                            connectionFound: Function, 
- *                            connectionLost: Function}
+ *                            connectionLost: Function,
+ *                            connectionError: Function}
  *         }} [configuration] the recorder configuration
  * @constructor
  * @author Renaud Pawlak
@@ -72,15 +73,18 @@ IncrementalHomeRecorder.prototype.configure = function(configuration) {
   this.configuration = configuration;
 }
 
-/** @private */
+/** 
+ * @private 
+ */
 IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
   var recorder = this;
   var request = new XMLHttpRequest();
   request.open('GET', this.configuration['pingURL'], true);
-  request.addEventListener('load', function (e) {
-    if (request.readyState === 4 && request.status === 200) {
+  request.addEventListener('load', function(ev) {
+    if (request.readyState === XMLHttpRequest.DONE
+        && request.status === 200) {
       if (!recorder.online) {
-        if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.online) {
+        if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionFound) {
           recorder.configuration.writingObserver.connectionFound(recorder);
         }
       }
@@ -88,18 +92,28 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
       setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
     } else {
       if (recorder.online) {
-        if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.onGoingOffline) {
+        if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
           recorder.configuration.writingObserver.connectionLost(recorder);
+        }
+        if (recorder.configuration 
+            && recorder.configuration.writingObserver 
+            && recorder.configuration.writingObserver.connectionError) {
+          recorder.configuration.writingObserver.connectionError(request.status, request.statusText);
         }
       }
       recorder.online = false;
       setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
     }
   });
-  request.addEventListener('error', function (e) {
+  request.addEventListener('error', function(ev) {
     if (recorder.online) {
-      if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.onGoingOffline) {
-        recorder.configuration.writingObserver.onGoingOffline(recorder);
+      if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
+        recorder.configuration.writingObserver.connectionLost(recorder);
+      }
+      if (recorder.configuration 
+          && recorder.configuration.writingObserver 
+          && recorder.configuration.writingObserver.connectionError) {
+        recorder.configuration.writingObserver.connectionError(0, ev);
       }
     }
     recorder.online = false;
@@ -284,15 +298,20 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     this.addUntrackedStateChange(home);
     var recorder = this;
     var transaction = this.beginWriteTransaction(home);
-    var serverErrorHandler = function() {
-      recorder.rollbackWriteTransaction(home, transaction);
-      // TODO: define a retry delay?
-      recorder.scheduleWrite(home, 10000);
-    }
+    var serverErrorHandler = function(status, error) {
+        recorder.rollbackWriteTransaction(home, transaction);
+        if (recorder.configuration 
+            && recorder.configuration.writingObserver 
+            && recorder.configuration.writingObserver.connectionError) {
+          recorder.configuration.writingObserver.connectionError(status, error);
+        }
+        // TODO: define a retry delay?
+        recorder.scheduleWrite(home, 10000);
+      };
     var request = new XMLHttpRequest();
     request.open('POST', this.configuration['writeHomeEditsURL'], true);
-    request.addEventListener('load', function (e) {
-      if (request.readyState === 4) {
+    request.addEventListener('load', function (ev) {
+      if (request.readyState === XMLHttpRequest.DONE) {
         if (request.status === 200) {
           var result = JSON.parse(request.responseText);
           if (result && result.result === transaction.edits.length) {
@@ -300,18 +319,16 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
           } else {
             // Should never happen
             console.error(request.responseText);
-            serverErrorHandler();
+            serverErrorHandler(request.status, request.responseText);
           }
         } else {
-          // Should never happen
-          console.error(request.statusText);
-          serverErrorHandler();
+          serverErrorHandler(request.status, request.statusText);
         }
       }
     });
-    request.addEventListener('error', function (e) {
+    request.addEventListener('error', function(ev) {
       // There was an error connecting with the server: rollback and retry
-      serverErrorHandler();
+      serverErrorHandler(0, ev);
     });
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send('home=' + encodeURIComponent(home.name) + '&' +
@@ -530,7 +547,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
       newObjects[origin.id] = destination;
       newObjectList.push(destination);
     }
-    if (origin.constructor && origin.constructor.__class) {
+    if (origin.constructor 
+        && origin.constructor.__class
+        && origin.constructor.__class != "com.eteks.sweethome3d.tools.URLContent") { // Don't write default class of content
       destination._type = origin.constructor.__class;
     }
     var propertyNames = Object.getOwnPropertyNames(origin);

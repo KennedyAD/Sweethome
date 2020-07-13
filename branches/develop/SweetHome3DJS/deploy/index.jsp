@@ -61,11 +61,6 @@ body {
 
 #home-plan::selection { background: #0042E0; }
 
-#home-pane-toolbar {
-  height: 30px;
-  white-space: nowrap;
-}
-
 #home-pane-toolbar, #furniture-catalog, #home-plan, #home-3D-view {
   position: absolute;
 }
@@ -75,6 +70,8 @@ body {
  */
 #home-pane-toolbar {
   top: 0px;
+  height: 30px;
+  white-space: nowrap;
 }
 
 #furniture-catalog {
@@ -88,16 +85,17 @@ body {
   top: 30px;
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 15px);
+  height: calc(50% - 16px);
   font-family: sans-serif;
-  border-bottom: 2px solid gray; 
+  border-top: 1px solid gray; 
+  border-bottom: 1px solid gray; 
 }
 
 #home-3D-view {
-  top: calc(50% + 17px);
+  top: calc(50% + 16px);
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 17px);
+  height: calc(50% - 16px);
 }
 
 @media (orientation: portrait) {
@@ -420,6 +418,9 @@ var application = new SweetHome3DJSApplication(
        },
        connectionLost: function() {
          console.info("Lost server connection - going offline");
+       },
+       connectionError: function(errorStatus, errorText) {
+         console.info("Connection refused by server");
        }
      }
     });
