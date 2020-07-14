@@ -129,7 +129,7 @@ public class HomeEditsDeserializer {
     }
     return count;
   }
-  
+
   private Unsafe unsafe = null;
 
   private Unsafe getUnsafe() {
@@ -190,7 +190,10 @@ public class HomeEditsDeserializer {
     Object value;
     if (jsonValue instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject)jsonValue;
-      if (DefaultPatternTexture.class.getName().equals(jsonObject.getString("_type"))) {
+      String jsonObjectType = jsonObject.has("_type")
+          ? jsonObject.getString("_type")
+          : URLContent.class.getName(); // Default class for objects with unknown _type
+      if (DefaultPatternTexture.class.getName().equals(jsonObjectType)) {
         try {
           value = this.preferences.getPatternsCatalog().getPattern(jsonObject.getString("name"));
         } catch (IllegalArgumentException ex) {
@@ -203,11 +206,11 @@ public class HomeEditsDeserializer {
                  && Content.class.isAssignableFrom(valueClass)) {
         String url = jsonObject.getString("url");
         try {
-          if (SimpleURLContent.class.getName().equals(jsonObject.getString("_type"))) {
+          if (SimpleURLContent.class.getName().equals(jsonObjectType)) {
             value = new SimpleURLContent(new URL(url.contains("://")
                 ? url
                 : "jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
-          } else if (HomeURLContent.class.getName().equals(jsonObject.getString("_type"))) {
+          } else if (HomeURLContent.class.getName().equals(jsonObjectType)) {
             value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
           } else if (url.startsWith("jar:") && !url.contains("://")) {
             value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
