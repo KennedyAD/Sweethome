@@ -404,25 +404,22 @@ var application = new SweetHome3DJSApplication(
      autoWriteDelay:    5000,
      autoWriteUntrackableStateChange: true,
      writingObserver:   {
-       transactionStarted: function(transaction) {
-         console.info("Transaction started", transaction);
-       },
-       transactionCommitted: function(transaction) {
-         console.info("Transaction committed", transaction);
-       },
-       transactionRollbacked: function(transaction) {
-         console.info("Transaction rollbacked", transaction);
-       },
-       connectionFound: function() {
-         console.info("Back to online mode");
-       },
-       connectionLost: function() {
-         console.info("Lost server connection - going offline");
-       },
-       connectionError: function(errorStatus, errorText) {
-         console.info("Connection refused by server");
+         writeStarted: function(update) {
+           console.info("Update started", update);
+         },
+         writeSucceeded: function(update) {
+           console.info("Update succeeded", update);
+         },
+         writeFailed: function(update, errorStatus, errorText) {
+           console.info("Update failed", update);
+         },
+         connectionFound: function() {
+           console.info("Back to online mode");
+         },
+         connectionLost: function(errorStatus, errorText) {
+           console.info("Lost server connection - going offline");
+         }
        }
-     }
     });
 
 // Set a few settings

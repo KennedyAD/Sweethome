@@ -1522,9 +1522,9 @@ testHome();
 <!--  HTML Elements of the user interface -->
 <div id="home-pane">
 
-  <canvas id="home-3D-view" style="background-color: #CCCCCC; tabIndex="1"></canvas>
+  <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas>
 
-  <div id="home-plan" style="background-color: #FFFFFF; color: #000000"; tabIndex="2" ></div>
+  <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ></div>
 
   <div id="home-pane-toolbar"></div>
 
@@ -1546,23 +1546,20 @@ var application = useServer
            autoWriteDelay:    5000,
            autoWriteUntrackableStateChange: true,
            writingObserver:   {
-               transactionStarted: function(transaction) {
-                 console.info("Transaction started", transaction);
+               writeStarted: function(update) {
+                 console.info("Update started", update);
                },
-               transactionCommitted: function(transaction) {
-                 console.info("Transaction committed", transaction);
+               writeSucceeded: function(update) {
+                 console.info("Update succeeded", update);
                },
-               transactionRollbacked: function(transaction) {
-                 console.info("Transaction rollbacked", transaction);
+               writeFailed: function(update, errorStatus, errorText) {
+                 console.info("Update failed", update);
                },
                connectionFound: function() {
                  console.info("Back to online mode");
                },
-               connectionLost: function() {
+               connectionLost: function(errorStatus, errorText) {
                  console.info("Lost server connection - going offline");
-               },
-               connectionError: function(errorStatus, errorText) {
-                 console.info("Connection refused by server");
                }
              }
           })
