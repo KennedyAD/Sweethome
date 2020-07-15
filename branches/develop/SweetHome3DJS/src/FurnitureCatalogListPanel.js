@@ -139,14 +139,17 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
   });
 
   var touchListener = function(ev) {
-      var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
-      for (k = 0; k < furnitureElements.length; k++) {
-        furnitureElements[k].classList.remove("selected");
-        furnitureElements[k].querySelector(".furniture-add-icon").style.display = "none";
+      var rect = pieceContainer.getBoundingClientRect();
+      if (ev.touches.length === 0 && ev.changedTouches.length === 1
+          && ev.changedTouches[0].clientX >= rect.clientX && ev.changedTouches[0].clientX < rect.clientX + rect.width
+          && ev.changedTouches[0].clientY >= rect.clientY && ev.changedTouches[0].clientY < rect.clientY + rect.height) {
+        var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
+        for (k = 0; k < furnitureElements.length; k++) {
+          furnitureElements[k].classList.remove("selected");
+        }
+        pieceContainer.classList.add("selected");
+        furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
       }
-      pieceContainer.classList.add("selected");
-      pieceContainer.querySelector(".furniture-add-icon").style.display = "block";
-      furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
     };
   if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
@@ -162,7 +165,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
     pieceContainer.addEventListener("mousedown", defaultListener);
     pieceContainer.addEventListener('contextmenu', defaultListener);
   } else {
-    pieceContainer.addEventListener("touchstart", touchListener);
+    pieceContainer.addEventListener("touchend", touchListener);
   }
 
   TextureManager.getInstance().loadTexture(piece.icon, {
@@ -175,11 +178,6 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
     }
   });
 
-  // Create invisible add icon
-  var addIcon = document.createElement("img");
-  addIcon.classList.add("furniture-add-icon");
-  addIcon.style.display = "none";
-  pieceContainer.appendChild(addIcon);
 }
 
 /** 

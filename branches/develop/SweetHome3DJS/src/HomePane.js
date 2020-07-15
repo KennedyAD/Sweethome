@@ -2371,12 +2371,12 @@ var HomePane = (function() {
           this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
         }
         
-        var addIcons = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture-add-icon");
+        var pieceContainers = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture");
         if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
           // Multi touch support for IE and Edge
-          for (i = 0; i < addIcons.length; i++) {
-            addIcons[i].addEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
+          for (i = 0; i < pieceContainers.length; i++) {
+            pieceContainers[i].addEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
           }
           this.controller.getFurnitureCatalogController().getView().getHTMLElement().addEventListener(
               "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
@@ -2384,8 +2384,8 @@ var HomePane = (function() {
           window.addEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
           window.addEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
         } else {
-          for (i = 0; i < addIcons.length; i++) {
-            addIcons[i].addEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+          for (i = 0; i < pieceContainers.length; i++) {
+            pieceContainers[i].addEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
           }
           window.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
@@ -2397,11 +2397,11 @@ var HomePane = (function() {
       }
     } else {
       if (catalogView != null) {
-        var addIcons = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture-add-icon");
+        var pieceContainers = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture");
         if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
-          for (i = 0; i < addIcons.length; i++) {
-            addIcons[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
+          for (i = 0; i < pieceContainers.length; i++) {
+            pieceContainers[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
           }
           this.controller.getFurnitureCatalogController().getView().getHTMLElement().removeEventListener(
               "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
@@ -2409,8 +2409,8 @@ var HomePane = (function() {
           window.removeEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
           window.removeEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
         } else {
-          for (i = 0; i < addIcons.length; i++) {
-            addIcons[i].removeEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
+          for (i = 0; i < pieceContainers.length; i++) {
+            pieceContainers[i].removeEventListener("touchstart", this.furnitureCatalogDragAndDropListener.mousePressed);
           }
           window.removeEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.removeEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
@@ -2462,6 +2462,9 @@ var HomePane = (function() {
         //     });
         // }
         mousePressed: function(ev) {
+          if (!ev.target.classList.contains("selected")) {
+            return;
+          }
           if (ev.button === 0 || ev.targetTouches) {
             ev.preventDefault();
             ev.stopPropagation();
@@ -2479,6 +2482,9 @@ var HomePane = (function() {
           }
         },
         mouseDragged: function(ev) {
+          if (!ev.target.classList.contains("selected")) {
+            return;
+          }
           if (mouseListener.actionStartedInFurnitureCatalog
               && ((ev.buttons & 1) == 1 || ev.targetTouches)
               && mouseListener.selectedPiece != null) {
