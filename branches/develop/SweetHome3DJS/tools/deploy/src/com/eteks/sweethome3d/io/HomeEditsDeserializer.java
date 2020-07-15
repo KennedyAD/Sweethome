@@ -191,8 +191,7 @@ public class HomeEditsDeserializer {
     if (jsonValue instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject)jsonValue;
       String jsonObjectType = jsonObject.has("_type")
-          ? jsonObject.getString("_type")
-          : URLContent.class.getName(); // Default class for objects with unknown _type
+          ? jsonObject.getString("_type") : null;
       if (DefaultPatternTexture.class.getName().equals(jsonObjectType)) {
         try {
           value = this.preferences.getPatternsCatalog().getPattern(jsonObject.getString("name"));
