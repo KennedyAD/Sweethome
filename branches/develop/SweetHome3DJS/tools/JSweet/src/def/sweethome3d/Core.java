@@ -145,6 +145,8 @@ class PropertyChangeSupport {
 
   public native List<PropertyChangeListener> getPropertyChangeListeners(String propertyName);
 
+  public native List<PropertyChangeListener> getPropertyChangeListeners();
+
   public native void firePropertyChange(String propertyName, Object oldValue, Object newValue);
 }
 
