@@ -2462,10 +2462,10 @@ var HomePane = (function() {
         //     });
         // }
         mousePressed: function(ev) {
-          if (!ev.target.classList.contains("selected")) {
-            return;
-          }
           if (ev.button === 0 || ev.targetTouches) {
+            if (!ev.target.classList.contains("selected")) {
+             return;
+            }
             ev.preventDefault();
             ev.stopPropagation();
             var selectedFurniture = homePane.controller.getFurnitureCatalogController().getSelectedFurniture();
@@ -2482,9 +2482,6 @@ var HomePane = (function() {
           }
         },
         mouseDragged: function(ev) {
-          if (!ev.target.classList.contains("selected")) {
-            return;
-          }
           if (mouseListener.actionStartedInFurnitureCatalog
               && ((ev.buttons & 1) == 1 || ev.targetTouches)
               && mouseListener.selectedPiece != null) {
