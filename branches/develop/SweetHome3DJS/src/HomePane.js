@@ -2371,15 +2371,14 @@ var HomePane = (function() {
           this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
         }
         
-        var pieceContainers = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture");
+        var pieceContainers = catalogView.getHTMLElement().querySelectorAll(".furniture");
         if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
           // Multi touch support for IE and Edge
           for (i = 0; i < pieceContainers.length; i++) {
             pieceContainers[i].addEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
           }
-          this.controller.getFurnitureCatalogController().getView().getHTMLElement().addEventListener(
-              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+          catalogView.getHTMLElement().addEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
           // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
           window.addEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
           window.addEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
@@ -2389,22 +2388,20 @@ var HomePane = (function() {
           }
           window.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
-          this.controller.getFurnitureCatalogController().getView().getHTMLElement().addEventListener(
-              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+          catalogView.getHTMLElement().addEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
           window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
         }
       }
     } else {
       if (catalogView != null) {
-        var pieceContainers = this.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelectorAll(".furniture");
+        var pieceContainers = catalogView.getHTMLElement().querySelectorAll(".furniture");
         if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
           for (i = 0; i < pieceContainers.length; i++) {
-            pieceContainers[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
+            pieceContainers[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);            
           }
-          this.controller.getFurnitureCatalogController().getView().getHTMLElement().removeEventListener(
-              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+          catalogView.getHTMLElement().removeEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
           // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
           window.removeEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
           window.removeEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
@@ -2414,8 +2411,7 @@ var HomePane = (function() {
           }
           window.removeEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.removeEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
-          this.controller.getFurnitureCatalogController().getView().getHTMLElement().removeEventListener(
-              "mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+          catalogView.getHTMLElement().removeEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
           window.removeEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
           window.removeEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
         }
@@ -2503,7 +2499,7 @@ var HomePane = (function() {
             }
             mouseListener.draggedImage.style.left = mouseListener.getCoordinates(ev).clientX + "px";
             mouseListener.draggedImage.style.top = mouseListener.getCoordinates(ev).clientY + "px";
-
+            
             var selectedLevel = homePane.home.getSelectedLevel();
             if (selectedLevel == null || selectedLevel.isViewable()) {
               var transferredFurniture = [homePane.controller.getFurnitureController().createHomePieceOfFurniture(mouseListener.selectedPiece)];
@@ -2601,9 +2597,6 @@ var HomePane = (function() {
                   if (pointInView != null) {
                     homePane.controller.getPlanController().stopDraggedItems();
                     view = homePane.controller.getPlanController().getView();
-                    // } else {
-                    //   view = homePane.controller.getFurnitureController().getView();
-                    //   pointInView = mouseListener.getPointInFurnitureView(ev);
                   }
                   if (pointInView != null) {
                     homePane.controller.drop(transferredFurniture, view, pointInView [0], pointInView [1]);
@@ -2623,6 +2616,7 @@ var HomePane = (function() {
           if (ev.pointerType != "mouse") {
             // Multi touch support for IE and Edge
             mouseListener.copyPointerToTargetTouches(ev);
+            return; // Don't support drag and drop from catalog on touch screens under IE/Edge
           }
           mouseListener.mousePressed(ev);
         },
@@ -2630,12 +2624,14 @@ var HomePane = (function() {
           if (ev.pointerType != "mouse") {
             // Multi touch support for IE and Edge
             mouseListener.copyPointerToTargetTouches(ev);
+            return; // Don't support drag and drop from catalog on touch screens under IE/Edge
           }
           mouseListener.mouseDragged(ev);
         },
         windowPointerReleased : function(ev) {
           if (ev.pointerType != "mouse") {
             delete mouseListener.pointerTouches [ev.pointerId];
+            return; // Don't support drag and drop from catalog on touch screens under IE/Edge
           }
           mouseListener.windowMouseReleased(ev);
         },
