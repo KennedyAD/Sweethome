@@ -96,6 +96,15 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "**.readObject(..)",
         "**.writeObject(..)",
         "**.serialVersionUID",
+        // Remove overloaded addPropertyChangeListener / removePropertyChangeListener methods to manage function listeners case
+        "com.eteks.sweethome3d.model.HomeObject.addPropertyChangeListener(java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeObject.removePropertyChangeListener(java.beans.PropertyChangeListener)",
+        // Remove overloaded addPropertyChangeListener / removePropertyChangeListener methods because only their form with a string propertyName is used
+        "com.eteks.sweethome3d.model.Home.addPropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.Home.removePropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.addPropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.removePropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
+        // Unneeded methods of Compass
         "com.eteks.sweethome3d.model.Compass.updateSunLocation(..)",
         "com.eteks.sweethome3d.model.Compass.getSunAzimuth(..)",
         "com.eteks.sweethome3d.model.Compass.getSunElevation(..)",
@@ -201,21 +210,54 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.viewcontroller",
         "com.eteks.sweethome3d.j3d");
 
-    // Replace some Java implementations with some JavaScript-specific
-    // implementations
+    // Replace some Java implementations with some JavaScript-specific implementations
 
+    // Replace overloaded addPropertyChangeListener / removePropertyChangeListener methods to ignore PropertyChangeListener type when listener is a function
+    addAnnotation(
+        "@Replace('if (this.propertyChangeSupport == null) {"
+        + "          this.propertyChangeSupport = new PropertyChangeSupport(this);"
+        + "        }"
+        + "        if (listener === undefined) {"
+        + "          this.propertyChangeSupport.addPropertyChangeListener(<any>propertyName);"
+        + "        } else {"
+        + "          this.propertyChangeSupport.addPropertyChangeListener(propertyName, listener);"
+        + "        }')",
+        "com.eteks.sweethome3d.model.HomeObject.addPropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)");
+    addAnnotation(
+        "@Replace('if (this.propertyChangeSupport != null) {"
+        + "          if (listener === undefined) {"
+        + "            this.propertyChangeSupport.removePropertyChangeListener(<any>propertyName);"
+        + "          } else {"
+        + "            this.propertyChangeSupport.removePropertyChangeListener(propertyName, listener);"
+        + "          }"
+        + "          if (this.propertyChangeSupport.getPropertyChangeListeners().length === 0) {"
+        + "            this.propertyChangeSupport = null;"
+        + "          }"
+        + "        }')",
+        "com.eteks.sweethome3d.model.HomeObject.removePropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)");
     // Manage content without contentContext
     addAnnotation(
-        "@Replace('if (contentFile == null) { return null; } else if (contentFile.indexOf('://') >= 0) { return new URLContent(contentFile); } else { return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); }')",
+        "@Replace('if (contentFile == null) { "
+        + "          return null;"
+        + "        } else if (contentFile.indexOf('://') >= 0) {"
+        + "          return new URLContent(contentFile);"
+        + "        } else { "
+        + "          return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); "
+        + "        }')",
         "com.eteks.sweethome3d.io.HomeXMLHandler.parseContent(java.lang.String,java.lang.String,boolean)");
     // Store home structure if set in the XML file
     addAnnotation(
-        "@Replace('{{ body }}{{ baseIndent }}if(attributes['structure']) { home['structure'] = this.parseContent(attributes['structure'], null, false); }')",
+        "@Replace('{{ body }}{{ baseIndent }}"
+        + "        if (attributes['structure']) { "
+        + "          home['structure'] = this.parseContent(attributes['structure'], null, false); "
+        + "        }')",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setHomeAttributes(..)");
-    // WARNING: this constructor delegates to an erased constructor, so we need to
-    // replace its implementation
+    // WARNING: this constructor delegates to an erased constructor, so we need to replace its implementation
     addAnnotation(
-        "@Replace('this.preferences = preferences; this.viewFactory = viewFactory; this.propertyChangeSupport = new PropertyChangeSupport(this); this.updateProperties();')",
+        "@Replace('this.preferences = preferences; "
+        + "        this.viewFactory = viewFactory; "
+        + "        this.propertyChangeSupport = new PropertyChangeSupport(this); "
+        + "        this.updateProperties();')",
         "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.UserPreferencesController(*,*,*)");
 
     // Force some interface to be mapped as functional types when possible
@@ -295,16 +337,19 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             return true;
           case "deepHashCode":
             printMacroName(invocation.getMethodName());
-            print("(function(array) { function deepHashCode(array) {"
-                + " if (array == null) return 0; var hashCode = 1;"
-                + " for (var i = 0; i < array.length; i++) { var elementHashCode = 1;"
-                + " if (Array.isArray(array[i])) elementHashCode = deepHashCode(array[i]);"
-                + " else if (typeof array[i] == 'number') elementHashCode = (array[i] * 1000) | 0;"
-                + " hashCode = 31 * hashCode + elementHashCode;"
-                + " }"
-                + " return hashCode;"
-                + " }"
-                + "return deepHashCode"
+            print("(function(array) { "
+                + "function deepHashCode(array) {"
+                + "  if (array == null) return 0;"
+                + "  var hashCode = 1;"
+                + "  for (var i = 0; i < array.length; i++) { "
+                + "    var elementHashCode = 1;"
+                + "    if (Array.isArray(array[i])) elementHashCode = deepHashCode(array[i]);"
+                + "    else if (typeof array[i] == 'number') elementHashCode = (array[i] * 1000) | 0;"
+                + "    hashCode = 31 * hashCode + elementHashCode;"
+                + "  }"
+                + "  return hashCode;"
+                + "}"
+                + "return deepHashCode;"
                 + "})(").print(invocation.getArgument(0)).print(")");
             return true;
           }
@@ -314,7 +359,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           case "lastKey":
             printMacroName(invocation.getMethodName());
             print("(function(map) {"
-                + "return map.entries[map.entries.length - 1].key;"
+                + "  return map.entries[map.entries.length - 1].key;"
                 + "})(").print(invocation.getTargetExpression()).print(")");
             return true;
           case "put":

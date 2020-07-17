@@ -219,9 +219,12 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         home.untrackedStateChange[fieldName] = value;        
       }
     }
+
     home.getObserverCamera().addPropertyChangeListener(untrackedStateChangeTracker);
     home.getTopCamera().addPropertyChangeListener(untrackedStateChangeTracker);
-    home.addPropertyChangeListener(untrackedStateChangeTracker);
+    home.addPropertyChangeListener('CAMERA', untrackedStateChangeTracker);
+    home.addPropertyChangeListener('STORED_CAMERAS', untrackedStateChangeTracker);
+    home.addPropertyChangeListener('SELECTED_LEVEL', untrackedStateChangeTracker);
 
     // Schedule first write if needed
     if (recorder.getAutoWriteDelay() > 0) {
