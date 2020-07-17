@@ -117,6 +117,15 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.io.HomeXMLHandler.contentContext",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setContentContext(**)",
         "com.eteks.sweethome3d.io.HomeXMLHandler.isSameContent(**)");
+
+    addAnnotation("jsweet.lang.KeepUses",
+        "com.eteks.sweethome3d.model.HomeObject.addPropertyChangeListener(java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeObject.removePropertyChangeListener(java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.Home.addPropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.Home.removePropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.addPropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.removePropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)");
+    
     if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))) {
       // Only HomeController3D and its dependencies are needed for Sweet Home 3D
       // viewer
@@ -211,30 +220,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.j3d");
 
     // Replace some Java implementations with some JavaScript-specific implementations
-
-    // Replace overloaded addPropertyChangeListener / removePropertyChangeListener methods to ignore PropertyChangeListener type when listener is a function
-    addAnnotation(
-        "@Replace('if (this.propertyChangeSupport == null) {"
-        + "          this.propertyChangeSupport = new PropertyChangeSupport(this);"
-        + "        }"
-        + "        if (listener === undefined) {"
-        + "          this.propertyChangeSupport.addPropertyChangeListener(<any>propertyName);"
-        + "        } else {"
-        + "          this.propertyChangeSupport.addPropertyChangeListener(propertyName, listener);"
-        + "        }')",
-        "com.eteks.sweethome3d.model.HomeObject.addPropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)");
-    addAnnotation(
-        "@Replace('if (this.propertyChangeSupport != null) {"
-        + "          if (listener === undefined) {"
-        + "            this.propertyChangeSupport.removePropertyChangeListener(<any>propertyName);"
-        + "          } else {"
-        + "            this.propertyChangeSupport.removePropertyChangeListener(propertyName, listener);"
-        + "          }"
-        + "          if (this.propertyChangeSupport.getPropertyChangeListeners().length === 0) {"
-        + "            this.propertyChangeSupport = null;"
-        + "          }"
-        + "        }')",
-        "com.eteks.sweethome3d.model.HomeObject.removePropertyChangeListener(java.lang.String,java.beans.PropertyChangeListener)");
+    
     // Manage content without contentContext
     addAnnotation(
         "@Replace('if (contentFile == null) { "
@@ -574,6 +560,42 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           return true;
       }
     }
+    
+    // Replace overloaded addPropertyChangeListener / removePropertyChangeListener
+    // methods to ignore PropertyChangeListener type when listener is a function
+    if (executable.getSimpleName().toString().equals("addPropertyChangeListener")
+        && !hasAnnotationType(executable, JSweetConfig.ANNOTATION_ERASED)
+        && executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.model.HomeObject")) {
+      print("public addPropertyChangeListener(propertyName: any, listener?: any) {");
+      print("  if (this.propertyChangeSupport == null) {"
+          + "    this.propertyChangeSupport = new PropertyChangeSupport(this);"
+          + "  }"
+          + "  if (listener === undefined) {"
+          + "    this.propertyChangeSupport.addPropertyChangeListener(propertyName);"
+          + "  } else {"
+          + "    this.propertyChangeSupport.addPropertyChangeListener(propertyName, listener);"
+          + "  }");
+      print("}");
+      return true;
+    }
+    if (executable.getSimpleName().toString().equals("removePropertyChangeListener")
+        && !hasAnnotationType(executable, JSweetConfig.ANNOTATION_ERASED)
+        && executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.model.HomeObject")) {
+      print("public removePropertyChangeListener(propertyName: any, listener?: any) {");
+      print("  if (this.propertyChangeSupport != null) {"
+          + "    if (listener === undefined) {"
+          + "      this.propertyChangeSupport.removePropertyChangeListener(<any>propertyName);"
+          + "    } else {"
+          + "      this.propertyChangeSupport.removePropertyChangeListener(propertyName, listener);"
+          + "    }"
+          + "    if (this.propertyChangeSupport.getPropertyChangeListeners().length === 0) {"
+          + "      this.propertyChangeSupport = null;"
+          + "    }"
+          + "  }");
+      print("}");
+      return true;
+    }
+    
     return super.substituteExecutable(executable);
   }
 
