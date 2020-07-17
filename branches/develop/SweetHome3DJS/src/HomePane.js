@@ -27,9 +27,12 @@
  * @param {string} controllerMethod the controller method to invoke
  * @param {Object[]} parameters action parameters
  * @constructor
+ * @extends AbstractAction
+ * @ignore
  * @author Emmanuel Puybaret
  */
 function ResourceAction(preferences, resourceClass, actionPrefix, enabled, controller, controllerMethod, parameters) {
+  AbstractAction.call(this);
   if (enabled === undefined) {
     parameters = controllerMethod;
     controllerMethod = controller;
@@ -57,271 +60,18 @@ function ResourceAction(preferences, resourceClass, actionPrefix, enabled, contr
   });
   return this;
 }
-ResourceAction["__interfaces"] = ["java.util.EventListener", "java.lang.Cloneable", "java.awt.event.ActionListener", "javax.swing.Action"];
+ResourceAction.prototype = Object.create(AbstractAction.prototype);
+ResourceAction.prototype.constructor = ResourceAction;
 
 /**
- * Useful constants that can be used as the storage-retrieval key
- * when setting or getting one of this object's properties (text
- * or icon).
+ * Other property keys for Sweet Home 3D.
  */
-/**
- * Not currently used.
- */
-ResourceAction.DEFAULT = "Default";
-/**
- * The key used for storing the <code>String</code> name
- * for the action, used for a menu or button.
- */
-ResourceAction.NAME = "Name";
-/**
- * The key used for storing a short <code>String</code>
- * description for the action, used for tooltip text.
- */
-ResourceAction.SHORT_DESCRIPTION = "ShortDescription";
-/**
- * The key used for storing a longer <code>String</code>
- * description for the action, could be used for context-sensitive help.
- */
-ResourceAction.LONG_DESCRIPTION = "LongDescription";
-/**
- * The key used for storing a small <code>Icon</code>, such
- * as <code>ImageIcon</code>.  This is typically used with
- * menus such as <code>JMenuItem</code>.
- * <p>
- * If the same <code>Action</code> is used with menus and buttons you'll
- * typically specify both a <code>SMALL_ICON</code> and a
- * <code>LARGE_ICON_KEY</code>.  The menu will use the
- * <code>SMALL_ICON</code> and the button will use the
- * <code>LARGE_ICON_KEY</code>.
- */
-ResourceAction.SMALL_ICON = "SmallIcon";
-
-/**
- * The key used to determine the command <code>String</code> for the
- * <code>ActionEvent</code> that will be created when an
- * <code>Action</code> is going to be notified as the result of
- * residing in a <code>Keymap</code> associated with a
- * <code>JComponent</code>.
- */
-ResourceAction.ACTION_COMMAND_KEY = "ActionCommandKey";
-
-/**
- * The key used for storing a <code>KeyStroke</code> to be used as the
- * accelerator for the action.
- */
-ResourceAction.ACCELERATOR_KEY = "AcceleratorKey";
-
-/**
- * The key used for storing an <code>Integer</code> that corresponds to
- * one of the <code>KeyEvent</code> key codes.  The value is
- * commonly used to specify a mnemonic.  For example:
- * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A)</code>
- * sets the mnemonic of <code>myAction</code> to 'a', while
- * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.getExtendedKeyCodeForChar('\u0444'))</code>
- * sets the mnemonic of <code>myAction</code> to Cyrillic letter "Ef".
- */
-ResourceAction.MNEMONIC_KEY = "MnemonicKey";
-
-/**
- * The key used for storing a <code>Boolean</code> that corresponds
- * to the selected state.  This is typically used only for components
- * that have a meaningful selection state.  For example,
- * <code>JRadioButton</code> and <code>JCheckBox</code> make use of
- * this but instances of <code>JMenu</code> don't.
- * <p>
- * This property differs from the others in that it is both read
- * by the component and set by the component.  For example,
- * if an <code>Action</code> is attached to a <code>JCheckBox</code>
- * the selected state of the <code>JCheckBox</code> will be set from
- * that of the <code>Action</code>.  If the user clicks on the
- * <code>JCheckBox</code> the selected state of the <code>JCheckBox</code>
- * <b>and</b> the <code>Action</code> will <b>both</b> be updated.
- */
-ResourceAction.SELECTED_KEY = "SwingSelectedKey";
-
-/**
- * The key used for storing an <code>Integer</code> that corresponds
- * to the index in the text (identified by the <code>NAME</code>
- * property) that the decoration for a mnemonic should be rendered at.  If
- * the value of this property is greater than or equal to the length of
- * the text, it will treated as -1.
- */
-ResourceAction.DISPLAYED_MNEMONIC_INDEX_KEY = "SwingDisplayedMnemonicIndexKey";
-
-/**
- * The key used for storing an <code>Icon</code>.  This is typically
- * used by buttons, such as <code>JButton</code> and
- * <code>JToggleButton</code>.
- * <p>
- * If the same <code>Action</code> is used with menus and buttons you'll
- * typically specify both a <code>SMALL_ICON</code> and a
- * <code>LARGE_ICON_KEY</code>.  The menu will use the
- * <code>SMALL_ICON</code> and the button the <code>LARGE_ICON_KEY</code>.
- */
-ResourceAction.LARGE_ICON_KEY = "SwingLargeIconKey";
-
 ResourceAction.RESOURCE_CLASS = "ResourceClass";
 ResourceAction.RESOURCE_PREFIX = "ResourcePrefix";
 ResourceAction.VISIBLE = "Visible";
 ResourceAction.POPUP = "Popup";
 ResourceAction.TOGGLE_BUTTON_GROUP = "ToggleButtonGroup";
 ResourceAction.TOOL_BAR_ICON = "ToolBarIcon";
-
-/**
- * Sets whether the Action is enabled.
- * @param {boolean} newValue true to enable the action, false to disable it
- */
-ResourceAction.prototype.setEnabled = function(enabled) {
-  if (this.enabled != enabled) {
-    this.enabled = enabled;
-    if (this.changeSupport != null) {
-      this.firePropertyChange("enabled", !enabled, enabled);
-    }
-  }
-}
-
-/**
- * Returns true if the action is enabled.
- *
- * @return {boolean} true if the action is enabled, false otherwise
- */
-ResourceAction.prototype.isEnabled = function() {
-  return this.enabled;
-}
-
-/**
- * Gets the <code>Object</code> associated with the specified key.
- *
- * @param {string} key a string containing the specified <code>key</code>
- * @return {Object} the binding <code>Object</code> stored with this key; if there
- *          are no keys, it will return <code>null</code>
- */
-ResourceAction.prototype.getValue = function(key) {
-  if (key == "enabled") {
-    return this.enabled;
-  }
-  if (this.arrayTable == null) {
-    return null;
-  }
-  return this.arrayTable[key];
-}
-
-/**
- * Sets the <code>Value</code> associated with the specified key.
- *
- * @param {string} key  the <code>String</code> that identifies the stored object
- * @param {Object} newValue the <code>Object</code> to store using this key
- */
-ResourceAction.prototype.putValue = function(key, newValue) {
-  var oldValue = null;
-  if (key == "enabled") {
-    // Treat putValue("enabled") the same way as a call to setEnabled.
-    // If we don't do this it means the two may get out of sync, and a
-    // bogus property change notification would be sent.
-    //
-    // To avoid dependencies between putValue & setEnabled this
-    // directly changes enabled. If we instead called setEnabled
-    // to change enabled, it would be possible for stack
-    // overflow in the case where a developer implemented setEnabled
-    // in terms of putValue.
-    if (newValue == null || !(newValue instanceof Boolean)) {
-      newValue = false;
-    }
-    oldValue = enabled;
-    this.enabled = newValue;
-  } else {
-    if (this.arrayTable == null) {
-      this.arrayTable = {};
-    }
-    if (this.arrayTable[key] != null)
-      oldValue = this.arrayTable[key];
-    // Remove the entry for key if newValue is null
-    // else put in the newValue for key.
-    if (newValue == null) {
-      delete this.arrayTable.key;
-    } else {
-      this.arrayTable[key] = newValue;
-    }
-  }
-  if (this.changeSupport != null) {
-    this.firePropertyChange(key, oldValue, newValue);
-  }
-}
-
-/**
- * @protected
- */
-ResourceAction.prototype.firePropertyChange = function(propertyName, oldValue, newValue) {
-  if (this.changeSupport == null 
-      || (oldValue != null && newValue != null && oldValue == newValue)) {
-    return;
-  }
-  this.changeSupport.firePropertyChange(propertyName, oldValue, newValue);
-}  
-
-/**
- * Returns an array of <code>Object</code> which are keys for
- * which values have been set for this <code>AbstractAction</code>,
- * or <code>null</code> if no keys have values set.
- * @return an array of key objects, or <code>null</code> if no
- *                  keys have values set
- */
-ResourceAction.prototype.getKeys = function() {
-  if (this.arrayTable == null) {
-    return null;
-  }
-  return this.arrayTable.getOwnPropertyNames();
-}
-
-/**
- * Adds a <code>PropertyChangeListener</code> to the listener list.
- * The listener is registered for all properties.
- * <p>
- * A <code>PropertyChangeEvent</code> will get fired in response to setting
- * a bound property, e.g. <code>setFont</code>, <code>setBackground</code>,
- * or <code>setForeground</code>.
- * Note that if the current component is inheriting its foreground,
- * background, or font from its container, then no event will be
- * fired in response to a change in the inherited property.
- *
- * @param {PropertyChangeListener} listener The <code>PropertyChangeListener</code> to be added
- */
-ResourceAction.prototype.addPropertyChangeListener = function(listener) {
-  if (this.changeSupport == null) {
-    this.changeSupport = new PropertyChangeSupport(this);
-  }
-  this.changeSupport.addPropertyChangeListener(listener);
-}
-
-/**
- * Removes a <code>PropertyChangeListener</code> from the listener list.
- * This removes a <code>PropertyChangeListener</code> that was registered
- * for all properties.
- *
- * @param {PropertyChangeListener} listener  the <code>PropertyChangeListener</code> to be removed
- */
-ResourceAction.prototype.removePropertyChangeListener = function(listener) {
-  if (this.changeSupport == null) {
-    return;
-  }
-  this.changeSupport.removePropertyChangeListener(listener);
-}
-
-
-/**
- * Returns an array of all the <code>PropertyChangeListener</code>s added
- * to this AbstractAction with addPropertyChangeListener().
- *
- * @return {PropertyChangeListener[]} all of the <code>PropertyChangeListener</code>s added or an empty
- *         array if no listeners have been added
- */
-ResourceAction.prototype.getPropertyChangeListeners = function() {
-  if (this.changeSupport == null) {
-    return new PropertyChangeListener[0];
-  }
-  return this.changeSupport.getPropertyChangeListeners();
-}
-
 
 /**
  * Reads from the properties of this action.
@@ -332,32 +82,30 @@ ResourceAction.prototype.getPropertyChangeListeners = function() {
  */
 ResourceAction.prototype.readActionProperties = function(preferences, resourceClass, actionPrefix) {
   var propertyPrefix = actionPrefix + ".";
-  this.putValue(ResourceAction.NAME, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.NAME, true));
-  this.putValue(ResourceAction.DEFAULT, this.getValue(ResourceAction.NAME));
+  this.putValue(AbstractAction.NAME, this.getOptionalString(preferences, resourceClass, propertyPrefix + AbstractAction.NAME, true));
+  this.putValue(AbstractAction.DEFAULT, this.getValue(AbstractAction.NAME));
   this.putValue(ResourceAction.POPUP, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.POPUP, true));
-  this.putValue(ResourceAction.SHORT_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.SHORT_DESCRIPTION, false));
-  this.putValue(ResourceAction.LONG_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.LONG_DESCRIPTION, false));
-  var smallIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.SMALL_ICON, false);
+  this.putValue(AbstractAction.SHORT_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + AbstractAction.SHORT_DESCRIPTION, false));
+  this.putValue(AbstractAction.LONG_DESCRIPTION, this.getOptionalString(preferences, resourceClass, propertyPrefix + AbstractAction.LONG_DESCRIPTION, false));
+  var smallIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + AbstractAction.SMALL_ICON, false);
   if (smallIcon != null) {
-    // this.putValue(ResourceAction.SMALL_ICON, SwingTools.getScaledImageIcon(/* getResource */ smallIcon));
-    this.putValue(ResourceAction.SMALL_ICON, smallIcon);
+    this.putValue(AbstractAction.SMALL_ICON, smallIcon);
   }
   var toolBarIcon = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.TOOL_BAR_ICON, false);
   if (toolBarIcon != null) {
-    //this.putValue(ResourceAction.TOOL_BAR_ICON, SwingTools.getScaledImageIcon(/* getResource */ toolBarIcon));
     this.putValue(ResourceAction.TOOL_BAR_ICON, toolBarIcon);
   }
-  var propertyKey = propertyPrefix + ResourceAction.ACCELERATOR_KEY;
+  var propertyKey = propertyPrefix + AbstractAction.ACCELERATOR_KEY;
   var acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey + "." + OperatingSystem.getName(), false);
   if (acceleratorKey == null) {
     acceleratorKey = this.getOptionalString(preferences, resourceClass, propertyKey, false);
   }
   if (acceleratorKey != null) {
-    this.putValue(ResourceAction.ACCELERATOR_KEY, acceleratorKey/*javax.swing.KeyStroke.getKeyStroke(acceleratorKey)*/);
+    this.putValue(AbstractAction.ACCELERATOR_KEY, acceleratorKey/*javax.swing.KeyStroke.getKeyStroke(acceleratorKey)*/);
   }
-  var mnemonicKey = this.getOptionalString(preferences, resourceClass, propertyPrefix + ResourceAction.MNEMONIC_KEY, false);
+  var mnemonicKey = this.getOptionalString(preferences, resourceClass, propertyPrefix + AbstractAction.MNEMONIC_KEY, false);
   if (mnemonicKey != null) {
-    this.putValue(ResourceAction.MNEMONIC_KEY, mnemonicKey/*javax.swing.KeyStroke.getKeyStroke(mnemonicKey).getKeyCode()*/);
+    this.putValue(AbstractAction.MNEMONIC_KEY, mnemonicKey/*javax.swing.KeyStroke.getKeyStroke(mnemonicKey).getKeyCode()*/);
   }
 }
 
@@ -419,6 +167,7 @@ ResourceAction.getLocalizedLabelText = function(preferences, resourceClass, reso
 }
 
 /**
+ * Calls the method on the controller given in constructor.
  * Unsupported operation. Subclasses should override this method if they want
  * to associate a real action to this class.
  * @param {java.awt.event.ActionEvent} ev
@@ -427,7 +176,7 @@ ResourceAction.prototype.actionPerformed = function(ev) {
   if (this.controller != null && this.controllerMethod != null) {
     return this.controller[this.controllerMethod].apply(this.controller, this.parameters);
   } else {
-    throw new UnsupportedOperationException();
+    AbstractAction.prototype.actionPerformed.call(this, ev);
   }
 }
 
@@ -438,7 +187,6 @@ ResourceAction.prototype.actionPerformed = function(ev) {
  * @param {UserPreferences} preferences
  * @param {HomeController} controller
  * @class
- * @extends javax.swing.JRootPane
  * @author Emmanuel Puybaret
  */
 var HomePane = (function() {
@@ -456,6 +204,7 @@ var HomePane = (function() {
     this.controller = controller;
     this.clipboardEmpty = true;
     this.actionMap = {};
+    this.inputMap = {};
     this.createActions(home, preferences, controller);
     // _this.createMenuActions(preferences, controller);
     // _this.createPluginActions((controller != null && controller instanceof com.eteks.sweethome3d.plugin.HomePluginController) ? (controller).getPlugins() : null);
@@ -489,11 +238,21 @@ var HomePane = (function() {
           for (var actionType in homePane.actionMap) {
             var action = homePane.actionMap [actionType];
             if (action.isEnabled()
-                && action.getValue(ResourceAction.ACCELERATOR_KEY) == keyStroke) {
+                && action.getValue(AbstractAction.ACCELERATOR_KEY) == keyStroke) {
               // TODO Allow only action with a button at screen ?
               action.actionPerformed();
               ev.stopPropagation();
+              return;
             }
+          }
+          // Search other actions in input map
+          var actionKey = homePane.inputMap [keyStroke];
+          if (actionKey !== undefined) {
+            var action = homePane.actionMap [actionKey];
+            if (action !== undefined) {
+              action.actionPerformed(ev);
+            }
+            ev.stopPropagation();
           }
         }
       }, true);
@@ -853,19 +612,19 @@ var HomePane = (function() {
     if (group != null) {
       group.push(action);
       action.putValue(ResourceAction.TOGGLE_BUTTON_GROUP, group);
-      action.putValue(ResourceAction.SELECTED_KEY, selected);
+      action.putValue(AbstractAction.SELECTED_KEY, selected);
       action.addPropertyChangeListener(function(ev) {
-          if (ev.getPropertyName() == ResourceAction.SELECTED_KEY) {
+          if (ev.getPropertyName() == AbstractAction.SELECTED_KEY) {
             if (ev.getNewValue()) {
               var group = ev.getSource().getValue(ResourceAction.TOGGLE_BUTTON_GROUP);
               for (var i = 0; i < group.length; i++) {
                 if (action !== group [i] 
-                    && group [i].getValue(ResourceAction.SELECTED_KEY)) {
-                  group [i].putValue(ResourceAction.SELECTED_KEY, false);
+                    && group [i].getValue(AbstractAction.SELECTED_KEY)) {
+                  group [i].putValue(AbstractAction.SELECTED_KEY, false);
                 }
               }
             } else {
-              ev.getSource().putValue(ResourceAction.SELECTED_KEY, false);
+              ev.getSource().putValue(AbstractAction.SELECTED_KEY, false);
             }
           }
         })
@@ -1066,7 +825,7 @@ var HomePane = (function() {
    * @private
    */
   HomePane.prototype.setToggleButtonModelSelected = function(actionType, selected) {
-    this.getAction(actionType).putValue(ResourceAction.SELECTED_KEY, selected);
+    this.getAction(actionType).putValue(AbstractAction.SELECTED_KEY, selected);
   };
   /**
    * Adds listener to <code>home</code> to update
@@ -1106,13 +865,12 @@ var HomePane = (function() {
     this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID).putValue(ResourceAction.VISIBLE, false);
     this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, preferences.getCurrency() != null);
     this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE).putValue(ResourceAction.VISIBLE, preferences.getCurrency() != null);
-    // TODO: support VAT in UserPreferences
-    // this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
-    // this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
-    // this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
-    // this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
-    // this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
-    // this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
+    this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
+    this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
+    this.getAction(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
+    this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
+    this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
+    this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, preferences.isValueAddedTaxEnabled());
   };
   /**
    * Adds a property change listener to <code>planController</code> to update
@@ -1177,7 +935,7 @@ var HomePane = (function() {
     }
     this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JMenu(HomeView.ActionType.OPEN, fileMenu);
     var openRecentHomeAction = this.menuActionMap.get(HomePane.MenuActionType.OPEN_RECENT_HOME_MENU);
-    if (openRecentHomeAction.getValue(ResourceAction.NAME) != null) {
+    if (openRecentHomeAction.getValue(AbstractAction.NAME) != null) {
       var openRecentHomeMenu = new javax.swing.JMenu(openRecentHomeAction);
       this.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$javax_swing_JMenu(HomeView.ActionType.DELETE_RECENT_HOMES, openRecentHomeMenu);
       openRecentHomeMenu.addMenuListener(new HomePane.HomePane$7(this, openRecentHomeMenu, controller));
@@ -1374,7 +1132,7 @@ var HomePane = (function() {
   };
   HomePane.prototype.addActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$javax_swing_JMenu = function(actionType, popup, menu) {
     var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
+    if (action != null && action.getValue(AbstractAction.NAME) != null) {
       menu.add(popup ? new ResourceAction.PopupMenuItemAction(action) : new ResourceAction.MenuItemAction(action));
     }
   };
@@ -1400,7 +1158,7 @@ var HomePane = (function() {
   };
   HomePane.prototype.addToggleActionToMenu$com_eteks_sweethome3d_viewcontroller_HomeView_ActionType$boolean$boolean$javax_swing_JMenu = function(actionType, popup, radioButton, menu) {
     var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
+    if (action != null && action.getValue(AbstractAction.NAME) != null) {
       menu.add(this.createToggleMenuItem(action, popup, radioButton));
     }
   };
@@ -1451,7 +1209,7 @@ var HomePane = (function() {
    */
   HomePane.prototype.addActionToPopupMenu = function(actionType, menu) {
     var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
+    if (action != null && action.getValue(AbstractAction.NAME) != null) {
       menu.add(new ResourceAction.PopupMenuItemAction(action));
       return menu.getComponent(menu.getComponentCount() - 1);
     }
@@ -1467,7 +1225,7 @@ var HomePane = (function() {
    */
   HomePane.prototype.addToggleActionToPopupMenu = function(actionType, radioButton, menu) {
     var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
+    if (action != null && action.getValue(AbstractAction.NAME) != null) {
       menu.add(this.createToggleMenuItem(action, true, radioButton));
     }
   };
@@ -1576,7 +1334,7 @@ var HomePane = (function() {
       }
     }
     var sortOrderAction = this.getAction(HomeView.ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
-    if (sortOrderAction.getValue(ResourceAction.NAME) != null) {
+    if (sortOrderAction.getValue(AbstractAction.NAME) != null) {
       sortMenu.addSeparator();
       var sortOrderCheckBoxMenuItem = new javax.swing.JCheckBoxMenuItem();
       sortOrderCheckBoxMenuItem.setModel(new HomePane.HomePane$10(this, home));
@@ -1594,7 +1352,7 @@ var HomePane = (function() {
    */
   HomePane.prototype.addActionToMap = function(actionType, actions, key) {
     var action = this.getAction(actionType);
-    if (action != null && action.getValue(ResourceAction.NAME) != null) {
+    if (action != null && action.getValue(AbstractAction.NAME) != null) {
       /* put */ (function(m, k, v) { if (m.entries == null)
         m.entries = []; for (var i = 0; i < m.entries.length; i++)
           if (m.entries[i].key == null && k == null || m.entries[i].key.equals != null && m.entries[i].key.equals(k) || m.entries[i].key === k) {
@@ -1669,7 +1427,7 @@ var HomePane = (function() {
     var actionMap = this.getActionMap();
     var unlockBasePlanAction = actionMap.get(HomeView.ActionType.UNLOCK_BASE_PLAN);
     var lockBasePlanAction = actionMap.get(HomeView.ActionType.LOCK_BASE_PLAN);
-    if (unlockBasePlanAction != null && unlockBasePlanAction.getValue(ResourceAction.NAME) != null && lockBasePlanAction.getValue(ResourceAction.NAME) != null) {
+    if (unlockBasePlanAction != null && unlockBasePlanAction.getValue(AbstractAction.NAME) != null && lockBasePlanAction.getValue(AbstractAction.NAME) != null) {
       var lockUnlockBasePlanMenuItem = new javax.swing.JMenuItem(this.createLockUnlockBasePlanAction(home, popup));
       home.addPropertyChangeListener("BASE_PLAN_LOCKED", new HomePane.HomePane$13(this, lockUnlockBasePlanMenuItem, home, popup));
       return lockUnlockBasePlanMenuItem;
@@ -1701,8 +1459,8 @@ var HomePane = (function() {
     var unlockBasePlanAction = this.getAction(HomeView.ActionType.UNLOCK_BASE_PLAN);
     var lockBasePlanAction = this.getAction(HomeView.ActionType.LOCK_BASE_PLAN);
     if (unlockBasePlanAction != null 
-        && unlockBasePlanAction.getValue(ResourceAction.NAME) != null 
-        && lockBasePlanAction.getValue(ResourceAction.NAME) != null) {
+        && unlockBasePlanAction.getValue(AbstractAction.NAME) != null 
+        && lockBasePlanAction.getValue(AbstractAction.NAME) != null) {
       var lockUnlockBasePlanButton = this.createToolBarButton(
           home.isBasePlanLocked() ? unlockBasePlanAction : lockBasePlanAction, additionalClass);
       home.addPropertyChangeListener("BASE_PLAN_LOCKED", function() {
@@ -1728,8 +1486,8 @@ var HomePane = (function() {
     var disableMagnetismAction = this.getAction(HomeView.ActionType.DISABLE_MAGNETISM);
     var enableMagnetismAction = this.getAction(HomeView.ActionType.ENABLE_MAGNETISM);
     if (disableMagnetismAction !== null
-        && disableMagnetismAction.getValue(ResourceAction.NAME) !== null
-        && enableMagnetismAction.getValue(ResourceAction.NAME) !== null) {
+        && disableMagnetismAction.getValue(AbstractAction.NAME) !== null
+        && enableMagnetismAction.getValue(AbstractAction.NAME) !== null) {
       var enableDisableMagnetismButton = this.createToolBarButton(
           preferences.isMagnetismEnabled() ? disableMagnetismAction : enableMagnetismAction, additionalClass);
       preferences.addPropertyChangeListener("MAGNETISM_ENABLED",
@@ -1828,7 +1586,7 @@ var HomePane = (function() {
                 break;
               }
             }
-            action.putValue(ResourceAction.SELECTED_KEY, selectionBoldStyle != null && selectionBoldStyle);
+            action.putValue(AbstractAction.SELECTED_KEY, selectionBoldStyle != null && selectionBoldStyle);
           },
         isItemTextBold: function(itemClass, textStyle) {
           if (textStyle == null) {
@@ -1882,7 +1640,7 @@ var HomePane = (function() {
                 break;
               }
             }
-            action.putValue(ResourceAction.SELECTED_KEY, selectionItalicStyle != null && selectionItalicStyle);
+            action.putValue(AbstractAction.SELECTED_KEY, selectionItalicStyle != null && selectionItalicStyle);
           },
           isItemTextItalic: function(itemClass, textStyle) {
           if (textStyle == null) {
@@ -1904,7 +1662,7 @@ var HomePane = (function() {
     var actionMap = this.getActionMap();
     var importBackgroundImageAction = actionMap.get(HomeView.ActionType.IMPORT_BACKGROUND_IMAGE);
     var modifyBackgroundImageAction = actionMap.get(HomeView.ActionType.MODIFY_BACKGROUND_IMAGE);
-    if (importBackgroundImageAction != null && importBackgroundImageAction.getValue(ResourceAction.NAME) != null && modifyBackgroundImageAction.getValue(ResourceAction.NAME) != null) {
+    if (importBackgroundImageAction != null && importBackgroundImageAction.getValue(AbstractAction.NAME) != null && modifyBackgroundImageAction.getValue(AbstractAction.NAME) != null) {
       var importModifyBackgroundImageMenuItem = new javax.swing.JMenuItem(this.createImportModifyBackgroundImageAction(home, popup));
       this.addBackgroundImageChangeListener(home, new HomePane.HomePane$17(this, importModifyBackgroundImageMenuItem, home, popup));
       return importModifyBackgroundImageMenuItem;
@@ -1967,7 +1725,7 @@ var HomePane = (function() {
     var actionMap = this.getActionMap();
     var hideBackgroundImageAction = actionMap.get(HomeView.ActionType.HIDE_BACKGROUND_IMAGE);
     var showBackgroundImageAction = actionMap.get(HomeView.ActionType.SHOW_BACKGROUND_IMAGE);
-    if (hideBackgroundImageAction != null && hideBackgroundImageAction.getValue(ResourceAction.NAME) != null && showBackgroundImageAction.getValue(ResourceAction.NAME) != null) {
+    if (hideBackgroundImageAction != null && hideBackgroundImageAction.getValue(AbstractAction.NAME) != null && showBackgroundImageAction.getValue(AbstractAction.NAME) != null) {
       var hideShowBackgroundImageMenuItem = new javax.swing.JMenuItem(this.createHideShowBackgroundImageAction(home, popup));
       this.addBackgroundImageChangeListener(home, new HomePane.HomePane$19(this, hideShowBackgroundImageMenuItem, home, popup));
       return hideShowBackgroundImageMenuItem;
@@ -2000,7 +1758,7 @@ var HomePane = (function() {
     var actionMap = this.getActionMap();
     var makeLevelUnviewableAction = actionMap.get(HomeView.ActionType.MAKE_LEVEL_UNVIEWABLE);
     var makeLevelViewableAction = actionMap.get(HomeView.ActionType.MAKE_LEVEL_VIEWABLE);
-    if (makeLevelUnviewableAction != null && makeLevelUnviewableAction.getValue(ResourceAction.NAME) != null && makeLevelViewableAction.getValue(ResourceAction.NAME) != null) {
+    if (makeLevelUnviewableAction != null && makeLevelUnviewableAction.getValue(AbstractAction.NAME) != null && makeLevelViewableAction.getValue(AbstractAction.NAME) != null) {
       var makeLevelUnviewableViewableMenuItem = new javax.swing.JMenuItem(this.createMakeLevelUnviewableViewableAction(home, popup));
       var viewabilityChangeListener = new HomePane.HomePane$20(this, makeLevelUnviewableViewableMenuItem, home, popup);
       var selectedLevel = home.getSelectedLevel();
@@ -2037,7 +1795,7 @@ var HomePane = (function() {
    */
   HomePane.prototype.createGoToPointOfViewMenu = function(home, preferences, controller) {
     var goToPointOfViewAction = this.menuActionMap.get(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
-    if (goToPointOfViewAction.getValue(ResourceAction.NAME) != null) {
+    if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
       var goToPointOfViewMenu = new javax.swing.JMenu(goToPointOfViewAction);
       this.updateGoToPointOfViewMenu(goToPointOfViewMenu, home, controller);
       home.addPropertyChangeListener("STORED_CAMERAS", new HomePane.HomePane$22(this, goToPointOfViewMenu, home, controller));
@@ -2082,7 +1840,7 @@ var HomePane = (function() {
     var actionMap = this.getActionMap();
     var display3DViewInSeparateWindowAction = actionMap.get(HomeView.ActionType.DETACH_3D_VIEW);
     var display3DViewInMainWindowAction = actionMap.get(HomeView.ActionType.ATTACH_3D_VIEW);
-    if (display3DViewInSeparateWindowAction != null && display3DViewInSeparateWindowAction.getValue(ResourceAction.NAME) != null && display3DViewInMainWindowAction.getValue(ResourceAction.NAME) != null) {
+    if (display3DViewInSeparateWindowAction != null && display3DViewInSeparateWindowAction.getValue(AbstractAction.NAME) != null && display3DViewInMainWindowAction.getValue(AbstractAction.NAME) != null) {
       var attachDetach3DViewMenuItem = new javax.swing.JMenuItem(this.createAttachDetach3DViewAction(controller, popup));
       var view3D = controller.getHomeController3D().getView();
       view3D.addAncestorListener(new HomePane.HomePane$24(this, attachDetach3DViewMenuItem, controller, popup));
@@ -2215,13 +1973,13 @@ var HomePane = (function() {
    */
   HomePane.prototype.addToggleActionToToolBar = function(actionType, toolBar, additionalClass) {
     var action = this.getAction(actionType);
-    if (action.getValue(ResourceAction.NAME) != null) {
+    if (action.getValue(AbstractAction.NAME) != null) {
       var button = this.createToolBarButton(action, additionalClass);
-      if (action.getValue(ResourceAction.SELECTED_KEY)) {
+      if (action.getValue(AbstractAction.SELECTED_KEY)) {
         button.classList.add("selected");
       }
       action.addPropertyChangeListener(function(ev) {
-          if (ev.getPropertyName() == ResourceAction.SELECTED_KEY) {
+          if (ev.getPropertyName() == AbstractAction.SELECTED_KEY) {
             if (ev.getNewValue()) {
               button.classList.add("selected");
             } else {
@@ -2231,7 +1989,7 @@ var HomePane = (function() {
         });
       button.addEventListener("click", function() {
           var group = action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP);
-          action.putValue(ResourceAction.SELECTED_KEY, group ? true : !action.getValue(ResourceAction.SELECTED_KEY));
+          action.putValue(AbstractAction.SELECTED_KEY, group ? true : !action.getValue(AbstractAction.SELECTED_KEY));
         });
       this.addButtonToToolBar(toolBar, button);
     }
@@ -2246,7 +2004,7 @@ var HomePane = (function() {
    */
   HomePane.prototype.addActionToToolBar = function(actionType, toolBar, additionalClass) {
     var action = this.getAction(actionType);
-    if (action.getValue(ResourceAction.NAME) != null) {
+    if (action.getValue(AbstractAction.NAME) != null) {
       this.addButtonToToolBar(toolBar, this.createToolBarButton(action, additionalClass));
     }
     return null;
@@ -2267,12 +2025,12 @@ var HomePane = (function() {
         button.action = newAction;
         var icon = newAction.getValue(ResourceAction.TOOL_BAR_ICON);
         if (!icon) {
-          icon = newAction.getValue(ResourceAction.SMALL_ICON);
+          icon = newAction.getValue(AbstractAction.SMALL_ICON);
         }
         button.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/"+ icon + "')";
         button.style.backgroundPosition = "center";
         button.style.backgroundRepeat = "no-repeat";
-        var shortDescription = newAction.getValue(ResourceAction.SHORT_DESCRIPTION);
+        var shortDescription = newAction.getValue(AbstractAction.SHORT_DESCRIPTION);
         if (shortDescription) {
           button.title = shortDescription;
         }
@@ -2290,7 +2048,7 @@ var HomePane = (function() {
           propertyChange: function(ev) {
             if (ev.getPropertyName() == "enabled") {
               button.disabled = !ev.getNewValue();
-            } else if (ev.getPropertyName() == ResourceAction.SHORT_DESCRIPTION) {
+            } else if (ev.getPropertyName() == AbstractAction.SHORT_DESCRIPTION) {
               button.title = ev.getNewValue();
             }
           }
@@ -2343,10 +2101,10 @@ var HomePane = (function() {
     var action = this.getAction(actionType);
     if (action != null) {
       if (name == null) {
-        name = action.getValue(ResourceAction.DEFAULT);
+        name = action.getValue(AbstractAction.DEFAULT);
       }
-      action.putValue(ResourceAction.NAME, name);
-      action.putValue(ResourceAction.SHORT_DESCRIPTION, name);
+      action.putValue(AbstractAction.NAME, name);
+      action.putValue(AbstractAction.SHORT_DESCRIPTION, name);
     }
   };
   /**
@@ -2436,27 +2194,6 @@ var HomePane = (function() {
         pointerTouches: {},
         actionStartedInFurnitureCatalog: false,
 
-        // {
-        //   getActionMap().put("EscapeDragFromFurnitureCatalog", new AbstractAction() {
-        //       public void actionPerformed(ActionEvent ev) {
-        //         if (!escaped) {
-        //           if (previousView != null) {
-        //             if (previousView == controller.getPlanController().getView()) {
-        //               controller.getPlanController().stopDraggedItems();
-        //             }
-        //             if (previousCursor != null) {
-        //               JComponent component = (JComponent)previousView;
-        //               component.setCursor(previousCursor);
-        //               if (component.getParent() instanceof JViewport) {
-        //                 component.getParent().setCursor(previousCursor);
-        //               }
-        //             }
-        //           }
-        //           escaped = true;
-        //         }
-        //       }
-        //     });
-        // }
         mousePressed: function(ev) {
           if (ev.button === 0 || ev.targetTouches) {
             if (!ev.target.classList.contains("selected")) {
@@ -2470,9 +2207,8 @@ var HomePane = (function() {
               mouseListener.previousCursor = null;
               mouseListener.previousView = null;
               mouseListener.escaped = false;
-              // InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
-              // inputMap.put(KeyStroke.getKeyStroke("ESCAPE"), "EscapeDragFromFurnitureCatalog");
-              // setInputMap(WHEN_IN_FOCUSED_WINDOW, inputMap);
+              
+              homePane.inputMap ["ESCAPE"] = "EscapeDragFromFurnitureCatalog";
             }
             mouseListener.actionStartedInFurnitureCatalog = true;
           }
@@ -2484,21 +2220,23 @@ var HomePane = (function() {
             ev.preventDefault();
             ev.stopPropagation();
 
-            if (mouseListener.draggedImage == null) {
-              var img = document.createElement("img");
-              var originalIcon = homePane.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelector(".furniture.selected .furniture-icon");
-              img.src = originalIcon.src;
-              var style = window.getComputedStyle(originalIcon);
-              img.style.width = style.width;
-              img.style.height = style.height;
-              img.style.position = "absolute";
-              img.style.opacity = 0.6;
-              img.style.zIndex = 4;
-              mouseListener.draggedImage = img;
-              document.body.appendChild(img);
+            if (!mouseListener.escaped) {
+              if (mouseListener.draggedImage == null) {
+                var img = document.createElement("img");
+                var originalIcon = homePane.controller.getFurnitureCatalogController().getView().getHTMLElement().querySelector(".furniture.selected .furniture-icon");
+                img.src = originalIcon.src;
+                var style = window.getComputedStyle(originalIcon);
+                img.style.width = style.width;
+                img.style.height = style.height;
+                img.style.position = "absolute";
+                img.style.opacity = 0.6;
+                img.style.zIndex = 4;
+                mouseListener.draggedImage = img;
+                document.body.appendChild(img);
+              }
+              mouseListener.draggedImage.style.left = mouseListener.getCoordinates(ev).clientX + "px";
+              mouseListener.draggedImage.style.top = mouseListener.getCoordinates(ev).clientY + "px";
             }
-            mouseListener.draggedImage.style.left = mouseListener.getCoordinates(ev).clientX + "px";
-            mouseListener.draggedImage.style.top = mouseListener.getCoordinates(ev).clientY + "px";
             
             var selectedLevel = homePane.home.getSelectedLevel();
             if (selectedLevel == null || selectedLevel.isViewable()) {
@@ -2611,6 +2349,7 @@ var HomePane = (function() {
           }
           mouseListener.selectedPiece = null;
           mouseListener.actionStartedInFurnitureCatalog = false;
+          delete homePane.inputMap ["ESCAPE"];
         },
         pointerPressed : function(ev) {
           if (ev.pointerType != "mouse") {
@@ -2646,6 +2385,27 @@ var HomePane = (function() {
           }
         }
       };
+    
+    var escapeAction = new AbstractAction();
+    escapeAction.actionPerformed = function() {
+       if (!mouseListener.escaped) {
+         if (mouseListener.previousView != null) {
+           if (mouseListener.previousView === homePane.controller.getPlanController().getView()) {
+             homePane.controller.getPlanController().stopDraggedItems();
+           }
+           if (mouseListener.previousCursor != null && typeof mouseListener.previousView.setCursor === "function") {
+             mouseListener.previousView.setCursor(mouseListener.previousCursor);
+           }
+         }
+         mouseListener.escaped = true;
+         if (mouseListener.draggedImage != null) {
+           document.body.removeChild(mouseListener.draggedImage);
+           mouseListener.draggedImage = null;
+         }
+       }
+     };
+   this.getActionMap() ["EscapeDragFromFurnitureCatalog"] = escapeAction;
+
     return mouseListener;
   };
   /**
@@ -2814,11 +2574,11 @@ var HomePane = (function() {
       this.addActionToPopupMenu(HomeView.ActionType.DELETE, planViewPopup);
       var selectObjectAction = this.menuActionMap.get(HomePane.MenuActionType.SELECT_OBJECT_MENU);
       var selectObjectMenu_1;
-      if (selectObjectAction.getValue(ResourceAction.NAME) != null) {
+      if (selectObjectAction.getValue(AbstractAction.NAME) != null) {
         selectObjectMenu_1 = new javax.swing.JMenu(selectObjectAction);
         planViewPopup.add(selectObjectMenu_1);
         var toggleObjectSelectionAction = this.menuActionMap.get(HomePane.MenuActionType.TOGGLE_SELECTION_MENU);
-        if (toggleObjectSelectionAction.getValue(ResourceAction.NAME) != null) {
+        if (toggleObjectSelectionAction.getValue(AbstractAction.NAME) != null) {
           var shiftKeyListener = function(ev) {
             selectObjectMenu_1.setAction(_this.menuActionMap.get(ev.isShiftDown() ? HomePane.MenuActionType.TOGGLE_SELECTION_MENU : HomePane.MenuActionType.SELECT_OBJECT_MENU));
             return false;
@@ -2936,7 +2696,7 @@ var HomePane = (function() {
       var selectObjectMenuItem_1 = this.addActionToPopupMenu(HomeView.ActionType.SELECT_OBJECT, view3DPopup);
       if (selectObjectMenuItem_1 != null) {
         var toggleSelectionAction = this.getAction(HomeView.ActionType.TOGGLE_SELECTION);
-        if (toggleSelectionAction.getValue(ResourceAction.NAME) != null) {
+        if (toggleSelectionAction.getValue(AbstractAction.NAME) != null) {
           var shiftKeyListener = function(ev) {
             selectObjectMenuItem_1.setAction(_this.getAction(ev.isShiftDown() ? HomeView.ActionType.TOGGLE_SELECTION : HomeView.ActionType.SELECT_OBJECT));
             return false;
@@ -3196,7 +2956,7 @@ var HomePane = (function() {
           var key = array138[index137];
           {
             var action = actionMap.get(key);
-            var accelerator = action.getValue(ResourceAction.ACCELERATOR_KEY);
+            var accelerator = action.getValue(AbstractAction.ACCELERATOR_KEY);
             if (key !== HomeView.ActionType.CLOSE && key !== HomeView.ActionType.DETACH_3D_VIEW && (key !== HomeView.ActionType.EXIT || !com.eteks.sweethome3d.tools.OperatingSystem.isMacOSX()) && accelerator != null) {
               inputMap.put(accelerator, key);
             }
@@ -4679,7 +4439,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.NAME, key)) {
+      } })(AbstractAction.NAME, key)) {
         return this.pluginAction.getPropertyValue("NAME");
       }
       else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
@@ -4687,7 +4447,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.SHORT_DESCRIPTION, key)) {
+      } })(AbstractAction.SHORT_DESCRIPTION, key)) {
         return this.pluginAction.getPropertyValue("SHORT_DESCRIPTION");
       }
       else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
@@ -4695,7 +4455,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.SMALL_ICON, key)) {
+      } })(AbstractAction.SMALL_ICON, key)) {
         var smallIcon = this.pluginAction.getPropertyValue("SMALL_ICON");
         return smallIcon != null ? IconManager.getInstance().getIcon(smallIcon, HomePane.DEFAULT_SMALL_ICON_HEIGHT, this.__parent) : null;
       }
@@ -4704,7 +4464,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.MNEMONIC_KEY, key)) {
+      } })(AbstractAction.MNEMONIC_KEY, key)) {
         var mnemonic = this.pluginAction.getPropertyValue("MNEMONIC");
         return (function(c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(mnemonic) != null ? new Number(mnemonic.charCodeAt(0)).valueOf() : null;
       }
@@ -4734,7 +4494,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.NAME, key)) {
+      } })(AbstractAction.NAME, key)) {
         this.pluginAction.putPropertyValue("NAME", value);
       }
       else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
@@ -4742,7 +4502,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.SHORT_DESCRIPTION, key)) {
+      } })(AbstractAction.SHORT_DESCRIPTION, key)) {
         this.pluginAction.putPropertyValue("SHORT_DESCRIPTION", value);
       }
       else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
@@ -4750,14 +4510,14 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.SMALL_ICON, key)) {
+      } })(AbstractAction.SMALL_ICON, key)) {
       }
       else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
         return o1.equals(o2);
       }
       else {
         return o1 === o2;
-      } })(ResourceAction.MNEMONIC_KEY, key)) {
+      } })(AbstractAction.MNEMONIC_KEY, key)) {
         this.pluginAction.putPropertyValue("MNEMONIC", new String(String.fromCharCode(/* intValue */ (value | 0))));
       }
       else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
@@ -4813,7 +4573,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             else {
               return o1 === o2;
             } })(/* name */ "NAME", propertyName)) {
-              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.NAME, oldValue, newValue));
+              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), AbstractAction.NAME, oldValue, newValue));
             }
             else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
@@ -4821,7 +4581,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             else {
               return o1 === o2;
             } })(/* name */ "SHORT_DESCRIPTION", propertyName)) {
-              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.SHORT_DESCRIPTION, oldValue, newValue));
+              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), AbstractAction.SHORT_DESCRIPTION, oldValue, newValue));
             }
             else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
@@ -4829,7 +4589,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             else {
               return o1 === o2;
             } })(/* name */ "MNEMONIC", propertyName)) {
-              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.MNEMONIC_KEY, oldValue != null ? new Number(oldValue.charCodeAt(0)).valueOf() : null, newValue));
+              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), AbstractAction.MNEMONIC_KEY, oldValue != null ? new Number(oldValue.charCodeAt(0)).valueOf() : null, newValue));
             }
             else if ( /* equals */(function(o1, o2) { if (o1 && o1.equals) {
               return o1.equals(o2);
@@ -4837,7 +4597,7 @@ HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "co
             else {
               return o1 === o2;
             } })(/* name */ "SMALL_ICON", propertyName)) {
-              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), ResourceAction.SMALL_ICON, oldValue != null ? IconManager.getInstance().getIcon(oldValue, HomePane.DEFAULT_SMALL_ICON_HEIGHT, this.__parent.__parent) : null, newValue));
+              this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), AbstractAction.SMALL_ICON, oldValue != null ? IconManager.getInstance().getIcon(oldValue, HomePane.DEFAULT_SMALL_ICON_HEIGHT, this.__parent.__parent) : null, newValue));
             }
             else {
               this.__parent.propertyChangeSupport.firePropertyChange(new PropertyChangeEvent(ev.getSource(), propertyName, oldValue, newValue));

@@ -583,3 +583,265 @@ Font.prototype.toString = function() {
   font += this.size + ' ' + this.family;
   return font;
 }
+
+
+/**
+ * Creates an empty action.
+ * Adapted from javax.swing.AbstractAction
+ * @constructor
+ * @author Georges Saab
+ */
+function AbstractAction() {
+  this.enabled = true;      
+}
+
+/**
+ * Useful constants that can be used as the storage-retrieval key
+ * when setting or getting one of this object's properties (text
+ * or icon).
+ */
+/**
+ * Not currently used.
+ */
+AbstractAction.DEFAULT = "Default";
+
+/**
+ * The key used for storing the <code>String</code> name
+ * for the action, used for a menu or button.
+ */
+AbstractAction.NAME = "Name";
+
+/**
+ * The key used for storing a short <code>String</code>
+ * description for the action, used for tooltip text.
+ */
+AbstractAction.SHORT_DESCRIPTION = "ShortDescription";
+
+/**
+ * The key used for storing a longer <code>String</code>
+ * description for the action, could be used for context-sensitive help.
+ */
+AbstractAction.LONG_DESCRIPTION = "LongDescription";
+
+/**
+ * The key used for storing a small <code>Icon</code>, such
+ * as <code>ImageIcon</code>.  This is typically used with
+ * menus such as <code>JMenuItem</code>.
+ * <p>If the same <code>Action</code> is used with menus and buttons you'll
+ * typically specify both a <code>SMALL_ICON</code> and a
+ * <code>LARGE_ICON_KEY</code>.  The menu will use the
+ * <code>SMALL_ICON</code> and the button will use the
+ * <code>LARGE_ICON_KEY</code>.
+ */
+AbstractAction.SMALL_ICON = "SmallIcon";
+
+/**
+ * The key used to determine the command <code>String</code> for the
+ * <code>ActionEvent</code> that will be created when an
+ * <code>Action</code> is going to be notified as the result of
+ * residing in a <code>Keymap</code> associated with a
+ * <code>JComponent</code>.
+ */
+AbstractAction.ACTION_COMMAND_KEY = "ActionCommandKey";
+
+/**
+ * The key used for storing a <code>KeyStroke</code> to be used as the
+ * accelerator for the action.
+ */
+AbstractAction.ACCELERATOR_KEY = "AcceleratorKey";
+
+/**
+ * The key used for storing an <code>Integer</code> that corresponds to
+ * one of the <code>KeyEvent</code> key codes.  The value is
+ * commonly used to specify a mnemonic.  For example:
+ * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A)</code>
+ * sets the mnemonic of <code>myAction</code> to 'a', while
+ * <code>myAction.putValue(Action.MNEMONIC_KEY, KeyEvent.getExtendedKeyCodeForChar('\u0444'))</code>
+ * sets the mnemonic of <code>myAction</code> to Cyrillic letter "Ef".
+ */
+AbstractAction.MNEMONIC_KEY = "MnemonicKey";
+
+/**
+ * The key used for storing a <code>Boolean</code> that corresponds
+ * to the selected state.  This is typically used only for components
+ * that have a meaningful selection state.  For example,
+ * <code>JRadioButton</code> and <code>JCheckBox</code> make use of
+ * this but instances of <code>JMenu</code> don't.
+ * <p>This property differs from the others in that it is both read
+ * by the component and set by the component.  For example,
+ * if an <code>Action</code> is attached to a <code>JCheckBox</code>
+ * the selected state of the <code>JCheckBox</code> will be set from
+ * that of the <code>Action</code>.  If the user clicks on the
+ * <code>JCheckBox</code> the selected state of the <code>JCheckBox</code>
+ * <b>and</b> the <code>Action</code> will <b>both</b> be updated.
+ */
+AbstractAction.SELECTED_KEY = "SwingSelectedKey";
+
+/**
+ * The key used for storing an <code>Integer</code> that corresponds
+ * to the index in the text (identified by the <code>NAME</code>
+ * property) that the decoration for a mnemonic should be rendered at.  If
+ * the value of this property is greater than or equal to the length of
+ * the text, it will treated as -1.
+ */
+AbstractAction.DISPLAYED_MNEMONIC_INDEX_KEY = "SwingDisplayedMnemonicIndexKey";
+
+/**
+ * The key used for storing an <code>Icon</code>.  This is typically
+ * used by buttons, such as <code>JButton</code> and
+ * <code>JToggleButton</code>.
+ * <p>If the same <code>Action</code> is used with menus and buttons you'll
+ * typically specify both a <code>SMALL_ICON</code> and a
+ * <code>LARGE_ICON_KEY</code>.  The menu will use the
+ * <code>SMALL_ICON</code> and the button the <code>LARGE_ICON_KEY</code>.
+ */
+AbstractAction.LARGE_ICON_KEY = "SwingLargeIconKey";
+
+/**
+ * Unsupported operation. Subclasses should override this method if they want
+ * to associate a real action to this class.
+ * @param {java.awt.event.ActionEvent} ev
+ */
+AbstractAction.prototype.actionPerformed = function(ev) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Gets the <code>Object</code> associated with the specified key.
+ * @param {string} key a string containing the specified <code>key</code>
+ * @return {Object} the binding <code>Object</code> stored with this key; if there
+ *          are no keys, it will return <code>null</code>
+ */
+AbstractAction.prototype.getValue = function(key) {
+  if (key == "enabled") {
+    return this.enabled;
+  }
+  if (this.arrayTable == null) {
+    return null;
+  }
+  return this.arrayTable[key];
+}
+
+/**
+ * Sets the <code>Value</code> associated with the specified key.
+ * @param {string} key  the <code>String</code> that identifies the stored object
+ * @param {Object} newValue the <code>Object</code> to store using this key
+ */
+AbstractAction.prototype.putValue = function(key, newValue) {
+  var oldValue = null;
+  if (key == "enabled") {
+    if (newValue == null || !(newValue instanceof Boolean)) {
+      newValue = false;
+    }
+    oldValue = enabled;
+    this.enabled = newValue;
+  } else {
+    if (this.arrayTable == null) {
+      this.arrayTable = {};
+    }
+    if (this.arrayTable[key] != null)
+      oldValue = this.arrayTable[key];
+    // Remove the entry for key if newValue is null
+    // else put in the newValue for key.
+    if (newValue == null) {
+      delete this.arrayTable.key;
+    } else {
+      this.arrayTable[key] = newValue;
+    }
+  }
+  if (this.changeSupport != null) {
+    this.firePropertyChange(key, oldValue, newValue);
+  }
+}
+
+/**
+ * Returns true if the action is enabled.
+ * @return {boolean} true if the action is enabled, false otherwise
+ */
+AbstractAction.prototype.isEnabled = function() {
+  return this.enabled;
+}
+
+/**
+ * Sets whether the Action is enabled.
+ * @param {boolean} newValue true to enable the action, false to disable it
+ */
+AbstractAction.prototype.setEnabled = function(enabled) {
+  if (this.enabled != enabled) {
+    this.enabled = enabled;
+    if (this.changeSupport != null) {
+      this.firePropertyChange("enabled", !enabled, enabled);
+    }
+  }
+}
+
+/**
+ * Returns an array of <code>Object</code> which are keys for
+ * which values have been set for this <code>AbstractAction</code>,
+ * or <code>null</code> if no keys have values set.
+ * @return an array of key objects, or <code>null</code> if no keys have values set
+ */
+AbstractAction.prototype.getKeys = function() {
+  if (this.arrayTable == null) {
+    return null;
+  }
+  return this.arrayTable.getOwnPropertyNames();
+}
+
+/**
+ * Supports reporting bound property changes.  This method can be called
+ * when a bound property has changed and it will send the appropriate
+ * <code>PropertyChangeEvent</code> to any registered listener.
+ * @protected
+ */
+AbstractAction.prototype.firePropertyChange = function(propertyName, oldValue, newValue) {
+  if (this.changeSupport == null 
+      || (oldValue != null && newValue != null && oldValue == newValue)) {
+    return;
+  }
+  this.changeSupport.firePropertyChange(propertyName, oldValue, newValue);
+}  
+
+/**
+ * Adds a <code>PropertyChangeListener</code> to the listener list.
+ * The listener is registered for all properties.
+ * <p>A <code>PropertyChangeEvent</code> will get fired in response to setting
+ * a bound property, e.g. <code>setFont</code>, <code>setBackground</code>,
+ * or <code>setForeground</code>.
+ * Note that if the current component is inheriting its foreground,
+ * background, or font from its container, then no event will be
+ * fired in response to a change in the inherited property.
+ * @param {PropertyChangeListener} listener The <code>PropertyChangeListener</code> to be added
+ */
+AbstractAction.prototype.addPropertyChangeListener = function(listener) {
+  if (this.changeSupport == null) {
+    this.changeSupport = new PropertyChangeSupport(this);
+  }
+  this.changeSupport.addPropertyChangeListener(listener);
+}
+
+/**
+ * Removes a <code>PropertyChangeListener</code> from the listener list.
+ * This removes a <code>PropertyChangeListener</code> that was registered
+ * for all properties.
+ * @param {PropertyChangeListener} listener  the <code>PropertyChangeListener</code> to be removed
+ */
+AbstractAction.prototype.removePropertyChangeListener = function(listener) {
+  if (this.changeSupport == null) {
+    return;
+  }
+  this.changeSupport.removePropertyChangeListener(listener);
+}
+
+/**
+ * Returns an array of all the <code>PropertyChangeListener</code>s added
+ * to this AbstractAction with addPropertyChangeListener().
+ * @return {PropertyChangeListener[]} all of the <code>PropertyChangeListener</code>s added or an empty
+ *         array if no listeners have been added
+ */
+AbstractAction.prototype.getPropertyChangeListeners = function() {
+  if (this.changeSupport == null) {
+    return new PropertyChangeListener[0];
+  }
+  return this.changeSupport.getPropertyChangeListeners();
+}
