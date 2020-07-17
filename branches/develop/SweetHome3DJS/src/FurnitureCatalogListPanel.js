@@ -49,9 +49,6 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.toolTipDiv.style.display = "none";
   this.toolTipDiv.style.position = "absolute";
   this.toolTipDiv.style.zIndex = 10;
-  // this.toolTipDiv.addEventListener("mousemove", function(ev) {
-  //   furnitureCatalogListPanel.container.dispatchEvent(ev);
-  // });
   document.body.appendChild(this.toolTipDiv);
 
   for (i = 0; i < catalog.getCategoriesCount() ; i++) {
@@ -81,10 +78,10 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   // Tooltip management
   var currentFurnitureContainer;
   document.addEventListener("mousemove", function(ev) {
-    var rect = furnitureCatalogListPanel.container.getBoundingClientRect();
+    var panelBounds = furnitureCatalogListPanel.container.getBoundingClientRect();
     var coords = ev;
-    if ((coords.clientX >= rect.left) && (coords.clientX < rect.left + furnitureCatalogListPanel.container.clientWidth)
-        && (coords.clientY >= rect.top) && (coords.clientY < rect.top + furnitureCatalogListPanel.container.clientHeight)) {
+    if ((coords.clientX >= panelBounds.left) && (coords.clientX < panelBounds.left + furnitureCatalogListPanel.container.clientWidth)
+        && (coords.clientY >= panelBounds.top) && (coords.clientY < panelBounds.top + furnitureCatalogListPanel.container.clientHeight)) {
       if (furnitureCatalogListPanel.toolTipDiv.style.display == "none") {
         if (furnitureCatalogListPanel.showTooltipTimeOut) {
           clearTimeout(furnitureCatalogListPanel.showTooltipTimeOut);
@@ -138,11 +135,12 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
     furnitureCatalogListPanel.hideTooltip();
   });
 
-  var touchListener = function(ev) {
-      var rect = pieceContainer.getBoundingClientRect();
+  var touchEndListener = function(ev) {
+      var containerBounds = pieceContainer.getBoundingClientRect();
+      // Check touchend event is still within the container bounds 
       if (ev.touches.length === 0 && ev.changedTouches.length === 1
-          && ev.changedTouches[0].clientX >= rect.clientX && ev.changedTouches[0].clientX < rect.clientX + rect.width
-          && ev.changedTouches[0].clientY >= rect.clientY && ev.changedTouches[0].clientY < rect.clientY + rect.height) {
+          && ev.changedTouches[0].clientX >= containerBounds.left && ev.changedTouches[0].clientX < containerBounds.left + containerBounds.width
+          && ev.changedTouches[0].clientY >= containerBounds.top && ev.changedTouches[0].clientY < containerBounds.top + containerBounds.height) {
         var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
         for (k = 0; k < furnitureElements.length; k++) {
           furnitureElements[k].classList.remove("selected");
@@ -153,9 +151,16 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
     };
   if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
+    pieceContainer.addEventListener("pointerup", function(ev) {
+        if (ev.pointerType != "mouse") {
+          ev.touches = [];
+          ev.changedTouches = [{clientX : ev.clientX, clientY : ev.clientY}];
+          touchEndListener(ev);
+          ev.preventDefault();
+        }
+      });
     pieceContainer.addEventListener("pointerdown", function(ev) {
         if (ev.pointerType != "mouse") {
-          touchListener(ev);
           ev.preventDefault();
         }
       });
@@ -165,19 +170,18 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
     pieceContainer.addEventListener("mousedown", defaultListener);
     pieceContainer.addEventListener('contextmenu', defaultListener);
   } else {
-    pieceContainer.addEventListener("touchend", touchListener);
+    pieceContainer.addEventListener("touchend", touchEndListener);
   }
 
   TextureManager.getInstance().loadTexture(piece.icon, {
-    textureUpdated: function(image) {
-      image.classList.add("furniture-icon");
-      pieceContainer.appendChild(image);
-    },
-    textureError:  function(error) {
-      console.error("image cannot be loaded", error);
-    }
-  });
-
+      textureUpdated: function(image) {
+        image.classList.add("furniture-icon");
+        pieceContainer.appendChild(image);
+      },
+      textureError:  function(error) {
+        console.error("image cannot be loaded", error);
+      }
+    });
 }
 
 /** 
@@ -190,18 +194,18 @@ FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) 
   this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(pieceContainer.pieceOfFurniture);
   var icon = this.toolTipDiv.querySelector("img");
   icon.src = pieceContainer.querySelector("img.furniture-icon").src;
-  var rect = this.toolTipDiv.getBoundingClientRect();
-  if (rect.x < 0) {
-    this.toolTipDiv.style.left = ev.clientX + 10 - rect.x;
+  var toolTipBounds = this.toolTipDiv.getBoundingClientRect();
+  if (toolTipBounds.x < 0) {
+    this.toolTipDiv.style.left = ev.clientX + 10 - toolTipBounds.x;
   }
-  if (rect.y < 0) {
-    this.toolTipDiv.style.left = ev.clientY + 10 - rect.y;
+  if (toolTipBounds.y < 0) {
+    this.toolTipDiv.style.left = ev.clientY + 10 - toolTipBounds.y;
   }
-  if (rect.x + rect.width > window.innerWidth) {
-    this.toolTipDiv.style.left = ev.clientX + 10 - (rect.x + rect.width - window.innerWidth);
+  if (toolTipBounds.x + toolTipBounds.width > window.innerWidth) {
+    this.toolTipDiv.style.left = ev.clientX + 10 - (toolTipBounds.x + toolTipBounds.width - window.innerWidth);
   }
-  if (rect.y + rect.height > window.innerHeight) {
-    this.toolTipDiv.style.top = ev.clientY + 10 - (rect.y + rect.height - window.innerHeight);
+  if (toolTipBounds.y + toolTipBounds.height > window.innerHeight) {
+    this.toolTipDiv.style.top = ev.clientY + 10 - (toolTipBounds.y + toolTipBounds.height - window.innerHeight);
   }
 }
 
