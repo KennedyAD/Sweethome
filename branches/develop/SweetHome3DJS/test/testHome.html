@@ -1544,7 +1544,7 @@ var application = useServer
            closeHomeURL:      "http://localhost:8080/closeHome.jsp?home=%s",
            pingURL:           "http://localhost:8080/ping.jsp",
            autoWriteDelay:    5000,
-           autoWriteUntrackableStateChange: true,
+           autoWriteTrackedStateChange: true,
            writingObserver:   {
                writeStarted: function(update) {
                  console.info("Update started", update);

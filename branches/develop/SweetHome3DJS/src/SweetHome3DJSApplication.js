@@ -35,7 +35,8 @@
  *          closeHomeURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
- *          autoWriteUntrackableStateChange: boolean,
+ *          trackedHomeProperties: string[]
+ *          autoWriteTrackedStateChange: boolean,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
  *                            writeFailed: Function, 
@@ -62,6 +63,26 @@ function IncrementalHomeRecorder(application, configuration) {
 }
 IncrementalHomeRecorder.prototype = Object.create(HomeRecorder.prototype);
 IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
+
+/**
+ * Gets the home properties that are tracked by default by incremental recorders.
+ */
+IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
+            HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
+            HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
+            PlanController.SCALE_VISUAL_PROPERTY,
+            'CAMERA', 'STORED_CAMERAS', 'SELECTED_LEVEL'];
+
+/**
+ * Gets the home properties that are tracked and potentially written by this recorder.
+ */
+IncrementalHomeRecorder.prototype.getTrackedHomeProperties = function() {
+  if (this.configuration && this.configuration.trackedHomeProperties) {
+    return this.configuration.trackedHomeProperties;
+  } else {
+    return IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES;
+  }
+}
 
 /**
  * Configures this incremental recorder's behavior.
@@ -179,52 +200,34 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         recorder.scheduleWrite(home);
       };
 
-    // Watching objects / properties without regular undoable edits scope
+    // Tracking objects / properties without regular undoable edits scope
 
-    home._planViewportX = home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
-    home._planViewportY = home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
-    home._planScale = home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
-
-    var untrackedStateChangeTracker = function(ev) {
+    var stateChangeTracker = function(ev) {
       var fieldName = undefined;
-      var value = undefined;
       if (ev.source === home.getObserverCamera()) {
         fieldName = "observerCamera";
-        value = home.getObserverCamera();
       }
       if (ev.source === home.getTopCamera()) {
         fieldName = "topCamera";
-        value = home.getTopCamera();
       }
       if (ev.source === home) {
-        switch(ev.propertyName) {
-          case 'CAMERA':
-            fieldName = "camera";
-            value = ev.newValue;
-            break;
-          case 'STORED_CAMERAS':
-            fieldName = "storedCameras";
-            value = ev.newValue.map(function(camera) { camera.duplicate(); });
-            break;
-          case 'SELECTED_LEVEL':
-            fieldName = "selectedLevel";
-            value = ev.newValue;
-            break;
+        if (recorder.getTrackedHomeProperties().indexOf(ev.propertyName) !== -1) {
+          fieldName = ev.propertyName;
         }
       }
       if (fieldName !== undefined) {
-        if (home.untrackedStateChange === undefined) {
-          home.untrackedStateChange = {};
+        if (home.trackedStateChange === undefined) {
+          home.trackedStateChange = {};
         }
-        home.untrackedStateChange[fieldName] = value;        
+        home.trackedStateChange[fieldName] = true;
       }
     }
 
-    home.getObserverCamera().addPropertyChangeListener(untrackedStateChangeTracker);
-    home.getTopCamera().addPropertyChangeListener(untrackedStateChangeTracker);
-    home.addPropertyChangeListener('CAMERA', untrackedStateChangeTracker);
-    home.addPropertyChangeListener('STORED_CAMERAS', untrackedStateChangeTracker);
-    home.addPropertyChangeListener('SELECTED_LEVEL', untrackedStateChangeTracker);
+    home.getObserverCamera().addPropertyChangeListener(stateChangeTracker);
+    home.getTopCamera().addPropertyChangeListener(stateChangeTracker);
+    for (var i = 0; i < this.getTrackedHomeProperties(); i++) {
+      home.addPropertyChangeListener(this.getTrackedHomeProperties()[i], stateChangeTracker);
+    }
 
     // Schedule first write if needed
     if (recorder.getAutoWriteDelay() > 0) {
@@ -287,7 +290,7 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     if (!this.hasEdits(home)) {
       return;
     }
-    this.addUntrackedStateChange(home);
+    this.addTrackedStateChange(home);
     var recorder = this;
     var update = this.beginUpdate(home);
     var serverErrorHandler = function(status, error) {
@@ -333,8 +336,8 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
  *
  * @param {Home} home the target home
  */
-IncrementalHomeRecorder.prototype.scheduleUntrackableStateChangeToBeSent = function(home) {
-  this.addUntrackedStateChange(home, true);
+IncrementalHomeRecorder.prototype.scheduleTrackedStateChangeToBeSent = function(home) {
+  this.addTrackedStateChange(home, true);
 }
 
 /** 
@@ -342,53 +345,35 @@ IncrementalHomeRecorder.prototype.scheduleUntrackableStateChangeToBeSent = funct
  */
 IncrementalHomeRecorder.prototype.hasEdits = function(home) {
   return (this.queue !== undefined && this.queue.length > 0) 
-      || (this.configuration && this.configuration.autoWriteUntrackableStateChange && this.hasUntrackableStateChange(home));
+      || (this.configuration && this.configuration.autoWriteTrackedStateChange && home.trackedStateChange !== undefined);
 }
 
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.hasUntrackableStateChange = function(home) {
-  return home.untrackedStateChange !== undefined 
-    || home._planViewportX !== home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY)
-    || home._planViewportY !== home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY)
-    || home._planScale !== home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
-}
+IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) {
+  if (home.trackedStateChange !== undefined && (force || (this.configuration && this.configuration.autoWriteTrackedStateChange))) {    
+    var trackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit' };
 
-/** 
- * @private 
- */
-IncrementalHomeRecorder.prototype.addUntrackedStateChange = function(home, force) {
-  if (this.hasUntrackableStateChange(home) && (force || (this.configuration && this.configuration.autoWriteUntrackableStateChange))) {    
-    var untrackedStateChangeUndoableEdit = home.untrackedStateChange;
-    if (untrackedStateChangeUndoableEdit === undefined) {
-      untrackedStateChangeUndoableEdit = {};
+    for (var i = 0; i < this.getTrackedHomeProperties(); i++) {
+      if (home.trackedStateChange[this.getTrackedHomeProperties()[i]]) {
+        if (trackedStateChangeUndoableEdit.homeProperties === undefined) {
+          trackedStateChangeUndoableEdit.homeProperties = {};
+        }
+        trackedStateChangeUndoableEdit.homeProperties[this.getTrackedHomeProperties()[i]] = home.getProperty(this.getTrackedHomeProperties()[i]);
+      }
     }
-    untrackedStateChangeUndoableEdit._type = 'com.eteks.sweethome3d.io.UntrackedStateChangeUndoableEdit';
-    if (home._planViewportX !== home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY)) {
-      untrackedStateChangeUndoableEdit.planViewportX = home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
-    }
-    if (home._planViewportY !== home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY)) {
-      untrackedStateChangeUndoableEdit.planViewportY = home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
-    }
-    if (home._planScale !== home.getProperty(PlanController.SCALE_VISUAL_PROPERTY)) {
-      untrackedStateChangeUndoableEdit.planScale = home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
-    }
-    home.untrackedStateChange = undefined;
-    home._planViewportX = home.getProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
-    home._planViewportY = home.getProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
-    home._planScale = home.getProperty(PlanController.SCALE_VISUAL_PROPERTY);
+
     // Duplication is required to send the state of the cameras and not only the UUIDs
-    if (untrackedStateChangeUndoableEdit.topCamera !== undefined) {
-      untrackedStateChangeUndoableEdit.topCamera = untrackedStateChangeUndoableEdit.topCamera.duplicate();
+    if (home.trackedStateChange.topCamera) {
+      trackedStateChangeUndoableEdit.topCamera = home.getTopCamera().duplicate();
     }
-    if (untrackedStateChangeUndoableEdit.observerCamera !== undefined) {
-      untrackedStateChangeUndoableEdit.observerCamera = untrackedStateChangeUndoableEdit.observerCamera.duplicate();
+    if (home.trackedStateChange.observerCamera) {
+      trackedStateChangeUndoableEdit.observerCamera = home.getObserverCamera().duplicate();
     }
-    if (untrackedStateChangeUndoableEdit.storedCameras !== undefined) {
-      untrackedStateChangeUndoableEdit.storedCameras = untrackedStateChangeUndoableEdit.storedCameras.map(function(camera) { camera.duplicate(); });
-    }
-    this.storeEdit(home, untrackedStateChangeUndoableEdit);
+    // Reset tracked state change and store the edit
+    home.trackedStateChange = undefined;
+    this.storeEdit(home, trackedStateChangeUndoableEdit);
   }
 }
 

@@ -402,7 +402,7 @@ var application = new SweetHome3DJSApplication(
      closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",
      pingURL:           urlBase + "/ping.jsp",
      autoWriteDelay:    5000,
-     autoWriteUntrackableStateChange: true,
+     autoWriteTrackedStateChange: true,
      writingObserver:   {
          writeStarted: function(update) {
            console.info("Update started", update);
