@@ -187,6 +187,12 @@ public class HomeEditsDeserializer {
   @SuppressWarnings("unchecked")
   private <T> T deserialize(Type valueType, Object jsonValue, boolean undo) throws ReflectiveOperationException  {
     Class<T> valueClass = valueType instanceof Class<?> ? (Class<T>)valueType : null;
+    if (valueClass == null && (valueType instanceof ParameterizedType)) {
+      if (((ParameterizedType)valueType).getRawType() == Map.class) {
+        valueType = Map.class;
+        valueClass = (Class<T>)valueType;
+      }
+    }
     Object value;
     if (jsonValue instanceof JSONObject) {
       JSONObject jsonObject = (JSONObject)jsonValue;
@@ -221,6 +227,8 @@ public class HomeEditsDeserializer {
         } catch (MalformedURLException ex) {
           throw new IllegalArgumentException("Can't build URL ", ex);
         }
+      } else if (Map.class.isAssignableFrom(valueClass) ) {
+        value = deserializeMap(valueClass, (JSONObject)jsonValue, undo);
       } else {
         value = deserializeObject(valueClass, (JSONObject)jsonValue, undo);
       }
@@ -254,6 +262,14 @@ public class HomeEditsDeserializer {
     return (T)value;
   }
 
+  private Map<String, Object> deserializeMap(Class<?> type, JSONObject json, boolean undo) throws ReflectiveOperationException {
+    Map<String, Object> map = new HashMap<String, Object>();
+    for (String key : json.keySet()) {
+      map.put(key, deserialize(Object.class, json.get(key), undo));
+    }
+    return map;
+  }
+  
   @SuppressWarnings("unchecked")
   private <T> T deserializeArray(Type arrayType, JSONArray jsonArray, boolean undo) throws ReflectiveOperationException, JSONException {
     Class<T> arrayClass = arrayType instanceof Class<?> ? (Class<T>)arrayType : null;
@@ -361,6 +377,7 @@ public class HomeEditsDeserializer {
       Object jsonValue = jsonObject.get(key);
       Field field = getField(type, key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
+        System.out.println("field: "+field + " / " + field.getGenericType());
         field.set(instance, deserialize(field.getGenericType(), jsonValue, undo));
       }
     }

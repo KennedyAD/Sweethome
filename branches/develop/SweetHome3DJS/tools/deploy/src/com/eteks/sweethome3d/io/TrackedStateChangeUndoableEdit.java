@@ -40,21 +40,15 @@ import com.eteks.sweethome3d.model.ObserverCamera;
  * @author Renaud Pawlak
  */
 @SuppressWarnings("serial")
-public class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
+class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
 
-  private final Home home;
-  private final Camera topCamera;
-  private final ObserverCamera observerCamera;
-  private final Map<String, Object> homeProperties;
-
-  public TrackedStateChangeUndoableEdit(Home home, Camera topCamera, ObserverCamera observerCamera,
-      Map<String, Object> homeProperties) {
-    super();
-    this.home = home;
-    this.topCamera = topCamera;
-    this.observerCamera = observerCamera;
-    this.homeProperties = homeProperties;
-  }
+  private Home home;
+  private Camera topCamera;
+  private ObserverCamera observerCamera;
+  private Camera camera;
+  private Level selectedLevel;
+  private List<Camera> storedCameras;
+  private Map<String, String> homeProperties;
 
   @Override
   public void redo() throws CannotRedoException {
@@ -65,27 +59,19 @@ public class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
     if (this.observerCamera != null) {
       this.home.getObserverCamera().setCamera(this.observerCamera);
     }
-    if (this.homeProperties != null) {
-      for (Map.Entry<String, Object> property : homeProperties.entrySet()) {
-        this.setProperty(property.getKey(), property.getValue());
-      }
+    if (this.camera != null) {
+      this.home.setCamera(this.camera);
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private void setProperty(String name, Object value) {
-    switch (name) {
-    case "CAMERA":
-      this.home.setCamera((Camera) value);
-      break;
-    case "STORED_CAMERAS":
-      this.home.setStoredCameras((List<Camera>) value);
-      break;
-    case "SELECTED_LEVEL":
-      this.home.setSelectedLevel((Level) value);
-      break;
-    default:
-      this.home.setProperty(name, (String) value);
+    if (this.selectedLevel != null) {
+      this.home.setSelectedLevel(this.selectedLevel);
+    }
+    if (this.storedCameras != null) {
+      this.home.setStoredCameras(this.storedCameras);
+    }
+    if (this.homeProperties != null) {
+      for (Map.Entry<String, String> property : homeProperties.entrySet()) {
+        this.home.setProperty(property.getKey(), property.getValue());
+      }
     }
   }
 
