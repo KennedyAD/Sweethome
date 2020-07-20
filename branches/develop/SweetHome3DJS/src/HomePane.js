@@ -240,19 +240,34 @@ function HomePane(containerId, home, preferences, controller) {
         }
       }
     }, true);
-  
+
+  var planComponent = controller.getPlanController().getView(); 
+ 
   // TODO Manage focus once furniture view will exist
   setTimeout(function() {
-      controller.focusedViewChanged(controller.getPlanController().getView());
+      controller.focusedViewChanged(planComponent);
     });
+
+  // Restore viewport position if it exists
+  var viewportX = home.getNumericProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+  var viewportY = home.getNumericProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+  if (viewportX != null && viewportY != null) {
+    planComponent.scrollPane.scrollLeft = viewportX | 0;
+    planComponent.scrollPane.scrollTop = viewportY | 0;
+  }
+
+  planComponent.scrollPane.addEventListener("scroll", function(ev) {
+      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
+      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
+  });
 
   // Create level selector
   var levelSelector = document.createElement("select");
   levelSelector.id = "level-selector";
   levelSelector.style.display = "inline";
   levelSelector.style.position = "absolute";
-  controller.getPlanController().getView().container.appendChild(levelSelector);
-  
+  planComponent.container.appendChild(levelSelector);
+
   var updateLevels = function() {
       levelSelector.innerHTML = "";
       if (home.getLevels().length < 2) {
