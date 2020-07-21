@@ -1138,6 +1138,12 @@ function testHomeModifications() {
       assertTrue("Wrong type", home.getSelectedItems() [0] instanceof Wall); 
     },
     function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
       planController.setMode(PlanController.Mode.SELECTION);
     },
     function() {
@@ -1231,6 +1237,12 @@ function testHomeModifications() {
       planController.releaseMouse(250, 100);
       assertEquals("Wrong room count", 1, home.getSelectedItems().length); 
       assertTrue("Wrong type", home.getSelectedItems() [0] instanceof Room); 
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
     },
     function() {
       planController.setMode(PlanController.Mode.SELECTION);
@@ -1446,9 +1458,8 @@ function testHomeModifications() {
     },
     function() {
       // Store a point of view
-      var storedCameraCount = home.getStoredCameras().length;
       homeController.getHomeController3D().storeCamera("Test");
-      assertEquals("Home wrong stored camera count", storedCameraCount + 1, home.getStoredCameras().length); 
+      assertEquals("Home wrong stored camera count", 2, home.getStoredCameras().length); 
     },
     function() {
       // Change camera
@@ -1523,7 +1534,7 @@ function runActions(actions, index) {
     actions [index]();
     setTimeout(function() {
         runActions(actions, index + 1);
-    });
+    }, useServer ? 150 : 0);
   }
 }
 
@@ -1551,7 +1562,7 @@ testHome();
 <script type="text/javascript">
 // If true, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var useServer = true;
+var useServer = false;
 
 var application = useServer
     ? new SweetHome3DJSApplication(
@@ -1559,7 +1570,7 @@ var application = useServer
            writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp",
            closeHomeURL:      "http://localhost:8080/closeHome.jsp?home=%s",
            pingURL:           "http://localhost:8080/ping.jsp",
-           autoWriteDelay:    5000,
+           autoWriteDelay:    100,
            autoWriteTrackedStateChange: true,
            writingObserver:   {
                writeStarted: function(update) {
