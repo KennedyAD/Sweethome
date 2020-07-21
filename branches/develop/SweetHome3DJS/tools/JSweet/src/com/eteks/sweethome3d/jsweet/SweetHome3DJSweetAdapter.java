@@ -653,6 +653,10 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         newComment.append("@ignore");
       }
     }
+    if (!element.getModifiers().contains(Modifier.PUBLIC) && !element.getModifiers().contains(Modifier.PRIVATE)) {
+      newComment.append("\n");
+      newComment.append("@private");
+    }
 
     return newComment.toString().replace("{*}", "{Object}");
   }
