@@ -259,14 +259,14 @@ function HomePane(containerId, home, preferences, controller) {
   planComponent.scrollPane.addEventListener("scroll", function(ev) {
       controller.setHomeProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
       controller.setHomeProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
-  });
+    });
 
   // Create level selector
   var levelSelector = document.createElement("select");
   levelSelector.id = "level-selector";
   levelSelector.style.display = "inline";
   levelSelector.style.position = "absolute";
-  planComponent.container.appendChild(levelSelector);
+  planComponent.getHTMLElement().appendChild(levelSelector);
 
   var updateLevels = function() {
       levelSelector.innerHTML = "";

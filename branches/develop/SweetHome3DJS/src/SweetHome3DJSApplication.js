@@ -35,7 +35,7 @@
  *          closeHomeURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
- *          trackedHomeProperties: string[]
+ *          trackedHomeProperties: string[],
  *          autoWriteTrackedStateChange: boolean,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
@@ -102,34 +102,34 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
   var request = new XMLHttpRequest();
   request.open('GET', this.configuration['pingURL'], true);
   request.addEventListener('load', function(ev) {
-    if (request.readyState === XMLHttpRequest.DONE
-        && request.status === 200) {
-      if (!recorder.online) {
-        if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionFound) {
-          recorder.configuration.writingObserver.connectionFound(recorder);
+      if (request.readyState === XMLHttpRequest.DONE
+          && request.status === 200) {
+        if (!recorder.online) {
+          if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionFound) {
+            recorder.configuration.writingObserver.connectionFound(recorder);
+          }
         }
+        recorder.online = true;
+        setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
+      } else {
+        if (recorder.online) {
+          if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
+            recorder.configuration.writingObserver.connectionLost(request.status, request.statusText);
+          }
+        }
+        recorder.online = false;
+        setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
       }
-      recorder.online = true;
-      setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
-    } else {
+    });
+  request.addEventListener('error', function(ev) {
       if (recorder.online) {
         if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
-          recorder.configuration.writingObserver.connectionLost(request.status, request.statusText);
+          recorder.configuration.writingObserver.connectionLost(0, ev);
         }
       }
       recorder.online = false;
       setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
-    }
-  });
-  request.addEventListener('error', function(ev) {
-    if (recorder.online) {
-      if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
-        recorder.configuration.writingObserver.connectionLost(0, ev);
-      }
-    }
-    recorder.online = false;
-    setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
-  });
+    });
   request.send();
 }
 
@@ -205,25 +205,25 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     // Tracking objects / properties without regular undoable edits scope
 
     var stateChangeTracker = function(ev) {
-      var fieldName = undefined;
-      if (ev.source === home.getObserverCamera()) {
-        fieldName = "observerCamera";
-      }
-      if (ev.source === home.getTopCamera()) {
-        fieldName = "topCamera";
-      }
-      if (ev.source === home) {
-        if (recorder.getTrackedHomeProperties().indexOf(ev.getPropertyName()) !== -1) {
-          fieldName = ev.getPropertyName();
+        var fieldName = undefined;
+        if (ev.source === home.getObserverCamera()) {
+          fieldName = "observerCamera";
         }
-      }
-      if (fieldName !== undefined) {
-        if (home.trackedStateChange === undefined) {
-          home.trackedStateChange = {};
+        if (ev.source === home.getTopCamera()) {
+          fieldName = "topCamera";
         }
-        home.trackedStateChange[fieldName] = true;
-      }
-    }
+        if (ev.source === home) {
+          if (recorder.getTrackedHomeProperties().indexOf(ev.getPropertyName()) !== -1) {
+            fieldName = ev.getPropertyName();
+          }
+        }
+        if (fieldName !== undefined) {
+          if (home.trackedStateChange === undefined) {
+            home.trackedStateChange = {};
+          }
+          home.trackedStateChange[fieldName] = true;
+        }
+      };
 
     home.getObserverCamera().addPropertyChangeListener(stateChangeTracker);
     home.getTopCamera().addPropertyChangeListener(stateChangeTracker);
@@ -308,25 +308,25 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     var request = new XMLHttpRequest();
     request.open('POST', this.configuration['writeHomeEditsURL'], true);
     request.addEventListener('load', function (ev) {
-      if (request.readyState === XMLHttpRequest.DONE) {
-        if (request.status === 200) {
-          var result = JSON.parse(request.responseText);
-          if (result && result.result === update.edits.length) {
-            recorder.commitUpdate(home, update);
+        if (request.readyState === XMLHttpRequest.DONE) {
+          if (request.status === 200) {
+            var result = JSON.parse(request.responseText);
+            if (result && result.result === update.edits.length) {
+              recorder.commitUpdate(home, update);
+            } else {
+              // Should never happen
+              console.error(request.responseText);
+              serverErrorHandler(request.status, request.responseText);
+            }
           } else {
-            // Should never happen
-            console.error(request.responseText);
-            serverErrorHandler(request.status, request.responseText);
+            serverErrorHandler(request.status, request.statusText);
           }
-        } else {
-          serverErrorHandler(request.status, request.statusText);
         }
-      }
-    });
+      });
     request.addEventListener('error', function(ev) {
-      // There was an error connecting with the server: rollback and retry
-      serverErrorHandler(0, ev);
-    });
+        // There was an error connecting with the server: rollback and retry
+        serverErrorHandler(0, ev);
+      });
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send('home=' + encodeURIComponent(home.name) + '&' +
              'updateId=' + update.id + '&' +
@@ -349,7 +349,10 @@ IncrementalHomeRecorder.prototype.hasEdits = function(home) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) {
-  if (home.trackedStateChange !== undefined && (force || (this.configuration && this.configuration.autoWriteTrackedStateChange))) {    
+  if (home.trackedStateChange !== undefined 
+      && (force 
+          || (this.configuration 
+              && this.configuration.autoWriteTrackedStateChange))) {    
     var trackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit' };
 
     for (var i = 0; i < this.getTrackedHomeProperties().length; i++) {
@@ -814,6 +817,5 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
 }
 
 SweetHome3DJSApplication.prototype.createHomeController = function(home) {
-  return new HomeController(home, this.getUserPreferences(), this.getViewFactory());
-  // TODO Should be: return new HomeController(home, this, this.getViewFactory());
+  return new HomeController(home, this, this.getViewFactory());
 }

@@ -262,14 +262,14 @@ public class HomeEditsDeserializer {
     return (T)value;
   }
 
-  private Map<String, Object> deserializeMap(Class<?> type, JSONObject json, boolean undo) throws ReflectiveOperationException {
+  private Map<String, Object> deserializeMap(Class<?> type, JSONObject jsonMap, boolean undo) throws ReflectiveOperationException {
     Map<String, Object> map = new HashMap<String, Object>();
-    for (String key : json.keySet()) {
-      map.put(key, deserialize(Object.class, json.get(key), undo));
+    for (String key : jsonMap.keySet()) {
+      map.put(key, deserialize(Object.class, jsonMap.get(key), undo));
     }
     return map;
   }
-  
+
   @SuppressWarnings("unchecked")
   private <T> T deserializeArray(Type arrayType, JSONArray jsonArray, boolean undo) throws ReflectiveOperationException, JSONException {
     Class<T> arrayClass = arrayType instanceof Class<?> ? (Class<T>)arrayType : null;
@@ -377,7 +377,6 @@ public class HomeEditsDeserializer {
       Object jsonValue = jsonObject.get(key);
       Field field = getField(type, key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
-        System.out.println("field: "+field + " / " + field.getGenericType());
         field.set(instance, deserialize(field.getGenericType(), jsonValue, undo));
       }
     }

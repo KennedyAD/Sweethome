@@ -1445,6 +1445,22 @@ function testHomeModifications() {
       assertEquals("Wrong undone walls alpha", 0, home.getEnvironment().getWallsAlpha()); 
     },
     function() {
+      // Store a point of view
+      var storedCameraCount = home.getStoredCameras().length;
+      homeController.getHomeController3D().storeCamera("Test");
+      assertEquals("Home wrong stored camera count", storedCameraCount + 1, home.getStoredCameras().length); 
+    },
+    function() {
+      // Change camera
+      var camera = home.getCamera();
+      if (camera === home.getTopCamera()) {
+        homeController.getHomeController3D().viewFromObserver();  
+      } else {
+        homeController.getHomeController3D().viewFromTop();
+      }
+      assertTrue("No camera change", home.getCamera() !== camera); 
+    },
+    function() {
       planController.selectItem(home.getCompass());
       planView.makeSelectionVisible();
     },
@@ -1535,7 +1551,7 @@ testHome();
 <script type="text/javascript">
 // If true, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var useServer = false;
+var useServer = true;
 
 var application = useServer
     ? new SweetHome3DJSApplication(

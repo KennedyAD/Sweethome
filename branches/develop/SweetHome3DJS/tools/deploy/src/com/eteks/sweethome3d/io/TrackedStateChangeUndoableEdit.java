@@ -32,7 +32,9 @@ import com.eteks.sweethome3d.model.ObserverCamera;
 
 /**
  * An undoable edit for objects/values that are not tracked in the scope of
- * regular undoable edits.
+ * regular undoable edits, but which should be still saved in a home.
+ * This class is instantiated only by reflection by {@link HomeEditsDeserializer} on server side
+ * which fills the value of its fields with the ones received by a map sent by client.
  *
  * WARNING: do not change the fully qualified name of this class unless you
  * change the associated incremental recorder.
@@ -41,14 +43,16 @@ import com.eteks.sweethome3d.model.ObserverCamera;
  */
 @SuppressWarnings("serial")
 class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
-
-  private Home home;
-  private Camera topCamera;
-  private ObserverCamera observerCamera;
-  private Camera camera;
-  private Level selectedLevel;
-  private List<Camera> storedCameras;
+  private Home                home;
+  private Camera              topCamera;
+  private ObserverCamera      observerCamera;
+  private Camera              camera;
+  private Level               selectedLevel;
+  private List<Camera>        storedCameras;
   private Map<String, String> homeProperties;
+
+  private TrackedStateChangeUndoableEdit() {
+  }
 
   @Override
   public void redo() throws CannotRedoException {
@@ -69,10 +73,9 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
       this.home.setStoredCameras(this.storedCameras);
     }
     if (this.homeProperties != null) {
-      for (Map.Entry<String, String> property : homeProperties.entrySet()) {
+      for (Map.Entry<String, String> property : this.homeProperties.entrySet()) {
         this.home.setProperty(property.getKey(), property.getValue());
       }
     }
   }
-
 }
