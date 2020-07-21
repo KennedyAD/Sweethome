@@ -1534,7 +1534,7 @@ function runActions(actions, index) {
     actions [index]();
     setTimeout(function() {
         runActions(actions, index + 1);
-    }, useServer ? 150 : 0);
+    });
   }
 }
 
@@ -1570,7 +1570,7 @@ var application = useServer
            writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp",
            closeHomeURL:      "http://localhost:8080/closeHome.jsp?home=%s",
            pingURL:           "http://localhost:8080/ping.jsp",
-           autoWriteDelay:    100,
+           autoWriteDelay:    1000,
            autoWriteTrackedStateChange: true,
            writingObserver:   {
                writeStarted: function(update) {

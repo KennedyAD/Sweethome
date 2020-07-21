@@ -56,10 +56,16 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   public void redo() throws CannotRedoException {
     super.redo();
     if (this.topCamera != null) {
-      this.home.getTopCamera().setCamera(this.topCamera);
+      Camera topCamera = this.home.getTopCamera();
+      topCamera.setCamera(this.topCamera);
+      topCamera.setTime(this.topCamera.getTime());
+      topCamera.setLens(this.topCamera.getLens());
     }
     if (this.observerCamera != null) {
-      this.home.getObserverCamera().setCamera(this.observerCamera);
+      Camera observerCamera = this.home.getObserverCamera();
+      observerCamera.setCamera(this.observerCamera);
+      observerCamera.setTime(this.observerCamera.getTime());
+      observerCamera.setLens(this.observerCamera.getLens());
     }
     if (this.camera != null) {
       this.home.setCamera(this.camera);
