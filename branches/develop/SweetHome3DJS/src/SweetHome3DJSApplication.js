@@ -72,7 +72,7 @@ IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
             HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
             PlanController.SCALE_VISUAL_PROPERTY,
             // supported built-in properties
-            'CAMERA', 'STORED_CAMERAS', 'SELECTED_LEVEL'];
+            'CAMERA', 'SELECTED_LEVEL'];
 
 /**
  * Gets the home properties that are tracked and potentially written by this recorder.
@@ -152,21 +152,15 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
 /**
  * @private
  */
-IncrementalHomeRecorder.prototype.checkPoint = function(home, newObjects) {
+IncrementalHomeRecorder.prototype.checkPoint = function(home) {
   var recorder = this;
   if (!recorder.existingHomeObjects) {
     recorder.existingHomeObjects = {};
   }
-  if (newObjects !== undefined) {
-    for (var id in newObjects) {
-      recorder.existingHomeObjects[home.id][id] = id;
-    }
-  } else {
-    recorder.existingHomeObjects[home.id] = {};
-    home.getHomeObjects().forEach(function(homeObject) {
-        recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
-      });
-  }
+  recorder.existingHomeObjects[home.id] = {};
+  home.getHomeObjects().forEach(function(homeObject) {
+      recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
+    });
 }
 
 /**
@@ -295,10 +289,6 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
  */
 IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   try {
-    // Do not send anything if in modification state
-    if (this.application.getHomeController(home).getPlanController().isModificationState()) {
-      return;
-    }
     // Check if something to be sent to avoid useless updates.
     if (!this.hasEdits(home)) {
       return;
@@ -370,9 +360,6 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
             break;
           case 'SELECTED_LEVEL':
             trackedStateChangeUndoableEdit.selectedLevel = home.getSelectedLevel();
-            break;
-          case 'STORED_CAMERAS':
-            trackedStateChangeUndoableEdit.storedCameras = home.getStoredCameras();
             break;
           default:
             // Non-builtin properties (may be user-defined)
@@ -456,8 +443,10 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   }
   this.queue.push(processedEdit);
   
-  // Update objects state 
-  this.checkPoint(home, newObjects);
+  if (edit._type !== 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit') {
+    // Update objects state 
+    this.checkPoint(home);
+  }
 }
 
 /** 
