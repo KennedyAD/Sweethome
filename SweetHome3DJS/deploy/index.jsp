@@ -400,7 +400,7 @@ var application = new SweetHome3DJSApplication(
      writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp",
      closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",
      pingURL:           urlBase + "/ping.jsp",
-     autoWriteDelay:    5000,
+     autoWriteDelay:    1000,
      autoWriteTrackedStateChange: true,
      writingObserver:   {
          writeStarted: function(update) {
