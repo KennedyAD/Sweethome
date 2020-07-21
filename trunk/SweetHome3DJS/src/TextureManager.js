@@ -64,7 +64,13 @@ TextureManager.prototype.clear = function() {
  * @param {URLContent} content  an object containing an image
  * @param {number}  [angle]       the rotation angle applied to the image
  * @param {boolean} [synchronous] if <code>true</code>, this method will return only once image content is loaded.
- * @param textureObserver the observer that will be notified once the texture is available
+ * @param {{textureUpdated, textureError, progression}} textureObserver 
+ *             the observer that will be notified once the texture is available. 
+ *             It may define <code>textureUpdated(textureImage)</code>, <code>textureError(error)</code>, 
+ *             <code>progression(part, info, percentage)</code> optional methods 
+ *             with <code>textureImage<code> being an instance of <code>Image</code>, 
+ *             <code>error</code>, <code>part</code>, <code>info</code> strings 
+ *             and <code>percentage</code> a number.
  */
 TextureManager.prototype.loadTexture = function(content, angle, synchronous, textureObserver) {
   if (synchronous === undefined) {
@@ -79,7 +85,30 @@ TextureManager.prototype.loadTexture = function(content, angle, synchronous, tex
   }
   var contentUrl = content.getURL();
   if (contentUrl in this.loadedTextureImages) {
-    textureObserver.textureUpdated(this.loadedTextureImages [contentUrl]);
+    if (textureObserver.textureUpdated !== undefined) {
+      textureObserver.textureUpdated(this.loadedTextureImages [contentUrl]);
+    }
+  } else if (synchronous) {
+    var textureManager = this;
+    this.load(contentUrl, synchronous, {
+        textureLoaded : function(textureImage) {
+          // Note that angle is managed with appearance#setTextureTransform
+          textureManager.loadedTextureImages [contentUrl] = textureImage;
+          if (textureObserver.textureUpdated !== undefined) {
+            textureObserver.textureUpdated(textureImage);
+          }
+        },
+        textureError : function(error) {
+          if (textureObserver.textureError !== undefined) {
+            textureObserver.textureError(error);
+          }
+        },
+        progression : function(part, info, percentage) {
+          if (textureObserver.progression !== undefined) {
+            textureObserver.progression(part, info, percentage);
+          }
+        }
+      });
   } else {
     if (contentUrl in this.loadingTextureObservers) {
       // If observers list exists, content texture is already being loaded
@@ -91,58 +120,73 @@ TextureManager.prototype.loadTexture = function(content, angle, synchronous, tex
       observers.push(textureObserver);
       this.loadingTextureObservers [contentUrl] = observers;
       var textureManager = this;
-      this.load(contentUrl, synchronous,
-          {
-            textureLoaded : function(textureImage) {
-              var observers = textureManager.loadingTextureObservers [contentUrl];
-              if (observers) {
-                delete textureManager.loadingTextureObservers [contentUrl];
-                // Note that angle is managed with appearance#setTextureTransform
-                textureManager.loadedTextureImages [contentUrl] = textureImage;
-                for (var i = 0; i < observers.length; i++) {
+      this.load(contentUrl, synchronous, {
+          textureLoaded : function(textureImage) {
+            var observers = textureManager.loadingTextureObservers [contentUrl];
+            if (observers) {
+              delete textureManager.loadingTextureObservers [contentUrl];
+              // Note that angle is managed with appearance#setTextureTransform
+              textureManager.loadedTextureImages [contentUrl] = textureImage;
+              for (var i = 0; i < observers.length; i++) {
+                if (observers [i].textureUpdated !== undefined) {
                   observers [i].textureUpdated(textureImage);
                 }
               }
-            },
-            textureError : function(err) {
-              var observers = textureManager.loadingTextureObservers [contentUrl];
-              if (observers) {
-                delete textureManager.loadingTextureObservers [contentUrl];
-                for (var i = 0; i < observers.length; i++) {
-                  observers [i].textureError(err);
+            }
+          },
+          textureError : function(error) {
+            var observers = textureManager.loadingTextureObservers [contentUrl];
+            if (observers) {
+              delete textureManager.loadingTextureObservers [contentUrl];
+              for (var i = 0; i < observers.length; i++) {
+                if (observers [i].textureError !== undefined) {
+                  observers [i].textureError(error);
                 }
               }
-            },
-            progression : function(part, info, percentage) {
-              var observers = textureManager.loadingTextureObservers [contentUrl];
-              if (observers) {
-                for (var i = 0; i < observers.length; i++) {
-                  observers [i].progression(part, info, percentage);
-                } 
-              }
             }
-          });
+          },
+          progression : function(part, info, percentage) {
+            var observers = textureManager.loadingTextureObservers [contentUrl];
+            if (observers) {
+              for (var i = 0; i < observers.length; i++) {
+                if (observers [i].progression !== undefined) {
+                  observers [i].progression(part, info, percentage);
+                }
+              } 
+            }
+          }
+        });
     }
   }
 }
 
 /**
+ * Manages loading of the image at the given <code>url</code>.
+ * @param {string}  url      the URL of the image
+ * @param {boolean} [synchronous] if <code>true</code>, this method will return only once image content is loaded.
+ * @param {{textureLoaded, textureError, progression}} loadingTextureObserver 
+ *             the observer that will be notified once the texture is available. 
+ *             It must define <code>textureLoaded(textureImage)</code>,  <code>textureError(error)</code>, 
+ *             <code>progression(part, info, percentage)</code> methods  
+ *             with <code>textureImage<code> being an instance of <code>Image</code>, 
+ *             <code>error</code>, <code>part</code>, <code>info</code> strings 
+ *             and <code>percentage</code> a number.
  * @private
  */
-TextureManager.prototype.load = function(url, synchronous, textureObserver) {
-  textureObserver.progression(TextureManager.READING_TEXTURE, url, 0);
+TextureManager.prototype.load = function(url, synchronous, loadingTextureObserver) {
+  loadingTextureObserver.progression(TextureManager.READING_TEXTURE, url, 0);
   var textureImage = new Image();
   textureImage.url = url;
   var imageErrorListener = function(ev) {
       textureImage.removeEventListener("load", imageLoadingListener);
       textureImage.removeEventListener("error", imageErrorListener);
-      textureObserver.textureError("Can't load " + url);
+      loadingTextureObserver.textureError("Can't load " + url);
     };
   var imageLoadingListener = function() {
       textureImage.removeEventListener("load", imageLoadingListener);
       textureImage.removeEventListener("error", imageErrorListener);
-      textureObserver.progression(TextureManager.READING_TEXTURE, url, 1);
-      textureObserver.textureLoaded(textureImage);
+      loadingTextureObserver.progression(TextureManager.READING_TEXTURE, url, 1);
+      loadingTextureObserver.textureLoaded(textureImage);
     };
   if (url.indexOf("jar:") === 0) {
     var entrySeparatorIndex = url.indexOf("!/");
@@ -158,10 +202,11 @@ TextureManager.prototype.load = function(url, synchronous, textureObserver) {
               var imageData = imageEntry.asBinary();
               var base64Image = btoa(imageData);
               // Detect quickly if the image is a PNG using transparency
-              textureImage.transparent = ZIPTools.isTranparentImage(imageData);
+              textureImage.transparent = ZIPTools.isTransparentImage(imageData);
               textureImage.src = "data:image;base64," + base64Image;
-              if (textureImage.width !== 0) {
-                // Image is already here
+              // If image is already here or if image loading must be synchronous 
+              if (textureImage.width !== 0
+                  || synchronous) {
                 imageLoadingListener();
               }
             } catch (ex) {
@@ -169,14 +214,10 @@ TextureManager.prototype.load = function(url, synchronous, textureObserver) {
             }
           },
           zipError : function(error) {
-            if (textureObserver.textureError !== undefined) {
-              textureObserver.textureError("Can't load " + jarUrl); 
-            }
+            loadingTextureObserver.textureError("Can't load " + jarUrl); 
           },
           progression : function(part, info, percentage) {
-            if (textureObserver.progression !== undefined) {
-              textureObserver.progression(part, info, percentage);
-            }
+            loadingTextureObserver.progression(part, info, percentage);
           }
         });
   } else {
@@ -188,8 +229,8 @@ TextureManager.prototype.load = function(url, synchronous, textureObserver) {
       // Image is already here
       textureImage.removeEventListener("load", imageLoadingListener);
       textureImage.removeEventListener("error", imageErrorListener);
-      textureObserver.progression(TextureManager.READING_TEXTURE, url, 1);
-      textureObserver.textureLoaded(textureImage);
+      loadingTextureObserver.progression(TextureManager.READING_TEXTURE, url, 1);
+      loadingTextureObserver.textureLoaded(textureImage);
     } 
   }
 }
@@ -238,18 +279,39 @@ TextureManager.prototype.getRotatedTextureHeight = function(texture) {
  */
 TextureManager.prototype.getErrorImage = function() {
   if (TextureManager.errorImage === undefined) {
-    // Create on the fly a red image of 2x2 pixels
-    var canvas = document.createElement('canvas');
-    canvas.width = 2;
-    canvas.height = 2;
-    var context = canvas.getContext('2d');
-    context.fillStyle = "#FF0000";
-    context.fillRect(0, 0, 2, 2);
-    var errorImageUrl = canvas.toDataURL();
-    var errorImage = new Image();
-    errorImage.url = errorImageUrl;
-    errorImage.src = errorImageUrl;
-    TextureManager.errorImage = errorImage;
+    TextureManager.errorImage = this.getColoredImage("#FF0000");
   }
   return TextureManager.errorImage;
+}
+
+/**
+ * Returns an image for wait purpose.
+ * @package
+ * @ignore
+ */
+TextureManager.prototype.getWaitImage = function() {
+  if (TextureManager.waitImage === undefined) {
+    TextureManager.waitImage = this.getColoredImage("#FFFFFF");
+  }
+  return TextureManager.waitImage;
+}
+
+/**
+ * Returns an image filled with a color.
+ * @param {string} color 
+ * @private
+ */
+TextureManager.prototype.getColoredImage = function(color) {
+  // Create on the fly a red image of 2x2 pixels
+  var canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 2;
+  var context = canvas.getContext('2d');
+  context.fillStyle = color;
+  context.fillRect(0, 0, 2, 2);
+  var coloredImageUrl = canvas.toDataURL();
+  var coloredImage = new Image();
+  coloredImage.url = coloredImageUrl;
+  coloredImage.src = coloredImageUrl;
+  return coloredImage;
 }

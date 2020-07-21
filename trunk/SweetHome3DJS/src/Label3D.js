@@ -72,20 +72,24 @@ Label3D.prototype.update = function() {
         fontName = "sans-serif";
       }
       
-      var fontHeight = 50; // Size to get a similar outline as in Java  
-      var fontScale = fontHeight / style.getFontSize();
-      var ascent = fontHeight * 0.8;
-      var font = fontStyle + " " + fontHeight + "px " + fontName;
+      var fontSize = 50; // Size to get a similar outline as in Java
+      var fontHeight = fontSize; 
+      if (["Times", "Serif", "Helvetica"].indexOf(fontName) === -1) {
+        fontHeight *= 1.18;
+      }
+      var fontScale = fontSize / style.getFontSize();
+      var descent = 0.23 * fontHeight;
+      var font = fontStyle + " " + fontSize + "px " + fontName;
       Label3D.dummyContext.font = font;
       
       var lines = text.split("\n");
       var lineWidths = new Array(lines.length);
       var textWidth = -Infinity;
-      var baseLineShift = ascent + fontHeight * (lines.length - 1);
+      var baseLineShift = -descent + fontHeight * lines.length;
       for (var i = 0; i < lines.length; i++) {
         lineWidths [i] = Label3D.dummyContext.measureText(lines [i]).width;
         if (style.isItalic()) {
-          lineWidths [i] += fontHeight * 0.15;
+          lineWidths [i] += fontHeight * 0.154;
         }
         textWidth = Math.max(lineWidths [i], textWidth);
       }

@@ -22,9 +22,13 @@
 //          scene3d.js
 //          ModelLoader.js
 //          OBJLoader.js
-//          HomeObject.js
+// Uses     HomeObject.js 
 //          HomePieceOfFurniture.js
+//          HomeMaterial.js
+//          HomeTexture.js
+//          CatalogTexture.js
 //          ShapeTools.js
+// (used classes are not needed to view 3D models)
 
 /**
  * Singleton managing 3D models cache.
@@ -171,9 +175,7 @@ ModelManager.prototype.getCenter = function(node) {
   bounds.getLower(lower);
   var upper = vec3.create();
   bounds.getUpper(upper);
-  return vec3.fromValues((lower.getX() + upper.getX()) / 2,
-      (lower.getY() + upper.getY()) / 2,
-      (lower.getZ() + upper.getZ()) / 2);
+  return vec3.fromValues((lower[0] + upper[0]) / 2, (lower[1] + upper[1]) / 2, (lower[2] + upper[2]) / 2);
 }
 
 /**
@@ -439,13 +441,18 @@ ModelManager.prototype.getPieceOFFurnitureNormalizedModelTransformation = ModelM
 
 /**
  * Reads a 3D node from content with supported loaders
- * and notifies the loaded model to the given modelObserver once available
- * with its modelUpdated and modelError methods. 
+ * and notifies the loaded model to the given <code>modelObserver</code> once available
+ * with its <code>modelUpdated</code> and <code>modelError</code> methods. 
  * @param {URLContent} content an object containing a model
  * @param {boolean} [synchronous] optional parameter equal to false by default
  * @param {{modelUpdated, modelError, progression}} modelObserver  
- *           the observer that will be notified once the model is available
- *           or if an error happens
+ *            the observer containing <code>modelUpdated(model)</code>, <code>modelError(error)</code>, 
+ *            <code>progression(part, info, percentage)</code> optional methods that will be 
+ *            notified once the model is available or if an error happens,  
+ *            with <code>model<code> being an instance of <code>Node3D</code>, 
+ *            <code>error</code>, <code>part</code>, <code>info</code> strings 
+ *            and <code>percentage</code> a number.
+
  */
 ModelManager.prototype.loadModel = function(content, synchronous, modelObserver) {
   if (modelObserver === undefined) {
@@ -456,7 +463,29 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
   if (contentUrl in this.loadedModelNodes) {
     // Notify cached model to observer with a clone of the model
     var model = this.loadedModelNodes [contentUrl];
-    modelObserver.modelUpdated(this.cloneNode(model));
+    if (modelObserver.modelUpdated !== undefined) {
+      modelObserver.modelUpdated(this.cloneNode(model));
+    }
+  } else if (synchronous) {
+    var modelManager = this;
+    this.load(content, synchronous, {
+        modelLoaded : function(loadedModel) {
+          modelManager.loadedModelNodes [contentUrl] = loadedModel;
+          if (modelObserver.modelUpdated !== undefined) {
+            modelObserver.modelUpdated(modelManager.cloneNode(loadedModel));
+          }
+        },
+        modelError : function(err) {
+          if (modelObserver.modelError !== undefined) {
+            modelObserver.modelError(err);
+          }
+        },
+        progression : function(part, info, percentage) {
+          if (modelObserver.progression !== undefined) {
+            modelObserver.progression(part, info, percentage);
+          }
+        }
+      });
   } else {
     if (contentUrl in this.loadingModelObservers) {
       // If observers list exists, content model is already being loaded
@@ -467,48 +496,28 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
       var observers = [];
       observers.push(modelObserver);
       this.loadingModelObservers [contentUrl] = observers;
-      if (!this.modelLoaders) {
-        // As model loaders are reentrant, use the same loaders for multiple loading
-        this.modelLoaders = [new OBJLoader()];
-        // Optional loaders
-        if (typeof DAELoader !== "undefined") {
-          this.modelLoaders.push(new DAELoader());
-        }
-        if (typeof Max3DSLoader !== "undefined") {
-          this.modelLoaders.push(new Max3DSLoader());
-        }
-      }
+      
       var modelManager = this;
-      var modelObserver = {
-          modelLoaderIndex : 0,
-          modelLoaded : function(model) {
-            var bounds = modelManager.getBounds(model);
-            var lower = vec3.create();
-            bounds.getLower(lower);
-            if (lower [0] !== Infinity) {
+      this.load(content, synchronous, {
+          modelLoaded : function(loadedModel) {
+            modelManager.loadedModelNodes [contentUrl] = loadedModel;
               var observers = modelManager.loadingModelObservers [contentUrl];
               if (observers) {
-                delete modelManager.loadingModelObservers [contentUrl];
-                modelManager.updateWindowPanesTransparency(model);
-                modelManager.updateDeformableModelHierarchy(model);
-                modelManager.replaceMultipleSharedShapes(model);
-                modelManager.loadedModelNodes [contentUrl] = model;
                 for (var i = 0; i < observers.length; i++) {
-                  observers [i].modelUpdated(modelManager.cloneNode(model));
+                  if (observers [i].modelUpdated !== undefined) {
+                    observers [i].modelUpdated(modelManager.cloneNode(loadedModel));
+                  }
                 }
               }
-            } else if (++this.modelLoaderIndex < modelManager.modelLoaders.length) {
-              modelManager.modelLoaders [this.modelLoaderIndex].load(contentUrl, synchronous, this);
-            } else {
-              this.modelError("Unsupported 3D format");
-            }
           },
           modelError : function(err) {
             var observers = modelManager.loadingModelObservers [contentUrl];
             if (observers) {
               delete modelManager.loadingModelObservers [contentUrl];
               for (var i = 0; i < observers.length; i++) {
-                observers [i].modelError(err);
+                if (observers [i].modelError !== undefined) {
+                  observers [i].modelError(err);
+                }
               }
             }
           },
@@ -516,12 +525,13 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
             var observers = modelManager.loadingModelObservers [contentUrl];
             if (observers) {
               for (var i = 0; i < observers.length; i++) {
-                observers [i].progression(part, info, percentage);
+                if (observers [i].progression !== undefined) {
+                  observers [i].progression(part, info, percentage);
+                }
               } 
             }
           }
-        };
-      modelManager.modelLoaders [0].load(contentUrl, synchronous, modelObserver);
+        });
     }
   }
 }
@@ -614,6 +624,56 @@ ModelManager.prototype.cloneNode = function(node, clonedSharedGroups) {
 }
 
 /**
+ * Returns the node loaded synchronously from <code>content</code> with supported loaders.
+ * @param {URLContent} content an object containing a model
+ * @param {boolean} [synchronous] optional parameter equal to false by default
+ * @param {{modelLoaded, modelError, progression}} modelObserver  
+ *           the observer that will be notified once the model is available
+ *           or if an error happens
+ * @private
+ */
+ModelManager.prototype.load = function(content, synchronous, modelObserver) {
+  var contentUrl = content.getURL();
+  if (!this.modelLoaders) {
+    // As model loaders are reentrant, use the same loaders for multiple loading
+    this.modelLoaders = [new OBJLoader()];
+    // Optional loaders
+    if (typeof DAELoader !== "undefined") {
+      this.modelLoaders.push(new DAELoader());
+    }
+    if (typeof Max3DSLoader !== "undefined") {
+      this.modelLoaders.push(new Max3DSLoader());
+    }
+  }
+  var modelManager = this;
+  var modelLoadingObserver = {
+      modelLoaderIndex : 0,
+      modelLoaded : function(model) {
+        var bounds = modelManager.getBounds(model);
+        var lower = vec3.create();
+        bounds.getLower(lower);
+        if (lower [0] !== Infinity) {
+          modelManager.updateWindowPanesTransparency(model);
+          modelManager.updateDeformableModelHierarchy(model);
+          modelManager.replaceMultipleSharedShapes(model);
+          modelObserver.modelLoaded(model);
+        } else if (++this.modelLoaderIndex < modelManager.modelLoaders.length) {
+          modelManager.modelLoaders [this.modelLoaderIndex].load(contentUrl, synchronous, this);
+        } else {
+          this.modelError("Unsupported 3D format");
+        }
+      },
+      modelError : function(err) {
+        modelObserver.modelError(err);
+      },
+      progression : function(part, info, percentage) {
+        modelObserver.progression(part, info, percentage);
+      }
+    };
+  modelManager.modelLoaders [0].load(contentUrl, synchronous, modelLoadingObserver);
+}
+
+  /**
  * Updates the transparency of window panes shapes.
  * @private
  */
@@ -903,6 +963,103 @@ ModelManager.prototype.isDeformed = function(node) {
     }
   }
   return false;
+}
+
+/**
+ * Returns the materials used by the children shapes of the given <code>node</code>,
+ * attributing their <code>creator</code> to them.
+ * @param {Node3D} node
+ * @param {string} [creator]
+ */
+ModelManager.prototype.getMaterials = function(node, creator) {
+  if (creator === undefined) {
+    creator = null;
+  }
+
+  var appearances = [];
+  this.searchAppearances(node, appearances);
+  var materials = [];
+  for (var i = 0; i < appearances.length; i++) {
+    var appearance = appearances[i];
+    var color = null;
+    var shininess = null;
+    var diffuseColor = appearance.getDiffuseColor();
+    if (diffuseColor != null) {
+      color = 0xFF000000
+          | (Math.round(diffuseColor[0] * 255) << 16)
+          | (Math.round(diffuseColor[1] * 255) << 8)
+          | Math.round(diffuseColor[2] * 255);
+      shininess = appearance.getShininess() != null ? appearance.getShininess() / 128 : null;
+    }
+    var appearanceTexture = appearance.getTextureImage();
+    var texture = null;
+    if (appearanceTexture != null) {
+      var textureImageUrl = appearanceTexture.url;
+      if (textureImageUrl != null) {
+        var textureImage = new SimpleURLContent(textureImageUrl);
+        var textureImageName = textureImageUrl.substring(textureImageUrl.lastIndexOf('/') + 1);
+        var lastPoint = textureImageName.lastIndexOf('.');
+        if (lastPoint !== -1) {
+          textureImageName = textureImageName.substring(0, lastPoint);
+        }
+        texture = new HomeTexture(
+            new CatalogTexture(null, textureImageName, textureImage, -1, -1, creator));
+      }
+    }
+    var materialName = appearance.getName();
+    if (materialName === undefined) {
+      materialName = null;
+    }
+    var homeMaterial = new HomeMaterial(materialName, color, texture, shininess);
+    for (var j = 0; j < materials.length; j++) {
+      if (materials [j].getName() == homeMaterial.getName()) {
+        // Don't add twice materials with the same name
+        homeMaterial = null;
+        break;
+      }
+    }
+    if (homeMaterial != null) {
+      materials.push(homeMaterial);
+    }
+  }
+  materials.sort(function (m1, m2) {
+      var name1 = m1.getName();
+      var name2 = m2.getName();
+      if (name1 != null) {
+        if (name2 != null) {
+          return name1.localeCompare(name2);
+        } else {
+          return 1;
+        }
+      } else if (name2 != null) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+  return materials;
+}
+
+/**
+ * @param {Node3D} node
+ * @param {Array} appearances
+ * @private
+ */
+ModelManager.prototype.searchAppearances = function(node, appearances) {
+  if (node instanceof Group3D) {
+    var children = node.getChildren();
+    for (var i = 0; i < children.length; i++) {
+      this.searchAppearances(children [i], appearances);
+    }
+  } else if (node instanceof Link3D) {
+    this.searchAppearances(node.getSharedGroup(), appearances);
+  } else if (node instanceof Shape3D) {
+    var appearance = node.getAppearance();
+    if (appearance !== null 
+        && appearances.indexOf(appearance) == -1) {
+      appearances.push(appearance);
+    }
+  }
 }
 
 /**

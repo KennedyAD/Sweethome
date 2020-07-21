@@ -46,14 +46,16 @@ ModelLoader.BINDING_MODEL = Node3D.BINDING_MODEL;
  * @param {string} url The URL of a zip file containing an entry with the extension given in constructor 
  *            that will be loaded or an URL noted as jar:url!/modelEntry where modelEntry will be loaded.
  * @param {boolean} [synchronous] optional parameter equal to false by default
- * @param {{modelLoaded, modelError, progression}} modelObserver 
- *            An observer containing modelLoaded(model), 
- *            modelError(error), progression(part, info, percentage) methods that
- *            will called at various phases.
+ * @param {{modelLoaded, modelError, progression}} loadingModelObserver 
+ *            the observer containing <code>modelLoaded(model)</code>, <code>modelError(error)</code>, 
+ *            <code>progression(part, info, percentage)</code> methods that will be called at various phases,  
+ *            with <code>model<code> being an instance of <code>Node3D</code>, 
+ *            <code>error</code>, <code>part</code>, <code>info</code> strings 
+ *            and <code>percentage</code> a number.
  */
-ModelLoader.prototype.load = function(url, synchronous, modelObserver) {
-  if (modelObserver === undefined) {
-    modelObserver = synchronous;
+ModelLoader.prototype.load = function(url, synchronous, loadingModelObserver) {
+  if (loadingModelObserver === undefined) {
+    loadingModelObserver = synchronous;
     synchronous = false;
   }
   var modelEntryName = null;
@@ -63,7 +65,7 @@ ModelLoader.prototype.load = function(url, synchronous, modelObserver) {
     url = url.substring(4, entrySeparatorIndex);
   }
   
-  modelObserver.progression(ModelLoader.READING_MODEL, url, 0);
+  loadingModelObserver.progression(ModelLoader.READING_MODEL, url, 0);
   var loader = this;
   var zipObserver = {
       zipReady : function(zip) {
@@ -73,7 +75,7 @@ ModelLoader.prototype.load = function(url, synchronous, modelObserver) {
             var entries = zip.file(/.*/);
             for (var i = 0; i < entries.length; i++) {
               if (entries [i].name.toLowerCase().match(new RegExp("\." + loader.modelExtension.toLowerCase() + "$"))) {
-                loader.parseModelEntry(entries [i], zip, url, synchronous, modelObserver);
+                loader.parseModelEntry(entries [i], zip, url, synchronous, loadingModelObserver);
                 return;
               } 
             }
@@ -81,25 +83,25 @@ ModelLoader.prototype.load = function(url, synchronous, modelObserver) {
               // If not found, try with the first entry
               modelEntryName = entries [0].name;
             } else {
-              if (modelObserver.modelError !== undefined) {
-                modelObserver.modelError("Empty file");
+              if (loadingModelObserver.modelError !== undefined) {
+                loadingModelObserver.modelError("Empty file");
               }
               return;
             }
           }
-          loader.parseModelEntry(zip.file(decodeURIComponent(modelEntryName)), zip, url, synchronous, modelObserver);
+          loader.parseModelEntry(zip.file(decodeURIComponent(modelEntryName)), zip, url, synchronous, loadingModelObserver);
         } catch (ex) {
           zipObserver.zipError(ex);
         }
       },
       zipError : function(error) {
-        if (modelObserver.modelError !== undefined) {
-          modelObserver.modelError(error);
+        if (loadingModelObserver.modelError !== undefined) {
+          loadingModelObserver.modelError(error);
         }
       },
       progression : function(part, info, percentage) {
-        if (modelObserver.progression !== undefined) {
-          modelObserver.progression(ModelLoader.READING_MODEL, info, percentage);
+        if (loadingModelObserver.progression !== undefined) {
+          loadingModelObserver.progression(ModelLoader.READING_MODEL, info, percentage);
         }
       }
     };
@@ -117,20 +119,20 @@ ModelLoader.prototype.clear = function() {
  * Parses the content of the given entry to create the scene it contains. 
  * @private
  */
-ModelLoader.prototype.parseModelEntry = function(modelEntry, zip, zipUrl, synchronous, modelObserver) {
+ModelLoader.prototype.parseModelEntry = function(modelEntry, zip, zipUrl, synchronous, loadingModelObserver) {
   if (synchronous) { 
     var modelContent = this.getModelContent(modelEntry);
-    modelObserver.progression(ModelLoader.READING_MODEL, modelEntry.name, 1);
+    loadingModelObserver.progression(ModelLoader.READING_MODEL, modelEntry.name, 1);
     var modelContext = {};
     this.parseDependencies(modelContent, modelEntry.name, zip, modelContext);
-    var scene = this.parseEntryScene(modelContent, modelEntry.name, zip, modelContext, null, modelObserver.progression);
-    this.loadTextureImages(scene, {}, zip, zipUrl, synchronous);
-    modelObserver.modelLoaded(scene);
+    var scene = this.parseEntryScene(modelContent, modelEntry.name, zip, modelContext, null, loadingModelObserver.progression);
+    this.loadTextureImages(scene, {}, zip, zipUrl, true);
+    loadingModelObserver.modelLoaded(scene);
   } else {
     var parsedEntry = {modelEntry : modelEntry, 
                        zip : zip, 
                        zipUrl : zipUrl, 
-                       modelObserver : modelObserver};
+                       loadingModelObserver : loadingModelObserver};
     this.waitingParsedEntries.push(parsedEntry);
     this.parseNextWaitingEntry();
   }
@@ -149,7 +151,7 @@ ModelLoader.prototype.parseNextWaitingEntry = function() {
         var modelEntryName = parsedEntry.modelEntry.name;
         // Get model content to parse
         var modelContent = this.getModelContent(parsedEntry.modelEntry);
-        parsedEntry.modelObserver.progression(ModelLoader.READING_MODEL, modelEntryName, 1);
+        parsedEntry.loadingModelObserver.progression(ModelLoader.READING_MODEL, modelEntryName, 1);
         var modelContext = {};
         this.parseDependencies(modelContent, modelEntryName, parsedEntry.zip, modelContext);
         var loader = this;
@@ -158,12 +160,12 @@ ModelLoader.prototype.parseNextWaitingEntry = function() {
             function() {
               loader.parseEntryScene(modelContent, modelEntryName, parsedEntry.zip, modelContext,
                   function(scene) {
-                      loader.loadTextureImages(scene, {}, parsedEntry.zip, parsedEntry.zipUrl);
-                      parsedEntry.modelObserver.modelLoaded(scene);
+                      loader.loadTextureImages(scene, {}, parsedEntry.zip, parsedEntry.zipUrl, true);
+                      parsedEntry.loadingModelObserver.modelLoaded(scene);
                       loader.parserBusy = false;
                       loader.parseNextWaitingEntry();
                     },
-                  parsedEntry.modelObserver.progression);
+                  parsedEntry.loadingModelObserver.progression);
             }, 0);
         
         this.parserBusy = true;
@@ -207,11 +209,13 @@ ModelLoader.prototype.loadTextureImages = function(node, images, zip, zipUrl, sy
               var imageData = imageEntry.asBinary();
               var base64Image = btoa(imageData);
               var extension = imageEntryName.substring(imageEntryName.lastIndexOf('.') + 1).toLowerCase();
-              var mimeType = extension == "jpg"
+              var mimeType = ZIPTools.isJPEGImage(imageData)
                   ? "image/jpeg" 
-                  : ("image/" + extension);
+                  : (ZIPTools.isPNGImage(imageData) 
+                      ? "image/png"
+                      : ("image/" + extension));
               // Detect quickly if a PNG image use transparency
-              image.transparent = ZIPTools.isTranparentImage(imageData);
+              image.transparent = ZIPTools.isTransparentImage(imageData);
               image.src = "data:" + mimeType + ";base64," + base64Image;
             } else {
               appearance.setTextureImage(null);

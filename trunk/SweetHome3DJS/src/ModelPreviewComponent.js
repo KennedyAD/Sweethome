@@ -169,28 +169,35 @@ function ModelPreviewComponent(canvasId, pitchAndScaleChangeSupported) {
         }
       };
       
-    if ((document.documentMode || /Edg/.test(navigator.userAgent))
+    if (OperatingSystem.isInternetExplorerOrLegacyEdge()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
-      this.canvas3D.getCanvas().addEventListener("pointerdown", userActionsListener.pointerPressed);
-      this.canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.pointerMousePressed);
+      this.canvas3D.getHTMLElement().addEventListener("pointerdown", userActionsListener.pointerPressed);
+      this.canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.pointerMousePressed);
       // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
       window.addEventListener("pointermove", userActionsListener.windowPointerMoved);
       window.addEventListener("pointerup", userActionsListener.windowPointerReleased);
     } else {
-      this.canvas3D.getCanvas().addEventListener("touchstart", userActionsListener.touchStarted);
-      this.canvas3D.getCanvas().addEventListener("touchmove", userActionsListener.touchMoved);
-      this.canvas3D.getCanvas().addEventListener("touchend", userActionsListener.touchEnded);
-      this.canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.mousePressed);
+      this.canvas3D.getHTMLElement().addEventListener("touchstart", userActionsListener.touchStarted);
+      this.canvas3D.getHTMLElement().addEventListener("touchmove", userActionsListener.touchMoved);
+      this.canvas3D.getHTMLElement().addEventListener("touchend", userActionsListener.touchEnded);
+      this.canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.mousePressed);
       // Add mousemove and mouseup event listeners to window to capture mouse events out of the canvas 
       window.addEventListener("mousemove", userActionsListener.windowMouseMoved);
       window.addEventListener("mouseup", userActionsListener.windowMouseReleased);
     }
-    this.canvas3D.getCanvas().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
-    this.canvas3D.getCanvas().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
+    this.canvas3D.getHTMLElement().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
+    this.canvas3D.getHTMLElement().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
     document.addEventListener("visibilitychange", userActionsListener.visibilityChanged);
     this.userActionsListener = userActionsListener;
   }
+}
+
+/**
+ * Returns the HTML element used to view this component at screen.
+ */
+ModelPreviewComponent.prototype.getHTMLElement = function() {
+  return this.canvas3D.getHTMLElement();
 }
 
 /**
@@ -294,7 +301,7 @@ ModelPreviewComponent.prototype.clear = function() {
  * This method should be called to free resources in the browser when this component is not needed anymore.
  */
 ModelPreviewComponent.prototype.dispose = function() {
-  if ((document.documentMode || /Edg/.test(navigator.userAgent))
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
     window.removeEventListener("pointermove", this.userActionsListener.windowPointerMoved);
     window.removeEventListener("pointerup", this.userActionsListener.windowPointerReleased);

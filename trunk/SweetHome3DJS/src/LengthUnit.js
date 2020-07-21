@@ -134,18 +134,17 @@ LengthUnit.MILLIMETER.getName = function() {
 }
 
 LengthUnit.MILLIMETER.checkLocaleChange = function() {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-
   // Instantiate formats if locale changed
-  if (!Locale.getDefault().equals(this.formatLocale)) {
+  if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = ResourceBundle.getBundle(LengthUnit.name);
-    this.name = resource.getString("millimeterUnit");
-    this.lengthFormatWithUnit = new MeterFamilyFormat("#,##0 " + this.name, 10);          
-    this.lengthFormat = new MeterFamilyFormat("#,##0", 10);
-    var squareMeterUnit = resource.getString("squareMeterUnit");
-    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "millimeterUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10, this.name);          
+    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10);
+    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
+    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
 }
 
@@ -200,18 +199,17 @@ LengthUnit.CENTIMETER.getName = function() {
 }
   
 LengthUnit.CENTIMETER.checkLocaleChange = function() {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-
   // Instantiate formats if locale changed
-  if (!Locale.getDefault().equals(this.formatLocale)) {
+  if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = ResourceBundle.getBundle(LengthUnit.name);
-    this.name = resource.getString("centimeterUnit");
-    this.lengthFormatWithUnit = new MeterFamilyFormat("#,##0.# " + this.name, 1);          
-    this.lengthFormat = new MeterFamilyFormat("#,##0.#", 1);
-    var squareMeterUnit = resource.getString("squareMeterUnit");
-    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "centimeterUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1, this.name);          
+    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1);
+    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
+    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
 }
 
@@ -265,18 +263,17 @@ LengthUnit.METER.getName = function() {
 }
 
 LengthUnit.METER.checkLocaleChange = function() {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-
   // Instantiate formats if locale changed
-  if (!Locale.getDefault().equals(this.formatLocale)) {
-    this.formatLocale = Locale.getDefault();  
-    var resource = ResourceBundle.getBundle(LengthUnit.name);
-    this.name = resource.getString("meterUnit");
-    this.lengthFormatWithUnit = new MeterFamilyFormat("#,##0.00# " + this.name, 0.01);          
-    this.lengthFormat = new MeterFamilyFormat("#,##0.00#", 0.01);
-    var squareMeterUnit = resource.getString("squareMeterUnit");
-    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
+  if (Locale.getDefault() != this.formatLocale) {
+    this.formatLocale = Locale.getDefault();
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "meterUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01, this.name);          
+    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01);
+    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
+    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
 }
 
@@ -330,70 +327,203 @@ LengthUnit.INCH.getName = function() {
 }
 
 LengthUnit.INCH.checkLocaleChange = function() {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-  
   // Instantiate format if locale changed
-  if (!Locale.getDefault().equals(this.formatLocale)) {
-    this.formatLocale = Locale.getDefault();  
-    var resource = ResourceBundle.getBundle(LengthUnit.name);
-    this.name = resource.getString("inchUnit");
-    
-    // Create format for feet and inches
-//    final MessageFormat positiveFootFormat = new MessageFormat("{0,number,integer}''");
-//    final MessageFormat positiveFootInchFormat = new MessageFormat("{0,number,integer}''{1,number}\"");
-//    final MessageFormat positiveFootInchEighthFormat = new MessageFormat("{0,number,integer}''{1,number,integer}{2}\"");
-//    final MessageFormat negativeFootFormat = new MessageFormat("-{0,number,integer}''");
-//    final MessageFormat negativeFootInchFormat = new MessageFormat("-{0,number,integer}''{1,number}\"");
-//    final MessageFormat negativeFootInchEighthFormat = new MessageFormat("-{0,number,integer}''{1,number,integer}{2}\"");
-//    final String        footInchSeparator = "";
-//    final NumberFormat  footNumberFormat = NumberFormat.getIntegerInstance();
-//    final NumberFormat  inchNumberFormat = NumberFormat.getNumberInstance();
-    var inchFractionCharacters = ['\u215b',   // 1/8
-                                  '\u00bc',   // 1/4  
-                                  '\u215c',   // 3/8
-                                  '\u00bd',   // 1/2
-                                  '\u215d',   // 5/8
-                                  '\u00be',   // 3/4
-                                  '\u215e'];  // 7/8        
-    var inchFractionStrings  = ["1/8",
-                                "1/4",  
-                                "3/8",
-                                "1/2",
-                                "5/8",
-                                "3/4",
-                                "7/8"];         
-//    this.lengthFormat = new DecimalFormat("0.000\"") {
-//        public StringBuffer format(double number, StringBuffer result,
-//                                   FieldPosition fieldPosition) {
-//          var absoluteValue = Math.abs((float)number);
-//          double feet = Math.floor(LengthUnit.centimeterToFoot(absoluteValue));              
-//          var remainingInches = LengthUnit.centimeterToInch((float)absoluteValue - LengthUnit.footToCentimeter((float)feet));
-//          if (remainingInches >= 11.9375f) {
-//            feet++;
-//            remainingInches -= 12;
-//          }
-//          fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
-//          // Format remaining inches only if it's larger that 0.0005
-//          if (remainingInches >= 0.0005f) {
-//            // Try to format decimals with 1/8, 1/4, 1/2 fractions first
-//            int integerPart = (int)Math.floor(remainingInches);
-//            var fractionPart = remainingInches - integerPart;
-//            int eighth = Math.round(fractionPart * 8); 
-//            if (eighth === 0 || eighth === 8) {
-//              (number >= 0 ? positiveFootInchFormat : negativeFootInchFormat).format(
-//                  new Object [] {feet, Math.round(remainingInches * 8) / 8f}, result, fieldPosition);
-//            } else { 
-//              (number >= 0 ? positiveFootInchEighthFormat : negativeFootInchEighthFormat).format(
-//                  new Object [] {feet, integerPart, inchFractionCharacters [eighth - 1]}, result, fieldPosition);
-//            }
-//          } else {
-//            (number >= 0 ? positiveFootFormat : negativeFootFormat).format(
-//                new Object [] {feet}, result, fieldPosition);
-//          }
-//          return result;
-//        }
-//        
+  if (Locale.getDefault() != this.formatLocale) {
+    this.formatLocale = Locale.getDefault();
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
+    this.lengthFormat = new InchFormat(this.name);
+    this.lengthFormatWithUnit = new InchFormat(this.name);
+    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
+  }
+}
+
+LengthUnit.INCH.getMagnetizedLength = function(length, maxDelta) {
+  return LengthUnit.getMagnetizedInchLength(length, maxDelta);
+}
+
+LengthUnit.INCH.getMinimumLength = function() {        
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
+LengthUnit.INCH.getMaximumLength = function() {
+  return LengthUnit.inchToCentimeter(99974.4); // 3280 ft
+}
+
+LengthUnit.INCH.getMaximumElevation = function() {
+  return this.getMaximumLength() / 10;
+}
+
+LengthUnit.INCH.centimeterToUnit = function(length) {
+  return LengthUnit.centimeterToInch(length);
+}
+
+LengthUnit.INCH.unitToCentimeter = function(length) {
+  return LengthUnit.inchToCentimeter(length);
+}
+
+
+/**
+ * Inch unit with decimals.
+ */
+LengthUnit.INCH_DECIMALS = {formatLocale : null};
+
+LengthUnit.INCH_DECIMALS.getFormatWithUnit = function() {
+  this.checkLocaleChange();
+  return this.lengthFormatWithUnit;
+}
+
+LengthUnit.INCH_DECIMALS.getFormat = function() {
+  this.checkLocaleChange();
+  return this.lengthFormat;
+}
+
+LengthUnit.INCH_DECIMALS.getAreaFormatWithUnit = function() {
+  this.checkLocaleChange();
+  return this.areaFormatWithUnit;
+}
+
+LengthUnit.INCH_DECIMALS.getName = function() {
+  this.checkLocaleChange();
+  return this.name;
+}
+  
+LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {  
+  // Instantiate format if locale changed
+  if (Locale.getDefault() != this.formatLocale) {
+    this.formatLocale = Locale.getDefault();
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
+    this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###", this.name); 
+    this.lengthFormat = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###");
+    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
+  }
+}
+  
+LengthUnit.INCH_DECIMALS.getMagnetizedLength = function(length, maxDelta) {
+  return LengthUnit.getMagnetizedInchLength(length, maxDelta);
+}
+
+LengthUnit.INCH_DECIMALS.getMinimumLength = function() {        
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
+LengthUnit.INCH_DECIMALS.getMaximumLength = function() {
+  return LengthUnit.inchToCentimeter(99974.4); // 3280 ft
+}
+
+LengthUnit.INCH_DECIMALS.getMaximumElevation = function() {
+  return this.getMaximumLength() / 10;
+}
+
+LengthUnit.INCH_DECIMALS.centimeterToUnit = function(length) {
+  return centimeterToInch(length);
+}
+
+LengthUnit.INCH_DECIMALS.unitToCentimeter = function(length) {
+  return LengthUnit.inchToCentimeter(length);
+}
+
+// Specific format classes for lengths
+
+/** @private */
+function MeterFamilyFormat(groupingSeparator, decimalSeparator, decimalsFormat, unitMultiplier, unit) {
+  Format.call(this);
+  this.groupingSeparator = groupingSeparator;
+  this.decimalSeparator = decimalSeparator;
+  this.decimalsFormat = decimalsFormat;
+  this.unitMultiplier = unitMultiplier;
+  this.unit = unit;
+}
+MeterFamilyFormat.prototype = Object.create(Format.prototype);
+MeterFamilyFormat.prototype.constructor = MeterFamilyFormat;
+
+MeterFamilyFormat.prototype.format = function(number) {
+  var formattedNumber = toLocaleStringUniversal(number * this.unitMultiplier, 
+      this.groupingSeparator, this.decimalSeparator,
+      { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 }); 
+  return formattedNumber + (this.unit ? " " + this.unit : "");
+}
+
+/** @private */
+function SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, unit) {
+  Format.call(this);
+  this.groupingSeparator = groupingSeparator;
+  this.decimalSeparator = decimalSeparator;
+  this.unit = unit;
+}
+SquareMeterAreaFormatWithUnit.prototype = Object.create(Format.prototype);
+SquareMeterAreaFormatWithUnit.prototype.constructor = SquareMeterAreaFormatWithUnit;
+
+SquareMeterAreaFormatWithUnit.prototype.format = function(number) {
+  var formattedNumber = toLocaleStringUniversal(number / 10000, 
+      this.groupingSeparator, this.decimalSeparator,
+      { maximumFractionDigits: 2, minimumFractionDigits: 0 }); 
+  return formattedNumber + (this.unit ? " " + this.unit : "");
+}
+
+var inchFractionCharacters = ['\u215b',   // 1/8
+                              '\u00bc',   // 1/4  
+                              '\u215c',   // 3/8
+                              '\u00bd',   // 1/2
+                              '\u215d',   // 5/8
+                              '\u00be',   // 3/4
+                              '\u215e'];  // 7/8        
+
+/** @private */
+function InchFormat(unit) {
+  Format.call(this);
+  this.unit = unit;
+}
+InchFormat.prototype = Object.create(Format.prototype);
+InchFormat.prototype.constructor = InchFormat;
+
+InchFormat.prototype.format = function(number) {
+  var absoluteValue = Math.abs(number);
+  var feet = Math.floor(LengthUnit.centimeterToFoot(absoluteValue));              
+  var remainingInches = LengthUnit.centimeterToInch(absoluteValue - LengthUnit.footToCentimeter(feet));
+  if (remainingInches >= 11.9375) {
+    feet++;
+    remainingInches -= 12;
+  }
+  //fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
+  var result = number >= 0 ? "" : "-";
+  // Format remaining inches only if it's larger that 0.0005
+  if (remainingInches >= 0.0005) {
+    // Try to format decimals with 1/8, 1/4, 1/2 fractions first
+    var integerPart = Math.floor(remainingInches);
+    var fractionPart = remainingInches - integerPart;
+    var eighth = Math.round(fractionPart * 8); 
+    result += feet;
+    if (eighth === 0 || eighth === 8) {
+      result += "'";
+      result += Math.round(remainingInches * 8) / 8;
+      result += "\"";
+    } else {
+      result += "'";
+      result += integerPart;
+      result += inchFractionCharacters[eighth - 1];
+      result += "\"";
+    }
+  } else {
+    result += feet;
+    result += "'";
+  }
+  return result;
+}
+
+//    var inchFractionStrings  = ["1/8",
+//                                "1/4",  
+//                                "3/8",
+//                                "1/2",
+//                                "5/8",
+//                                "3/4",
+//                                "7/8"];     
+
 //        public Number parse(String text, ParsePosition parsePosition) {
 //          double value = 0;
 //          ParsePosition numberPosition = new ParsePosition(parsePosition.getIndex());
@@ -497,90 +627,39 @@ LengthUnit.INCH.checkLocaleChange = function() {
 //          }
 //        }
 //      };
-    
-    var squareFootUnit = resource.getString("squareFootUnit");
-    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("#,##0 " + squareFootUnit);
-  }
+/** @private */
+function SquareFootAreaFormatWithUnit(formatLocale, unit) {
+  Format.call(this);
+  this.formatLocale = formatLocale;
+  this.unit = unit;
+}
+SquareFootAreaFormatWithUnit.prototype = Object.create(Format.prototype);
+SquareFootAreaFormatWithUnit.prototype.constructor = SquareFootAreaFormatWithUnit;
+
+SquareFootAreaFormatWithUnit.prototype.format = function(number) {
+  var formattedNumber = toLocaleStringUniversal(number / 929.0304, 
+      this.groupingSeparator, this.decimalSeparator,
+      { maximumFractionDigits: 0, minimumFractionDigits: 0 }); 
+  return formattedNumber + (this.unit ? " " + this.unit : "");
 }
 
-LengthUnit.INCH.getMagnetizedLength = function(length, maxDelta) {
-  return LengthUnit.getMagnetizedInchLength(length, maxDelta);
+/** @private */
+function InchDecimalFormat(groupingSeparator, decimalSeparator, decimalsFormat) {
+  Format.call(this);
+  this.groupingSeparator = groupingSeparator;
+  this.decimalSeparator = decimalSeparator;
+  this.decimalsFormat = decimalsFormat;
+}
+InchDecimalFormat.prototype = Object.create(Format.prototype);
+InchDecimalFormat.prototype.constructor = InchDecimalFormat;
+
+InchDecimalFormat.prototype.format = function(number) {
+  var formattedNumber = toLocaleStringUniversal(LengthUnit.centimeterToInch(number), 
+      this.groupingSeparator, this.decimalSeparator,
+      { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 });
+  return formattedNumber + "\"";
 }
 
-LengthUnit.INCH.getMinimumLength = function() {        
-  return LengthUnit.inchToCentimeter(0.125);
-}
-
-LengthUnit.INCH.getMaximumLength = function() {
-  return LengthUnit.inchToCentimeter(99974.4); // 3280 ft
-}
-
-LengthUnit.INCH.getMaximumElevation = function() {
-  return this.getMaximumLength() / 10;
-}
-
-LengthUnit.INCH.centimeterToUnit = function(length) {
-  return LengthUnit.centimeterToInch(length);
-}
-
-LengthUnit.INCH.unitToCentimeter = function(length) {
-  return LengthUnit.inchToCentimeter(length);
-}
-
-
-/**
- * Inch unit with decimals.
- */
-LengthUnit.INCH_DECIMALS = {formatLocale : null};
-
-LengthUnit.INCH_DECIMALS.getFormatWithUnit = function() {
-  this.checkLocaleChange();
-  return this.lengthFormatWithUnit;
-}
-
-LengthUnit.INCH_DECIMALS.getFormat = function() {
-  this.checkLocaleChange();
-  return this.lengthFormat;
-}
-
-LengthUnit.INCH_DECIMALS.getAreaFormatWithUnit = function() {
-  this.checkLocaleChange();
-  return this.areaFormatWithUnit;
-}
-
-LengthUnit.INCH_DECIMALS.getName = function() {
-  this.checkLocaleChange();
-  return this.name;
-}
-  
-LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-  
-  // Instantiate format if locale changed
-  if (!Locale.getDefault().equals(this.formatLocale)) {
-    this.formatLocale = Locale.getDefault();  
-    var resource = ResourceBundle.getBundle(LengthUnit.name);
-    this.name = resource.getString("inchUnit");
-    
-    // Create formats for inches with decimals
-//    class InchDecimalsFormat extends DecimalFormat {
-//      private final MessageFormat inchDecimalsFormat;
-//      private final NumberFormat  inchNumberFormat = NumberFormat.getNumberInstance();
-//
-//      private InchDecimalsFormat(MessageFormat inchDecimalsFormat) {
-//        super("0.###");
-//        this.inchDecimalsFormat = inchDecimalsFormat;
-//      }
-//
-//      public StringBuffer format(double number, StringBuffer result,
-//                                 FieldPosition fieldPosition) {
-//        var inches = centimeterToInch((float)number);
-//        fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
-//        this.inchDecimalsFormat.format(new Object [] {inches}, result, fieldPosition);
-//        return result;
-//      }
-//
 //      public Number parse(String text, ParsePosition parsePosition) {
 //        ParsePosition numberPosition = new ParsePosition(parsePosition.getIndex());
 //        skipWhiteSpaces(text, numberPosition);
@@ -612,98 +691,58 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
 //        }
 //      }
 //    }
-    this.lengthFormat = new InchDecimalsFormat(new MessageFormat(resource.getString("inchDecimalsFormat")));
-    this.lengthFormatWithUnit = new InchDecimalsFormat(new MessageFormat(resource.getString("inchDecimalsFormatWithUnit")));
-    
-    var squareFootUnit = resource.getString("squareFootUnit");
-    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("#,##0.## " + squareFootUnit);
+
+/**
+ * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
+ * are not supported (mainly Safari 8/9).
+ * @param {number} number
+ * @param {string} groupingSeparator
+ * @param {string} decimalSeparator
+ * @param {Object} options
+ * @ignore
+ */
+function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, options) {
+  var formattedNumber = number.toLocaleString("en", options);
+  var decimalSeparatorIndex = formattedNumber.indexOf('.');
+  if (decimalSeparatorIndex === -1) {
+    decimalSeparatorIndex = formattedNumber.length;
   }
-}
   
-LengthUnit.INCH_DECIMALS.getMagnetizedLength = function(length, maxDelta) {
-  return LengthUnit.getMagnetizedInchLength(length, maxDelta);
+  if (options.maximumFractionDigits === 0) {
+    if (decimalSeparatorIndex < formattedNumber.length) {
+      // Remove last decimals
+      formattedNumber = Math.round(number).toString();
+      decimalSeparatorIndex = formattedNumber.length;
+    }
+  } else if (options.maximumFractionDigits < formattedNumber.length - decimalSeparatorIndex - 1) {
+    // Limit decimals to the required maximum using an integer with the right number of digits
+    formattedNumber = Math.round(number * Math.pow(10, options.maximumFractionDigits)).toString();
+    if (Math.abs(number) < 1) {
+      formattedNumber = number > 0 
+          ? '0.' + formattedNumber 
+          : '-0.' + formattedNumber.substring(1);
+    } else {
+      formattedNumber = formattedNumber.substring(0, decimalSeparatorIndex) + '.' + formattedNumber.substring(decimalSeparatorIndex);
+    }
+  }
+  
+  // Add a decimal separator if needed followed by the required number of zeros
+  if (options.minimumFractionDigits > 0) {
+    if (decimalSeparatorIndex === formattedNumber.length) {
+      formattedNumber += '.';
+    }
+    while (options.minimumFractionDigits > formattedNumber.length - decimalSeparatorIndex - 1) {
+      formattedNumber += '0';
+    }
+  }
+  
+  if (decimalSeparatorIndex > 3 && formattedNumber.indexOf(',') === -1) {
+    // Missing grouping separator
+    for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
+      formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
+      decimalSeparatorIndex++;
+    }
+  } 
+  
+  return formattedNumber.replace(".", "#").replace(",", groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
 }
-
-LengthUnit.INCH_DECIMALS.getMinimumLength = function() {        
-  return LengthUnit.inchToCentimeter(0.125);
-}
-
-LengthUnit.INCH_DECIMALS.getMaximumLength = function() {
-  return LengthUnit.inchToCentimeter(99974.4); // 3280 ft
-}
-
-LengthUnit.INCH_DECIMALS.getMaximumElevation = function() {
-  return this.getMaximumLength() / 10;
-}
-
-LengthUnit.INCH_DECIMALS.centimeterToUnit = function(length) {
-  return centimeterToInch(length);
-}
-
-LengthUnit.INCH_DECIMALS.unitToCentimeter = function(length) {
-  return LengthUnit.inchToCentimeter(length);
-}
-
-///**
-// * A decimal format for meter family units.
-// */
-//private static class MeterFamilyFormat extends DecimalFormat {
-//  private final float unitMultiplier;
-//
-//  public MeterFamilyFormat(String pattern, float unitMultiplier) {
-//    super(pattern);
-//    this.unitMultiplier = unitMultiplier;
-//    
-//  }
-//
-//  public StringBuffer format(double number, StringBuffer result,
-//                             FieldPosition fieldPosition) {
-//    // Convert centimeter to millimeter
-//    return super.format(number * this.unitMultiplier, result, fieldPosition);                
-//  }
-//
-//  public StringBuffer format(long number, StringBuffer result,
-//                             FieldPosition fieldPosition) {
-//    return format((double)number, result, fieldPosition);
-//  }
-//  
-//  public Number parse(String text, ParsePosition pos) {
-//    Number number = super.parse(text, pos);
-//    if (number === null) {
-//      return null;
-//    } else {
-//      return number.floatValue() / this.unitMultiplier;
-//    }
-//  }
-//}
-//
-///**
-// * A decimal format for square meter.
-// */
-//private static class SquareMeterAreaFormatWithUnit extends DecimalFormat {
-//  public SquareMeterAreaFormatWithUnit(String squareMeterUnit) {
-//    super("#,##0.## " + squareMeterUnit);
-//  }
-//  
-//  public StringBuffer format(double number, StringBuffer result,
-//                             FieldPosition fieldPosition) {
-//    // Convert square centimeter to square meter
-//    return super.format(number / 10000, result, fieldPosition);                
-//  }
-//}
-//
-///**
-// * A decimal format for square foot.
-// */
-//private static class SquareFootAreaFormatWithUnit extends DecimalFormat {
-//  public SquareFootAreaFormatWithUnit(String pattern) {
-//    super(pattern);
-//  }
-//  
-//  public StringBuffer format(double number, StringBuffer result,
-//                             FieldPosition fieldPosition) {
-//    // Convert square centimeter to square foot
-//      return super.format(number / 929.0304, result, fieldPosition);                
-//    }
-//  }
-//}

@@ -28,6 +28,7 @@ function URLContent(url) {
   this.url = url;
 }
 
+URLContent["__class"] = "com.eteks.sweethome3d.tools.URLContent";
 URLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 /**
@@ -44,7 +45,7 @@ URLContent.prototype.getURL = function() {
  * @return {boolean}
  */
 URLContent.prototype.isJAREntry = function() {
-  return this.url.indexOf("jar:") === 0 && this.url.indexOf('!') !== -1; 
+  return this.url.indexOf("jar:") === 0 && this.url.indexOf("!/") !== -1; 
 }
 
 /**
@@ -55,7 +56,7 @@ URLContent.prototype.getJAREntryURL = function() {
   if (!this.isJAREntry()) {
     throw new IllegalStateException("Content isn't a JAR entry");
   }
-  return this.url.substring("jar:".length, this.url.indexOf('!'));
+  return this.url.substring("jar:".length, this.url.indexOf("!/"));
 }
 
 /**
@@ -70,7 +71,7 @@ URLContent.prototype.getJAREntryName = function() {
   if (!this.isJAREntry()) {
     throw new IllegalStateException("Content isn't a JAR entry");
   }
-  return this.url.substring(this.url.indexOf('!') + 2);
+  return this.url.substring(this.url.indexOf("!/") + 2);
 }
 
 /**
@@ -90,6 +91,17 @@ URLContent.prototype.equals = function(obj) {
 }
 
 /**
+ * Returns a hash code for this object.
+ * @return {Number}
+ */
+URLContent.prototype.hashCode = function() {
+  return this.url.split("").reduce(function(a, b) {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+}
+
+/**
  * An URL content read from a home stream.
  * @param {string} url  the URL from which this content will be read
  * @constructor
@@ -102,7 +114,97 @@ function HomeURLContent(url) {
 HomeURLContent.prototype = Object.create(URLContent.prototype);
 HomeURLContent.prototype.constructor = HomeURLContent;
 
+HomeURLContent["__class"] = "com.eteks.sweethome3d.io.HomeURLContent";
 HomeURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+/**
+ * Content read from a URL with no dependency on other content when this URL is a JAR entry.
+ * @constructor
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+function SimpleURLContent(url) {
+  URLContent.call(this, url);
+}
+SimpleURLContent.prototype = Object.create(URLContent.prototype);
+SimpleURLContent.prototype.constructor = SimpleURLContent;
+
+SimpleURLContent["__class"] = "com.eteks.sweethome3d.tools.SimpleURLContent";
+SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+
+/**
+ * Utilities for requests about the system environment.
+ * @class
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+var OperatingSystem = {}
+
+/**
+ * Returns <code>true</code> if the operating system is Linux.
+ */
+OperatingSystem.isLinux = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Linux") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns <code>true</code> if the operating system is Windows.
+ */
+OperatingSystem.isWindows = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Windows") !== -1 || navigator.platform.indexOf("Win") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns <code>true</code> if the operating system is Mac OS X.
+ */
+OperatingSystem.isMacOSX = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Mac") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns the operating system name used to filter some information.
+ */
+OperatingSystem.getName = function() {
+  if (OperatingSystem.isMacOSX()) {
+    return "Mac OS X";
+  } else if (OperatingSystem.isLinux()) {
+    return "Linux";
+  } else if (OperatingSystem.isWindows()) {
+    return "Windows";
+  } else {
+    return "Other";
+  }
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Internet Explorer or Edge (note based on Chromium).
+ */
+OperatingSystem.isInternetExplorerOrLegacyEdge = function() {
+  // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return (document.documentMode || /Edge/.test(navigator.userAgent));
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Internet Explorer.
+ */
+OperatingSystem.isInternetExplorer = function() {
+  // IE test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return document.documentMode;
+}
+
 
 /**
  * ZIP reading utilities.
@@ -198,30 +300,55 @@ ZIPTools.disposeZIP = function(url) {
 }
 
 /**
+ * Returns true if the given image data describes a JPEG file.
+ * @package
+ * @ignore
+ */
+ZIPTools.isJPEGImage = function(imageData) {
+  return imageData.charAt(0).charCodeAt(0) === 0xFF 
+      && imageData.charAt(1).charCodeAt(0) === 0xD8 
+      && imageData.charAt(2).charCodeAt(0) === 0xFF;
+}
+
+/**
  * Returns true if the given image data describes a transparent PNG file.
  * @package
  * @ignore
  */
-ZIPTools.isTranparentImage = function(imageData) {
+ZIPTools.isPNGImage = function(imageData) {
   return imageData.charAt(0).charCodeAt(0) === 0x89 
-  && imageData.charAt(1).charCodeAt(0) === 0x50 
-  && imageData.charAt(2).charCodeAt(0) === 0x4e 
-  && imageData.charAt(3).charCodeAt(0) === 0x47 
-  && imageData.charAt(4).charCodeAt(0) === 0x0d 
-  && imageData.charAt(5).charCodeAt(0) === 0x0a 
-  && imageData.charAt(6).charCodeAt(0) === 0x1a 
-  && imageData.charAt(7).charCodeAt(0) === 0x0a
-  && (imageData.charAt(25).charCodeAt(0) === 4
-      || imageData.charAt(25).charCodeAt(0) === 6
-      || (imageData.indexOf("PLTE") !== -1 && imageData.indexOf("tRNS") !== -1));
+      && imageData.charAt(1).charCodeAt(0) === 0x50 
+      && imageData.charAt(2).charCodeAt(0) === 0x4E 
+      && imageData.charAt(3).charCodeAt(0) === 0x47 
+      && imageData.charAt(4).charCodeAt(0) === 0x0D 
+      && imageData.charAt(5).charCodeAt(0) === 0x0A 
+      && imageData.charAt(6).charCodeAt(0) === 0x1A 
+      && imageData.charAt(7).charCodeAt(0) === 0x0A;
 }
 
 /**
- * Returns the folder where a given Javascript .js file was read from.  
+ * Returns true if the given image data describes a transparent PNG file.
+ * @package
+ * @ignore
+ */
+ZIPTools.isTransparentImage = function(imageData) {
+  return ZIPTools.isPNGImage(imageData)
+      && (imageData.charAt(25).charCodeAt(0) === 4
+          || imageData.charAt(25).charCodeAt(0) === 6
+          || (imageData.indexOf("PLTE") !== -1 && imageData.indexOf("tRNS") !== -1));
+}
+
+/**
+ * Returns the folder where a given Javascript .js file was read from.
+ * @param {string} [script] the URL of a script used in the program  
  * @package
  * @ignore
  */
 ZIPTools.getScriptFolder = function(script) {
+  if (script === undefined) {
+    // Consider this script is always here because ZIPTools itself requires it
+    script = "jszip.min.js"; 
+  }
   var baseUrl = "http://www.sweethome3d.com/libjs/"; 
   // Search the base URL of this script
   var scripts = document.getElementsByTagName("script");      
