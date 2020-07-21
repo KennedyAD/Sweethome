@@ -125,7 +125,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.model.Home.removePropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
         "com.eteks.sweethome3d.model.HomeEnvironment.addPropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
         "com.eteks.sweethome3d.model.HomeEnvironment.removePropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)");
-    
+
     if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))) {
       // Only HomeController3D and its dependencies are needed for Sweet Home 3D
       // viewer
@@ -220,7 +220,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.j3d");
 
     // Replace some Java implementations with some JavaScript-specific implementations
-    
+
     // Manage content without contentContext
     addAnnotation(
         "@Replace('if (contentFile == null) { "
@@ -560,7 +560,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           return true;
       }
     }
-    
+
     // Replace overloaded addPropertyChangeListener / removePropertyChangeListener
     // methods to ignore PropertyChangeListener type when listener is a function
     if (executable.getSimpleName().toString().equals("addPropertyChangeListener")
@@ -595,7 +595,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
       print("}");
       return true;
     }
-    
+
     return super.substituteExecutable(executable);
   }
 
@@ -653,7 +653,9 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         newComment.append("@ignore");
       }
     }
-    if (!element.getModifiers().contains(Modifier.PUBLIC) && !element.getModifiers().contains(Modifier.PRIVATE)) {
+    if (!element.getModifiers().contains(Modifier.PUBLIC)
+        && !element.getModifiers().contains(Modifier.PROTECTED)
+        && !element.getModifiers().contains(Modifier.PRIVATE)) {
       newComment.append("\n");
       newComment.append("@private");
     }
