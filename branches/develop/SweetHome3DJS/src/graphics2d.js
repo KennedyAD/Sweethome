@@ -590,6 +590,7 @@ Font.prototype.toString = function() {
  * Adapted from javax.swing.AbstractAction
  * @constructor
  * @author Georges Saab
+ * @ignore
  */
 function AbstractAction() {
   this.enabled = true;      

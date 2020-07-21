@@ -647,8 +647,17 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     newComment.deleteCharAt(newComment.length() - 1);
     if (element instanceof TypeElement) {
-      TypeElement type = (TypeElement) element;
-      if (types().isSubtype(type.asType(), util().getType(Throwable.class))) {
+      TypeElement type = (TypeElement)element;
+      if (types().isSubtype(type.asType(), util().getType(Throwable.class))
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.AbstractPhotoController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotoController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotosController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.VideoController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PageSetupController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.WizardController")) {
         newComment.append("\n");
         newComment.append("@ignore");
       }
