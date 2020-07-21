@@ -1,0 +1,85 @@
+<!--
+   viewHomeInOverlay.html 
+   
+   Sweet Home 3D, Copyright (c) 2016 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>View home</title>
+<base href="../..">
+<script type="text/javascript" src="lib/big.min.js"></script>
+<script type="text/javascript" src="lib/gl-matrix-min.js"></script>
+<script type="text/javascript" src="lib/jszip.min.js"></script>
+<script type="text/javascript" src="lib/jsXmlSaxParser.min.js"></script>
+
+<!--
+<script type="text/javascript" src="lib/core-min.js"></script>
+<script type="text/javascript" src="lib/geom-min.js"></script>
+<script type="text/javascript" src="lib/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="lib/triangulator-min.js"></script>
+<script type="text/javascript" src="lib/viewmodel-min.js"></script>
+<script type="text/javascript" src="lib/viewhome-min.js"></script>
+-->
+
+<script type="text/javascript" src="src/core.js"></script>
+<script type="text/javascript" src="src/scene3d.js"></script>
+<script type="text/javascript" src="src/URLContent.js"></script>
+<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
+<script type="text/javascript" src="src/ModelManager.js"></script>
+<script type="text/javascript" src="src/ModelLoader.js"></script>
+<script type="text/javascript" src="src/OBJLoader.js"></script>
+<script type="text/javascript" src="src/Max3DSLoader.js"></script>
+<script type="text/javascript" src="src/DAELoader.js"></script>
+<script type="text/javascript" src="src/Triangulator.js"></script>
+
+<script type="text/javascript" src="lib/generated/geom.js"></script>
+<script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
+<script type="text/javascript" src="src/HomeRecorder.js"></script>
+<script type="text/javascript" src="src/HomeComponent3D.js"></script>
+<script type="text/javascript" src="src/Object3DBranch.js"></script>
+<script type="text/javascript" src="src/HomePieceOfFurniture3D.js"></script>
+<script type="text/javascript" src="src/Room3D.js"></script>
+<script type="text/javascript" src="src/Wall3D.js"></script>
+<script type="text/javascript" src="src/Ground3D.js"></script>
+<script type="text/javascript" src="src/Label3D.js"></script>
+<script type="text/javascript" src="src/TextureManager.js"></script>
+<script type="text/javascript" src="src/UserPreferences.js"></script>
+<script type="text/javascript" src="src/LengthUnit.js"></script>
+<script type="text/javascript" src="src/viewHome.js"></script>
+
+<style type="text/css">
+.viewerComponent {
+}
+</style>
+</head>
+
+<body>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample7.zip",  
+					     {roundsPerMinute: 1,                           /* Rounds per minute rotation, no animation if missing */ 
+                          navigationPanel: "default",                   /* Displayed navigation arrows, "none" or "default" for default one or an HTML string containing elements with data-simulated-key 
+                                                                           attribute set "UP", "DOWN", "LEFT", "RIGHT"... to replace the default navigation panel, "none" if missing */ 
+					      widthByHeightRatio: 4/3,                      /* Size ratio of the canvas */
+					      aerialViewButtonText: "Aerial view",          /* Text displayed for aerial view button */ 
+					      virtualVisitButtonText: "Virtual visit",      /* Text displayed for virtual visit button */
+					      selectableLevels: ["Level 0", "Level 1"],     /* Uncomment to choose the list of displayed levels */
+					      readingHomeText: "Reading",                   /* Comment displayed while reading home */
+					      readingModelText: "Model",                    /* Comment displayed while reading models */
+					      noWebGLSupportError: "No WebGL support"       /* Error message displayed if the browser do not support WebGL */
+					     })'>View home</button>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Test homes</title>
+<base href="../..">
+<script type="text/javascript" src="lib/big.min.js"></script>
+<script type="text/javascript" src="lib/gl-matrix-min.js"></script>
+<script type="text/javascript" src="lib/jszip.min.js"></script>
+<script type="text/javascript" src="lib/jsXmlSaxParser.min.js"></script>
+
+<!--
+<script type="text/javascript" src="lib/core-min.js"></script>
+<script type="text/javascript" src="lib/geom-min.js"></script>
+<script type="text/javascript" src="lib/triangulator-min.js"></script>
+<script type="text/javascript" src="lib/viewmodel-min.js"></script>
+<script type="text/javascript" src="lib/viewhome-min.js"></script>
+-->
+
+<script type="text/javascript" src="src/core.js"></script>
+<script type="text/javascript" src="src/scene3d.js"></script>
+<script type="text/javascript" src="src/URLContent.js"></script>
+<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
+<script type="text/javascript" src="src/ModelManager.js"></script>
+<script type="text/javascript" src="src/ModelLoader.js"></script>
+<script type="text/javascript" src="src/OBJLoader.js"></script>
+<script type="text/javascript" src="src/DAELoader.js"></script>
+<script type="text/javascript" src="src/Triangulator.js"></script>
+
+<script type="text/javascript" src="lib/generated/geom.js"></script>
+<script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
+<script type="text/javascript" src="src/HomeRecorder.js"></script>
+<script type="text/javascript" src="src/HomeComponent3D.js"></script>
+<script type="text/javascript" src="src/Object3DBranch.js"></script>
+<script type="text/javascript" src="src/HomePieceOfFurniture3D.js"></script>
+<script type="text/javascript" src="src/Room3D.js"></script>
+<script type="text/javascript" src="src/Wall3D.js"></script>
+<script type="text/javascript" src="src/Ground3D.js"></script>
+<script type="text/javascript" src="src/Label3D.js"></script>
+<script type="text/javascript" src="src/TextureManager.js"></script>
+<script type="text/javascript" src="src/UserPreferences.js"></script>
+<script type="text/javascript" src="src/LengthUnit.js"></script>
+<script type="text/javascript" src="src/viewHome.js"></script>
+</head>
+
+<body>
+  <button onclick='viewHomeInOverlay("other/test/homes/userGuideExample.zip", {roundsPerMinute: 1, navigationPanel: "<button data-simulated-key=\"DOWN\">&darr;</button>"})'>View userGuideExample</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample.zip", {roundsPerMinute: 1, navigationPanel: "<button data-simulated-key=\"UP\">&uarr;</button>"})'>View SweetHome3DExample</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample2.zip", {roundsPerMinute: 1})'>View SweetHome3DExample2</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample3.zip", {roundsPerMinute: 3})'>View SweetHome3DExample3</button><br>
+  <script type="text/javascript">
+  function updateFPS() {
+	  setInterval(function() { document.getElementById("fps").innerHTML = document.getElementById("viewerCanvas").homePreviewComponent.getComponent3D().canvas3D.getFramesPerSecond() + "fps"; }, 1000);
+  }
+  </script>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample4.zip", 
+                                     {roundsPerMinute: 1,
+                                      viewerControlsAdditionalHTML: "<label id=\"fps\" style=\"padding-left: 20px;\" onclick=\"updateFPS();\">Measure FPS</label>"
+                                     })'>View SweetHome3DExample4</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample5.zip", {roundsPerMinute: 1})'>View SweetHome3DExample5</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample6.zip", {roundsPerMinute: 1})'>View SweetHome3DExample6</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample7.zip",   
+                                     {roundsPerMinute: 2,
+                                      aerialViewButtonText: "Aerial view", 
+                                      navigationPanel: (!/ipad|iphone|ipod|android/.test(navigator.userAgent.toLowerCase()) || !!window.MSStream) ? "default" : "none",   
+                                      virtualVisitButtonText: "Virtual visit",  
+                                      selectableLevels: ["Level 0", "Level 1"],
+                                      viewerControlsAdditionalHTML: /android|mac/.test(navigator.userAgent.toLowerCase()) ? "<span id=\"zoomButtons\" style=\"visible: hidden; padding-left: 20px;\"><button data-simulated-key=\"UP\">Forward &uarr;</button><button data-simulated-key=\"DOWN\">Backward &darr;</button></span>" : undefined});
+                                      '>View SweetHome3DExample7</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample8.zip", 
+                                     {widthByHeightRatio: 2,
+                     			      aerialViewButtonText: "Vue aérienne", 
+                                      virtualVisitButtonText: "Visite virtuelle",
+                                      readingHomeText: "Lecture", 
+                                      readingModelText: "Modèle"})'>View SweetHome3DExample8</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample9-WoodenShed.zip", {roundsPerMinute: 1})'>View SweetHome3DExample9-WoodenShed</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/SweetHome3DExample10-FlatWithMezzanine.zip", {roundsPerMinute: 1})'>View SweetHome3DExample10-FlatWithMezzanine</button><br><br>
+
+  <button onclick='viewHomeInOverlay("other/test/homes/TextureTest.zip")'>View TextureTest</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/bigSize-withModelsOnServer.zip")'>View bigSize-withModelsOnServer</button><br>
+  <button onclick='viewHomeInOverlay("other/test/homes/LaModePourTous.zip",   
+                                      {widthByHeightRatio: 2,
+	                                   aerialViewButtonText: "Vue aérienne", 
+                                       virtualVisitButtonText: "Visite virtuelle"})'>View LaModePourTous</button><br>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!--
+   viewHome.html 
+   
+   Sweet Home 3D, Copyright (c) 2016 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>View home</title>
+<base href="../..">
+<script type="text/javascript" src="lib/big.min.js"></script>
+<script type="text/javascript" src="lib/gl-matrix-min.js"></script>
+<script type="text/javascript" src="lib/jszip.min.js"></script>
+<script type="text/javascript" src="lib/jsXmlSaxParser.min.js"></script>
+
+<!--
+<script type="text/javascript" src="lib/core-min.js"></script>
+<script type="text/javascript" src="lib/geom-min.js"></script>
+<script type="text/javascript" src="lib/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="lib/triangulator-min.js"></script>
+<script type="text/javascript" src="lib/viewmodel-min.js"></script>
+<script type="text/javascript" src="lib/viewhome-min.js"></script>
+-->
+
+<script type="text/javascript" src="src/core.js"></script>
+<script type="text/javascript" src="src/scene3d.js"></script>
+<script type="text/javascript" src="src/URLContent.js"></script>
+<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
+<script type="text/javascript" src="src/ModelManager.js"></script>
+<script type="text/javascript" src="src/ModelLoader.js"></script>
+<script type="text/javascript" src="src/OBJLoader.js"></script>
+<script type="text/javascript" src="src/Max3DSLoader.js"></script>
+<script type="text/javascript" src="src/DAELoader.js"></script>
+<script type="text/javascript" src="src/Triangulator.js"></script>
+
+<script type="text/javascript" src="lib/generated/geom.js"></script>
+<script type="text/javascript" src="lib/stroke.min.js"></script>
+<script type="text/javascript" src="lib/generated/swingundo.js"></script>
+<script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
+<script type="text/javascript" src="src/ShapeTools.js"></script>
+<script type="text/javascript" src="src/HomeRecorder.js"></script>
+<script type="text/javascript" src="src/HomeComponent3D.js"></script>
+<script type="text/javascript" src="src/Object3DBranch.js"></script>
+<script type="text/javascript" src="src/HomePieceOfFurniture3D.js"></script>
+<script type="text/javascript" src="src/Room3D.js"></script>
+<script type="text/javascript" src="src/Wall3D.js"></script>
+<script type="text/javascript" src="src/Ground3D.js"></script>
+<script type="text/javascript" src="src/Polyline3D.js"></script>
+<script type="text/javascript" src="src/Label3D.js"></script>
+<script type="text/javascript" src="src/TextureManager.js"></script>
+<script type="text/javascript" src="src/UserPreferences.js"></script>
+<script type="text/javascript" src="src/LengthUnit.js"></script>
+<script type="text/javascript" src="src/viewHome.js"></script>
+
+<style type="text/css">
+.viewerComponent  {
+}
+</style>
+</head>
+
+<body>
+<h1 align="center">My home</h1>
+<table><tr><td width="10%"></td><td>
+<canvas id="viewerCanvas" class="viewerComponent" width="800" height="600"
+        style="background-color: #CCCCCC; border: 2px solid gray; outline:none" tabIndex="1"
+        
+        onmousedown="this.mousedownx = event.clientX; this.mousedowny = event.clientY" 
+        onmouseup="if (this.mousedownx == event.clientX && this.mousedowny == event.clientY) displayInfo(homeComponent.getComponent3D().getClosestItemAt(this.mousedownx, this.mousedowny));"
+        ontouchstart="this.mousedownx = event.targetTouches [event.targetTouches.length - 1].pageX; this.mousedowny = event.targetTouches [event.targetTouches.length - 1].pageY; "
+        ontouchmove="if (this.mousedownx != event.targetTouches [event.targetTouches.length - 1].pageX || this.mousedowny != event.targetTouches [event.targetTouches.length - 1].pageY) this.mousedownx = undefined;"
+        ontouchend="if (this.mousedownx !== undefined) displayInfo(homeComponent.getComponent3D().getClosestItemAt(this.mousedownx, this.mousedowny));"
+                 
+      ></canvas>
+<div id="viewerProgressDiv" style="width: 400px; position: relative; top: -350px; left: 200px; background-color: rgba(128, 128, 128, 0.7); padding: 20px; border-radius: 25px">
+  <progress id="viewerProgress"  class="viewerComponent" value="0" max="200" style="width: 400px"></progress>
+  <label id="viewerProgressLabel" class="viewerComponent" style="margin-top: 2px; display: block; margin-left: 10px"></label>
+</div>
+<div style="margin-top: -60px">
+    <input  id="aerialView"   class="viewerComponent" name="cameraType" type="radio" style="visibility: hidden;">
+      <label class="viewerComponent" for="aerialView" style="visibility: hidden;">Aerial view</label></input>
+    <input  id="virtualVisit" class="viewerComponent" name="cameraType" type="radio" style="visibility: hidden;">
+      <label class="viewerComponent" for="virtualVisit" style="visibility: hidden;">Virtual visit</label></input>
+    <select id="levelsAndCameras" class="viewerComponent" style="visibility: hidden;"></select>
+</div>
+<button onclick="setInterval(function() { var piece = homeComponent.getHome().getFurniture() [3]; piece.setVisible(!piece.isVisible());}, 500);">Blink</button>
+<button onclick="setInterval(function() { var piece = homeComponent.getHome().getFurniture() [2]; piece.setWidth(Math.max(0.1, piece.getWidth() * .95)); }, 20);">Shrink</button>
+<script type="text/javascript">
+function addRemove() {
+  var home = homeComponent.getHome();  
+  var sel = home.getSelectedItems(); 
+  if (sel.length) { 
+    for (var i = 0; i < sel.length; i++) 
+      home.deletePieceOfFurniture(sel [i]); 
+  } else { 
+    var piece1 = home.getFurniture() [4].clone(); 
+    home.addPieceOfFurniture(piece1);  
+    piece1.setX(piece1.getX() + 100); 
+    var piece2 = new HomePieceOfFurniture(new CatalogPieceOfFurniture(null, "Test", null, null, [], 0, 0, null, null, new URLContent("other/test/models/livres.zip"), 100, 100, 100, 10, 0, false, false, null, null, null, false, null, true, true, true, null, null, null, false));
+    home.addPieceOfFurniture(piece2);  
+    home.setSelectedItems([piece1, piece2]);
+  }  
+}
+
+function shift() {
+  var furniture = homeComponent.getHome().getFurniture();
+  for (var i = 0; i < furniture.length; i++) 
+    furniture [i].setX(furniture [i].getX() + 10 * Math.random());
+}
+</script>
+<button onclick="addRemove();">Remove / Add</button>
+<button onclick="shift();">Shift furniture</button>
+<button onclick="var pref = homeComponent.getUserPreferences(); pref.setNavigationPanelVisible(!pref.isNavigationPanelVisible());">Toggle nav</button>
+<button onclick="var pref = homeComponent.getUserPreferences(); homeComponent.getHome().setSelectedItems([homeComponent.getHome().getFurniture() [0]]); pref.setAerialViewCenteredOnSelectionEnabled(!pref.isAerialViewCenteredOnSelectionEnabled()); ">Test center on selection</button>
+<button onclick="homeComponent.getHome().getEnvironment().setSkyColor(Math.random() * 0xFFFFFF)">Change sky color</button>
+<button onclick="homeComponent.getHome().getEnvironment().setSkyTexture(new HomeTexture(new CatalogTexture('1', 'test', new URLContent('other/test/models/cube.png'), 100, 100, null, false)))">Change sky texture</button>
+<button onclick="homeComponent.getHome().getEnvironment().setLightColor(Math.random() * 0xFFFFFF)">Change light</button>
+<button onclick="homeComponent.getHome().getEnvironment().setWallsAlpha(Math.random())">Change transparency</button>
+<span id="zoomButtons" style="visible: hidden">
+	<button data-simulated-key="viewerCanvas:UP">Zoom in</button>
+	<button data-simulated-key="DOWN">Zoom out</button>
+</span>
+<label id="fps"></label>
+<br>
+<label id="labelInfo" style="visibility: hidden;"></label>
+</td></tr></table>
+<img id="test">
+
+
+<script type="text/javascript">
+  var homeUrl;
+//   homeUrl = "other/test/homes/group.zip"; 
+//   homeUrl = "other/test/homes/ChamberyAvecCuisine.zip"; 
+//   homeUrl = "other/test/homes/LaModePourTous.zip"; 
+//   homeUrl = "other/test/homes/ChaletInScenery.sh3d"; // Problème coordonnées texture au début du mur de décor (fixed ?)
+//   homeUrl = "other/test/homes/RoundWallsWithAnglesRequiringAdjustment.sh3d";
+//   homeUrl = "other/test/homes/Eiffel.sh3d"; 
+//   homeUrl = "other/test/homes/ImmeubleChicos.sh3d";
+  homeUrl = "other/test/homes/NewFeaturesV6.sh3d";
+//   homeUrl = "other/test/homes/TreesTest.sh3d";
+//   homeUrl = "other/test/homes/PineTreeWithLines.sh3d";
+//   homeUrl = "other/test/homes/TestMirrorsOnHingeAndRail.sh3d";
+//   homeUrl = "other/test/homes/PolylineOffsetTest.sh3d"; // Polyline in 3D of 6.0
+//   homeUrl = "other/test/homes/TestTransformationsLargeWindows.sh3d"; // Windows opening of 6.0  
+//   homeUrl = "other/test/homes/F4.sh3d"; // 3D model transformations of 6.0
+//   homeUrl = "other/test/homes/MultiLineText.sh3d"; // Multi line text of 6.0
+//   homeUrl = "other/test/homes/TextureOffsetTest.sh3d"; // Texture offset of 6.0
+//   homeUrl = "other/test/homes/backgroundImageTest.sh3d"; // Background image in 3D of 6.0
+//   homeUrl = "other/test/homes/TestPitchAndRoll.sh3d"; // New features of 5.5 
+//   homeUrl = "other/test/homes/TestImportCones.sh3d"; // New features of 5.5
+// 	 homeUrl = "other/test/homes/TestOrientation2Axes.sh3d"; // New features of 5.5
+//   homeUrl = "other/test/homes/TestXMLEntities.sh3d"; 
+//   homeUrl = "other/test/homes/SweetHome3DExample7.sh3d";
+//   homeUrl = "other/test/homes/myhome_ver_10_2.sh3d"; // Problème sécurité quand hébergé sur le serveur
+//   homeUrl = "other/test/homes/bigSize-withModelsOnServer.zip"; 
+//   homeUrl = "other/test/homes/InvisibleBoxTest.zip"; 
+//   homeUrl = "other/test/homes/ArchibitWith3DS.sh3d"; 
+//   homeUrl = "other/test/homes/sunhing3.sh3d"; // Contient des OBJ avec NaN 
+//   homeUrl = "other/test/homes/TestPattern.sh3d"; 
+//   homeUrl = "other/test/homes/RoundWindowsTest.sh3d"; 
+//   homeUrl = "other/test/homes/ProblemeFenetre.sh3d"; // Contient des coordonnées mal gérées en float/double 
+//   homeUrl = "other/test/homes/UndergroundTest.sh3d"; 
+//   homeUrl = "other/test/homes/bureau.sh3d"; 
+//   homeUrl = "other/test/homes/TextureTest.zip"; 
+//   homeUrl = "other/test/homes/levage_module.sh3v"; 
+//   homeUrl = "jar:other/test/homes/RenamedHomeEntry.sh3d!/HomeEntry.xml";
+  
+  var onerror = function(err) {
+      if (err == "No WebGL") {
+        alert("Sorry, your browser doesn't support WebGL.");
+      } else {
+        console.log(err.stack);
+        alert("Error: " + (err.message  ? err.constructor.name + " " +  err.message  : err));
+      }
+    };
+  var onprogression = function(part, info, percentage) {
+      var progress = document.getElementById("viewerProgress"); 
+      if (part === HomeRecorder.READING_HOME) {
+        // Home loading is finished 
+        progress.value = percentage * 100;
+        info = info.substring(info.lastIndexOf('/') + 1);
+      } else if (part === ModelLoader.READING_MODEL) {
+        // Models loading is finished 
+        progress.value = 100 + percentage * 100;
+        if (percentage === 1) {
+          document.getElementById("viewerProgressDiv").style.visibility = "hidden";
+        }
+      }
+    
+      document.getElementById("viewerProgressLabel").innerHTML = 
+          (percentage ? Math.floor(percentage * 100) + "% " : "") + part + " " + info;
+    };
+   
+  // Display home in canvas 3D
+  var homeComponent = viewHome(
+      "viewerCanvas",    // Id of the canvas
+      homeUrl,           // URL or relative URL of the home to display 
+      onerror,           // Callback called in case of error
+      onprogression,     // Callback called while loading 
+     {roundsPerMinute: 1,                    // Rotation in rounds per minute, no animation if missing or equal to 0 
+      navigationPanel: "default",            // Displayed navigation arrows, "none" or "default" for default one or an HTML string containing elements with data-simulated-key 
+                                             // attribute set "UP", "DOWN", "LEFT", "RIGHT"... to replace the default navigation panel, "none" if missing 
+      aerialViewButtonId: "aerialView",      // Id of the aerial view radio button, radio buttons hidden if missing  
+      virtualVisitButtonId: "virtualVisit",  // Id of the aerial view radio button, radio buttons hidden if missing  
+      levelsAndCamerasListId: "levelsAndCameras"   // Id of the levels select component, hidden if missing
+  /*, selectableLevels: ["Level 0", "Level 1"] */  // List of displayed levels, all viewable levels if missing
+     });
+  
+var intervalId;
+var blinker;
+
+function displayInfo(item) {
+  var label = document.getElementById("labelInfo");
+  if (item instanceof HomePieceOfFurniture) {
+    label.innerHTML = item.getName() + " (" + Math.round(item.getWidth()) + " x " + Math.round(item.getDepth()) + " x " + Math.round(item.getHeight()) + ")";
+    if (intervalId) {
+      clearInterval(intervalId);
+      blinker(true);
+    }
+    blinker = function(stop) { 
+      if (this.colored || stop) {
+        if (this.colored) {
+          item.setColor(this.defaultColor); 
+          item.setTexture(this.defaultTexture); 
+          delete this.colored;
+        }
+      } else { 
+        this.defaultColor = item.getColor(); 
+        this.defaultTexture = item.getTexture();
+        this.colored = true;
+        item.setColor(0x770000); 
+        item.setTexture(null); 
+      } 
+    }
+    blinker();
+    intervalId = setInterval(blinker, 500);
+    label.style.visibility = "visible";
+    // window.open("http://www.sever.fr/pageproduit", "Product");
+  } else if (item !== null) {
+    label.innerHTML = item;
+    label.style.visibility = "visible";
+  } else {
+    label.style.visibility = "hidden";
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1831 @@
+/*
+ * OBJLoader.js
+ *
+ * Sweet Home 3D, Copyright (c) 2015 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+// Requires core.js
+// Requires Node3D.js
+// Requires jszip.min.js
+// Requires jszip-utils.min.js
+
+/**
+ * Creates an instance of OBJ + MTL loader.
+ * @constructor
+ * @author Emmanuel Puybaret
+ */
+function OBJLoader() {
+  if (Object.keys(OBJLoader.defaultAppearances).length === 0) {
+    OBJLoader.parseMaterial(
+        "newmtl amber\n" +
+        "Ka 0.0531 0.0531 0.0531\n" +
+        "Kd 0.5755 0.2678 0.0000\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl amber_trans\n" +
+        "Ka 0.0531 0.0531 0.0531\n" +
+        "Kd 0.5755 0.2678 0.0000\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "d 0.1600\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl charcoal\n" +
+        "Ka 0.0082 0.0082 0.0082\n" +
+        "Kd 0.0041 0.0041 0.0041\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl lavendar\n" +
+        "Ka 0.1281 0.0857 0.2122\n" +
+        "Kd 0.2187 0.0906 0.3469\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl navy_blue\n" +
+        "Ka 0.0000 0.0000 0.0490\n" +
+        "Kd 0.0000 0.0000 0.0531\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl pale_green\n" +
+        "Ka 0.0444 0.0898 0.0447\n" +
+        "Kd 0.0712 0.3796 0.0490\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl pale_pink\n" +
+        "Ka 0.0898 0.0444 0.0444\n" +
+        "Kd 0.6531 0.2053 0.4160\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl pale_yellow\n" +
+        "Ka 0.3606 0.3755 0.0935\n" +
+        "Kd 0.6898 0.6211 0.1999\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl peach\n" +
+        "Ka 0.3143 0.1187 0.0167\n" +
+        "Kd 0.6367 0.1829 0.0156\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl periwinkle\n" +
+        "Ka 0.0000 0.0000 0.1184\n" +
+        "Kd 0.0000 0.0396 0.8286\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl redwood\n" +
+        "Ka 0.0204 0.0027 0.0000\n" +
+        "Kd 0.2571 0.0330 0.0000\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl smoked_glass\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.0041 0.0041 0.0041\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "d 0.0200\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl aqua_filter\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.3743 0.6694 0.5791\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "d 0.0200\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl yellow_green\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.1875 0.4082 0.0017\n" +
+        "Ks 0.1878 0.1878 0.1878\n" +
+        "illum 2\n" +
+        "Ns 91.4700\n" +
+        "\n" +
+        "newmtl bluetint\n" +
+        "Ka 0.1100 0.4238 0.5388\n" +
+        "Kd 0.0468 0.7115 0.9551\n" +
+        "Ks 0.3184 0.3184 0.3184\n" +
+        "illum 9\n" +
+        "d 0.4300\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl plasma\n" +
+        "Ka 0.4082 0.0816 0.2129\n" +
+        "Kd 1.0000 0.0776 0.4478\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 9\n" +
+        "d 0.2500\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl emerald\n" +
+        "Ka 0.0470 1.0000 0.0000\n" +
+        "Kd 0.0470 1.0000 0.0000\n" +
+        "Ks 0.2000 0.2000 0.2000\n" +
+        "illum 9\n" +
+        "d 0.2500\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl ruby\n" +
+        "Ka 1.0000 0.0000 0.0000\n" +
+        "Kd 1.0000 0.0000 0.0000\n" +
+        "Ks 0.2000 0.2000 0.2000\n" +
+        "illum 9\n" +
+        "d 0.2500\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl sapphire\n" +
+        "Ka 0.0235 0.0000 1.0000\n" +
+        "Kd 0.0235 0.0000 1.0000\n" +
+        "Ks 0.2000 0.2000 0.2000\n" +
+        "illum 9\n" +
+        "d 0.2500\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl white\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 1.0000 1.0000 1.0000\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl red\n" +
+        "Ka 0.4449 0.0000 0.0000\n" +
+        "Kd 0.7714 0.0000 0.0000\n" +
+        "Ks 0.8857 0.0000 0.0000\n" +
+        "illum 2\n" +
+        "Ns 136.4300\n" +
+        "\n" +
+        "newmtl blue_pure\n" +
+        "Ka 0.0000 0.0000 0.5000\n" +
+        "Kd 0.0000 0.0000 1.0000\n" +
+        "Ks 0.0000 0.0000 0.5000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl lime\n" +
+        "Ka 0.0000 0.5000 0.0000\n" +
+        "Kd 0.0000 1.0000 0.0000\n" +
+        "Ks 0.0000 0.5000 0.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl green\n" +
+        "Ka 0.0000 0.2500 0.0000\n" +
+        "Kd 0.0000 0.2500 0.0000\n" +
+        "Ks 0.0000 0.2500 0.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl yellow\n" +
+        "Ka 1.0000 0.6667 0.0000\n" +
+        "Kd 1.0000 0.6667 0.0000\n" +
+        "Ks 1.0000 0.6667 0.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl purple\n" +
+        "Ka 0.5000 0.0000 1.0000\n" +
+        "Kd 0.5000 0.0000 1.0000\n" +
+        "Ks 0.5000 0.0000 1.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl orange\n" +
+        "Ka 1.0000 0.1667 0.0000\n" +
+        "Kd 1.0000 0.1667 0.0000\n" +
+        "Ks 1.0000 0.1667 0.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl grey\n" +
+        "Ka 0.5000 0.5000 0.5000\n" +
+        "Kd 0.1837 0.1837 0.1837\n" +
+        "Ks 0.5000 0.5000 0.5000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl rubber\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.0100 0.0100 0.0100\n" +
+        "Ks 0.1000 0.1000 0.1000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl flaqua\n" +
+        "Ka 0.0000 0.4000 0.4000\n" +
+        "Kd 0.0000 0.5000 0.5000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flblack\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.0041 0.0041 0.0041\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flblue_pure\n" +
+        "Ka 0.0000 0.0000 0.5592\n" +
+        "Kd 0.0000 0.0000 0.7102\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flgrey\n" +
+        "Ka 0.2163 0.2163 0.2163\n" +
+        "Kd 0.5000 0.5000 0.5000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl fllime\n" +
+        "Ka 0.0000 0.3673 0.0000\n" +
+        "Kd 0.0000 1.0000 0.0000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl florange\n" +
+        "Ka 0.6857 0.1143 0.0000\n" +
+        "Kd 1.0000 0.1667 0.0000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flpurple\n" +
+        "Ka 0.2368 0.0000 0.4735\n" +
+        "Kd 0.3755 0.0000 0.7510\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flred\n" +
+        "Ka 0.4000 0.0000 0.0000\n" +
+        "Kd 1.0000 0.0000 0.0000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flyellow\n" +
+        "Ka 0.7388 0.4925 0.0000\n" +
+        "Kd 1.0000 0.6667 0.0000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl pink\n" +
+        "Ka 0.9469 0.0078 0.2845\n" +
+        "Kd 0.9878 0.1695 0.6702\n" +
+        "Ks 0.7429 0.2972 0.2972\n" +
+        "illum 2\n" +
+        "Ns 106.2000\n" +
+        "\n" +
+        "newmtl flbrown\n" +
+        "Ka 0.0571 0.0066 0.0011\n" +
+        "Kd 0.1102 0.0120 0.0013\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl brown\n" +
+        "Ka 0.1020 0.0185 0.0013\n" +
+        "Kd 0.0857 0.0147 0.0000\n" +
+        "Ks 0.1633 0.0240 0.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl glass\n" +
+        "Ka 1.0000 1.0000 1.0000\n" +
+        "Kd 0.4873 0.4919 0.5306\n" +
+        "Ks 0.6406 0.6939 0.9020\n" +
+        "illum 2\n" +
+        "Ns 200.0000\n" +
+        "\n" +
+        "newmtl flesh\n" +
+        "Ka 0.4612 0.3638 0.2993\n" +
+        "Kd 0.5265 0.4127 0.3374\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl aqua\n" +
+        "Ka 0.0000 0.4000 0.4000\n" +
+        "Kd 0.0000 0.5000 0.5000\n" +
+        "Ks 0.5673 0.5673 0.5673\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl black\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.0020 0.0020 0.0020\n" +
+        "Ks 0.5184 0.5184 0.5184\n" +
+        "illum 2\n" +
+        "Ns 157.3600\n" +
+        "\n" +
+        "newmtl silver\n" +
+        "Ka 0.9551 0.9551 0.9551\n" +
+        "Kd 0.6163 0.6163 0.6163\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl dkblue_pure\n" +
+        "Ka 0.0000 0.0000 0.0449\n" +
+        "Kd 0.0000 0.0000 0.1347\n" +
+        "Ks 0.0000 0.0000 0.5673\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl fldkblue_pure\n" +
+        "Ka 0.0000 0.0000 0.0449\n" +
+        "Kd 0.0000 0.0000 0.1347\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl dkgreen\n" +
+        "Ka 0.0000 0.0122 0.0000\n" +
+        "Kd 0.0058 0.0245 0.0000\n" +
+        "Ks 0.0000 0.0490 0.0000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl dkgrey\n" +
+        "Ka 0.0490 0.0490 0.0490\n" +
+        "Kd 0.0490 0.0490 0.0490\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl ltbrown\n" +
+        "Ka 0.1306 0.0538 0.0250\n" +
+        "Kd 0.2776 0.1143 0.0531\n" +
+        "Ks 0.3000 0.1235 0.0574\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl fldkgreen\n" +
+        "Ka 0.0000 0.0122 0.0000\n" +
+        "Kd 0.0058 0.0245 0.0000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flltbrown\n" +
+        "Ka 0.1306 0.0538 0.0250\n" +
+        "Kd 0.2776 0.1143 0.0531\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl tan\n" +
+        "Ka 0.4000 0.3121 0.1202\n" +
+        "Kd 0.6612 0.5221 0.2186\n" +
+        "Ks 0.5020 0.4118 0.2152\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl fltan\n" +
+        "Ka 0.4000 0.3121 0.1202\n" +
+        "Kd 0.6612 0.4567 0.1295\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl brzskin\n" +
+        "Ka 0.4408 0.2694 0.1592\n" +
+        "Kd 0.3796 0.2898 0.2122\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl lips\n" +
+        "Ka 0.4408 0.2694 0.1592\n" +
+        "Kd 0.9265 0.2612 0.2898\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl redorange\n" +
+        "Ka 0.3918 0.0576 0.0000\n" +
+        "Kd 0.7551 0.0185 0.0000\n" +
+        "Ks 0.4694 0.3224 0.1667\n" +
+        "illum 2\n" +
+        "Ns 132.5600\n" +
+        "\n" +
+        "newmtl blutan\n" +
+        "Ka 0.4408 0.2694 0.1592\n" +
+        "Kd 0.0776 0.2571 0.2041\n" +
+        "Ks 0.1467 0.1469 0.0965\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl bluteal\n" +
+        "Ka 0.0041 0.1123 0.1224\n" +
+        "Kd 0.0776 0.2571 0.2041\n" +
+        "Ks 0.1467 0.1469 0.0965\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl pinktan\n" +
+        "Ka 0.4408 0.2694 0.1592\n" +
+        "Kd 0.6857 0.2571 0.2163\n" +
+        "Ks 0.1467 0.1469 0.0965\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl brnhair\n" +
+        "Ka 0.0612 0.0174 0.0066\n" +
+        "Kd 0.0898 0.0302 0.0110\n" +
+        "Ks 0.1306 0.0819 0.0352\n" +
+        "illum 2\n" +
+        "Ns 60.4700\n" +
+        "\n" +
+        "newmtl blondhair\n" +
+        "Ka 0.4449 0.2632 0.0509\n" +
+        "Kd 0.5714 0.3283 0.0443\n" +
+        "Ks 0.7755 0.4602 0.0918\n" +
+        "illum 2\n" +
+        "Ns 4.6500\n" +
+        "\n" +
+        "newmtl flblonde\n" +
+        "Ka 0.4449 0.2632 0.0509\n" +
+        "Kd 0.5714 0.3283 0.0443\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl yelloworng\n" +
+        "Ka 0.5837 0.1715 0.0000\n" +
+        "Kd 0.8857 0.2490 0.0000\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl bone\n" +
+        "Ka 0.3061 0.1654 0.0650\n" +
+        "Kd 0.9000 0.7626 0.4261\n" +
+        "Ks 0.8939 0.7609 0.5509\n" +
+        "illum 2\n" +
+        "Ns 200.0000\n" +
+        "\n" +
+        "newmtl teeth\n" +
+        "Ka 0.6408 0.5554 0.3845\n" +
+        "Kd 0.9837 0.7959 0.4694\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl brass\n" +
+        "Ka 0.2490 0.1102 0.0000\n" +
+        "Kd 0.4776 0.1959 0.0000\n" +
+        "Ks 0.5796 0.5796 0.5796\n" +
+        "illum 2\n" +
+        "Ns 134.8800\n" +
+        "\n" +
+        "newmtl dkred\n" +
+        "Ka 0.0939 0.0000 0.0000\n" +
+        "Kd 0.2286 0.0000 0.0000\n" +
+        "Ks 0.2490 0.0000 0.0000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl taupe\n" +
+        "Ka 0.1061 0.0709 0.0637\n" +
+        "Kd 0.2041 0.1227 0.1058\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 84.5000\n" +
+        "\n" +
+        "newmtl dkteal\n" +
+        "Ka 0.0000 0.0245 0.0163\n" +
+        "Kd 0.0000 0.0653 0.0449\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 55.0400\n" +
+        "\n" +
+        "newmtl dkdkgrey\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.0122 0.0122 0.0122\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl dkblue\n" +
+        "Ka 0.0000 0.0029 0.0408\n" +
+        "Kd 0.0000 0.0041 0.0571\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl gold\n" +
+        "Ka 0.7224 0.1416 0.0000\n" +
+        "Kd 1.0000 0.4898 0.0000\n" +
+        "Ks 0.7184 0.3695 0.3695\n" +
+        "illum 2\n" +
+        "Ns 123.2600\n" +
+        "\n" +
+        "newmtl redbrick\n" +
+        "Ka 0.1102 0.0067 0.0067\n" +
+        "Kd 0.3306 0.0398 0.0081\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flmustard\n" +
+        "Ka 0.4245 0.2508 0.0000\n" +
+        "Kd 0.8898 0.3531 0.0073\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flpinegreen\n" +
+        "Ka 0.0367 0.0612 0.0204\n" +
+        "Kd 0.1061 0.2163 0.0857\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl fldkred\n" +
+        "Ka 0.0939 0.0000 0.0000\n" +
+        "Kd 0.2286 0.0082 0.0082\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl fldkgreen2\n" +
+        "Ka 0.0025 0.0122 0.0014\n" +
+        "Kd 0.0245 0.0694 0.0041\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flmintgreen\n" +
+        "Ka 0.0408 0.1429 0.0571\n" +
+        "Kd 0.1306 0.2898 0.1673\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl olivegreen\n" +
+        "Ka 0.0167 0.0245 0.0000\n" +
+        "Kd 0.0250 0.0367 0.0000\n" +
+        "Ks 0.2257 0.2776 0.1167\n" +
+        "illum 2\n" +
+        "Ns 97.6700\n" +
+        "\n" +
+        "newmtl skin\n" +
+        "Ka 0.2286 0.0187 0.0187\n" +
+        "Kd 0.1102 0.0328 0.0139\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 17.8300\n" +
+        "\n" +
+        "newmtl redbrown\n" +
+        "Ka 0.1469 0.0031 0.0000\n" +
+        "Kd 0.2816 0.0060 0.0000\n" +
+        "Ks 0.3714 0.3714 0.3714\n" +
+        "illum 2\n" +
+        "Ns 141.0900\n" +
+        "\n" +
+        "newmtl deepgreen\n" +
+        "Ka 0.0000 0.0050 0.0000\n" +
+        "Kd 0.0000 0.0204 0.0050\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 113.1800\n" +
+        "\n" +
+        "newmtl flltolivegreen\n" +
+        "Ka 0.0167 0.0245 0.0000\n" +
+        "Kd 0.0393 0.0531 0.0100\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl jetflame\n" +
+        "Ka 0.7714 0.0000 0.0000\n" +
+        "Kd 0.9510 0.4939 0.0980\n" +
+        "Ks 0.8531 0.5222 0.0000\n" +
+        "illum 2\n" +
+        "Ns 132.5600\n" +
+        "\n" +
+        "newmtl brownskn\n" +
+        "Ka 0.0122 0.0041 0.0000\n" +
+        "Kd 0.0204 0.0082 0.0000\n" +
+        "Ks 0.0735 0.0508 0.0321\n" +
+        "illum 2\n" +
+        "Ns 20.1600\n" +
+        "\n" +
+        "newmtl greenskn\n" +
+        "Ka 0.0816 0.0449 0.0000\n" +
+        "Kd 0.0000 0.0735 0.0000\n" +
+        "Ks 0.0490 0.1224 0.0898\n" +
+        "illum 3\n" +
+        "Ns 46.5100\n" +
+        "sharpness 146.5100\n" +
+        "\n" +
+        "newmtl ltgrey\n" +
+        "Ka 0.5000 0.5000 0.5000\n" +
+        "Kd 0.3837 0.3837 0.3837\n" +
+        "Ks 0.5000 0.5000 0.5000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl bronze\n" +
+        "Ka 0.0449 0.0204 0.0000\n" +
+        "Kd 0.0653 0.0367 0.0122\n" +
+        "Ks 0.0776 0.0408 0.0000\n" +
+        "illum 3\n" +
+        "Ns 137.2100\n" +
+        "sharpness 125.5800\n" +
+        "\n" +
+        "newmtl bone1\n" +
+        "Ka 0.6408 0.5554 0.3845\n" +
+        "Kd 0.9837 0.7959 0.4694\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flwhite1\n" +
+        "Ka 0.9306 0.9306 0.9306\n" +
+        "Kd 1.0000 1.0000 1.0000\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl flwhite\n" +
+        "Ka 0.6449 0.6116 0.5447\n" +
+        "Kd 0.9837 0.9309 0.8392\n" +
+        "Ks 0.8082 0.7290 0.5708\n" +
+        "illum 2\n" +
+        "Ns 200.0000\n" +
+        "\n" +
+        "newmtl shadow\n" +
+        "Kd 0.0350 0.0248 0.0194\n" +
+        "illum 0\n" +
+        "d 0.2500\n" +
+        "\n" +
+        "newmtl fldkolivegreen\n" +
+        "Ka 0.0056 0.0082 0.0000\n" +
+        "Kd 0.0151 0.0204 0.0038\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl fldkdkgrey\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 0.0122 0.0122 0.0122\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl lcdgreen\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 0.5878 1.0000 0.5061\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl brownlips\n" +
+        "Ka 0.1143 0.0694 0.0245\n" +
+        "Kd 0.1429 0.0653 0.0408\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl muscle\n" +
+        "Ka 0.2122 0.0077 0.0154\n" +
+        "Kd 0.4204 0.0721 0.0856\n" +
+        "Ks 0.1184 0.1184 0.1184\n" +
+        "illum 2\n" +
+        "Ns 25.5800\n" +
+        "\n" +
+        "newmtl flltgrey\n" +
+        "Ka 0.5224 0.5224 0.5224\n" +
+        "Kd 0.8245 0.8245 0.8245\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl offwhite.warm\n" +
+        "Ka 0.5184 0.4501 0.3703\n" +
+        "Kd 0.8367 0.6898 0.4490\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl offwhite.cool\n" +
+        "Ka 0.5184 0.4501 0.3703\n" +
+        "Kd 0.8367 0.6812 0.5703\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl yellowbrt\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 1.0000 0.7837 0.0000\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl chappie\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 0.5837 0.1796 0.0367\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl archwhite\n" +
+        "Ka 0.2816 0.2816 0.2816\n" +
+        "Kd 0.9959 0.9959 0.9959\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl archwhite2\n" +
+        "Ka 0.2816 0.2816 0.2816\n" +
+        "Kd 0.8408 0.8408 0.8408\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl lighttan\n" +
+        "Ka 0.0980 0.0536 0.0220\n" +
+        "Kd 0.7020 0.4210 0.2206\n" +
+        "Ks 0.8286 0.8057 0.5851\n" +
+        "illum 2\n" +
+        "Ns 177.5200\n" +
+        "\n" +
+        "newmtl lighttan2\n" +
+        "Ka 0.0980 0.0492 0.0144\n" +
+        "Kd 0.3143 0.1870 0.0962\n" +
+        "Ks 0.8286 0.8057 0.5851\n" +
+        "illum 2\n" +
+        "Ns 177.5200\n" +
+        "\n" +
+        "newmtl lighttan3\n" +
+        "Ka 0.0980 0.0492 0.0144\n" +
+        "Kd 0.1796 0.0829 0.0139\n" +
+        "Ks 0.8286 0.8057 0.5851\n" +
+        "illum 2\n" +
+        "Ns 177.5200\n" +
+        "\n" +
+        "newmtl lightyellow\n" +
+        "Ka 0.5061 0.1983 0.0000\n" +
+        "Kd 1.0000 0.9542 0.3388\n" +
+        "Ks 1.0000 0.9060 0.0000\n" +
+        "illum 2\n" +
+        "Ns 177.5200\n" +
+        "\n" +
+        "newmtl lighttannew\n" +
+        "Ka 0.0980 0.0492 0.0144\n" +
+        "Kd 0.7878 0.6070 0.3216\n" +
+        "Ks 0.8286 0.8057 0.5851\n" +
+        "illum 2\n" +
+        "Ns 177.5200\n" +
+        "\n" +
+        "newmtl default\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 0.7102 0.7020 0.6531\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 128.0000\n" +
+        "\n" +
+        "newmtl ship2\n" +
+        "Ka 0.0000 0.0000 0.0000\n" +
+        "Kd 1.0000 1.0000 1.0000\n" +
+        "Ks 0.1143 0.1143 0.1143\n" +
+        "illum 2\n" +
+        "Ns 60.0000\n" +
+        "\n" +
+        "newmtl dkpurple\n" +
+        "Ka 0.0082 0.0000 0.0163\n" +
+        "Kd 0.0245 0.0000 0.0490\n" +
+        "Ks 0.1266 0.0000 0.2531\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl dkorange\n" +
+        "Ka 0.4041 0.0123 0.0000\n" +
+        "Kd 0.7143 0.0350 0.0000\n" +
+        "Ks 0.7102 0.0870 0.0000\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl mintgrn\n" +
+        "Ka 0.0101 0.1959 0.0335\n" +
+        "Kd 0.0245 0.4776 0.0816\n" +
+        "Ks 0.0245 0.4776 0.0816\n" +
+        "illum 2\n" +
+        "Ns 65.8900\n" +
+        "\n" +
+        "newmtl fgreen\n" +
+        "Ka 0.0000 0.0449 0.0000\n" +
+        "Kd 0.0000 0.0449 0.0004\n" +
+        "Ks 0.0062 0.0694 0.0000\n" +
+        "illum 2\n" +
+        "Ns 106.2000\n" +
+        "\n" +
+        "newmtl glassblutint\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 0.5551 0.8000 0.7730\n" +
+        "Ks 0.7969 0.9714 0.9223\n" +
+        "illum 4\n" +
+        "d 0.6700\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl bflesh\n" +
+        "Ka 0.0122 0.0122 0.0122\n" +
+        "Kd 0.0245 0.0081 0.0021\n" +
+        "Ks 0.0531 0.0460 0.0153\n" +
+        "illum 2\n" +
+        "Ns 20.1600\n" +
+        "\n" +
+        "newmtl meh\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 0.5551 0.8000 0.7730\n" +
+        "Ks 0.7969 0.9714 0.9223\n" +
+        "illum 4\n" +
+        "d 0.2500\n" +
+        "Ns 183.7200\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl violet\n" +
+        "Ka 0.0083 0.0000 0.1265\n" +
+        "Kd 0.0287 0.0269 0.1347\n" +
+        "Ks 0.2267 0.4537 0.6612\n" +
+        "illum 2\n" +
+        "Ns 96.9000\n" +
+        "\n" +
+        "newmtl iris\n" +
+        "Ka 0.3061 0.0556 0.0037\n" +
+        "Kd 0.0000 0.0572 0.3184\n" +
+        "Ks 0.8041 0.6782 0.1477\n" +
+        "illum 2\n" +
+        "Ns 188.3700\n" +
+        "\n" +
+        "newmtl blugrn\n" +
+        "Ka 0.4408 0.4144 0.1592\n" +
+        "Kd 0.0811 0.6408 0.2775\n" +
+        "Ks 0.1467 0.1469 0.0965\n" +
+        "illum 2\n" +
+        "Ns 25.0000\n" +
+        "\n" +
+        "newmtl glasstransparent\n" +
+        "Ka 0.2163 0.2163 0.2163\n" +
+        "Kd 0.4694 0.4694 0.4694\n" +
+        "Ks 0.6082 0.6082 0.6082\n" +
+        "illum 4\n" +
+        "d 0.2500\n" +
+        "Ns 200.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl fleshtransparent\n" +
+        "Ka 0.4000 0.2253 0.2253\n" +
+        "Kd 0.6898 0.2942 0.1295\n" +
+        "Ks 0.7388 0.4614 0.4614\n" +
+        "illum 4\n" +
+        "d 0.2500\n" +
+        "Ns 6.2000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl fldkgrey\n" +
+        "Ka 0.0449 0.0449 0.0449\n" +
+        "Kd 0.0939 0.0939 0.0939\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl sky_blue\n" +
+        "Ka 0.1363 0.2264 0.4122\n" +
+        "Kd 0.1241 0.5931 0.8000\n" +
+        "Ks 0.0490 0.0490 0.0490\n" +
+        "illum 2\n" +
+        "Ns 13.9500\n" +
+        "\n" +
+        "newmtl fldkpurple\n" +
+        "Ka 0.0443 0.0257 0.0776\n" +
+        "Kd 0.1612 0.0000 0.3347\n" +
+        "Ks 0.0000 0.0000 0.0000\n" +
+        "illum 2\n" +
+        "Ns 13.9500\n" +
+        "\n" +
+        "newmtl dkbrown\n" +
+        "Ka 0.0143 0.0062 0.0027\n" +
+        "Kd 0.0087 0.0038 0.0016\n" +
+        "Ks 0.2370 0.2147 0.1821\n" +
+        "illum 3\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl bone2\n" +
+        "Ka 0.6408 0.5388 0.3348\n" +
+        "Kd 0.9837 0.8620 0.6504\n" +
+        "illum 1\n" +
+        "\n" +
+        "newmtl bluegrey\n" +
+        "Ka 0.4000 0.4000 0.4000\n" +
+        "Kd 0.1881 0.2786 0.2898\n" +
+        "Ks 0.3000 0.3000 0.3000\n" +
+        "illum 2\n" +
+        "Ns 14.7300\n" +
+        "\n" +
+        "newmtl metal\n" +
+        "Ka 0.9102 0.8956 0.1932\n" +
+        "Kd 0.9000 0.7626 0.4261\n" +
+        "Ks 0.8939 0.8840 0.8683\n" +
+        "illum 2\n" +
+        "Ns 200.0000\n" +
+        "\n" +
+        "newmtl sand_stone\n" +
+        "Ka 0.1299 0.1177 0.0998\n" +
+        "Kd 0.1256 0.1138 0.0965\n" +
+        "Ks 0.2370 0.2147 0.1821\n" +
+        "illum 3\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n" +
+        "\n" +
+        "newmtl hair\n" +
+        "Ka 0.0013 0.0012 0.0010\n" +
+        "Kd 0.0008 0.0007 0.0006\n" +
+        "Ks 0.0000 0.0000 0.0000\n" +
+        "illum 3\n" +
+        "Ns 60.0000\n" +
+        "sharpness 60.0000\n", OBJLoader.defaultAppearances, null, null);
+  }
+}
+
+OBJLoader.defaultAppearances = {};
+
+/**
+ * Loads the 3D model from the given URL.
+ * @param url The URL of a zip file containing an OBJ entry that will be loaded
+ *            or an URL noted as jar:url!/objEntry where objEntry will be loaded.
+ * @param modelObserver An observer containing modelLoaded(model), 
+ *            modelError(err), progression(part, info, percentage) methods that
+ *            will called at various phases.
+ */
+OBJLoader.prototype.load = function(url, modelObserver) {
+  var objEntryName = null;
+  if (url.indexOf("jar:") === 0) {
+    var entrySeparatorIndex = url.indexOf("!/");
+    objEntryName = url.substring(entrySeparatorIndex + 2);
+    url = url.substring(4, entrySeparatorIndex);
+  }
+  
+  modelObserver.progression(READING_MODEL, url, NaN);
+  var loader = this;
+  ZIPTools.getZIP(url, function(err, zip) {
+      if (err) {
+        modelObserver.modelError(err); 
+      }
+      try {
+        if (objEntryName === null) {
+          // Search an OBJ entry
+          var entries = zip.file(/.*/);
+          for (var i = 0; i < entries.length; i++) {
+            if (entries [i].name.match(/\.obj$/)) {
+              loader.parseOBJEntry(entries [i], zip, url, modelObserver);
+              return;
+            } 
+          }
+        } else {
+          loader.parseOBJEntry(zip.file(decodeURIComponent(objEntryName)), zip, url, modelObserver);
+        }
+      } catch (err) {
+          modelObserver.modelError(err);
+      }
+    });
+}
+
+/**
+ * Returns a new scene created from the parsed objects. 
+ */
+OBJLoader.prototype.createScene = function(vertices, textureCoordinates, normals, groups, appearances, onprogression) {
+  var sceneRoot = new Group3D();
+  var groupsGeometryCount = 0;
+  for (var key in groups) {
+    groupsGeometryCount += groups [key].geometries.length;
+  }
+  var builtGeometryCount = 0;
+  var nextLoggedPercentage = 0.;
+  for (var key in groups) {
+    // Log each time 10% more groups are built
+    if (nextLoggedPercentage <= builtGeometryCount / groupsGeometryCount) {
+      onprogression(BUILDING_MODEL, "", builtGeometryCount / groupsGeometryCount);
+      nextLoggedPercentage += 0.1;
+    }
+    var group = groups [key];
+    var geometries = group.geometries;
+    if (geometries.length > 0) {
+      var i = 0;
+      while (i < geometries.length) {
+        var firstGeometry = geometries [i];
+        var firstGeometryHasTextureCoordinateIndices = firstGeometry.textureCoordinateIndices.length > 0;
+        var firstFaceHasNormalIndices = (firstGeometry instanceof OBJFace) && firstGeometry.normalIndices.length > 0;
+        var firstGeometryMaterial = firstGeometry.material;
+        var appearance = OBJLoader.getAppearance(appearances, firstGeometryMaterial);
+        // Search how many geometries share the same characteristics 
+        var max = i;
+        while (++max < geometries.length) {
+          var geometry = geometries [max];
+          var material = geometry.material;
+          if ((geometry.constructor !== firstGeometry.constructor)
+              || material === null && firstGeometryMaterial !== null
+              || material !== null && OBJLoader.getAppearance(appearances, material) !== appearance
+              || (firstGeometryHasTextureCoordinateIndices ^ geometry.textureCoordinateIndices.length > 0)
+              || (firstFaceHasNormalIndices ^ ((geometry instanceof OBJFace) && geometry.normalIndices.length > 0))) {
+            break;
+          }
+        }
+        
+        // Clone appearance to avoid sharing it
+        if (appearance !== null) {
+          appearance = Appearance3D.clone(appearance);
+        }
+
+        // Create indices arrays for the geometries with an index between i and max
+        var geometryCount = max - i;
+        var coordinatesIndices = [];
+        var stripCounts = []; 
+        var onlyTriangles = true;
+        for (var j = 0; j < geometryCount; j++) {
+          var geometryVertexIndices = geometries [i + j].vertexIndices;
+          coordinatesIndices.push.apply(coordinatesIndices, geometryVertexIndices);
+          stripCounts.push(geometryVertexIndices.length);
+          if (onlyTriangles && geometryVertexIndices.length !== 3) {
+            onlyTriangles = false;
+          }
+        }
+        var textureCoordinateIndices = [];
+        if (firstGeometryHasTextureCoordinateIndices) {
+          for (var j = 0; j < geometryCount; j++) {
+            textureCoordinateIndices.push.apply(textureCoordinateIndices, geometries [i + j].textureCoordinateIndices);
+          }
+        } else if (appearance.imageEntryName !== undefined) {
+          // Generate texture coordinates equal to vertices (x,y)
+          for (var j = 0, index = 0; j < geometryCount; index += stripCounts [j], j++) {
+            var stripCount = stripCounts [j];
+            for (var k = 0; k < stripCount; k++) {
+              var vertex = vertices [coordinatesIndices [index + k]];
+              textureCoordinates.push(vec2.fromValues(vertex [0], vertex [1]));
+              textureCoordinateIndices.push(index + k);
+            }
+          }
+        }
+        
+        var shape;
+        if (firstGeometry instanceof OBJFace) {
+          var normalIndices = [];
+          if (firstFaceHasNormalIndices) {
+            for (var j = 0; j < geometryCount; j++) {
+              normalIndices.push.apply(normalIndices, geometries [i + j].normalIndices);
+            }
+          } else {
+            this.generateNormals(vertices, coordinatesIndices, normals, normalIndices, stripCounts, group.smooth);
+          }
+
+          var geometryArray;
+          if (onlyTriangles) {
+            geometryArray = new IndexedTriangleArray3D(vertices, coordinatesIndices,
+                textureCoordinates, textureCoordinateIndices, normals, normalIndices);
+          } else {
+            var triangleCoordinateIndices = [];
+            var triangleTextureCoordinateIndices = [];
+            var triangleNormalIndices = [];
+            for (var j = 0, index = 0; j < geometryCount; index += stripCounts [j], j++) {
+              if (stripCounts [j] == 3) {
+                triangleCoordinateIndices.push.apply(triangleCoordinateIndices, coordinatesIndices.slice(index, index + 3));
+                if (textureCoordinateIndices.length > 0) {
+                  triangleTextureCoordinateIndices.push.apply(triangleTextureCoordinateIndices, textureCoordinateIndices.slice(index, index + 3));
+                }
+                if (normalIndices.length > 0) {
+                  triangleNormalIndices.push.apply(triangleNormalIndices, normalIndices.slice(index, index + 3));
+                }
+              } else {
+                // Triangulate polygon
+                var polygonVertexIndices = coordinatesIndices.slice(index, index + stripCounts [j]);
+                var polygonTextureCoordinateIndices = textureCoordinateIndices.length > 0 
+                    ? textureCoordinateIndices.slice(index, index + stripCounts [j])
+                    : null;
+                var polygonNormalIndices = normalIndices.length > 0
+                    ? normalIndices.slice(index, index + stripCounts [j])
+                    : null;
+                    
+                // TODO Inspired from Java 3D Triangulator class
+                var triangulator = {
+                    firstNode : 0,
+                    
+                    deleteLinks : function (ind) {
+                      if (this.inPolyList(ind) && this.inPolyList(this.list[ind].prev) && this.inPolyList(this.list[ind].next)) {
+                        if (this.firstNode == ind) {
+                          this.firstNode = this.list[ind].next;
+                        }
+                        this.list [this.list [ind].next].prev = this.list[ind].prev;
+                        this.list [this.list [ind].prev].next = this.list[ind].next;
+                        this.list [ind].prev = this.list[ind].next = ind;
+                      }
+                    },
+                    inPolyList : function (ind) {
+                      return (ind >= 0) && (ind < this.numList) && (this.numList <= this.maxNumList);
+                    },
+                    insertAfter : function (ind1, ind2) {
+                      if (this.inPolyList(ind1) && this.inPolyList(ind2)) {
+                        this.list[ind2].next = this.list[ind1].next;
+                        this.list[ind2].prev = ind1;
+                        this.list[ind1].next = ind2;
+                        var ind3 = this.list[ind2].next;
+                        if(this.inPolyList(ind3))
+                          this.list[ind3].prev = ind2;
+                      }
+                    }
+                };
+                triangulator.vertexIndices = polygonVertexIndices;
+                triangulator.maxNumLoops = 1;
+                triangulator.maxNumList = polygonVertexIndices.length + 1 + 20;
+                triangulator.maxNumPoints = 0;
+                triangulator.maxNumDist = 0;
+                triangulator.maxNumLeftMost = 0;
+                triangulator.maxNumPUnsorted = 0;
+                triangulator.loops = [0];
+                triangulator.list = new Array [maxNumList];
+                triangulator.numVtxList = 0;
+                triangulator.numReflex = 0;
+
+                triangulator.numTriangles = 0;
+                triangulator.numChains = 0;
+                triangulator.numPoints = 0;
+                triangulator.numLoops = 0;
+                triangulator.numList = 0;
+
+                // makeLoopHeader / makeHook
+                triangulator.loops [triangulator.numLoops++] =
+                triangulator.list [triangulator.numList++] = // ListNode instance
+                   {index : -1,
+                    prev : 0,
+                    next : 0,
+                    convex : 0,
+                    vcntIndex : -1};
+                
+                var lastInd = triangulator.loops[0];          
+                var index2 = 0;
+                for (var k = 0; k < polygonVertexIndices.length; k++) {
+                  triangulator.list [triangulator.numList] = // ListNode instance
+                     {index : triangulator.vertexIndices [index2],
+                      prev : 0,
+                      next : 0,
+                      convex : 0,
+                      vcntIndex : -1};
+                  var ind = triangulator.numList++;
+                  triangulator.insertAfter(lastInd, ind);
+                  triangulator.list[ind].vcntIndex = index2;
+                  lastInd = ind;
+                  index2++;
+                }
+                
+                // deleteHook
+                var ind1 = triangulator.loops[0];
+                var ind2 = triangulator.list[ind1].next;
+                if (triangulator.inPolyList(ind1) && triangulator.inPolyList(ind2)) {
+                  triangulator.deleteLinks(ind1);
+                  triangulator.loops[0] = ind2;
+                }
+                
+                triangulator.maxNumTriangles = triangulator.maxNumList / 2;
+                triangulator.triangles = [];
+                triangulator.epsilon = 1E-8;
+                
+                // 363
+                
+                // END TODO
+                    
+                    
+                    
+                var vector0 = vec3.create();
+                var vector1 = vec3.create();
+                var vector2 = vec3.create();
+                while (polygonVertexIndices.length > 3) {
+                  // Search ear vertex (with an angle < Math.PI)
+                  var k = 0;
+                  for ( ; k < polygonVertexIndices.length; k++) {
+                    var vertexIndex = polygonVertexIndices [k];
+                    var vertex = vertices [vertexIndex];
+                    var nextIndex = k < polygonVertexIndices.length - 1 ? k + 1 : 0;
+                    var nextVertexIndex = polygonVertexIndices [nextIndex];
+                    vec3.sub(vector0, vertices [nextVertexIndex], vertex);
+                    if (vector0 [0] === 0 && vector0 [1] === 0 && vector0 [2] === 0) {
+                      // Same point
+                      break;
+                    } else {
+                      var previousIndex = k > 0 ? k - 1 : polygonVertexIndices.length - 1;
+                      var previousVertexIndex = polygonVertexIndices [previousIndex];
+                      vec3.sub(vector1, vertices [previousVertexIndex], vertex);
+                      if (vector1 [0] === 0 && vector1 [1] === 0 && vector1 [2] === 0) {
+                        // Same point
+                        break;
+                      } else {
+                        var dot01 = vec3.dot(vector0, vector1);
+                        // If the angle between vector0 and vector1 is acute and not reflex 
+                        if (dot01 > 0) {
+                          // Check no other points of the polygon is in the triangle (previousVertex, vertex, nextIndex)  
+                          // using barycentric technique http://www.blackpawn.com/texts/pointinpoly/
+                          var ignoreVertex = false;
+                          for (var l = 0; l < polygonVertexIndices.length; l++) {
+                            if (l !== k && l !== previousIndex && l !== nextIndex) {
+                              var otherVertex = vertices [polygonVertexIndices [l]];
+                              vec3.sub(vector2, otherVertex, vertex);
+                              var dot00 = vec3.dot(vector0, vector0);
+                              var dot02 = vec3.dot(vector0, vector2);
+                              var dot11 = vec3.dot(vector1, vector1);
+                              var dot12 = vec3.dot(vector1, vector2);
+                              // Compute barycentric coordinates
+                              var inverseDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+                              var u = (dot11 * dot02 - dot01 * dot12) * inverseDenom;
+                              var v = (dot00 * dot12 - dot01 * dot02) * inverseDenom;
+                              // Check if point is in triangle
+                              if (u >= 0 && v >= 0 && u + v < 1) {
+                                ignoreVertex = true;
+                                break;
+                              }
+                            }
+                          }
+
+                          if (!ignoreVertex) {
+                            triangleCoordinateIndices.push(previousVertexIndex);
+                            triangleCoordinateIndices.push(vertexIndex);
+                            triangleCoordinateIndices.push(nextVertexIndex);
+                            if (polygonTextureCoordinateIndices != null) {
+                              triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [previousIndex]);
+                              triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [k]);
+                              triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [nextIndex]);
+                            }
+                            if (polygonNormalIndices != null) {
+                              triangleNormalIndices.push(polygonNormalIndices [previousIndex]);
+                              triangleNormalIndices.push(polygonNormalIndices [k]);
+                              triangleNormalIndices.push(polygonNormalIndices [nextIndex]);
+                            }
+
+                            break;                            
+                          }
+                        }
+                      } 
+                    }
+                  }
+                  
+                  if (k === polygonVertexIndices.length) {
+                    // Add a triangle with any vertex since the polygon is convex
+                    triangleCoordinateIndices.push(polygonVertexIndices [0]);
+                    triangleCoordinateIndices.push(polygonVertexIndices [1]);
+                    triangleCoordinateIndices.push(polygonVertexIndices [2]);
+                    if (polygonTextureCoordinateIndices != null) {
+                      triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [0]);
+                      triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [1]);
+                      triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [2]);
+                    }
+                    if (polygonNormalIndices != null) {
+                      triangleNormalIndices.push(polygonNormalIndices [0]);
+                      triangleNormalIndices.push(polygonNormalIndices [1]);
+                      triangleNormalIndices.push(polygonNormalIndices [2]);
+                    }
+                    k = 1;
+                  }
+                  
+                  // Remove ear vertex
+                  polygonVertexIndices.splice(k, 1);
+                  if (polygonTextureCoordinateIndices != null) {
+                    polygonTextureCoordinateIndices.splice(k, 1);
+                  }
+                  if (polygonNormalIndices != null) {
+                    polygonNormalIndices.splice(k, 1);
+                  }
+                }
+                // Add remaining triangle
+                triangleCoordinateIndices.push(polygonVertexIndices [0]);
+                triangleCoordinateIndices.push(polygonVertexIndices [1]);
+                triangleCoordinateIndices.push(polygonVertexIndices [2]);
+                if (polygonTextureCoordinateIndices != null) {
+                  triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [0]);
+                  triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [1]);
+                  triangleTextureCoordinateIndices.push(polygonTextureCoordinateIndices [2]);
+                }
+                if (polygonNormalIndices != null) {
+                  triangleNormalIndices.push(polygonNormalIndices [0]);
+                  triangleNormalIndices.push(polygonNormalIndices [1]);
+                  triangleNormalIndices.push(polygonNormalIndices [2]);
+                }
+              }
+            }
+            
+            geometryArray = new IndexedTriangleArray3D(vertices, triangleCoordinateIndices, 
+                textureCoordinates, triangleTextureCoordinateIndices, normals, triangleNormalIndices);
+          }
+          shape = new Shape3D(group.name + (i == 0 ? "" : i), geometryArray, appearance);   
+        } else { // Line
+          shape = new Shape3D(group.name + (i == 0 ? "" : i), null, appearance);   
+          for (var j = 0, index = 0; j < geometryCount; index += stripCounts [j], j++) {
+            var lineCoordinatesIndices = coordinatesIndices.slice(index, index + stripCounts [j]);
+            var lineTextureCoordinateIndices = [];
+            if (textureCoordinateIndices.length > 0) {
+              lineTextureCoordinateIndices = textureCoordinateIndices.slice(index, index + stripCounts [j]);
+            }
+            shape.addGeometry(new IndexedLineArray3D(vertices, lineCoordinatesIndices, 
+                textureCoordinates, lineTextureCoordinateIndices));
+          }
+        }
+        
+        sceneRoot.addChild(shape);
+        i = max;
+      }
+    }
+    
+    builtGeometryCount += group.geometries.length;
+  }
+  
+  if (nextLoggedPercentage < 1) {
+    onprogression(BUILDING_MODEL, "", 1);
+  }
+  return sceneRoot;
+}
+
+/**
+ * Returns the appearance matching a given material. 
+ */
+OBJLoader.getAppearance = function(appearances, material) {
+  var appearance = undefined;
+  if (material !== null) {
+    appearance = appearances [material];
+  }
+  if (appearance === undefined) {
+    appearance = OBJLoader.defaultAppearances ["default"];
+  }
+  return appearance;
+}
+
+/**
+ * Generates the normals and their indices for the shape defined by the given vertices and their indices.
+ */
+OBJLoader.prototype.generateNormals = function(vertices, coordinatesIndices, normals, normalIndices, stripCounts, smooth) {
+  // Generate normals
+  var vector1 = vec3.create();
+  var vector2 = vec3.create();
+  if (smooth) {
+    var sharedVertices = [];
+    for (var i = 0, index = 0; index < coordinatesIndices.length; index += stripCounts [i], i++) {
+      var stripCount = stripCounts [i];
+      for (var j = 0; j < stripCount; j++) {
+        var vertexIndex = coordinatesIndices [index + j];
+        var vertex = vertices [vertexIndex];
+        vec3.sub(vector1, vertices [coordinatesIndices [index + (j < stripCount - 1 ? j + 1 : 0)]], vertex);
+        vec3.sub(vector2, vertices [coordinatesIndices [index + (j > 0 ? j - 1 : stripCount - 1)]], vertex);
+        var normal = vec3.cross(vec3.create(), vector1, vector2);
+        var length = vec3.length(normal);
+        if (length > 0) {
+          var weight = Math.atan2(length, vec3.dot(vector1, vector2));
+          vec3.scale(normal, normal, weight / length);
+        }
+        // Add vertex index to the list of shared vertices 
+        var sharedVertex = {"faceIndex" : i, "normal" : normal};
+        sharedVertex.nextVertex = sharedVertices [vertexIndex];
+        sharedVertices [vertexIndex] = sharedVertex;
+        // Add normal to normals set
+        normals.push(normal);
+        normalIndices.push(normals.length - 1);
+      }
+    }
+    
+    // Adjust the normals of shared vertices belonging to the smoothing group 
+    for (var i = 0, index = 0; index < coordinatesIndices.length; index += stripCounts [i], i++) {
+      var stripCount = stripCounts [i];
+      for (var j = 0; j < stripCount; j++) {
+        var vertexIndex = coordinatesIndices [index + j];
+        var defaultNormal = normals [normalIndices [index + j]];
+        var normal = vec3.create();
+        for (var sharedVertex = sharedVertices [vertexIndex]; 
+             sharedVertex !== undefined; 
+             sharedVertex = sharedVertex.nextVertex) {
+          // Take into account only normals of shared vertex with a crease angle  
+          // smaller than PI / 2 (i.e. dot product > 0) 
+          if (sharedVertex.normal === defaultNormal
+              || vec3.dot(sharedVertex.normal, defaultNormal) > 0) {
+            vec3.add(normal, normal, sharedVertex.normal);
+          }
+        }
+        
+        if (vec3.squaredLength(normal) != 0) {
+          vec3.normalize(normal, normal);
+        } else {
+          // If smoothing leads to a null normal, use default normal
+          vec3.copy(normal, defaultNormal);
+          vec3.normalize(normal, normal);
+        }    
+        // Store updated normal
+        normals [normalIndices [index + j]] = normal;
+      }
+    }
+  } else {
+    for (var i = 0, index = 0; index < coordinatesIndices.length; index += stripCounts [i], i++) {
+      vec3.sub(vector1, vertices [coordinatesIndices [index + 1]], vertices [coordinatesIndices [index]]);
+      vec3.sub(vector2, vertices [coordinatesIndices [index + stripCounts [i] - 1]], vertices [coordinatesIndices [index]]);
+      var normal = vec3.cross(vec3.create(), vector1, vector2);
+      vec3.normalize(normal, normal);
+      // Add normal to normals set
+      var normalIndex = normals.length;
+      normals.push(normal);
+      for (var j = 0; j < stripCounts [i]; j++) {
+        normalIndices.push(normalIndex);
+      }
+    }
+  }
+}
+
+OBJLoader.workerBlobUrl = null;
+
+/**
+ * Parses the content of the given entry to create the scene it contains. 
+ */
+OBJLoader.prototype.parseOBJEntry = function(objEntry, zip, zipUrl, modelObserver) {
+  modelObserver.progression(READING_MODEL, objEntry.name, 0);
+  var objContent = objEntry.asBinary();
+  modelObserver.progression(READING_MODEL, objEntry.name, 1);
+  var appearances = this.parseOBJEntryMaterials(objContent, objEntry.name, zip);
+  
+  if (typeof Worker !== "undefined") { 
+    if (OBJLoader.workerBlobUrl === null) {
+      var baseUrl = "http://www.sweethome3d.com/blog/files/10thBirthday/lib/"; 
+      var blob = new Blob([ "importScripts('" + baseUrl + "core.js', \n"
+                            + "    '" + baseUrl + "Node3D.js', \n"
+                            + "    '" + baseUrl + "OBJLoader.js', \n"
+                            + "    '" + baseUrl + "gl-matrix-min.js');\n"
+                            + "onmessage = function(ev) {\n"
+                            + "  var scene = new OBJLoader().parseOBJEntryScene(ev.data.objContent, ev.data.objEntryName, ev.data.appearances,\n"
+                            + "      function(part, info, percentage) {\n"
+                            + "          self.postMessage({'part':part, 'info':info, 'percentage':percentage});\n"
+                            + "        });\n"
+                            + "  postMessage(scene);\n"
+                            + "}"]);
+      OBJLoader.workerBlobUrl = window.URL.createObjectURL(blob);
+    }
+    var objLoader = this;
+    var worker = new Worker(OBJLoader.workerBlobUrl);        
+    worker.onmessage = function (ev) {
+      var data = ev.data;
+      if (data.part !== undefined) {
+        modelObserver.progression(data.part, data.info, data.percentage);
+      } else {
+        var scene = Node3D.rebindObjects(data);
+        objLoader.loadTextureImages(scene, {}, zip, zipUrl, modelObserver.progression);
+        modelObserver.modelLoaded(scene);
+      } 
+    };
+    
+    var message = {"objContent":objContent, "objEntryName":objEntry.name, "appearances":appearances};
+    worker.postMessage(message);
+  } else {
+    // If worker isn't available, parse entry in the default thread
+    var scene = this.parseOBJEntryScene(objContent, objEntry.name, appearances, modelObserver.progression);
+    this.loadTextureImages(scene, {}, zip, zipUrl, modelObserver.progression);
+    modelObserver.modelLoaded(scene);
+  }
+}  
+
+/**
+ * Loads the textures images used by appearances of the scene.
+ */
+OBJLoader.prototype.loadTextureImages = function(node, images, zip, zipUrl, onprogression) {
+  if (node instanceof Group3D) {
+    for (var i = 0; i < node.children.length; i++) {
+      this.loadTextureImages(node.children [i], images, zip, zipUrl, onprogression);
+    }
+  } else if (node instanceof Shape3D
+             && node.appearance.imageEntryName !== undefined) {
+    var imageEntryName = node.appearance.imageEntryName;
+    if (imageEntryName !== undefined) {
+      delete node.appearance.imageEntryName;
+      if (imageEntryName in images) {
+        node.appearance.setTextureImage(images [imageEntryName]);
+      } else { 
+        var image = new Image();
+        node.appearance.setTextureImage(image);
+        image.url = "jar:" + zipUrl + "!/" + imageEntryName;
+        // Store loaded image to avoid duplicates
+        images [imageEntryName] = image;
+        
+        onprogression(READING_MODEL, imageEntryName, NaN);
+        setTimeout(function() {
+            var imageEntry = zip.file(decodeURIComponent(imageEntryName));
+            var imageData = imageEntry.asBinary();
+            var base64Image = btoa(imageData);
+            var extension = imageEntryName.substring(imageEntryName.lastIndexOf('.') + 1).toLowerCase();
+            var mimeType = extension == "jpg"
+                ? "image/jpeg" 
+                : ("image/" + extension);
+            // Detect quickly if a PNG image use transparency
+            image.transparent = extension == "png"
+                && (imageData.charAt(25).charCodeAt(0) === 4
+                    || imageData.charAt(25).charCodeAt(0) === 6
+                    || (imageData.indexOf("PLTE") !== -1 && imageData.indexOf("tRNS") !== -1));
+            image.src = "data:" + mimeType + ";base64," + base64Image;
+          }, 0);
+      }
+    }
+  }
+}
+
+/**
+ * Parses the given OBJ content and returns the materials it describes.
+ */
+OBJLoader.prototype.parseOBJEntryMaterials = function(objContent, objEntryName, zip) {
+  var appearances = {};
+  for (var k in OBJLoader.defaultAppearances) {
+    var appearance = OBJLoader.defaultAppearances [k];
+    appearances [appearance.getName()] = appearance;
+  }
+
+  var mtllibIndex = objContent.indexOf("mtllib");
+  while (mtllibIndex != -1) {
+    var endOfLine = mtllibIndex + 6;
+    while (endOfLine < objContent.length
+           && objContent.charAt(endOfLine) != '\n'
+           && objContent.charAt(endOfLine) != '\r') {
+      endOfLine++;
+    }
+    var line = objContent.substring(mtllibIndex, endOfLine).trim();
+    var mtllib = line.substring(7, line.length).trim();
+    this.parseMaterialEntry(mtllib, appearances, objEntryName, zip);
+
+    mtllibIndex = objContent.indexOf("mtllib", endOfLine);
+  }
+
+  return appearances;
+}
+
+/**
+ * Parses the given OBJ content and returns the scene it describes.
+ */
+OBJLoader.prototype.parseOBJEntryScene = function(objContent, objEntryName, appearances, onprogression) {
+  var vertices = [];
+  var textureCoordinates = [];
+  var normals = [];
+  var currentGroup = new OBJGroup("default");
+  var groups = {"default" : currentGroup};
+  var currentMaterial = "default"; 
+  var materialGroupsWithNormals = {};
+  
+  var startOfLine = 0;
+  var nextLoggedPercentage = 0.;
+  while (startOfLine <= objContent.length) {
+    // Log each time 10% more lines are parsed
+    if (nextLoggedPercentage <= startOfLine / objContent.length) {
+      onprogression(PARSING_MODEL, objEntryName, startOfLine / objContent.length);
+      nextLoggedPercentage += 0.1;
+    }
+    var endOfLine = startOfLine + 1;
+    while (endOfLine < objContent.length
+           && objContent.charAt(endOfLine) != '\n'
+           && objContent.charAt(endOfLine) != '\r') {
+      endOfLine++;
+    }
+    var line = objContent.substring(startOfLine, endOfLine);
+    if (line.indexOf("v") === 0 || line.indexOf("f ") === 0 || line.indexOf("l ") === 0) {
+      // Append to line next lines if it ends by a back slash
+      while (line.charAt(line.length - 1) === '\\') {
+        // Remove back slash
+        line = line.substring(0, line.length - 1);
+        // Read next line
+        startOfLine = endOfLine + 1;
+        if (startOfLine < objContent.length
+            && objContent.charAt(endOfLine) == '\r'
+            && objContent.charAt(startOfLine) == '\n') {
+          startOfLine++;
+        }
+        endOfLine = startOfLine + 1;
+        while (endOfLine < objContent.length
+               && objContent.charAt(endOfLine) != '\n'
+               && objContent.charAt(endOfLine) != '\r') {
+          endOfLine++;
+        }
+        line += objContent.substring(startOfLine, endOfLine);
+      }
+    }
+    
+    line = line.trim();
+    var strings = line.split(/\s+/);
+    var start = strings [0];
+    if (start === "v") {
+      vertices.push(OBJLoader.parseVector3f(strings));
+    } else if (start === "vt") {
+      textureCoordinates.push(OBJLoader.parseVector2f(strings));
+    } else if (start === "vn") {
+      normals.push(OBJLoader.parseVector3f(strings));
+    } else if (start === "l") {
+      var line = this.parseLine(strings, currentMaterial);
+      if (line.vertexIndices.length > 1) {
+        currentGroup.addGeometry(line);
+      }
+    } else if (start === "f") {
+      var face = this.parseFace(strings, currentMaterial);
+      if (face.vertexIndices.length > 2) {
+        if (face.normalIndices.length === 0) {
+          currentGroup.addGeometry(face);
+        } else {
+          // Add faces with normals to the group with the same material 
+          // since there won't me any smooth normal to compute
+          if (!(face.material in materialGroupsWithNormals)) {
+            materialGroupsWithNormals [face.material] = currentGroup;
+          }
+          materialGroupsWithNormals [face.material].addGeometry(face);
+        }
+      }
+    } else if (start === "g" || start === "o") {
+      var smoothingGroup = currentGroup.smooth;
+      if (strings.length > 1) {
+        var name = strings [1];
+        currentGroup = groups [name];
+        if (currentGroup == null) {
+          currentGroup = new OBJGroup(name);
+          groups [name] = currentGroup;
+        }        
+      } else {
+        currentGroup = groups ["default"];
+      }
+      currentGroup.smooth = smoothingGroup;
+    } else if (start === "s") {
+      currentGroup.smooth = strings [1] !== "off";
+    } else if (start === "usemtl") {
+      currentMaterial = line.substring(7, line.length).trim();
+    }
+    
+    startOfLine = endOfLine + 1;
+    if (startOfLine < objContent.length
+        && objContent.charAt(endOfLine) == '\r'
+        && objContent.charAt(startOfLine) == '\n') {
+      startOfLine++;
+    }
+  }
+  if (nextLoggedPercentage < 1) {
+    onprogression(PARSING_MODEL, objEntryName, 1);
+  }
+
+  return this.createScene(
+      vertices, textureCoordinates, normals, groups, appearances, onprogression);
+}
+
+/**
+ * Returns the object line in strings.
+ */
+OBJLoader.prototype.parseLine = function(strings, material) {
+  //    l v       v       v       ...
+  // or l v/vt    v/vt    v/vt    ...
+  var vertexIndices = [];
+  var textureCoordinateIndices = [];
+  for (var i = 0; i < strings.length; i++) {
+    var indices = strings [i];
+    if (i > 0
+        && indices.length > 0) {
+      var firstSlashIndex = indices.indexOf('/');
+      if (firstSlashIndex === -1) {
+        // l v 
+        vertexIndices.push(parseInt(indices) - 1);
+      } else {
+        // l v/vt
+        vertexIndices.push(parseInt(indices.substring(0, firstSlashIndex)) - 1);
+        textureCoordinateIndices.push(parseInt(indices.substring(firstSlashIndex + 1)) - 1);
+      }
+    }
+  }
+  if (vertexIndices.length != textureCoordinateIndices.length) {
+    // Ignore unconsistent texture coordinate 
+    textureCoordinateIndices = [];
+  }
+  return new OBJLine(vertexIndices, textureCoordinateIndices, material);
+}
+
+/**
+ * Returns the object face in strings.
+ */
+OBJLoader.prototype.parseFace = function(strings, material) {
+  //    f v       v       v       ...
+  // or f v//vn   v//vn   v//vn   ...
+  // or f v/vt    v/vt    v/vt    ...
+  // or f v/vt/vn v/vt/vn v/vt/vn ...
+  var vertexIndices = [];
+  var textureCoordinateIndices = [];
+  var normalIndices = [];
+  for (var i = 0; i < strings.length; i++) {
+    var indices = strings [i];
+    if (i > 0
+        && indices.length > 0) {
+      var firstSlashIndex = indices.indexOf('/');
+      if (firstSlashIndex === -1) {
+        // f v 
+        vertexIndices.push(parseInt(indices) - 1);
+      } else {
+        vertexIndices.push(parseInt(indices.substring(0, firstSlashIndex)) - 1);
+        var lastSlashIndex = indices.lastIndexOf('/');
+        if (firstSlashIndex === lastSlashIndex) {
+          // f v/vt
+          textureCoordinateIndices.push(parseInt(indices.substring(firstSlashIndex + 1)) - 1);
+        } else {
+          if (firstSlashIndex + 1 !== lastSlashIndex) {
+            // f v/vt/vn
+            textureCoordinateIndices.push(parseInt(indices.substring(firstSlashIndex + 1, lastSlashIndex)) - 1);
+          }
+          //    f v//vn
+          // or f v/vt/vn
+          normalIndices.push(parseInt(indices.substring(lastSlashIndex + 1)) - 1);
+        }
+      }
+    }
+  }
+  if (vertexIndices.length != textureCoordinateIndices.length) {
+    // Ignore unconsistent texture coordinate 
+    textureCoordinateIndices = [];
+  }
+  if (vertexIndices.length != normalIndices.length) {
+    // Ignore unconsistent normals
+    normalIndices = [];
+  }
+  return new OBJFace(vertexIndices, textureCoordinateIndices, normalIndices, material);
+}
+
+/**
+ * Parses appearances from the given material entry, then returns true if the given entry exists.
+ */
+OBJLoader.prototype.parseMaterialEntry = function(mtlEntryName, appearances, objEntryName, zip) {
+  var lastSlash = objEntryName.lastIndexOf("/");
+  if (lastSlash >= 0) {
+    mtlEntryName = objEntryName.substring(0, lastSlash + 1) + mtlEntryName;
+  }
+  var mtlEntry = zip.file(mtlEntryName);
+  if (mtlEntry !== null) {
+    OBJLoader.parseMaterial(mtlEntry.asBinary(), appearances, objEntryName, zip);
+  }
+}
+
+OBJLoader.parseVector3f = function(strings) {
+  //     v x y z
+  // or vn x y z
+  // or Ka r g b
+  // or Kd r g b
+  // or Ks r g b
+  return vec3.fromValues(parseFloat(strings [1]), parseFloat(strings [2]), parseFloat(strings [3]));
+}
+
+OBJLoader.parseVector2f = function(strings) {
+  // vt x y z
+  return vec2.fromValues(parseFloat(strings [1]), parseFloat(strings [2]));
+}
+
+/**
+ * Parses a map of appearances parsed from the given content. 
+ */
+OBJLoader.parseMaterial = function(mtlContent, appearances, objEntryName, zip) {
+  var currentAppearance = null; 
+  var lines = mtlContent.match(/^.*$/mg);
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines [i].trim();
+    var strings = line.split(/\s+/);
+    var start = strings [0];
+    if (start == "newmtl") {
+      currentAppearance = new Appearance3D(line.substring(7, line.length).trim());
+      appearances [currentAppearance.getName()] = currentAppearance;
+    } else if (currentAppearance !== null) {
+      if (start == "Ka") {
+        currentAppearance.setAmbientColor(OBJLoader.parseVector3f(strings));
+      } else if (start == "Kd") {
+        currentAppearance.setDiffuseColor(OBJLoader.parseVector3f(strings));
+      } else if (start == "Ks") {
+        currentAppearance.setSpecularColor(OBJLoader.parseVector3f(strings));
+      } else if (start == "Ns") {
+        currentAppearance.setShininess(Math.max(1, Math.min(parseFloat(strings [1]), 128)));
+      } else if (start == "d") {
+        // Store transparency opposite value
+        currentAppearance.setTransparency(1 - Math.max(0, parseFloat(strings [1] == "-halo" ? strings [2] : strings [1])));
+      } else if (start == "illum") {
+        currentAppearance.setIllumination(parseInt(strings [1]));
+      } else if (start == "map_Kd") {
+        var imageEntryName = strings [strings.length - 1];
+        var lastSlash = objEntryName.lastIndexOf("/");
+        if (lastSlash >= 0) {
+          imageEntryName = objEntryName.substring(0, lastSlash + 1) + imageEntryName;
+        }
+        var imageEntry = zip.file(imageEntryName);
+        if (imageEntry !== null) {
+          currentAppearance.imageEntryName = imageEntryName;
+        }
+      } 
+      // Ignore Ni and sharpness
+    }
+  }
+}
+
+/**
+ * Creates a group of geometries read in an OBJ file.
+ * @constructor
+ */
+function OBJGroup(name) {
+  this.name = name;
+  this.smooth = false;
+  this.geometries = [];
+}
+
+OBJGroup.prototype.addGeometry = function(geometry) {
+  this.geometries.push(geometry);
+};
+
+/**
+ * Creates a line read in an OBJ file.
+ * @constructor
+ */
+function OBJLine(vertexIndices, textureCoordinateIndices, material) {
+  this.vertexIndices = vertexIndices;
+  this.textureCoordinateIndices = textureCoordinateIndices;
+  this.material = material;
+}
+
+/**
+ * Creates a face read in an OBJ file.
+ * @constructor
+ */
+function OBJFace(vertexIndices, textureCoordinateIndices, normalIndices, material) {
+  this.vertexIndices = vertexIndices;
+  this.textureCoordinateIndices = textureCoordinateIndices;
+  this.normalIndices = normalIndices;
+  this.material = material;
+}
