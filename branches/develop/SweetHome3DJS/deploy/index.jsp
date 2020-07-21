@@ -29,7 +29,6 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="msapplication-tap-highlight" content="no">
 <title>SweetHome3DJS Test</title>
-<base href="..">
 <script type="text/javascript" src="lib/big.min.js"></script>
 <script type="text/javascript" src="lib/gl-matrix-min.js"></script>
 <script type="text/javascript" src="lib/jszip.min.js"></script>
