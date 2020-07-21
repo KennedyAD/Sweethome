@@ -55,7 +55,6 @@ function IncrementalHomeRecorder(application, configuration) {
   this.configuration = configuration;
   this.online = true;
   this.pingDelay = 10000;
-  console.info("Created incremental home recorder", this, this.getAutoWriteDelay());
   if (this.configuration !== undefined && this.configuration.pingURL !== undefined) {
     var recorder = this;
     setTimeout(function() { recorder.checkServer(); }, this.pingDelay);
