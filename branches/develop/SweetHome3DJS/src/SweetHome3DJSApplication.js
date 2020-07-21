@@ -152,15 +152,21 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
 /**
  * @private
  */
-IncrementalHomeRecorder.prototype.checkPoint = function(home) {
+IncrementalHomeRecorder.prototype.checkPoint = function(home, newObjects) {
   var recorder = this;
   if (!recorder.existingHomeObjects) {
     recorder.existingHomeObjects = {};
   }
-  recorder.existingHomeObjects[home.id] = {};
-  home.getHomeObjects().forEach(function(homeObject) {
-      recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
-    });
+  if (newObjects !== undefined) {
+    for (var id in newObjects) {
+      recorder.existingHomeObjects[home.id][id] = id;
+    }
+  } else {
+    recorder.existingHomeObjects[home.id] = {};
+    home.getHomeObjects().forEach(function(homeObject) {
+        recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
+      });
+  }
 }
 
 /**
@@ -451,7 +457,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   this.queue.push(processedEdit);
   
   // Update objects state 
-  this.checkPoint(home);
+  this.checkPoint(home, newObjects);
 }
 
 /** 
