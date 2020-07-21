@@ -20,6 +20,7 @@
 
 // Requires core.js
 //          LengthUnit.js
+//          URLContent.js
 
 /**
  * User preferences.
@@ -28,45 +29,27 @@
  */
 function UserPreferences() {
   this.propertyChangeSupport = new PropertyChangeSupport(this);
-  // TODO
-  // this.classResourceBundles = new HashMap<Class<?>, ResourceBundle>();
-  // this.resourceBundles = new HashMap<String, ResourceBundle>();
 
-  this.supportedLanguages = UserPreferences.DEFAULT_SUPPORTED_LANGUAGES;
-  this.defaultCountry = navigator.language.substring(navigator.language.indexOf("_") + 1, navigator.language.length);    
-  var defaultLanguage = navigator.language.substring(0, navigator.language.indexOf("_"));
-  // Find closest language among supported languages in Sweet Home 3D
-  // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
-  // unless their exact locale is supported as in Taiwan (zh_TW)
-  for (var i = 0; i < this.supportedLanguages; i++) {
-    var supportedLanguage = this.supportedLanguages [i];
-    if (supportedLanguage == defaultLanguage + "_" + this.defaultCountry) {
-      this.language = supportedLanguage;
-      break; // Found the exact supported language
-    } else if (this.language === null 
-               && supportedLanguage.indexOf(defaultLanguage) === 0) {
-      this.language = supportedLanguage; // Found a supported language
-    }
-  }
-  // If no language was found, let's use English by default
-  if (this.language === null) {
-    this.language = "en";
-  }
+  this.initSupportedLanguages(UserPreferences.DEFAULT_SUPPORTED_LANGUAGES);
   
-  this.resourceBundles = {};
+  this.resourceBundles = [];
+  this.furnitureCatalogResourceBundles = [];
+  
   this.furnitureCatalog = null;
   this.texturesCatalog = null;
   this.patternsCatalog = null;
   this.currency = null;
+  this.valueAddedTaxEnabled = false
+  this.defaultValueAddedTaxPercentage = null;
   this.unit = null;
   this.furnitureCatalogViewedInTree = true;
   this.aerialViewCenteredOnSelectionEnabled = false;
   this.observerCameraSelectedAtChange = true;
   this.navigationPanelVisible = true;
   this.magnetismEnabled = true;
-  this.rulersVisible    = true;
-  this.gridVisible      = true;
-  this.defaultFontName  = null;
+  this.rulersVisible = true;
+  this.gridVisible = true;
+  this.defaultFontName = null;
   this.furnitureViewedFromTop = true;
   this.furnitureModelIconSize = 128;
   this.roomFloorColoredOrTextured = true;
@@ -76,6 +59,7 @@ function UserPreferences() {
   this.newWallHeight = 250;
   this.newWallBaseboardThickness = 1;
   this.newWallBaseboardHeight = 7;
+  this.newRoomFloorColor = null;
   this.newFloorThickness = 12;
   this.recentHomes = [];
   this.autoSaveDelayForRecovery;
@@ -85,17 +69,94 @@ function UserPreferences() {
   this.homeExamples = [];
 }
 
-UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["en"]; 
+UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es", "fr", "it", "ja", "hu", "nl", "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"];
 
 UserPreferences.DEFAULT_TEXT_STYLE = new TextStyle(18);
 UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
 
+/**
+ * Initializes the supportedLanguage property (and potentially the language property if it has to change)
+ * @private
+ */
+UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) {
+  this.supportedLanguages = supportedLanguages;
+  // We also initialize the language except if already set and within the supported languages
+  if (!this.language || this.supportedLanguages.indexOf(this.language) === -1) {
+    var defaultLocale = Locale.getDefault();
+    if (defaultLocale === null) {
+      defaultLocale = "en";
+    }
+    this.defaultCountry = "";
+    var defaultLanguage = defaultLocale;
+    if (defaultLocale.indexOf("_") > 0) {
+      this.defaultCountry = defaultLocale.substring(defaultLocale.indexOf("_") + 1, defaultLocale.length);
+      defaultLanguage = this.language 
+          ? this.language.substring(0, this.language.indexOf("_")) 
+          : defaultLocale.substring(0, defaultLocale.indexOf("_"));
+    }
+    // Find closest language among supported languages in Sweet Home 3D
+    // For example, use simplified Chinese even for Chinese users (zh_?) not from China (zh_CN)
+    // unless their exact locale is supported as in Taiwan (zh_TW)
+    for (var i = 0; i < this.supportedLanguages.length; i++) {
+      var supportedLanguage = this.supportedLanguages[i];
+      if (this.defaultCountry != "" && supportedLanguage == defaultLanguage + "_" + this.defaultCountry
+          || this.defaultCountry == "" && supportedLanguage == defaultLanguage) {
+        this.language = supportedLanguage;
+        break; // Found the exact supported language
+      } else if (this.language === undefined
+        && supportedLanguage.indexOf(defaultLanguage) === 0) {
+        this.language = supportedLanguage; // Found a supported language
+      }
+    }
+    // If no language was found, let's use English by default
+    if (this.language === undefined) {
+      this.language = "en";
+    }
+    this.updateDefaultLocale();
+  }
+}
 
 /**
- * Adds the <code>listener</code> in parameter to these preferences. 
+ * Updates default locale from preferences language.
+ * @private
+ */
+UserPreferences.prototype.updateDefaultLocale = function() {
+  if (this.language.indexOf("_") !== -1) {
+    Locale.setDefault(this.language);
+  } else {
+    Locale.setDefault(this.language + "_" + this.defaultCountry);
+  }
+}
+
+/**
+ * Writes user preferences.
+ */
+UserPreferences.prototype.write = function() {
+  // Does nothing
+}
+
+/**
+ * Adds the property change <code>listener</code> in parameter to these preferences.
+ * @since 6.4
+ */
+UserPreferences.prototype.addPropertyChangeListener = function(listener) {
+  this.propertyChangeSupport.addPropertyChangeListener(listener);
+}
+
+/**
+ * Removes the property change <code>listener</code> in parameter from these preferences.
+ * @since 6.4
+ */
+UserPreferences.prototype.removePropertyChangeListener = function(listener) {
+  this.propertyChangeSupport.removePropertyChangeListener(listener);
+}
+
+/**
+ * Adds the <code>listener</code> in parameter to these preferences to listen
+ * to the changes of the given <code>property</code>.
  * The listener is a function that will receive in parameter an event of {@link PropertyChangeEvent} class.
  */
-UserPreferences.prototype.addPropertyChangeListener = function(property,  listener) {
+UserPreferences.prototype.addPropertyChangeListener = function(property, listener) {
   this.propertyChangeSupport.addPropertyChangeListener(property, listener);
 }
 
@@ -140,7 +201,6 @@ UserPreferences.prototype.setTexturesCatalog = function(catalog) {
 
 /**
  * Returns the patterns catalog available to fill plan areas. 
- * @ignore
  */
 UserPreferences.prototype.getPatternsCatalog = function() {
   return this.patternsCatalog;
@@ -176,7 +236,6 @@ UserPreferences.prototype.setUnit = function(unit) {
 /**
  * Returns the preferred language to display information, noted with an ISO 639 code
  * that may be followed by an underscore and an ISO 3166 code.
- * @ignore 
  */
 UserPreferences.prototype.getLanguage = function() {
   return this.language;
@@ -187,16 +246,15 @@ UserPreferences.prototype.getLanguage = function() {
  * changes current default locale accordingly and notifies listeners of this change.
  * @param language an ISO 639 code that may be followed by an underscore and an ISO 3166 code
  *            (for example fr, de, it, en_US, zh_CN). 
- * @ignore 
  */
 UserPreferences.prototype.setLanguage = function(language) {
-  if (language != this.language
-      && this.isLanguageEditable()) {
+  if (language != this.language && this.isLanguageEditable()) {
     var oldLanguage = this.language;
     this.language = language;
-    // TODO
-    // this.classResourceBundles.clear();
-    // this.resourceBundles.clear();
+    // Make it accessible to other localized parts (e.g. LengthUnit)
+    this.updateDefaultLocale();
+    this.resourceBundles = [];
+    this.furnitureCatalogResourceBundles = [];
     this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
   }
 }
@@ -212,7 +270,7 @@ UserPreferences.prototype.isLanguageEditable = function() {
 
 /**
  * Returns the array of default available languages in Sweet Home 3D.
- * @ignore 
+ * @returns an array of languages_countries ISO representations
  */
 UserPreferences.prototype.getDefaultSupportedLanguages = function() {
   return UserPreferences.DEFAULT_SUPPORTED_LANGUAGES.slice(0);
@@ -220,7 +278,6 @@ UserPreferences.prototype.getDefaultSupportedLanguages = function() {
 
 /**
  * Returns the array of available languages in Sweet Home 3D including languages in libraries.
- * @ignore 
  */
 UserPreferences.prototype.getSupportedLanguages = function() {
   return this.supportedLanguages.slice(0);
@@ -228,14 +285,16 @@ UserPreferences.prototype.getSupportedLanguages = function() {
 
 /**
  * Returns the array of available languages in Sweet Home 3D.
- * @ignore 
  */
 UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
   if (this.supportedLanguages != supportedLanguages) {
     var oldSupportedLanguages = this.supportedLanguages;
-    this.supportedLanguages = supportedLanguages.slice(0);
-    this.propertyChangeSupport.firePropertyChange("SUPPORTED_LANGUAGES", 
-        oldSupportedLanguages, supportedLanguages);
+    var oldLanguage = this.language;
+    this.initSupportedLanguages(supportedLanguages.slice(0));
+    this.propertyChangeSupport.firePropertyChange("SUPPORTED_LANGUAGES", oldSupportedLanguages, supportedLanguages);
+    if (oldLanguage != this.language) {
+      this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
+    }
   }
 }
 
@@ -250,127 +309,55 @@ UserPreferences.prototype.setSupportedLanguages = function(supportedLanguages) {
  * the key prefixed by <code>resourceClass</code> name and a dot in a package.properties file 
  * in the folder matching the package of <code>resourceClass</code>. 
  * @throws IllegalArgumentException if no string for the given key can be found
- * @throws UnsupportedOperationException Not implemented yet
- * @ignore
  */
 UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceKey, resourceParameters) {
-  // TODO Implement
-  throw new UnsupportedOperationException("Not implemented yet");
-  
-  if (typeof resourceClass !== "string") {
-    var classResourceBundle = this.classResourceBundles [resourceClass];
-    if (classResourceBundle === null) {
-      try {      
-        classResourceBundle = this.getResourceBundle(resourceClass.constructor.name);
-        this.classResourceBundles [resourceClass.constructor.name] = classResourceBundle;
-      } catch (ex) {
-        try {
-          var className = resourceClass.constructor.name;
-          var lastIndex = className.lastIndexOf(".");
-          var resourceFamily;
-          if (lastIndex !== -1) {
-            resourceFamily = className.substring(0, lastIndex) + ".package";
-          } else {
-            resourceFamily = "package";
-          }
-          classResourceBundle = new PrefixedResourceBundle(getResourceBundle(resourceFamily), 
-              resourceClass.constructor.name + ".");
-          this.classResourceBundles [resourceClass.constructor.name] = classResourceBundle;
-        } catch (ex2) {
-          throw new IllegalArgumentException(
-              "Can't find resource bundle for " + resourceClass, ex);
-        }
-      }
-    } 
-    
-    return this.getBundleLocalizedString(classResourceBundle, resourceKey, resourceParameters);
+  this.getResourceBundles(resourceClass);
+  if (resourceClass == "DefaultFurnitureCatalog") {
+    return CoreTools.getStringFromKey.apply(null, [this.furnitureCatalogResourceBundles, resourceKey].concat(Array.prototype.slice.call(arguments, 2))); 
   } else {
-    var resourceFamily = resourceClass;
-    
-    try {      
-      var resourceBundle = this.getResourceBundle(resourceFamily);
-      return this.getBundleLocalizedString(resourceBundle, resourceKey, resourceParameters);
-    } catch (ex) {
-      throw new IllegalArgumentException(
-          "Can't find resource bundle for " + resourceFamily, ex);
+    // JSweet-generated code interop: if resourceClass is a constructor, it may contain the Java class full name in __class
+    if (resourceClass.__class) {
+      var resourceClassArray = resourceClass.__class.split('.');
+      resourceClass = resourceClassArray[resourceClassArray.length - 1];
     }
-  }
+    var key = resourceClass + "." + resourceKey;
+    return CoreTools.getStringFromKey.apply(null, [this.resourceBundles, key].concat(Array.prototype.slice.call(arguments, 2))); 
+  } 
 }
 
 /**
- * Returns a new resource bundle for the given <code>familyName</code> 
- * that matches current default locale. The search will be done
- * only among .properties files.
- * @throws IOException if no .properties file was found
- * @private
+ * Returns the keys of the localized property strings of the given resource family.
+ * @throws IllegalArgumentException if the given resourceFamily is not supported
  */
-UserPreferences.prototype.getResourceBundle = function(resourceFamily) {
-  resourceFamily = resourceFamily.replace('.', '/');
-  var resourceBundle = this.resourceBundles.get(resourceFamily);
-  if (resourceBundle !== null) {
-    return resourceBundle;
-  }
-  var defaultLocale = this.language;
-  var language = defaultLocale.getLanguage();
-  var country = defaultLocale.getCountry();
-  var suffixes = [".properties",
-                  "_" + language + ".properties",
-                  "_" + language + "_" + country + ".properties"];
-  for (var i = 0; i < suffixes.length; i++) {
-    var suffix = suffixes [i];
-    var classLoaders = this.getResourceClassLoaders();
-    for (var j = 0; j < classLoaders.length; j++) {
-      var classLoader = classLoaders [j];
-      var input = classLoader.getResourceAsStream(resourceFamily + suffix);
-      if (input !== null) {
-        var parentResourceBundle = resourceBundle;
-        try {
-          resourceBundle = new PropertyResourceBundle(input);
-          resourceBundle.setParent(parentResourceBundle);
-          break;
-        } catch (ex) {
-          // May happen if the file contains some wrongly encoded characters
-          ex.printStackTrace();
-        } finally {
-          input.close();
-        }
+UserPreferences.prototype.getLocalizedStringKeys = function(resourceFamily) {
+  if (resourceClass == "DefaultFurnitureCatalog") {
+    var keys = {};
+    for (var i = 0; i < resourceBundles.length; i++) {
+      if (resourceBundles[i] != null) {
+        CoreTools.merge(keys,  resourceBundles[i]);
       }
     }
-  }
-  if (resourceBundle === null) {
-    throw new IOException("No available resource bundle for " + resourceFamily);
-  }
-  this.resourceBundles.put(resourceFamily, resourceBundle);
-  return resourceBundle;
-}
-
-/**
- * Returns the string matching <code>resourceKey</code> for the given resource bundle.
- * @private
- */
-UserPreferences.prototype.getBundleLocalizedString = function(resourceBundle, resourceKey, resourceParameters) {
-  try {
-    var localizedString = resourceBundle.getString(resourceKey);
-    if (resourceParameters.length > 0) {
-      localizedString = String.format(localizedString, resourceParameters);
-    }      
-    return localizedString;
-  } catch (ex) {
-    throw new IllegalArgumentException("Unknown key " + resourceKey);
+    return Object.getOwnPropertyNames(keys);
+  } else {
+    throw new IllegalArgumentException("unsupported family");
   }
 }
 
 /**
- * Returns the class loaders through which localized strings returned by 
- * <code>getLocalizedString</code> might be loaded.
- * @throws UnsupportedOperationException Not implemented yet
- * @ignore
+ * Returns the resource bundle for the given resource family.
  */
-UserPreferences.prototype.getResourceClassLoaders = function() {
-  // TODO Implement ?
-  throw new UnsupportedOperationException("Not implemented yet");
-  
-  return DEFAULT_CLASS_LOADER;
+UserPreferences.prototype.getResourceBundles = function(resourceClass) {
+  if (resourceClass == "DefaultFurnitureCatalog") {
+    if (this.furnitureCatalogResourceBundles.length == 0) {
+      this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("resources/DefaultFurnitureCatalog", Locale.getDefault());
+    }
+    return this.furnitureCatalogResourceBundles;
+  } else {
+    if (this.resourceBundles.length == 0) {
+      this.resourceBundles = CoreTools.loadResourceBundles("resources/localization", Locale.getDefault());
+    }
+    return this.resourceBundles;
+  } 
 }
 
 /**
@@ -384,15 +371,64 @@ UserPreferences.prototype.getCurrency = function() {
 
 /**
  * Sets the default currency in use.
- * @package
  * @ignore
  */
 UserPreferences.prototype.setCurrency = function(currency) {
   this.currency = currency;
 }
-  
+
+/**
+ * Returns <code>true</code> if Value Added Tax should be taken in account in prices.
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.isValueAddedTaxEnabled = function() {
+  return this.valueAddedTaxEnabled;
+}
+
+/**
+ * Sets whether Value Added Tax should be taken in account in prices.
+ * @param valueAddedTaxEnabled if <code>true</code> VAT will be added to prices.
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.setValueAddedTaxEnabled = function(valueAddedTaxEnabled) {
+  if (this.valueAddedTaxEnabled !== valueAddedTaxEnabled) {
+    this.valueAddedTaxEnabled = valueAddedTaxEnabled;
+    this.propertyChangeSupport.firePropertyChange("VALUE_ADDED_TAX_ENABLED",
+        !valueAddedTaxEnabled, valueAddedTaxEnabled);
+  }
+}
+
+/**
+ * Returns the Value Added Tax percentage applied to prices by default, or <code>null</code>
+ * if VAT isn't taken into account in the application.
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.getDefaultValueAddedTaxPercentage = function() {
+  return this.defaultValueAddedTaxPercentage;
+}
+
+/**
+ * Sets the Value Added Tax percentage applied to prices by default.
+ * @param {Big} valueAddedTaxPercentage the default VAT percentage
+ * @since 6.0
+ * @ignore
+ */
+UserPreferences.prototype.setDefaultValueAddedTaxPercentage = function(valueAddedTaxPercentage) {
+  if (valueAddedTaxPercentage !== this.defaultValueAddedTaxPercentage
+      && (valueAddedTaxPercentage == null || !valueAddedTaxPercentage.eq(this.defaultValueAddedTaxPercentage))) {
+    var oldValueAddedTaxPercentage = this.defaultValueAddedTaxPercentage;
+    this.defaultValueAddedTaxPercentage = valueAddedTaxPercentage;
+    this.propertyChangeSupport.firePropertyChange("DEFAULT_VALUE_ADDED_TAX_PERCENTAGE", oldValueAddedTaxPercentage, valueAddedTaxPercentage);
+
+  }
+}
+
 /**
  * Returns <code>true</code> if the furniture catalog should be viewed in a tree.
+ * @returns {Big} the default VAT percentage
  * @ignore
  */
 UserPreferences.prototype.isFurnitureCatalogViewedInTree = function() {
@@ -470,7 +506,6 @@ UserPreferences.prototype.isObserverCameraSelectedAtChange = function() {
 /**
  * Returns <code>true</code> if magnetism is enabled.
  * @return <code>true</code> by default.
- * @ignore
  */
 UserPreferences.prototype.isMagnetismEnabled = function() {
   return this.magnetismEnabled;
@@ -481,7 +516,6 @@ UserPreferences.prototype.isMagnetismEnabled = function() {
  * listeners of this change. 
  * @param magnetismEnabled <code>true</code> if magnetism is enabled,
  *          <code>false</code> otherwise.
- * @ignore
  */
 UserPreferences.prototype.setMagnetismEnabled = function(magnetismEnabled) {
   if (this.magnetismEnabled !== magnetismEnabled) {
@@ -518,7 +552,6 @@ UserPreferences.prototype.setRulersVisible = function(rulersVisible) {
 /**
  * Returns <code>true</code> if plan grid visible.
  * @return <code>true</code> by default.
- * @ignore
  */
 UserPreferences.prototype.isGridVisible = function() {
   return this.gridVisible;
@@ -529,7 +562,6 @@ UserPreferences.prototype.isGridVisible = function() {
  * listeners of this change. 
  * @param gridVisible <code>true</code> if grid is visible,
  *          <code>false</code> otherwise.
- * @ignore
  */
 UserPreferences.prototype.setGridVisible = function(gridVisible) {
   if (this.gridVisible !== gridVisible) {
@@ -542,7 +574,6 @@ UserPreferences.prototype.setGridVisible = function(gridVisible) {
 /**
  * Returns the name of the font that should be used by default or <code>null</code> 
  * if the default font should be the default one in the application.
- * @ignore
  */
 UserPreferences.prototype.getDefaultFontName = function() {
   return this.defaultFontName;
@@ -550,7 +581,6 @@ UserPreferences.prototype.getDefaultFontName = function() {
 
 /**
  * Sets the name of the font that should be used by default.
- * @ignore
  */
 UserPreferences.prototype.setDefaultFontName = function(defaultFontName) {
   if (defaultFontName != this.defaultFontName) {
@@ -562,7 +592,6 @@ UserPreferences.prototype.setDefaultFontName = function(defaultFontName) {
 
 /**
  * Returns <code>true</code> if furniture should be viewed from its top in plan.
- * @ignore
  */
 UserPreferences.prototype.isFurnitureViewedFromTop = function() {
   return this.furnitureViewedFromTop;
@@ -573,7 +602,6 @@ UserPreferences.prototype.isFurnitureViewedFromTop = function() {
  * listeners of this change. 
  * @param furnitureViewedFromTop if <code>true</code> the furniture 
  *    should be viewed from its top.
- * @ignore
  */
 UserPreferences.prototype.setFurnitureViewedFromTop = function(furnitureViewedFromTop) {
   if (this.furnitureViewedFromTop !== furnitureViewedFromTop) {
@@ -586,7 +614,6 @@ UserPreferences.prototype.setFurnitureViewedFromTop = function(furnitureViewedFr
 /**
  * Returns the size used to generate icons of furniture viewed from top.
  * @since 5.5
- * @ignore
  */
 UserPreferences.prototype.getFurnitureModelIconSize = function() {
   return this.furnitureModelIconSize;
@@ -595,7 +622,6 @@ UserPreferences.prototype.getFurnitureModelIconSize = function() {
 /**
  * Sets the name of the font that should be used by default.
  * @since 5.5
- * @ignore
  */
 UserPreferences.prototype.setFurnitureModelIconSize = function(furnitureModelIconSize) {
   if (furnitureModelIconSize !== this.furnitureModelIconSize) {
@@ -606,10 +632,8 @@ UserPreferences.prototype.setFurnitureModelIconSize = function(furnitureModelIco
 }
 
 /**
- * Returns <code>true</code> if room floors should be rendered with color or texture 
- * in plan.
+ * Returns <code>true</code> if room floors should be rendered with color or texture in plan.
  * @return <code>false</code> by default.
- * @ignore
  */
 UserPreferences.prototype.isRoomFloorColoredOrTextured = function() {
   return this.roomFloorColoredOrTextured;
@@ -620,7 +644,6 @@ UserPreferences.prototype.isRoomFloorColoredOrTextured = function() {
  * and notifies listeners of this change. 
  * @param roomFloorColoredOrTextured <code>true</code> if floor color 
  *          or texture is used, <code>false</code> otherwise.
- * @ignore
  */
 UserPreferences.prototype.setFloorColoredOrTextured = function(roomFloorColoredOrTextured) {
   if (this.roomFloorColoredOrTextured !== roomFloorColoredOrTextured) {
@@ -654,7 +677,6 @@ UserPreferences.prototype.setWallPattern = function(wallPattern) {
 
 /**
  * Returns the pattern used for new walls in plan or <code>null</code> if it's not set.
- * @ignore
  */
 UserPreferences.prototype.getNewWallPattern = function() {
   return this.newWallPattern;
@@ -663,7 +685,6 @@ UserPreferences.prototype.getNewWallPattern = function() {
 /**
  * Sets how new walls should be displayed in plan, and notifies
  * listeners of this change.
- * @ignore
  */
 UserPreferences.prototype.setNewWallPattern = function(newWallPattern) {
   if (this.newWallPattern !== newWallPattern) {
@@ -676,7 +697,6 @@ UserPreferences.prototype.setNewWallPattern = function(newWallPattern) {
 
 /**
  * Returns default thickness of new walls in home. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallThickness = function() {
   return this.newWallThickness;
@@ -685,7 +705,6 @@ UserPreferences.prototype.getNewWallThickness = function() {
 /**
  * Sets default thickness of new walls in home, and notifies
  * listeners of this change.  
- * @ignore
  */
 UserPreferences.prototype.setNewWallThickness = function(newWallThickness) {
   if (this.newWallThickness !== newWallThickness) {
@@ -698,7 +717,6 @@ UserPreferences.prototype.setNewWallThickness = function(newWallThickness) {
 
 /**
  * Returns default wall height of new home walls. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallHeight = function() {
   return this.newWallHeight;
@@ -707,7 +725,6 @@ UserPreferences.prototype.getNewWallHeight = function() {
 /**
  * Sets default wall height of new walls, and notifies
  * listeners of this change. 
- * @ignore
  */
 UserPreferences.prototype.setNewWallHeight = function(newWallHeight) {
   if (this.newWallHeight !== newWallHeight) {
@@ -720,7 +737,6 @@ UserPreferences.prototype.setNewWallHeight = function(newWallHeight) {
 
 /**
  * Returns default baseboard thickness of new walls in home. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallBaseboardThickness = function() {
   return this.newWallBaseboardThickness;
@@ -729,7 +745,6 @@ UserPreferences.prototype.getNewWallBaseboardThickness = function() {
 /**
  * Sets default baseboard thickness of new walls in home, and notifies
  * listeners of this change.  
- * @ignore
  */
 UserPreferences.prototype.setNewWallBaseboardThickness = function(newWallBaseboardThickness) {
   if (this.newWallBaseboardThickness !== newWallBaseboardThickness) {
@@ -742,7 +757,6 @@ UserPreferences.prototype.setNewWallBaseboardThickness = function(newWallBaseboa
 
 /**
  * Returns default baseboard height of new home walls. 
- * @ignore
  */
 UserPreferences.prototype.getNewWallBaseboardHeight = function() {
   return this.newWallBaseboardHeight;
@@ -751,7 +765,6 @@ UserPreferences.prototype.getNewWallBaseboardHeight = function() {
 /**
  * Sets default baseboard height of new walls, and notifies
  * listeners of this change. 
- * @ignore
  */
 UserPreferences.prototype.setNewWallBaseboardHeight = function(newWallBaseboardHeight) {
   if (this.newWallBaseboardHeight !== newWallBaseboardHeight) {
@@ -763,8 +776,29 @@ UserPreferences.prototype.setNewWallBaseboardHeight = function(newWallBaseboardH
 }
 
 /**
+ * Returns the default color of new rooms in home.
+ * @since 6.4
+ */
+UserPreferences.prototype.getNewRoomFloorColor = function() {
+  return this.newRoomFloorColor;
+}
+
+/**
+ * Sets the default color of new rooms in home, and notifies
+ * listeners of this change.
+ * @since 6.4
+ */
+UserPreferences.prototype.setNewRoomFloorColor = function(newRoomFloorColor) {
+  if (this.newRoomFloorColor !== newRoomFloorColor) {
+    var oldRoomFloorColor = this.newRoomFloorColor;
+    this.newRoomFloorColor = newRoomFloorColor;
+    this.propertyChangeSupport.firePropertyChange("NEW_ROOM_FLOOR_COLOR",
+        oldRoomFloorColor, newRoomFloorColor);
+  }
+}
+
+/**
  * Returns default thickness of the floor of new levels in home. 
- * @ignore
  */
 UserPreferences.prototype.getNewFloorThickness = function() {
   return this.newFloorThickness;
@@ -773,7 +807,6 @@ UserPreferences.prototype.getNewFloorThickness = function() {
 /**
  * Sets default thickness of the floor of new levels in home, and notifies
  * listeners of this change.  
- * @ignore
  */
 UserPreferences.prototype.setNewFloorThickness = function(newFloorThickness) {
   if (this.newFloorThickness !== newFloorThickness) {
@@ -811,7 +844,7 @@ UserPreferences.prototype.setAutoSaveDelayForRecovery = function(autoSaveDelayFo
  * @ignore
  */
 UserPreferences.prototype.getRecentHomes = function() {
-  return Collections.unmodifiableList(this.recentHomes);
+  return this.recentHomes.slice(0);
 }
 
 /**
@@ -821,7 +854,7 @@ UserPreferences.prototype.getRecentHomes = function() {
 UserPreferences.prototype.setRecentHomes = function(recentHomes) {
   if (recentHomes != this.recentHomes) {
     var oldRecentHomes = this.recentHomes;
-    this.recentHomes = new ArrayList<String>(recentHomes);
+    this.recentHomes = recentHomes.slice(0);
     this.propertyChangeSupport.firePropertyChange("RECENT_HOMES", 
         oldRecentHomes, this.getRecentHomes());
   }
@@ -892,8 +925,8 @@ UserPreferences.prototype.getDefaultTextStyle = function(selectableClass) {
  */
 UserPreferences.prototype.getAutoCompletionStrings = function(property) {
   var propertyAutoCompletionStrings = this.autoCompletionStrings.get(property);
-  if (propertyAutoCompletionStrings !== null) {
-    return Collections.unmodifiableList(propertyAutoCompletionStrings);
+  if (propertyAutoCompletionStrings !== undefined) {
+    return propertyAutoCompletionStrings.slice(0);
   } else {
     return [];
   }
@@ -906,12 +939,12 @@ UserPreferences.prototype.getAutoCompletionStrings = function(property) {
  */
 UserPreferences.prototype.addAutoCompletionString = function(property, autoCompletionString) {
   if (autoCompletionString !== null 
-      && autoCompletionString.length() > 0) {
+      && autoCompletionString.length > 0) {
     var propertyAutoCompletionStrings = this.autoCompletionStrings [property];
     if (propertyAutoCompletionStrings === undefined) {
       propertyAutoCompletionStrings = [];
-    } else if (!propertyAutoCompletionStrings.contains(autoCompletionString)) {
-      propertyAutoCompletionStrings = new ArrayList<String>(propertyAutoCompletionStrings);
+    } else if (propertyAutoCompletionStrings.indexOf(autoCompletionString) < 0) {
+      propertyAutoCompletionStrings = propertyAutoCompletionStrings.slice(0);
     } else {
       return;
     }
@@ -927,7 +960,7 @@ UserPreferences.prototype.addAutoCompletionString = function(property, autoCompl
 UserPreferences.prototype.setAutoCompletionStrings = function(property, autoCompletionStrings) {
   var propertyAutoCompletionStrings = this.autoCompletionStrings [property];
   if (autoCompletionStrings != propertyAutoCompletionStrings) {
-    this.autoCompletionStrings.put(property, autoCompletionStrings.slice(0));
+    this.autoCompletionStrings [property] = autoCompletionStrings.slice(0);
     this.propertyChangeSupport.firePropertyChange("AUTO_COMPLETION_STRINGS", 
         null, property);
   }
@@ -941,7 +974,7 @@ UserPreferences.prototype.getAutoCompletedProperties = function() {
   if (this.autoCompletionStrings !== null) {
     return Object.keys(this.autoCompletionStrings);
   } else {
-    return Collections.emptyList();
+    return [];
   }
 }
 
@@ -1012,45 +1045,134 @@ UserPreferences.prototype.getHomeExamples = function() {
   return this.homeExamples;
 }
 
-/**
- * A resource bundle with a prefix added to resource key.
- */
-// TODO
-//private static class PrefixedResourceBundle extends ResourceBundle {
-//  private ResourceBundle resourceBundle;
-//  private var         keyPrefix;
-//
-//  public PrefixedResourceBundle(ResourceBundle resourceBundle, 
-//                                var keyPrefix) {
-//    this.resourceBundle = resourceBundle;
-//    this.keyPrefix = keyPrefix;
-//  }
-//  
-////  public Locale getLocale() {
-//    return this.resourceBundle.getLocale();
-//  }
-//  
-////  protected Object handleGetObject(String key) {
-//    key = this.keyPrefix + key;
-//    return this.resourceBundle.getObject(key);
-//  }    
-//
-////  public Enumeration<String> getKeys() {
-//    return this.resourceBundle.getKeys();
-//  }    
-//}
-
 
 /**
  * Default user preferences.
+ * @param {string[]|boolean}       [furnitureCatalogUrls]
+ * @param {string|UserPreferences} [furnitureResourcesUrlBase]
+ * @param {string[]} [texturesCatalogUrls]
+ * @param {string}   [texturesResourcesUrlBase]
  * @constructor
  * @extends UserPreferences
  * @author Emmanuel Puybaret
  */
-function DefaultUserPreferences() {
+function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase, 
+                                texturesCatalogUrls, texturesResourcesUrlBase) {
   UserPreferences.call(this);
-  this.setUnit(LengthUnit.CENTIMETER);
+  
+  // Build default patterns catalog
+  var patterns = [];
+  patterns.push(new DefaultPatternTexture("foreground"));
+  patterns.push(new DefaultPatternTexture("reversedHatchUp"));
+  patterns.push(new DefaultPatternTexture("reversedHatchDown"));
+  patterns.push(new DefaultPatternTexture("reversedCrossHatch"));
+  patterns.push(new DefaultPatternTexture("background"));
+  patterns.push(new DefaultPatternTexture("hatchUp"));
+  patterns.push(new DefaultPatternTexture("hatchDown"));
+  patterns.push(new DefaultPatternTexture("crossHatch"));
+  var patternsCatalog = new PatternsCatalog(patterns);  
+  this.setPatternsCatalog(patternsCatalog);
+  this.setFurnitureCatalog(typeof DefaultFurnitureCatalog === "function"
+      ? (Array.isArray(furnitureCatalogUrls)
+           ? new DefaultFurnitureCatalog(furnitureCatalogUrls, furnitureResourcesUrlBase) 
+           : new DefaultFurnitureCatalog(this))
+      : new FurnitureCatalog());
+  this.setTexturesCatalog(typeof DefaultTextureCatalog === "function"
+      ? (Array.isArray(texturesCatalogUrls)
+           ? new DefaultTextureCatalog(texturesCatalogUrls, texturesResourcesUrlBase) 
+           : new DefaultTextureCatalog(this))
+      : new TexturesCatalog());
+
+  if (Locale.getDefault() == "en_US") {
+    this.setUnit(LengthUnit.INCH);
+    this.setNewWallThickness(7.62);
+    this.setNewWallHeight(243.84);
+    this.setNewWallBaseboardThickness(0.9525);
+    this.setNewWallBaseboardHeight(6.35);
+  } else {
+    this.setUnit(LengthUnit.CENTIMETER);
+    this.setNewWallThickness(7.5);
+    this.setNewWallHeight(250);
+    this.setNewWallBaseboardThickness(1);
+    this.setNewWallBaseboardHeight(7);
+  }
+
   this.setNavigationPanelVisible(false);
+  this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
+  this.setNewWallPattern(this.getWallPattern());
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
+
+
+/**
+ * Creates a pattern built from resources.
+ * @param {string} name
+ * @constructor
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+function DefaultPatternTexture(name) {
+  this.name = name;
+  this.image = new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png");
+}
+
+DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";
+DefaultPatternTexture["__interfaces"] = ["com.eteks.sweethome3d.model.TextureImage"];
+DefaultPatternTexture['__transients'] = ["image"];
+
+/**
+ * Returns the name of this texture.
+ * @return {string}
+ */
+DefaultPatternTexture.prototype.getName = function () {
+  return this.name;
+}
+
+/**
+ * Returns the creator of this texture.
+ * @return {string}
+ */
+DefaultPatternTexture.prototype.getCreator = function () {
+  return null;
+}
+
+/**
+ * Returns the content of the image used for this texture.
+ * @return {Object}
+ */
+DefaultPatternTexture.prototype.getImage = function () {
+  return this.image;
+}
+
+/**
+ * Returns the width of the image in centimeters.
+ * @return {number}
+ */
+DefaultPatternTexture.prototype.getWidth = function () {
+  return 10;
+}
+
+/**
+ * Returns the height of the image in centimeters.
+ * @return {number}
+ */
+DefaultPatternTexture.prototype.getHeight = function () {
+  return 10;
+}
+
+/**
+ * Returns <code>true</code> if the object in parameter is equal to this texture.
+ * @param {Object} obj
+ * @return {boolean}
+ */
+DefaultPatternTexture.prototype.equals = function (obj) {
+  if (obj === this) {
+    return true;
+  } else if (obj instanceof DefaultPatternTexture) {
+    var pattern = obj;
+    return pattern.name == this.name;
+  } else {
+    return false;
+  }
+}

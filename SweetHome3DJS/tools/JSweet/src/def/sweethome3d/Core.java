@@ -2,7 +2,7 @@
  * Core.java
  *
  * Copyright (c) 2015 Emmanuel PUYBARET / eTeks <info@eteks.com>
- * 
+ *
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -28,7 +28,7 @@ import java.util.List;
 
 import def.js.Error;
 
-// Bridges to JavaScript classes implemented in src/core.js  
+// Bridges to JavaScript classes implemented in src/core.js
 
 /**
  * A bridge to the JavaScript implementation of IllegalArgumentException.
@@ -68,7 +68,7 @@ class IllegalStateException extends Error {
 class UnsupportedOperationException extends Error {
   public UnsupportedOperationException() {
   }
-  
+
   public UnsupportedOperationException(String message) {
   }
 }
@@ -89,7 +89,6 @@ class InternalError extends Error {
  */
 @SuppressWarnings("serial")
 class NoSuchElementException extends Error {
-
   public NoSuchElementException(String message) {
   }
 }
@@ -101,7 +100,7 @@ class NoSuchElementException extends Error {
 class EventObject {
   public EventObject(Object source) {
   }
-  
+
   public native Object getSource();
 }
 
@@ -113,13 +112,13 @@ class PropertyChangeEvent extends EventObject {
   public PropertyChangeEvent(Object source, String propertyName, Object oldValue, Object newValue) {
     super(source);
   }
-  
+
   public native Object getSource();
-  
+
   public native Object getNewValue();
-  
+
   public native Object getOldValue();
-  
+
   public native String getPropertyName();
 
 }
@@ -146,5 +145,18 @@ class PropertyChangeSupport {
 
   public native List<PropertyChangeListener> getPropertyChangeListeners(String propertyName);
 
+  public native List<PropertyChangeListener> getPropertyChangeListeners();
+
   public native void firePropertyChange(String propertyName, Object oldValue, Object newValue);
+}
+
+/**
+ * A bridge to the JavaScript implementation of UUID.
+ */
+class UUID {
+  public static native String randomUUID();
+}
+
+class CoreTools {
+  public native static String format(String formatString, Object... args);
 }

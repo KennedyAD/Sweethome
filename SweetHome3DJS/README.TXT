@@ -1,4 +1,4 @@
-SWEET HOME 3D JS v 6.3
+SWEET HOME 3D JS v 6.4
 ----------------------
 
 This archive contains source code of Sweet Home 3D JS, a HTML5 3D viewer 
@@ -6,14 +6,14 @@ for Sweet Home 3D files saved with version 5.3 or a more recent version.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_3/SweetHome3DJS SweetHome3DJS
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_4/SweetHome3DJS SweetHome3DJS
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code from 
-http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-6.3-src.zip 
+http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-6.4-src.zip 
 or with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_3/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_4/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
@@ -34,8 +34,14 @@ with any compatible browser.
 The default target provided by build.xml Ant file concatenates .js files by license type, 
 minifies them, and generates in install subdirectory a SweetHome3DJSViewer ZIP file 
 that contains minified JavaScript code and HTML files you may use for your own web site. 
-Read build.xml Ant file for more information about other available targets. 
 
+The main other target named "applicationBuild" provided by build.xml Ant file generates 
+a web application .war file in install subdirectory, which you may deploy in a JSP server like Tomcat.
+This web application will let you create and modify in a browser the home plan passed in the parameter 
+"home" of index.jsp page. Changes in a home edited with in this application are automatically saved 
+by the service in writeHomeEdits.jsp and read by the service readHome.jsp.  
+
+Read build.xml Ant file for more information about other available targets. 
 
 Read LICENSE.TXT file for more details about licenses applicable to this software
 and included materials developed by third parties.

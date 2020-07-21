@@ -476,8 +476,6 @@ Wall3D.prototype.createWallGeometries = function(bottomGeometries, sideGeometrie
               if (!waitDoorOrWindowModelsLoadingEnd) {
                 missingModels.splice(missingModels.indexOf(this.doorOrWindow), 1);
               }
-            },
-            progression : function() {
             }
           };
         modelManager.loadModel(missingModels[i].getModel(), waitDoorOrWindowModelsLoadingEnd, modelObserver); 
@@ -1294,8 +1292,6 @@ Wall3D.prototype.updateFilledWallSideAppearance = function(wallSideAppearance, w
         },
         textureError : function(error) {
           return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-        },
-        progression : function(part, info, percentage) {
         }
       });
   }

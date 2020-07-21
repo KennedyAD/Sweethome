@@ -156,7 +156,7 @@ function createModel3DOverlay() {
   
   // Create close button image
   var closeButtonImage = new Image();
-  closeButtonImage.src = ZIPTools.getScriptFolder("jszip.min.js") + "/close.png";
+  closeButtonImage.src = ZIPTools.getScriptFolder() + "/close.png";
   closeButtonImage.id = "modelViewerCloseButton";
   closeButtonImage.style.position = "absolute";
 

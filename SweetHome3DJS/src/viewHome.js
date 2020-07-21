@@ -24,7 +24,7 @@
  * or an HTML string which content will replace the default navigation panel. 
  * @param {string} canvasId  the value of the id attribute of the 3D canvas 
  * @param {string} homeUrl the URL of the home to load and display
- * @param onError  callback called in case of error with an exception as parameter 
+ * @param onerror  callback called in case of error with an exception as parameter 
  * @param onprogression callback with (part, info, percentage) parameters called during the download of the home 
  *                      and the 3D models it displays.
  * @param {{roundsPerMinute: number, 
@@ -121,7 +121,7 @@ function viewHomeInOverlay(homeUrl, params) {
 
   // Create close button image
   var closeButtonImage = new Image();
-  closeButtonImage.src = ZIPTools.getScriptFolder("jszip.min.js") + "/close.png";
+  closeButtonImage.src = ZIPTools.getScriptFolder() + "/close.png";
   closeButtonImage.style.position = "absolute";
   overlayDiv.appendChild(closeButtonImage);
   
@@ -308,7 +308,7 @@ function hideHomeOverlay() {
  * Creates a component that loads and displays a home in a 3D canvas.
  * @param {string} canvasId  the value of the id attribute of the 3D canvas 
  * @param {string} homeUrl   the URL of the home to load and display
- * @param onError  callback called in case of error with an exception as parameter 
+ * @param onerror  callback called in case of error with an exception as parameter 
  * @param onprogression callback with (part, info, percentage) parameters called during the download of the home 
  *                      and the 3D models it displays.
  * @param {{roundsPerMinute: number, 
@@ -616,7 +616,7 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
         previewComponent.stopRotationAnimation();
       };
     canvas.addEventListener("keydown", this.clickListener);
-    if ((document.documentMode || /Edg/.test(navigator.userAgent))
+    if (OperatingSystem.isInternetExplorerOrLegacyEdge()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
       canvas.addEventListener("pointerdown", this.clickListener);
@@ -628,7 +628,7 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
     }
     var elements = this.component3D.getSimulatedKeyElements(document.getElementsByTagName("body").item(0));
     for (var i = 0; i < elements.length; i++) {
-      if ((document.documentMode || /Edg/.test(navigator.userAgent))
+      if (OperatingSystem.isInternetExplorerOrLegacyEdge()
           && window.PointerEvent) {
         elements [i].addEventListener("pointerdown", this.clickListener);
       } else {
@@ -762,8 +762,6 @@ HomePreviewComponent.prototype.trackFurnitureModels = function(onprogression, ro
           },        
           modelError : function(ex) {
             this.modelUpdated();
-          },
-          progression : function() {
           }
         });
       };
@@ -784,7 +782,7 @@ HomePreviewComponent.prototype.dispose = function() {
       document.removeEventListener("visibilitychange", this.visibilityChanged);
       var elements = this.component3D.getSimulatedKeyElements(document.getElementsByTagName("body").item(0));
       for (var i = 0; i < elements.length; i++) {
-        if ((document.documentMode || /Edg/.test(navigator.userAgent))
+        if (OperatingSystem.isInternetExplorerOrLegacyEdge()
             && window.PointerEvent) {
           elements [i].removeEventListener("pointerdown", this.clickListener);
         } else {

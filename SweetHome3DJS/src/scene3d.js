@@ -126,22 +126,37 @@ Node3D.prototype.setName = function(name) {
 
 /**
  * Adds the property change <code>listener</code> in parameter to this node.
+ * @param {string} [propertyName] the name of an optional property to listen
+ * @param listener  a callback that will be called with a {@link PropertyChangeEvent} instance
  */
-Node3D.prototype.addPropertyChangeListener = function(property, listener) {
+Node3D.prototype.addPropertyChangeListener = function(propertyName, listener) {
   if (this.propertyChangeSupport === undefined) {
     this.propertyChangeSupport = new PropertyChangeSupport(this);    
   }
-  this.propertyChangeSupport.addPropertyChangeListener(property, listener);
+  this.propertyChangeSupport.addPropertyChangeListener(propertyName, listener);
 }
 
 /**
  * Removes the property change <code>listener</code> in parameter from this node.
+ * @param listener the listener to remove. If it doesn't exist, it's simply ignored.
  */
-Node3D.prototype.removePropertyChangeListener = function(property, listener) {
+Node3D.prototype.removePropertyChangeListener = function(propertyName, listener) {
   if (this.propertyChangeSupport !== undefined) {
-    this.propertyChangeSupport.removePropertyChangeListener(property, listener);
+    this.propertyChangeSupport.removePropertyChangeListener(propertyName, listener);
   }
 }
+
+/**
+ * Returns the property change listeners of this group.
+ * @returns {Array}   
+ */
+Node3D.prototype.getPropertyChangeListeners = function() {
+  if (this.propertyChangeSupport !== undefined) {
+    return this.propertyChangeSupport.getPropertyChangeListeners();
+  } else {
+    return [];
+  }
+} 
 
 Node3D.prototype.setPickable = function(pickable) {
   this.pickable = pickable;
@@ -296,7 +311,9 @@ Shape3D.prototype.clone = function() {
  * @author Emmanuel Puybaret
  */
 function Background3D(group) {
+  Node3D.call(this);
   this.geometry = group;
+  group.parent = this;
 } 
 Background3D.prototype = Object.create(Node3D.prototype);
 Background3D.prototype.constructor = Background3D;
@@ -462,7 +479,7 @@ Group3D.prototype.removeAllChildren = function() {
 }
 
 /**
- * Adds the children <code>listener</code> in parameter to this home.
+ * Adds the children <code>listener</code> in parameter to this group.
  * @param {{childAdded, childRemoved}} listener  
  */
 Group3D.prototype.addChildrenListener = function(listener) {
@@ -473,7 +490,7 @@ Group3D.prototype.addChildrenListener = function(listener) {
 }
 
 /**
- * Removes the children <code>listener</code> in parameter from this home.
+ * Removes the children <code>listener</code> in parameter from this group.
  * @param {{childAdded, childRemoved}} listener  
  */
 Group3D.prototype.removeChildrenListener = function(listener) {
@@ -482,6 +499,18 @@ Group3D.prototype.removeChildrenListener = function(listener) {
     if (index !== - 1) {
       this.childrenListeners.splice(index, 1);
     }
+  }
+} 
+
+/**
+ * Returns the children listeners of this group.
+ * @returns {Array}   
+ */
+Group3D.prototype.getChildrenListeners = function() {
+  if (this.childrenListeners !== undefined) {
+    return this.childrenListeners.slice(0);
+  } else {
+    return [];
   }
 } 
 

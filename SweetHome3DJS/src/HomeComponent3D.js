@@ -105,6 +105,13 @@ HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, co
 }
 
 /**
+ * Returns the HTML element used to view this component at screen.
+ */
+HomeComponent3D.prototype.getHTMLElement = function() {
+  return this.canvas3D.getHTMLElement();
+}
+
+/**
  * Disposes the 3D shapes geometries displayed by this component. 
  * @package
  * @ignore
@@ -146,7 +153,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     navigationPanelDiv = document.createElement("div")
     navigationPanelDiv.setAttribute("id", "div" + Math.floor(Math.random() * 1E10));
     navigationPanelDiv.style.position = "absolute";
-    var canvas = this.canvas3D.getCanvas();
+    var canvas = this.canvas3D.getHTMLElement();
     this.windowSizeListener = function() {
         var canvasBounds = canvas.getBoundingClientRect();
         navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
@@ -157,7 +164,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     this.windowSizeListener();
     // Search the first existing zIndex among parents
     var parentZIndex = 0;
-    for (var element = this.canvas3D.getCanvas();  
+    for (var element = this.canvas3D.getHTMLElement();  
          element && element.style && isNaN(parentZIndex = parseInt(element.style.zIndex));
          element = element.parentElement) {
     }
@@ -178,7 +185,22 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
       var simulatedElement = ev.target;
       var repeatKeyAction = function() {
           var attribute = simulatedElement.getAttribute("data-simulated-key");
-          component3D.callAction(attribute.substring(attribute.indexOf(":") + 1), ev);
+          var keyName = attribute.substring(attribute.indexOf(":") + 1);
+          var keyStroke = ""; 
+          if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
+            keyStroke += "control ";
+          }
+          if (ev.altKey || keyName.indexOf("alt ") != -1) {
+            keyStroke += "alt ";
+          }
+          if (ev.metaKey || keyName.indexOf("meta ") != -1) {
+            keyStroke += "meta ";
+          }
+          if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
+            keyStroke += "shift ";
+          }
+          keyStroke += "pressed " + keyName;
+          component3D.callAction(keyStroke, ev);
         };
       var stopInterval = function(ev) {
           window.clearInterval(intervalId);
@@ -220,7 +242,7 @@ HomeComponent3D.prototype.getSimulatedKeyElements = function(element) {
         // that contains no colon or that starts with canvas id followed by a colon
         var simulatedKey = child.getAttribute("data-simulated-key");
         if (simulatedKey.indexOf(":") === -1
-            || simulatedKey.indexOf(this.canvas3D.getCanvas().getAttribute("id") + ":") === 0) {
+            || simulatedKey.indexOf(this.canvas3D.getHTMLElement().getAttribute("id") + ":") === 0) {
           simulatedKeyElements.push(child);
         }
       }
@@ -298,23 +320,24 @@ HomeComponent3D.prototype.removeHomeListeners = function() {
  */
 HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
   if (this.userActionsListener) {
-    if ((document.documentMode || /Edg/.test(navigator.userAgent))
+    if (OperatingSystem.isInternetExplorerOrLegacyEdge()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
-      canvas3D.getCanvas().removeEventListener("pointerdown", this.userActionsListener.pointerPressed);
-      canvas3D.getCanvas().removeEventListener("mousedown", this.userActionsListener.pointerMousePressed);
+      canvas3D.getHTMLElement().removeEventListener("pointerdown", this.userActionsListener.pointerPressed);
+      canvas3D.getHTMLElement().removeEventListener("mousedown", this.userActionsListener.pointerMousePressed);
       window.removeEventListener("pointermove", this.userActionsListener.windowPointerMoved);
       window.removeEventListener("pointerup", this.userActionsListener.windowPointerReleased);
+      canvas3D.getHTMLElement().removeEventListener('contextmenu', userActionsListener.contextMenu);
     } else {
-      canvas3D.getCanvas().removeEventListener("touchstart", this.userActionsListener.touchStarted);
-      canvas3D.getCanvas().removeEventListener("touchmove", this.userActionsListener.touchMoved);
-      canvas3D.getCanvas().removeEventListener("touchend", this.userActionsListener.touchEnded);
-      canvas3D.getCanvas().removeEventListener("mousedown", this.userActionsListener.mousePressed);
+      canvas3D.getHTMLElement().removeEventListener("touchstart", this.userActionsListener.touchStarted);
+      canvas3D.getHTMLElement().removeEventListener("touchmove", this.userActionsListener.touchMoved);
+      canvas3D.getHTMLElement().removeEventListener("touchend", this.userActionsListener.touchEnded);
+      canvas3D.getHTMLElement().removeEventListener("mousedown", this.userActionsListener.mousePressed);
       window.removeEventListener("mousemove", this.userActionsListener.windowMouseMoved);
       window.removeEventListener("mouseup", this.userActionsListener.windowMouseReleased);
     }
-    canvas3D.getCanvas().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
-    canvas3D.getCanvas().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
+    canvas3D.getHTMLElement().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
+    canvas3D.getHTMLElement().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
   }
 }
 
@@ -392,7 +415,7 @@ HomeComponent3D.prototype.updateView = function(camera) {
         frontClipDistance = Math.max(frontClipDistance, 0.1 * distanceToClosestBoxSide);
       }
     }
-    var canvasBounds = this.canvas3D.getCanvas().getBoundingClientRect();
+    var canvasBounds = this.canvas3D.getHTMLElement().getBoundingClientRect();
     if (camera.getZ() > 0 && canvasBounds.width !== 0 && canvasBounds.height !== 0) {
       var halfVerticalFieldOfView = Math.atan(Math.tan(fieldOfView / 2) * canvasBounds.height / canvasBounds.width);
       var fieldOfViewBottomAngle = camera.getPitch() + halfVerticalFieldOfView;
@@ -764,23 +787,23 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       buttonPressed : -1,
       pointerTouches : {},
       distanceLastPinch : -1,
-      
+      actionStartedInComponent3D : false,
       mousePressed : function(ev) {
         userActionsListener.xLastMove = ev.clientX;
         userActionsListener.yLastMove = ev.clientY;
         userActionsListener.buttonPressed  = ev.button;
-        userActionsListener.mousePressedInCanvas = true;
+        userActionsListener.actionStartedInComponent3D = true;
         ev.stopPropagation();
       },
       windowMouseMoved : function(ev) {
-        if (userActionsListener.mousePressedInCanvas) {
+        if (userActionsListener.actionStartedInComponent3D) {
           userActionsListener.moved(ev.clientX, ev.clientY, ev.altKey, ev.shiftKey);
         }
       },
       windowMouseReleased : function(ev) {
         userActionsListener.buttonPressed = -1;
-        if (userActionsListener.mousePressedInCanvas) {
-          delete userActionsListener.mousePressedInCanvas;
+        if (userActionsListener.actionStartedInComponent3D) {
+          delete userActionsListener.actionStartedInComponent3D;
         }
       },
       pointerPressed : function(ev) {
@@ -813,8 +836,12 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
           userActionsListener.touchEnded(ev);
         }
       },
+      contextMenu : function(ev){
+        ev.preventDefault();
+      },
       touchStarted : function(ev) {
         ev.preventDefault();
+        this.actionStartedInComponent3D = true;
         if (ev.targetTouches.length == 1) {
           userActionsListener.xLastMove = ev.targetTouches [0].pageX;
           userActionsListener.yLastMove = ev.targetTouches [0].pageY;
@@ -829,22 +856,25 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         }
       },
       touchMoved : function(ev) {
-        ev.preventDefault();
-        if (ev.targetTouches.length == 1) {
-          if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
-            userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
-          } else {
-            userActionsListener.moved(ev.targetTouches [0].pageX,  ev.targetTouches [0].pageY, false, false);
+        if (this.actionStartedInComponent3D) {
+          ev.preventDefault();
+          if (ev.targetTouches.length == 1) {
+            if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
+              userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
+            } else {
+              userActionsListener.moved(ev.targetTouches [0].pageX,  ev.targetTouches [0].pageY, false, false);
+            }
+          } else if (ev.targetTouches.length == 2) {
+            var newDistance = userActionsListener.distance(ev.targetTouches [0], ev.targetTouches [1]);
+            var scaleDifference = newDistance / userActionsListener.distanceLastPinch;
+            userActionsListener.zoomed((1 - scaleDifference) * 50, false);
+            userActionsListener.distanceLastPinch = newDistance;
           }
-        } else if (ev.targetTouches.length == 2) {
-          var newDistance = userActionsListener.distance(ev.targetTouches [0], ev.targetTouches [1]);
-          var scaleDifference = newDistance / userActionsListener.distanceLastPinch;
-          userActionsListener.zoomed((1 - scaleDifference) * 50, false);
-          userActionsListener.distanceLastPinch = newDistance;
         }
       },
       touchEnded : function(ev) {
         userActionsListener.buttonPressed = -1;
+        this.actionStartedInComponent3D = false;
       },
       copyPointerToTargetTouches : function(ev) {
         // Copy the IE and Edge pointer location to ev.targetTouches
@@ -860,7 +890,9 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         return Math.sqrt(Math.pow(p2.pageX - p1.pageX, 2) + Math.pow(p2.pageY - p1.pageY, 2));
       },
       moved : function(x, y, altKey, shiftKey) {
-        if (userActionsListener.buttonPressed === 0) {
+        if ((userActionsListener.xLastMove !== x
+              || userActionsListener.yLastMove !== y)
+            && userActionsListener.buttonPressed === 0) {
           if (altKey) {
             // Mouse move along Y axis while alt is down changes camera location
             var delta = 1.25 * (userActionsListener.yLastMove - y);
@@ -905,26 +937,27 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       }
     };
     
-  if ((document.documentMode || /Edg/.test(navigator.userAgent))
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
     // Multi touch support for IE and Edge
     // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
-    canvas3D.getCanvas().addEventListener("pointerdown", userActionsListener.pointerPressed);
-    canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.pointerMousePressed);
+    canvas3D.getHTMLElement().addEventListener("pointerdown", userActionsListener.pointerPressed);
+    canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.pointerMousePressed);
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", userActionsListener.windowPointerMoved);
     window.addEventListener("pointerup", userActionsListener.windowPointerReleased);
+    canvas3D.getHTMLElement().addEventListener('contextmenu', userActionsListener.contextMenu);
   } else {
-    canvas3D.getCanvas().addEventListener("touchstart", userActionsListener.touchStarted);
-    canvas3D.getCanvas().addEventListener("touchmove", userActionsListener.touchMoved);
-    canvas3D.getCanvas().addEventListener("touchend", userActionsListener.touchEnded);
-    canvas3D.getCanvas().addEventListener("mousedown", userActionsListener.mousePressed);
+    canvas3D.getHTMLElement().addEventListener("touchstart", userActionsListener.touchStarted);
+    canvas3D.getHTMLElement().addEventListener("touchmove", userActionsListener.touchMoved);
+    canvas3D.getHTMLElement().addEventListener("touchend", userActionsListener.touchEnded);
+    canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.mousePressed);
     // Add mousemove and mouseup event listeners to window to capture mouse events out of the canvas 
     window.addEventListener("mousemove", userActionsListener.windowMouseMoved);
     window.addEventListener("mouseup", userActionsListener.windowMouseReleased);
   }
-  canvas3D.getCanvas().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
-  canvas3D.getCanvas().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
+  canvas3D.getHTMLElement().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
+  canvas3D.getHTMLElement().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
 
   this.userActionsListener = userActionsListener;
 }
@@ -971,130 +1004,18 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
       "pressed END" : "ELEVATE_CAMERA_DOWN",
   };
   var component3D = this;
-  this.canvas3D.getCanvas().addEventListener("keydown", 
+  this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
-        if (HomeComponent3D.KEY_CODE_TEXTS === undefined) {
-          HomeComponent3D.KEY_CODE_TEXTS = new Array(223);
-          HomeComponent3D.KEY_CODE_TEXTS [8]  = "BACK_SPACE";
-          HomeComponent3D.KEY_CODE_TEXTS [9]  = "TAB";
-          HomeComponent3D.KEY_CODE_TEXTS [13] = "ENTER";
-          HomeComponent3D.KEY_CODE_TEXTS [16] = "SHIFT";
-          HomeComponent3D.KEY_CODE_TEXTS [17] = "CONTROL";
-          HomeComponent3D.KEY_CODE_TEXTS [18] = "ALT";
-          HomeComponent3D.KEY_CODE_TEXTS [19] = "PAUSE";
-          HomeComponent3D.KEY_CODE_TEXTS [20] = "CAPS_LOCK";
-          HomeComponent3D.KEY_CODE_TEXTS [27] = "ESCAPE";
-          HomeComponent3D.KEY_CODE_TEXTS [33] = "PAGE_UP";
-          HomeComponent3D.KEY_CODE_TEXTS [34] = "PAGE_DOWN";
-          HomeComponent3D.KEY_CODE_TEXTS [35] = "END";
-          HomeComponent3D.KEY_CODE_TEXTS [36] = "HOME";
-          HomeComponent3D.KEY_CODE_TEXTS [37] = "LEFT";
-          HomeComponent3D.KEY_CODE_TEXTS [38] = "UP";
-          HomeComponent3D.KEY_CODE_TEXTS [39] = "RIGHT";
-          HomeComponent3D.KEY_CODE_TEXTS [40] = "DOWN";
-          HomeComponent3D.KEY_CODE_TEXTS [45] = "INSERT";
-          HomeComponent3D.KEY_CODE_TEXTS [46] = "DELETE";
-          HomeComponent3D.KEY_CODE_TEXTS [48] = "0";
-          HomeComponent3D.KEY_CODE_TEXTS [49] = "1";
-          HomeComponent3D.KEY_CODE_TEXTS [50] = "2";
-          HomeComponent3D.KEY_CODE_TEXTS [51] = "3";
-          HomeComponent3D.KEY_CODE_TEXTS [52] = "4";
-          HomeComponent3D.KEY_CODE_TEXTS [53] = "5";
-          HomeComponent3D.KEY_CODE_TEXTS [54] = "6";
-          HomeComponent3D.KEY_CODE_TEXTS [55] = "7";
-          HomeComponent3D.KEY_CODE_TEXTS [56] = "8";
-          HomeComponent3D.KEY_CODE_TEXTS [57] = "9";
-          HomeComponent3D.KEY_CODE_TEXTS [65] = "A";
-          HomeComponent3D.KEY_CODE_TEXTS [66] = "B";
-          HomeComponent3D.KEY_CODE_TEXTS [67] = "C";
-          HomeComponent3D.KEY_CODE_TEXTS [68] = "D";
-          HomeComponent3D.KEY_CODE_TEXTS [69] = "E";
-          HomeComponent3D.KEY_CODE_TEXTS [70] = "F";
-          HomeComponent3D.KEY_CODE_TEXTS [71] = "G";
-          HomeComponent3D.KEY_CODE_TEXTS [72] = "H";
-          HomeComponent3D.KEY_CODE_TEXTS [73] = "I";
-          HomeComponent3D.KEY_CODE_TEXTS [74] = "J";
-          HomeComponent3D.KEY_CODE_TEXTS [75] = "K";
-          HomeComponent3D.KEY_CODE_TEXTS [76] = "L";
-          HomeComponent3D.KEY_CODE_TEXTS [77] = "M";
-          HomeComponent3D.KEY_CODE_TEXTS [78] = "N";
-          HomeComponent3D.KEY_CODE_TEXTS [79] = "O";
-          HomeComponent3D.KEY_CODE_TEXTS [80] = "P";
-          HomeComponent3D.KEY_CODE_TEXTS [81] = "Q";
-          HomeComponent3D.KEY_CODE_TEXTS [82] = "R";
-          HomeComponent3D.KEY_CODE_TEXTS [83] = "S";
-          HomeComponent3D.KEY_CODE_TEXTS [84] = "T";
-          HomeComponent3D.KEY_CODE_TEXTS [85] = "U";
-          HomeComponent3D.KEY_CODE_TEXTS [86] = "V";
-          HomeComponent3D.KEY_CODE_TEXTS [87] = "W";
-          HomeComponent3D.KEY_CODE_TEXTS [88] = "X";
-          HomeComponent3D.KEY_CODE_TEXTS [89] = "Y";
-          HomeComponent3D.KEY_CODE_TEXTS [90] = "Z";
-          HomeComponent3D.KEY_CODE_TEXTS [91] = "META";
-          HomeComponent3D.KEY_CODE_TEXTS [92] = "META";
-          HomeComponent3D.KEY_CODE_TEXTS [96] = "NUMPAD0";
-          HomeComponent3D.KEY_CODE_TEXTS [97] = "NUMPAD1";
-          HomeComponent3D.KEY_CODE_TEXTS [98] = "NUMPAD2";
-          HomeComponent3D.KEY_CODE_TEXTS [99] = "NUMPAD3";
-          HomeComponent3D.KEY_CODE_TEXTS [100] = "NUMPAD4";
-          HomeComponent3D.KEY_CODE_TEXTS [101] = "NUMPAD5";
-          HomeComponent3D.KEY_CODE_TEXTS [102] = "NUMPAD6";
-          HomeComponent3D.KEY_CODE_TEXTS [103] = "NUMPAD7";
-          HomeComponent3D.KEY_CODE_TEXTS [104] = "NUMPAD8";
-          HomeComponent3D.KEY_CODE_TEXTS [105] = "NUMPAD9";
-          HomeComponent3D.KEY_CODE_TEXTS [106] = "MULTIPLY";
-          HomeComponent3D.KEY_CODE_TEXTS [107] = "ADD";
-          HomeComponent3D.KEY_CODE_TEXTS [109] = "VK_SUBTRACT";
-          HomeComponent3D.KEY_CODE_TEXTS [110] = "VK_DECIMAL";
-          HomeComponent3D.KEY_CODE_TEXTS [111] = "VK_DIVIDE";
-          HomeComponent3D.KEY_CODE_TEXTS [112] = "F1";
-          HomeComponent3D.KEY_CODE_TEXTS [113] = "F2";
-          HomeComponent3D.KEY_CODE_TEXTS [114] = "F3";
-          HomeComponent3D.KEY_CODE_TEXTS [115] = "F4";
-          HomeComponent3D.KEY_CODE_TEXTS [116] = "F5";
-          HomeComponent3D.KEY_CODE_TEXTS [117] = "F6";
-          HomeComponent3D.KEY_CODE_TEXTS [118] = "F7";
-          HomeComponent3D.KEY_CODE_TEXTS [119] = "F8";
-          HomeComponent3D.KEY_CODE_TEXTS [120] = "F9";
-          HomeComponent3D.KEY_CODE_TEXTS [121] = "F10";
-          HomeComponent3D.KEY_CODE_TEXTS [122] = "F11";
-          HomeComponent3D.KEY_CODE_TEXTS [123] = "F12";
-          HomeComponent3D.KEY_CODE_TEXTS [144] = "VK_NUM_LOCK";
-          HomeComponent3D.KEY_CODE_TEXTS [145] = "VK_SCROLL_LOCK";
-          HomeComponent3D.KEY_CODE_TEXTS [186] = "VK_SEMICOLON";
-          HomeComponent3D.KEY_CODE_TEXTS [187] = "VK_EQUALS";
-          HomeComponent3D.KEY_CODE_TEXTS [188] = "VK_COMMA";
-          HomeComponent3D.KEY_CODE_TEXTS [190] = "VK_PERIOD";
-          HomeComponent3D.KEY_CODE_TEXTS [191] = "VK_SLASH";
-          HomeComponent3D.KEY_CODE_TEXTS [219] = "VK_OPEN_BRACKET";
-          HomeComponent3D.KEY_CODE_TEXTS [220] = "VK_BACK_SLASH";
-          HomeComponent3D.KEY_CODE_TEXTS [221] = "VK_CLOSE_BRACKET";
-          HomeComponent3D.KEY_CODE_TEXTS [222] = "VK_QUOTE";
-        }
-        component3D.callAction(HomeComponent3D.KEY_CODE_TEXTS [ev.keyCode], ev);
+        component3D.callAction(KeyStroke.getKeyStrokeForEvent(ev, "keydown"), ev);
       }, false);
 }
 
 /**
- * Runs the action bound to the key in parameter.
+ * Runs the action bound to the key stroke in parameter.
  * @private 
  */
-HomeComponent3D.prototype.callAction = function(keyName, ev) {
-  if (keyName) {
-    var keyStroke = ""; 
-    if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
-      keyStroke += "control ";
-    }
-    if (ev.altKey || keyName.indexOf("alt ") != -1) {
-      keyStroke += "alt ";
-    }
-    if (ev.metaKey || keyName.indexOf("meta ") != -1) {
-      keyStroke += "meta ";
-    }
-    if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
-      keyStroke += "shift ";
-    }
-    keyStroke += "pressed " + keyName.substring(keyName.lastIndexOf(' ') + 1);
+HomeComponent3D.prototype.callAction = function(keyStroke, ev) {
+  if (keyStroke !== undefined) {
     var actionKey = this.inputMap [keyStroke];
     if (actionKey !== undefined) {
       var action = this.actionMap [actionKey];
@@ -1103,7 +1024,7 @@ HomeComponent3D.prototype.callAction = function(keyName, ev) {
       }
       ev.stopPropagation();
     }
-  } 
+  }
 }
 
 /**
@@ -1381,8 +1302,6 @@ HomeComponent3D.prototype.updateBackgroundColorAndTexture = function(skyBackgrou
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-          },
-          progression : function(part, info, percentage) {
           } 
         });
   } else {
@@ -1408,8 +1327,6 @@ HomeComponent3D.prototype.updateBackgroundColorAndTexture = function(skyBackgrou
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-          },
-          progression : function(part, info, percentage) {
           }
         });
   } else {
@@ -1436,8 +1353,6 @@ HomeComponent3D.prototype.createGroundNode = function(groundOriginX, groundOrigi
             var boxAppearance = new Appearance3D();
             boxAppearance.setDiffuseColor(vec3.fromValues(1, 0, 0));
             structureGroup.addChild(new Box3D(1E7, 0, 1E7, boxAppearance));
-          },
-          progression : function() {
           }
         });
     
@@ -1599,7 +1514,7 @@ HomeComponent3D.prototype.addLevelListener = function(group) {
       } else if ("ELEVATION" == propertyName) {
         component3D.updateObjects(component3D.homeObjects.slice(0));          
         component3D.groundChangeListener(null);
-      } else if ("BACKGROUND_IMAGE" == propertyName()) {
+      } else if ("BACKGROUND_IMAGE" == propertyName) {
         component3D.groundChangeListener(null);
       } else if ("FLOOR_THICKNESS" == propertyName) {
         component3D.updateObjects(component3D.home.getWalls());          
@@ -1734,7 +1649,7 @@ HomeComponent3D.prototype.addFurnitureListener = function(group) {
           || "MODEL_MATERIALS" == propertyName
           || "SHININESS" == propertyName
           || ("POWER" == propertyName
-              && home.getEnvironment().getSubpartSizeUnderLight() > 0)) {
+              && component3D.home.getEnvironment().getSubpartSizeUnderLight() > 0)) {
         component3D.updateObjects([updatedPiece]);
       }
     };
@@ -1867,7 +1782,7 @@ HomeComponent3D.prototype.addRoomListener = function(group) {
         component3D.updateObjects(component3D.home.getRooms());
         component3D.groundChangeListener(null);
       } else if ("POINTS" == propertyName) {   
-        if (component3D.homeObjectsToUpdate != null) {
+        if (component3D.homeObjectsToUpdate) {
           // Don't try to optimize if more than one room to update
           component3D.updateObjects(component3D.home.getRooms());
         } else {
@@ -1888,11 +1803,11 @@ HomeComponent3D.prototype.addRoomListener = function(group) {
               var roomAreaIntersectionWithNewArea = new java.awt.geom.Area(roomAreaIntersectionWithOldArea);
               roomAreaIntersectionWithNewArea.intersect(newArea);                  
               if (!roomAreaIntersectionWithNewArea.isEmpty()) {
-                updateObjects([room]);
+                component3D.updateObjects([room]);
               } else {
                 roomAreaIntersectionWithOldArea.intersect(oldArea);
                 if (!roomAreaIntersectionWithOldArea.isEmpty()) {
-                  updateObjects([room]);
+                  component3D.updateObjects([room]);
                 }
               }
             }
@@ -2053,6 +1968,7 @@ HomeComponent3D.prototype.addObject = function(group, homeObject, index,
  * @param {HomePieceOfFurniture} piece
  * @param {boolean} listenToHomeUpdates
  * @param {boolean} waitForLoading
+ * @private
  */
 HomeComponent3D.prototype.addPieceOfFurniture = function(group, piece, listenToHomeUpdates, waitForLoading) {
   if (piece instanceof HomeFurnitureGroup) {
@@ -2075,12 +1991,19 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
     homeObject.object3D.detach();
     delete homeObject.object3D;
     this.homeObjects.splice(this.homeObjects.indexOf(homeObject), 1);
+    if (this.homeObjectsToUpdate) {
+      var index = this.homeObjectsToUpdate.indexOf(homeObject);
+      if (index >= 0) {
+        this.homeObjectsToUpdate.splice(homeObject);
+      }
+    }
   }
 }
 
 /**
  * Detaches from the scene the branches matching <code>piece</code> or its children if it's a group.
  * @param {HomePieceOfFurniture} piece
+ * @private
  */
 HomeComponent3D.prototype.deletePieceOfFurniture = function(piece) {
   if (piece instanceof HomeFurnitureGroup) {
@@ -2132,7 +2055,7 @@ HomeComponent3D.prototype.updateObjects = function(objects) {
 HomeComponent3D.prototype.updateIntersectingWalls = function(doorOrWindows) {
   var walls = this.home.getWalls();
   var wallCount = 0;
-  if (this.homeObjectsToUpdate !== null) {
+  if (this.homeObjectsToUpdate) {
     for (var i = 0; i < this.homeObjectsToUpdate.length; i++) {
       if (this.homeObjectsToUpdate [i] instanceof Wall) {
         wallCount++;
@@ -2161,7 +2084,7 @@ HomeComponent3D.prototype.updateIntersectingWalls = function(doorOrWindows) {
       if (wall.intersectsRectangle(doorOrWindowBounds.getX(), doorOrWindowBounds.getY(),
           doorOrWindowBounds.getX() + doorOrWindowBounds.getWidth(),
           doorOrWindowBounds.getY() + doorOrWindowBounds.getHeight())) {
-        updatedWalls.add(wall);
+        updatedWalls.push(wall);
       }
     }
     this.updateObjects(updatedWalls);

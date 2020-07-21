@@ -145,7 +145,7 @@ DAEHandler.prototype.startElement = function(uri, localName, name, attributes) {
       ? null 
       : this.parentElements [this.parentElements.length - 1];
   
-  if (parent === null && !"COLLADA" == name) {
+  if (parent === null && !("COLLADA" == name)) {
     throw new SAXException("Expected COLLADA element");
   } else if ("COLLADA" == name) {
     var version = attributes.getValue("version");

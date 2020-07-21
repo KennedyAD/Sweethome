@@ -68,12 +68,17 @@ ShapeTools.getStroke = function (thickness, capStyle, joinStyle, dashPattern, da
   
   var dashPhase = 0;
   if (dashPattern != null) {
-    dashPattern = dashPattern.slice(0);
-    for (var i = 0; i < dashPattern.length; i++) {
-      dashPattern [i] *= thickness;
-      dashPhase += dashPattern [i];
+    if (!Array.isArray(dashPattern)) {
+      dashPattern = undefined;
+      dashPhase = undefined;
+    } else {
+      dashPattern = dashPattern.slice(0);
+      for (var i = 0; i < dashPattern.length; i++) {
+        dashPattern [i] *= thickness;
+        dashPhase += dashPattern [i];
+      }
+      dashPhase *= dashOffset;
     }
-    dashPhase *= dashOffset;
   }
   return new java.awt.BasicStroke(thickness, strokeCapStyle, strokeJoinStyle, 10, dashPattern, dashPhase);
 }

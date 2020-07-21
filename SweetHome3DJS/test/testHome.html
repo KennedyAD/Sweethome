@@ -1,7 +1,7 @@
 <!--
    testHome.html 
    
-   Sweet Home 3D, Copyright (c) 2016-2019 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
    
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,30 +20,36 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+<meta name="format-detection" content="telephone=no">
+<meta name="msapplication-tap-highlight" content="no">
 <title>SweetHome3DJS Test</title>
 <base href="..">
 <script type="text/javascript" src="lib/big.min.js"></script>
 <script type="text/javascript" src="lib/gl-matrix-min.js"></script>
 <script type="text/javascript" src="lib/jszip.min.js"></script>
 <script type="text/javascript" src="lib/jsXmlSaxParser.min.js"></script>
+
 <script type="text/javascript" src="src/core.js"></script>
-<script type="text/javascript" src="src/URLContent.js"></script>
 <script type="text/javascript" src="src/scene3d.js"></script>
+<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
+<script type="text/javascript" src="src/URLContent.js"></script>
+<script type="text/javascript" src="src/ModelLoader.js"></script>
+<script type="text/javascript" src="src/Triangulator.js"></script>
+<script type="text/javascript" src="src/OBJLoader.js"></script>
+<script type="text/javascript" src="src/DAELoader.js"></script>
+<script type="text/javascript" src="src/Max3DSLoader.js"></script>
+<script type="text/javascript" src="src/ModelManager.js"></script>
+
 <script type="text/javascript" src="lib/generated/geom.js"></script>
 <script type="text/javascript" src="lib/stroke.min.js"></script>
-<!-- swingundo.js isn't required if SweetHome3D.js includes only viewer classes  -->
-<!-- <script type="text/javascript" src="lib/generated/swingundo.js"></script>  -->
+<script type="text/javascript" src="lib/generated/swingundo.js"></script>
 <script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="src/CoreTools.js"></script>
 <script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
-<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
 <script type="text/javascript" src="src/ShapeTools.js"></script>
-<script type="text/javascript" src="src/ModelManager.js"></script>
-<script type="text/javascript" src="src/ModelLoader.js"></script>
-<script type="text/javascript" src="src/OBJLoader.js"></script>
-<script type="text/javascript" src="src/Max3DSLoader.js"></script>
-<script type="text/javascript" src="src/DAELoader.js"></script>
-<script type="text/javascript" src="src/Triangulator.js"></script>
-<script type="text/javascript" src="src/HomeRecorder.js"></script>
 <script type="text/javascript" src="src/HomeComponent3D.js"></script>
 <script type="text/javascript" src="src/Object3DBranch.js"></script>
 <script type="text/javascript" src="src/HomePieceOfFurniture3D.js"></script>
@@ -53,29 +59,491 @@
 <script type="text/javascript" src="src/Polyline3D.js"></script>
 <script type="text/javascript" src="src/Label3D.js"></script>
 <script type="text/javascript" src="src/TextureManager.js"></script>
-<script type="text/javascript" src="src/UserPreferences.js"></script>
 <script type="text/javascript" src="src/LengthUnit.js"></script>
+<script type="text/javascript" src="src/UserPreferences.js"></script>
+<script type="text/javascript" src="src/HomeRecorder.js"></script>
+
+<script type="text/javascript" src="src/graphics2d.js"></script>
+<script type="text/javascript" src="src/PlanComponent.js"></script>
+<script type="text/javascript" src="src/HomePane.js"></script>
+<script type="text/javascript" src="src/DefaultFurnitureCatalog.js"></script>
+<script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
+<script type="text/javascript" src="src/SweetHome3DJSApplication.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
+<style type="text/css">
+
+html, body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+body {
+  position: relative;
+  margin: 0px;
+  height: 100%;
+  -ms-user-select: none;       
+  user-select: none;    
+  touch-action: none;
+}
+
+#home-plan::selection { background: #0042E0; }
+
+#home-pane-toolbar, #furniture-catalog, #home-plan, #home-3D-view {
+  position: absolute;
+}
+
+/*
+ * No-touch devices common CSS
+ */
+#home-pane-toolbar {
+  top: 0px;
+  height: 30px;
+  white-space: nowrap;
+}
+
+#furniture-catalog {
+  top: 30px;
+  width: 300px;
+  height: calc(100% - 30px);
+  overflow-y: scroll; 
+}
+
+#home-plan {
+  top: 30px;
+  left: 300px;
+  width: calc(100% - 300px);
+  height: calc(50% - 16px);
+  font-family: sans-serif;
+  border-top: 1px solid gray; 
+  border-bottom: 1px solid gray; 
+}
+
+#home-3D-view {
+  top: calc(50% + 16px);
+  left: 300px;
+  width: calc(100% - 300px);
+  height: calc(50% - 16px);
+}
+
+@media (orientation: portrait) {
+
+  #furniture-catalog {
+    width: 160px;
+  }
+
+  #home-plan {
+    left: 160px;
+    width: calc(100% - 160px);
+  }
+
+  #home-3D-view {
+    left: 160px;
+    width: calc(100% - 160px);
+  }
+
+}
+
+/*
+ * Touch devices common CSS - ignored by IE
+ */
+@media (hover: none) {
+
+  body {
+    margin: 5px;
+    height: calc(100% - 10px);
+  }
+
+  /* No scroll bars under Chrome */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+
+  #home-pane-toolbar {
+    top: calc(100% - 40px);
+    height: 40px;
+  }
+
+  #home-pane-toolbar .toolbar-button {
+    margin-top: 0px;
+    height: calc(100% - 2px);
+  }
+
+  @media (orientation: portrait) {
+
+    #home-3D-view {
+      top: 0%;
+      left: 0%;
+      width: calc(100% - 2px);
+      height: calc(50% - 60px);
+      border: 1px solid gray; 
+    }
+
+    #home-plan {
+      top: calc(50% - 60px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: calc(50% - 59.5px);
+      z-index: 1;
+      border: 1px solid gray;
+    }
+
+    /* Funiture catalog horizontal layout */
+
+    .furniture-catalog {
+      overflow: scroll;
+      white-space: nowrap;
+    }
+
+    .furniture-category-label {
+      display: none;
+    }
+
+    .furniture {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      white-space: normal;
+    }
+    
+    .furniture > .furniture-icon {
+      top: 3px;
+    }
+
+    .furniture > .furniture-label {
+      z-index: 2;
+      text-shadow: white 0px -2px;
+    }
+
+    .furniture-category-separator {
+      display: inline-block;
+      height: 80px;
+      padding-right: 10px;
+      margin-right: 10px;
+      border-right: dashed 1px rgba(0, 0, 0, 0.4);
+    }
+
+    /* End of horizontal layout */
+
+    #furniture-catalog {
+      top: calc(100% - 40px - 80px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: 78px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+
+  }
+
+  @media (orientation: landscape) {
+
+    #furniture-catalog {
+      top: 0%;
+      left: 0%;
+      width: 150px;
+      height: calc(100% - 40px - 2px);
+      overflow-x: hidden; 
+      overflow-y: scroll; 
+    }
+
+    #home-plan {
+      top: 0%;
+      left: 150px;
+      width: calc(50% - 75px - 2px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray;
+      z-index: 1;
+    }
+
+    #home-3D-view {
+      top: 0%;
+      left: calc(50% + 75px);
+      width: calc(50% - 75px - 1px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray; 
+      border-left: 0px; 
+    }
+
+  }
+
+}
+
+/*
+ * Touch devices common CSS - ignored by IE
+ */
+@media (hover: none) {
+
+  body {
+    margin: 5px;
+    height: calc(100% - 10px);
+  }
+
+  /* No scroll bars under Chrome */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+
+  #home-pane-toolbar {
+    top: calc(100% - 40px);
+    height: 40px;
+  }
+
+  #home-pane-toolbar .toolbar-button {
+    margin-top: 0px;
+    height: calc(100% - 2px);
+  }
+
+  @media (orientation: portrait) {
+
+    #home-3D-view {
+      top: 0%;
+      left: 0%;
+      width: calc(100% - 2px);
+      height: calc(50% - 60px);
+      border: 1px solid gray; 
+    }
+
+    #home-plan {
+      top: calc(50% - 60px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: calc(50% - 59.5px);
+      z-index: 1;
+      border: 1px solid gray;
+    }
+
+    /* Funiture catalog horizontal layout */
+
+    .furniture-catalog {
+      overflow: scroll;
+      white-space: nowrap;
+    }
+
+    .furniture-category-label {
+      display: none;
+    }
+
+    .furniture {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      white-space: normal;
+    }
+    
+    .furniture > .furniture-icon {
+      top: 3px;
+    }
+
+    .furniture > .furniture-label {
+      z-index: 2;
+      text-shadow: white 0px -2px;
+    }
+
+    .furniture-category-separator {
+      display: inline-block;
+      height: 80px;
+      padding-right: 10px;
+      margin-right: 10px;
+      border-right: dashed 1px rgba(0, 0, 0, 0.4);
+    }
+
+    /* End of horizontal layout */
+
+    #furniture-catalog {
+      top: calc(100% - 40px - 80px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: 78px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+
+  }
+
+  @media (orientation: landscape) {
+
+    #furniture-catalog {
+      top: 0%;
+      left: 0%;
+      width: 150px;
+      height: calc(100% - 40px - 2px);
+      overflow-x: hidden; 
+      overflow-y: scroll; 
+    }
+
+    #home-plan {
+      top: 0%;
+      left: 150px;
+      width: calc(50% - 75px - 1.5px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray;
+      z-index: 1;
+    }
+
+    #home-3D-view {
+      top: 0%;
+      left: calc(50% + 75px);
+      width: calc(50% - 75px - 1px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray; 
+      border-left: 0px; 
+    }
+
+  }
+
+}
+
+/* Hide optional buttons when screen is too small */
+@media (max-width: 705px) {
+
+  #home-pane-toolbar .toolbar-optional  {
+    display: none;
+  }
+  
+}
+
+</style>
 </head>
 <body>
+
 <script type="text/javascript">
 function assertEquals(message, expected, actual) {
   if (typeof expected === "number"
-    	  && Math.abs(actual - expected) > 1E-5
+          && Math.abs(actual - expected) > 1E-5
       || typeof expected !== "number"
-	       && expected != actual) {
+           && expected != actual) {
     var report = message + ": " + actual + " not equal to " + expected;
-    console.log(report);
-    console.trace();
-    alert(report);
+    fail(report);
   }
 }
 
 function assertTrue(message, condition) {
   if (!condition) {
-    console.log(message);
-    console.trace();
-    alert(message);
+    fail(message);
   }
+}
+
+function fail(message) {
+  alert(message);
+  throw new Error(message);
+}
+
+function testLocalization() {
+  var preferences = new DefaultUserPreferences();
+  preferences.setLanguage("en"); // Force English as default language
+  assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  assertEquals("Unexpected resource value", "A × B", preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions", ["A", "B"]));
+  assertEquals("Unexpected resource value", "A × B", preferences.getLocalizedString("CatalogItemToolTip", "tooltipTextureDimensions", "A", "B"));
+  assertEquals("Unexpected resource value", "1x2 pixels - 3 - 4 frames/second", preferences.getLocalizedString("VideoPanel", "videoFormatComboBox.format", [1, 2, 3, 4]));
+  assertEquals("Unexpected resource value", "1x2 pixels - 3 - 4 frames/second", preferences.getLocalizedString("VideoPanel", "videoFormatComboBox.format", 1, 2, 3, 4));
+  
+  preferences.setLanguage("it");
+  assertEquals("Unexpected resource value", "Licenza", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  preferences.setLanguage("zh");
+  assertEquals("Unexpected resource value", "License", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  preferences.setLanguage("zh_CN");
+  assertEquals("Unexpected resource value", "版权", preferences.getLocalizedString("HomePane", "libraries.libraryLicenseColumn"));
+  
+  console.log("End of testLocalization");          
+}
+
+function testLengthUnit() {
+  Locale.setDefault("en_US");
+  assertEquals("Wrong conversion", "102", LengthUnit.CENTIMETER.getFormat().format(102));
+  assertEquals("Wrong conversion", "1.02", LengthUnit.METER.getFormat().format(102));
+  assertEquals("Wrong conversion", "1,020", LengthUnit.MILLIMETER.getFormat().format(102));
+  assertEquals("Wrong conversion", "1,023,456", LengthUnit.MILLIMETER.getFormat().format(102345.6));
+  assertEquals("Wrong conversion", "-123,457", LengthUnit.MILLIMETER.getFormat().format(-12345.66));
+  assertEquals("Wrong conversion", "102.2", LengthUnit.CENTIMETER.getFormat().format(102.23));
+  assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.23));
+  assertEquals("Wrong conversion", "1.022", LengthUnit.METER.getFormat().format(102.2));
+  assertEquals("Wrong conversion", "-1.022", LengthUnit.METER.getFormat().format(-102.2));
+  assertEquals("Wrong conversion", "1.00", LengthUnit.METER.getFormat().format(100));
+  assertEquals("Wrong conversion", "0.93", LengthUnit.METER.getFormat().format(93));
+  assertEquals("Wrong conversion", "0.935", LengthUnit.METER.getFormat().format(93.489));
+  assertEquals("Wrong conversion", "-0.934", LengthUnit.METER.getFormat().format(-93.449));
+  assertEquals("Wrong conversion", "95 sq ft", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
+
+  
+  Locale.setDefault("fr_FR");
+  // Test formats without unit
+  assertEquals("Wrong conversion", "102", LengthUnit.CENTIMETER.getFormat().format(102));
+  assertEquals("Wrong conversion", "1,02", LengthUnit.METER.getFormat().format(102));
+  // \u00a0 is a no-break space
+  assertEquals("Wrong conversion", "1\u00a0020", LengthUnit.MILLIMETER.getFormat().format(102));
+  
+  assertEquals("Wrong conversion", "0'11\"",
+      LengthUnit.INCH.getFormat().format(LengthUnit.inchToCentimeter(11)));
+  assertEquals("Wrong conversion", "1'11\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12)));
+  assertEquals("Wrong conversion", "1'11\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
+  assertEquals("Wrong conversion", "-1'11\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-(11 + 12 + 0.125))));
+  assertEquals("Wrong conversion", "-0'11\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-(11 + 0.125))));
+  assertEquals("Wrong conversion", "-0'0\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-0.125)));
+  assertEquals("Wrong conversion", "-1'",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-12)));
+
+  // Test formats with unit
+  assertEquals("Wrong conversion", "102 cm", LengthUnit.CENTIMETER.getFormatWithUnit().format(102));
+  assertEquals("Wrong conversion", "1,02 m", LengthUnit.METER.getFormatWithUnit().format(102));
+  // \u00a0 is a no-break space
+  assertEquals("Wrong conversion", "1\u00a0020 mm", LengthUnit.MILLIMETER.getFormatWithUnit().format(102));
+  assertEquals("Wrong conversion", "0'11\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
+  assertEquals("Wrong conversion", "1'11\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12)));
+  assertEquals("Wrong conversion", "1'11\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
+  assertEquals("Wrong conversion", "0'2\u215b\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(2 + 0.13)));
+  assertEquals("Wrong conversion", "1'0\u00bc\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(12 + 0.19)));
+  assertEquals("Wrong conversion", "0'1\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.99)));
+  assertEquals("Wrong conversion", "0'0\u215e\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.9)));
+  assertEquals("Wrong conversion", "0'0\"",
+      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
+
+  assertEquals("Wrong conversion", "11\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
+  assertEquals("Wrong conversion", "23\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12)));
+  assertEquals("Wrong conversion", "23,125\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
+  assertEquals("Wrong conversion", "0,05\"",
+      LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
+  
+  assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
+  
+  console.log("End of testLengthUnit");          
+}
+
+/**
+ * Tests furniture catalog.  
+ */
+function testFurnitureCatalog() {
+  Locale.setDefault("en_US");
+  var preferences = new DefaultUserPreferences();
+  var furnitureCatalog = preferences.getFurnitureCatalog();
+  assertTrue("Wrong type of furniture catalog", furnitureCatalog instanceof DefaultFurnitureCatalog);
+  assertTrue("Empty furniture catalog", furnitureCatalog.getCategories().length > 0);
+  assertEquals("Unconsistant category count", furnitureCatalog.getCategoriesCount(), furnitureCatalog.getCategories().length);
+  assertEquals("Wrong category", "Bathroom", furnitureCatalog.getCategories()[0].getName());
+  assertEquals("Wrong furniture", "Bath", furnitureCatalog.getCategories()[0].getFurniture()[0].getName());
+  
+  preferences.setLanguage("fr");
+  // TODO: shouldn't we reload the furniture catalog when language changes??
+  preferences.setFurnitureCatalog(new DefaultFurnitureCatalog(preferences));
+  furnitureCatalog = preferences.getFurnitureCatalog();
+  assertEquals("Wrong category", "Chambre", furnitureCatalog.getCategories()[0].getName());
+  assertEquals("Wrong furniture", "Armoire", furnitureCatalog.getCategories()[0].getFurniture()[0].getName());
+  
+  console.log("End of testFurnitureCatalog");          
 }
 
 /**
@@ -222,13 +690,13 @@ function testGeom() {
   points = getAreaPoints(area2);
   assertTrue("Wrong distance between points", Math.abs(points[2][0] - points[0][0]) < 100);
   
-  console.log("End of testGeom");	      
+  console.log("End of testGeom");          
 }
 
 /**
  * Tests Home, HomeComponent3D and HomeController3D classes.
  */
-function testHome(geomAvailable) {
+function testHome() {
   // Create a home with furniture
   var catalogPiece = new CatalogPieceOfFurniture("eTeks#Test", "Cube", "Test", null, ["Test"], null, 5, 
       new URLContent("test/resources/cube.png"), null, new URLContent("test/resources/cube.zip"), 100, 100, 100, 0, 1, 
@@ -239,6 +707,9 @@ function testHome(geomAvailable) {
   piece = new HomePieceOfFurniture(catalogPiece);
   piece.setX(100);
   piece.setY(100);
+  piece.setProperty("prop1", "value1");
+  piece.setProperty("prop2", "value2");
+  assertEquals("Wrong number of properties", 2, piece.getPropertyNames().length);
   home.addPieceOfFurniture(piece);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   home.deletePieceOfFurniture(piece);
@@ -251,137 +722,893 @@ function testHome(geomAvailable) {
   home.addPieceOfFurniture(group);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   assertEquals("Wrong number of pieces in group", 2, group.getFurniture().length);
-  if (geomAvailable) {
-  	assertEquals("Wrong width", 150 + 50 * Math.sqrt(2), group.getWidth());
-  }
+  assertEquals("Wrong width", 150 + 50 * Math.sqrt(2), group.getWidth());
   home.deletePieceOfFurniture(piece);
   assertEquals("Wrong number of pieces", 2, home.getFurniture().length);
   assertEquals("Wrong number of pieces in group", 1, group.getFurniture().length);
   // Add two walls
-  var wall1 = new Wall(0, 675, 0, 875, 5, 250);
-  var wall2 = new Wall(0, 875, 200, 875, 5, 250);
+  var wall1 = new Wall(30, 725, 30, 870, 5, 150);
+  var wall2 = new Wall(30, 870, 170, 870, 5, 150);
   wall1.setWallAtEnd(wall2);
   wall2.setWallAtStart(wall1);
   home.addWall(wall1);
   assertEquals("Wrong number of walls", 1, home.getWalls().length);
-  var room = new Room([[0, 675], [0, 875], [200, 875], [200, 675]]);
+  var room = new Room([[30, 725], [30, 870], [170, 870], [160, 735]]);
   home.addRoom(room);
   assertEquals("Wrong number of rooms", 1, home.getRooms().length);
-  var label = new Label("Date", 110, 900);
+  var label = new Label("Date", 90, 900);
   label.setPitch(Math.PI / 3);
-  label.setStyle(new TextStyle("Verdana", 50, true, false));
+  label.setStyle(new TextStyle("Arial", 30, true, false));
   label.setElevation(10);
   home.addLabel(label);
   assertEquals("Wrong number of labels", 1, home.getLabels().length);
-  var polyline = new Polyline([[0, 910], [200, 910], [200, 950]]);
+  var polyline = new Polyline([[20, 910], [170, 910], [180, 890]]);
+  polyline.setThickness(3);
+  polyline.setDashPattern([10, 2]);  
   polyline.setVisibleIn3D(true);
   home.addPolyline(polyline);
   assertEquals("Wrong number of polylines", 1, home.getPolylines().length);
   
-  new HomeRecorder().readHome("test/resources/SweetHome3DExample3.zip", 
-      {
-	    homeLoaded: function(home) {
-	      assertEquals("Wrong home name", "SweetHome3DExample3", home.getName().substring(0, home.getName().lastIndexOf(".")));
-	      assertEquals("Wrong furniture count", 117, home.getFurniture().length);
-          var preferences = new DefaultUserPreferences();
-	      displayHome(home, preferences);
-		  // Add objects to home and make them blink	  
-		  home.addPieceOfFurniture(piece);
-	      piece.setY(750);
-	      home.addWall(wall1);
-	      home.addWall(wall2);
-	      home.addRoom(room);
-	      home.addLabel(label);
-	      home.addPolyline(polyline);
-	      
-	      // Create a group with smaller objects placed on top of piece
-	      var piece3 = piece.clone();
-	      piece3.setColor(0xFFFF0000);
-	      var piece4 = piece.clone();
-	      piece4.setColor(0xFF0000FF);
-	      piece4.setElevation(piece3.getHeight());
-	      piece4.setWidth(piece3.getWidth() / 2);
-	      piece4.setDepth(piece3.getDepth() / 2);
-	      piece4.setHeight(piece3.getHeight() / 2);
-	      var group = new HomeFurnitureGroup([piece3, piece4], 0, false, "Group");
-	      group.setElevation(piece.getHeight());
-	      group.setWidth(group.getWidth() / 2);
-	      group.setDepth(group.getDepth() / 2);
-	      group.setHeight(group.getHeight() / 2);
-	      group.setAngle(Math.PI / 4);
-	      piece4.setPitch(Math.PI / 6);
-	      piece4.setRoll(Math.PI / 6);
-	      home.addPieceOfFurniture(group);
-	      
-	      var thicknessDelta = 0.5;
-	      var lengthDelta = -5;
-	      var elevationDelta = -5;
-	      var thicknessDelta = 0.1;
-	      setInterval(function() {
-	          // Make piece blink
-	          piece.setVisible(!piece.isVisible());
-	          // Change wall and room color
-	  	      wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
-	  	      room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
-	  	      // Update label with current time
-	  	      label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
-	        }, 500);
-	      setInterval(function() {
-	          // Change objects location
-	  	      wall1.setThickness(wall1.getThickness() + thicknessDelta);
-	  	      if (wall1.getThickness() > 10 || wall1.getThickness() < 1) {
-	  	        thicknessDelta = -thicknessDelta;
-	  	      }
-	  	      wall2.setXEnd(wall2.getXEnd() + lengthDelta);
-	  	      if (wall2.getXEnd() >= 200 || wall2.getXEnd() < -50) {
-	  	        lengthDelta = -lengthDelta;
-	  	      }
-	  	      label.setElevation(label.getElevation() + elevationDelta);
-	  	      if (label.getElevation() >= 200 || label.getElevation() < 10) {
-	  	        elevationDelta = -elevationDelta;
-	  	      }
-	  	      polyline.setThickness(polyline.getThickness() + thicknessDelta);
-	  	      if (polyline.getThickness() >= 20 || polyline.getThickness() < 1) {
-	  	        thicknessDelta = -thicknessDelta;
-	  	      }
-	        }, 100);
-	      
-	      // View a clone of the home in the second canvas
-	      visitHome(home.clone(), preferences);
-	      
-	      console.log("End of testHome");	      
-	    },
-	    homeError: function(err) {
-	      console.log(err.stack);
-	      alert(err);
-	    },
-	    progression: function(part, info, percentage) {
-	    }
-	  });
+  console.log("End of testHome");          
 }
 
-function displayHome(home, preferences) {
-  var controller = new HomeController3D(home, preferences);
-  new HomeComponent3D("canvas3D", home, preferences, null, controller);
+/**
+ * Test modifications in the edited home.
+ */
+function testHomeModifications() {
+  var home = application.getHomes() [0];
+  var homeController = application.getHomeController(home);
+  var planController = homeController.getPlanController();
+  var planView = planController.getView();
+  var secondPieceInFurnitureGroup = home.getFurniture() [0].getFurniture() [1];
+  var xPiece = secondPieceInFurnitureGroup.getX();
+  var yPiece = secondPieceInFurnitureGroup.getY();
+  var firstPieceInCatalog = application.getUserPreferences().getFurnitureCatalog().getCategories() [0].getFurniture() [0];
+  runActions([
+    function() {
+      planController.selectItem(home.getFurniture() [0]);
+      assertTrue("First piece isn't a group", home.getSelectedItems() [0] instanceof HomeFurnitureGroup);
+    },
+    function() {
+      planController.ungroupSelectedFurniture();
+    },
+    function() {
+      planController.groupSelectedFurniture();
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Selection wrong selection count", 3, home.getSelectedItems().length);
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Selection wrong selection count", 1, home.getSelectedItems().length);
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
+      homeController.redo();
+      assertEquals("Selection wrong selection count", 1, home.getSelectedItems().length);
+      assertTrue("Group name visible", !home.getSelectedItems() [0].isNameVisible());
+    },
+    function() {
+      // Undo again to keep group name visible
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+      assertTrue("Group name invisible", home.getSelectedItems() [0].isNameVisible());
+    },
+    function() {
+      // Duplicate group without magnetism enabled
+      planController.pressMouse(xPiece, yPiece, 1, false, false, true,
+          application.getUserPreferences().isMagnetismEnabled());
+      planController.moveMouse(xPiece + 200, yPiece + 200);
+      planController.releaseMouse(xPiece + 200, yPiece + 200);
+      assertTrue("First piece isn't a group", home.getSelectedItems() [0] instanceof HomeFurnitureGroup);
+      assertEquals("Wrong X in original group", xPiece, secondPieceInFurnitureGroup.getX());
+      assertEquals("Wrong Y in original group", yPiece, secondPieceInFurnitureGroup.getY());
+      assertTrue("Wrong X in duplicate group", Math.abs(xPiece + 200 - home.getSelectedItems() [0].getFurniture() [1].getX()) < 0.01);
+      assertTrue("Wrong Y in duplicate group", Math.abs(yPiece + 200 - home.getSelectedItems() [0].getFurniture() [1].getY()) < 0.01);
+    },
+    function() {
+      var count = home.getFurniture().length;
+      homeController.undo();
+      assertEquals("Wrong furniture count", count - 1, home.getFurniture().length);
+      assertTrue("Wrong item in selection", home.getSelectedItems() [0] instanceof HomeFurnitureGroup);
+    },
+    function() {
+      // Select and move a piece
+      planController.selectItem(home.getFurniture() [0].getFurniture() [1]);
+    },
+    function() {
+      planController.pressMouse(xPiece, yPiece, 1, false, false);
+      planController.moveMouse(xPiece - 10, yPiece - 10);
+      planController.releaseMouse(xPiece - 10, yPiece - 10);
+      assertEquals("Selection doesn't contain one piece", 1, home.getSelectedItems().length);
+    },
+    function() {
+      // Add to selection a sibling piece
+      planController.pressMouse(home.getFurniture() [0].getFurniture() [0].getX(), home.getFurniture() [0].getFurniture() [0].getY(), 1, true, false)
+      planController.releaseMouse(home.getFurniture() [0].getFurniture() [0].getX(), home.getFurniture() [0].getFurniture() [0].getY())
+    },
+    function() {
+      // Align them
+      planController.alignSelectedFurnitureOnTop()
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      planController.alignSelectedFurnitureOnLeft()
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      planController.alignSelectedFurnitureSideBySide();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Add to selection a third piece and distribute them
+      planController.pressMouse(home.getFurniture() [0].getFurniture() [2].getX(), home.getFurniture() [0].getFurniture() [2].getY(), 1, true, false)
+      planController.releaseMouse(home.getFurniture() [0].getFurniture() [2].getX(), home.getFurniture() [0].getFurniture() [2].getY())
+    },
+    function() {
+      planController.distributeSelectedFurnitureHorizontally();
+    },
+    function() {
+      // Change lead item in selection
+      planController.pressMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY(), 1, true, false)
+      planController.releaseMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY())
+      planController.pressMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY(), 1, true, false)
+      planController.releaseMouse(home.getFurniture() [0].getFurniture() [1].getX(), home.getFurniture() [0].getFurniture() [1].getY())
+    },
+    function() {
+      planController.alignSelectedFurnitureOnFrontSide();
+      // Furniture should be located at the same place as in the original file
+      assertTrue("Wrong X", Math.abs(xPiece - home.getSelectedItems()[2].getX()) < 0.01);
+      assertTrue("Wrong Y", Math.abs(yPiece - home.getSelectedItems()[2].getY()) < 0.01);
+    },
+    function() {
+      // Handle background image
+      homeController.hideBackgroundImage();
+    },
+    function() {
+      homeController.showBackgroundImage();
+    },
+    function() {
+      homeController.deleteBackgroundImage();
+      assertEquals("Background image still here", null, home.getBackgroundImage());
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      planController.lockBasePlan();
+    },
+    function() {
+      planController.unlockBasePlan();
+    },
+    function() {
+      homeController.undo();
+      assertTrue("Base plan not locked", home.isBasePlanLocked());
+    },
+    function() {
+      homeController.getFurnitureCatalogController().setSelectedFurniture([firstPieceInCatalog]);
+    },
+    function() {
+      homeController.addHomeFurniture();
+      assertEquals("Wrong id", home.getSelectedItems() [0].getCatalogId(), firstPieceInCatalog.getId());
+    },
+    function() {
+      // Adding a piece not movable will unlock the plan automatically
+      if (firstPieceInCatalog.isMovable()) {
+        planController.unlockBasePlan();
+      }
+      assertTrue("Base plan still locked", !home.isBasePlanLocked());
+    },
+    function() {
+      // Add another piece to selection
+      planController.pressMouse(xPiece, yPiece, 1, true, false);
+      planController.releaseMouse(xPiece, yPiece);
+      assertEquals("Selection doesn't contain one piece", 2, home.getSelectedItems().length);
+    },
+    function() {
+      planController.flipHorizontally();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      planController.flipVertically();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      planController.selectAll();
+    },
+    function() {
+      planController.increaseTextSize();
+    },
+    function() {
+      planController.decreaseTextSize();
+    },
+    function() {
+      planController.toggleItalicStyle();
+    },
+    function() {
+      planController.toggleBoldStyle();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.delete();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Select and cut / paste new item to group
+      planController.pressMouse(0, 0, 1, false, false);
+      planController.releaseMouse(0, 0);
+    },
+    function() {
+      homeController.getView().getActionMap() ['CUT'].actionPerformed();
+    },
+    function() {
+      planController.selectItem(home.getFurniture() [0]);
+    },
+    function() {
+      homeController.pasteToGroup();
+      assertEquals("Wrong id", home.getSelectedItems() [0].getCatalogId(), firstPieceInCatalog.getId());
+      assertEquals("Wrong item count", 4, home.getFurniture() [0].getFurniture().length);
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong item count", 3, home.getFurniture() [0].getFurniture().length);
+    },
+    function() {
+      planController.addLevel();
+      assertEquals("Wrong level count", 2, home.getLevels().length);
+    },
+    function() {
+      // Paste item to new level
+      homeController.getView().getActionMap() ['PASTE'].actionPerformed();
+      assertEquals("Wrong level", home.getLevels() [1], home.getSelectedItems() [0].getLevel()); 
+    },
+    function() {
+      // Drag and drop rotate indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [0];
+      planView.makePointVisible(indicatorLocation [0] - 1, indicatorLocation [1] - 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var size = piece.getWidth();
+      var indicatorLocation = piece.getPoints() [0];
+      var angle = piece.getAngle();
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 1);
+      planController.pressMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + size, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] + size, indicatorLocation [1]);
+      assertTrue("Angle didn't change", Math.abs(piece.getAngle() - angle) > 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Drag and drop elevation indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [1];
+      planView.makePointVisible(indicatorLocation [0] + 1, indicatorLocation [1] - 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [1];
+      var elevation = piece.getElevation();
+      planController.moveMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 1);
+      planController.pressMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 5);
+      planController.releaseMouse(indicatorLocation [0] + 1, indicatorLocation [1] - 5);
+      assertTrue("Elevation didn't change", piece.getElevation() > elevation);
+    },
+    function() {
+      // Drag and drop resize indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [2];
+      planView.makePointVisible(indicatorLocation [0] + 1, indicatorLocation [1] + 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [2];
+      var width = piece.getWidth();
+      var depth = piece.getDepth();
+      planController.moveMouse(indicatorLocation [0] + 1, indicatorLocation [1] + 1);
+      planController.pressMouse(indicatorLocation [0] + 1, indicatorLocation [1] + 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 5, indicatorLocation [1] + 5);
+      planController.releaseMouse(indicatorLocation [0] + 5, indicatorLocation [1] + 5);
+      assertTrue("Width didn't change", piece.getWidth() > width);
+      assertTrue("Depth didn't change", piece.getDepth() > depth);
+    },
+    function() {
+      // Drag and drop height indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [3];
+      planView.makePointVisible(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [3];
+      var height = piece.getHeight();
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+      planController.pressMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 3);
+      planController.releaseMouse(indicatorLocation [0] - 1, indicatorLocation [1] - 3);
+      assertTrue("Height didn't change", piece.getHeight() > height);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Modify furniture
+      var controller = new HomeFurnitureController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+      controller.setAngleInDegrees(45);
+      controller.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
+      controller.setColor(0xFF770077);
+      controller.setNameVisible(true);
+      controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
+      controller.setPitch(0.787);
+      controller.setPrice(new Big("20.05"));
+      application.getUserPreferences().setCurrency("EUR");
+      controller.modifyFurniture();
+      assertEquals("Wrong pitch", 0.787, home.getSelectedItems() [0].getPitch()); 
+    },
+    function() {
+      // Drag and drop pitch indicator
+      var indicatorLocation = home.getSelectedItems() [0].getPoints() [3];
+      planView.makePointVisible(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+    },
+    function() {
+      var piece = home.getSelectedItems() [0];
+      var indicatorLocation = piece.getPoints() [3];
+      var pitch = piece.getPitch();
+      planController.moveMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1);
+      planController.pressMouse(indicatorLocation [0] - 1, indicatorLocation [1] + 1, 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 10, indicatorLocation [1] + 1);
+      planController.releaseMouse(indicatorLocation [0] + 10, indicatorLocation [1] + 1);
+      assertTrue("Pitch didn't change", Math.abs(piece.getPitch() - pitch) > 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Copy to paste style later
+      homeController.getView().getActionMap() ['COPY'].actionPerformed();
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone pitch", 0, home.getSelectedItems() [0].getPitch()); 
+      assertEquals("Wrong undone color", null, home.getSelectedItems() [0].getColor()); 
+    },
+    function() {
+      // Paste style
+      homeController.pasteStyle();
+      assertEquals("Wrong pasted color", 0xFF770077, home.getSelectedItems() [0].getColor()); 
+    },
+    function() {
+      // Draw 4 joined walls
+      planController.setMode(PlanController.Mode.WALL_CREATION);
+    },
+    function() {
+      planController.pressMouse(200, 0, 1, false, false);
+      planController.moveMouse(200, 150);
+      planController.releaseMouse(200, 150);
+    },
+    function() {
+      planController.pressMouse(200, 150, 1, false, false);
+      planController.releaseMouse(200, 150);
+    },
+    function() {
+      planController.moveMouse(400, 150);
+      planController.pressMouse(400, 150, 1, false, false);
+      planController.releaseMouse(400, 150);
+    },
+    function() {
+      planController.moveMouse(400, 0);
+      planController.pressMouse(400, 0, 1, false, false);
+      planController.releaseMouse(400, 0);
+    },
+    function() {
+      planController.moveMouse(220, 0);
+      planController.pressMouse(220, 0, 1, false, false);
+      planController.releaseMouse(220, 0);
+      planController.pressMouse(220, 0, 2, false, false);
+      planController.releaseMouse(220, 0);
+      assertEquals("Wrong walls count", 4, home.getSelectedItems().length); 
+      assertTrue("Wrong type", home.getSelectedItems() [0] instanceof Wall); 
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
+      planController.setMode(PlanController.Mode.SELECTION);
+    },
+    function() {
+      planController.moveSelection(50, 50);
+      assertEquals("Wrong wall X start", 250, home.getSelectedItems() [0].getXStart()); 
+      assertEquals("Wrong wall Y start", 50, home.getSelectedItems() [0].getYStart()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong wall X start", 200, home.getSelectedItems() [0].getXStart()); 
+      assertEquals("Wrong wall Y start", 0, home.getSelectedItems() [0].getYStart()); 
+    },
+    function() {
+      // Drag and drop wall size indicator
+      var wall = home.getSelectedItems() [3];
+      var wallXStart = wall.getXStart();
+      var indicatorLocation = [wallXStart, wall.getYStart()];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] - 3, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] - 3, indicatorLocation [1]);
+      assertTrue("Wrong wall X start", Math.abs(wall.getXStart() + 3 - wallXStart) < 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
+      // Modify walls
+      var controller = new WallController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+      controller.setPattern(application.getUserPreferences().getPatternsCatalog().getPatterns() [3]);
+      controller.setRightSideColor(0xFF770000);
+      controller.modifyWalls();
+      assertEquals("Wrong color", 0xFF770000, home.getSelectedItems() [0].getRightSideColor()); 
+    },
+    function() {
+      homeController.undo();
+      assertTrue("Wrong undone color", 0xFF770000 !== home.getSelectedItems() [0].getRightSideColor()); 
+    },
+    function() {
+    },
+    function() {
+      planController.joinSelectedWalls();
+    },
+    function() {
+      planController.reverseSelectedWallsDirection();
+    },
+    function() {
+      // Select one wall and split it
+      planController.pressMouse(300, 0, 1, false, false);
+      planController.releaseMouse(300, 0);
+    },
+    function() {
+      var length = home.getSelectedItems() [0].getLength();
+      planController.splitSelectedWall();
+      assertEquals("Wall not half smaller", length / 2, home.getSelectedItems() [0].getLength()); 
+    },
+    function() {
+      var length = home.getSelectedItems() [0].getLength();
+      homeController.undo();
+      assertEquals("Wrong wall length", length * 2, home.getSelectedItems() [0].getLength());   
+    },
+    function() {
+      // Drag and drop wall arc extent indicator
+      var wall = home.getSelectedItems() [0];
+      var wallArcExtent = wall.getArcExtent();
+      var wallLength = wall.getLength();
+      var indicatorLocation = [(wall.getXStart() + wall.getXEnd()) / 2, (wall.getYStart() + wall.getYEnd()) / 2];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1] - wallLength / 2);
+      planController.releaseMouse(indicatorLocation [0], indicatorLocation [1] - wallLength / 2);
+      assertTrue("Wrong wall arc extent", Math.abs(wall.getArcExtent() - Math.PI) < 0.01);
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
+      // Draw a room by double clicking within walls
+      planController.setMode(PlanController.Mode.ROOM_CREATION);
+    },
+    function() {
+      planController.pressMouse(250, 100, 1, false, false);
+      planController.releaseMouse(250, 100);
+      planController.pressMouse(250, 100, 2, false, false);
+      planController.releaseMouse(250, 100);
+      assertEquals("Wrong room count", 1, home.getSelectedItems().length); 
+      assertTrue("Wrong type", home.getSelectedItems() [0] instanceof Room); 
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
+      planController.setMode(PlanController.Mode.SELECTION);
+    },
+    function() {
+      // Add a point to room
+      var room = home.getSelectedItems() [0];
+      var roomPoints = room.getPoints();
+      var count = roomPoints.length;
+      var newPoint = roomPoints [0][0] === roomPoints [1][0]
+          ? [roomPoints [0][0], (roomPoints [0][1] + roomPoints [1][1]) / 2]
+          : [(roomPoints [0][0] + roomPoints [1][0]) / 2, roomPoints [0][1]];
+      planController.addPointToSelectedRoom(newPoint [0], newPoint [1]);
+      assertEquals("Wrong room points count", count + 1, room.getPoints().length); 
+    },
+    function() {
+      var room = home.getSelectedItems() [0];
+      var count = room.getPoints().length;
+      homeController.undo();
+      assertEquals("Wrong room points count", count - 1, room.getPoints().length);   
+    },
+    function() {
+      homeController.redo();
+    },
+    function() {
+      // Delete point from room
+      var room = home.getSelectedItems() [0];
+      var roomPoints = room.getPoints();
+      var count = roomPoints.length;
+      planController.deletePointFromSelectedRoom(roomPoints [1][0], roomPoints [1][1]);
+      assertEquals("Wrong room points count", count - 1, room.getPoints().length); 
+    },
+    function() {
+      // Move first point of room without magnetism enabled
+      var room = home.getSelectedItems() [0];
+      var indicatorLocation = room.getPoints() [0];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false, false,
+          application.getUserPreferences().isMagnetismEnabled());
+      planController.moveMouse(indicatorLocation [0] - 10, indicatorLocation [1]  - 10);
+      planController.releaseMouse(indicatorLocation [0] - 10, indicatorLocation [1]  - 10);
+      assertTrue("Wrong room point", Math.abs(room.getPoints() [0][0] + 10 - indicatorLocation[0]) < 0.01); 
+      assertTrue("Wrong room point", Math.abs(room.getPoints() [0][1] + 10 - indicatorLocation[1]) < 0.01); 
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Modify rooms
+      var controller = new RoomController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+      controller.setFloorPaint(RoomController.RoomPaint.COLORED);
+      controller.setFloorColor(0xFF444477);
+      controller.getWallSidesBaseboardController().setVisible(true);
+      controller.getWallSidesBaseboardController().setColor(0xFF000044);
+      controller.modifyRooms();
+      assertEquals("Wrong color", 0xFF444477, home.getSelectedItems() [0].getFloorColor()); 
+    },
+    function() {
+      homeController.undo();
+      assertTrue("Wrong undone color", 0xFF444477 !== home.getSelectedItems() [0].getFloorColor()); 
+    },
+    function() {
+      // Draw a round polygon
+      planController.setMode(PlanController.Mode.POLYLINE_CREATION);
+    },
+    function() {
+      planController.pressMouse(0, 100, 1, false, false);
+      planController.moveMouse(0, 140);
+      planController.releaseMouse(0, 140);
+    },
+    function() {
+      planController.pressMouse(0, 140, 1, false, false);
+      planController.releaseMouse(0, 140);
+    },
+    function() {
+      planController.moveMouse(40, 140);
+      planController.pressMouse(40, 140, 1, false, false);
+      planController.releaseMouse(40, 140);
+    },
+    function() {
+      planController.moveMouse(40, 100);
+      planController.pressMouse(40, 0, 1, false, false);
+      planController.releaseMouse(40, 100);
+    },
+    function() {
+      planController.moveMouse(0, 100);
+      planController.pressMouse(0, 100, 1, false, false);
+      planController.releaseMouse(0, 100);
+      planController.pressMouse(0, 100, 2, false, false);
+      planController.releaseMouse(0, 100);
+      assertEquals("Wrong polyline count", 1, home.getSelectedItems().length); 
+      assertTrue("Wrong type", home.getSelectedItems() [0] instanceof Polyline); 
+    },
+    function() {
+      planController.setMode(PlanController.Mode.SELECTION);
+    },
+    function() {
+      // Modify polylines
+      var controller = new PolylineController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+      controller.setJoinStyle(Polyline.JoinStyle.CURVED);
+      controller.setColor(0xFF007700);
+      controller.setElevation(10);
+      controller.modifyPolylines();
+      assertEquals("Wrong elevation", 10, home.getSelectedItems() [0].getElevation()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone elevation", 0, home.getSelectedItems() [0].getElevation()); 
+    },
+    function() {
+      // Move first point of polyline without magnetism enabled
+      var polyline = home.getSelectedItems() [0];
+      var indicatorLocation = polyline.getPoints() [0];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false, false,
+          application.getUserPreferences().isMagnetismEnabled());
+      planController.moveMouse(indicatorLocation [0] - 10, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] - 10, indicatorLocation [1]);
+      assertTrue("Wrong polyline point", Math.abs(polyline.getPoints() [0][0] + 10 - indicatorLocation[0]) < 0.01); 
+    },
+    function() {
+      homeController.undo();
+    },
+    function() {
+      // Draw a dimension line
+      planController.setMode(PlanController.Mode.DIMENSION_LINE_CREATION);
+    },
+    function() {
+      // Double click along last wall
+      var walls = home.getWalls();
+      var wallPoints = walls [walls.length - 3].getPoints();
+      var xMiddle = (wallPoints [0][0] + wallPoints [1][0]) / 2;
+      planController.moveMouse(xMiddle, wallPoints [0][1]);
+      planController.pressMouse(xMiddle, wallPoints [0][1], 1, false, false);
+      planController.releaseMouse(xMiddle, wallPoints [0][1]);
+      planController.pressMouse(xMiddle, wallPoints [0][1], 2, false, false);
+      planController.releaseMouse(xMiddle, wallPoints [0][1]);
+    },
+    function() {
+      var walls = home.getWalls();
+      var wallPoints = walls [walls.length - 3].getPoints();
+      var xMiddle = (wallPoints [0][0] + wallPoints [1][0]) / 2;
+      // Move offset
+      planController.moveMouse(xMiddle, wallPoints [0][1] + 20);
+      planController.pressMouse(xMiddle, wallPoints [0][1] + 20, 1, false, false);
+      planController.releaseMouse(xMiddle, wallPoints [0][1] + 20);
+      assertEquals("Wrong dimension line count", 1, home.getSelectedItems().length); 
+      assertTrue("Wrong type", home.getSelectedItems() [0] instanceof DimensionLine); 
+    },
+    function() {
+      planController.setMode(PlanController.Mode.SELECTION);
+    },
+    function() {
+      // Drag and drop dimension line size indicator
+      var dimensionLine = home.getSelectedItems() [0];
+      var dimensionLineXEnd = dimensionLine.getXEnd();
+      var indicatorLocation = [dimensionLineXEnd, dimensionLine.getYEnd()];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      assertTrue("Dimension line X end didn't change", dimensionLine.getXEnd() > dimensionLineXEnd);
+    },
+    function() {
+      // Add a text
+      planController.setMode(PlanController.Mode.LABEL_CREATION);
+    },
+    function() {
+      var controller = new LabelController(home, 100, 200, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+      controller.setText("Hello");
+      controller.setElevation(5);
+      controller.createLabel();
+      assertEquals("Wrong label count", 1, home.getSelectedItems().length); 
+      assertTrue("Wrong type", home.getSelectedItems() [0] instanceof Label); 
+    },
+    function() {
+      planController.setMode(PlanController.Mode.SELECTION);
+      // Modify labels
+      var controller = new LabelController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+      controller.setFontSize(30);
+      controller.modifyLabels();
+      assertEquals("Wrong font size", 30, home.getSelectedItems() [0].getStyle().getFontSize()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone font size", 18, home.getSelectedItems() [0].getStyle().getFontSize()); 
+    },
+    function() {
+      // Modify level
+      var controller = new LevelController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+      controller.setElevation(150);
+      controller.setFloorThickness(50);
+      controller.modifyLevels();
+      assertEquals("Wrong elevation", 150, home.getSelectedLevel().getElevation()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong elevation", application.getUserPreferences().getNewWallHeight() + application.getUserPreferences().getNewFloorThickness(), home.getSelectedLevel().getElevation()); 
+    },
+    function() {
+      // Modify 3D view
+      var controller = new Home3DAttributesController(home, application.getUserPreferences(), null, null, homeController.getUndoableEditSupport());
+      controller.setGroundColor(0xFF333333);
+      controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
+      controller.setWallsAlpha(0.5);
+      controller.setBackgroundImageVisibleOnGround3D(false);
+      controller.modify3DAttributes();
+      assertEquals("Wrong walls alpha", 0.5, home.getEnvironment().getWallsAlpha()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone walls alpha", 0, home.getEnvironment().getWallsAlpha()); 
+    },
+    function() {
+      // Store a point of view
+      homeController.getHomeController3D().storeCamera("Test");
+      assertEquals("Home wrong stored camera count", 2, home.getStoredCameras().length); 
+    },
+    function() {
+      // Change camera
+      var camera = home.getCamera();
+      if (camera === home.getTopCamera()) {
+        homeController.getHomeController3D().viewFromObserver();  
+      } else {
+        homeController.getHomeController3D().viewFromTop();
+      }
+      assertTrue("No camera change", home.getCamera() !== camera); 
+    },
+    function() {
+      planController.selectItem(home.getCompass());
+      planView.makeSelectionVisible();
+    },
+    function() {
+      // Modify compass
+      var controller = new CompassController(home, application.getUserPreferences(), null, homeController.getUndoableEditSupport());
+      controller.setDiameter(100);
+      controller.setNorthDirectionInDegrees(0);
+      controller.modifyCompass();
+      assertEquals("Wrong compass diameter", 100, home.getCompass().getDiameter()); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone diameter", 62, home.getCompass().getDiameter()); 
+    },
+    function() {
+      // Drag and drop compass size indicator
+      var compass = home.getSelectedItems() [0];
+      var diameter = compass.getDiameter();
+      var compassPoints = compass.getPoints();
+      var indicatorLocation = [(compassPoints [1][0] + compassPoints [2][0]) / 2,
+                               (compassPoints [1][1] + compassPoints [2][1]) / 2];
+      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      planController.releaseMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
+      assertTrue("Compass size didn't change", compass.getDiameter() > diameter);
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong undone diameter", 62, home.getCompass().getDiameter()); 
+    },
+    function() {
+      planController.toggleSelectedLevelViewability();
+      assertEquals("Wrong level count", 2, home.getLevels().length); 
+      assertTrue("Wrong level viewability", !home.getLevels() [1].isViewable()); 
+    },
+    function() {
+      homeController.undo();
+      assertTrue("Wrong level viewability", home.getLevels() [1].isViewable()); 
+    },
+    function() {
+      planController.deleteSelectedLevel();
+      assertEquals("Wrong level count", 1, home.getLevels().length); 
+    },
+    function() {
+      homeController.undo();
+      assertEquals("Wrong level count", 2, home.getLevels().length);
+    },
+    function() {
+      homeController.redo();
+      console.log("End of testHomeModifications");       
+    }
+    ], 0); // End of actions to run
 }
-function visitHome(home, preferences) {
-  home.setCamera(home.getObserverCamera());
-  var controller = new HomeController3D(home, preferences);
-  new HomeComponent3D("canvas3D_2", home, preferences, null, controller);
+
+function runActions(actions, index) {
+  // Run each action in a setTimeout to ensure setTimeout calls in launched actions are run too 
+  if (index < actions.length) {
+    actions [index]();
+    setTimeout(function() {
+        runActions(actions, index + 1);
+    });
+  }
 }
+
+// Run unit tests
+testLocalization();
+testLengthUnit();
+testFurnitureCatalog();
+testGeom();
+testHome();
 </script>
 
-<canvas id="canvas3D" style="background-color: #CCCCCC; border: 1px solid gray;" 
-		width="600" height="600" tabIndex="1"></canvas>
-<canvas id="canvas3D_2" style="background-color: #CCCCCC; border: 1px solid gray;" 
-		width="600" height="300" tabIndex="2"></canvas>
+<!--  HTML Elements of the user interface -->
+<div id="home-pane">
+
+  <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas>
+
+  <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ></div>
+
+  <div id="home-pane-toolbar"></div>
+
+  <div id="furniture-catalog"></div>
+
+</div>
 
 <script type="text/javascript">
-var geomAvailable = typeof java.awt.geom.PathIterator !== "undefined";
-if (geomAvailable) {
-  testGeom();
-}
-testHome(geomAvailable);
+// If true, requires the server to be properly started on localhost:8080 with a ROOT path 
+// and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
+var useServer = false;
+
+var application = useServer
+    ? new SweetHome3DJSApplication(
+          {readHomeURL:       "http://localhost:8080/readHome.jsp?home=%s",
+           writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp",
+           closeHomeURL:      "http://localhost:8080/closeHome.jsp?home=%s",
+           pingURL:           "http://localhost:8080/ping.jsp",
+           autoWriteDelay:    1000,
+           autoWriteTrackedStateChange: true,
+           writingObserver:   {
+               writeStarted: function(update) {
+                 console.info("Update started", update);
+               },
+               writeSucceeded: function(update) {
+                 console.info("Update succeeded", update);
+               },
+               writeFailed: function(update, errorStatus, errorText) {
+                 console.info("Update failed", update);
+               },
+               connectionFound: function() {
+                 console.info("Back to online mode");
+               },
+               connectionLost: function(errorStatus, errorText) {
+                 console.info("Lost server connection - going offline");
+               }
+             }
+          })
+    : new SweetHome3DJSApplication();
+var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
+
+// Read and display test file 
+// TODO Should be performed in HomeController.open
+application.getHomeRecorder().readHome(homeName, 
+    {
+      homeLoaded: function(home) {
+        home.setName(homeName);
+        application.addHome(home);
+        setTimeout(testHomeModifications, 1000);
+      },
+      homeError: function(err) {
+        console.error(err);
+        alert(err);
+      },
+      progression: function(part, info, percentage) {
+      }
+    });
 </script>
 
 </body>

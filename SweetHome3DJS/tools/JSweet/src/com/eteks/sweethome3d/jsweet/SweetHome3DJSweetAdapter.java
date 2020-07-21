@@ -25,8 +25,10 @@ import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -36,6 +38,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.QualifiedNameable;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 
 import org.jsweet.JSweetConfig;
 import org.jsweet.transpiler.extension.AnnotationManager;
@@ -49,7 +52,9 @@ import org.jsweet.transpiler.model.NewClassElement;
 import org.jsweet.transpiler.model.VariableAccessElement;
 
 /**
- * This adapter tunes the JavaScript generation for some SweetHome3D specificities.
+ * This adapter tunes the JavaScript generation for some SweetHome3D
+ * specificities.
+ *
  * @author Renaud Pawlak
  */
 public class SweetHome3DJSweetAdapter extends PrinterAdapter {
@@ -81,32 +86,53 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     // All enums that are named *Property will be translated to string in JS
     addTypeMapping(
         (typeTree, name) -> typeTree.getTypeAsElement().getKind() == ElementKind.ENUM && name.endsWith("Property")
-            ? "string" : null);
+            ? "string"
+            : null);
 
-    // All the Java elements to be ignored (will generate no JS) except the ones starting with !
+    // All the Java elements to be ignored (will generate no JS) except the ones
+    // starting with !
     addAnnotation("jsweet.lang.Erased",
+        "**.readObjectNoData(..)",
         "**.readObject(..)",
         "**.writeObject(..)",
-        "**.hashCode(..)",
-        "**.Compass.updateSunLocation(..)",
-        "**.Compass.getSunAzimuth(..)",
-        "**.Compass.getSunElevation(..)",
         "**.serialVersionUID",
-        "**.Content.openStream(..)",
-        "com.eteks.sweethome3d.model.UserPreferences",
+        // Remove overloaded addPropertyChangeListener / removePropertyChangeListener methods to manage function listeners case
+        "com.eteks.sweethome3d.model.HomeObject.addPropertyChangeListener(java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeObject.removePropertyChangeListener(java.beans.PropertyChangeListener)",
+        // Remove overloaded addPropertyChangeListener / removePropertyChangeListener methods because only their form with a string propertyName is used
+        "com.eteks.sweethome3d.model.Home.addPropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.Home.removePropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.addPropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.removePropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
+        // Unneeded methods of Compass
+        "com.eteks.sweethome3d.model.Compass.updateSunLocation(..)",
+        "com.eteks.sweethome3d.model.Compass.getSunAzimuth(..)",
+        "com.eteks.sweethome3d.model.Compass.getSunElevation(..)",
+        "com.eteks.sweethome3d.model.Content.openStream(..)",
         "com.eteks.sweethome3d.model.LengthUnit",
-        "com.eteks.sweethome3d.model.HomeRecorder",
-        "com.eteks.sweethome3d.model.HomeApplication",
-        "com.eteks.sweethome3d.model.*Exception",
+        "com.eteks.sweethome3d.model.UserPreferences",
         "com.eteks.sweethome3d.tools",
         "com.eteks.sweethome3d.io.*",
         "!com.eteks.sweethome3d.io.HomeXMLHandler",
         "com.eteks.sweethome3d.io.HomeXMLHandler.contentContext",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setContentContext(**)",
         "com.eteks.sweethome3d.io.HomeXMLHandler.isSameContent(**)");
+
+    addAnnotation("jsweet.lang.KeepUses",
+        "com.eteks.sweethome3d.model.HomeObject.addPropertyChangeListener(java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeObject.removePropertyChangeListener(java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.Home.addPropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.Home.removePropertyChangeListener(com.eteks.sweethome3d.model.Home.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.addPropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)",
+        "com.eteks.sweethome3d.model.HomeEnvironment.removePropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)");
+
     if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))) {
-      // Only HomeController3D and its dependencies are needed for Sweet Home 3D viewer
+      // Only HomeController3D and its dependencies are needed for Sweet Home 3D
+      // viewer
       addAnnotation("jsweet.lang.Erased",
+          "com.eteks.sweethome3d.model.HomeApplication",
+          "com.eteks.sweethome3d.model.HomeRecorder",
+          "com.eteks.sweethome3d.model.*Exception",
           "com.eteks.sweethome3d.viewcontroller.*",
           "!com.eteks.sweethome3d.viewcontroller.HomeController3D",
           "com.eteks.sweethome3d.viewcontroller.HomeController3D.modifyAttributes(**)",
@@ -114,20 +140,25 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           "!com.eteks.sweethome3d.viewcontroller.View");
     } else {
       addAnnotation("jsweet.lang.Erased",
-          "com.eteks.sweethome3d.viewcontroller.ThreadedTaskController",
-          "com.eteks.sweethome3d.viewcontroller.HomeController",
-          "com.eteks.sweethome3d.viewcontroller.HelpController",
-          "com.eteks.sweethome3d.viewcontroller.PrintPreviewController",
-          "com.eteks.sweethome3d.viewcontroller.HomeView",
+          "com.eteks.sweethome3d.model.HomeRecorder.*(..)",
           "com.eteks.sweethome3d.viewcontroller.ExportableView.exportData(..)",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHelpView(..)",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHomeView(..)",
-          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.homeController",
-          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.UserPreferencesController(*,*,*,*)",
+          "com.eteks.sweethome3d.viewcontroller.HelpController",
+          // Ignore damaged files management
+          "com.eteks.sweethome3d.viewcontroller.HomeController.REPAIRED_*",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.*Damaged*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.*Invalid*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.getError*(..)",
+          // Ignore updates management
+          "com.eteks.sweethome3d.viewcontroller.HomeController.*Update*(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.Update*",
+          "com.eteks.sweethome3d.viewcontroller.HomeController.getPropertyValue(..)",
+          "com.eteks.sweethome3d.viewcontroller.PrintPreviewController",
+          "com.eteks.sweethome3d.viewcontroller.ThreadedTaskController",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.checkUpdates()",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.mayImportLanguageLibrary()",
-          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.importLanguageLibrary()");
+          "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.importLanguageLibrary()",
+          "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHelpView(..)",
+          "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter");
     }
 
     // Ignore some Java elements with a programmatic adapter
@@ -137,19 +168,19 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         // Add the @Erased annotation upon some specific conditions
         if (JSweetConfig.ANNOTATION_ERASED.equals(annotationType)) {
           if (element.getKind() == ElementKind.ENUM && element.getSimpleName().toString().endsWith("Property")) {
-            // All enums named *Property will be erased (because they will be
-            // strings in the generated code)
+            // All enums named *Property will be erased (because they will be strings in the generated code)
             return Action.ADD;
           } else if (util().isDeprecated(element)) {
             // All deprecated elements will be erased
             return Action.ADD;
           } else if (element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
               .getQualifiedName().toString().equals("com.eteks.sweethome3d.model.CatalogPieceOfFurniture")) {
-            // Only keep the private constructor of CatalogPieceOfFurniture and its 4 public constructors used
-            // to create pieces available from version 5.3
+            // Only keep the private constructor of CatalogPieceOfFurniture and its 4 public
+            // constructors used to create pieces available from version 5.3
             ExecutableElement c = (ExecutableElement) element;
             if (!element.getModifiers().contains(Modifier.PRIVATE)) {
-              if (c.getParameters().size() != 16 && c.getParameters().size() != 26 && c.getParameters().size() != 28 && c.getParameters().size() != 29) {
+              if (c.getParameters().size() != 16 && c.getParameters().size() != 26 && c.getParameters().size() != 28
+                  && c.getParameters().size() != 29) {
                 return Action.ADD;
               }
             }
@@ -177,27 +208,39 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
 
     });
 
-    // Erase com.eteks.sweethome3d packages to keep all their elements at top level in JavaScript
-    addAnnotation("@Root", "com.eteks.sweethome3d.model", "com.eteks.sweethome3d.io",
-        "com.eteks.sweethome3d.viewcontroller", "com.eteks.sweethome3d.j3d");
+    // Erase com.eteks.sweethome3d packages to keep all their elements at top level
+    // in JavaScript
+    addAnnotation("@Root",
+        "com.eteks.sweethome3d.model",
+        "com.eteks.sweethome3d.io",
+        "com.eteks.sweethome3d.viewcontroller",
+        "com.eteks.sweethome3d.j3d");
 
     // Replace some Java implementations with some JavaScript-specific implementations
 
-    // Ignore polyline thickness because BasicStroke#createStrokedShape isn't available
-    addAnnotation(
-        "@Replace('if (this.shapeCache == null) { this.shapeCache = this.getPolylinePath(); } return this.shapeCache; ')",
-        "com.eteks.sweethome3d.model.Polyline.getShape()");
     // Manage content without contentContext
     addAnnotation(
-        "@Replace('if (contentFile == null) { return null; } else if (contentFile.indexOf('://') >= 0) { return new URLContent(contentFile); } else { return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); }')",
+        "@Replace('if (contentFile == null) { "
+        + "          return null;"
+        + "        } else if (contentFile.indexOf('://') >= 0) {"
+        + "          return new URLContent(contentFile);"
+        + "        } else { "
+        + "          return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); "
+        + "        }')",
         "com.eteks.sweethome3d.io.HomeXMLHandler.parseContent(java.lang.String,java.lang.String,boolean)");
     // Store home structure if set in the XML file
     addAnnotation(
-        "@Replace('{{ body }}{{ baseIndent }}if(attributes['structure']) { home['structure'] = this.parseContent(attributes['structure'], null, false); }')",
+        "@Replace('{{ body }}{{ baseIndent }}"
+        + "        if (attributes['structure']) { "
+        + "          home['structure'] = this.parseContent(attributes['structure'], null, false); "
+        + "        }')",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setHomeAttributes(..)");
     // WARNING: this constructor delegates to an erased constructor, so we need to replace its implementation
     addAnnotation(
-        "@Replace('this.preferences = preferences; this.viewFactory = viewFactory; this.propertyChangeSupport = new PropertyChangeSupport(this); this.updateProperties();')",
+        "@Replace('this.preferences = preferences; "
+        + "        this.viewFactory = viewFactory; "
+        + "        this.propertyChangeSupport = new PropertyChangeSupport(this); "
+        + "        this.updateProperties();')",
         "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.UserPreferencesController(*,*,*)");
 
     // Force some interface to be mapped as functional types when possible
@@ -210,7 +253,8 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     String className = newClass.getTypeAsElement().toString();
     // Handle generically all types that are locally mapped
     if (this.sh3dTypeMapping.containsKey(className)) {
-      print("new ").print(this.sh3dTypeMapping.get(className)).print("(").printArgList(newClass.getArguments()).print(")");
+      print("new ").print(this.sh3dTypeMapping.get(className)).print("(").printArgList(newClass.getArguments())
+          .print(")");
       return true;
     }
     switch (className) {
@@ -230,8 +274,9 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             return true;
           }
         }
-      case "com.eteks.sweethome3d.io.DefaultUserPreferences":
-        print("new UserPreferences()");
+      case "java.awt.BasicStroke":
+        // Hack to access java.awt.BasicStroke class available in stroke.min.js
+        print("new java['awt']['BasicStroke'](").printArgList(newClass.getArguments()).print(")");
         return true;
     }
     return super.substituteNewClass(newClass);
@@ -248,6 +293,13 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           print(invocation.getTargetExpression()).print(".").print(invocation.getMethodName()).print("(")
               .printArgList(invocation.getArguments()).print(")");
           return true;
+        case "com.eteks.sweethome3d.model.TextStyle.Alignment":
+          switch (invocation.getMethodName()) {
+            case "hashCode":
+              print("0");
+              return true;
+          }
+          break;
         case "java.text.Collator":
           switch (invocation.getMethodName()) {
             case "setStrength":
@@ -255,18 +307,68 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
               // Erase setStrength completely
               print(invocation.getTargetExpression());
               return true;
-            }
+          }
           break;
         case "java.util.Arrays":
           switch (invocation.getMethodName()) {
-            // WARNING: we assume that this method will be used to log arrays so we
-            // just pass the array as is to the log function... this may fail if a
-            // string is actually expected
-            case "deepToString":
-              printMacroName(invocation.getMethodName());
-              print(invocation.getArgument(0));
+          // WARNING: we assume that this method will be used to log arrays so we just pass the array as is
+          // to the log function... this may fail if a string is actually expected
+          case "deepToString":
+            printMacroName(invocation.getMethodName());
+            print(invocation.getArgument(0));
+            return true;
+          case "deepHashCode":
+            printMacroName(invocation.getMethodName());
+            print("(function(array) { "
+                + "function deepHashCode(array) {"
+                + "  if (array == null) return 0;"
+                + "  var hashCode = 1;"
+                + "  for (var i = 0; i < array.length; i++) { "
+                + "    var elementHashCode = 1;"
+                + "    if (Array.isArray(array[i])) elementHashCode = deepHashCode(array[i]);"
+                + "    else if (typeof array[i] == 'number') elementHashCode = (array[i] * 1000) | 0;"
+                + "    hashCode = 31 * hashCode + elementHashCode;"
+                + "  }"
+                + "  return hashCode;"
+                + "}"
+                + "return deepHashCode;"
+                + "})(").print(invocation.getArgument(0)).print(")");
+            return true;
+          }
+          break;
+        case "java.util.TreeMap":
+          switch (invocation.getMethodName()) {
+          case "lastKey":
+            printMacroName(invocation.getMethodName());
+            print("(function(map) {"
+                + "  return map.entries[map.entries.length - 1].key;"
+                + "})(").print(invocation.getTargetExpression()).print(")");
+            return true;
+          case "put":
+            printMacroName(invocation.getMethodName());
+            print("(function (m, k, v) {"
+                + "if (m.entries == null) m.entries = [];"
+                + "for (var i = 0; i < m.entries.length; i++)"
+                + "  if (m.entries[i].key.equals != null"
+                + "        && m.entries[i].key.equals(k)"
+                + "      || m.entries[i].key === k) {"
+                + "     var pv = m.entries[i].value;"
+                + "     m.entries[i].value = v;"
+                + "     return pv;"
+                + "   }"
+                + "m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } });"
+                + "m.entries.sort(function(e1, e2) { return (e1.key.compareTo != null) ? e1.key.compareTo(e2) : (e1.key - e2.key); });"
+                + "return null;"
+                + "})(").print(invocation.getTargetExpression()).print(",").printArgList(invocation.getArguments()).print(")");
+            return true;
+          }
+          break;
+        case "java.util.UUID":
+          switch (invocation.getMethodName()) {
+            case "randomUUID":
+              print("UUID.randomUUID()");
               return true;
-            }
+          }
           break;
         case "java.math.BigDecimal":
           // Support for Java big decimal (method are mapped to their Big.js equivalent)
@@ -298,7 +400,10 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
               return true;
             case "equals":
               printMacroName(invocation.getMethodName());
-              print(invocation.getTargetExpression()).print(".eq(").print(invocation.getArguments().get(0)).print(")");
+              // Big.eq doesn't accept null parameter
+              print("((").print(invocation.getArguments().get(0)).print(") != null ? ")
+                  .print(invocation.getTargetExpression()).print(".eq(").print(invocation.getArguments().get(0)).print(") : (")
+                  .print(invocation.getTargetExpression()).print(" === (").print(invocation.getArguments().get(0)).print(")))");
               return true;
           }
           break;
@@ -308,42 +413,74 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
               printMacroName(invocation.getMethodName());
               print(invocation.getArgument(0));
               return true;
-            }
-            break;
-      }
-
-      // Map model Property enums to strings
-      if (targetType.getKind() == ElementKind.ENUM && targetType.toString().endsWith("Property")) {
-        switch (invocation.getMethodName()) {
-          case "name":
-            printMacroName(invocation.getMethodName());
-            print(invocation.getTargetExpression());
-            return true;
-          case "valueOf":
-            printMacroName(invocation.getMethodName());
-            print(invocation.getArgument(0));
-            return true;
-          case "equals":
-            printMacroName(invocation.getMethodName());
-            print("(").print(invocation.getTargetExpression()).print(" == ").print(invocation.getArguments().get(0)).print(")");
-            return true;
           }
-      }
-      // Special case for the AspectRatio enum
-      if (targetType.toString().endsWith(".AspectRatio") && invocation.getMethodName().equals("getValue")) {
-        print(
-            "{FREE_RATIO:null,VIEW_3D_RATIO:null,RATIO_4_3:4/3,RATIO_3_2:1.5,RATIO_16_9:16/9,RATIO_2_1:2/1,SQUARE_RATIO:1}[")
-                .print(invocation.getTargetExpression()).print("]");
-        return true;
-      }
+          break;
+        case "java.util.Currency":
+          switch (invocation.getMethodName()) {
+            case "getDefaultFractionDigits":
+              if (invocation.getTargetExpression() instanceof MethodInvocationElement) {
+                if ("getInstance".equals(
+                    ((MethodInvocationElement) invocation.getTargetExpression()).getMethod().getSimpleName().toString())) {
+                  printMacroName(invocation.getMethodName());
+                  print("(['JPY','VND'].indexOf(");
+                  print(((MethodInvocationElement) invocation.getTargetExpression()).getArgument(0));
+                  print(") >= 0 ? 0 : 2)");
+                  return true;
+                }
+              }
+          }
+          break;
+        case "java.text.DateFormat":
+          switch (invocation.getMethodName()) {
+            case "getDateTimeInstance":
+               print("toLocaleDateString(this.preferences.getLanguage().replace('_', '-'))");
+               return true;
+            case "format":
+               print("new Date().").print(invocation.getTargetExpression());
+               return true;
+          }
+          break;
+        case "java.lang.System":
+          switch (invocation.getMethodName()) {
+            case "getProperty":
+               if (invocation.getArgument(0).toString().equals("\"com.eteks.sweethome3d.deploymentInformation\"")) {
+                 print("'JS'");
+                 return true;
+               }
+          }
+          break;
+        }
+
+        // Map model Property enums to strings
+        if (targetType.getKind() == ElementKind.ENUM && targetType.toString().endsWith("Property")) {
+          switch (invocation.getMethodName()) {
+            case "name":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getTargetExpression());
+              return true;
+            case "valueOf":
+              printMacroName(invocation.getMethodName());
+              print(invocation.getArgument(0));
+              return true;
+            case "equals":
+              printMacroName(invocation.getMethodName());
+              print("(").print(invocation.getTargetExpression()).print(" == ").print(invocation.getArguments().get(0))
+                  .print(")");
+              return true;
+          }
+        }
+        // Special case for the AspectRatio enum
+        if (targetType.toString().endsWith(".AspectRatio") && invocation.getMethodName().equals("getValue")) {
+          print("{FREE_RATIO:null,VIEW_3D_RATIO:null,RATIO_4_3:4/3,RATIO_3_2:1.5,RATIO_16_9:16/9,RATIO_2_1:2/1,SQUARE_RATIO:1}[")
+              .print(invocation.getTargetExpression()).print("]");
+          return true;
+        }
     }
 
     // Provide a partial default simple JavaScript implementation for String.format
     if (invocation.getMethodName().equals("format")
         && String.class.getName().equals(invocation.getTargetExpression().getTypeAsElement().toString())) {
-      print(
-          "((s, r) => { let result = s; result = s.replace(/%s/g, r); result = s.replace(/%d/g, r); result = s.replace(/%%/, '%'); return result; })(")
-              .print(invocation.getArgument(0)).print(",''+").print(invocation.getArgument(1)).print(")");
+      print("CoreTools.format(").printArgList(invocation.getArguments()).print(")");
       return true;
     }
 
@@ -374,7 +511,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             print("undefined");
             return true;
         }
-        break;
+      break;
     }
     // Map *Property enums to strings
     if (variableAccess.getTargetElement().getKind() == ElementKind.ENUM
@@ -383,6 +520,79 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
       return true;
     }
     return super.substituteVariableAccess(variableAccess);
+  }
+
+  @Override
+  public boolean substituteExecutable(ExecutableElement executable) {
+    if (executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.viewcontroller.HomeController")) {
+      switch(executable.getSimpleName().toString()) {
+        case "newHomeFromExample":
+        case "open":
+        case "close":
+          if (executable.getParameters().size() > 0) {
+            return true;
+          }
+        case "save":
+        case "saveAs":
+          if (!executable.getModifiers().contains(Modifier.PUBLIC)) {
+            return true;
+          }
+        case "saveAndCompress":
+        case "saveAsAndCompress":
+        case "exportToCSV":
+        case "exportToSVG":
+        case "exportToOBJ":
+        case "createPhotos":
+        case "createPhoto":
+        case "createVideo":
+        case "setupPage":
+        case "previewPrint":
+        case "print":
+        case "printToPDF":
+        case "help":
+          // Implements main I/O HomeController methods with empty code
+          print("public ").print(executable.getSimpleName().toString()).print("(");
+          print(")\n    {\n    }\n");
+          return true;
+      }
+    }
+
+    // Replace overloaded addPropertyChangeListener / removePropertyChangeListener
+    // methods to ignore PropertyChangeListener type when listener is a function
+    if (executable.getSimpleName().toString().equals("addPropertyChangeListener")
+        && !hasAnnotationType(executable, JSweetConfig.ANNOTATION_ERASED)
+        && executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.model.HomeObject")) {
+      print("public addPropertyChangeListener(propertyName: any, listener?: any) {");
+      print("  if (this.propertyChangeSupport == null) {"
+          + "    this.propertyChangeSupport = new PropertyChangeSupport(this);"
+          + "  }"
+          + "  if (listener === undefined) {"
+          + "    this.propertyChangeSupport.addPropertyChangeListener(propertyName);"
+          + "  } else {"
+          + "    this.propertyChangeSupport.addPropertyChangeListener(propertyName, listener);"
+          + "  }");
+      print("}");
+      return true;
+    }
+    if (executable.getSimpleName().toString().equals("removePropertyChangeListener")
+        && !hasAnnotationType(executable, JSweetConfig.ANNOTATION_ERASED)
+        && executable.getEnclosingElement().toString().equals("com.eteks.sweethome3d.model.HomeObject")) {
+      print("public removePropertyChangeListener(propertyName: any, listener?: any) {");
+      print("  if (this.propertyChangeSupport != null) {"
+          + "    if (listener === undefined) {"
+          + "      this.propertyChangeSupport.removePropertyChangeListener(<any>propertyName);"
+          + "    } else {"
+          + "      this.propertyChangeSupport.removePropertyChangeListener(propertyName, listener);"
+          + "    }"
+          + "    if (this.propertyChangeSupport.getPropertyChangeListeners().length === 0) {"
+          + "      this.propertyChangeSupport = null;"
+          + "    }"
+          + "  }");
+      print("}");
+      return true;
+    }
+
+    return super.substituteExecutable(executable);
   }
 
   @Override
@@ -417,13 +627,12 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     StringBuffer newComment = new StringBuffer();
     boolean firstParam = true;
     for (String line : lines) {
-      if (element.getKind() == ElementKind.CLASS
-          && ((QualifiedNameable)element).getQualifiedName().toString().equals("com.eteks.sweethome3d.model.CatalogPieceOfFurniture")
-          && line.contains("@param")
-          && firstParam) {
+      if (element.getKind() == ElementKind.CLASS && ((QualifiedNameable) element).getQualifiedName().toString()
+          .equals("com.eteks.sweethome3d.model.CatalogPieceOfFurniture") && line.contains("@param") && firstParam) {
         // Add extra information to CatalogPieceOfFurniture constructor
-        newComment.append("<br>Caution: The constructor of <code>CatalogPieceOfFurniture</code> was modified in version 5.5 with incompatible changes with previous versions"
-            + " and might require some changes in your program.\n");
+        newComment.append(
+            "<br>Caution: The constructor of <code>CatalogPieceOfFurniture</code> was modified in version 5.5 with incompatible changes with previous versions"
+                + " and might require some changes in your program.\n");
         firstParam = false;
       }
       if (!line.contains("@since")) {
@@ -434,11 +643,27 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     newComment.deleteCharAt(newComment.length() - 1);
     if (element instanceof TypeElement) {
-      TypeElement type = (TypeElement) element;
-      if (types().isSubtype(type.asType(), util().getType(Throwable.class))) {
+      TypeElement type = (TypeElement)element;
+      if (types().isSubtype(type.asType(), util().getType(Throwable.class))
+          // Additional controller classes not used yet
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.AbstractPhotoController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotoController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotosController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.VideoController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PageSetupController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController")
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.WizardController")) {
         newComment.append("\n");
         newComment.append("@ignore");
       }
+    }
+    if (!element.getModifiers().contains(Modifier.PUBLIC)
+        && !element.getModifiers().contains(Modifier.PROTECTED)
+        && !element.getModifiers().contains(Modifier.PRIVATE)) {
+      newComment.append("\n");
+      newComment.append("@private");
     }
 
     return newComment.toString().replace("{*}", "{Object}");
@@ -452,4 +677,33 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     }
     return super.eraseSuperClass(type, superClass);
   }
+
+  @Override
+  public boolean substituteInstanceof(String exprStr, ExtendedElement expr, TypeMirror type) {
+    if(type.toString().equals("com.eteks.sweethome3d.model.LengthUnit")) {
+      print(exprStr, expr);
+      print(" != null");
+      return true;
+    }
+    return super.substituteInstanceof(exprStr, expr, type);
+  }
+
+  @Override
+  public void afterType(TypeElement type) {
+    if (!hasAnnotationType(type, JSweetConfig.ANNOTATION_ERASED)
+        && !types().isAssignable(type.asType(), util().getType(Throwable.class))) {
+      List<String> transientFields = new ArrayList<>();
+      for (Element e : util().getAllMembers(type)) {
+        if (e.getModifiers().contains(Modifier.TRANSIENT)) {
+          transientFields.add(e.getSimpleName().toString());
+        }
+      }
+      if (!transientFields.isEmpty()) {
+        print(type.getSimpleName()).print("['__transients'] = ['").print(String.join("', '", transientFields))
+            .print("'];");
+      }
+    }
+    super.afterType(type);
+  }
+
 }

@@ -27,24 +27,28 @@ import def.js.Error;
  * Data of a vector storing 2 values.
  */
 class vec2 {
+  native static vec2 create();
 }
 
 /**
  * Data of a vector storing 3 values.
  */
 class vec3 {
+  native static vec3 create();
 }
 
 /**
  * Data of a vector storing 4 values.
  */
 class vec4 {
+  native static vec4 create();
 }
 
 /**
  * Data of a matrix storing 4x4 values.
  */
 class mat4 {
+  native static vec4 create();
 }
 
 /**

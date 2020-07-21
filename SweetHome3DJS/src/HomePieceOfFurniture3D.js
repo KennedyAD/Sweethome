@@ -83,8 +83,6 @@ HomePieceOfFurniture3D.prototype.createPieceOfFurnitureNode = function(piece, wa
         // In case of problem use a default red box
         piece3D.updatePieceOfFurnitureModelNode(piece3D.getModelBox(vec3.fromValues(1, 0, 0)), 
             new TransformGroup3D(), waitModelAndTextureLoadingEnd);            
-      },
-      progression : function() {
       }
     });
 }
@@ -518,8 +516,6 @@ HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance) {
       },
       textureError : function(error) {
         return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-      },
-      progression : function(part, info, percentage) {
       }
     };
 }
