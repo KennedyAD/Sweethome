@@ -25,11 +25,15 @@ you find this README.TXT file contains all the information required to run the c
 Part of the JavaScript code required to run examples is generated from Sweet Home 3D Java code 
 with JSweet transpiler available at http://www.jsweet.org
 To generate the missing JavaScript code and run tests, install JDK 8, Node available 
-at https://nodejs.org/ and Ant available at http://ant.apache.org/ then run ant command in the 
-directory where you uncompressed this archive followed by the "generatedLibraries" target name.
-The generatedLibraries target will create missing JavaScript code in lib/generated 
-and required to run the HTML files found in the test directory of this archive 
-with any compatible browser. 
+at https://nodejs.org/ and Ant available at http://ant.apache.org/ then run ant command  
+in the directory where you uncompressed this archive followed by the "viewerLibraries" 
+or "applicationLibraries" target names.
+The "viewerLibraries" target will create missing JavaScript code in lib/generated 
+for Sweet Home 3D JS Viewer and required to run the HTML files found in the test directory 
+of this archive with any compatible browser (except for test/testHome.html). 
+The "applicationLibraries" target will create missing JavaScript code in lib/generated 
+for Sweet Home 3D JS Editor and required to run the test/testHome.html found  
+in this archive with any compatible browser. 
 
 The default target provided by build.xml Ant file concatenates .js files by license type, 
 minifies them, and generates in install subdirectory a SweetHome3DJSViewer ZIP file 
