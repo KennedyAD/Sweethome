@@ -17,6 +17,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -->
+<!--
+  To view this file locally without a HTTP server, be sure to allow access from files in your browser   
+  https://www.google.com/search?q=allow+access+from+files  
+ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -39,6 +43,23 @@
 /* The class of components handled by the viewer */
 .viewerComponent  {
 }
+/* To display the viewer in full screen, uncomment the 3 following styles */
+/*
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  margin: 0;
+}
+#viewerCanvas {
+  width: 100%;
+  height: 100%;
+}
+#viewerNavigationDiv {
+  position: absolute; 
+  bottom: 5px;
+  left: 5px;
+}
+*/
 </style>
 </head>
 
@@ -71,7 +92,8 @@
         alert("Sorry, your browser doesn't support WebGL.");
       } else {
         console.log(err.stack);
-        alert("Error: " + (err.message  ? err.constructor.name + " " +  err.message  : err));
+        alert("Error: " + (err.message  ? err.constructor.name + " " +  err.message  : err)
+            + (window.location.href.indexOf("file://") === 0 ? "\nCheck your browser is allowed to access local files." : ""));
       }
     };
   var onprogression = function(part, info, percentage) {
