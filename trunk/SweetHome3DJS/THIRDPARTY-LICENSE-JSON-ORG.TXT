@@ -1,3 +1,13 @@
+The following additional provisions apply to json-20190722.jar third party software
+included as part of this product.
+
+JSON is useful in SweetHome3DJS to parse data received on server side.
+
+JSON.org library is available at:
+https://github.com/stleary/JSON-java 
+where source code can be downloaded too
+
+
 Copyright (c) 2002 JSON.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
