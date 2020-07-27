@@ -241,7 +241,7 @@ public class HomeEditsDeserializer {
       if (this.homeObjects.containsKey(jsonValue)) {
         value = (T)this.homeObjects.get(jsonValue);
       } else {
-        throw new RuntimeException("Cannot find referenced home object " + valueType.getTypeName() + ": " + jsonValue);
+        throw new ReflectiveOperationException("Cannot find referenced home object " + valueType.getTypeName() + ": " + jsonValue);
       }
     } else if (valueClass != null
                && valueClass.isEnum()) {
@@ -305,7 +305,7 @@ public class HomeEditsDeserializer {
       }
       return (T)list;
     } else {
-      throw new RuntimeException("Unsupported collection type " + arrayType);
+      throw new ReflectiveOperationException("Unsupported collection type " + arrayType);
     }
   }
 
@@ -346,12 +346,7 @@ public class HomeEditsDeserializer {
         typeName += "$" + typeNameParts[typeNameParts.length - 1];
       }
 
-      try {
-        instanceType = (Class<T>)Class.forName(typeName);
-      } catch (ClassNotFoundException ex) {
-        // Should not happen
-        throw new RuntimeException("Cannot find type " + typeName, ex);
-      }
+      instanceType = (Class<T>)Class.forName(typeName);
     } else {
       instanceType = defaultType;
     }
