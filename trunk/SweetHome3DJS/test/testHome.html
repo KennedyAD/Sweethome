@@ -1106,6 +1106,11 @@ function testHomeModifications() {
       assertEquals("Wrong pasted color", 0xFF770077, home.getSelectedItems() [0].getColor()); 
     },
     function() {
+      var piece = home.getSelectedItems() [0];
+      homeController.delete();
+      assertEquals("Selection not empty", 0, home.getSelectedItems().length); 
+    },
+    function() {
       // Draw 4 joined walls
       planController.setMode(PlanController.Mode.WALL_CREATION);
     },
