@@ -19,9 +19,9 @@
 --%>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.*" %>
-<%@page import="java.nio.file.*"%>
-<%@page import="java.nio.file.attribute.FileAttribute"%>
-<%@page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
+<%@ page import="java.nio.file.*"%>
+<%@ page import="java.nio.file.attribute.FileAttribute"%>
+<%@ page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
