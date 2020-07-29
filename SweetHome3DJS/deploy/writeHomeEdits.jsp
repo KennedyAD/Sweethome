@@ -17,13 +17,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
-<%@page import="java.io.*" %>
-<%@page import="java.net.URL"%>
-<%@page import="java.util.*" %>
-<%@page import="java.nio.file.*"%>
-<%@page import="javax.swing.undo.UndoableEdit"%>
-<%@page import="com.eteks.sweethome3d.model.UserPreferences" %>
-<%@page import="com.eteks.sweethome3d.io.*" %>
+<%@ page import="java.io.*" %>
+<%@ page import="java.net.URL"%>
+<%@ page import="java.util.*" %>
+<%@ page import="java.nio.file.*"%>
+<%@ page import="javax.swing.undo.UndoableEdit"%>
+<%@ page import="com.eteks.sweethome3d.model.UserPreferences" %>
+<%@ page import="com.eteks.sweethome3d.io.*" %>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
