@@ -30,9 +30,6 @@
    String jsonEdits = request.getParameter("edits");
    URL serverBaseUrl = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath() + "/");
    int count = 0;
-   
-   System.out.println(new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json"));
-   
    if (homeName != null) {
      String homesFolder = getServletContext().getRealPath("/homes");
      File   homeFile = new File(homesFolder, homeName + ".sh3d");
