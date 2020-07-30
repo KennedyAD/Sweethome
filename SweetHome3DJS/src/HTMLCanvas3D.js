@@ -292,7 +292,7 @@ HTMLCanvas3D.prototype.setFieldOfView = function(fieldOfView) {
 }
 
 /**
- * Sets the front clip distance of the fustrum.
+ * Sets the front clip distance of the frustrum.
  * @param {number} frontClipDistance
  */
 HTMLCanvas3D.prototype.setFrontClipDistance = function(frontClipDistance) {
@@ -303,7 +303,7 @@ HTMLCanvas3D.prototype.setFrontClipDistance = function(frontClipDistance) {
 }
 
 /**
- * Sets the back clip distance of the fustrum.
+ * Sets the back clip distance of the frustrum.
  * @param {number} frontClipDistance
  */
 HTMLCanvas3D.prototype.setBackClipDistance = function(backClipDistance) {
