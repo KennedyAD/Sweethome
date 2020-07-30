@@ -54,10 +54,12 @@ function IncrementalHomeRecorder(application, configuration) {
   this.editCounters = {};
   this.configuration = configuration;
   this.online = true;
-  this.pingDelay = 10000;
+  var pingDelay = 10000;
   if (this.configuration !== undefined && this.configuration.pingURL !== undefined) {
     var recorder = this;
-    setTimeout(function() { recorder.checkServer(); }, this.pingDelay);
+    setTimeout(function() { 
+        recorder.checkServer(pingDelay); 
+      }, pingDelay);
   }
 }
 IncrementalHomeRecorder.prototype = Object.create(HomeRecorder.prototype);
@@ -86,17 +88,19 @@ IncrementalHomeRecorder.prototype.getTrackedHomeProperties = function() {
 
 /**
  * Configures this incremental recorder's behavior.
- * 
  * @param {Object} configuration an object containing configuration fields
  */
 IncrementalHomeRecorder.prototype.configure = function(configuration) {
   this.configuration = configuration;
 }
 
-/** 
+/**
+ * Checks if the server is available by calling the <code>pingURL</code> service in 
+ * recorder configuration every <code>pingDelay</code> milliseconds. 
+ * @param {number} pingDelay
  * @private 
  */
-IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
+IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
   var recorder = this;
   var request = new XMLHttpRequest();
   request.open('GET', this.configuration['pingURL'], true);
@@ -109,7 +113,9 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
           }
         }
         recorder.online = true;
-        setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
+        setTimeout(function() { 
+            recorder.checkServer(pingDelay); 
+          }, pingDelay);
       } else {
         if (recorder.online) {
           if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
@@ -117,7 +123,9 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
           }
         }
         recorder.online = false;
-        setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
+        setTimeout(function() { 
+            recorder.checkServer(pingDelay); 
+          }, pingDelay);
       }
     });
   request.addEventListener('error', function(ev) {
@@ -127,7 +135,9 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
         }
       }
       recorder.online = false;
-      setTimeout(function() { recorder.checkServer(); }, recorder.pingDelay);
+      setTimeout(function() { 
+          recorder.checkServer(pingDelay); 
+        }, pingDelay);
     });
   request.send();
 }
@@ -136,7 +146,7 @@ IncrementalHomeRecorder.prototype.checkServer = function(configuration) {
  * Reads a home with this recorder.
  * @param {string} homeName the home name on the server 
  *                          or the URL of the home if <code>readHomeURL</code> service is missing 
- * @param {Object} observer an object to be notified with loading statuses 
+ * @param {homeLoaded, homeError, progression} observer  callbacks used to follow the reading of the home 
  */
 IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
   if (this.configuration !== undefined
@@ -149,6 +159,8 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
 }
 
 /**
+ * Updates existing objects list.
+ * @param {Home} home
  * @private
  */
 IncrementalHomeRecorder.prototype.checkPoint = function(home) {
@@ -164,6 +176,7 @@ IncrementalHomeRecorder.prototype.checkPoint = function(home) {
 
 /**
  * Adds a home to be incrementally saved by this recorder.
+ * @param {Home} home
  */
 IncrementalHomeRecorder.prototype.addHome = function(home) {
   if (this.configuration !== undefined
@@ -240,9 +253,10 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
 
 /** 
  * Returns -1 if not autosaving, 0 if autosaving after each edit, or the actual delay in ms.
+ * @return {number}
  * @private
  */
-IncrementalHomeRecorder.prototype.getAutoWriteDelay = function(home) {
+IncrementalHomeRecorder.prototype.getAutoWriteDelay = function() {
   if (this.configuration === undefined || this.configuration.autoWriteDelay === undefined) {
     return -1;
   } else {
@@ -251,7 +265,8 @@ IncrementalHomeRecorder.prototype.getAutoWriteDelay = function(home) {
 }
 
 /**
- * Removes a home previously added with #addHome(home).
+ * Removes a home previously added with <code>addHome</code>.
+ * @param {Home} home
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
   if (this.configuration !== undefined) {
@@ -285,10 +300,11 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
 
 /** 
  * Sends to the server all the currently waiting edits for the given home.  
+ * @param {Home} home
  */
 IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   try {
-    // Check if something to be sent to avoid useless updates.
+    // Check if something to be sent to avoid useless updates
     if (!this.hasEdits(home)) {
       return;
     }
@@ -324,15 +340,16 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
       });
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send('home=' + encodeURIComponent(home.name) + '&' +
-             'updateId=' + update.id + '&' +
-             'version=' + this.application.getVersion() + '&' +
-             'edits=' + encodeURIComponent(JSON.stringify(update.edits)));
+                 'updateId=' + update.id + '&' +
+                 'version=' + this.application.getVersion() + '&' +
+                 'edits=' + encodeURIComponent(JSON.stringify(update.edits)));
   } catch (ex) {
     console.error(ex);
   }  
 }
 
-/** 
+/**   
+ * @param {Home} home
  * @private 
  */
 IncrementalHomeRecorder.prototype.hasEdits = function(home) {
@@ -341,6 +358,8 @@ IncrementalHomeRecorder.prototype.hasEdits = function(home) {
 }
 
 /** 
+ * @param {Home} home
+ * @param {boolean} [force]
  * @private 
  */
 IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) {
@@ -384,6 +403,8 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
 }
 
 /** 
+ * @param {Home} home
+ * @param {number} [delay]
  * @private 
  */
 IncrementalHomeRecorder.prototype.scheduleWrite = function(home, delay) {
@@ -410,15 +431,12 @@ IncrementalHomeRecorder.prototype.scheduleWrite = function(home, delay) {
 }
 
 /** 
+ * @param {Home} home
+ * @param {UndoableEdit} edit
+ * @param {boolean} [undoAction]
  * @private 
  */
 IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
-  if (this.editCounters[home.id] === undefined) {
-    this.editCounters[home.id] = 0;
-  } else {
-    this.editCounters[home.id] = this.editCounters[home.id] + 1;
-  }
-  var key = home.id + "/" + this.editCounters[home.id];
   var newObjects = {};
   var newObjectList = [];
   var processedEdit = this.substituteIdentifiableObjects(
@@ -435,27 +453,38 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   if (undoAction) {
     processedEdit._action = "undo";
   }
+  
   // TODO: use local storage
-  //localStorage.setItem(key, toJSON(o));
+  // if (this.editCounters[home.id] === undefined) {
+  //   this.editCounters[home.id] = 0;
+  // } else {
+  //   this.editCounters[home.id] = this.editCounters[home.id] + 1;
+  // }
+  // var key = home.id + "/" + this.editCounters[home.id];
+  // localStorage.setItem(key, toJSON(o));
+  
   if (!this.queue) {
     this.queue = [];
   }
   this.queue.push(processedEdit);
   
-  if (edit._type !== 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit') {
+  if (edit._type != 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit') {
     // Update objects state 
     this.checkPoint(home);
   }
 }
 
 /** 
+ * @param {Home} home
+ * @return {home, id, edits}
  * @private 
  */
 IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
   if (home.ongoingUpdate !== undefined) {
     home.rejectedUpdate = true;
-    throw new Error("cannot start update");
+    throw new Error("Cannot start update");
   }
+  
   // TODO: use local storage
   home.ongoingUpdate = { 'home': home, 'id': UUID.randomUUID(), 'edits': this.queue.slice(0) };
   if (this.configuration !== undefined && this.configuration.writingObserver && this.configuration.writingObserver.writeStarted) {
@@ -465,6 +494,8 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
 }
 
 /** 
+ * @param {Home} home
+ * @param {home, id, edits} update
  * @private 
  */
 IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
@@ -490,6 +521,10 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
 }
 
 /** 
+ * @param {Home} home
+ * @param {home, id, edits} update
+ * @param {number} status
+ * @param {string} error
  * @private 
  */
 IncrementalHomeRecorder.prototype.rollbackUpdate = function(home, update, status, error) {
