@@ -6179,11 +6179,10 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     var canvas3D = new HTMLCanvas3D(canvas);
     var rotation = mat4.create();
     mat4.fromXRotation(rotation, -Math.PI / 2);
-    var transform = mat4.create();
-    mat4.fromTranslation(transform, vec3.fromValues(0, 5, 0));
-    mat4.mul(transform, transform, rotation);
-    canvas3D.setViewPlatformTransform(transform);
+    canvas3D.setViewPlatformTransform(rotation);
     canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
+    canvas3D.setFrontClipDistance(-1.01);
+    canvas3D.setBackClipDistance(1.01);
     var sceneRoot = new BranchGroup3D();
     sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
     var lights = [
