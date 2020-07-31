@@ -237,7 +237,8 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
   } else {
     try {
       var request = new XMLHttpRequest();
-      request.open('GET', url, !synchronous);
+      // Prefer POST method when the request contains parameters to avoid caching result
+      request.open(url.indexOf('?') > 0 ? 'POST' : 'GET', url, !synchronous);
       request.responseType = "arraybuffer";
       request.overrideMimeType("application/octet-stream");
       request.addEventListener("readystatechange", 
