@@ -218,11 +218,11 @@ public class HomeEditsDeserializer {
           } else if (HomeURLContent.class.getName().equals(jsonObjectType)) {
             value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
           } else if (url.startsWith("jar:") && !url.contains("://")) {
-            value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
+            value = new URLContent(new URL("jar:" + this.baseUrl + url.substring(4)));
           } else if (url.contains(":")) {
             value = new URLContent(new URL(url));
           } else {
-            value = new URLContent(new URL(baseUrl + "/" + url));
+            value = new URLContent(new URL(this.baseUrl + url));
           }
         } catch (MalformedURLException ex) {
           throw new IllegalArgumentException("Can't build URL ", ex);
