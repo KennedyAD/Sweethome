@@ -1994,7 +1994,7 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
     if (this.homeObjectsToUpdate) {
       var index = this.homeObjectsToUpdate.indexOf(homeObject);
       if (index >= 0) {
-        this.homeObjectsToUpdate.splice(homeObject);
+        this.homeObjectsToUpdate.splice(index, 1);
       }
     }
   }
