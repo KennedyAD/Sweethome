@@ -50,12 +50,12 @@
 function IncrementalHomeRecorder(application, configuration) {
   HomeRecorder.call(this);
   this.application = application;
-  this.undoableEditSupports = {};
-  this.editCounters = {};
+  this.homeData = {};
   this.configuration = configuration;
   this.online = true;
   var pingDelay = 10000;
-  if (this.configuration !== undefined && this.configuration.pingURL !== undefined) {
+  if (this.configuration !== undefined 
+      && this.configuration.pingURL !== undefined) {
     var recorder = this;
     setTimeout(function() { 
         recorder.checkServer(pingDelay); 
@@ -108,7 +108,9 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
       if (request.readyState === XMLHttpRequest.DONE
           && request.status === 200) {
         if (!recorder.online) {
-          if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionFound) {
+          if (recorder.configuration 
+              && recorder.configuration.writingObserver 
+              && recorder.configuration.writingObserver.connectionFound) {
             recorder.configuration.writingObserver.connectionFound(recorder);
           }
         }
@@ -118,7 +120,9 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
           }, pingDelay);
       } else {
         if (recorder.online) {
-          if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
+          if (recorder.configuration 
+              && recorder.configuration.writingObserver 
+              && recorder.configuration.writingObserver.connectionLost) {
             recorder.configuration.writingObserver.connectionLost(request.status, request.statusText);
           }
         }
@@ -130,7 +134,9 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
     });
   request.addEventListener('error', function(ev) {
       if (recorder.online) {
-        if (recorder.configuration && recorder.configuration.writingObserver && recorder.configuration.writingObserver.connectionLost) {
+        if (recorder.configuration 
+            && recorder.configuration.writingObserver 
+            && recorder.configuration.writingObserver.connectionLost) {
           recorder.configuration.writingObserver.connectionLost(0, ev);
         }
       }
@@ -165,12 +171,9 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
  */
 IncrementalHomeRecorder.prototype.checkPoint = function(home) {
   var recorder = this;
-  if (!recorder.existingHomeObjects) {
-    recorder.existingHomeObjects = {};
-  }
-  recorder.existingHomeObjects[home.id] = {};
+  recorder.homeData[home.editionId].existingHomeObjects = {};
   home.getHomeObjects().forEach(function(homeObject) {
-      recorder.existingHomeObjects[home.id][homeObject.id] = homeObject.id;
+      recorder.homeData[home.editionId].existingHomeObjects[homeObject.id] = homeObject.id;
     });
 }
 
@@ -181,14 +184,16 @@ IncrementalHomeRecorder.prototype.checkPoint = function(home) {
 IncrementalHomeRecorder.prototype.addHome = function(home) {
   if (this.configuration !== undefined
       && this.configuration.writeHomeEditsURL !== undefined) {
-    var recorder = this;
-    home.id = HomeObject.createId("home");
+    // Add an edition id to home to manage additional data required for the recorder
+    home.editionId = HomeObject.createId("home");
+    this.homeData[home.editionId] = {};
     
     this.checkPoint(home);
 
     var homeController = this.application.getHomeController(home);
-
-    this.undoableEditSupports[home.id] = homeController.getUndoableEditSupport();
+    this.homeData[home.editionId].undoableEditSupport = homeController.getUndoableEditSupport();
+    
+    var recorder = this;
     var listener = {
         undoableEditHappened: function(undoableEditEvent) {
           recorder.storeEdit(home, undoableEditEvent.getEdit());
@@ -196,7 +201,7 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         },
         source: recorder // Additional field to track the listener  
       };
-    this.undoableEditSupports[home.id].addUndoableEditListener(listener);
+    this.homeData[home.editionId].undoableEditSupport.addUndoableEditListener(listener);
     // Caution: direct access to undoManager field of HomeController
     var undoManager = homeController.undoManager;
     var coreUndo = undoManager.undo;
@@ -215,7 +220,6 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
       };
 
     // Tracking objects / properties without regular undoable edits scope
-
     var stateChangeTracker = function(ev) {
         var fieldName = undefined;
         if (ev.source === home.getObserverCamera()) {
@@ -230,18 +234,18 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
           }
         }
         if (fieldName !== undefined) {
-          if (home.trackedStateChange === undefined) {
-            home.trackedStateChange = {};
+          if (recorder.homeData[home.editionId].trackedStateChanges === undefined) {
+            recorder.homeData[home.editionId].trackedStateChanges = {};
           }
-          home.trackedStateChange[fieldName] = true;
+          recorder.homeData[home.editionId].trackedStateChanges[fieldName] = true;
         }
       };
 
     home.getObserverCamera().addPropertyChangeListener(stateChangeTracker);
     home.getTopCamera().addPropertyChangeListener(stateChangeTracker);
-    var properties = this.getTrackedHomeProperties();
-    for (var i = 0; i < properties.length; i++) {
-      home.addPropertyChangeListener(properties[i], stateChangeTracker);
+    var trackedHomeProperties = this.getTrackedHomeProperties();
+    for (var i = 0; i < trackedHomeProperties.length; i++) {
+      home.addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
     }
 
     // Schedule first write if needed
@@ -285,15 +289,14 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
       }
     }
     if (this.configuration['writeHomeEditsURL'] !== undefined) {
-      var undoableEditListeners = this.undoableEditSupports[home.id].getUndoableEditListeners();
+      var undoableEditListeners = this.homeData[home.editionId].undoableEditSupport.getUndoableEditListeners();
       for (var i = 0; i < undoableEditListeners.length; i++) {
         if (undoableEditListeners [i].source === this) {
-          this.undoableEditSupports[home.id].removeUndoableEditListener(undoableEditListeners[i]);
+          this.homeData[home.editionId].undoableEditSupport.removeUndoableEditListener(undoableEditListeners[i]);
           break;
         }
       }
-      delete this.undoableEditSupports[home.id];
-      delete this.existingHomeObjects[home.id];
+      delete this.homeData[home.editionId];
     }
   }
 }
@@ -303,17 +306,17 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
  * @param {Home} home
  */
 IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
-  try {
-    // Check if something to be sent to avoid useless updates
-    if (!this.hasEdits(home)) {
-      return;
-    }
-    this.addTrackedStateChange(home);
-    var recorder = this;
-    var update = this.beginUpdate(home);
+  // Check if something to be sent to avoid useless updates
+  if (!this.hasEdits(home)) {
+    return;
+  }
+  this.addTrackedStateChange(home);
+  var recorder = this;
+  var update = this.beginUpdate(home);
+  if (update !== null) {
     var serverErrorHandler = function(status, error) {
         recorder.rollbackUpdate(home, update, status, error);
-        // TODO: define a retry delay?
+        // TODO define a retry delay?
         recorder.scheduleWrite(home, 10000);
       };
     var request = new XMLHttpRequest();
@@ -339,13 +342,12 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
         serverErrorHandler(0, ev);
       });
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send('home=' + encodeURIComponent(home.name) + '&' +
-                 'updateId=' + update.id + '&' +
-                 'version=' + this.application.getVersion() + '&' +
-                 'edits=' + encodeURIComponent(JSON.stringify(update.edits)));
-  } catch (ex) {
-    console.error(ex);
-  }  
+    request.send('home=' + encodeURIComponent(home.name) 
+        + '&editionId=' + home.editionId 
+        + '&updateId=' + update.id 
+        + '&version=' + this.application.getVersion()  
+        + '&edits=' + encodeURIComponent(JSON.stringify(update.edits)));
+  }
 }
 
 /**   
@@ -354,7 +356,9 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
  */
 IncrementalHomeRecorder.prototype.hasEdits = function(home) {
   return (this.queue !== undefined && this.queue.length > 0) 
-      || (this.configuration && this.configuration.autoWriteTrackedStateChange && home.trackedStateChange !== undefined);
+      || (this.configuration 
+          && this.configuration.autoWriteTrackedStateChange 
+          && this.homeData[home.editionId].trackedStateChanges !== undefined);
 }
 
 /** 
@@ -363,15 +367,16 @@ IncrementalHomeRecorder.prototype.hasEdits = function(home) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) {
-  if (home.trackedStateChange !== undefined 
+  if (this.homeData[home.editionId].trackedStateChanges !== undefined 
       && (force 
           || (this.configuration 
               && this.configuration.autoWriteTrackedStateChange))) {    
     var trackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit' };
 
-    for (var i = 0; i < this.getTrackedHomeProperties().length; i++) {
-      var property = this.getTrackedHomeProperties()[i];
-      if (home.trackedStateChange[property]) {
+    var trackedHomeProperties = this.getTrackedHomeProperties();
+    for (var i = 0; i < trackedHomeProperties.length; i++) {
+      var property = trackedHomeProperties[i];
+      if (this.homeData[home.editionId].trackedStateChanges[property]) {
         switch (property) {
           case 'CAMERA':
             trackedStateChangeUndoableEdit.camera = home.getCamera();
@@ -390,14 +395,14 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
     }
 
     // Duplication is required to send the state of the cameras and not only the UUIDs
-    if (home.trackedStateChange.topCamera) {
+    if (this.homeData[home.editionId].trackedStateChanges.topCamera) {
       trackedStateChangeUndoableEdit.topCamera = home.getTopCamera().duplicate();
     }
-    if (home.trackedStateChange.observerCamera) {
+    if (this.homeData[home.editionId].trackedStateChanges.observerCamera) {
       trackedStateChangeUndoableEdit.observerCamera = home.getObserverCamera().duplicate();
     }
     // Reset tracked state change and store the edit
-    home.trackedStateChange = undefined;
+    this.homeData[home.editionId].trackedStateChanges = undefined;
     this.storeEdit(home, trackedStateChangeUndoableEdit);
   }
 }
@@ -408,24 +413,25 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
  * @private 
  */
 IncrementalHomeRecorder.prototype.scheduleWrite = function(home, delay) {
-  var recorder = this;
   if (delay === undefined) {
-    delay = recorder.getAutoWriteDelay();
+    delay = this.getAutoWriteDelay();
   }
   if (delay >= 0) {
-    if (home.scheduledWrite !== undefined) {
-      clearTimeout(home.scheduledWrite);
-      home.scheduledWrite = undefined;
+    if (this.homeData[home.editionId].scheduledWrite !== undefined) {
+      clearTimeout(this.homeData[home.editionId].scheduledWrite);
+      this.homeData[home.editionId].scheduledWrite = undefined;
     }
-    home.scheduledWrite = setTimeout(function() {
-      home.scheduledWrite = undefined;
-      if (recorder.online && recorder.hasEdits(home)) {
-        recorder.sendUndoableEdits(home);
-      }
-      if (recorder.getAutoWriteDelay() > 0) {
-        recorder.scheduleWrite(home);
-      }
-    }, delay);
+    
+    var recorder = this;
+    this.homeData[home.editionId].scheduledWrite = setTimeout(function() {
+        recorder.homeData[home.editionId].scheduledWrite = undefined;
+        if (recorder.online && recorder.hasEdits(home)) {
+          recorder.sendUndoableEdits(home);
+        }
+        if (recorder.getAutoWriteDelay() > 0) {
+          recorder.scheduleWrite(home);
+        }
+      }, delay);
   }
   // < 0 means manual write (nothing scheduled)
 }
@@ -454,13 +460,13 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
     processedEdit._action = "undo";
   }
   
-  // TODO: use local storage
-  // if (this.editCounters[home.id] === undefined) {
-  //   this.editCounters[home.id] = 0;
+  // TODO use local storage
+  // if (this.homeData[home.editionId].editCounter === undefined) {
+  //   this.homeData[home.editionId].editCounter = 0;
   // } else {
-  //   this.editCounters[home.id] = this.editCounters[home.id] + 1;
+  //   this.homeData[home.editionId].editCounter++;
   // }
-  // var key = home.id + "/" + this.editCounters[home.id];
+  // var key = home.editionId + "/" + this.homeData[home.editionId].editCounter;
   // localStorage.setItem(key, toJSON(o));
   
   if (!this.queue) {
@@ -480,17 +486,19 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
-  if (home.ongoingUpdate !== undefined) {
-    home.rejectedUpdate = true;
-    throw new Error("Cannot start update");
+  if (this.homeData[home.editionId].ongoingUpdate !== undefined) {
+    this.homeData[home.editionId].rejectedUpdate = true;
+    return null;
   }
   
-  // TODO: use local storage
-  home.ongoingUpdate = { 'home': home, 'id': UUID.randomUUID(), 'edits': this.queue.slice(0) };
-  if (this.configuration !== undefined && this.configuration.writingObserver && this.configuration.writingObserver.writeStarted) {
-    this.configuration.writingObserver.writeStarted(home.ongoingUpdate);
+  // TODO use local storage
+  this.homeData[home.editionId].ongoingUpdate = { 'home': home, 'id': UUID.randomUUID(), 'edits': this.queue.slice(0) };
+  if (this.configuration !== undefined 
+      && this.configuration.writingObserver 
+      && this.configuration.writingObserver.writeStarted) {
+    this.configuration.writingObserver.writeStarted(this.homeData[home.editionId].ongoingUpdate);
   }
-  return home.ongoingUpdate;
+  return this.homeData[home.editionId].ongoingUpdate;
 }
 
 /** 
@@ -499,7 +507,7 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
-  // TODO: use local storage
+  // TODO use local storage
   for (var i = 0; i < update.edits.length; i++) {
     if (this.queue[0] === update.edits[i]) {
       this.queue.shift();
@@ -508,14 +516,16 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
       throw new Error("Unexpected error while saving.");
     }
   }
-  if (this.configuration !== undefined && this.configuration.writingObserver && this.configuration.writingObserver.writeSucceeded) {
+  if (this.configuration !== undefined 
+      && this.configuration.writingObserver 
+      && this.configuration.writingObserver.writeSucceeded) {
     this.configuration.writingObserver.writeSucceeded(update);
   }
-  home.ongoingUpdate = undefined;
-  if (home.rejectedUpdate) {
+  this.homeData[home.editionId].ongoingUpdate = undefined;
+  if (this.homeData[home.editionId].rejectedUpdate) {
     // There was a rejected update during this ongoing update, 
     // it means that there is something to be saved and we force the write
-    home.rejectedUpdate = undefined;
+    this.homeData[home.editionId].rejectedUpdate = undefined;
     this.scheduleWrite(home, 0);
   }
 }
@@ -528,11 +538,13 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.rollbackUpdate = function(home, update, status, error) {
-  if (this.configuration !== undefined && this.configuration.writingObserver && this.configuration.writingObserver.writeFailed) {
+  if (this.configuration !== undefined 
+      && this.configuration.writingObserver 
+      && this.configuration.writingObserver.writeFailed) {
     this.configuration.writingObserver.writeFailed(update, status, error);
   }
-  home.ongoingUpdate = undefined;
-  home.rejectedUpdate = undefined;
+  this.homeData[home.editionId].ongoingUpdate = undefined;
+  this.homeData[home.editionId].rejectedUpdate = undefined;
 }
 
 /** 
@@ -551,7 +563,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
   } else if (origin == null || origin !== Object(origin) 
             || preservedTypes.some(function(preservedType) { return origin instanceof preservedType; })) {
     return origin;
-  } else if (origin.id !== undefined && (this.existingHomeObjects[home.id][origin.id] !== undefined // Already in home
+  } else if (origin.id !== undefined && (this.homeData[home.editionId].existingHomeObjects[origin.id] !== undefined // Already in home
                                         || newObjects[origin.id] !== undefined  // Already in new objects
                                         || origin instanceof Home)) { // Home always exists
     return origin.id;
