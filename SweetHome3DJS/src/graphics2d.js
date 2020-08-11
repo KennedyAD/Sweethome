@@ -493,7 +493,7 @@ FontMetrics.prototype.getHeight = function() {
 }
 
 /**
- * Computes the various dimentions of the given string, for the current canvas and font.
+ * Computes the various dimensions of the given string, for the current canvas and font.
  * This function caches the results so that it can be fast accessed in other functions.
  * @param {string} aString the string to compute the dimensions of
  * @private
