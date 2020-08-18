@@ -940,7 +940,6 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
   if (OperatingSystem.isInternetExplorerOrLegacyEdge()
       && window.PointerEvent) {
     // Multi touch support for IE and Edge
-    // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
     canvas3D.getHTMLElement().addEventListener("pointerdown", userActionsListener.pointerPressed);
     canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.pointerMousePressed);
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
@@ -1994,7 +1993,7 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
     if (this.homeObjectsToUpdate) {
       var index = this.homeObjectsToUpdate.indexOf(homeObject);
       if (index >= 0) {
-        this.homeObjectsToUpdate.splice(index, 1);
+        this.homeObjectsToUpdate.splice(homeObject);
       }
     }
   }

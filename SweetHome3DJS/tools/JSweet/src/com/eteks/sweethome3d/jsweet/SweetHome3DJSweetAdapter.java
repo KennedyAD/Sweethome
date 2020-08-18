@@ -168,7 +168,8 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         // Add the @Erased annotation upon some specific conditions
         if (JSweetConfig.ANNOTATION_ERASED.equals(annotationType)) {
           if (element.getKind() == ElementKind.ENUM && element.getSimpleName().toString().endsWith("Property")) {
-            // All enums named *Property will be erased (because they will be strings in the generated code)
+            // All enums named *Property will be erased (because they will be
+            // strings in the generated code)
             return Action.ADD;
           } else if (util().isDeprecated(element)) {
             // All deprecated elements will be erased
@@ -176,7 +177,8 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           } else if (element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
               .getQualifiedName().toString().equals("com.eteks.sweethome3d.model.CatalogPieceOfFurniture")) {
             // Only keep the private constructor of CatalogPieceOfFurniture and its 4 public
-            // constructors used to create pieces available from version 5.3
+            // constructors used
+            // to create pieces available from version 5.3
             ExecutableElement c = (ExecutableElement) element;
             if (!element.getModifiers().contains(Modifier.PRIVATE)) {
               if (c.getParameters().size() != 16 && c.getParameters().size() != 26 && c.getParameters().size() != 28
@@ -195,7 +197,8 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             }
           } else if (element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
               .getQualifiedName().toString().equals("com.eteks.sweethome3d.model.CatalogDoorOrWindow")) {
-            // Only keep the public constructors of CatalogDoorOrWindow used to create unmodifiable pieces
+            // Only keep the public constructors of CatalogDoorOrWindow used to create
+            // unmodifiable pieces
             // (CatalogDoorOrWindow class didn't exist in SweetHome3DJS 1.2)
             ExecutableElement c = (ExecutableElement) element;
             if (c.getParameters().size() != 18 && c.getParameters().size() != 32 && c.getParameters().size() != 33) {
@@ -311,8 +314,9 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           break;
         case "java.util.Arrays":
           switch (invocation.getMethodName()) {
-          // WARNING: we assume that this method will be used to log arrays so we just pass the array as is
-          // to the log function... this may fail if a string is actually expected
+          // WARNING: we assume that this method will be used to log arrays so we
+          // just pass the array as is to the log function... this may fail if a
+          // string is actually expected
           case "deepToString":
             printMacroName(invocation.getMethodName());
             print(invocation.getArgument(0));
@@ -645,7 +649,6 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
     if (element instanceof TypeElement) {
       TypeElement type = (TypeElement)element;
       if (types().isSubtype(type.asType(), util().getType(Throwable.class))
-          // Additional controller classes not used yet
           || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.AbstractPhotoController")
           || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotoController")
           || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotosController")

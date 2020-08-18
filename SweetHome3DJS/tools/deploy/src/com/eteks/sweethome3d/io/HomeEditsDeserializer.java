@@ -218,11 +218,11 @@ public class HomeEditsDeserializer {
           } else if (HomeURLContent.class.getName().equals(jsonObjectType)) {
             value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
           } else if (url.startsWith("jar:") && !url.contains("://")) {
-            value = new URLContent(new URL("jar:" + this.baseUrl + url.substring(4)));
+            value = new URLContent(new URL("jar:" + baseUrl + "/" + url.substring(4)));
           } else if (url.contains(":")) {
             value = new URLContent(new URL(url));
           } else {
-            value = new URLContent(new URL(this.baseUrl + url));
+            value = new URLContent(new URL(baseUrl + "/" + url));
           }
         } catch (MalformedURLException ex) {
           throw new IllegalArgumentException("Can't build URL ", ex);
@@ -241,7 +241,7 @@ public class HomeEditsDeserializer {
       if (this.homeObjects.containsKey(jsonValue)) {
         value = (T)this.homeObjects.get(jsonValue);
       } else {
-        throw new ReflectiveOperationException("Cannot find referenced home object " + valueType.getTypeName() + ": " + jsonValue);
+        throw new RuntimeException("Cannot find referenced home object " + valueType.getTypeName() + ": " + jsonValue);
       }
     } else if (valueClass != null
                && valueClass.isEnum()) {
@@ -305,7 +305,7 @@ public class HomeEditsDeserializer {
       }
       return (T)list;
     } else {
-      throw new ReflectiveOperationException("Unsupported collection type " + arrayType);
+      throw new RuntimeException("Unsupported collection type " + arrayType);
     }
   }
 
@@ -346,7 +346,12 @@ public class HomeEditsDeserializer {
         typeName += "$" + typeNameParts[typeNameParts.length - 1];
       }
 
-      instanceType = (Class<T>)Class.forName(typeName);
+      try {
+        instanceType = (Class<T>)Class.forName(typeName);
+      } catch (ClassNotFoundException ex) {
+        // Should not happen
+        throw new RuntimeException("Cannot find type " + typeName, ex);
+      }
     } else {
       instanceType = defaultType;
     }

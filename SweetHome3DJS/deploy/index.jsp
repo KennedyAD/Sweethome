@@ -17,7 +17,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
-<%@ page contentType="text/html; charset=UTF-8" %>
 <% out.clear();
    String homeName = request.getParameter("home");
 %>
@@ -401,7 +400,7 @@ var application = new SweetHome3DJSApplication(
      writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp",
      closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",
      pingURL:           urlBase + "/ping.jsp",
-     autoWriteDelay:    1000,
+     autoWriteDelay:    5000,
      autoWriteTrackedStateChange: true,
      writingObserver:   {
          writeStarted: function(update) {

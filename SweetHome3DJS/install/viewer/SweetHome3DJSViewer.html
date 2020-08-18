@@ -1,5 +1,5 @@
 <!--
-   SweetHome3DJSViewer.html  version 6.4.2  
+   SweetHome3DJSViewer.html  version 6.3  
    
    Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
    
@@ -17,10 +17,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -->
-<!--
-  To view this file locally without a HTTP server, be sure to allow access from files in your browser   
-  https://www.google.com/search?q=allow+access+from+files  
- -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -43,23 +39,6 @@
 /* The class of components handled by the viewer */
 .viewerComponent  {
 }
-/* To display the viewer in full screen, uncomment the 3 following styles */
-/*
-body {
-  overflow-x: hidden;
-  overflow-y: hidden;
-  margin: 0;
-}
-#viewerCanvas {
-  width: 100%;
-  height: 100%;
-}
-#viewerNavigationDiv {
-  position: absolute; 
-  bottom: 5px;
-  left: 5px;
-}
-*/
 </style>
 </head>
 
@@ -81,7 +60,7 @@ body {
   </div>
 </div>
 <div style="position: absolute; bottom: 5px; text-align: center; width: 95%; z-index: -1">
-  <a href="http://www.sweethome3d.com">Sweet Home 3D</a> JS Viewer / Version 6.4.2 - Distributed under GNU General Public License
+  <a href="http://www.sweethome3d.com">Sweet Home 3D</a> JS Viewer / Version 6.3 - Distributed under GNU General Public License
 </div>
 
 <!-- Copy the following script to view your home in the previous canvas, updating the default.sh3d URL and parameters if necessary -->
@@ -92,8 +71,7 @@ body {
         alert("Sorry, your browser doesn't support WebGL.");
       } else {
         console.log(err.stack);
-        alert("Error: " + (err.message  ? err.constructor.name + " " +  err.message  : err)
-            + (window.location.href.indexOf("file://") === 0 ? "\nCheck your browser is allowed to access local files." : ""));
+        alert("Error: " + (err.message  ? err.constructor.name + " " +  err.message  : err));
       }
     };
   var onprogression = function(part, info, percentage) {
