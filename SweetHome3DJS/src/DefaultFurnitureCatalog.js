@@ -330,12 +330,12 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
  * @param {string} contentDigestKey  the key of the digest of a resource content file
  * @param {string} furnitureUrl the URL of the file containing the target resource if it's not <code>null</code>
  * @param {string} resourceUrlBase the URL used as a base to build the URL to content file
- * or <code>null</code> if it's read from current classpath or <code>furnitureCatalogUrl</code>.
+ *           or <code>null</code> if it's read from current classpath or <code>furnitureCatalogUrl</code>.
  * @param {boolean} multiPartModel if <code>true</code> the resource is a multi part resource stored
- * in a folder with other required resources
- * @throws IllegalArgumentException if the file value doesn't match a valid resource or URL.
+ *           in a folder with other required resources
  * @param {boolean} optional
  * @return {Object}
+ * @throws IllegalArgumentException if the file value doesn't match a valid resource or URL.
  * @private
  */
  DefaultFurnitureCatalog.prototype.getContent = function(resource, contentKey, contentDigestKey, furnitureUrl, resourceUrlBase, multiPartModel, optional) {
