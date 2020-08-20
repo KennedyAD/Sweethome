@@ -34,6 +34,7 @@ function UserPreferences() {
   
   this.resourceBundles = [];
   this.furnitureCatalogResourceBundles = [];
+  this.texturesCatalogResourceBundles = [];
   
   this.furnitureCatalog = null;
   this.texturesCatalog = null;
@@ -314,6 +315,8 @@ UserPreferences.prototype.getLocalizedString = function(resourceClass, resourceK
   this.getResourceBundles(resourceClass);
   if (resourceClass == "DefaultFurnitureCatalog") {
     return CoreTools.getStringFromKey.apply(null, [this.furnitureCatalogResourceBundles, resourceKey].concat(Array.prototype.slice.call(arguments, 2))); 
+  } else if (resourceClass == "DefaultTexturesCatalog") {
+    return CoreTools.getStringFromKey.apply(null, [this.texturesCatalogResourceBundles, resourceKey].concat(Array.prototype.slice.call(arguments, 2))); 
   } else {
     // JSweet-generated code interop: if resourceClass is a constructor, it may contain the Java class full name in __class
     if (resourceClass.__class) {
@@ -352,6 +355,11 @@ UserPreferences.prototype.getResourceBundles = function(resourceClass) {
       this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("resources/DefaultFurnitureCatalog", Locale.getDefault());
     }
     return this.furnitureCatalogResourceBundles;
+  } else   if (resourceClass == "DefaultTexturesCatalog") {
+    if (this.texturesCatalogResourceBundles.length == 0) {
+      this.texturesCatalogResourceBundles = CoreTools.loadResourceBundles("resources/DefaultTexturesCatalog", Locale.getDefault());
+    }
+    return this.texturesCatalogResourceBundles;
   } else {
     if (this.resourceBundles.length == 0) {
       this.resourceBundles = CoreTools.loadResourceBundles("resources/localization", Locale.getDefault());
@@ -1077,10 +1085,10 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
            ? new DefaultFurnitureCatalog(furnitureCatalogUrls, furnitureResourcesUrlBase) 
            : new DefaultFurnitureCatalog(this))
       : new FurnitureCatalog());
-  this.setTexturesCatalog(typeof DefaultTextureCatalog === "function"
+  this.setTexturesCatalog(typeof DefaultTexturesCatalog === "function"
       ? (Array.isArray(texturesCatalogUrls)
-           ? new DefaultTextureCatalog(texturesCatalogUrls, texturesResourcesUrlBase) 
-           : new DefaultTextureCatalog(this))
+           ? new DefaultTexturesCatalog(texturesCatalogUrls, texturesResourcesUrlBase) 
+           : new DefaultTexturesCatalog(this))
       : new TexturesCatalog());
 
   if (Locale.getDefault() == "en_US") {
