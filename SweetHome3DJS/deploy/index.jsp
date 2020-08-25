@@ -117,9 +117,9 @@ body {
 }
 
 /*
- * Touch devices common CSS - ignored by IE
+ * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
  */
-@media (hover: none) {
+@media (hover: none), (pointer: coarse) {
 
   body {
     margin: 5px;
