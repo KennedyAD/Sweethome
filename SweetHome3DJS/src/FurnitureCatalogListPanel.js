@@ -43,6 +43,7 @@ FurnitureCatalogListPanel.prototype.getHTMLElement = function() {
  */
 FurnitureCatalogListPanel.prototype.createComponents = function (catalog, preferences, controller) {
   var furnitureCatalogListPanel = this;
+  this.catalog = catalog;
 
   this.toolTipDiv = document.createElement("div");
   this.toolTipDiv.classList.add("furniture-tooltip");
@@ -51,14 +52,81 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.toolTipDiv.style.zIndex = 10;
   document.body.appendChild(this.toolTipDiv);
 
-  for (i = 0; i < catalog.getCategoriesCount() ; i++) {
+  // Filtering
+  var filteringDiv = document.createElement("div");
+  filteringDiv.id = "furniture-filter";
+  this.container.appendChild(filteringDiv);
+
+  var categorySelector = document.createElement("select");
+  var searchInput = document.createElement("input");
+  this.searchInput = searchInput;
+  var filterChangeHandler = function() {
+    console.info("change ", categorySelector.value, searchInput.value);
+    furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
+      if (searchInput.value == null || searchInput.value === "") {
+        return true;
+      }
+      return RegExp(".*" + searchInput.value + ".*", "i").test(piece.name);
+    });
+  }
+  categorySelector.id = "furniture-category-select";
+  var categoryOption = document.createElement("option");
+  var noCategory = preferences.getLocalizedString("FurnitureCatalogListPanel", "categoryFilterComboBox.noCategory");
+  categoryOption.value = noCategory;
+  categoryOption.text = noCategory;
+  categorySelector.appendChild(categoryOption);
+  for (var i = 0; i < catalog.getCategories().length; i++) {
+    categoryOption = document.createElement("option");
+    categoryOption.value = catalog.getCategories()[i].name;
+    categoryOption.text = catalog.getCategories()[i].name;
+    categorySelector.appendChild(categoryOption);    
+  }
+  categorySelector.addEventListener("input", filterChangeHandler);
+  categorySelector.addEventListener("mousemove", function(event) { furnitureCatalogListPanel.hideTooltip(); event.stopPropagation(); });
+  console.info("adding selector", categorySelector);
+  filteringDiv.appendChild(categorySelector);
+  searchInput.setAttribute('type', 'text'); 
+  searchInput.id = "furniture-search-field";
+  searchInput.placeholder = preferences.getLocalizedString("FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
+  searchInput.addEventListener("input", filterChangeHandler);
+  searchInput.addEventListener("mousemove", function(event) { furnitureCatalogListPanel.hideTooltip(); event.stopPropagation(); });
+  this.getHTMLElement().addEventListener("click", function(event) {
+    var bounds = searchInput.getBoundingClientRect();
+    if (! (event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom)) {
+        furnitureCatalogListPanel.searchInput.blur();
+      }
+  });
+  searchInput.addEventListener("focusin", function(event) {
+    if (!searchInput.classList.contains("expanded")) {
+      searchInput.classList.add("expanded");
+       setTimeout(function() { 
+        if (document.body.scrollTop == 0) {
+          // Device did not scroll automatically, so we have to force it to show the search field
+          window.scrollTo(0, furnitureCatalogListPanel.container.getBoundingClientRect().top); 
+          //var delta = window.innerHeight - document.body.getBoundingClientRect();
+          //window.scrollBy(0, -delta);
+        }
+      }, 100);
+    }
+  });
+  searchInput.addEventListener("focusout", function(event) {
+    if (searchInput.classList.contains("expanded")) {
+      searchInput.classList.remove("expanded");
+    }
+  });
+  filteringDiv.appendChild(searchInput);
+  console.info("adding search field", searchInput);
+
+  // Create catalog
+  for (var i = 0; i < catalog.getCategoriesCount() ; i++) {
     var category = catalog.getCategories()[i];
     var categoryLabel = document.createElement("div");
     categoryLabel.className = "furniture-category-label";
     categoryLabel.innerHTML = category.name;
+    categoryLabel.category = category;
     this.container.appendChild(categoryLabel);
 
-    for (j = 0; j < category.getFurnitureCount(); j++) {
+    for (var j = 0; j < category.getFurnitureCount(); j++) {
       var piece = category.getFurniture()[j];
       var pieceContainer = document.createElement("div");
       pieceContainer.pieceOfFurniture = piece;
@@ -66,11 +134,15 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
       pieceContainer.innerHTML = '<div class="furniture-label">' + piece.name + '</div>';
       this.container.appendChild(pieceContainer);
       this.createPieceOfFurniturePanel(pieceContainer, piece);
+      // Memorize piece & category for filtering
+      pieceContainer.category = category;
+      pieceContainer.piece = piece;
     }
 
     if (i < catalog.getCategoriesCount() - 1) {
       var categorySeparator = document.createElement("div");
       categorySeparator.className = "furniture-category-separator";
+      categorySeparator.category = category;
       this.container.appendChild(categorySeparator);
     }
   }
@@ -118,6 +190,55 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
 /**
  * @private
  */
+FurnitureCatalogListPanel.prototype.findCategoryElements = function(category) {
+  var elements = [];
+  for (var i = 0; i < this.container.childNodes.length; i++) {
+    if (this.container.childNodes[i].category === category) {
+      elements.push(this.container.childNodes[i]);
+    }
+  }
+  return elements;
+}
+
+/**
+ * @private
+ */
+FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, pieceFilter) {
+  // First hide all elements (save display value for further restoring)
+  for (var i = 0; i < this.container.childNodes.length; i++) {
+    if (this.container.childNodes[i].id !== "furniture-filter") {
+      if (this.container.childNodes[i]._displayBackup === undefined) {
+        this.container.childNodes[i]._displayBackup = this.container.childNodes[i].style.display;
+      }
+      this.container.childNodes[i].style.display = "none";
+    }
+  }
+
+  // Unhide all elements that are not filtered out
+  var categories = categoryIndex == null || categoryIndex === 0
+    ? this.catalog.getCategories()
+    : [this.catalog.getCategories()[categoryIndex - 1]];
+  for (var i = 0; i < categories.length ; i++) {
+    var category = categories[i];
+    var furniture = pieceFilter == null?category.getFurniture():category.getFurniture().filter(pieceFilter);
+    if (furniture != null && furniture.length > 0) {
+      var elements = this.findCategoryElements(category);
+      elements.forEach(function(element) {
+        if (element.classList.contains("furniture-category-label") || element.classList.contains("furniture-category-separator")) {
+          element.style.display = element._displayBackup;
+        }
+        if (element.piece && furniture.indexOf(element.piece) !== -1) {
+          element.style.display = element._displayBackup;
+        }
+      });
+    }
+  }
+
+}
+
+/**
+ * @private
+ */
 FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(pieceContainer, piece) {
   var furnitureCatalogListPanel = this;
 
@@ -127,7 +248,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
 
   pieceContainer.addEventListener("mousedown", function() {
     var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
-    for (k = 0; k < furnitureElements.length; k++) {
+    for (var k = 0; k < furnitureElements.length; k++) {
       furnitureElements[k].classList.remove("selected");
     }
     pieceContainer.classList.add("selected");
@@ -142,7 +263,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
           && ev.changedTouches[0].clientX >= containerBounds.left && ev.changedTouches[0].clientX < containerBounds.left + containerBounds.width
           && ev.changedTouches[0].clientY >= containerBounds.top && ev.changedTouches[0].clientY < containerBounds.top + containerBounds.height) {
         var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
-        for (k = 0; k < furnitureElements.length; k++) {
+        for (var k = 0; k < furnitureElements.length; k++) {
           furnitureElements[k].classList.remove("selected");
         }
         pieceContainer.classList.add("selected");

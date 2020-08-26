@@ -299,3 +299,38 @@
   font-size: 11px;
   box-shadow: 2px 2px 4px #777777;
 }
+
+#furniture-filter {
+  width: 100%;
+}
+
+#furniture-category-select {
+  width: 100%;
+}
+
+#furniture-search-field {
+  width: 100%;
+  background: url(search.gif) no-repeat scroll 0px 0px;
+  background-color: #FFFFFFAA;
+  border-width: thin;
+  border-radius: 5px;
+  padding-left: 20px;  
+}
+
+@media (hover: none) {
+  @media (orientation: portrait) {
+    #furniture-category-select {
+      display: none;
+    }
+    #furniture-search-field {
+      width: 25px;
+      position: relative;
+      z-index: 1;
+      margin-bottom: -20px;
+    }
+    #furniture-search-field.expanded {
+      width: 100%;
+      transition: width 1s;      
+    }
+  }
+}
