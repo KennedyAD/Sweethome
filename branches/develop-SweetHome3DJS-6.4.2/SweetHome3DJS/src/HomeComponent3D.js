@@ -840,7 +840,9 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         ev.preventDefault();
       },
       touchStarted : function(ev) {
-        ev.preventDefault();
+        // WARNING: prevent default prevents the focusout event to occur, which is problematic to blur the search field when needed.
+        // Commenting it does not have impacts on iPhone but we should also check other platforms.
+        //ev.preventDefault();
         this.actionStartedInComponent3D = true;
         if (ev.targetTouches.length == 1) {
           userActionsListener.xLastMove = ev.targetTouches [0].pageX;

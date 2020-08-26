@@ -1122,7 +1122,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         ev.preventDefault();
       },
       touchStarted: function(ev) {
-        ev.preventDefault();
+        // WARNING: prevent default prevents the focusout event to occur, which is problematic to blur the search field when needed.
+        // Commenting it does not have impacts on iPhone but we should also check other platforms.
+        //ev.preventDefault();
         if (plan.isEnabled()) {
           mouseListener.updateCoordinates(ev, "touchStarted");
           mouseListener.autoScroll = null;
