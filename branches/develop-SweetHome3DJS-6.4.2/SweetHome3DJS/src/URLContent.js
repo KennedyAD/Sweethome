@@ -237,8 +237,14 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
   } else {
     try {
       var request = new XMLHttpRequest();
-      // Prefer POST method when the request contains parameters to avoid caching result
-      request.open(url.indexOf('?') > 0 ? 'POST' : 'GET', url, !synchronous);
+      var method = 'GET';
+      if (url.indexOf('?') > 0) {
+        // Prefer POST method when the request contains parameters to avoid caching result
+        method = 'POST';
+        var params = url.split('?')[1];
+        url = url.split('?')[0];
+      }
+      request.open(method, url, !synchronous);
       request.responseType = "arraybuffer";
       request.overrideMimeType("application/octet-stream");
       request.addEventListener("readystatechange", 
@@ -271,7 +277,7 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
               zipObserver.progression(ZIPTools.READING, url, ev.loaded / ev.total);
             }
           });
-      request.send();
+      request.send(params);
       ZIPTools.runningRequests.push(request);
     } catch (ex) {
       zipObserver.zipError(ex);
