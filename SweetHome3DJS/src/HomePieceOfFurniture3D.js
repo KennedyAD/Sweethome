@@ -94,8 +94,8 @@ HomePieceOfFurniture3D.prototype.update = function() {
   if (this.isVisible()) {
     this.updatePieceOfFurnitureModelTransformations();
     this.updatePieceOfFurnitureTransform();
-    this.updatePieceOfFurnitureModelMirrored();
     this.updatePieceOfFurnitureColorAndTexture(false);      
+    this.updatePieceOfFurnitureModelMirrored();
   }
   this.updatePieceOfFurnitureVisibility();      
 }
@@ -325,8 +325,8 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureModelNode = function(mode
   }
   // Update piece color, visibility and model mirror in dispatch thread as
   // these attributes may be changed in that thread
-  this.updatePieceOfFurnitureModelMirrored();
   this.updatePieceOfFurnitureColorAndTexture(waitTextureLoadingEnd);      
+  this.updatePieceOfFurnitureModelMirrored();
   this.updatePieceOfFurnitureVisibility();
 }
 
@@ -418,9 +418,6 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
           if (defaultAppearance.getCullFace() !== undefined) {
             appearance.setCullFace(defaultAppearance.getCullFace());
           }
-          if (defaultAppearance.getBackFaceNormalFlip() !== undefined) {
-            appearance.setBackFaceNormalFlip(defaultAppearance.getBackFaceNormalFlip());
-          }
           appearance.setTextureCoordinatesGeneration(defaultAppearance.getTextureCoordinatesGeneration());
           appearance.setTextureImage(null);
         }
@@ -457,9 +454,6 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
               }
               if (defaultAppearance.getCullFace() !== undefined) {
                 appearance.setCullFace(defaultAppearance.getCullFace());
-              }
-              if (defaultAppearance.getBackFaceNormalFlip() !== undefined) {
-                appearance.setBackFaceNormalFlip(defaultAppearance.getBackFaceNormalFlip());
               }
               appearance.setTextureImage(null);
             } else if (color === null && material.getTexture() !== null) {
@@ -573,7 +567,6 @@ HomePieceOfFurniture3D.prototype.restoreDefaultAppearance = function(appearance,
     }
     if (appearance.getCullFace() !== undefined) {
       appearance.setCullFace(defaultAppearance.getCullFace());
-      appearance.setBackFaceNormalFlip(defaultAppearance.isBackFaceNormalFlip());
     }
     if (defaultAppearance.getTextureCoordinatesGeneration() !== undefined) {
       appearance.setTextureCoordinatesGeneration(defaultAppearance.getTextureCoordinatesGeneration());
