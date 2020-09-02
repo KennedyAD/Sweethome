@@ -248,6 +248,7 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
       }
       request.open(method, url, !synchronous);
       request.responseType = "arraybuffer";
+      request.withCredentials = true;
       request.overrideMimeType("application/octet-stream");
       request.addEventListener("readystatechange", 
           function(ev) {

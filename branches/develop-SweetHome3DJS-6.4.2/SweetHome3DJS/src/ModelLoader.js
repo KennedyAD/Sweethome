@@ -198,6 +198,7 @@ ModelLoader.prototype.loadTextureImages = function(node, images, zip, zipUrl, sy
           appearance.setTextureImage(images [imageEntryName]);
         } else { 
           var image = new Image();
+          image.crossOrigin = "anonymous";
           appearance.setTextureImage(image);
           image.url = "jar:" + zipUrl + "!/" + imageEntryName;
           // Store loaded image to avoid duplicates

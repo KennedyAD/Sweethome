@@ -940,6 +940,7 @@ HTMLCanvas3D.prototype.bindTextureAndRepaint = function(texture, bindOnly) {
     context.drawImage(texture.image, 0, 0, texture.image.width, texture.image.height, 0, 0, canvas.width, canvas.height);
 
     var image = new Image();
+    image.crossOrigin = "anonymous";
     image.url = texture.image.url;
     image.transparent = texture.image.transparent;
     var canvas3D = this;
@@ -1381,6 +1382,7 @@ HTMLCanvas3D.prototype.getImage = function(observer) {
   }
   
   var image = new Image();
+  image.crossOrigin = "anonymous";
   var imageLoadingListener;
   if (observer !== undefined) {
     imageLoadingListener = function(ev) {
