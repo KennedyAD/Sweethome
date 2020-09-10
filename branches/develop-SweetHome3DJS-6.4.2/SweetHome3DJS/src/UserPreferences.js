@@ -256,6 +256,7 @@ UserPreferences.prototype.setLanguage = function(language) {
     this.updateDefaultLocale();
     this.resourceBundles = [];
     this.furnitureCatalogResourceBundles = [];
+    this.texturesCatalogResourceBundles = [];
     this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldLanguage, language);
   }
 }
