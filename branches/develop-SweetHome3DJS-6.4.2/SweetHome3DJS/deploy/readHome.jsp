@@ -24,6 +24,9 @@
 <%@ page import="com.eteks.sweethome3d.io.HomeServerRecorder"%>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
+   response.setHeader("Cache-Control","no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0"); // HTTP 1.1
+   response.setHeader("Pragma","no-cache"); // HTTP 1.0
+   response.setDateHeader("Expires", 0);
    String homeName = request.getParameter("home");
 
    if (homeName != null) {
