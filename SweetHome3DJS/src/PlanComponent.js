@@ -1548,7 +1548,7 @@ PlanComponent.prototype.stopIndicatorAnimation = function() {
 }
 
 /**
- * Adds AWT focus listener to this component that calls back <code>controller</code>
+ * Adds focus listener to this component that calls back <code>controller</code>
  * escape method on focus lost event.
  * @param {PlanController} controller
  * @private
