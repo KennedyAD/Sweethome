@@ -1935,7 +1935,7 @@ PlanComponent.prototype.getPlanBounds = function() {
 /**
  * Returns the collection of walls, furniture, rooms and dimension lines of the home
  * painted by this component wherever the level they belong to is selected or not.
- * @return {*[]}
+ * @return {Object[]}
  */
 PlanComponent.prototype.getPaintedItems = function() {
   return this.home.getSelectableViewableItems();
@@ -3012,7 +3012,7 @@ PlanComponent.prototype.getFurnitureOutlineColor = function() {
 /**
  * Paints rooms.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
@@ -3151,7 +3151,7 @@ PlanComponent.isTextureManagerAvailable = function() {
 /**
  * Paints rooms name and area.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
@@ -3264,7 +3264,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
  * Paints the outline of rooms among <code>items</code> and indicators if
  * <code>items</code> contains only one room and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -3536,7 +3536,7 @@ PlanComponent.prototype.getLineCount = function(text) {
 /**
  * Paints walls.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} backgroundColor
  * @param {string} foregroundColor
@@ -3603,7 +3603,7 @@ PlanComponent.prototype.fillAndDrawWallsArea = function(g2D, area, planScale, fi
  * Paints the outline of walls among <code>items</code> and a resize indicator if
  * <code>items</code> contains only one wall and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4240,7 +4240,7 @@ PlanComponent.prototype.paintFurnitureName = function(g2D, furniture, selectedIt
  * Paints the outline of furniture among <code>items</code> and indicators if
  * <code>items</code> contains only one piece and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4559,7 +4559,7 @@ PlanComponent.prototype.paintPieceOFFurnitureIndicators = function(g2D, piece, i
  * Paints polylines.
  * @param {Graphics2D} g2D
  * @param {Polyline[]} polylines
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {string|CanvasPattern} indicatorPaint
  * @param {number} planScale
@@ -4671,7 +4671,7 @@ PlanComponent.prototype.paintArrow = function(g2D, point, angle, arrowStyle, thi
  * Paints dimension lines.
  * @param {Graphics2D} g2D
  * @param {DimensionLine[]} dimensionLines
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4815,7 +4815,7 @@ PlanComponent.prototype.paintDimensionLineResizeIndicator = function(g2D, dimens
  * Paints home labels.
  * @param {Graphics2D} g2D
  * @param {Label[]} labels
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4890,7 +4890,7 @@ PlanComponent.prototype.paintLabels = function(g2D, labels, selectedItems, selec
 /**
  * Paints the compass.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
@@ -4915,7 +4915,7 @@ PlanComponent.prototype.paintCompass = function(g2D, selectedItems, planScale, f
 /**
  * Paints the outline of the compass when it's belongs to <code>items</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -5081,9 +5081,9 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
 
 /**
  * Returns the items viewed in the plan at the selected level.
- * @param {*[]} homeItems
- * @param {*[]} otherLevelItems
- * @return {*[]}
+ * @param {Object[]} homeItems
+ * @param {Object[]} otherLevelItems
+ * @return {Object[]}
  * @private
  */
 PlanComponent.prototype.getViewedItems = function(homeItems, otherLevelItems) {
@@ -5421,7 +5421,7 @@ PlanComponent.prototype.paintAngleFeedback = function(g2D, center, point1, point
 /**
  * Paints the observer camera at its current location, if home camera is the observer camera.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.Stroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -5945,7 +5945,7 @@ PlanComponent.prototype.setAngleFeedback = function(xCenter, yCenter, x1, y1, x2
 /**
  * Sets the feedback of dragged items drawn during a drag and drop operation,
  * initiated from outside of plan view.
- * @param {*[]} draggedItems
+ * @param {Object[]} draggedItems
  */
 PlanComponent.prototype.setDraggedItemsFeedback = function(draggedItems) {
   this.draggedItemsFeedback = draggedItems;
@@ -5980,7 +5980,7 @@ PlanComponent.prototype.deleteFeedback = function() {
 
 /**
  * Returns <code>true</code>.
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {number} x
  * @param {number} y
  * @return {boolean}

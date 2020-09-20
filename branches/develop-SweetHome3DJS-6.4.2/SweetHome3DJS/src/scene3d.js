@@ -1011,10 +1011,10 @@ Appearance3D.prototype.clone = function() {
 
 /**
  * Creates an indexed 3D geometry array.
- * @param {vec3 []} vertices 
- * @param {number []} vertexIndices
- * @param {vec2 []} textureCoordinates
- * @param {number []} textureCoordinateIndices
+ * @param {vec3[]} vertices 
+ * @param {number[]} vertexIndices
+ * @param {vec2[]} textureCoordinates
+ * @param {number[]} textureCoordinateIndices
  * @constructor
  * @author Emmanuel Puybaret
  */
@@ -1043,10 +1043,10 @@ IndexedGeometryArray3D.prototype.disposeCoordinates = function() {
 
 /**
  * Creates the 3D geometry of an indexed line array.
- * @param {vec3 []} vertices 
- * @param {number []} vertexIndices
- * @param {vec2 []} textureCoordinates
- * @param {number []} textureCoordinateIndices
+ * @param {vec3[]} vertices 
+ * @param {number[]} vertexIndices
+ * @param {vec2[]} textureCoordinates
+ * @param {number[]} textureCoordinateIndices
  * @constructor
  * @extends IndexedGeometryArray3D
  * @author Emmanuel Puybaret
@@ -1061,12 +1061,12 @@ IndexedLineArray3D.prototype.constructor = IndexedLineArray3D;
 
 /**
  * Creates the 3D geometry of an indexed triangle array.
- * @param {vec3 []} vertices 
- * @param {number []} vertexIndices
- * @param {vec2 []} textureCoordinates
- * @param {number []} textureCoordinateIndices
- * @param {vec3 []} normals 
- * @param {number []} normalsIndices
+ * @param {vec3[]} vertices 
+ * @param {number[]} vertexIndices
+ * @param {vec2[]} textureCoordinates
+ * @param {number[]} textureCoordinateIndices
+ * @param {vec3[]} normals 
+ * @param {number[]} normalsIndices
  * @constructor
  * @extends IndexedGeometryArray3D
  * @author Emmanuel Puybaret
@@ -1429,7 +1429,7 @@ GeometryInfo3D.POLYGON_ARRAY = 20;
 
 /**
  * Sets the coordinates of the vertices of the geometry.
- * @param {vec3 []} vertices
+ * @param {vec3[]} vertices
  */
 GeometryInfo3D.prototype.setCoordinates = function(vertices) {
   this.vertices = vertices;
@@ -1437,7 +1437,7 @@ GeometryInfo3D.prototype.setCoordinates = function(vertices) {
 
 /**
  * Sets the indices of each vertex of the geometry.
- * @param {vec3 []} coordinatesIndices
+ * @param {vec3[]} coordinatesIndices
  */
 GeometryInfo3D.prototype.setCoordinateIndices = function(coordinatesIndices) {
   this.coordinatesIndices = coordinatesIndices;
@@ -1445,7 +1445,7 @@ GeometryInfo3D.prototype.setCoordinateIndices = function(coordinatesIndices) {
 
 /**
  * Sets the coordinates of the normals of the geometry.
- * @param {vec3 []} normals
+ * @param {vec3[]} normals
  */
 GeometryInfo3D.prototype.setNormals = function(normals) {
   this.normals = normals;
@@ -1453,7 +1453,7 @@ GeometryInfo3D.prototype.setNormals = function(normals) {
 
 /**
  * Sets the indices of each normal of the geometry.
- * @param {vec3 []} normalIndices
+ * @param {vec3[]} normalIndices
  */
 GeometryInfo3D.prototype.setNormalIndices = function(normalIndices) {
   this.normalIndices = normalIndices;
@@ -1461,7 +1461,7 @@ GeometryInfo3D.prototype.setNormalIndices = function(normalIndices) {
 
 /**
  * Sets the texture coordinates of the vertices of the geometry.
- * @param {vec2 []} textureCoordinates
+ * @param {vec2[]} textureCoordinates
  */
 GeometryInfo3D.prototype.setTextureCoordinates = function(textureCoordinates) {
   this.textureCoordinates = textureCoordinates;
@@ -1469,7 +1469,7 @@ GeometryInfo3D.prototype.setTextureCoordinates = function(textureCoordinates) {
 
 /**
  * Sets the indices of texture coordinates of the geometry.
- * @param {vec2 []} textureCoordinateIndices
+ * @param {vec2[]} textureCoordinateIndices
  */
 GeometryInfo3D.prototype.setTextureCoordinateIndices = function(textureCoordinateIndices) {
   this.textureCoordinateIndices = textureCoordinateIndices;
@@ -1477,7 +1477,7 @@ GeometryInfo3D.prototype.setTextureCoordinateIndices = function(textureCoordinat
 
 /**
  * Sets the strip counts of a polygon geometry.
- * @param {number []} stripCounts
+ * @param {number[]} stripCounts
  */
 GeometryInfo3D.prototype.setStripCounts = function(stripCounts) {
   this.stripCounts = stripCounts;
@@ -1485,7 +1485,7 @@ GeometryInfo3D.prototype.setStripCounts = function(stripCounts) {
 
 /**
  * Sets the contour counts of a polygon geometry.
- * @param {number []} contourCounts
+ * @param {number[]} contourCounts
  * @private
  */
 GeometryInfo3D.prototype.setContourCounts = function(contourCounts) {

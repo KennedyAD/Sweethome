@@ -152,7 +152,7 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
  * Reads a home with this recorder.
  * @param {string} homeName the home name on the server 
  *                          or the URL of the home if <code>readHomeURL</code> service is missing 
- * @param {homeLoaded, homeError, progression} observer  callbacks used to follow the reading of the home 
+ * @param {{homeLoaded: function, homeError: function, progression: function}} observer  callbacks used to follow the reading of the home 
  */
 IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
   if (this.configuration !== undefined
@@ -483,7 +483,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
 
 /** 
  * @param {Home} home
- * @return {home, id, edits}
+ * @return {{home: Home, id: UUID, edits: Object[]}}
  * @private 
  */
 IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
@@ -504,7 +504,7 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
 
 /** 
  * @param {Home} home
- * @param {home, id, edits} update
+ * @param {{home: Home, id: UUID, edits: Object[]}} update
  * @private 
  */
 IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
@@ -533,7 +533,7 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
 
 /** 
  * @param {Home} home
- * @param {home, id, edits} update
+ * @param {{home: Home, id: UUID, edits: Object[]}} update
  * @param {number} status
  * @param {string} error
  * @private 
@@ -605,9 +605,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
 
 /**
  * Defines <code>HomeApplication</code> implementation for JavaScript.
- * @param {{furnitureCatalogURLs: [string]
- *          furnitureResourcesURLBase: string
- *          texturesCatalogURLs: [string]
+ * @param {{furnitureCatalogURLs: string[],
+ *          furnitureResourcesURLBase: string,
+ *          texturesCatalogURLs: string[],
  *          texturesResourcesURLBase: string,
  *          readHomeURL: string,
  *          writeHomeEditsURL: string,
