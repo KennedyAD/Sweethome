@@ -52,7 +52,7 @@ CoreTools.loadJSON = function(url) {
 /**
  * Formats a string with the given <code>args</code>.
  * @param {string} formatString a string containing optional place holders (%s, %d)
- * @param {*[]|...*} args an array of arguments to be applied to formatString
+ * @param {Object[]|...Object} args an array of arguments to be applied to formatString
  * @returns the formatted string
  */
 CoreTools.format = function(formatString, args) {

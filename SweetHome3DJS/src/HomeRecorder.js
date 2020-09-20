@@ -37,7 +37,7 @@ HomeRecorder.PARSING_HOME = "Parsing home";
 /**
  * Reads a home instance from its <code>url</code>.
  * @param url  URL of the read home
- * @param {homeLoaded, homeError, progression} observer  The callbacks used to follow the reading of the home 
+ * @param {{homeLoaded: function, homeError: function, progression: function}} observer  The callbacks used to follow the reading of the home 
  */
 HomeRecorder.prototype.readHome = function(url, observer) {
   observer.progression(HomeRecorder.READING_HOME, url, 0);

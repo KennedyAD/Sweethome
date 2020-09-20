@@ -445,7 +445,7 @@ Max3DSLoader.prototype.parseEntryScene = function(max3dsContent, max3dsEntryName
  * @param {Max3DSLoader.ChunksInputStream} input
  * @param {string} max3dsEntryName
  * @param {JSZip}  zip 
- * @param {Max3DSLoader.Mesh3DS []} meshes 
+ * @param {Array.<Max3DSLoader.Mesh3DS>} meshes 
  * @param {Object} meshesGroups
  * @param {Object} materials
  * @param {TransformGroup3D} root
@@ -504,7 +504,7 @@ Max3DSLoader.prototype.parse3DSStream = function(input, max3dsEntryName, zip, me
  * @param {Max3DSLoader.ChunksInputStream} input
  * @param {string} max3dsEntryName
  * @param {JSZip}  zip 
- * @param {Max3DSLoader.Mesh3DS []} meshes
+ * @param {Array.<Max3DSLoader.Mesh3DS>} meshes
  * @param {Object} materials
  * @returns {number} master scale
  * @private
@@ -538,7 +538,7 @@ Max3DSLoader.prototype.parseEditorData = function(input, max3dsEntryName, zip, m
 /**
  * Parses named objects like mesh in the current chunk.
  * @param {Max3DSLoader.ChunksInputStream} input
- * @param {Max3DSLoader.Mesh3DS []} meshes 
+ * @param {Array.<Max3DSLoader.Mesh3DS>} meshes 
  * @param {Object} materials
  * @private
  */
@@ -1223,9 +1223,9 @@ Max3DSLoader.ChunksInputStream.prototype.readString = function() {
 /**
  * Creates a 3DS mesh.
  * @param {string} name, 
- * @param {Point3f []} vertices
- * @param {TexCoord2f []} textureCoordinates
- * @param {Max3DSLoader.Face3DS []} faces
+ * @param {Point3f[]} vertices
+ * @param {TexCoord2f[]} textureCoordinates
+ * @param {Array.<Max3DSLoader.Face3DS>} faces
  * @param {number} color
  * @param {mat4} transform
  * @constructor

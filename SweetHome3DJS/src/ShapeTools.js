@@ -34,7 +34,7 @@ var ShapeTools = {
  * @param {number} thickness
  * @param {Polyline.CapStyle} capStyle
  * @param {Polyline.JoinStyle} joinStyle
- * @param {number []} dashPattern
+ * @param {number[]} dashPattern
  * @param {number} dashOffset
  * @return {Object}
  */

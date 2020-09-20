@@ -608,7 +608,7 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
  * @param {UserPreferences} preferences
  * @param {Object} controller
  * @param {string} method
- * @param {Object...} parameters
+ * @param {...Object} parameters
  * @return {Object}
  * @private
  */
@@ -634,7 +634,7 @@ HomePane.prototype.createAction = function(actionType, preferences, controller, 
  * @param {UserPreferences} preferences
  * @param {Object} controller
  * @param {string} method
- * @param {Object...} parameters
+ * @param {...Object} parameters
  * @return {Object}
  * @private
  */
@@ -1023,7 +1023,7 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
 /**
  * Returns the tool bar displayed in this pane.
  * @param {Home} home
- * @param {UserPreferences preferences}
+ * @param {UserPreferences} preferences
  * @return {Object}
  * @private
  */
@@ -1587,7 +1587,7 @@ HomePane.prototype.showNewHomeFromExampleDialog = function() {
  * if he doesn't want to open damaged home.
  * @param {string} homeName
  * @param {Home} damagedHome
- * @param {*[]} invalidContent
+ * @param {Object[]} invalidContent
  * @ignore
  */
 HomePane.prototype.confirmOpenDamagedHome = function(homeName, damagedHome, invalidContent) {
@@ -1760,7 +1760,7 @@ HomePane.prototype.showUpdatesMessage = function(updatesMessage, showOnlyMessage
 
 /**
  * Shows a print dialog to print the home displayed by this pane.
- * @return {() => any} a print task to execute or <code>null</code> if the user canceled print.
+ * @return {function(): Object} a print task to execute or <code>null</code> if the user canceled print.
  * The <code>call</code> method of the returned task may throw a
  * {@link RecorderException} exception if print failed
  * or an {@link InterruptedRecorderException}
@@ -1888,7 +1888,7 @@ HomePane.prototype.isClipboardEmpty = function() {
 /**
  * Returns the list of selectable items that are currently in clipboard
  * or <code>null</code> if clipboard doesn't contain any selectable item.
- * @return {*[]}
+ * @return {Object[]}
  */
 HomePane.prototype.getClipboardItems = function() {
   return this.clipboard;
