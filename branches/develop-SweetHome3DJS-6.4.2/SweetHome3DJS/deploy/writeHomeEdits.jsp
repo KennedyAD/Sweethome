@@ -27,6 +27,7 @@
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
    String homeName = request.getParameter("home");
+   String updateId = request.getParameter("updateId");
    String jsonEdits = request.getParameter("edits");
    URL serverBaseUrl = new URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath() + "/");
    int count = 0;
@@ -48,13 +49,23 @@
          getServletContext().setAttribute("serverUserPreferences", serverUserPreferences);
        }
 
+       // Reading a given home then saving it can't be done in two different threads at the same moment   
        synchronized (homeFile.getCanonicalPath().intern()) {
-         // Reading a given home then saving it can't be done in two different threads at the same moment   
-         HomeServerRecorder recorder = new HomeServerRecorder(homeFile, serverUserPreferences);
-         HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString());
-         List<UndoableEdit> edits = deserializer.deserializeEdits(jsonEdits);
-         count = deserializer.applyEdits(edits);
-         recorder.writeHome(homeFile, 0);
+         if (updateId.equals(request.getSession().getAttribute("lastUpdateId"))) {
+           // If the same update is requested, ignore it and return last count  
+           count = (Integer)request.getSession().getAttribute("lastEditCount");
+         } else {
+           HomeServerRecorder recorder = new HomeServerRecorder(homeFile, serverUserPreferences);
+           HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString());
+           List<UndoableEdit> edits = deserializer.deserializeEdits(jsonEdits);
+           count = deserializer.applyEdits(edits);
+           recorder.writeHome(homeFile, 0);
+           
+           // Store update id and edit count to avoid excuting the same update twice 
+           // (it looks like some browsers, mainly Chrome 85.0.4183.121, may send the same request twice) 
+           request.getSession().setAttribute("lastUpdateId", updateId);
+           request.getSession().setAttribute("lastEditCount", count);
+         }
        }
 %>
 { "result": <%= count %> }
