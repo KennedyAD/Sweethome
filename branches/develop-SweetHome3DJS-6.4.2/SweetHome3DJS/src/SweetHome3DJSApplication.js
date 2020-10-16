@@ -624,7 +624,7 @@ function SweetHome3DJSApplication(params) {
   var application = this;
   this.addHomesListener(function(ev) {
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        var homeController = this.application.createHomeController(ev.getItem());
+        var homeController = application.createHomeController(ev.getItem());
         application.homeControllers.push(homeController); 
         application.getHomeRecorder().addHome(ev.getItem());
         homeController.getView();
