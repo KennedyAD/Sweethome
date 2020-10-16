@@ -262,34 +262,34 @@ function HomePane(containerId, home, preferences, controller) {
     });
 
   // Create level selector
-  var levelSelector = document.createElement("select");
-  levelSelector.id = "level-selector";
-  levelSelector.style.display = "inline";
-  levelSelector.style.position = "absolute";
-  planComponent.getHTMLElement().appendChild(levelSelector);
+  homePane.levelSelector = document.getElementById("level-selector");
 
   var updateLevels = function() {
-      levelSelector.innerHTML = "";
-      if (home.getLevels().length < 2) {
-        levelSelector.style.display = "none";
-      } else {
-        for (var i = 0; i < home.getLevels().length; i++) {
-          var option = document.createElement("option");
-          option.value = i;
-          option.innerHTML = home.getLevels()[i].getName();
-          if (home.getLevels()[i] === home.getSelectedLevel()) {
-            option.selected = "selected";
+	  if (homePane.levelSelector) {
+        homePane.levelSelector.innerHTML = "";
+        if (home.getLevels().length < 2) {
+          homePane.levelSelector.style.display = "none";
+        } else {
+          for (var i = 0; i < home.getLevels().length; i++) {
+            var option = document.createElement("option");
+            option.value = i;
+            option.innerHTML = home.getLevels()[i].getName();
+            if (home.getLevels()[i] === home.getSelectedLevel()) {
+              option.selected = "selected";
+            }
+            homePane.levelSelector.appendChild(option);
           }
-          levelSelector.appendChild(option);
+          homePane.levelSelector.style.display = "inline";
         }
-        levelSelector.style.display = "inline";
-      }
+	  }
     };
   updateLevels();
-  levelSelector.addEventListener('change', function(ev) {
-      home.setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
-      updateLevels();
-    });
+  if (homePane.levelSelector) {
+    homePane.levelSelector.addEventListener('change', function(ev) {
+        home.setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
+        updateLevels();
+      });
+  }
   home.addPropertyChangeListener(Home.SELECTED_LEVEL, function() {
       updateLevels();
     });
