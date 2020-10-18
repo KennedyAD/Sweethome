@@ -265,7 +265,7 @@ function HomePane(containerId, home, preferences, controller) {
   homePane.levelSelector = document.getElementById("level-selector");
 
   var updateLevels = function() {
-	  if (homePane.levelSelector) {
+	    if (homePane.levelSelector) {
         homePane.levelSelector.innerHTML = "";
         if (home.getLevels().length < 2) {
           homePane.levelSelector.style.display = "none";
@@ -281,7 +281,7 @@ function HomePane(containerId, home, preferences, controller) {
           }
           homePane.levelSelector.style.display = "inline";
         }
-	  }
+	    }
     };
   updateLevels();
   if (homePane.levelSelector) {
