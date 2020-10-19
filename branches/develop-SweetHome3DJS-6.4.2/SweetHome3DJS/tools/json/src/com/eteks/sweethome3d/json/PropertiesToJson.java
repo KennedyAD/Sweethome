@@ -89,8 +89,8 @@ public class PropertiesToJson {
           new String [] {sourcePropertyFile}, // Source properties file
           args [2],                   // Output directory
           args [3],                   // Output name
-          null,                       // Resources output directory
-          args [4],
+          null,
+          args [4],                   // Resources output directory
           args.length > 5 ? Boolean.parseBoolean(args [5]) : false, supportedLanguages);
     } else {
       String    sourceRoot = "../SweetHome3D/src";
