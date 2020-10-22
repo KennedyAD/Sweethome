@@ -62,7 +62,7 @@
            recorder.writeHome(homeFile, 0);
            
            // Store update id and edit count to avoid excuting the same update twice 
-           // (it looks like some browsers, mainly Chrome 85.0.4183.121, may send the same request twice) 
+           // (it looks like some browsers, mainly Chrome, may send the same request twice) 
            request.getSession().setAttribute("lastUpdateId", updateId);
            request.getSession().setAttribute("lastEditCount", count);
          }
