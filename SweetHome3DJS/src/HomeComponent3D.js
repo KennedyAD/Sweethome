@@ -1008,7 +1008,11 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
   var component3D = this;
   this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
-        component3D.callAction(KeyStroke.getKeyStrokeForEvent(ev, "keydown"), ev);
+        component3D.callAction(ev, "keydown");
+      }, false);
+  this.canvas3D.getHTMLElement().addEventListener("keyup", 
+      function(ev) {
+        component3D.callAction(ev, "keyup");
       }, false);
 }
 
@@ -1016,7 +1020,8 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
  * Runs the action bound to the key stroke in parameter.
  * @private 
  */
-HomeComponent3D.prototype.callAction = function(keyStroke, ev) {
+HomeComponent3D.prototype.callAction = function(ev, keyType) {
+  var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, keyType);
   if (keyStroke !== undefined) {
     var actionKey = this.inputMap [keyStroke];
     if (actionKey !== undefined) {
@@ -1130,7 +1135,8 @@ HomeComponent3D.prototype.getClosestItemAt = function(x, y) {
          && !(node instanceof Object3DBranch)) {
     node = node.getParent();
   }
-  if (node != null) {
+  if (node != null
+      && !(node.getUserData() instanceof Home)) {
     return node.getUserData();
   } else {
     return null;
