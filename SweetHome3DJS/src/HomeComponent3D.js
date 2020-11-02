@@ -46,6 +46,7 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
       ? object3dFactory
       : new Object3DBranchFactory();
   this.homeObjects = [];
+  this.homeObjects3D = [];
   this.sceneLights = [];
   this.camera = null;
   this.windowSizeListener = null;
@@ -1131,13 +1132,13 @@ HomeComponent3D.prototype.getInputMap = function() {
  */
 HomeComponent3D.prototype.getClosestItemAt = function(x, y) {
   var node = this.canvas3D.getClosestShapeAt(x, y);
+  var homeObjectIndex = -1;
   while (node !== null
-         && !(node instanceof Object3DBranch)) {
+         && (homeObjectIndex = this.homeObjects3D.indexOf(node)) < 0) {
     node = node.getParent();
   }
-  if (node != null
-      && !(node.getUserData() instanceof Home)) {
-    return node.getUserData();
+  if (node != null) {
+    return this.homeObjects [homeObjectIndex];
   } else {
     return null;
   }
@@ -1961,6 +1962,7 @@ HomeComponent3D.prototype.addObject = function(group, homeObject, index,
   if (listenToHomeUpdates) {
     homeObject.object3D = object3D;
     this.homeObjects.push(homeObject);
+    this.homeObjects3D.push(object3D);
   }
   if (index === -1) {
     group.addChild(object3D);
@@ -1998,7 +2000,9 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
   if (homeObject.object3D) {
     homeObject.object3D.detach();
     delete homeObject.object3D;
-    this.homeObjects.splice(this.homeObjects.indexOf(homeObject), 1);
+    var objectIndex = this.homeObjects.indexOf(homeObject);
+    this.homeObjects.splice(objectIndex, 1);
+    this.homeObjects3D.splice(objectIndex, 1);
     if (this.homeObjectsToUpdate) {
       var index = this.homeObjectsToUpdate.indexOf(homeObject);
       if (index >= 0) {
