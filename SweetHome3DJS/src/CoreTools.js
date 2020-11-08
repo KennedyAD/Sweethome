@@ -82,6 +82,17 @@ CoreTools.format = function(formatString, args) {
 }
 
 /**
+ * Returns the given <code>string</code> without accents. For example, <code>éèâ</code> 
+ * returns <code>eea</code>.
+ * @param {string} a string containing accents
+ * @returns the string with all the accentuated characters substituted with the corresponding 
+ * un-accentuated characters  
+ */
+CoreTools.removeAccents = function(string) {
+  return string == null ? string : string.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/**
  * Loads resource bundles for a given base URL and a given language.
  *
  * @param baseURL the base URL of the localized resource to be loaded
