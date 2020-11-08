@@ -62,11 +62,13 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.searchInput = searchInput;
   var filterChangeHandler = function() {
     console.info("change ", categorySelector.value, searchInput.value);
+	var valueToSearch = CoreTools.removeAccents(searchInput.value);
     furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
-      if (searchInput.value == null || searchInput.value === "") {
+      if (valueToSearch == null || valueToSearch === "") {
         return true;
       }
-      return RegExp(".*" + searchInput.value + ".*", "i").test(piece.name);
+      var pieceDescriptor = CoreTools.removeAccents(piece.name + "-" + piece.getCreator() + piece.getTags().join("-"));
+      return RegExp(".*" + valueToSearch + ".*", "i").test(pieceDescriptor);
     });
   }
   categorySelector.id = "furniture-category-select";
@@ -115,7 +117,6 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
     }
   });
   filteringDiv.appendChild(searchInput);
-  console.info("adding search field", searchInput);
 
   // Create catalog
   for (var i = 0; i < catalog.getCategoriesCount() ; i++) {
