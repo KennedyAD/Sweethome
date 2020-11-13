@@ -69,6 +69,8 @@
 <script type="text/javascript" src="src/DefaultFurnitureCatalog.js"></script>
 <script type="text/javascript" src="src/DefaultTexturesCatalog.js"></script>
 <script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
+<script type="text/javascript" src="src/dialog.js"></script>
+<script type="text/javascript" src="src/JSViewFactory.js"></script>
 <script type="text/javascript" src="src/SweetHome3DJSApplication.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
@@ -1563,6 +1565,11 @@ testHome();
 
   <div id="furniture-catalog"></div>
 
+</div>
+
+<div id="home-furniture-dialog" class="dialog-template">
+  <p>${HomeFurniturePanel.colorRadioButton.text}</p>
+  <input type="color" name="color" value="#e66465">
 </div>
 
 <script type="text/javascript">

@@ -115,16 +115,16 @@ JSViewFactory.prototype.createLevelView = function(preferences, levelController)
 }
 
 JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurnitureController) {
-  return {
-    displayView: function(parent) {
-      JSViewFactory.displayColorPicker(homeFurnitureController.getColor(),
-        function(selectedColor) {
-          homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
-          homeFurnitureController.setColor(selectedColor);
-          homeFurnitureController.modifyFurniture();
-        });
-    }
-  };
+  return new JSDialogView(preferences, "#home-furniture-dialog", function(dialog) {
+    var currentColor = homeFurnitureController.getColor();
+    dialog.getInput('color').value = currentColor != null && currentColor != 0
+      ? ColorTools.integerToHexadecimalString(currentColor)
+      : "#010101"; // Color different from black required on some browsers
+  }, function(dialog) {
+    homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
+    homeFurnitureController.setColor(ColorTools.hexadecimalStringToInteger(dialog.getInput('color').value));
+    homeFurnitureController.modifyFurniture();
+  });
 }
 
 JSViewFactory.prototype.createWallView = function(preferences, wallController) {
