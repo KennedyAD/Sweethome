@@ -115,15 +115,16 @@ JSViewFactory.prototype.createLevelView = function(preferences, levelController)
 }
 
 JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurnitureController) {
-  return new JSDialogView(preferences, "#home-furniture-dialog", function(dialog) {
-    var currentColor = homeFurnitureController.getColor();
-    dialog.getInput('color').value = currentColor != null && currentColor != 0
-      ? ColorTools.integerToHexadecimalString(currentColor)
-      : "#010101"; // Color different from black required on some browsers
-  }, function(dialog) {
-    homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
-    homeFurnitureController.setColor(ColorTools.hexadecimalStringToInteger(dialog.getInput('color').value));
-    homeFurnitureController.modifyFurniture();
+  return new JSDialogView(preferences, "#home-furniture-dialog", {
+    initializer: function(dialog) {
+      dialog.colorSelector = new JSColorSelector(preferences, dialog.getElement('color-selector'));
+      dialog.colorSelector.set(homeFurnitureController.getColor());
+    }, 
+    applier: function(dialog) {
+      homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
+      homeFurnitureController.setColor(dialog.colorSelector.get());
+      homeFurnitureController.modifyFurniture();
+    }
   });
 }
 
