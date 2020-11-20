@@ -114,17 +114,66 @@ JSViewFactory.prototype.createLevelView = function(preferences, levelController)
   return dummyDialogView;
 }
 
+/**
+ * 
+ * @param {UserPreferences} preferences 
+ * @param {HomeFurnitureController} homeFurnitureController 
+ */
 JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurnitureController) {
-  return new JSDialogView(preferences, "#home-furniture-dialog", {
+  var viewFactory = this;
+  // TODO LOUIS create a dedicated dialog impl
+  return new JSDialogView(viewFactory, preferences, document.getElementById("home-furniture-dialog-template"), {
     initializer: function(dialog) {
-      dialog.colorSelector = new JSColorSelector(preferences, dialog.getElement('color-selector'));
+      // TODO get through viewFactory
+      dialog.colorSelector = new JSColorSelectorButton(viewFactory, preferences, dialog.getElement('color-selector-button'), {
+        onColorSelected: function(color) {
+          dialog.radioButtons[HomeFurnitureController.FurniturePaint.COLORED].checked = true;
+          homeFurnitureController.setPaint(HomeFurnitureController.FurniturePaint.COLORED);
+          homeFurnitureController.setColor(color);
+        }
+      });
       dialog.colorSelector.set(homeFurnitureController.getColor());
-    }, 
+      
+      // TODO get through viewFactory
+      dialog.textureSelector = new JSTextureSelectorButton(viewFactory, preferences, homeFurnitureController.getTextureController(), dialog.getElement('texture-selector-button'));
+      
+      var selectedPaint = homeFurnitureController.getPaint();
+
+      dialog.radioButtons = {};
+      dialog.radioButtons[HomeFurnitureController.FurniturePaint.DEFAULT] = dialog.getRootNode().querySelector('[name="color-and-texture-choice"][value="default"]');
+      dialog.radioButtons[HomeFurnitureController.FurniturePaint.COLORED] = dialog.getRootNode().querySelector('[name="color-and-texture-choice"][value="color"]');
+      dialog.radioButtons[HomeFurnitureController.FurniturePaint.TEXTURED] = dialog.getRootNode().querySelector('[name="color-and-texture-choice"][value="texture"]');
+      
+      var radioButtonsArray = [];
+      for (var paint in dialog.radioButtons) {
+        paint = parseInt(paint); // converts from string to FurniturePaint
+        var radioButton = dialog.radioButtons[paint];
+        radioButton.dataset['paint'] = paint;
+        radioButtonsArray.push(radioButton);
+        if (paint == selectedPaint || paint == HomeFurnitureController.FurniturePaint.DEFAULT && !dialog.radioButtons[selectedPaint]) {
+          radioButton.checked = true;
+        } else {
+          radioButton.checked = false;
+        }
+      }
+
+      dialog.registerEventListener(
+        radioButtonsArray, 
+        'change', 
+        function(event) { 
+          var selectedPaint = parseInt(event.target.dataset['paint']);
+          homeFurnitureController.setPaint(selectedPaint);
+        });
+    },
     applier: function(dialog) {
-      homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
-      homeFurnitureController.setColor(dialog.colorSelector.get());
       homeFurnitureController.modifyFurniture();
+    },
+    disposer: function(dialog) {
+      dialog.colorSelector.dispose();
+      dialog.textureSelector.dispose();
     }
+  }, {
+    title: '${HomeFurniturePanel.homeFurniture.title}'
   });
 }
 
@@ -220,7 +269,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, home3
 }
 
 JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureChoiceController) {
-  return null;
+  return new JSTextureSelectorDialog(this, preferences, textureChoiceController);
 }
 
 JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, baseboardChoiceController) {

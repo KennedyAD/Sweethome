@@ -297,6 +297,27 @@ CoreTools.intersection = function(array1, array2) {
     });  
 }
 
+/**
+ * Debounce the given function for the given milliseconds. 
+ * This means that the resulting function will trigger actionFunction after the given wait, 
+ * and start over the timer if called again before timeout is reached.
+ * 
+ * @param {function} actionFunction function to be called after wait
+ * @param {number} waitMillis wait time in milliseconds
+ */
+CoreTools.debounce = function(actionFunction, waitMillis) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			actionFunction.apply(context, args);
+		};
+		clearTimeout(timeout);
+		timeout = setTimeout(later, waitMillis);
+	};
+};
+
 
 /**
  * Utilities for colors.
