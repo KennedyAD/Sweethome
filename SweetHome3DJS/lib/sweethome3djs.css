@@ -361,29 +361,267 @@
   overflow: auto;
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.4);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Modal Content/Box */
 .dialog-content {
   background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
   border: 1px solid #888;
+  margin: 15% auto; /* 15% from the top and centered */
   width: 80%; /* Could be more or less, depending on screen size */
+  position: relative;
+}
+
+.dialog-content .dialog-title {
+  text-align: center;
+  min-height: 2rem;
+  line-height: 1.6rem;
+  font-size: 1.2rem;
+  padding: 0.4rem 0;
+  box-sizing: border-box;
 }
 
 /* The Close Button */
-.dialog-close-button {
+.dialog-content .dialog-close-button {
   color: #aaa;
-  float: right;
+  position: absolute;
+  top: 0.15em;
+  right: 0.3em;
   font-size: 28px;
   font-weight: bold;
 }
 
-.dialog-close-button:hover,
-.dialog-close-button:focus {
+.dialog-content .dialog-close-button:hover,
+.dialog-content .dialog-close-button:focus {
   color: black;
   text-decoration: none;
   cursor: pointer;
 }
 
+.dialog-body {
+  padding: 2rem;
+  padding-top: 0;
+}
+
+.dialog-body .columns-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 1em;
+  column-gap: 0.2em;
+}
+
+/*********************************/
+/* HomeFurnitureDialog           */
+/*********************************/
+
+#home-furniture-dialog label {
+  cursor: pointer;
+}
+
+#home-furniture-dialog .color-and-texture-panel {
+  display: grid;
+  grid-template-columns: max-content auto;
+  row-gap: 1em;
+  column-gap: 0.2em;
+}
+
+.color-and-texture-panel > div {
+  align-items: start;
+}
+
+/**********************************/
+/** COLOR PICKER                 **/
+/**********************************/
+.color-button {
+  width: 3rem;
+  height: 1.5rem;
+}
+
+.color-button:not([disabled]) {
+  cursor: pointer;
+}
+
+.color-button .color-overview {
+  border: solid 1px black;
+  width: 50%;
+  height: 80%;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.color-selector .picker,
+.color-selector .custom-colors {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-gap: 0.5em;
+  grid-auto-rows: minmax(2em, auto);
+  min-height: 2em;
+}
+
+.color-selector .picker > div,
+.color-selector .custom-colors > div {
+  opacity: 0.7;
+  position: relative;
+}
+
+.color-selector .picker > div.selected,
+.color-selector .picker > div:hover,
+.color-selector .custom-colors > div.selected,
+.color-selector .custom-colors > div:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.color-selector .picker .selected::after,
+.color-selector .custom-colors .selected::after {
+  content: '✅';
+  display: block;
+  position: absolute;
+  top: 0.5em;
+  right: 0.2em;
+  line-height: 1em;
+}
+
+.color-selector .custom-color-editor {
+  position: relative;
+}
+
+.color-selector .custom-color-editor::before {
+  content: '#';
+  position: absolute;
+  color: gray;
+  left: 0.3em;
+  display: block;
+  line-height: 2em;
+}
+
+.color-selector .custom-color-editor input {
+  padding-left: 1em;
+  margin-bottom: 1em;
+  line-height: 2em;
+}
+
+.color-selector .custom-color-editor .overview {
+  width: 2em;
+  height: 2em;
+  display: inline-block;
+  vertical-align: middle;
+  background-color: black;
+}
+
+.color-selector .custom-color-editor button:not([disabled]) {
+  cursor: pointer;
+  line-height: 2em;
+}
+
+/**********************************/
+/** TEXTURE PICKER               **/
+/**********************************/
+.texture-button {
+  width: 3rem;
+  height: 1.5rem;
+}
+
+.texture-button:not([disabled]) {
+  cursor: pointer;
+}
+
+.texture-button .texture-overview {
+  border: solid 1px black;
+  width: 50%;
+  height: 80%;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.texture-selector-dialog .texture-search {
+  position: relative;
+}
+
+.texture-selector-dialog .texture-search::before {
+  content: '🔍';
+  position: absolute;
+  top: 0.2em;
+  left: 0.5em;
+  line-height: 2em;
+}
+
+.texture-selector-dialog .texture-search input {
+  width: 100%;
+  line-height: 2em;
+  padding-left: 2em;
+  font-size: 1em;
+  margin-bottom: 0.2em;
+}
+
+.texture-selector-dialog .texture-catalog-list .item {
+  margin: 0.1em;
+  padding: 0.1em 0;
+}
+
+.texture-selector-dialog .texture-catalog-list .item.hidden {
+  display: none;
+}
+
+.texture-selector-dialog .texture-catalog-list .item:hover,
+.texture-selector-dialog .texture-catalog-list .item.selected {
+  background-color: rgba(200, 200, 200, 0.5);
+  cursor: pointer;
+}
+
+.texture-selector-dialog .texture-catalog-list .item img {
+  width: 10%;
+  object-fit: cover;
+  height: 1.3em;
+  margin-right: 0.5em;
+  vertical-align: middle;
+  max-width: 2em;
+}
+
+.texture-selector-dialog .selected-texture-overview {
+  margin: 0 auto;
+  border: solid 1px gray;
+  margin-bottom: 1em;
+  background-color: #EEEEEE;
+  
+  /* css trick to create a square: padding bottom uses width percentage.. */
+  width: 60%;
+  height: 0;
+  padding-bottom: 60%;
+  position: relative;
+
+  overflow: hidden;
+}
+
+.texture-selector-dialog .selected-texture-overview > div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-position: center center;
+  background-size: contain;
+  background-repeat: repeat-x;
+}
+
+.texture-selector-dialog .selected-texture-config {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 1em;
+  column-gap: 0.2em;
+}
+
+.texture-selector-dialog .selected-texture-config input {
+  width: 100%;
+}
+
+.texture-selector-dialog .selected-texture-config :nth-child(odd) {
+  text-align: right;
+}
+
+.texture-selector-dialog .selected-texture-config :nth-child(even) {
+  text-align: left;
+}

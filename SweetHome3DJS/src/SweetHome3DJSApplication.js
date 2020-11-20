@@ -670,5 +670,14 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
 }
 
 SweetHome3DJSApplication.prototype.createHomeController = function(home) {
-  return new HomeController(home, this, this.getViewFactory());
+  return new HomeController(home, this, this.getViewFactory(), this.getContentManager());
+}
+
+SweetHome3DJSApplication.prototype.getContentManager = function() {
+  // TODO RENAUD
+  return {
+    constructor: { 
+      "__interfaces": "com.eteks.sweethome3d.viewcontroller.ContentManager"
+    }
+  };
 }

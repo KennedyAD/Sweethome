@@ -1567,9 +1567,36 @@ testHome();
 
 </div>
 
-<div id="home-furniture-dialog" class="dialog-template">
-  <p>${HomeFurniturePanel.colorRadioButton.text}</p>
-  <div data-name="color-selector"></div>
+<div id="home-furniture-dialog-template" class="dialog-template">
+  
+  <div id="home-furniture-dialog">
+
+    <div class="color-and-texture-panel">
+      <div>
+        <label>
+          <input type="radio" name="color-and-texture-choice" value="default">
+          ${HomeFurniturePanel.defaultColorAndTextureRadioButton.text}
+        </label>
+      </div>
+      <div></div>
+
+      <div>
+        <label>
+          <input type="radio" name="color-and-texture-choice" value="color">
+          ${HomeFurniturePanel.colorRadioButton.text}
+        </label>
+      </div>
+      <div data-name="color-selector-button"></div>
+
+      <div>
+        <label>
+          <input type="radio" name="color-and-texture-choice" value="texture">
+          ${HomeFurniturePanel.textureRadioButton.text}
+        </label>
+      </div>
+      <div data-name="texture-selector-button"></div>
+    </div>
+  </div>
 </div>
 
 <script type="text/javascript">
@@ -1613,7 +1640,8 @@ application.getHomeRecorder().readHome(homeName,
       homeLoaded: function(home) {
         home.setName(homeName);
         application.addHome(home);
-        setTimeout(testHomeModifications, 1000);
+        
+        // setTimeout(testHomeModifications, 1000);
       },
       homeError: function(err) {
         console.error(err);
