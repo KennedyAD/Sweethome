@@ -298,7 +298,7 @@ CoreTools.intersection = function(array1, array2) {
 }
 
 /**
- * Debounce the given function for the given milliseconds. 
+ * Debounces the given function for the given milliseconds. 
  * This means that the resulting function will trigger actionFunction after the given wait, 
  * and start over the timer if called again before timeout is reached.
  * 

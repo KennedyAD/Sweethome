@@ -77,14 +77,14 @@ JSComponentView.prototype.buildHtmlFromTemplate = function(templateHtml) {
 }
 
 /**
- * Gets the root node of this component.
+ * Returns the root node of this component.
  */
 JSComponentView.prototype.getRootNode = function() {
   return this.rootNode;
 }
 
 /**
- * Gets the view factory.
+ * Returns the view factory.
  */
 JSComponentView.prototype.getViewFactory = function() {
   return this.viewFactory;
@@ -134,7 +134,7 @@ JSComponentView.prototype.unregisterEventListeners = function() {
 }
 
 /**
- * Gets the named element that corresponds to the given name within this component.
+ * Returns the named element that corresponds to the given name within this component.
  * A named element shall define the 'name' attribute (for instance an input), or 
  * a 'data-name' attribute if the name attribue is not supported.
  */
@@ -167,7 +167,7 @@ JSComponentView.prototype.dispose = function() {
 };
 
 /**
- * Gets the value of this component if available.
+ * Returns the value of this component if available.
  */
 JSComponentView.prototype.get = function() {
   if (this.getter != null) {
@@ -243,28 +243,28 @@ JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
 }
 
 /**
- * Gets the input that corresponds to the given name within this dialog.
+ * Returns the input that corresponds to the given name within this dialog.
  */
 JSDialogView.prototype.getInput = function(name) {
   return this.rootNode.querySelector('[name="' + name + '"]');
 }
 
 /**
- * Gets the OK button of this dialog.
+ * Returns the OK button of this dialog.
  */
 JSDialogView.prototype.getOKButton = function() {
   return this.rootNode.querySelector('.dialog-ok-button');
 }
 
 /**
- * Gets the cancel button of this dialog.
+ * Returns the cancel button of this dialog.
  */
 JSDialogView.prototype.getCancelButton = function() {
   return this.rootNode.querySelector('.dialog-cancel-button');
 }
 
 /**
- * Gets the close button of this dialog.
+ * Returns the close button of this dialog.
  */
 JSDialogView.prototype.getCloseButton = function() {
   return this.rootNode.querySelector('.dialog-close-button');
@@ -444,7 +444,7 @@ JSColorSelector.prototype.onColorTileClicked = function(tileElement) {
 };
 
 /**
- * Gets color as RGB number from tile element
+ * Returns color as RGB number from tile element
  * @param {HTMLElement} tileElement
  * @return color as RGB number
  * @private
