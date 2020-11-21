@@ -353,7 +353,7 @@
 .dialog-container {
   display: none;
   position: fixed;
-  z-index: 1;
+  z-index: 200;
   left: 0;
   top: 0;
   width: 100%;
@@ -361,6 +361,7 @@
   overflow: auto;
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.4);
+  font-size: 12px;
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -368,27 +369,36 @@
 .dialog-content {
   background-color: #fefefe;
   border: 1px solid #888;
-  margin: 15% auto; /* 15% from the top and centered */
-  width: 80%; /* Could be more or less, depending on screen size */
+  margin: 10% auto;
+  max-height: 80%;
+  width: 80%;
   position: relative;
+}
+
+@media (max-width: 800px) {
+	.dialog-content {
+    margin: 0px;
+	  height: 100%;
+    max-height: 100%;
+	  width: 100%;
+	}
 }
 
 .dialog-content .dialog-title {
   text-align: center;
-  min-height: 2rem;
-  line-height: 1.6rem;
-  font-size: 1.2rem;
-  padding: 0.4rem 0;
+  height: 40px;
+  line-height: 40px;
   box-sizing: border-box;
+  border-bottom: lightgrey solid 2px;
 }
 
 /* The Close Button */
 .dialog-content .dialog-close-button {
   color: #aaa;
   position: absolute;
-  top: 0.15em;
-  right: 0.3em;
-  font-size: 28px;
+  top: 2px;
+  right: 5px;
+  font-size: 30px;
   font-weight: bold;
 }
 
@@ -400,17 +410,44 @@
 }
 
 .dialog-body {
-  padding: 2rem;
-  padding-top: 0;
+  padding: 2em;
+  padding-top: 1em;
+  overflow: scroll;
+  max-height: calc(80% /* max content height */ - 80px /* title and buttons */ - 4em /* body padding */);
+}
+
+@media (max-width: 800px) {
+  .dialog-body {
+    max-height: 100%;
+    height: calc(100% /* max content height */ - 80px /* title and buttons */ - 4em /* body padding */);
+  }
 }
 
 .dialog-body .columns-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  row-gap: 1em;
-  column-gap: 0.2em;
+   display: block;
 }
 
+@media (min-width: 600px) {
+	.dialog-body .columns-2 {
+	  display: grid;
+	  grid-template-columns: 1fr 1fr;
+	  row-gap: 1em;
+	  column-gap: 0.2em;
+	}
+}
+
+.dialog-content .dialog-buttons {
+	border-top: lightgrey solid 2px; 
+  padding-left: 1em;
+  padding-right: 1em;
+  height: 40px;
+}
+
+.dialog-content .dialog-buttons button {
+	padding: 5px;
+  font-size: 1em;
+}
+	
 /*********************************/
 /* HomeFurnitureDialog           */
 /*********************************/
@@ -455,7 +492,7 @@
 .color-selector .custom-colors {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  grid-gap: 0.5em;
+  grid-gap: 0em;
   grid-auto-rows: minmax(2em, auto);
   min-height: 2em;
 }
@@ -474,14 +511,12 @@
   cursor: pointer;
 }
 
-.color-selector .picker .selected::after,
-.color-selector .custom-colors .selected::after {
-  content: '✅';
-  display: block;
-  position: absolute;
-  top: 0.5em;
-  right: 0.2em;
-  line-height: 1em;
+.color-selector div {
+  border: white solid 2px;
+}
+
+.color-selector div.selected {
+  border: grey solid 2px;
 }
 
 .color-selector .custom-color-editor {
@@ -557,9 +592,14 @@
   margin-bottom: 0.2em;
 }
 
+.texture-selector-dialog .texture-catalog-list {
+  overflow: scroll;
+}
+
 .texture-selector-dialog .texture-catalog-list .item {
   margin: 0.1em;
   padding: 0.1em 0;
+  white-space: nowrap;
 }
 
 .texture-selector-dialog .texture-catalog-list .item.hidden {

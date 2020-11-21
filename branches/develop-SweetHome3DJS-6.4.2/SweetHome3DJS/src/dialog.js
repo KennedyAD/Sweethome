@@ -189,21 +189,23 @@ JSComponentView.prototype.set = function(value) {
  *
  * @param {JSViewFactory} viewFactory the view factory
  * @param preferences      the current user preferences
+ * @param {string} title the dialog's title (may contain HTML)
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
  * for the root node)
  * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView)}} [behavior]
  * - initializer: an optional initialization function
  * - applier: an optional dialog application function
  * - disposer: an optional dialog function to release associated resources, listeners, ...
- * @param {{title?: string}} [options]
  * @constructor
  * @author Renaud Pawlak
  */
-function JSDialogView(viewFactory, preferences, template, behavior, options) {
-  if (typeof options == 'object') {
-    this.title = options.title;
+function JSDialogView(viewFactory, preferences, title, template, behavior) {
+  if (title != null) {
+    this.title = JSComponentView.substituteWithLocale(preferences, title || '');
   }
-  this.title = JSComponentView.substituteWithLocale(preferences, this.title || '');
+  if (behavior != null) {
+    this.applier = behavior.applier;
+  }
 
   JSComponentView.call(this, viewFactory, preferences, template, behavior);
   this.rootNode.classList.add('dialog-container');
@@ -220,26 +222,24 @@ function JSDialogView(viewFactory, preferences, template, behavior, options) {
     dialog.validate();
   });
 
-  if (behavior != null) {
-    this.applier = behavior.applier;
-  }
 }
 JSDialogView.prototype = Object.create(JSComponentView.prototype);
 JSDialogView.prototype.constructor = JSDialogView;
 
 JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
-  return '<div class="dialog-content">' +
-         '  <div class="dialog-title">' +
-         this.title +
+  return JSComponentView.substituteWithLocale(this.preferences, '<div class="dialog-content">' +
+         (this.title ? '<div class="dialog-title">' + this.title : '') + 
          '    <span class="dialog-close-button">&times;</span>' +
-         '  </div>' +
+         (this.title ? '  </div>' : '') +
          '  <div class="dialog-body">' +
          JSComponentView.prototype.buildHtmlFromTemplate.call(this, templateHtml) +
-         '    <p><hr />' + 
-         '      <button class="dialog-ok-button">OK</button><button class="dialog-cancel-button">CANCEL</button>' + 
-         '    </p>' +
          '  </div>' +
-         '</div>';
+         '  <div class="dialog-buttons">' +
+         (this.applier 
+         ? '      <button class="dialog-ok-button">${OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">${OptionPane.cancelButton.textAndMnemonic}</button>' 
+         : '      <button class="dialog-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>') + 
+         '  </div>' +
+         '</div>');
 }
 
 /**
@@ -513,9 +513,9 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
 
   var html = 
     '<div>' + 
-    '  <div data-name="color-selector" />' + 
+    '  <div data-name="color-selector"></div>' + 
     '</div>'
-  JSDialogView.call(this, viewFactory, preferences, html, {
+  JSDialogView.call(this, viewFactory, preferences, '${HomeFurniturePanel.colorDialog.title}', html, {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('color-selector-dialog');
 
@@ -526,8 +526,6 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
       }
     },
     applier: applier
-  }, {
-    title: '${HomeFurniturePanel.colorDialog.title}'
   });
 }
 
@@ -674,7 +672,7 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '  </div>' + 
     '</div>';
 
-  JSDialogView.call(this, viewFactory, preferences, html, {
+  JSDialogView.call(this, viewFactory, preferences, '${HomeFurnitureController.textureTitle}', html, {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('texture-selector-dialog');
       
@@ -718,8 +716,6 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
 
       applier(dialog);
     }
-  }, {
-    title: '${HomeFurnitureController.textureTitle}'
   });
 }
 
