@@ -527,11 +527,15 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('color-selector-dialog');
 
-      // TODO get through viewFactory
+      // TODO get through viewFactory?
       dialog.colorSelector = new JSColorSelector(viewFactory, preferences, dialog.getElement('color-selector'));
       if (options.selectedColor != null) { 
         dialog.colorSelector.set(options.selectedColor);
       }
+      dialog.registerEventListener(
+        dialog.colorSelector.colorTileElements, 
+        'dblclick',
+        function() { dialog.validate(); });
     },
     applier: applier
   });
