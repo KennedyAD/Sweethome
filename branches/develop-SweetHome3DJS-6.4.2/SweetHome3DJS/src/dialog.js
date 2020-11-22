@@ -147,6 +147,14 @@ JSComponentView.prototype.getElement = function(name) {
 }
 
 /**
+ * Returns the element that matches the given query selector within this component.
+ */
+JSComponentView.prototype.findElement = function(query) {
+  return this.rootNode.querySelector(query);
+}
+
+
+/**
  * Called when initializing the component. Override to perform custom initializations.
  */
 JSComponentView.prototype.initialize = function() {
