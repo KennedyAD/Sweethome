@@ -175,8 +175,7 @@ JSColorSelector.prototype.addAndSelectCustomColorTile = function(colorHex) {
 
   var colorNumber = ColorTools.hexadecimalStringToInteger(colorHex);
   if (this.preferences.getRecentColors().indexOf(colorNumber) === -1) {
-    var recentColors = Array.from(this.preferences.getRecentColors());
-    recentColors.push(colorNumber);
+    var recentColors = [colorNumber].concat(this.preferences.getRecentColors());
     this.preferences.setRecentColors(recentColors);
   }
 

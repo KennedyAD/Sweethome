@@ -666,3 +666,19 @@
 .texture-selector-dialog .selected-texture-config :nth-child(even) {
   text-align: left;
 }
+
+.recent-textures {
+  text-align: center;
+  min-height: 2em;
+}
+
+.recent-textures .texture-overview {
+  border: solid 1px black;
+  width: 1.6em;
+  height: 1.6em;
+  margin: 0.2em;
+  padding: 0;
+  box-sizing: border-box;
+  display: inline-block;
+  cursor: pointer;
+}
