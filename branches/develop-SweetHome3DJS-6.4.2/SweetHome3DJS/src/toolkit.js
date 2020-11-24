@@ -227,7 +227,6 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
 
   JSComponentView.call(this, viewFactory, preferences, template, behavior);
   this.rootNode.classList.add('dialog-container');
-  this.rootNode.style.display = 'none';
   document.body.append(this.rootNode);
   var dialog = this;
   this.getCloseButton().addEventListener('click', function() {
@@ -319,7 +318,7 @@ JSDialogView.prototype.cancel = function() {
  * Closes the dialog and discard the associated DOM.
  */
 JSDialogView.prototype.close = function() {
-  this.rootNode.style.display = 'none';
+  this.rootNode.classList.remove('visible');
   this.dispose();
   document.body.removeChild(this.rootNode);
 }
@@ -335,5 +334,12 @@ JSDialogView.prototype.dispose = function() {
  * Default implementation of the DialogView.displayView function.
  */
 JSDialogView.prototype.displayView = function(parentView) {
-  this.rootNode.style.display = 'block';
+  var dialog = this;
+
+  this.getRootNode().style.display = 'block';
+
+  // force browser to refresh before adding visible class to allow transition on width and height
+  setTimeout(function() {
+    dialog.rootNode.classList.add('visible');
+  }, 100);
 }
