@@ -91,6 +91,16 @@ JSComponentView.prototype.getViewFactory = function() {
 }
 
 /**
+ * Attaches the given component to a child DOM element, becoming a child component.
+ * 
+ * @param {string} name the component's name, which matches child DOM element name (as defined in {@link JSComponentView#getElement})
+ * @param {JSComponentView} component child component instance
+ */
+JSComponentView.prototype.attachChildComponent = function(name, component) {
+  this.getElement(name).appendChild(component.getRootNode());
+}
+
+/**
  * Registers given listener on given elements(s) and removes them when this component is disposed
  * @param {(HTMLElement[]|HTMLElement)} elements
  * @param {string} eventName

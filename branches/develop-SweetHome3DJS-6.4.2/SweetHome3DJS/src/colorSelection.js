@@ -215,7 +215,6 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('color-selector-dialog');
 
-      // TODO get through viewFactory?
       dialog.colorSelector = new JSColorSelector(viewFactory, preferences, dialog.getElement('color-selector'));
       if (options.selectedColor != null) { 
         dialog.colorSelector.set(options.selectedColor);
@@ -302,7 +301,7 @@ JSColorSelectorButton.prototype.enable = function(enabled) {
  */
 JSColorSelectorButton.prototype.openColorSelectorDialog = function() {
   var colorSelectorButton = this;
-  // TODO get through viewFactory
+  
   var dialog = new JSColorSelectorDialog(this.viewFactory, this.preferences, { 
     selectedColor: this.selectedColor,
     applier: function() {
