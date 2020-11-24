@@ -72,8 +72,6 @@ function JSColorSelector(viewFactory, preferences, targetNode) {
   }
 }
 
-/** string[] recently created custom colors, hexadecimal format */
-JSColorSelector.customColors = [];
 JSColorSelector.prototype = Object.create(JSComponentView.prototype);
 JSColorSelector.prototype.constructor = JSColorSelector;
 
@@ -89,8 +87,8 @@ JSColorSelector.prototype.createPickerColorTiles = function() {
     var tileElement = this.createColorTile(colorHex);
     this.pickerElement.appendChild(tileElement);
   }
-  for (var i = 0; i < JSColorSelector.customColors.length; i++) {
-    var colorHex = JSColorSelector.customColors[i];
+  for (var i = 0; i < this.preferences.getRecentColors().length; i++) {
+    var colorHex = ColorTools.integerToHexadecimalString(this.preferences.getRecentColors()[i]);
     var tileElement = this.createColorTile(colorHex);
     this.customColorsContainerElement.appendChild(tileElement);
   }
@@ -175,8 +173,11 @@ JSColorSelector.prototype.addAndSelectCustomColorTile = function(colorHex) {
   var tileElement = this.createColorTile(colorHex);
   this.customColorsContainerElement.appendChild(tileElement);
 
-  if (JSColorSelector.customColors.indexOf(colorHex) === -1) {
-    JSColorSelector.customColors.push(colorHex);
+  var colorNumber = ColorTools.hexadecimalStringToInteger(colorHex);
+  if (this.preferences.getRecentColors().indexOf(colorNumber) === -1) {
+    var recentColors = Array.from(this.preferences.getRecentColors());
+    recentColors.push(colorNumber);
+    this.preferences.setRecentColors(recentColors);
   }
 
   this.registerEventListener(tileElement, 'click', function() { 
