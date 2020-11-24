@@ -128,20 +128,31 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
       initializer: function(dialog) {
         var FurniturePaint = HomeFurnitureController.FurniturePaint;
         // TODO get through viewFactory?
-        dialog.colorSelector = new JSColorSelectorButton(viewFactory, preferences, dialog.getElement('color-selector-button'), {
-          onColorSelected: function(color) {
-            dialog.radioButtons[FurniturePaint.COLORED].checked = true;
-            homeFurnitureController.setPaint(FurniturePaint.COLORED);
-            homeFurnitureController.setColor(color);
-          }
-        });
+        dialog.colorSelector = new JSColorSelectorButton(viewFactory, 
+                                                         preferences, 
+                                                         dialog.getElement('color-selector-button'), 
+                                                         {
+                                                          onColorSelected: function(color) {
+                                                            dialog.radioButtons[FurniturePaint.COLORED].checked = true;
+                                                            homeFurnitureController.setPaint(FurniturePaint.COLORED);
+                                                            homeFurnitureController.setColor(color);
+                                                          }
+                                                         });
         dialog.colorSelector.set(homeFurnitureController.getColor());
-        
+    
         // TODO get through viewFactory?
         dialog.textureSelector = new JSTextureSelectorButton(viewFactory, 
                                                              preferences, 
                                                              homeFurnitureController.getTextureController(), 
-                                                             dialog.getElement('texture-selector-button'));
+                                                             dialog.getElement('texture-selector-button'),
+                                                             {
+                                                              onTextureSelected: function(texture) {
+                                                                dialog.radioButtons[FurniturePaint.TEXTURED].checked = true;
+                                                                homeFurnitureController.setPaint(FurniturePaint.TEXTURED);
+                                                                homeFurnitureController.getTextureController().setTexture(texture);
+                                                              }
+                                                             });
+        dialog.textureSelector.set(homeFurnitureController.getTextureController().getTexture())
         
         var selectedPaint = homeFurnitureController.getPaint();
   
@@ -150,9 +161,8 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
         dialog.radioButtons[FurniturePaint.COLORED] = dialog.findElement('[name="color-and-texture-choice"][value="color"]');
         dialog.radioButtons[FurniturePaint.TEXTURED] = dialog.findElement('[name="color-and-texture-choice"][value="texture"]');
         
-        for (var paint in dialog.radioButtons) {
+        for (var paint = 0; paint < dialog.radioButtons.length; paint++) {
           var radioButton = dialog.radioButtons[paint];
-          radioButton._paint = paint;
           radioButton.checked = paint == selectedPaint 
             || (paint == FurniturePaint.DEFAULT && !dialog.radioButtons[selectedPaint]);
         }
@@ -161,10 +171,11 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
           dialog.radioButtons, 
           'change', 
           function(event) { 
-            homeFurnitureController.setPaint(event.target._paint);
+            var paint = dialog.radioButtons.indexOf(event.target);
+            homeFurnitureController.setPaint(paint);
           });
       },
-      applier: function(dialog) {
+      applier: function() {
         homeFurnitureController.modifyFurniture();
       },
       disposer: function(dialog) {

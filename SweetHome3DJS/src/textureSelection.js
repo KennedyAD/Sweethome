@@ -25,7 +25,7 @@
  * The texture selector dialog class.
  *
  * @param {JSViewFactory} viewFactory the view factory
- * @param preferences      the current user preferences
+ * @param {UserPreferences} preferences the current user preferences
  * @param {TextureChoiceController} textureChoiceController texture choice controller
  * @param {{selectedTexture, applier: function(JSDialogView)}} [options]
  * > selectedTexture: selected texture
@@ -39,7 +39,7 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     xOffset: 0,
     yOffset: 0, 
     angleInRadians: 0, 
-    scale: 100
+    scale: 1
   }
 
   var applier = function() {};
@@ -103,13 +103,12 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
       });
 
       this.initCatalogTextureSearch();
-
-      var selectedTexture = textureChoiceController.getTexture();
-      if (selectedTexture != null) {
-        dialog.setTexture(selectedTexture);
-      }
     },
     applier: function(dialog) {
+
+      // force refresh model from inputs, even if 'change' event was not raised 
+      this.onTextureTransformConfigurationChanged();
+
       textureChoiceController.setTexture(dialog.getTexture());
 
       applier(dialog);
@@ -139,7 +138,7 @@ JSTextureSelectorDialog.prototype.getTexture = function() {
  * @param {HomeTexture} texture 
  */
 JSTextureSelectorDialog.prototype.setTexture = function(texture) {
-  this.selectedTextureModel.catalogTexture = this.getCatalogTextureById(texture.getCatalogId());
+  this.selectedTextureModel.catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(texture.getCatalogId(), this.preferences);
   this.selectedTextureModel.xOffset = texture.getXOffset();
   this.selectedTextureModel.yOffset = texture.getYOffset();
   this.selectedTextureModel.angleInRadians = texture.getAngle();
@@ -148,12 +147,35 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
   var catalogTextureId = this.selectedTextureModel.catalogTexture.getId();
   var catalogTextureItem = this.getCatalogTextureItemById(catalogTextureId);
   this.onCatalogTextureSelected(catalogTextureItem);
-  this.xOffsetInput.value = this.selectedTextureModel.xOffset;
-  this.yOffsetInput.value = this.selectedTextureModel.yOffset;
-  this.angleInput.value = this.selectedTextureModel.angleInRadians;
-  this.scaleInput.value = this.selectedTextureModel.scale;
+  this.xOffsetInput.value = this.selectedTextureModel.xOffset * 100;
+  this.yOffsetInput.value = this.selectedTextureModel.yOffset * 100;
+  this.angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.selectedTextureModel.angleInRadians));
+  this.scaleInput.value = this.selectedTextureModel.scale * 100;
   this.onTextureTransformConfigurationChanged();
 };
+
+/**
+ * @param {string} id catalog texture id in catalog
+ * @param {UserPreferences} preferences the current user preferences
+ * 
+ * @return {CatalogTexture}
+ * 
+ * @static
+ */
+JSTextureSelectorDialog.getCatalogTextureById = function(id, preferences) {
+  var textureCategories = preferences.getTexturesCatalog().getCategories();
+  for (var i = 0; i < textureCategories.length; i++) {
+    var textureCategory = textureCategories[i];
+    for (var j = 0; j < textureCategory.getTextures().length; j++) {
+      var catalogTexture = textureCategory.getTextures()[j];
+      if (catalogTexture.getId() == id) {
+        return catalogTexture;
+      }
+    }
+  }
+
+  return null;
+}
 
 /**
  * @param {HTMLElement} catalogTextureItem the selected catalog texture item
@@ -162,7 +184,7 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
  */
 JSTextureSelectorDialog.prototype.onCatalogTextureSelected = function(catalogTextureItem) {
   var catalogId = catalogTextureItem.dataset['catalogId'];
-  var catalogTexture = this.getCatalogTextureById(catalogId);
+  var catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(catalogId, this.preferences);
   console.info("catalog texture selected", catalogTexture);
   
   this.selectedTextureModel.catalogTexture = catalogTexture;
@@ -196,33 +218,12 @@ JSTextureSelectorDialog.prototype.onTextureTransformConfigurationChanged = funct
 /**
  * @param {string} id catalog texture id in catalog
  * 
- * @return {CatalogTexture}
- * 
- */
-JSTextureSelectorDialog.prototype.getCatalogTextureById = function(id) {
-  var textureCategories = this.preferences.getTexturesCatalog().getCategories();
-  for (var i = 0; i < textureCategories.length; i++) {
-    var textureCategory = textureCategories[i];
-    for (var j = 0; j < textureCategory.getTextures().length; j++) {
-      var catalogTexture = textureCategory.getTextures()[j];
-      if (catalogTexture.getId() == id) {
-        return catalogTexture;
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * @param {string} id catalog texture id in catalog
- * 
  * @return {HTMLElement}
  * 
  * @private
  */
 JSTextureSelectorDialog.prototype.getCatalogTextureItemById = function(id) {
-  this.catalogList.querySelector('.item[data-catalog-id="' + id + '"]');
+  return this.catalogList.querySelector('.item[data-catalog-id="' + id + '"]');
 }
 
 /**
@@ -246,9 +247,6 @@ JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function() {
   }, 200));
 }
 
-JSTextureSelectorDialog.prototype.dispose = function() {
-  JSDialogView.prototype.dispose.call(this);
-};
 
 /**
  * A component to select a texture through a dialog, after clicking a button.
@@ -257,9 +255,11 @@ JSTextureSelectorDialog.prototype.dispose = function() {
  * @param {UserPreferences} preferences user preferences
  * @param {TextureChoiceController} textureChoiceController texture choice controller
  * @param {HTMLElement} targetNode target node on which attach this component 
+ * @param {{ onTextureSelected: function(HomeTexture) }} [options]
+ * > onTextureSelected: called with selected texture, when selection changed
  * @constructor
  */
-function JSTextureSelectorButton(viewFactory, preferences, textureChoiceController, targetNode) {
+function JSTextureSelectorButton(viewFactory, preferences, textureChoiceController, targetNode, options) {
   this.textureChoiceController = textureChoiceController;
 
   JSComponentView.call(this, viewFactory, preferences, null, {
@@ -275,10 +275,10 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
       component.overview = component.getRootNode().querySelector('.texture-overview');
       
       component.textureChangeListener = function() {
-        var selectedTexture = textureChoiceController.getTexture();
-        console.info("texture selected: ", selectedTexture);
-        var catalogTexture = component.getCurrentDialog().getCatalogTextureById(selectedTexture.getCatalogId());
-        component.overview.style.backgroundImage = "url('" + catalogTexture.image.url + "')";
+        component.set(textureChoiceController.getTexture());
+        if (typeof options == 'object' && typeof options.onTextureSelected == 'function') {
+          options.onTextureSelected(component.get());
+        }
       };
       textureChoiceController.addPropertyChangeListener('TEXTURE', component.textureChangeListener);
     },
@@ -287,6 +287,15 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
     },
     setter: function(component, texture) {
       component.selectedTexture = texture;
+
+      var backgroundImage = 'none';
+      if (texture != null) {
+        var catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(texture.getCatalogId(), preferences);
+        if (catalogTexture != null) {
+          backgroundImage = "url('" + catalogTexture.image.url + "')";
+        }
+      }
+      component.overview.style.backgroundImage = backgroundImage;
     }
   });
   if (targetNode != null) {
@@ -309,19 +318,13 @@ JSTextureSelectorButton.prototype.enable = function(enabled) {
 };
 
 /**
- * Return currently opened dialog, if any
- * @return {JSTextureSelectorDialog}
- * @private
- */
-JSTextureSelectorButton.prototype.getCurrentDialog = function() {
-  return this.currentDialog;
-};
-
-/**
  * @private
  */
 JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
   this.currentDialog = this.viewFactory.createTextureChoiceView(this.preferences, this.textureChoiceController);
+  if (this.get() != null) {
+    this.currentDialog.setTexture(this.get());
+  }
   this.currentDialog.displayView();
 };
 
