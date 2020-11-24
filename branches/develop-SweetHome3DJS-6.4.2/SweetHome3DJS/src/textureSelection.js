@@ -232,14 +232,11 @@ JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function() {
   var dialog = this;
   var searchInput = this.getRootNode().querySelector('.texture-search input');
   dialog.registerEventListener(searchInput, 'keyup', CoreTools.debounce(function() {
-    var visibleItems = dialog.texturesCatalogItems;
     var searchTerm = searchInput.value.trim().toLowerCase();
-    if (searchTerm.length > 0) {
-      visibleItems = dialog.texturesCatalogItems.filter(item => item.textContent.toLowerCase().indexOf(searchTerm) > -1);
-    }
     for (var i = 0; i < dialog.texturesCatalogItems.length; i++) {
       var item = dialog.texturesCatalogItems[i];
-      if (visibleItems.indexOf(item) > -1) {
+      var isVisible = searchTerm.length <= 0 || item.textContent.toLowerCase().indexOf(searchTerm) > -1;
+      if (isVisible) {
         item.classList.remove('hidden');
       } else {
         item.classList.add('hidden');
