@@ -120,38 +120,32 @@ JSViewFactory.prototype.createLevelView = function(preferences, levelController)
  * @param {HomeFurnitureController} homeFurnitureController 
  */
 JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurnitureController) {
+  var FurniturePaint = HomeFurnitureController.FurniturePaint;
   var viewFactory = this;
+  
   // TODO LOUIS create a dedicated dialog impl
   return new JSDialogView(viewFactory, preferences, 
     '${HomeFurniturePanel.homeFurniture.title}', 
     document.getElementById("home-furniture-dialog-template"), {
       initializer: function(dialog) {
-        var FurniturePaint = HomeFurnitureController.FurniturePaint;
-        // TODO get through viewFactory?
-        dialog.colorSelector = new JSColorSelectorButton(viewFactory, 
-                                                         preferences, 
-                                                         dialog.getElement('color-selector-button'), 
-                                                         {
-                                                          onColorSelected: function(color) {
-                                                            dialog.radioButtons[FurniturePaint.COLORED].checked = true;
-                                                            homeFurnitureController.setPaint(FurniturePaint.COLORED);
-                                                            homeFurnitureController.setColor(color);
-                                                          }
-                                                         });
+        dialog.colorSelector = viewFactory.createColorSelector(preferences, {
+          onColorSelected: function(color) {
+            dialog.radioButtons[FurniturePaint.COLORED].checked = true;
+            homeFurnitureController.setPaint(FurniturePaint.COLORED);
+            homeFurnitureController.setColor(color);
+          }
+        });
+        dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
         dialog.colorSelector.set(homeFurnitureController.getColor());
     
-        // TODO get through viewFactory?
-        dialog.textureSelector = new JSTextureSelectorButton(viewFactory, 
-                                                             preferences, 
-                                                             homeFurnitureController.getTextureController(), 
-                                                             dialog.getElement('texture-selector-button'),
-                                                             {
-                                                              onTextureSelected: function(texture) {
-                                                                dialog.radioButtons[FurniturePaint.TEXTURED].checked = true;
-                                                                homeFurnitureController.setPaint(FurniturePaint.TEXTURED);
-                                                                homeFurnitureController.getTextureController().setTexture(texture);
-                                                              }
-                                                             });
+        dialog.textureSelector = viewFactory.createTextureSelector(preferences, homeFurnitureController.getTextureController(), {
+          onTextureSelected: function(texture) {
+            dialog.radioButtons[FurniturePaint.TEXTURED].checked = true;
+            homeFurnitureController.setPaint(FurniturePaint.TEXTURED);
+            homeFurnitureController.getTextureController().setTexture(texture);
+          }
+        });
+        dialog.attachChildComponent('texture-selector-button', dialog.textureSelector);
         dialog.textureSelector.set(homeFurnitureController.getTextureController().getTexture())
         
         var selectedPaint = homeFurnitureController.getPaint();
@@ -307,4 +301,34 @@ JSViewFactory.prototype.createPhotosView = function(home, preferences, photosCon
 
 JSViewFactory.prototype.createVideoView = function(home, preferences, videoController) {
   return dummyDialogView;
+}
+
+/**********************************/
+/** JS ONLY COMPONENTS           **/
+/**********************************/
+
+/**
+ * Create a color selection component
+ * @param {UserPreferences} preferences current user's preferences 
+ * @param {{ onColorSelected: function(number) }} [options]
+ * > onColorSelected: called with selected color, as RGB int, when a color is selected
+ * 
+ * @return {JSComponentView} 
+ */
+JSViewFactory.prototype.createColorSelector = function(preferences, options) {
+  return new JSColorSelectorButton(this, preferences, null, options);
+}
+
+/**
+ * Create a texture selection component
+
+ * @param {UserPreferences} preferences current user's preferences 
+ * @param {TextureChoiceController} textureChoiceController texture choice controller
+ * @param {{ onTextureSelected: function(HomeTexture) }} [options]
+ * > onTextureSelected: called with selected texture, when selection changed
+ * 
+ * @return {JSComponentView} 
+ */
+JSViewFactory.prototype.createTextureSelector = function(preferences, textureChoiceController, options) {
+  return new JSTextureSelectorButton(this, preferences, textureChoiceController, null, options);
 }
