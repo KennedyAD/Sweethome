@@ -218,7 +218,9 @@
         <file name="HomePane.js"/>
         <file name="DefaultFurnitureCatalog.js"/>
         <file name="FurnitureCatalogListPanel.js"/>
-        <file name="dialog.js"/>
+        <file name="toolkit.js"/>
+        <file name="colorSelection.js"/>
+        <file name="textureSelection.js"/>
         <file name="JSViewFactory.js"/>
         <file name="SweetHome3DJSApplication.js"/>
       </filelist>
