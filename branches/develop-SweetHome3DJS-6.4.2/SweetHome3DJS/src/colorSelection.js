@@ -232,6 +232,7 @@ JSColorSelectorDialog.prototype = Object.create(JSDialogView.prototype);
 JSColorSelectorDialog.prototype.constructor = JSColorSelectorDialog;
 
 /**
+ * Returns the currently selected color.
  * @return currently selected color
  */
 JSColorSelectorDialog.prototype.getSelectedColor = function() {
@@ -286,7 +287,7 @@ JSColorSelectorButton.prototype = Object.create(JSComponentView.prototype);
 JSColorSelectorButton.prototype.constructor = JSColorSelectorButton;
 
 /**
- * Enable or disable this component
+ * Enables or disables this component
  * @param {boolean} [enabled] defaults to true 
  */
 JSColorSelectorButton.prototype.enable = function(enabled) {

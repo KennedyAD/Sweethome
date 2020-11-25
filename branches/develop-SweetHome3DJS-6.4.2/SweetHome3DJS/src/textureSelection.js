@@ -130,6 +130,8 @@ JSTextureSelectorDialog.prototype = Object.create(JSDialogView.prototype);
 JSTextureSelectorDialog.prototype.constructor = JSTextureSelectorDialog;
 
 /**
+ * Returns the currently selected texture.
+ *
  * @return {HomeTexture} currently selected texture
  */
 JSTextureSelectorDialog.prototype.getTexture = function() {
@@ -144,7 +146,8 @@ JSTextureSelectorDialog.prototype.getTexture = function() {
 };
 
 /**
- * Applies given texture values to this dialog
+ * Applies given texture values to this dialog.
+ *
  * @param {HomeTexture} texture 
  */
 JSTextureSelectorDialog.prototype.setTexture = function(texture) {
@@ -164,6 +167,8 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
 };
 
 /**
+ * Returns the catalog texture by id.
+ *
  * @param {string} id catalog texture id in catalog
  * @param {UserPreferences} preferences the current user preferences
  * 
@@ -355,7 +360,7 @@ JSTextureSelectorButton.prototype = Object.create(JSComponentView.prototype);
 JSTextureSelectorButton.prototype.constructor = JSTextureSelectorButton;
 
 /**
- * Enable or disable this component
+ * Enables or disables this component
  * @param {boolean} [enabled] defaults to true 
  */
 JSTextureSelectorButton.prototype.enable = function(enabled) {

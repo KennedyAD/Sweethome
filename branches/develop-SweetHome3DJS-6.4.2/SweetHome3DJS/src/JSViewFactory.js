@@ -308,7 +308,7 @@ JSViewFactory.prototype.createVideoView = function(home, preferences, videoContr
 /**********************************/
 
 /**
- * Create a color selection component
+ * Creates a color selection component
  * @param {UserPreferences} preferences current user's preferences 
  * @param {{ onColorSelected: function(number) }} [options]
  * > onColorSelected: called with selected color, as RGB int, when a color is selected
@@ -320,7 +320,7 @@ JSViewFactory.prototype.createColorSelector = function(preferences, options) {
 }
 
 /**
- * Create a texture selection component
+ * Creates a texture selection component
 
  * @param {UserPreferences} preferences current user's preferences 
  * @param {TextureChoiceController} textureChoiceController texture choice controller
