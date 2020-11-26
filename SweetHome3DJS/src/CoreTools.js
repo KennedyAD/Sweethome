@@ -318,6 +318,27 @@ CoreTools.debounce = function(actionFunction, waitMillis) {
 	};
 };
 
+/**
+ * Returns true if element is or is child of candidateParent, false otherwise.
+ * 
+ * @param {HTMLElement} element 
+ * @param {HTMLElement} candidateParent 
+ * @return {boolean}
+ */
+CoreTools.isElementContained = function(element, candidateParent) {
+  if (element == null || candidateParent == null) {
+    return false;
+  }
+
+  var currentParent = element;
+  do {
+    if (currentParent == candidateParent) {
+      return true;
+    }
+  } while (currentParent = currentParent.parentElement);
+
+  return false;
+};
 
 /**
  * Utilities for colors.

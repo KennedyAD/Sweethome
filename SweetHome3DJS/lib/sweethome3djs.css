@@ -342,6 +342,86 @@
   }
 }
 
+/******************/
+/** CONTEXT MENU **/
+/******************/
+.context-menu {
+  background-color: white;
+  display: none;
+  position: absolute;
+  border: solid 1px black;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  position: absolute;
+  z-index: 1000;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.context-menu ul.items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.context-menu .item {
+  cursor: pointer;
+  padding: 0.4em 1.4em;
+  position: relative;
+  height: 2.6em;
+  line-height: 1.8em;
+  box-sizing: border-box;
+}
+
+.context-menu .item:hover {
+  background-color: #DDDDDD; 
+}
+
+.context-menu .item img {
+  display: none;
+  vertical-align: middle;
+  margin-right: 0.6em;
+  height: 1.8em;
+}
+
+.context-menu .item img.visible {
+  display: initial;
+}
+
+.context-menu.visible {
+  display: block;
+}
+
+.context-menu .separator {
+  border-bottom: solid 1px gray;
+  margin-top: 0.4em;
+  margin-bottom: 0.8em;
+}
+
+.context-menu .sub-menu .items {
+  display: none;
+}
+
+.context-menu .sub-menu::after {
+  content: '';
+  /* triangle */
+  border: 0.5em solid transparent;
+  border-left: 0.5em solid black;
+  display: block;
+  position: absolute;
+  right: -0.2em;
+  top: 0.8em;
+}
+
+.context-menu .sub-menu:hover > .items {
+  background-color: white;
+  border: solid 1px black;
+  position: absolute;
+  left: 100%;
+  top: 0.2em;
+  display: block;
+  width: 100%;
+}
+
 /************/
 /** MODALS **/
 /************/
