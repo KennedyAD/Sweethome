@@ -186,11 +186,13 @@ ResourceAction.prototype.actionPerformed = function(ev) {
  * @param {Home} home
  * @param {UserPreferences} preferences
  * @param {HomeController} controller
+ * @param {JSViewFactory} viewFactory current view factory
+ * 
  * @constructor
  * @author Emmanuel Puybaret
  * @author Renaud Pawlak
  */
-function HomePane(containerId, home, preferences, controller) {
+function HomePane(containerId, home, preferences, controller, viewFactory) {
   if (containerId != null) {
     this.container = document.getElementById(containerId);
   }
@@ -200,6 +202,7 @@ function HomePane(containerId, home, preferences, controller) {
   this.home = home;
   this.preferences = preferences;
   this.controller = controller;
+  this.viewFactory = viewFactory;
   this.clipboardEmpty = true;
   this.actionMap = {};
   this.inputMap = {};
@@ -210,6 +213,7 @@ function HomePane(containerId, home, preferences, controller) {
   this.addUserPreferencesListener(preferences);
   this.addPlanControllerListener(controller.getPlanController());
   this.createToolBar(home, preferences);
+  this.createContextMenus(home, preferences);
   
   // Additional implementation for Sweet Home 3D JS
   
@@ -1083,6 +1087,47 @@ HomePane.prototype.createToolBar = function(home, preferences) {
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
   
   return toolBar;
+}
+
+/**
+ * Create context menus of this pane
+ * @param {Home} home
+ * @param {UserPreferences} preferences
+ * @return {Object}
+ * @private
+ */
+HomePane.prototype.createContextMenus = function(home, preferences) {
+  var homePane = this;
+
+  /**
+   * Catalog view context menu
+   */
+  var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
+  var furnitures = furnitureCatalogView.getFurnituresHTMLElement();
+
+  this.furnitureCatalogContextMenu = new JSContextMenu(this.viewFactory, this.preferences, furnitures, {
+    build: function(builder) {
+      builder.addItem(homePane.getAction(HomeView.ActionType.ADD_HOME_FURNITURE));
+    }
+  });
+
+  /**
+   * Plan view context menu
+   */
+  var planController = this.controller.getPlanController();
+  var planElement = planController.getView().getHTMLElement();
+
+  this.planContextMenu = new JSContextMenu(this.viewFactory, this.preferences, planElement, {
+    build: function(builder) {
+      builder.addItem(homePane.getAction(HomeView.ActionType.SELECT_ALL));
+
+      var actionModifyFurniture = homePane.getAction(HomeView.ActionType.MODIFY_FURNITURE);
+      if (actionModifyFurniture.isEnabled()) {
+        builder.addSeparator();
+        builder.addItem(actionModifyFurniture);
+      }
+    }
+  });
 }
 
 /** 

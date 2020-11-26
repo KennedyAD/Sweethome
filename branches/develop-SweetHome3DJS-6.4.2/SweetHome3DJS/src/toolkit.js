@@ -20,6 +20,10 @@
 
 // Requires UserPreferences.js
 
+/*****************************************/
+/* JSComponentView                       */
+/*****************************************/
+ 
 /**
  * The root class for component views.
  *
@@ -109,6 +113,9 @@ JSComponentView.prototype.attachChildComponent = function(name, component) {
 JSComponentView.prototype.registerEventListener = function(elements, eventName, listener) {
   if (elements == null) {
     return;
+  }
+  if (elements instanceof NodeList) {
+    elements = Array.from(elements); 
   }
   if (!Array.isArray(elements)) {
     elements = [elements];
@@ -201,6 +208,10 @@ JSComponentView.prototype.set = function(value) {
     this.setter(this, value);
   }
 }
+
+/*****************************************/
+/* JSDialogView                          */
+/*****************************************/
 
 /**
  * A class to create dialogs.
@@ -342,4 +353,278 @@ JSDialogView.prototype.displayView = function(parentView) {
   setTimeout(function() {
     dialog.rootNode.classList.add('visible');
   }, 100);
+}
+
+/*****************************************/
+/* JSContextMenu                         */
+/*****************************************/
+
+/**
+ * A class to create a context menu.
+ *
+ * @param {JSViewFactory} viewFactory the view factory
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. Cannot be null for now
+ * for the root node)
+ * @param {{build: function(JSContextMenu.Builder, HTMLElement)}} behavior
+ * > build: called with a builder, and optionnally with source element (which was right clicked, to show this menu)
+ * 
+ * @constructor
+ * 
+ * @author Louis Grignon
+ * @author Renaud Pawlak
+ */
+function JSContextMenu(viewFactory, preferences, sourceElements, behavior) {
+  if (sourceElements == null || sourceElements.length === 0) {
+    throw new Error('cannot register a context menu on an empty list of elements');
+  }
+  this.sourceElements = sourceElements;
+  if (!Array.isArray(sourceElements)) {
+    this.sourceElements = [sourceElements];
+  }
+
+  this.build = behavior.build;
+
+  JSComponentView.call(this, viewFactory, preferences, '', behavior);
+  this.getRootNode().classList.add('context-menu');
+
+  document.body.append(this.getRootNode());
+
+  var contextMenu = this;
+  this.registerEventListener(sourceElements, 'contextmenu', function(event) {
+    event.preventDefault();
+
+    if (JSContextMenu.current != null) {
+      JSContextMenu.current.close();
+    }
+
+    contextMenu.showForSourceElement(this, event);
+  });
+
+  if (!JSContextMenu.globalCloserRegistered) {
+    document.addEventListener('click', function(event) {
+      if (JSContextMenu.current != null && !CoreTools.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
+        console.debug('clicked outside - closing context menu');
+        JSContextMenu.current.close();
+      }
+    });
+    JSContextMenu.globalCloserRegistered = true;
+  }
+}
+JSContextMenu.prototype = Object.create(JSComponentView.prototype);
+JSContextMenu.prototype.constructor = JSContextMenu;
+
+/**
+ * @param {HTMLElement} sourceElement
+ * @param {Event} event
+ * 
+ * @private
+ */
+JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
+  this.listenerUnregisterCallbacks = [];
+
+  var builder = new JSContextMenu.Builder();
+  this.build(builder, sourceElement);
+  
+  var items = builder.items;
+  var menuElement = this.createMenuElement(items);
+  
+  this.getRootNode().appendChild(menuElement);
+
+  this.getRootNode().style.left = event.clientX + 'px';
+  this.getRootNode().style.top = event.clientY + 'px';
+  this.getRootNode().classList.add('visible');
+
+  JSContextMenu.current = this;
+};
+
+/**
+ * @param {{}[]} items same type as JSContextMenu.Builder.items
+ * @return {HTMLElement} menu root html element (`<ul>`)
+ * @private
+ */
+JSContextMenu.prototype.createMenuElement = function(items) {
+
+  var menuElement = document.createElement('ul');
+  menuElement.classList.add('items');
+
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    
+    var itemElement = document.createElement('li');
+    if (item == CONTEXT_MENU_SEPARATOR_ITEM) {
+      itemElement.classList.add('separator');
+    } else {
+      this.initMenuItemElement(itemElement, item);
+    }
+
+    menuElement.appendChild(itemElement)
+  }
+  return menuElement;
+};
+
+/**
+ * Initialize a menu item element for the given menuItemModel descriptor
+ * 
+ * @param {HTMLElement} menuItemElement 
+ * @param {{}[]} itemModel same type as a JSContextMenu.Builder.items element
+ * 
+ * @private
+ */
+JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
+  var contextMenu = this;
+
+  var itemIconElement = document.createElement('img');
+  if (item.iconPath != null) {
+    itemIconElement.src = item.iconPath;
+    itemIconElement.classList.add('visible');
+  }
+  
+  var itemLabelElement = document.createElement('span');
+  itemLabelElement.textContent = JSComponentView.substituteWithLocale(this.preferences, item.label);
+
+  itemElement.classList.add('item');
+  itemElement.dataset['uid'] = item.uid;
+  itemElement.appendChild(itemIconElement);
+  itemElement.appendChild(itemLabelElement);
+  if (Array.isArray(item.subItems)) {
+    itemElement.classList.add('sub-menu');
+    itemElement.appendChild(this.createMenuElement(item.subItems));
+  }
+
+  if (typeof item.onItemSelected == 'function') {
+
+    var listener = function() {
+      console.debug('context menu item selected - closing context menu', item);
+      item.onItemSelected();
+      contextMenu.close();
+    };
+    itemElement.addEventListener('click', listener);
+    this.listenerUnregisterCallbacks.push(function() {
+      itemElement.removeEventListener('click', listener);
+    });
+  }
+};
+
+/**
+ * Closes the context menu
+ */
+JSContextMenu.prototype.close = function() {
+  this.getRootNode().classList.remove('visible');
+  JSContextMenu.current = null;
+
+  for (var i = 0; i < this.listenerUnregisterCallbacks.length; i++) {
+    this.listenerUnregisterCallbacks[i]();
+  }
+  
+  this.listenerUnregisterCallbacks = null;
+  this.getRootNode().innerHTML = '';
+};
+
+/**
+ * Builds items of a context menu which is about to be shown 
+ */
+JSContextMenu.Builder = function() {
+  /** @type {{ uid?: string, label?: string, iconPath?: string, onItemSelected?: function(), subItems?: {}[] }[] } } */
+  this.items = [];
+}
+
+JSContextMenu.Builder.prototype = Object.create(JSContextMenu.Builder.prototype);
+JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
+
+/**
+ * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback
+ * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
+ * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', 'myitem', function() { console.log('my item clicked') })
+ * 3) builder.addItem('myitem', function() { console.log('my item clicked') })
+ * 
+ * @param {ResourceAction|string} actionOrIconPathOrLabel
+ * @param {string|function()} [onItemSelectedCallbackOrLabel]
+ * @param {function()} [onItemSelectedCallback]
+ * 
+ * @return {JSContextMenu.Builder}
+ * 
+ */
+JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
+  var label = null;
+  var iconPath = null;
+  var onItemSelected = null;
+  if (actionOrIconPathOrLabel instanceof ResourceAction) {
+    var action = actionOrIconPathOrLabel;
+    label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
+
+    var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
+    if (libIconPath != null) {
+      iconPath = 'lib/' + libIconPath;
+    }
+
+    onItemSelected = function() {
+      action.actionPerformed();
+    };
+  } else if (typeof onItemSelectedCallback == 'function') {
+    iconPath = actionOrIconPathOrLabel;
+    label = onItemSelectedCallbackOrLabel;
+    onItemSelected = onItemSelectedCallback;
+  } else {
+    label = actionOrIconPathOrLabel;
+    onItemSelected = onItemSelectedCallbackOrLabel;
+  }
+
+  this.items.push({
+    uid: UUID.randomUUID(),
+    label: label,
+    iconPath: iconPath,
+    onItemSelected: onItemSelected
+  });
+
+  return this;
+}
+
+/**
+ * Adds a sub menu to this menu, with an optional icon
+ * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', 'myitem', function(builder) { builder.addItem(...) })`
+ * 2) `builder.addSubMenu('myitem', function(builder) { builder.addItem(...) })`
+ * 
+ * @param {string} iconPathOrLabel
+ * @param {string|function()} labelOrbuildSubMenuCallback
+ * @param {function(JSContextMenu.Builder)} [buildSubMenuCallback]
+ * 
+ * @return {JSContextMenu.Builder}
+ * 
+ */
+JSContextMenu.Builder.prototype.addSubMenu = function(iconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
+  var label = null;
+  var iconPath = null;
+  if (typeof buildSubMenuCallback == 'function') {
+    label = labelOrbuildSubMenuCallback;
+    iconPath = iconPathOrLabel;
+  } else {
+    label = iconPathOrLabel;
+    buildSubMenuCallback = labelOrbuildSubMenuCallback;    
+  }
+
+  var subMenuBuilder = new JSContextMenu.Builder();
+  buildSubMenuCallback(subMenuBuilder);
+  var subItems = subMenuBuilder.items;
+  if (subItems.length > 0) {
+    this.items.push({
+      uid: UUID.randomUUID(),
+      label: label,
+      iconPath: iconPath,
+      subItems: subItems
+    });
+  }
+
+  return this;
+}
+
+var CONTEXT_MENU_SEPARATOR_ITEM = {};
+
+/**
+ * Adds a separator after previous items
+ * @return {JSContextMenu.Builder}
+ */
+JSContextMenu.Builder.prototype.addSeparator = function() {
+  this.items.push(CONTEXT_MENU_SEPARATOR_ITEM);
+  return this;
 }
