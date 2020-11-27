@@ -42,9 +42,6 @@
  * @author Renaud Pawlak
  */
 function JSComponentView(viewFactory, preferences, template, behavior) {
-  if (!(viewFactory instanceof JSViewFactory)) {
-    throw new Error('view factory is missing - viewFactory=' + viewFactory);
-  }
 
   this.viewFactory = viewFactory;
 
@@ -65,6 +62,28 @@ function JSComponentView(viewFactory, preferences, template, behavior) {
 }
 JSComponentView.prototype = Object.create(JSComponentView.prototype);
 JSComponentView.prototype.constructor = JSComponentView;
+
+/**
+ * Returns true if element is or is child of candidateParent, false otherwise.
+ * 
+ * @param {HTMLElement} element 
+ * @param {HTMLElement} candidateParent 
+ * @return {boolean}
+ */
+JSComponentView.isElementContained = function(element, candidateParent) {
+  if (element == null || candidateParent == null) {
+    return false;
+  }
+
+  var currentParent = element;
+  do {
+    if (currentParent == candidateParent) {
+      return true;
+    }
+  } while (currentParent = currentParent.parentElement);
+
+  return false;
+};
 
 /**
  * Substitutes all the place holders in the html with localized labels.
@@ -216,7 +235,6 @@ JSComponentView.prototype.set = function(value) {
 /**
  * A class to create dialogs.
  *
- * @param {JSViewFactory} viewFactory the view factory
  * @param preferences      the current user preferences
  * @param {string} title the dialog's title (may contain HTML)
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
@@ -374,7 +392,7 @@ JSDialogView.prototype.displayView = function(parentView) {
  * @author Louis Grignon
  * @author Renaud Pawlak
  */
-function JSContextMenu(viewFactory, preferences, sourceElements, behavior) {
+function JSContextMenu(preferences, sourceElements, behavior) {
   if (sourceElements == null || sourceElements.length === 0) {
     throw new Error('cannot register a context menu on an empty list of elements');
   }
@@ -385,7 +403,7 @@ function JSContextMenu(viewFactory, preferences, sourceElements, behavior) {
 
   this.build = behavior.build;
 
-  JSComponentView.call(this, viewFactory, preferences, '', behavior);
+  JSComponentView.call(this, undefined, preferences, '', behavior);
   this.getRootNode().classList.add('context-menu');
 
   document.body.append(this.getRootNode());
@@ -403,7 +421,7 @@ function JSContextMenu(viewFactory, preferences, sourceElements, behavior) {
 
   if (!JSContextMenu.globalCloserRegistered) {
     document.addEventListener('click', function(event) {
-      if (JSContextMenu.current != null && !CoreTools.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
+      if (JSContextMenu.current != null && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
         console.debug('clicked outside - closing context menu');
         JSContextMenu.current.close();
       }

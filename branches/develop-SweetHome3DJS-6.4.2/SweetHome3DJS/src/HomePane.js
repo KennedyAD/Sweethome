@@ -186,13 +186,12 @@ ResourceAction.prototype.actionPerformed = function(ev) {
  * @param {Home} home
  * @param {UserPreferences} preferences
  * @param {HomeController} controller
- * @param {JSViewFactory} viewFactory current view factory
  * 
  * @constructor
  * @author Emmanuel Puybaret
  * @author Renaud Pawlak
  */
-function HomePane(containerId, home, preferences, controller, viewFactory) {
+function HomePane(containerId, home, preferences, controller) {
   if (containerId != null) {
     this.container = document.getElementById(containerId);
   }
@@ -202,7 +201,6 @@ function HomePane(containerId, home, preferences, controller, viewFactory) {
   this.home = home;
   this.preferences = preferences;
   this.controller = controller;
-  this.viewFactory = viewFactory;
   this.clipboardEmpty = true;
   this.actionMap = {};
   this.inputMap = {};
@@ -1090,7 +1088,7 @@ HomePane.prototype.createToolBar = function(home, preferences) {
 }
 
 /**
- * Create context menus of this pane
+ * Creates context menus for components within this home pane.
  * @param {Home} home
  * @param {UserPreferences} preferences
  * @return {Object}
@@ -1105,7 +1103,7 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   var furnitures = furnitureCatalogView.getFurnituresHTMLElement();
 
-  this.furnitureCatalogContextMenu = new JSContextMenu(this.viewFactory, this.preferences, furnitures, {
+  this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitures, {
     build: function(builder) {
       builder.addItem(homePane.getAction(HomeView.ActionType.ADD_HOME_FURNITURE));
     }
@@ -1117,7 +1115,7 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   var planController = this.controller.getPlanController();
   var planElement = planController.getView().getHTMLElement();
 
-  this.planContextMenu = new JSContextMenu(this.viewFactory, this.preferences, planElement, {
+  this.planContextMenu = new JSContextMenu(this.preferences, planElement, {
     build: function(builder) {
       builder.addItem(homePane.getAction(HomeView.ActionType.SELECT_ALL));
 
