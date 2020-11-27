@@ -87,7 +87,7 @@ JSViewFactory.prototype.createView3D = function(home, preferences, homeControlle
 }
 
 JSViewFactory.prototype.createHomeView = function(home, preferences, homeController) {
-  return new HomePane("home-pane", home, preferences, homeController, this);
+  return new HomePane("home-pane", home, preferences, homeController);
 }
 
 JSViewFactory.prototype.createWizardView = function(preferences, wizardController) {
