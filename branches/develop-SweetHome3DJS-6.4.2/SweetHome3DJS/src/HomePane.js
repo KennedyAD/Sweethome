@@ -703,6 +703,14 @@ HomePane.prototype.createClipboardAction = function(actionType, preferences, cli
 }
 
 /**
+ * Creates a <code>ResourceAction</code> for the given menu action type.
+ * @private
+ */
+HomePane.prototype.getMenuAction = function(actionType) {
+  return new ResourceAction(this.preferences, HomePane, HomePane.MenuActionType[actionType], true);
+}
+
+/**
  * Adds a property change listener to <code>home</code> to update
  * View from top and View from observer toggle models according to used camera.
  * @param {Home} home
@@ -1117,13 +1125,38 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
 
   this.planContextMenu = new JSContextMenu(this.preferences, planElement, {
     build: function(builder) {
+
+      builder.addItem(homePane.getAction(HomeView.ActionType.UNDO));
+      
+      builder.addSeparator();
+      
+      builder.addItem(homePane.getAction(HomeView.ActionType.CUT));
+      builder.addItem(homePane.getAction(HomeView.ActionType.COPY));
+      builder.addItem(homePane.getAction(HomeView.ActionType.PASTE));
+      
+      builder.addSeparator();
+      
       builder.addItem(homePane.getAction(HomeView.ActionType.SELECT_ALL));
 
-      var actionModifyFurniture = homePane.getAction(HomeView.ActionType.MODIFY_FURNITURE);
-      if (actionModifyFurniture.isEnabled()) {
-        builder.addSeparator();
-        builder.addItem(actionModifyFurniture);
-      }
+      builder.addSeparator();
+
+      builder.addItem(homePane.getAction(HomeView.ActionType.FLIP_HORIZONTALLY));
+      builder.addItem(homePane.getAction(HomeView.ActionType.FLIP_VERTICALLY));
+      builder.addItem(homePane.getAction(HomeView.ActionType.MODIFY_FURNITURE));
+      builder.addItem(homePane.getAction(HomeView.ActionType.RESET_FURNITURE_ELEVATION));
+
+      builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.MODIFY_TEXT_STYLE), function(builder) {
+        builder.addItem(homePane.getAction(HomeView.ActionType.INCREASE_TEXT_SIZE));
+        builder.addItem(homePane.getAction(HomeView.ActionType.DECREASE_TEXT_SIZE));
+        builder.addItem(homePane.getAction(HomeView.ActionType.TOGGLE_BOLD_STYLE));
+        builder.addItem(homePane.getAction(HomeView.ActionType.TOGGLE_ITALIC_STYLE));
+      });
+            
+      builder.addSeparator();
+      
+      builder.addItem(homePane.getAction(HomeView.ActionType.ZOOM_OUT));
+      builder.addItem(homePane.getAction(HomeView.ActionType.ZOOM_IN));
+      
     }
   });
 }
