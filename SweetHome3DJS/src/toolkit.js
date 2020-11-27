@@ -445,6 +445,10 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
   this.build(builder, sourceElement);
   
   var items = builder.items;
+  // Remove last element if it is a separator 
+  if (items.length > 0 && items[items.length - 1] == CONTEXT_MENU_SEPARATOR_ITEM) {
+    items.pop();
+  }
   var menuElement = this.createMenuElement(items);
   
   this.getRootNode().appendChild(menuElement);
@@ -482,10 +486,10 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 };
 
 /**
- * Initialize a menu item element for the given menuItemModel descriptor
+ * Initializes a menu item element for the given menuItemModel descriptor.
  * 
  * @param {HTMLElement} menuItemElement 
- * @param {{}[]} itemModel same type as a JSContextMenu.Builder.items element
+ * @param {{}[]} item an item from JSContextMenu.Builder.items
  * 
  * @private
  */
@@ -525,7 +529,7 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
 };
 
 /**
- * Closes the context menu
+ * Closes the context menu.
  */
 JSContextMenu.prototype.close = function() {
   this.getRootNode().classList.remove('visible');
@@ -540,7 +544,7 @@ JSContextMenu.prototype.close = function() {
 };
 
 /**
- * Builds items of a context menu which is about to be shown 
+ * Builds items of a context menu which is about to be shown. 
  */
 JSContextMenu.Builder = function() {
   /** @type {{ uid?: string, label?: string, iconPath?: string, onItemSelected?: function(), subItems?: {}[] }[] } } */
@@ -551,7 +555,7 @@ JSContextMenu.Builder.prototype = Object.create(JSContextMenu.Builder.prototype)
 JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
 
 /**
- * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback
+ * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback.
  * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
  * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', 'myitem', function() { console.log('my item clicked') })
  * 3) builder.addItem('myitem', function() { console.log('my item clicked') })
@@ -569,6 +573,12 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
   var onItemSelected = null;
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
+
+    // do no show item if action is disabled    
+    if (!action.isEnabled()) {
+      return this;
+    }
+    
     label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
 
     var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
@@ -599,25 +609,41 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
 }
 
 /**
- * Adds a sub menu to this menu, with an optional icon
+ * Adds a sub menu to this menu, with an optional icon.
  * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', 'myitem', function(builder) { builder.addItem(...) })`
  * 2) `builder.addSubMenu('myitem', function(builder) { builder.addItem(...) })`
  * 
- * @param {string} iconPathOrLabel
+ * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} labelOrbuildSubMenuCallback
  * @param {function(JSContextMenu.Builder)} [buildSubMenuCallback]
  * 
  * @return {JSContextMenu.Builder}
  * 
  */
-JSContextMenu.Builder.prototype.addSubMenu = function(iconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
+JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
   var label = null;
   var iconPath = null;
-  if (typeof buildSubMenuCallback == 'function') {
+  
+  if (actionOrIconPathOrLabel instanceof ResourceAction) {
+    var action = actionOrIconPathOrLabel;
+
+    // do no show item if action is disabled    
+    if (!action.isEnabled()) {
+      return this;
+    }
+    
+    label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
+
+    var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
+    if (libIconPath != null) {
+      iconPath = 'lib/' + libIconPath;
+    }
+    buildSubMenuCallback = labelOrbuildSubMenuCallback;    
+  } else if (typeof buildSubMenuCallback == 'function') {
     label = labelOrbuildSubMenuCallback;
-    iconPath = iconPathOrLabel;
+    iconPath = actionOrIconPathOrLabel;
   } else {
-    label = iconPathOrLabel;
+    label = actionOrIconPathOrLabel;
     buildSubMenuCallback = labelOrbuildSubMenuCallback;    
   }
 
@@ -639,10 +665,14 @@ JSContextMenu.Builder.prototype.addSubMenu = function(iconPathOrLabel, labelOrbu
 var CONTEXT_MENU_SEPARATOR_ITEM = {};
 
 /**
- * Adds a separator after previous items
+ * Adds a separator after previous items.
+ * Does nothing if there are no items yet or if the latest added item is already a separator.
+ *
  * @return {JSContextMenu.Builder}
  */
 JSContextMenu.Builder.prototype.addSeparator = function() {
-  this.items.push(CONTEXT_MENU_SEPARATOR_ITEM);
+  if (this.items.length > 0 && this.items[this.items.length - 1] != CONTEXT_MENU_SEPARATOR_ITEM) {
+    this.items.push(CONTEXT_MENU_SEPARATOR_ITEM);
+  }
   return this;
 }
