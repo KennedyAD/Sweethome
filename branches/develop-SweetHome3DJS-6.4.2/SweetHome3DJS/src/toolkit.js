@@ -486,7 +486,7 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 };
 
 /**
- * Initializes a menu item element for the given menuItemModel descriptor.
+ * Initializes a menu item element for the given item descriptor (model).
  * 
  * @param {HTMLElement} menuItemElement 
  * @param {{}[]} item an item from JSContextMenu.Builder.items
@@ -496,8 +496,19 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
   var contextMenu = this;
 
+  if (item.selected !== undefined) {
+    // Toggle action case
+    var toggle = document.createElement('input');
+    toggle.type = 'radio';
+    if (item.selected) {
+      toggle.checked = 'checked';
+    }
+    itemElement.appendChild(toggle);
+  }
+
   var itemIconElement = document.createElement('img');
-  if (item.iconPath != null) {
+  if (item.iconPath != null && item.selected === undefined) {
+    // Icons are not shown for toggle actions 
     itemIconElement.src = item.iconPath;
     itemIconElement.classList.add('visible');
   }
@@ -571,6 +582,9 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
   var label = null;
   var iconPath = null;
   var onItemSelected = null;
+  // Defined only for a toggle action
+  var selected = undefined;
+  
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
@@ -584,6 +598,10 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
     if (libIconPath != null) {
       iconPath = 'lib/' + libIconPath;
+    }
+
+    if (action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP)) {
+      selected = action.getValue(AbstractAction.SELECTED_KEY);
     }
 
     onItemSelected = function() {
@@ -602,7 +620,8 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     uid: UUID.randomUUID(),
     label: label,
     iconPath: iconPath,
-    onItemSelected: onItemSelected
+    onItemSelected: onItemSelected,
+    selected: selected
   });
 
   return this;
