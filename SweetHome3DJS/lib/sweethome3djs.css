@@ -376,6 +376,12 @@
   background-color: #DDDDDD; 
 }
 
+.context-menu .item input[type='radio'] {
+  vertical-align: middle;
+  margin-right: 0.6em;
+  pointer-events: none;  
+}
+
 .context-menu .item img {
   display: none;
   vertical-align: middle;

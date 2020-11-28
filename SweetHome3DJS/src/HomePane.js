@@ -1104,58 +1104,65 @@ HomePane.prototype.createToolBar = function(home, preferences) {
  */
 HomePane.prototype.createContextMenus = function(home, preferences) {
   var homePane = this;
-
-  /**
-   * Catalog view context menu
-   */
+  var ActionType = HomeView.ActionType;
+  
+  // Catalog view context menu
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   var furnitures = furnitureCatalogView.getFurnituresHTMLElement();
 
   this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitures, {
     build: function(builder) {
-      builder.addItem(homePane.getAction(HomeView.ActionType.ADD_HOME_FURNITURE));
+      builder.addItem(homePane.getAction(ActionType.ADD_HOME_FURNITURE));
     }
   });
 
-  /**
-   * Plan view context menu
-   */
+  // Plan view context menu
   var planController = this.controller.getPlanController();
   var planElement = planController.getView().getHTMLElement();
 
   this.planContextMenu = new JSContextMenu(this.preferences, planElement, {
     build: function(builder) {
 
-      builder.addItem(homePane.getAction(HomeView.ActionType.UNDO));
+      builder.addItem(homePane.getAction(ActionType.UNDO));
       
       builder.addSeparator();
       
-      builder.addItem(homePane.getAction(HomeView.ActionType.CUT));
-      builder.addItem(homePane.getAction(HomeView.ActionType.COPY));
-      builder.addItem(homePane.getAction(HomeView.ActionType.PASTE));
+      builder.addItem(homePane.getAction(ActionType.CUT));
+      builder.addItem(homePane.getAction(ActionType.COPY));
+      builder.addItem(homePane.getAction(ActionType.PASTE));
       
       builder.addSeparator();
       
-      builder.addItem(homePane.getAction(HomeView.ActionType.SELECT_ALL));
+      builder.addItem(homePane.getAction(ActionType.SELECT_ALL));
 
       builder.addSeparator();
 
-      builder.addItem(homePane.getAction(HomeView.ActionType.FLIP_HORIZONTALLY));
-      builder.addItem(homePane.getAction(HomeView.ActionType.FLIP_VERTICALLY));
-      builder.addItem(homePane.getAction(HomeView.ActionType.MODIFY_FURNITURE));
-      builder.addItem(homePane.getAction(HomeView.ActionType.RESET_FURNITURE_ELEVATION));
+      builder.addItem(homePane.getAction(ActionType.SELECT));
+      builder.addItem(homePane.getAction(ActionType.PAN));
+      builder.addItem(homePane.getAction(ActionType.CREATE_WALLS));
+      builder.addItem(homePane.getAction(ActionType.CREATE_ROOMS));
+      builder.addItem(homePane.getAction(ActionType.CREATE_POLYLINES));
+      builder.addItem(homePane.getAction(ActionType.CREATE_DIMENSION_LINES));
+      builder.addItem(homePane.getAction(ActionType.CREATE_LABELS));
+
+      builder.addSeparator();
+
+      builder.addItem(homePane.getAction(ActionType.FLIP_HORIZONTALLY));
+      builder.addItem(homePane.getAction(ActionType.FLIP_VERTICALLY));
+      builder.addItem(homePane.getAction(ActionType.MODIFY_FURNITURE));
+      builder.addItem(homePane.getAction(ActionType.RESET_FURNITURE_ELEVATION));
 
       builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.MODIFY_TEXT_STYLE), function(builder) {
-        builder.addItem(homePane.getAction(HomeView.ActionType.INCREASE_TEXT_SIZE));
-        builder.addItem(homePane.getAction(HomeView.ActionType.DECREASE_TEXT_SIZE));
-        builder.addItem(homePane.getAction(HomeView.ActionType.TOGGLE_BOLD_STYLE));
-        builder.addItem(homePane.getAction(HomeView.ActionType.TOGGLE_ITALIC_STYLE));
+        builder.addItem(homePane.getAction(ActionType.INCREASE_TEXT_SIZE));
+        builder.addItem(homePane.getAction(ActionType.DECREASE_TEXT_SIZE));
+        builder.addItem(homePane.getAction(ActionType.TOGGLE_BOLD_STYLE));
+        builder.addItem(homePane.getAction(ActionType.TOGGLE_ITALIC_STYLE));
       });
             
       builder.addSeparator();
       
-      builder.addItem(homePane.getAction(HomeView.ActionType.ZOOM_OUT));
-      builder.addItem(homePane.getAction(HomeView.ActionType.ZOOM_IN));
+      builder.addItem(homePane.getAction(ActionType.ZOOM_OUT));
+      builder.addItem(homePane.getAction(ActionType.ZOOM_IN));
       
     }
   });
