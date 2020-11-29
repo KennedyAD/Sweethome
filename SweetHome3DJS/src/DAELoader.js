@@ -104,7 +104,7 @@ function DAEHandler(sceneRoot, daeEntryName) {
   this.instantiatedNodes = {}; // SharedGroup3D
   this.visualScenes = {}; // TransformGroup3D
   this.visualScene = null;
-  this.floats = []; // number []
+  this.floats = null; // number []
   this.geometryVertices = []; // number []
   this.geometryNormals = []; // number []
   this.geometryTextureCoordinates = []; // number []
@@ -225,20 +225,22 @@ DAEHandler.prototype.startElement = function(uri, localName, name, attributes) {
     } else if (this.verticesId !== null && "input" == name) {
       var sourceAnchor = attributes.getValue("source").substring(1);
       var source = this.sources [sourceAnchor];
-      if ("POSITION" == attributes.getValue("semantic")) {
-        this.positions [this.verticesId] = new Array(source.length / 3);
-        for (var i = 0, k = 0; k < source.length; i++, k += 3) {
-          this.positions [this.verticesId][i] = vec3.fromValues(source [k], source [k + 1], source [k + 2]);
-        }
-      } else if ("NORMAL" == attributes.getValue("semantic")) {
-        this.normals [this.verticesId] = new Array(source.length / 3);
-        for (var i = 0, k = 0; k < source.length; i++, k += 3) {
-          this.normals [this.verticesId][i] = vec3.fromValues(source [k], source [k + 1], source [k + 2]);
-        }
-      } else if ("TEXCOORD" == attributes.getValue("semantic")) {
-        this.textureCoordinates [this.verticesId] = new Array(source.length / 2);
-        for (var i = 0, k = 0; k < source.length; i++, k += 2) {
-          this.textureCoordinates [this.verticesId][i] = vec2.fromValues(source [k], source [k + 1]);
+      if (source !== undefined) {
+        if ("POSITION" == attributes.getValue("semantic")) {
+          this.positions [this.verticesId] = new Array(source.length / 3);
+          for (var i = 0, k = 0; k < source.length; i++, k += 3) {
+            this.positions [this.verticesId][i] = vec3.fromValues(source [k], source [k + 1], source [k + 2]);
+          }
+        } else if ("NORMAL" == attributes.getValue("semantic")) {
+          this.normals [this.verticesId] = new Array(source.length / 3);
+          for (var i = 0, k = 0; k < source.length; i++, k += 3) {
+            this.normals [this.verticesId][i] = vec3.fromValues(source [k], source [k + 1], source [k + 2]);
+          }
+        } else if ("TEXCOORD" == attributes.getValue("semantic")) {
+          this.textureCoordinates [this.verticesId] = new Array(source.length / 2);
+          for (var i = 0, k = 0; k < source.length; i++, k += 2) {
+            this.textureCoordinates [this.verticesId][i] = vec2.fromValues(source [k], source [k + 1]);
+          }
         }
       }
     } else if (this.verticesId === null && "input" == name) {
@@ -249,6 +251,9 @@ DAEHandler.prototype.startElement = function(uri, localName, name, attributes) {
       }
       if ("VERTEX" == attributes.getValue("semantic")) {
         this.geometryVertices = this.positions [sourceAnchor];
+        if (this.geometryVertices === undefined) {
+          this.geometryVertices = null;
+        }
         this.geometryVertexOffset = offset;
         if (this.geometryNormals === null) {
           this.geometryNormals = this.normals [sourceAnchor];
@@ -260,18 +265,22 @@ DAEHandler.prototype.startElement = function(uri, localName, name, attributes) {
         }
       } else if ("NORMAL" == attributes.getValue("semantic")) {
         var source = this.sources [sourceAnchor];
-        this.geometryNormals = new Array(source.length / 3);
-        for (var i = 0, k = 0; k < source.length; i++, k += 3) {
-          this.geometryNormals [i] = vec3.fromValues(source [k], source [k + 1], source [k + 2]);
+        if (source !== undefined) {
+          this.geometryNormals = new Array(source.length / 3);
+          for (var i = 0, k = 0; k < source.length; i++, k += 3) {
+            this.geometryNormals [i] = vec3.fromValues(source [k], source [k + 1], source [k + 2]);
+          }
+          this.geometryNormalOffset = offset;
         }
-        this.geometryNormalOffset = offset;
       } else if ("TEXCOORD" == attributes.getValue("semantic")) {
         var source = this.sources [sourceAnchor];
-        this.geometryTextureCoordinates = new Array(source.length / 2);
-        for (var i = 0, k = 0; k < source.length; i++, k += 2) {
-          this.geometryTextureCoordinates [i] = vec2.fromValues(source [k], source [k + 1]);
+        if (source !== undefined) {
+          this.geometryTextureCoordinates = new Array(source.length / 2);
+          for (var i = 0, k = 0; k < source.length; i++, k += 2) {
+            this.geometryTextureCoordinates [i] = vec2.fromValues(source [k], source [k + 1]);
+          }
+          this.geometryTextureCoordinatesOffset = offset;
         }
-        this.geometryTextureCoordinatesOffset = offset;
       }
     } else if ("triangles" == name
                || "trifans" == name
@@ -675,7 +684,10 @@ DAEHandler.prototype.handleEffectElementsEnd = function(name, parent) {
  */
 DAEHandler.prototype.handleGeometryElementsEnd = function(name, parent) {
   if ("mesh" == parent && "source" == name) {
-    this.sources [this.meshSourceId] = this.floats;
+    if (this.floats !== null) {
+      this.sources [this.meshSourceId] = this.floats;
+      this.floats = null;
+    }
     this.meshSourceId = null;
   } else if ("mesh" == parent && "vertices" == name) {
     this.verticesId = null;
