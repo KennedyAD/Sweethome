@@ -256,6 +256,8 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
 
   JSComponentView.call(this, viewFactory, preferences, template, behavior);
   this.rootNode.classList.add('dialog-container');
+  this.rootNode._dialogInstance = this;
+
   document.body.append(this.rootNode);
   var dialog = this;
   this.getCloseButton().addEventListener('click', function() {
@@ -271,6 +273,26 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
 }
 JSDialogView.prototype = Object.create(JSComponentView.prototype);
 JSDialogView.prototype.constructor = JSDialogView;
+
+/**
+ * close currently displayed topmost dialog if any
+ * @static
+ */
+JSDialogView.closeTopMostDialogIfAny = function() {
+  var visibleDialogElements = document.querySelectorAll('.dialog-container.visible');
+  if (visibleDialogElements.length > 0) {
+    /** @type JSDialogView */
+    var topMostDialog = undefined;
+    for (var i = 0; i < visibleDialogElements.length; i++) {
+      var visibleDialog = visibleDialogElements[i]._dialogInstance;
+      if (topMostDialog == null || topMostDialog.displayIndex <= visibleDialog.displayIndex) {
+        topMostDialog = visibleDialog;
+      }
+    }
+
+    topMostDialog.close();
+  }
+}
 
 JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
   return JSComponentView.substituteWithLocale(this.preferences, '<div class="dialog-content">' +
@@ -366,12 +388,14 @@ JSDialogView.prototype.displayView = function(parentView) {
   var dialog = this;
 
   this.getRootNode().style.display = 'block';
-
+  
   // force browser to refresh before adding visible class to allow transition on width and height
   setTimeout(function() {
     dialog.rootNode.classList.add('visible');
+    dialog.displayIndex = JSDialogView.shownDialogsCounter++;
   }, 100);
 }
+JSDialogView.shownDialogsCounter = 0;
 
 /*****************************************/
 /* JSContextMenu                         */
@@ -421,9 +445,10 @@ function JSContextMenu(preferences, sourceElements, behavior) {
 
   if (!JSContextMenu.globalCloserRegistered) {
     document.addEventListener('click', function(event) {
-      if (JSContextMenu.current != null && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
-        console.debug('clicked outside - closing context menu');
-        JSContextMenu.current.close();
+      if (JSContextMenu.current != null 
+        && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
+        // clicked outside menu
+        JSContextMenu.closeCurrentIfAny();
       }
     });
     JSContextMenu.globalCloserRegistered = true;
@@ -431,6 +456,17 @@ function JSContextMenu(preferences, sourceElements, behavior) {
 }
 JSContextMenu.prototype = Object.create(JSComponentView.prototype);
 JSContextMenu.prototype.constructor = JSContextMenu;
+
+/**
+ * close currently displayed context menu if any
+ * @static
+ */
+JSContextMenu.closeCurrentIfAny = function() {
+  if (JSContextMenu.current != null) {
+    console.debug('closing context menu');
+    JSContextMenu.current.close();
+  }
+}
 
 /**
  * @param {HTMLElement} sourceElement
@@ -695,3 +731,10 @@ JSContextMenu.Builder.prototype.addSeparator = function() {
   }
   return this;
 }
+
+document.addEventListener('keyup', function(event) {
+  if (event.key == 'Escape' || event.keyCode == 27) {
+    JSDialogView.closeTopMostDialogIfAny();
+    JSContextMenu.closeCurrentIfAny();
+  }
+});
