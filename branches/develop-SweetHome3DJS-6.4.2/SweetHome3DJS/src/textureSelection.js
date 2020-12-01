@@ -315,6 +315,12 @@ JSTextureSelectorDialog.prototype.initRecentTextures = function() {
 function JSTextureSelectorButton(viewFactory, preferences, textureChoiceController, targetNode, options) {
   this.textureChoiceController = textureChoiceController;
 
+  /** @field @type function(HomeTexture) */
+  this.onTextureSelected = undefined;
+  if (typeof options == 'object' && typeof options.onTextureSelected == 'function') {
+    this.onTextureSelected = options.onTextureSelected;
+  }
+
   JSComponentView.call(this, viewFactory, preferences, null, {
     initializer: function(component) {
       component.getRootNode().innerHTML = '<button class="texture-button"><div class="texture-overview" /></button>';
@@ -329,8 +335,8 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
       
       component.textureChangeListener = function() {
         component.set(textureChoiceController.getTexture());
-        if (typeof options == 'object' && typeof options.onTextureSelected == 'function') {
-          options.onTextureSelected(component.get());
+        if (typeof component.onTextureSelected == 'function') {
+          component.onTextureSelected(component.get());
         }
       };
       textureChoiceController.addPropertyChangeListener('TEXTURE', component.textureChangeListener);
@@ -374,7 +380,7 @@ JSTextureSelectorButton.prototype.enable = function(enabled) {
  * @private
  */
 JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
-  this.currentDialog = this.viewFactory.createTextureChoiceView(this.preferences, this.textureChoiceController);
+  this.currentDialog = new JSTextureSelectorDialog(this.viewFactory, this.preferences, this.textureChoiceController);
   if (this.get() != null) {
     this.currentDialog.setTexture(this.get());
   }
