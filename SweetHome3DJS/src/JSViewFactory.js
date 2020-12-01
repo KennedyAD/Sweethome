@@ -138,13 +138,12 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
         dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
         dialog.colorSelector.set(homeFurnitureController.getColor());
     
-        dialog.textureSelector = viewFactory.createTextureSelector(preferences, homeFurnitureController.getTextureController(), {
-          onTextureSelected: function(texture) {
-            dialog.radioButtons[FurniturePaint.TEXTURED].checked = true;
-            homeFurnitureController.setPaint(FurniturePaint.TEXTURED);
-            homeFurnitureController.getTextureController().setTexture(texture);
-          }
-        });
+        dialog.textureSelector = homeFurnitureController.getTextureController().getView();
+        dialog.textureSelector.onTextureSelected = function(texture) {
+          dialog.radioButtons[FurniturePaint.TEXTURED].checked = true;
+          homeFurnitureController.setPaint(FurniturePaint.TEXTURED);
+          homeFurnitureController.getTextureController().setTexture(texture);
+        };
         dialog.attachChildComponent('texture-selector-button', dialog.textureSelector);
         dialog.textureSelector.set(homeFurnitureController.getTextureController().getTexture())
         
@@ -271,8 +270,18 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, home3
   return dummyDialogView;
 }
 
-JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureChoiceController) {
-  return new JSTextureSelectorDialog(this, preferences, textureChoiceController);
+/**
+ * Creates a texture selection component
+
+ * @param {UserPreferences} preferences current user's preferences 
+ * @param {TextureChoiceController} textureChoiceController texture choice controller
+ * @param {{ onTextureSelected: function(HomeTexture) }} [options]
+ * > onTextureSelected: called with selected texture, when selection changed
+ * 
+ * @return {JSComponentView} 
+ */
+JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureChoiceController, options) {
+  return new JSTextureSelectorButton(this, preferences, textureChoiceController, null, options);
 }
 
 JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, baseboardChoiceController) {
@@ -317,18 +326,4 @@ JSViewFactory.prototype.createVideoView = function(home, preferences, videoContr
  */
 JSViewFactory.prototype.createColorSelector = function(preferences, options) {
   return new JSColorSelectorButton(this, preferences, null, options);
-}
-
-/**
- * Creates a texture selection component
-
- * @param {UserPreferences} preferences current user's preferences 
- * @param {TextureChoiceController} textureChoiceController texture choice controller
- * @param {{ onTextureSelected: function(HomeTexture) }} [options]
- * > onTextureSelected: called with selected texture, when selection changed
- * 
- * @return {JSComponentView} 
- */
-JSViewFactory.prototype.createTextureSelector = function(preferences, textureChoiceController, options) {
-  return new JSTextureSelectorButton(this, preferences, textureChoiceController, null, options);
 }
