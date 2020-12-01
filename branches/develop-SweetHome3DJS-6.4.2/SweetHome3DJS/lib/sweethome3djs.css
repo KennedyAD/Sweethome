@@ -578,8 +578,8 @@
 
 .color-button .color-overview {
   border: solid 1px black;
-  width: 50%;
-  height: 80%;
+  width: 60%;
+  height: 90%;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
@@ -663,11 +663,12 @@
 
 .texture-button .texture-overview {
   border: solid 1px black;
-  width: 50%;
-  height: 80%;
+  width: 60%;
+  height: 90%;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
+  background-size: 100% 100%;
 }
 
 .texture-selector-dialog .texture-search {
@@ -778,4 +779,5 @@
   box-sizing: border-box;
   display: inline-block;
   cursor: pointer;
+  background-size: 100% 100%;
 }
