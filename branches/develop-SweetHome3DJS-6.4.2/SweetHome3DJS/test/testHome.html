@@ -1601,6 +1601,140 @@ testHome();
   </div>
 </div>
 
+<div id="polyline-dialog-template" class="dialog-template">
+  
+  <div id="polyline-dialog">
+
+    <div data-name="thickness-label">
+    </div>
+    <div>
+      <input data-name="thickness-input" type="number" step="0.5" min="0.1" max="50" />
+    </div>
+
+    <div>
+      ${PolylinePanel.dashOffsetLabel.text}
+    </div>
+    <div>
+      <input data-name="dash-offset-input" type="number" step="5" min="0" max="100" />
+    </div>
+
+    <div>
+      ${PolylinePanel.colorLabel.text}
+    </div>
+    <div data-name="color-selector-button"></div>
+    
+    <div>
+      <label>
+        <input data-name="visible-in-3D-checkbox" type="checkbox"  />
+        ${PolylinePanel.visibleIn3DViewCheckBox.text}
+      </label>
+    </div>
+
+  </div>
+</div>
+
+<div id="label-dialog-template" class="dialog-template">
+  
+  <div id="label-dialog">
+
+    <h3>${LabelPanel.textAndStylePanel.title}</h3>
+    <hr />
+    <div data-name="text-and-style-panel">
+      <div>
+        ${LabelPanel.textLabel.text}
+      </div>
+      <div>
+        <textarea data-name="text" rows="4"></textarea>
+      </div>
+
+      <div>
+        ${LabelPanel.alignmentLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="alignment-radio" value="LEFT" />
+          ${LabelPanel.leftAlignmentRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="alignment-radio" value="CENTER" />
+          ${LabelPanel.centerAlignmentRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="alignment-radio" value="RIGHT" />
+          ${LabelPanel.rightAlignmentRadioButton.text}
+        </label>
+      </div>
+
+      <!--
+      <div>
+        ${LabelPanel.fontNameLabel.text}
+      </div>
+      <div>
+        <select>
+          <option value="DEFAULT_SYSTEM_FONT_NAME">Default</option>
+        </select>
+      </div>
+      -->
+
+      <div data-name="text-size-label">
+      </div>
+      <div data-name="text-size-input-container">
+        <input data-name="text-size" type="number" max="999" min="5" step="0.5" />
+      </div>
+
+      <div data-name="color-label">
+        ${LabelPanel.colorLabel.text}
+      </div>
+      <div data-name="color-selector-button"></div>
+
+    </div>
+
+    <h3>${LabelPanel.rendering3DPanel.title}</h3>
+    <hr />
+    <div data-name="rendering-3D-panel">
+      <div>
+        <label>
+          <input data-name="visible-in-3D-checkbox" type="checkbox"  />
+          ${LabelPanel.visibleIn3DViewCheckBox.text}
+        </label>
+      </div>
+
+      <div>
+        ${LabelPanel.pitchLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="pitch-radio" value="0" />
+          ${LabelPanel.pitch0DegreeRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="pitch-radio" value="90" />
+          ${LabelPanel.pitch90DegreeRadioButton.text}
+        </label>
+      </div>
+
+      <!--
+      <div>
+        ${LabelPanel.fontNameLabel.text}
+      </div>
+      <div>
+        <select>
+          <option value="DEFAULT_SYSTEM_FONT_NAME">Default</option>
+        </select>
+      </div>
+      -->
+
+      <div data-name="elevation-label">
+      </div>
+      <div>
+        <input data-name="elevation-input" type="number" max="10000" min="0" step="0.5" />
+      </div>
+      
+    </div>
+
+  </div>
+</div>
+
 <script type="text/javascript">
 // If true, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
