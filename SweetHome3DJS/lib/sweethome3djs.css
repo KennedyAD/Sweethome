@@ -564,6 +564,77 @@
   align-items: start;
 }
 
+/*********************************/
+/* PolylineDialog           */
+/*********************************/
+
+#polyline-dialog {
+  display: grid;
+  grid-template-columns: max-content auto;
+  row-gap: 1em;
+  column-gap: 0.2em;
+}
+
+#polyline-dialog > div:nth-child(odd) {
+  text-align: right;
+}
+
+#polyline-dialog > div:last-child {
+  grid-column: 1 / span 2;
+}
+
+/*********************************/
+/* LabelDialog           */
+/*********************************/
+
+#label-dialog [data-name="text-and-style-panel"] {
+  display: grid;
+  grid-template-columns: max-content auto;
+  row-gap: 1em;
+  column-gap: 0.2em;
+  line-height: 1.8em;
+}
+
+#label-dialog [data-name="text-and-style-panel"] > div:nth-child(odd) {
+  text-align: right;
+  margin-right: 0.2em;
+}
+
+#label-dialog [data-name="text-and-style-panel"] > div:nth-child(even) {
+  grid-column: 2 / span 3;
+}
+
+#label-dialog [data-name="text-and-style-panel"] > div[data-name="text-size-label"] {
+  grid-column: 1;
+}
+#label-dialog [data-name="text-and-style-panel"] > div[data-name="text-size-input-container"] {
+  grid-column: 2;
+}
+#label-dialog [data-name="text-and-style-panel"] > div[data-name="color-label"] {
+  grid-column: 3;
+}
+#label-dialog [data-name="text-and-style-panel"] > div[data-name="color-selector-button"] {
+  grid-column: 4;
+}
+
+#label-dialog [data-name="rendering-3D-panel"] {
+  display: grid;
+  grid-template-columns: max-content auto;
+  row-gap: 1em;
+  column-gap: 0.2em;
+  line-height: 1.8em;
+}
+
+#label-dialog [data-name="rendering-3D-panel"] > div:nth-child(even) {
+  text-align: right;
+  margin-right: 0.2em;
+  grid-column: 1;
+}
+
+#label-dialog [data-name="rendering-3D-panel"] > div:nth-child(1) {
+  grid-column: 1 / 2;
+}
+
 /**********************************/
 /** COLOR PICKER                 **/
 /**********************************/

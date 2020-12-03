@@ -229,33 +229,154 @@ JSViewFactory.prototype.createRoomView = function(preferences, roomController) {
   };
 }
 
+/**
+ * Creates a polyline editor dialog
+ * @param {UserPreferences} preferences 
+ * @param {PolylineController} polylineController 
+ */
 JSViewFactory.prototype.createPolylineView = function(preferences, polylineController) {
-  return {
-    displayView: function(parent) {
-      JSViewFactory.displayColorPicker(polylineController.getColor(),
-        function(selectedColor) {
-          polylineController.setColor(selectedColor);
-          polylineController.modifyPolylines();
+  var viewFactory = this;
+
+  return new JSDialogView(viewFactory, preferences, 
+    '${PolylinePanel.polyline.title}', 
+    document.getElementById("polyline-dialog-template"), {
+      initializer: function(dialog) {
+
+        dialog.colorSelector = viewFactory.createColorSelector(preferences, {
+          onColorSelected: function(selectedColor) {
+            polylineController.setColor(selectedColor);
+          }
         });
+        dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
+        dialog.colorSelector.set(polylineController.getColor());
+
+        dialog.thicknessLabelElement = dialog.getElement('thickness-label');
+        dialog.thicknessLabelElement.textContent = ResourceAction.getLocalizedLabelText(
+          dialog.preferences, 'PolylinePanel', 'thicknessLabel.text', dialog.preferences.getLengthUnit().getName()
+        );
+        
+        dialog.thicknessInput = dialog.getElement('thickness-input');
+        dialog.thicknessInput.value = polylineController.getThickness();
+
+        dialog.dashOffsetInput = dialog.getElement('dash-offset-input');
+        dialog.dashOffsetInput.value = polylineController.getDashOffset();
+
+        dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
+        dialog.visibleIn3DCheckbox.checked = polylineController.isElevationEnabled() && polylineController.getElevation() != null;
+      },
+      applier: function(dialog) {
+        if (dialog.thicknessInput.value.trim() != '') {
+          polylineController.setThickness(parseFloat(dialog.thicknessInput.value));
+        }
+        if (dialog.visibleIn3DCheckbox.checked) {
+          polylineController.setElevation(0);
+        } else {
+          polylineController.setElevation(null);
+        }
+
+        if (dialog.dashOffsetInput.value.trim() != '') {
+          polylineController.setDashOffset(parseFloat(dialog.dashOffsetInput.value));
+        }
+        
+        polylineController.modifyPolylines();
+      },
+      disposer: function(dialog) {
+        dialog.colorSelector.dispose();
+      }
     }
-  };
+  );
 }
 
 JSViewFactory.prototype.createLabelView = function(modification, preferences, labelController) {
-  return {
-    displayView: function(parentView) {
-      var text = prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text"),
-        modification ? labelController.getText() : "Text")
-      if (text != null) {
-        labelController.setText(text);
+
+  var viewFactory = this;
+
+  return new JSDialogView(viewFactory, preferences, 
+    '${LabelPanel.labelModification.title}', 
+    document.getElementById("label-dialog-template"), {
+      initializer: function(dialog) {
+
+        dialog.nameInput = dialog.getElement('text');
+        dialog.nameInput.value = modification ? labelController.getText() : "Text";
+        
+        dialog.alignmentRadios = dialog.getRootNode().querySelectorAll('[name="alignment-radio"]');
+        if (labelController.getAlignment() != null) {
+          var selectedAlignmentRadio = dialog.getRootNode().querySelector('[name="alignment-radio"][value="' + TextStyle.Alignment[labelController.getAlignment()] + '"]');
+          if (selectedAlignmentRadio != null) {
+            selectedAlignmentRadio.checked = true;
+          }
+        }
+        
+        dialog.textSizeLabel = dialog.getElement('text-size-label');
+        dialog.textSizeLabel.textContent = ResourceAction.getLocalizedLabelText(
+          dialog.preferences, 'LabelPanel', 'fontSizeLabel.text', dialog.preferences.getLengthUnit().getName()
+        );
+        dialog.textSizeInput = dialog.getElement('text-size');
+        dialog.textSizeInput.value = labelController.getFontSize();
+        
+        dialog.colorSelector = viewFactory.createColorSelector(preferences);
+        dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
+        dialog.colorSelector.set(labelController.getColor());
+        
+        var pitchEnabled = labelController.isPitchEnabled() && labelController.getPitch() != null;
+        dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
+        dialog.visibleIn3DCheckbox.checked = pitchEnabled;
+        
+        dialog.pitchRadios = dialog.getRootNode().querySelectorAll('[name="pitch-radio"]');
+        if (pitchEnabled) {
+          var selectedPitchRadio = dialog.getRootNode().querySelector('[name="pitch-radio"][value="' + labelController.getPitch() + '"]');
+          if (selectedPitchRadio != null) {
+            selectedPitchRadio.checked = true;
+          }
+        }
+
+        dialog.elevationLabel = dialog.getElement('elevation-label');
+        dialog.elevationLabel.textContent = ResourceAction.getLocalizedLabelText(
+          dialog.preferences, 'LabelPanel', 'elevationLabel.text', dialog.preferences.getLengthUnit().getName()
+        );
+        dialog.elevationInput = dialog.getElement('elevation-input');
+        dialog.elevationInput.value = labelController.getElevation();
+      },
+      applier: function(dialog) {
+        labelController.setText(dialog.nameInput.value);
+
+        for (var i = 0; i < dialog.alignmentRadios.length; i++) {
+          if (dialog.alignmentRadios[i].checked) {
+            labelController.setAlignment(TextStyle.Alignment[dialog.alignmentRadios[i].value]);
+          }
+        }
+
+        if (dialog.textSizeInput.value.trim() != '') {
+          labelController.setFontSize(parseFloat(dialog.textSizeInput.value));
+        }
+
+        labelController.setColor(dialog.colorSelector.get());
+
+        if (dialog.visibleIn3DCheckbox.checked) {
+          for (var i = 0; i < dialog.pitchRadios.length; i++) {
+            if (dialog.pitchRadios[i].checked) {
+              labelController.setPitch(parseFloat(dialog.pitchRadios[i].value) || 0);
+            }
+          }
+        } else {
+          labelController.setPitch(null);
+        }
+
+        if (dialog.elevationInput.value.trim() != '') {
+          labelController.setElevation(parseFloat(dialog.elevationInput.value));
+        }
+
         if (modification) {
           labelController.modifyLabels();
         } else {
           labelController.createLabel();
         }
+      },
+      disposer: function(dialog) {
+        dialog.colorSelector.dispose();
       }
     }
-  };
+  );
 }
 
 JSViewFactory.prototype.createCompassView = function(preferences, compassController) {
