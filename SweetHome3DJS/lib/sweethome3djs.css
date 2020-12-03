@@ -563,6 +563,27 @@
 .color-and-texture-panel > div {
   align-items: start;
 }
+	
+/*********************************/
+/* RoomDialog                    */
+/*********************************/
+
+#room-dialog label {
+  cursor: pointer;
+}
+
+#room-dialog [data-name="floor-panel"],
+#room-dialog [data-name="ceiling-panel"] {
+  display: grid;
+  grid-template-columns: max-content auto;
+  row-gap: 1em;
+  column-gap: 0.2em;
+}
+
+#room-dialog [data-name="floor-panel"] .whole-line,
+#room-dialog [data-name="ceiling-panel"] .whole-line {
+  grid-column: 1 / span 2;
+}
 
 /*********************************/
 /* PolylineDialog           */
