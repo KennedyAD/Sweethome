@@ -180,40 +180,65 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
 }
 
 JSViewFactory.prototype.createWallView = function(preferences, wallController) {
-  return {
-    displayView: function(parent) {
-      // Find which wall side is the closest to the pointer location
-      var home = wallController.home;
-      var planController = application.getHomeController(home).getPlanController();
-      var x = planController.getXLastMousePress();
-      var y = planController.getYLastMousePress();
-      var wall = home.getSelectedItems()[0];
-      var points = wall.getPoints();
-      var leftMinDistance = Number.MAX_VALUE;
-      for (var i = points.length / 2 - 1; i > 0; i--) {
-        leftMinDistance = Math.min(leftMinDistance,
-          java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i - 1][0], points[i - 1][1], x, y))
-      }
-      var rightMinDistance = Number.MAX_VALUE;
-      for (var i = points.length / 2; i < points.length - 1; i++) {
-        rightMinDistance = Math.min(rightMinDistance,
-          java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], x, y))
-      }
-      var leftSide = leftMinDistance < rightMinDistance;
 
-      JSViewFactory.displayColorPicker(leftSide ? wallController.getLeftSideColor() : wallController.getRightSideColor(),
-        function(selectedColor) {
-          if (leftSide) {
-            wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
-            wallController.setLeftSideColor(selectedColor);
-          } else {
-            wallController.setRightSidePaint(WallController.WallPaint.COLORED);
-            wallController.setRightSideColor(selectedColor);
+  var viewFactory = this;
+
+  return new JSDialogView(viewFactory, preferences, 
+    '${WallPanel.wall.title}', 
+    document.getElementById("wall-dialog-template"), {
+      initializer: function(dialog) {
+
+        // Find which wall side is the closest to the pointer location
+        var home = wallController.home;
+        var planController = application.getHomeController(home).getPlanController();
+        var x = planController.getXLastMousePress();
+        var y = planController.getYLastMousePress();
+        var wall = home.getSelectedItems()[0];
+        var points = wall.getPoints();
+        var leftMinDistance = Number.MAX_VALUE;
+        for (var i = points.length / 2 - 1; i > 0; i--) {
+          leftMinDistance = Math.min(leftMinDistance,
+            java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i - 1][0], points[i - 1][1], x, y))
+        }
+        var rightMinDistance = Number.MAX_VALUE;
+        for (var i = points.length / 2; i < points.length - 1; i++) {
+          rightMinDistance = Math.min(rightMinDistance,
+            java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], x, y))
+        }
+        var leftSide = leftMinDistance < rightMinDistance;
+
+        dialog.colorLabel = dialog.getElement('color-selector-label');
+        dialog.colorLabel.textContent = ResourceAction.getLocalizedLabelText(
+          dialog.preferences, 
+          'WallPanel', 
+          leftSide ? 'leftSideColorRadioButton.text' : 'rightSideColorRadioButton.text',
+          dialog.preferences.getLengthUnit().getName()
+        );
+
+        dialog.colorSelector = viewFactory.createColorSelector(preferences, {
+          onColorSelected: function(selectedColor) {
+            if (leftSide) {
+              wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
+              wallController.setLeftSideColor(selectedColor);
+            } else {
+              wallController.setRightSidePaint(WallController.WallPaint.COLORED);
+              wallController.setRightSideColor(selectedColor);
+            }
           }
-          wallController.modifyWalls();
         });
+        dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
+        dialog.colorSelector.set(leftSide ? wallController.getLeftSideColor() : wallController.getRightSideColor());
+        
+      },
+      applier: function(dialog) {
+        
+        wallController.modifyWalls();
+      },
+      disposer: function(dialog) {
+        dialog.colorSelector.dispose();
+      }
     }
-  };
+  );
 }
 
 JSViewFactory.prototype.createRoomView = function(preferences, roomController) {
