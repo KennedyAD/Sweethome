@@ -229,6 +229,12 @@ JSViewFactory.prototype.createWallView = function(preferences, wallController) {
         dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
         dialog.colorSelector.set(leftSide ? wallController.getLeftSideColor() : wallController.getRightSideColor());
         
+        dialog.getElement('wall-orientation-label').innerHTML = ResourceAction.getLocalizedLabelText(
+          dialog.preferences, 
+          'WallPanel', 
+          'wallOrientationLabel.text',
+          'lib/wallOrientation.png'
+        );
       },
       applier: function(dialog) {
         
