@@ -145,14 +145,14 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
           homeFurnitureController.getTextureController().setTexture(texture);
         };
         dialog.attachChildComponent('texture-selector-button', dialog.textureSelector);
-        dialog.textureSelector.set(homeFurnitureController.getTextureController().getTexture())
+        dialog.textureSelector.set(homeFurnitureController.getTextureController().getTexture());
         
         var selectedPaint = homeFurnitureController.getPaint();
   
         dialog.radioButtons = [];
-        dialog.radioButtons[FurniturePaint.DEFAULT] = dialog.findElement('[name="color-and-texture-choice"][value="default"]');
-        dialog.radioButtons[FurniturePaint.COLORED] = dialog.findElement('[name="color-and-texture-choice"][value="color"]');
-        dialog.radioButtons[FurniturePaint.TEXTURED] = dialog.findElement('[name="color-and-texture-choice"][value="texture"]');
+        dialog.radioButtons[FurniturePaint.DEFAULT] = dialog.findElement('[name="furniture-color-and-texture-choice"][value="default"]');
+        dialog.radioButtons[FurniturePaint.COLORED] = dialog.findElement('[name="furniture-color-and-texture-choice"][value="color"]');
+        dialog.radioButtons[FurniturePaint.TEXTURED] = dialog.findElement('[name="furniture-color-and-texture-choice"][value="texture"]');
         
         for (var paint = 0; paint < dialog.radioButtons.length; paint++) {
           var radioButton = dialog.radioButtons[paint];
@@ -217,16 +217,120 @@ JSViewFactory.prototype.createWallView = function(preferences, wallController) {
 }
 
 JSViewFactory.prototype.createRoomView = function(preferences, roomController) {
-  return {
-    displayView: function(parent) {
-      JSViewFactory.displayColorPicker(roomController.getFloorColor(),
-        function(selectedColor) {
-          roomController.setFloorPaint(RoomController.RoomPaint.COLORED);
-          roomController.setFloorColor(selectedColor);
-          roomController.modifyRooms();
-        });
+
+  var viewFactory = this;
+
+  function initFloorPanel(dialog) {
+    dialog.floorVisibleCheckBox = dialog.getElement('floor-visible-checkbox');
+    dialog.floorVisibleCheckBox.checked = roomController.getFloorVisible();
+
+    dialog.floorColorSelector = viewFactory.createColorSelector(preferences, {
+      onColorSelected: function(selectedColor) {
+        dialog.findElement('[name="floor-color-and-texture-choice"][value="COLORED"]').checked = true;
+        roomController.setFloorPaint(RoomController.RoomPaint.COLORED);
+        roomController.setFloorColor(selectedColor);
+      }
+    });
+    dialog.attachChildComponent('floor-color-selector-button', dialog.floorColorSelector)
+    dialog.floorColorSelector.set(roomController.getFloorColor());
+
+    dialog.floorTextureSelector = roomController.getFloorTextureController().getView();
+    dialog.floorTextureSelector.onTextureSelected = function(texture) {
+      dialog.findElement('[name="floor-color-and-texture-choice"][value="TEXTURED"]').checked = true;
+      roomController.setFloorPaint(RoomController.RoomPaint.TEXTURED);
+      roomController.getFloorTextureController().setTexture(texture);
+    };
+    dialog.attachChildComponent('floor-texture-selector-button', dialog.floorTextureSelector);
+    dialog.floorTextureSelector.set(roomController.getFloorTextureController().getTexture());
+    
+    dialog.findElement('[name="floor-color-and-texture-choice"][value="COLORED"]').checked 
+      = roomController.getFloorPaint() == RoomController.RoomPaint.COLORED;
+    dialog.findElement('[name="floor-color-and-texture-choice"][value="TEXTURED"]').checked 
+      = roomController.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
+
+    var selectedFloorShininessRadio = dialog.findElement('[name="floor-shininess-choice"][value="' + roomController.getFloorShininess() + '"]');
+    if (selectedFloorShininessRadio != null) {
+      selectedFloorShininessRadio.checked = true;
     }
-  };
+  }
+
+  function initCeilingPanel(dialog) {
+    dialog.ceilingVisibleCheckBox = dialog.getElement('ceiling-visible-checkbox');
+    dialog.ceilingVisibleCheckBox.checked = roomController.getCeilingVisible();
+    
+    dialog.ceilingColorSelector = viewFactory.createColorSelector(preferences, {
+        onColorSelected: function(selectedColor) {
+          dialog.findElement('[name="ceiling-color-and-texture-choice"][value="COLORED"]').checked = true;
+          roomController.setCeilingPaint(RoomController.RoomPaint.COLORED);
+          roomController.setCeilingColor(selectedColor);
+        }
+    });
+    dialog.attachChildComponent('ceiling-color-selector-button', dialog.ceilingColorSelector)
+    dialog.ceilingColorSelector.set(roomController.getCeilingColor());
+    
+    dialog.ceilingTextureSelector = roomController.getCeilingTextureController().getView();
+    dialog.ceilingTextureSelector.onTextureSelected = function(texture) {
+        dialog.findElement('[name="ceiling-color-and-texture-choice"][value="TEXTURED"]').checked = true;
+        roomController.setCeilingPaint(RoomController.RoomPaint.TEXTURED);
+        roomController.getCeilingTextureController().setTexture(texture);
+    };
+    dialog.attachChildComponent('ceiling-texture-selector-button', dialog.ceilingTextureSelector);
+    dialog.ceilingTextureSelector.set(roomController.getCeilingTextureController().getTexture());
+    
+    dialog.findElement('[name="ceiling-color-and-texture-choice"][value="COLORED"]').checked 
+        = roomController.getCeilingPaint() == RoomController.RoomPaint.COLORED;
+    dialog.findElement('[name="ceiling-color-and-texture-choice"][value="TEXTURED"]').checked 
+        = roomController.getCeilingPaint() == RoomController.RoomPaint.TEXTURED;
+    
+    var selectedCeilingShininessRadio = dialog.findElement('[name="ceiling-shininess-choice"][value="' + roomController.getCeilingShininess() + '"]');
+    if (selectedCeilingShininessRadio != null) {
+        selectedCeilingShininessRadio.checked = true;
+    }
+  }
+
+  return new JSDialogView(viewFactory, preferences, 
+    '${RoomPanel.room.title}', 
+    document.getElementById("room-dialog-template"), {
+      initializer: function(dialog) {
+        var behavior = this;
+
+        dialog.nameInput = dialog.getElement('name-input');
+        dialog.nameInput.value = roomController.getName();
+        
+        dialog.areaVisibleCheckbox = dialog.getElement('area-visible-checkbox');
+        dialog.areaVisibleCheckbox.checked = roomController.getAreaVisible();
+
+        initFloorPanel(dialog);
+        initCeilingPanel(dialog);
+      },
+      applier: function(dialog) {
+        roomController.setName(dialog.nameInput.value);
+        roomController.setAreaVisible(dialog.areaVisibleCheckbox.checked);
+
+        roomController.setFloorVisible(dialog.floorVisibleCheckBox.checked);
+    
+        var selectedFloorShininessRadio = dialog.findElement('[name="floor-shininess-choice"]:checked');
+        if (selectedFloorShininessRadio != null) {
+          roomController.setFloorShininess(parseFloat(selectedFloorShininessRadio.value));
+        }
+
+        roomController.setCeilingVisible(dialog.ceilingVisibleCheckBox.checked);
+
+        var selectedCeilingShininessRadio = dialog.findElement('[name="ceiling-shininess-choice"]:checked');
+        if (selectedCeilingShininessRadio != null) {
+          roomController.setCeilingShininess(parseFloat(selectedCeilingShininessRadio.value));
+        }
+        
+        roomController.modifyRooms();
+      },
+      disposer: function(dialog) {
+        dialog.floorColorSelector.dispose();
+        dialog.floorTextureSelector.dispose();
+        dialog.ceilingColorSelector.dispose();
+        dialog.ceilingTextureSelector.dispose();
+      },
+    }
+  );
 }
 
 /**
@@ -299,9 +403,9 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
         dialog.nameInput = dialog.getElement('text');
         dialog.nameInput.value = modification ? labelController.getText() : "Text";
         
-        dialog.alignmentRadios = dialog.getRootNode().querySelectorAll('[name="alignment-radio"]');
+        dialog.alignmentRadios = dialog.getRootNode().querySelectorAll('[name="label-alignment-radio"]');
         if (labelController.getAlignment() != null) {
-          var selectedAlignmentRadio = dialog.getRootNode().querySelector('[name="alignment-radio"][value="' + TextStyle.Alignment[labelController.getAlignment()] + '"]');
+          var selectedAlignmentRadio = dialog.findElement('[name="label-alignment-radio"][value="' + TextStyle.Alignment[labelController.getAlignment()] + '"]');
           if (selectedAlignmentRadio != null) {
             selectedAlignmentRadio.checked = true;
           }
@@ -322,9 +426,9 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
         dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
         dialog.visibleIn3DCheckbox.checked = pitchEnabled;
         
-        dialog.pitchRadios = dialog.getRootNode().querySelectorAll('[name="pitch-radio"]');
+        dialog.pitchRadios = dialog.getRootNode().querySelectorAll('[name="label-pitch-radio"]');
         if (pitchEnabled) {
-          var selectedPitchRadio = dialog.getRootNode().querySelector('[name="pitch-radio"][value="' + labelController.getPitch() + '"]');
+          var selectedPitchRadio = dialog.findElement('[name="label-pitch-radio"][value="' + labelController.getPitch() + '"]');
           if (selectedPitchRadio != null) {
             selectedPitchRadio.checked = true;
           }

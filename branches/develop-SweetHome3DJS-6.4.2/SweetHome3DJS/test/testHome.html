@@ -1576,7 +1576,7 @@ testHome();
     <div class="color-and-texture-panel">
       <div>
         <label>
-          <input type="radio" name="color-and-texture-choice" value="default">
+          <input type="radio" name="furniture-color-and-texture-choice" value="default">
           ${HomeFurniturePanel.defaultColorAndTextureRadioButton.text}
         </label>
       </div>
@@ -1584,7 +1584,7 @@ testHome();
 
       <div>
         <label>
-          <input type="radio" name="color-and-texture-choice" value="color">
+          <input type="radio" name="furniture-color-and-texture-choice" value="color">
           ${HomeFurniturePanel.colorRadioButton.text}
         </label>
       </div>
@@ -1592,12 +1592,126 @@ testHome();
 
       <div>
         <label>
-          <input type="radio" name="color-and-texture-choice" value="texture">
+          <input type="radio" name="furniture-color-and-texture-choice" value="texture">
           ${HomeFurniturePanel.textureRadioButton.text}
         </label>
       </div>
       <div data-name="texture-selector-button"></div>
     </div>
+  </div>
+</div>
+
+<div id="room-dialog-template" class="dialog-template">
+  
+  <div id="room-dialog">
+    <h3>${RoomPanel.nameAndAreaPanel.title}</h3>
+    <hr />
+    <div data-name="name-and-area-panel">
+      ${RoomPanel.nameLabel.text}
+      <input name="name-input" type="text" />
+      
+      <label>
+        <input name="area-visible-checkbox" type="checkbox"  />
+        ${RoomPanel.areaVisibleCheckBox.text}
+      </label>
+    </div>
+
+    <div class="columns-2">
+    
+      <div class="column1">
+        <h3>${RoomPanel.floorPanel.title}</h3>
+        <hr />
+        <div data-name="floor-panel">
+
+          <div class="whole-line">
+            <label>
+              <input name="floor-visible-checkbox" type="checkbox"  />
+              ${RoomPanel.floorVisibleCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="floor-color-and-texture-choice" value="COLORED">
+              ${RoomPanel.floorColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="floor-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="floor-color-and-texture-choice" value="TEXTURED">
+              ${RoomPanel.floorTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="floor-texture-selector-button"></div>
+    
+          <div class="whole-line">
+            <hr />
+          </div>
+    
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="floor-shininess-choice" value="0">
+              ${RoomPanel.floorMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="floor-shininess-choice" value="0.25">
+              ${RoomPanel.floorShinyRadioButton.text}
+            </label>
+          </div>
+          
+        </div>
+
+      </div>
+      
+      <div class="column2">
+        <h3>${RoomPanel.ceilingPanel.title}</h3>
+        <hr />
+        <div data-name="ceiling-panel">
+    
+          <div class="whole-line">
+            <label>
+              <input name="ceiling-visible-checkbox" type="checkbox"  />
+              ${RoomPanel.ceilingVisibleCheckBox.text}
+            </label>
+          </div>
+    
+          <div>
+            <label>
+              <input type="radio" name="ceiling-color-and-texture-choice" value="COLORED">
+              ${RoomPanel.ceilingColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ceiling-color-selector-button"></div>
+    
+          <div>
+            <label>
+              <input type="radio" name="ceiling-color-and-texture-choice" value="TEXTURED">
+              ${RoomPanel.ceilingTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ceiling-texture-selector-button"></div>
+    
+          <div class="whole-line">
+            <hr />
+          </div>
+    
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="ceiling-shininess-choice" value="0">
+              ${RoomPanel.ceilingMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="ceiling-shininess-choice" value="0.25">
+              ${RoomPanel.ceilingShinyRadioButton.text}
+            </label>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
   </div>
 </div>
 
@@ -1608,14 +1722,14 @@ testHome();
     <div data-name="thickness-label">
     </div>
     <div>
-      <input data-name="thickness-input" type="number" step="0.5" min="0.1" max="50" />
+      <input name="thickness-input" type="number" step="0.5" min="0.1" max="50" />
     </div>
 
     <div>
       ${PolylinePanel.dashOffsetLabel.text}
     </div>
     <div>
-      <input data-name="dash-offset-input" type="number" step="5" min="0" max="100" />
+      <input name="dash-offset-input" type="number" step="5" min="0" max="100" />
     </div>
 
     <div>
@@ -1625,7 +1739,7 @@ testHome();
     
     <div>
       <label>
-        <input data-name="visible-in-3D-checkbox" type="checkbox"  />
+        <input name="visible-in-3D-checkbox" type="checkbox"  />
         ${PolylinePanel.visibleIn3DViewCheckBox.text}
       </label>
     </div>
@@ -1644,7 +1758,7 @@ testHome();
         ${LabelPanel.textLabel.text}
       </div>
       <div>
-        <textarea data-name="text" rows="4"></textarea>
+        <textarea name="text" rows="4"></textarea>
       </div>
 
       <div>
@@ -1652,15 +1766,15 @@ testHome();
       </div>
       <div>
         <label>
-          <input type="radio" name="alignment-radio" value="LEFT" />
+          <input type="radio" name="label-alignment-radio" value="LEFT" />
           ${LabelPanel.leftAlignmentRadioButton.text}
         </label>
         <label>
-          <input type="radio" name="alignment-radio" value="CENTER" />
+          <input type="radio" name="label-alignment-radio" value="CENTER" />
           ${LabelPanel.centerAlignmentRadioButton.text}
         </label>
         <label>
-          <input type="radio" name="alignment-radio" value="RIGHT" />
+          <input type="radio" name="label-alignment-radio" value="RIGHT" />
           ${LabelPanel.rightAlignmentRadioButton.text}
         </label>
       </div>
@@ -1679,7 +1793,7 @@ testHome();
       <div data-name="text-size-label">
       </div>
       <div data-name="text-size-input-container">
-        <input data-name="text-size" type="number" max="999" min="5" step="0.5" />
+        <input name="text-size" type="number" max="999" min="5" step="0.5" />
       </div>
 
       <div data-name="color-label">
@@ -1694,7 +1808,7 @@ testHome();
     <div data-name="rendering-3D-panel">
       <div>
         <label>
-          <input data-name="visible-in-3D-checkbox" type="checkbox"  />
+          <input name="visible-in-3D-checkbox" type="checkbox"  />
           ${LabelPanel.visibleIn3DViewCheckBox.text}
         </label>
       </div>
@@ -1704,11 +1818,11 @@ testHome();
       </div>
       <div>
         <label>
-          <input type="radio" name="pitch-radio" value="0" />
+          <input type="radio" name="label-pitch-radio" value="0" />
           ${LabelPanel.pitch0DegreeRadioButton.text}
         </label>
         <label>
-          <input type="radio" name="pitch-radio" value="90" />
+          <input type="radio" name="label-pitch-radio" value="90" />
           ${LabelPanel.pitch90DegreeRadioButton.text}
         </label>
       </div>
@@ -1727,7 +1841,7 @@ testHome();
       <div data-name="elevation-label">
       </div>
       <div>
-        <input data-name="elevation-input" type="number" max="10000" min="0" step="0.5" />
+        <input name="elevation-input" type="number" max="10000" min="0" step="0.5" />
       </div>
       
     </div>
@@ -1769,6 +1883,9 @@ var application = useServer
     : new SweetHome3DJSApplication();
 var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
 
+var queryStringParams = new URLSearchParams(window.location.search)
+var skipTests = queryStringParams.get('skipTests') == 'true';
+
 // Read and display test file 
 // TODO Should be performed in HomeController.open
 application.getHomeRecorder().readHome(homeName, 
@@ -1777,7 +1894,9 @@ application.getHomeRecorder().readHome(homeName,
         home.setName(homeName);
         application.addHome(home);
         
-        setTimeout(testHomeModifications, 1000);
+        if (!skipTests) {
+          setTimeout(testHomeModifications, 1000);
+        }
       },
       homeError: function(err) {
         console.error(err);
