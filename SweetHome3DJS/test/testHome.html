@@ -1605,8 +1605,53 @@ testHome();
   
   <div id="wall-dialog">
 
-    <div data-name="color-selector-label"></div>
-    <div data-name="color-selector-button"></div>
+    <div class="columns-2">
+
+      <div class="column1">
+        <h3>${WallPanel.leftSidePanel.title}</h3>
+        <hr />
+        <div class="color-and-texture-panel">
+          <div>
+            <label>
+              <input type="radio" name="left-side-color-and-texture-choice" value="COLORED">
+              ${WallPanel.leftSideColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="left-side-color-selector-button"></div>
+          
+          <div>
+            <label>
+              <input type="radio" name="left-side-color-and-texture-choice" value="TEXTURED">
+              ${WallPanel.leftSideTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="left-side-texture-selector-button"></div>
+        </div>
+      </div>
+      
+      <div class="column2">
+        <h3>${WallPanel.rightSidePanel.title}</h3>
+        <hr />
+        <div class="color-and-texture-panel">
+          <div>
+            <label>
+              <input type="radio" name="right-side-color-and-texture-choice" value="COLORED">
+              ${WallPanel.rightSideColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="right-side-color-selector-button"></div>
+          
+          <div>
+            <label>
+              <input type="radio" name="right-side-color-and-texture-choice" value="TEXTURED">
+              ${WallPanel.rightSideTextureRadioButton.text}
+            </label>
+          </div>         
+          <div data-name="right-side-texture-selector-button"></div>
+        </div>
+      </div>
+ 
+    </div>
     
     <hr />
     <div data-name="wall-orientation-label">

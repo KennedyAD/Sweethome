@@ -207,41 +207,75 @@ JSViewFactory.prototype.createWallView = function(preferences, wallController) {
         }
         var leftSide = leftMinDistance < rightMinDistance;
 
-        dialog.colorLabel = dialog.getElement('color-selector-label');
-        dialog.colorLabel.textContent = ResourceAction.getLocalizedLabelText(
-          dialog.preferences, 
-          'WallPanel', 
-          leftSide ? 'leftSideColorRadioButton.text' : 'rightSideColorRadioButton.text',
-          dialog.preferences.getLengthUnit().getName()
-        );
+        dialog.findElement(leftSide ? ".column1" : ".column2").classList.add("selected");
 
-        dialog.colorSelector = viewFactory.createColorSelector(preferences, {
+        var selectedLeftSidePaint = dialog.findElement('[name="left-side-color-and-texture-choice"][value="'
+          + WallController.WallPaint[wallController.getLeftSidePaint()]
+          + '"]');
+        if (selectedLeftSidePaint != null) {
+          selectedLeftSidePaint.checked = true;
+        }
+        var selectedRightSidePaint = dialog.findElement('[name="right-side-color-and-texture-choice"][value="'
+          + WallController.WallPaint[wallController.getRightSidePaint()]
+          + '"]');
+        if (selectedRightSidePaint != null) {
+          selectedRightSidePaint.checked = true;
+        }
+
+        // Colors
+        dialog.leftSideColorSelector = viewFactory.createColorSelector(preferences, {
           onColorSelected: function(selectedColor) {
-            if (leftSide) {
-              wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
-              wallController.setLeftSideColor(selectedColor);
-            } else {
-              wallController.setRightSidePaint(WallController.WallPaint.COLORED);
-              wallController.setRightSideColor(selectedColor);
-            }
+            dialog.findElement('[name="left-side-color-and-texture-choice"][value="COLORED"]').checked = true;
+            wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
+            wallController.setLeftSideColor(selectedColor);
           }
         });
-        dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
-        dialog.colorSelector.set(leftSide ? wallController.getLeftSideColor() : wallController.getRightSideColor());
+        dialog.rightSideColorSelector = viewFactory.createColorSelector(preferences, {
+          onColorSelected: function(selectedColor) {
+            dialog.findElement('[name="right-side-color-and-texture-choice"][value="COLORED"]').checked = true;
+            wallController.setRightSidePaint(WallController.WallPaint.COLORED);
+            wallController.setRightSideColor(selectedColor);
+          }
+        });
+        dialog.attachChildComponent('left-side-color-selector-button', dialog.leftSideColorSelector);
+        dialog.attachChildComponent('right-side-color-selector-button', dialog.rightSideColorSelector);
+        dialog.leftSideColorSelector.set(wallController.getLeftSideColor());
+        dialog.rightSideColorSelector.set(wallController.getRightSideColor());
+
+        // Textures
+        dialog.leftSideTextureSelector = wallController.getLeftSideTextureController().getView();
+        dialog.leftSideTextureSelector.onTextureSelected = function(texture) {
+          dialog.findElement('[name="left-side-color-and-texture-choice"][value="TEXTURED"]').checked = true;
+          wallController.setLeftSidePaint(WallController.WallPaint.TEXTURED);
+          wallController.getLeftSideTextureController().setTexture(texture);
+        };
+        dialog.attachChildComponent('left-side-texture-selector-button', dialog.leftSideTextureSelector);
+        dialog.leftSideTextureSelector.set(wallController.getLeftSideTextureController().getTexture());
+        
+        dialog.rightSideTextureSelector = wallController.getRightSideTextureController().getView();
+        dialog.rightSideTextureSelector.onTextureSelected = function(texture) {
+          dialog.findElement('[name="right-side-color-and-texture-choice"][value="TEXTURED"]').checked = true;
+          wallController.setRightSidePaint(WallController.WallPaint.TEXTURED);
+          wallController.getRightSideTextureController().setTexture(texture);
+        };
+        dialog.attachChildComponent('right-side-texture-selector-button', dialog.rightSideTextureSelector);
+        dialog.rightSideTextureSelector.set(wallController.getRightSideTextureController().getTexture());
         
         dialog.getElement('wall-orientation-label').innerHTML = ResourceAction.getLocalizedLabelText(
-          dialog.preferences, 
+          dialog.preferences,
           'WallPanel', 
           'wallOrientationLabel.text',
           'lib/wallOrientation.png'
         );
       },
       applier: function(dialog) {
-        
         wallController.modifyWalls();
       },
       disposer: function(dialog) {
-        dialog.colorSelector.dispose();
+        dialog.leftSideColorSelector.dispose();
+        dialog.rightSideColorSelector.dispose();
+        dialog.leftSideTextureSelector.dispose();
+        dialog.rightSideTextureSelector.dispose();
       }
     }
   );
