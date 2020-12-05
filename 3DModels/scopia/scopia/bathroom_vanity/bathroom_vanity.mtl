@@ -1,10 +1,10 @@
 # Blender3D MTL File: bathroom_vanity_sweethome3d.blend
 # Material Count: 10
 newmtl marble_marble_public_dom_cla
-Ns 476.470588
+Ns 100
 Ka 0.000000 0.000000 0.000000
 Kd 1.000000 1.000000 1.000000
-Ks 1.036058 1.036058 1.036058
+Ks 1 1 1
 Ni 1.000000
 d 1.000000
 illum 2
@@ -12,10 +12,10 @@ map_Kd marble_public_dom_clair.jpg
 
 
 newmtl metal
-Ns 305.882353
-Ka 0.000000 0.000000 0.000000
-Kd 0.198422 0.198422 0.198422
-Ks 1.288196 1.288196 1.288196
+Ns 128
+Ka 0.6 0.6 0.6
+Kd 0.6 0.6 0.6
+Ks 1 1 1
 Ni 1.000000
 d 1.000000
 illum 2
@@ -42,10 +42,10 @@ illum 2
 
 
 newmtl metal_cover
-Ns 378.431373
-Ka 0.000000 0.000000 0.000000
-Kd 0.288283 0.288283 0.288283
-Ks 1.472026 1.472026 1.472026
+Ns 128
+Ka 0.6 0.6 0.6
+Kd 0.6 0.6 0.6
+Ks 1 1 1
 Ni 3.000000
 d 1.000000
 illum 2
@@ -92,10 +92,10 @@ illum 2
 
 
 newmtl metal_faucet
-Ns 378.431373
-Ka 0.000000 0.000000 0.000000
-Kd 0.288283 0.288283 0.288283
-Ks 1.472026 1.472026 1.472026
+Ns 128
+Ka 0.6 0.6 0.6
+Kd 0.6 0.6 0.6
+Ks 1 1 1
 Ni 3.000000
 d 1.000000
 illum 2
