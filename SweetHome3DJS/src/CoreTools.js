@@ -407,3 +407,11 @@ ColorTools.toRGBAStyle = function(colorString, alpha) {
   var c = ColorTools.hexadecimalStringToInteger(colorString);
   return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
+
+/**
+ * @param {string} string input string
+ * @return given string with first letter upper case
+ */
+CoreTools.capitalize = function(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}

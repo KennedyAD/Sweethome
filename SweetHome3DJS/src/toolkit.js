@@ -184,11 +184,21 @@ JSComponentView.prototype.getElement = function(name) {
 
 /**
  * Returns the element that matches the given query selector within this component.
+ * 
+ * @param {string} query css selector to be applied on children elements
  */
 JSComponentView.prototype.findElement = function(query) {
   return this.rootNode.querySelector(query);
 }
 
+/**
+ * Returns the elements that match the given query selector within this component.
+ * 
+ * @param {string} query css selector to be applied on children elements
+ */
+JSComponentView.prototype.findElements = function(query) {
+  return this.rootNode.querySelectorAll(query);
+}
 
 /**
  * Called when initializing the component. Override to perform custom initializations.
@@ -489,9 +499,20 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
   
   this.getRootNode().appendChild(menuElement);
 
-  this.getRootNode().style.left = event.clientX + 'px';
-  this.getRootNode().style.top = event.clientY + 'px';
+  // we temporarily use hidden visibility to get element's height
+  this.getRootNode().style.visibility = 'hidden';
   this.getRootNode().classList.add('visible');
+  var anchorX = event.clientX;
+  var anchorY = event.clientY;
+  if (menuElement.clientHeight > window.innerHeight) {
+    anchorY = 0;
+  } else if (anchorY + menuElement.clientHeight > window.innerHeight) {
+    anchorY = window.innerHeight - menuElement.clientHeight;
+  }
+  
+  this.getRootNode().style.visibility = 'initial';
+  this.getRootNode().style.left = anchorX + 'px';
+  this.getRootNode().style.top = anchorY + 'px';
 
   JSContextMenu.current = this;
 };
@@ -518,6 +539,20 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 
     menuElement.appendChild(itemElement)
   }
+
+  var backElement = document.createElement('li');
+  backElement.classList.add('item', 'back');
+  backElement.textContent = '🔙';
+  this.registerEventListener(backElement, 'click', function() {
+    var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != 'li';
+    if (isRootMenu) {
+      JSContextMenu.closeCurrentIfAny();
+    } else {
+      menuElement.classList.remove('visible');
+    }
+  });
+  menuElement.appendChild(backElement);
+
   return menuElement;
 };
 
@@ -558,7 +593,13 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
   itemElement.appendChild(itemLabelElement);
   if (Array.isArray(item.subItems)) {
     itemElement.classList.add('sub-menu');
-    itemElement.appendChild(this.createMenuElement(item.subItems));
+
+    var subMenuElement = this.createMenuElement(item.subItems);
+    this.registerEventListener(itemElement, 'click', function() {
+      subMenuElement.classList.add('visible');
+    });
+
+    itemElement.appendChild(subMenuElement);
   }
 
   if (typeof item.onItemSelected == 'function') {

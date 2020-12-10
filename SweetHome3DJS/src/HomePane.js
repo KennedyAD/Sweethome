@@ -16,6 +16,49 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+
+/**
+ * Creates an action which is available in web only.
+ * @param {UserPreferences} preferences   user preferences used to retrieve localized description of the action
+ * @param {number} actionId Action type ID
+ * @param {string} actionName Action name (string ID)
+ * @param {function} performAction callback on action performed
+ * @param {{enabled?: boolean, toolbarIcon?: string}} [options] 
+ * - enabled: <code>true</code> if the action should be enabled at creation - Default: true
+ * - toolbarIcon: toolbar icon relative path
+ * @constructor
+ * @extends AbstractAction
+ * @ignore
+ * @author Louis Grignon
+ */
+function WebAction(preferences, actionId, actionName, performAction, options) {
+  AbstractAction.call(this);
+
+  var webAction = this;
+
+  this.putValue(ResourceAction.RESOURCE_CLASS, HomePane);
+  this.putValue(ResourceAction.RESOURCE_PREFIX, actionName);
+  this.putValue(ResourceAction.VISIBLE, true);
+
+  var enabled = true;
+  if (options && options.enabled !== undefined) {
+    enabled = options.enabled;
+  }
+  this.setEnabled(enabled);
+
+  this.putValue(AbstractAction.NAME, actionName);
+  this.putValue(AbstractAction.DEFAULT, this.getValue(AbstractAction.NAME));
+  if (options && options.toolbarIcon) {
+    this.putValue(ResourceAction.TOOL_BAR_ICON, options.toolbarIcon);
+  }
+
+  this.actionPerformed = performAction;
+
+  return this;
+}
+WebAction.prototype = Object.create(AbstractAction.prototype);
+WebAction.prototype.constructor = WebAction;
+
 /**
  * Creates an action with properties retrieved from a resource bundle
  * in which key starts with <code>actionPrefix</code>.
@@ -337,6 +380,13 @@ HomePane.MenuActionType[HomePane.MenuActionType["SELECT_OBJECT_MENU"] = 12] = "S
 HomePane.MenuActionType[HomePane.MenuActionType["TOGGLE_SELECTION_MENU"] = 13] = "TOGGLE_SELECTION_MENU";
 
 /**
+ * @private
+ */
+HomePane.WebActionType = {};
+HomePane.WebActionType[HomePane.WebActionType["SHOW_PLAN_CONTEXT_MENU"] = 500000] = "SHOW_PLAN_CONTEXT_MENU";
+HomePane.WebActionType[HomePane.WebActionType["PREFERENCES_DIALOG"] = 500001] = "PREFERENCES_DIALOG";
+
+/**
  * Returns the HTML element used to view this component at screen.
  */
 HomePane.prototype.getHTMLElement = function() {
@@ -601,6 +651,32 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
 
   this.createAction(ActionType.HELP, preferences, controller, "help");
   this.createAction(ActionType.ABOUT, preferences, controller, "about");
+  
+  var showPlanContextMenuActionId = HomePane.WebActionType.SHOW_PLAN_CONTEXT_MENU;
+  var showPlanContextMenuActionName = HomePane.WebActionType[showPlanContextMenuActionId];
+  var showPlanContextMenuAction = new WebAction(preferences, showPlanContextMenuActionId, showPlanContextMenuActionName, function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+    var planElement = controller.getPlanController().getView().getHTMLElement();
+    var contextMenuEvent = new Event('contextmenu');
+    contextMenuEvent.clientX = planElement.offsetLeft + planElement.clientWidth / 2;
+    contextMenuEvent.clientY = planElement.offsetTop + planElement.clientHeight / 2;
+    planElement.dispatchEvent(contextMenuEvent);
+    return showPlanContextMenuAction;
+  }, {
+    toolbarIcon: 'three-dots.png'
+  });
+  this.getActionMap()[showPlanContextMenuActionName] = showPlanContextMenuAction;
+
+  var preferencesDialogActionId = HomePane.WebActionType.PREFERENCES_DIALOG;
+  var preferencesDialogActionName = HomePane.WebActionType[preferencesDialogActionId];
+  var preferencesDialogAction = new WebAction(preferences, preferencesDialogActionId, preferencesDialogActionName, function(event) {
+    controller.editPreferences();
+    return preferencesDialogAction;
+  }, {
+    toolbarIcon: 'burger-menu.svg'
+  });
+  this.getActionMap()[preferencesDialogActionName] = preferencesDialogAction;
 }
   
 /**
@@ -786,7 +862,8 @@ HomePane.UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
     var actionMap = homePane.getActionMap();
     switch ((property)) {
     case "LANGUAGE":
-      SwingTools.updateSwingResourceLanguage(ev.getSource());
+      // TODO LOUIS refresh page language 
+      // SwingTools.updateSwingResourceLanguage(ev.getSource());
       break;
     case "CURRENCY":
       actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
@@ -1039,9 +1116,13 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
  */
 HomePane.prototype.createToolBar = function(home, preferences) {
   var toolBar = document.getElementById("home-pane-toolbar"); 
+
+  this.addActionToToolBar(HomePane.WebActionType[HomePane.WebActionType.SHOW_PLAN_CONTEXT_MENU], toolBar); 
+  this.addSeparator(toolBar);
+
   this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
   this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
-  this.addSeparator(toolBar); 
+  this.addSeparator(toolBar);
 
   this.addActionToToolBar(HomeView.ActionType.UNDO, toolBar); 
   this.addActionToToolBar(HomeView.ActionType.REDO, toolBar); 
@@ -1091,7 +1172,10 @@ HomePane.prototype.createToolBar = function(home, preferences) {
 
   this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
-  
+  this.addSeparator(toolBar);
+
+  this.addActionToToolBar(HomePane.WebActionType[HomePane.WebActionType.PREFERENCES_DIALOG], toolBar); 
+
   return toolBar;
 }
 
@@ -1265,8 +1349,8 @@ HomePane.prototype.createToolBarButton = function(action, additionalClass) {
     button.classList.add("toggle");
   }
   button.action = action;
-  button.addEventListener("click", function() {
-      this.action.actionPerformed();
+  button.addEventListener("click", function(event) {
+      this.action.actionPerformed(event);
     });
   var listener = {
         propertyChange: function(ev) {

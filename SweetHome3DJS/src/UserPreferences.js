@@ -68,6 +68,7 @@ function UserPreferences() {
   this.recentColors = [];
   this.recentTextures = [];
   this.homeExamples = [];
+  this.checkUpdatesEnabled = false;
 }
 
 UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es", "fr", "it", "ja", "hu", "nl", "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"];
@@ -1054,6 +1055,26 @@ UserPreferences.prototype.getHomeExamples = function() {
   return this.homeExamples;
 }
 
+/**
+ * @return {boolean} <code>true</code> if updates should be checked.
+ * @ignore
+ */
+UserPreferences.prototype.isCheckUpdatesEnabled = function() {
+  return this.checkUpdatesEnabled;
+}
+
+/**
+ * Sets whether updates should be checked or not.
+ * @param {boolean} updatesChecked 
+ * @since 4.0
+ */
+UserPreferences.prototype.setCheckUpdatesEnabled = function(updatesChecked) {
+  if (updatesChecked != this.checkUpdatesEnabled) {
+    this.checkUpdatesEnabled = updatesChecked;
+    this.propertyChangeSupport.firePropertyChange('CHECK_UPDATES_ENABLED',
+        !updatesChecked, updatesChecked);
+  }
+}
 
 /**
  * Default user preferences.
