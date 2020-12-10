@@ -44,32 +44,6 @@ JSViewFactory.dummyDialogView = {
   displayView: function(parent) { }
 };
 
-// Creates a dummy color input to propose a minimal color change as editing view 
-JSViewFactory.displayColorPicker = function(defaultColor, changeListener) {
-  if (!OperatingSystem.isInternetExplorerOrLegacyEdge()) {
-    var div = document.createElement("div");
-    colorInput = document.createElement("input");
-    colorInput.type = "color";
-    colorInput.style.width = "1px";
-    colorInput.style.height = "1px";
-    div.appendChild(colorInput);
-    document.getElementById("home-plan").appendChild(div);
-
-    var listener = function() {
-      colorInput.removeEventListener("change", listener);
-      changeListener(ColorTools.hexadecimalStringToInteger(colorInput.value));
-      document.getElementById("home-plan").removeChild(div);
-    };
-    colorInput.value = defaultColor != null && defaultColor != 0
-      ? ColorTools.integerToHexadecimalString(defaultColor)
-      : "#010101"; // Color different from black required on some browsers
-    colorInput.addEventListener("change", listener);
-    setTimeout(function() {
-      colorInput.click();
-    }, 100);
-  }
-}
-
 JSViewFactory.prototype.createFurnitureCatalogView = function(catalog, preferences, furnitureCatalogController) {
   return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
 }
@@ -106,8 +80,331 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   return null;
 }
 
-JSViewFactory.prototype.createUserPreferencesView = function(preferences, userPreferencesController) {
-  return dummyDialogView;
+// TODO LOUIS nasty scroll on page level
+/**
+ * @param {UserPreferences} preferences 
+ * @param {UserPreferencesController} controller 
+ */
+JSViewFactory.prototype.createUserPreferencesView = function(preferences, controller) {
+  var viewFactory = this;
+
+  /**
+   * @param {string} value option's value
+   * @param {string} text option's display text
+   * @param {boolean} [selected] true if selected, default false
+   * @return {HTMLOptionElement}
+   * @private
+   */
+  function createOptionElement(value, text, selected) {
+    var option = document.createElement('option');
+    option.value = value;
+    option.textContent = text;
+    if (selected !== undefined) {
+      option.selected = selected;
+    }
+    return option;
+  }
+
+  /**
+   * @param {HTMLElement} element 
+   * @return {boolean} true if element is displayed (not hidden by css rule)
+   * @private
+   */
+  function isElementVisible(element) {
+    return window.getComputedStyle(element).display !== "none";
+  }
+
+  /**
+   * Hides a preference row from any of its input element
+   * @param {HTMLElement} preferenceInput 
+   */
+  function disablePreferenceRow(preferenceInput) {
+    preferenceInput.parentElement.style.display = 'none';
+
+    // searches root input cell
+    var currentElement = preferenceInput;
+    while (currentElement.parentElement != null && !currentElement.parentElement.classList.contains('user-preferences-dialog')) {
+      currentElement = currentElement.parentElement;
+    }
+
+    // hides input cell and its sibling label cell
+    currentElement.style.display = 'none';
+    currentElement.previousElementSibling.style.display = 'none';
+  }
+
+  return new JSDialogView(viewFactory, preferences, 
+    '${UserPreferencesPanel.preferences.title}', 
+    document.getElementById("user-preferences-dialog-template"), {
+      initializer: function(dialog) {
+
+        /** LANGUAGE */
+        dialog.languageSelect = dialog.getElement('language-select');
+        var languageEnabled = controller.isPropertyEditable('LANGUAGE');
+        if (languageEnabled) {
+          var supportedLanguages = preferences.getSupportedLanguages();
+          for (var i = 0; i < supportedLanguages.length; i++) {
+            var languageCode = supportedLanguages[i].replace('_', '-');
+            var languageDisplayName = languageCode;
+            try {
+              languageDisplayName = new Intl.DisplayNames([languageCode, 'en'], { type: 'language' }).of(languageCode);
+            } catch (e) {
+              console.warn('cannot find ' + languageCode + ' display name - ' + e); 
+            }
+
+            var selected = languageCode == controller.getLanguage();
+            var languageOption = createOptionElement(languageCode, CoreTools.capitalize(languageDisplayName), selected);
+            dialog.languageSelect.append(languageOption);
+          }
+        } else {
+          disablePreferenceRow(dialog.languageSelect);
+        }
+
+        /** UNIT */
+        dialog.unitSelect = dialog.getElement('unit-select');
+        var unitEnabled = controller.isPropertyEditable('UNIT');
+        if (unitEnabled) {
+          dialog.unitSelect.append(
+            createOptionElement(
+              'MILLIMETER', 
+              preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.millimeter.text"),
+              controller.getUnit() == LengthUnit.MILLIMETER
+            )
+          );
+          dialog.unitSelect.append(
+            createOptionElement(
+              'CENTIMETER', 
+              preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.centimeter.text"),
+              controller.getUnit() == LengthUnit.CENTIMETER
+            )
+          );
+          dialog.unitSelect.append(
+            createOptionElement(
+              'METER', 
+              preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.meter.text"),
+              controller.getUnit() == LengthUnit.METER
+            )
+          );
+          dialog.unitSelect.append(
+            createOptionElement(
+              'INCH', 
+              preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.inch.text"),
+              controller.getUnit() == LengthUnit.INCH
+            )
+          );
+          dialog.unitSelect.append(
+            createOptionElement(
+              'INCH_DECIMALS', 
+              preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.inchDecimals.text"),
+              controller.getUnit() == LengthUnit.INCH_DECIMALS
+            )
+          );
+        } else {
+          disablePreferenceRow(dialog.unitSelect);
+        }
+
+        /** CURRENCY */
+        dialog.currencySelect = dialog.getElement('currency-select');
+        var currencyEnabled = controller.isPropertyEditable('CURRENCY');
+        // TODO LOUIS how to retrieve currencies to match java ones
+        disablePreferenceRow(dialog.currencySelect);
+        
+        /** FURNITURE CATALOG VIEW */
+        dialog.furnitureCatalogViewTreeRadio = dialog.findElement('[name="furniture-catalog-view-radio"][value="tree"]');
+        var furnitureCatalogViewEnabled = controller.isPropertyEditable('FURNITURE_CATALOG_VIEWED_IN_TREE');
+        if (furnitureCatalogViewEnabled) {
+          var selectedFurnitureCatalogView = controller.isFurnitureCatalogViewedInTree() ? 'tree' : 'list';
+          dialog.findElement('[name="furniture-catalog-view-radio"][value="' + selectedFurnitureCatalogView + '"]').checked = true;
+        } else {
+          disablePreferenceRow(dialog.furnitureCatalogViewTreeRadio);
+        }
+
+        /** NAVIGATION PANEL VISIBLE */
+        var navigationPanelEnabled = controller.isPropertyEditable('NAVIGATION_PANEL_VISIBLE');
+        dialog.navigationPanelCheckbox = dialog.getElement('navigation-panel-checkbox');
+        if (navigationPanelEnabled) {
+          dialog.navigationPanelCheckbox.checked = controller.isNavigationPanelVisible();
+        } else {
+          disablePreferenceRow(dialog.navigationPanelCheckbox);
+        }
+        
+        /** AERIAL VIEW CENTERED ON SELECTION */
+        var aerialViewCenteredOnSelectionEnabled = controller.isPropertyEditable('AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED');
+        dialog.aerialViewCenteredOnSelectionCheckbox = dialog.getElement('aerial-view-centered-on-selection-checkbox');
+        if (aerialViewCenteredOnSelectionEnabled) {
+          dialog.aerialViewCenteredOnSelectionCheckbox.checked = controller.isAerialViewCenteredOnSelectionEnabled();
+        } else {
+          disablePreferenceRow(dialog.aerialViewCenteredOnSelectionCheckbox);
+        }
+        
+        /** OBSERVER CAMERA SELECTED AT CHANGE */
+        var observerCameraSelectedAtChangeEnabled = controller.isPropertyEditable('OBSERVER_CAMERA_SELECTED_AT_CHANGE');
+        dialog.observerCameraSelectedAtChangeCheckbox = dialog.getElement('observer-camera-selected-at-change-checkbox');
+        if (observerCameraSelectedAtChangeEnabled) {
+          dialog.observerCameraSelectedAtChangeCheckbox.checked = controller.isObserverCameraSelectedAtChange();
+        } else {
+          disablePreferenceRow(dialog.observerCameraSelectedAtChangeCheckbox);
+        }
+        
+        /** MAGNETISM */
+        var magnetismEnabled = controller.isPropertyEditable('MAGNETISM_ENABLED');
+        dialog.magnetismCheckbox = dialog.getElement('magnetism-checkbox');
+        if (magnetismEnabled) {
+          dialog.magnetismCheckbox.checked = controller.isMagnetismEnabled();
+        } else {
+          disablePreferenceRow(dialog.magnetismCheckbox);
+        }
+        
+        /** RULERS */
+        var rulersEnabled = controller.isPropertyEditable('RULERS_VISIBLE');
+        dialog.rulersCheckbox = dialog.getElement('rulers-checkbox');
+        if (rulersEnabled) {
+          dialog.rulersCheckbox.checked = controller.isRulersVisible();
+        } else {
+          disablePreferenceRow(dialog.rulersCheckbox);
+        }
+        
+        /** GRID */
+        var gridEnabled = controller.isPropertyEditable('GRID_VISIBLE');
+        dialog.gridCheckbox = dialog.getElement('grid-checkbox');
+        if (gridEnabled) {
+          dialog.gridCheckbox.checked = controller.isGridVisible();
+        } else {
+          disablePreferenceRow(dialog.gridCheckbox);
+        }
+
+        /** FURNITURE ICON */
+        dialog.iconTopViewRadio = dialog.findElement('[name="furniture-icon-radio"][value="topView"]');
+        dialog.iconSizeSelect = dialog.getElement('icon-size-select');
+        var furnitureIconEnabled = controller.isPropertyEditable('FURNITURE_VIEWED_FROM_TOP');
+        if (furnitureIconEnabled) {
+          var selectedIconMode = controller.isFurnitureViewedFromTop() ? 'topView' : 'catalog';
+          dialog.findElement('[name="furniture-icon-radio"][value="' + selectedIconMode + '"]').checked = true;
+
+          var iconSizes = [128, 256, 512 ,1024];
+          for (var i = 0; i < iconSizes.length; i++) {
+            var size = iconSizes[i];
+            dialog.iconSizeSelect.append(
+              createOptionElement(
+                size, 
+                size + '×' + size,
+                controller.getFurnitureModelIconSize() == size
+              )
+            );
+          }
+
+          /**
+           * Called when furniture icon mode is selected, in order to enable icon size if necessary
+           * @private
+           */
+          function onIconModeSelected(dialog) {
+            dialog.iconSizeSelect.disabled = !dialog.iconTopViewRadio.checked;
+          }
+
+          onIconModeSelected(dialog);
+
+          dialog.registerEventListener(dialog.findElements('[name="furniture-icon-radio"]'), 'change', function() {
+            onIconModeSelected(dialog);
+          });
+        } else {
+          disablePreferenceRow(dialog.iconTopViewRadio);
+        }
+
+        /** ROOM RENDERING */
+        dialog.roomRenderingFloorColorOrTextureRadio = dialog.findElement('[name="room-rendering-radio"][value="floorColorOrTexture"]');
+        var roomRenderingEnabled = controller.isPropertyEditable('ROOM_FLOOR_COLORED_OR_TEXTURED');
+        if (roomRenderingEnabled) {
+          var roomRenderingValue = controller.isRoomFloorColoredOrTextured() ? 'floorColorOrTexture' : 'monochrome';
+          dialog.findElement('[name="room-rendering-radio"][value="' + roomRenderingValue + '"]').checked = true;
+        } else {
+          disablePreferenceRow(dialog.roomRenderingFloorColorOrTextureRadio);
+        }
+
+        /** NEW WALL THICKNESS */
+        var newWallThicknessEnabled = controller.isPropertyEditable('NEW_WALL_THICKNESS');
+        dialog.newWallThicknessInput = dialog.getElement('new-wall-thickness-input');
+        if (newWallThicknessEnabled) {
+          dialog.newWallThicknessInput.value = controller.getNewWallThickness();
+        } else {
+          disablePreferenceRow(dialog.newWallThicknessInput);
+        }
+
+        /** NEW WALL HEIGHT */
+        var newWallHeightEnabled = controller.isPropertyEditable('NEW_WALL_HEIGHT');
+        dialog.newWallHeightInput = dialog.getElement('new-wall-height-input');
+        if (newWallHeightEnabled) {
+          dialog.newWallHeightInput.value = controller.getNewWallHeight();
+        } else {
+          disablePreferenceRow(dialog.newWallHeightInput);
+        }
+
+        /** NEW FLOOR THICKNESS */
+        var newFloorThicknessEnabled = controller.isPropertyEditable('NEW_FLOOR_THICKNESS');
+        dialog.newFloorThicknessInput = dialog.getElement('new-floor-thickness-input');
+        if (newFloorThicknessEnabled) {
+          dialog.newFloorThicknessInput.value = controller.getNewFloorThickness();
+        } else {
+          disablePreferenceRow(dialog.newFloorThicknessInput);
+        }
+
+      },
+      applier: function(dialog) {
+        if (isElementVisible(dialog.languageSelect)) {
+          var selectedLanguageOption = dialog.languageSelect.selectedOptions[0];
+          controller.setLanguage(selectedLanguageOption == null ? null : selectedLanguageOption.value);
+        }
+        if (isElementVisible(dialog.unitSelect)) {
+          var selectedUnitOption = dialog.unitSelect.selectedOptions[0];
+          controller.setUnit(selectedUnitOption == null ? null : LengthUnit[selectedUnitOption.value]);
+        }
+        if (isElementVisible(dialog.currencySelect)) {
+          var selectedCurrencyOption = dialog.currencySelect.selectedOptions[0];
+          controller.setCurrency(selectedCurrencyOption == null ? null : selectedCurrencyOption.value);
+        }
+        if (isElementVisible(dialog.furnitureCatalogViewTreeRadio)) {
+          controller.setFurnitureCatalogViewedInTree(dialog.furnitureCatalogViewTreeRadio.checked);
+        }
+        if (isElementVisible(dialog.navigationPanelCheckbox)) {
+          controller.setNavigationPanelVisible(dialog.navigationPanelCheckbox.checked);
+        }
+        if (isElementVisible(dialog.aerialViewCenteredOnSelectionCheckbox)) {
+          controller.setAerialViewCenteredOnSelectionEnabled(dialog.aerialViewCenteredOnSelectionCheckbox.checked);
+        }
+        if (isElementVisible(dialog.observerCameraSelectedAtChangeCheckbox)) {
+          controller.setObserverCameraSelectedAtChange(dialog.observerCameraSelectedAtChangeCheckbox.checked);
+        }
+        if (isElementVisible(dialog.magnetismCheckbox)) {
+          controller.setMagnetismEnabled(dialog.magnetismCheckbox.checked);
+        }
+        if (isElementVisible(dialog.rulersCheckbox)) {
+          controller.setRulersVisible(dialog.rulersCheckbox.checked);
+        }
+        if (isElementVisible(dialog.gridCheckbox)) {
+          controller.setGridVisible(dialog.gridCheckbox.checked);
+        }
+        if (isElementVisible(dialog.iconTopViewRadio)) {
+          controller.setFurnitureViewedFromTop(dialog.iconTopViewRadio.checked);
+        }
+        if (isElementVisible(dialog.iconSizeSelect) && !dialog.iconSizeSelect.disabled) {
+          controller.setFurnitureModelIconSize(parseInt(dialog.iconSizeSelect.value));
+        }
+        if (isElementVisible(dialog.roomRenderingFloorColorOrTextureRadio)) {
+          controller.setRoomFloorColoredOrTextured(dialog.roomRenderingFloorColorOrTextureRadio.checked);
+        }
+        if (isElementVisible(dialog.newWallThicknessInput)) {
+          controller.setNewWallThickness(parseFloat(dialog.newWallThicknessInput.value));
+        }
+        if (isElementVisible(dialog.newWallHeightInput)) {
+          controller.setNewWallHeight(parseFloat(dialog.newWallHeightInput.value));
+        }
+        if (isElementVisible(dialog.newFloorThicknessInput)) {
+          controller.setNewFloorThickness(parseFloat(dialog.newFloorThicknessInput.value));
+        }
+        controller.modifyUserPreferences();
+      },
+      disposer: function(dialog) {
+      }
+    }
+  );
 }
 
 JSViewFactory.prototype.createLevelView = function(preferences, levelController) {
@@ -123,7 +420,6 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
   var FurniturePaint = HomeFurnitureController.FurniturePaint;
   var viewFactory = this;
   
-  // TODO LOUIS create a dedicated dialog impl
   return new JSDialogView(viewFactory, preferences, 
     '${HomeFurniturePanel.homeFurniture.title}', 
     document.getElementById("home-furniture-dialog-template"), {

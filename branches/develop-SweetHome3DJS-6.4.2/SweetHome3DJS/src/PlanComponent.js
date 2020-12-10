@@ -18,6 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+var DOUBLE_TOUCH_THRESHOLD_MILLIS = 500;
+
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {string} containerOrCanvasId the ID of a HTML DIV or CANVAS
@@ -1057,7 +1059,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         
         if (mouseListener.initialPointerLocation != null 
             && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
-                && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+                && mouseListener.initialPointerLocation[1] === ev.canvasY)
+            && (mouseListener.firstTouchStartedTimeStamp === 0 
+                || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > DOUBLE_TOUCH_THRESHOLD_MILLIS)) {
           mouseListener.initialPointerLocation = null;
         }
         if (mouseListener.initialPointerLocation == null
@@ -1081,7 +1085,10 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.updateCoordinates(ev, "mouseReleased");
             controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
           }
-          mouseListener.initialPointerLocation = null;
+          if (mouseListener.firstTouchStartedTimeStamp === 0 
+              || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > DOUBLE_TOUCH_THRESHOLD_MILLIS) {
+            mouseListener.initialPointerLocation = null;
+          }
           mouseListener.lastPointerLocation = null;
           mouseListener.actionStartedInPlanComponent = false;
         }
@@ -1133,21 +1140,21 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.longTouch = null;
             plan.stopLongTouchAnimation();
           }
-          
+
           if (ev.targetTouches.length === 1) {
             var clickCount = 1;
             if (mouseListener.initialPointerLocation != null
-                && mouseListener.distance(ev.canvasX, ev.canvasY,
-                      mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5
-                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= 500) { 
-              clickCount = 2;
-              mouseListener.firstTouchStartedTimeStamp = 0;
-              mouseListener.initialPointerLocation = null;
-            } else {
-              mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
-              mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
-            }
-            
+              && mouseListener.distance(ev.canvasX, ev.canvasY,
+                mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5
+                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= DOUBLE_TOUCH_THRESHOLD_MILLIS) { 
+                  clickCount = 2;
+                  mouseListener.firstTouchStartedTimeStamp = 0;
+                  mouseListener.initialPointerLocation = null;
+                } else {
+                  mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
+                  mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+                }
+                
             mouseListener.distanceLastPinch = null;
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             mouseListener.actionStartedInPlanComponent = true;
@@ -1188,6 +1195,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             
             if (ev.targetTouches.length === 2) {
               mouseListener.actionStartedInPlanComponent = true;
+
               mouseListener.initialPointerLocation = null;
               mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                   ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
@@ -1202,6 +1210,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           ev.stopPropagation();
           if (mouseListener.updateCoordinates(ev, "touchMoved")) {
             plan.stopIndicatorAnimation();            
+
             mouseListener.initialPointerLocation = null;
             
             if (ev.targetTouches.length == 1) {

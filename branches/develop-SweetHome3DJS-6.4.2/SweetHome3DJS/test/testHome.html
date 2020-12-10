@@ -1571,7 +1571,7 @@ testHome();
 
 <div id="home-furniture-dialog-template" class="dialog-template">
   
-  <div id="home-furniture-dialog">
+  <div class="home-furniture-dialog">
 
     <div class="color-and-texture-panel">
       <div>
@@ -1603,7 +1603,7 @@ testHome();
 
 <div id="wall-dialog-template" class="dialog-template">
   
-  <div id="wall-dialog">
+  <div class="wall-dialog">
 
     <div class="columns-2">
 
@@ -1661,7 +1661,7 @@ testHome();
 
 <div id="room-dialog-template" class="dialog-template">
   
-  <div id="room-dialog">
+  <div class="room-dialog">
     <h3>${RoomPanel.nameAndAreaPanel.title}</h3>
     <hr />
     <div data-name="name-and-area-panel">
@@ -1773,9 +1773,135 @@ testHome();
   </div>
 </div>
 
+<div id="user-preferences-dialog-template" class="dialog-template">
+  
+  <div class="user-preferences-dialog">
+    <div>${UserPreferencesPanel.languageLabel.text}</div>
+    <div>
+      <select name="language-select"></select>
+    </div>
+
+    <div>${UserPreferencesPanel.unitLabel.text}</div>
+    <div>
+      <select name="unit-select"></select>
+    </div>
+    
+    <div>${UserPreferencesPanel.currencyLabel.text}</div>
+    <div>
+      <select name="currency-select"></select>
+      
+      <label>
+        <input name="value-added-tax-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.valueAddedTaxCheckBox.text}
+      </label>
+    </div>
+    
+    <div>${UserPreferencesPanel.furnitureCatalogViewLabel.text}</div>
+    <div>
+      <label>
+        <input name="furniture-catalog-view-radio" value="tree" type="radio"  />
+        ${UserPreferencesPanel.treeRadioButton.text}
+      </label>
+      <label>
+        <input name="furniture-catalog-view-radio" value="list" type="radio"  />
+        ${UserPreferencesPanel.listRadioButton.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.navigationPanelLabel.text}</div>
+    <div>
+      <label>
+        <input name="navigation-panel-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.navigationPanelCheckBox.text}
+      </label>
+    </div>
+    
+    <div>${UserPreferencesPanel.aerialViewCenteredOnSelectionLabel.text}</div>
+    <div>
+      <label>
+        <input name="aerial-view-centered-on-selection-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.aerialViewCenteredOnSelectionCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.observerCameraSelectedAtChangeLabel.text}</div>
+    <div>
+      <label>
+        <input name="observer-camera-selected-at-change-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.observerCameraSelectedAtChangeCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.magnetismLabel.text}</div>
+    <div>
+      <label>
+        <input name="magnetism-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.magnetismCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.rulersLabel.text}</div>
+    <div>
+      <label>
+        <input name="rulers-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.rulersCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.gridLabel.text}</div>
+    <div>
+      <label>
+        <input name="grid-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.gridCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.furnitureIconLabel.text}</div>
+    <div>
+      <label>
+        <input name="furniture-icon-radio" value="catalog" type="radio"  />
+        ${UserPreferencesPanel.catalogIconRadioButton.text}
+      </label>
+      <br />
+      <label>
+        <input name="furniture-icon-radio" value="topView" type="radio"  />
+        ${UserPreferencesPanel.topViewRadioButton.text}
+      </label>
+      ${UserPreferencesPanel.iconSizeLabel.text}
+      <select name="icon-size-select"></select>
+    </div>
+
+    <div>${UserPreferencesPanel.roomRenderingLabel.text}</div>
+    <div>
+      <label>
+        <input name="room-rendering-radio" value="monochrome" type="radio"  />
+        ${UserPreferencesPanel.monochromeRadioButton.text}
+      </label>
+      <label>
+        <input name="room-rendering-radio" value="floorColorOrTexture" type="radio"  />
+        ${UserPreferencesPanel.floorColorOrTextureRadioButton.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.newWallThicknessLabel.text}</div>
+    <div>
+      <input name="new-wall-thickness-input" type="number" min="0" step="0.5" />
+    </div>
+    <div>${UserPreferencesPanel.newWallHeightLabel.text}</div>
+    <div>
+      <input name="new-wall-height-input" type="number" min="0" step="10" />
+    </div>
+    <div>${UserPreferencesPanel.newFloorThicknessLabel.text}</div>
+    <div>
+      <input name="new-floor-thickness-input" type="number" min="0" step="0.5" />
+    </div>
+
+  </div>
+</div>
+
 <div id="polyline-dialog-template" class="dialog-template">
   
-  <div id="polyline-dialog">
+  <div class="polyline-dialog">
 
     <div data-name="thickness-label">
     </div>
@@ -1807,7 +1933,7 @@ testHome();
 
 <div id="label-dialog-template" class="dialog-template">
   
-  <div id="label-dialog">
+  <div class="label-dialog">
 
     <h3>${LabelPanel.textAndStylePanel.title}</h3>
     <hr />
