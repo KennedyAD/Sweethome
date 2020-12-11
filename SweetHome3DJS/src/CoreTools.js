@@ -89,7 +89,18 @@ CoreTools.format = function(formatString, args) {
  * un-accentuated characters  
  */
 CoreTools.removeAccents = function(string) {
+  // TODO: support for IE (normalize)
   return string == null ? string : string.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+/**
+ * Returns the capitalized string of the given string (first letter upper case).
+ * 
+ * @param {string} string input string
+ * @return input string with first letter upper case
+ */
+CoreTools.capitalize = function(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 /**
@@ -408,10 +419,3 @@ ColorTools.toRGBAStyle = function(colorString, alpha) {
   return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
 
-/**
- * @param {string} string input string
- * @return given string with first letter upper case
- */
-CoreTools.capitalize = function(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
