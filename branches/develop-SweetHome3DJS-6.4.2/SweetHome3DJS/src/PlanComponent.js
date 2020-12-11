@@ -18,8 +18,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-var DOUBLE_TOUCH_THRESHOLD_MILLIS = 500;
-
 /**
  * Creates a new plan that displays <code>home</code>.
  * @param {string} containerOrCanvasId the ID of a HTML DIV or CANVAS
@@ -405,10 +403,10 @@ PlanComponent.initStatics = function() {
   PlanComponent.LONG_TOUCH_DELAY = 200; // ms
   PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
   PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
+  PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS = 500; // ms
 }
 
 PlanComponent.initStatics();
-
 
 /**
  * The circumstances under which the home items displayed by this component will be painted.
@@ -1061,7 +1059,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
                 && mouseListener.initialPointerLocation[1] === ev.canvasY)
             && (mouseListener.firstTouchStartedTimeStamp === 0 
-                || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > DOUBLE_TOUCH_THRESHOLD_MILLIS)) {
+                || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS)) {
           mouseListener.initialPointerLocation = null;
         }
         if (mouseListener.initialPointerLocation == null
@@ -1086,7 +1084,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
           }
           if (mouseListener.firstTouchStartedTimeStamp === 0 
-              || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > DOUBLE_TOUCH_THRESHOLD_MILLIS) {
+              || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS) {
             mouseListener.initialPointerLocation = null;
           }
           mouseListener.lastPointerLocation = null;
@@ -1146,7 +1144,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             if (mouseListener.initialPointerLocation != null
               && mouseListener.distance(ev.canvasX, ev.canvasY,
                 mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5
-                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= DOUBLE_TOUCH_THRESHOLD_MILLIS) { 
+                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS) { 
                   clickCount = 2;
                   mouseListener.firstTouchStartedTimeStamp = 0;
                   mouseListener.initialPointerLocation = null;
