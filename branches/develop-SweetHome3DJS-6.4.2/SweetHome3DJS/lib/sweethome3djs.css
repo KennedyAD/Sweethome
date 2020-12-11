@@ -605,9 +605,9 @@
 	padding: 5px;
   font-size: 1em;
 }
-	
+
 /*********************************/
-/* HomeFurnitureDialog           */
+/* Color and texture panel       */
 /*********************************/
 
 .home-furniture-dialog label {
@@ -624,7 +624,28 @@
 .color-and-texture-panel > div {
   align-items: start;
 }
-	
+  
+/*********************************/
+/* HomeFurnitureDialog           */
+/*********************************/
+
+#home-furniture-dialog label {
+  cursor: pointer;
+}
+
+/*********************************/
+/* WallDialog           */
+/*********************************/
+
+#wall-dialog .columns-2 > div {
+	padding: 1em;
+}
+
+#wall-dialog .columns-2 > div.selected {
+	border: solid 1px lightgray;
+  background: beige;
+}
+
 /*********************************/
 /* RoomDialog                    */
 /*********************************/
