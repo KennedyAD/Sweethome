@@ -21,10 +21,10 @@ illum 1
 
 
 newmtl metalclaro
-Ns 128
+Ns 120
 Ka 0.7 0.7 0.7
 Kd 0.7 0.7 0.7
-Ks 1 1 1
+Ks 0.8 0.8 0.8
 Ni 3.000000
 d 1.000000
 illum 2
