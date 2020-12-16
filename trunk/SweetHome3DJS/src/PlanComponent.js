@@ -1325,6 +1325,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                 ev.targetTouches[1].clientX, ev.targetTouches[1].clientY)
           }
+          
+          plan.lastTouchX = undefined;
+          plan.lastTouchY = undefined;
         }
       },
       copyPointerToTargetTouches : function(ev, touchEnded) {
