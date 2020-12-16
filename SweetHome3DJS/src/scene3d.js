@@ -253,8 +253,11 @@ Shape3D.prototype.removeGeometry = function(index) {
 }
 
 Shape3D.prototype.getBounds = function() {
-  if (this.geometries.length > 0
-      && this.bounds === null) {
+  if (this.geometries.length === 0) {
+    return new BoundingBox3D(
+        vec3.fromValues(-Infinity, -Infinity, -Infinity), 
+        vec3.fromValues(Infinity, Infinity, Infinity));
+  } else if (this.bounds === null) {
     // Recompute bounds
     var lower = vec3.fromValues(Infinity, Infinity, Infinity);
     var upper = vec3.fromValues(-Infinity, -Infinity, -Infinity);
@@ -271,11 +274,7 @@ Shape3D.prototype.getBounds = function() {
     this.bounds = new BoundingBox3D(lower, upper);
   }
 
-  if (this.bounds !== null) {
-    return this.bounds.clone();
-  } else {
-    return null;
-  }
+  return this.bounds.clone();
 }
 
 Shape3D.prototype.getGeometries = function() {
@@ -1123,29 +1122,52 @@ BoundingBox3D.prototype.getUpper = function(p) {
   vec3.copy(p, this.upper);
 }
 
+/**
+ * Returns <code>true</code> if this bounding box is undefined.
+ * @returns {boolean}
+ */
+BoundingBox3D.prototype.isEmpty = function() {
+  return this.lower[0] == -Infinity
+      && this.lower[1] == -Infinity
+      && this.lower[2] == -Infinity
+      && this.upper[0] == Infinity
+      && this.upper[1] == Infinity
+      && this.upper[2] == Infinity;
+}
+
 /** 
  * Combines this bounding box by the bounds or point given in parameter.
  * @param {BoundingBox3D|vec3} bounds
  */
 BoundingBox3D.prototype.combine = function(bounds) {
+  if (this.isEmpty()) {
+    this.lower[0] = bounds.lower[0];
+    this.lower[1] = bounds.lower[1];
+    this.lower[2] = bounds.lower[2];
+    this.upper[0] = bounds.upper[0];
+    this.upper[1] = bounds.upper[1];
+    this.upper[2] = bounds.upper[2];
+  }
   if (bounds instanceof BoundingBox3D) {
-    if (this.lower[0] > bounds.lower[0]) {
-      this.lower[0] = bounds.lower[0];
-    }
-    if (this.lower[1] > bounds.lower[1]) {
-      this.lower[1] = bounds.lower[1];
-    }
-    if (this.lower[2] > bounds.lower[2]) {
-      this.lower[2] = bounds.lower[2];
-    }
-    if (this.upper[0] < bounds.upper[0]) {
-      this.upper[0] = bounds.upper[0];
-    }
-    if (this.upper[1] < bounds.upper[1]) {
-      this.upper[1] = bounds.upper[1];
-    }
-    if (this.upper[2] < bounds.upper[2]) {
-      this.upper[2] = bounds.upper[2];
+    if (!bounds.isEmpty()) {
+      if (this.lower[0] > bounds.lower[0]) {
+        this.lower[0] = bounds.lower[0];
+      }
+      if (this.lower[1] > bounds.lower[1]) {
+        this.lower[1] = bounds.lower[1];
+      }
+      if (this.lower[2] > bounds.lower[2]) {
+        this.lower[2] = bounds.lower[2];
+      }
+      if (this.upper[0] < bounds.upper[0]) {
+        this.upper[0] = bounds.upper[0];
+      }
+      if (this.upper[1] < bounds.upper[1]) {
+        this.upper[1] = bounds.upper[1];
+      }
+      if (this.upper[2] < bounds.upper[2]) {
+        this.upper[2] = bounds.upper[2];
+      }
     }
   } else {
     var point = bounds;
@@ -1175,7 +1197,8 @@ BoundingBox3D.prototype.combine = function(bounds) {
  * @param {vec3} point
  */
 BoundingBox3D.prototype.intersect = function(point) {
-  return point[0] >= this.lower[0] 
+  return !this.isEmpty()
+      && point[0] >= this.lower[0] 
       && point[0] <= this.upper[0] 
       && point[1] >= this.lower[1] 
       && point[1] <= this.upper[1] 
@@ -1188,167 +1211,169 @@ BoundingBox3D.prototype.intersect = function(point) {
  * @param {mat4} transform
  */
 BoundingBox3D.prototype.transform = function(transform) {
-  var xUpper = this.upper [0]; 
-  var yUpper = this.upper [1]; 
-  var zUpper = this.upper [2];
-  var xLower = this.lower [0]; 
-  var yLower = this.lower [1]; 
-  var zLower = this.lower [2];
-  
-  var vector = vec3.fromValues(xUpper, yUpper, zUpper);
-  vec3.transformMat4(vector, vector, transform);
-  this.upper [0] = vector [0];
-  this.upper [1] = vector [1];
-  this.upper [2] = vector [2];
-  this.lower [0] = vector [0];
-  this.lower [1] = vector [1];
-  this.lower [2] = vector [2];
-  
-  vec3.set(vector, xLower, yUpper, zUpper);
-  vec3.transformMat4(vector, vector, transform); 
-  if (vector [0]  > this.upper [0]) {
+  if (!this.isEmpty()) {
+    var xUpper = this.upper [0]; 
+    var yUpper = this.upper [1]; 
+    var zUpper = this.upper [2];
+    var xLower = this.lower [0]; 
+    var yLower = this.lower [1]; 
+    var zLower = this.lower [2];
+    
+    var vector = vec3.fromValues(xUpper, yUpper, zUpper);
+    vec3.transformMat4(vector, vector, transform);
     this.upper [0] = vector [0];
-  }
-  if (vector [1]  > this.upper [1]) {
     this.upper [1] = vector [1];
-  }
-  if (vector [2]  > this.upper [2]) {
     this.upper [2] = vector [2];
-  }
-  if (vector [0]  < this.lower [0]) {
     this.lower [0] = vector [0];
-  }
-  if (vector [1]  < this.lower [1]) {
     this.lower [1] = vector [1];
-  }
-  if (vector [2]  < this.lower [2]) {
     this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xLower, yLower, zUpper);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0]  > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1]  > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2]  > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0]  < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1]  < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2]  < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xUpper, yLower, zUpper);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xLower, yUpper, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xUpper, yUpper, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xLower, yLower, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xUpper, yLower, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
+    
+    vec3.set(vector, xLower, yUpper, zUpper);
+    vec3.transformMat4(vector, vector, transform); 
+    if (vector [0]  > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1]  > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2]  > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0]  < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1]  < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2]  < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xLower, yLower, zUpper);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0]  > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1]  > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2]  > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0]  < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1]  < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2]  < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xUpper, yLower, zUpper);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xLower, yUpper, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xUpper, yUpper, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xLower, yLower, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xUpper, yLower, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
   }
 }
 

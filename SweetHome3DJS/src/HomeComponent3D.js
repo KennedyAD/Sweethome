@@ -46,6 +46,7 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
       ? object3dFactory
       : new Object3DBranchFactory();
   this.homeObjects = [];
+  this.homeObjects3D = [];
   this.sceneLights = [];
   this.camera = null;
   this.windowSizeListener = null;
@@ -1006,7 +1007,11 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
   var component3D = this;
   this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
-        component3D.callAction(KeyStroke.getKeyStrokeForEvent(ev, "keydown"), ev);
+        component3D.callAction(ev, "keydown");
+      }, false);
+  this.canvas3D.getHTMLElement().addEventListener("keyup", 
+      function(ev) {
+        component3D.callAction(ev, "keyup");
       }, false);
 }
 
@@ -1014,7 +1019,8 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
  * Runs the action bound to the key stroke in parameter.
  * @private 
  */
-HomeComponent3D.prototype.callAction = function(keyStroke, ev) {
+HomeComponent3D.prototype.callAction = function(ev, keyType) {
+  var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, keyType);
   if (keyStroke !== undefined) {
     var actionKey = this.inputMap [keyStroke];
     if (actionKey !== undefined) {
@@ -1124,12 +1130,13 @@ HomeComponent3D.prototype.getInputMap = function() {
  */
 HomeComponent3D.prototype.getClosestItemAt = function(x, y) {
   var node = this.canvas3D.getClosestShapeAt(x, y);
+  var homeObjectIndex = -1;
   while (node !== null
-         && !(node instanceof Object3DBranch)) {
+         && (homeObjectIndex = this.homeObjects3D.indexOf(node)) < 0) {
     node = node.getParent();
   }
   if (node != null) {
-    return node.getUserData();
+    return this.homeObjects [homeObjectIndex];
   } else {
     return null;
   }
@@ -1953,6 +1960,7 @@ HomeComponent3D.prototype.addObject = function(group, homeObject, index,
   if (listenToHomeUpdates) {
     homeObject.object3D = object3D;
     this.homeObjects.push(homeObject);
+    this.homeObjects3D.push(object3D);
   }
   if (index === -1) {
     group.addChild(object3D);
@@ -1990,7 +1998,9 @@ HomeComponent3D.prototype.deleteObject = function(homeObject) {
   if (homeObject.object3D) {
     homeObject.object3D.detach();
     delete homeObject.object3D;
-    this.homeObjects.splice(this.homeObjects.indexOf(homeObject), 1);
+    var objectIndex = this.homeObjects.indexOf(homeObject);
+    this.homeObjects.splice(objectIndex, 1);
+    this.homeObjects3D.splice(objectIndex, 1);
     if (this.homeObjectsToUpdate) {
       var index = this.homeObjectsToUpdate.indexOf(homeObject);
       if (index >= 0) {

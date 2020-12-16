@@ -314,6 +314,13 @@ HTMLCanvas3D.prototype.setBackClipDistance = function(backClipDistance) {
 }
 
 /**
+ * Returns the given transformation filled with one used to view the scene.
+ */
+HTMLCanvas3D.prototype.getViewPlatformTransform = function(transform) {
+  return mat4.copy(transform, this.viewPlatformTransform);
+}
+
+/**
  * Updates the transformation used to view the scene and redraws it.
  */
 HTMLCanvas3D.prototype.setViewPlatformTransform = function(viewPlatformTransform) {
@@ -940,6 +947,7 @@ HTMLCanvas3D.prototype.bindTextureAndRepaint = function(texture, bindOnly) {
     context.drawImage(texture.image, 0, 0, texture.image.width, texture.image.height, 0, 0, canvas.width, canvas.height);
 
     var image = new Image();
+    image.crossOrigin = "anonymous";
     image.url = texture.image.url;
     image.transparent = texture.image.transparent;
     var canvas3D = this;
@@ -1076,12 +1084,7 @@ HTMLCanvas3D.prototype.drawScene = function() {
 
   // Reset depth buffer to draw the scene above background
   this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
-  if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
-    mat4.ortho(projectionTransform, -1., 1., -1., 1., this.frontClipDistance, this.backClipDistance);
-  } else {
-    mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight,  
-        this.frontClipDistance, this.backClipDistance);
-  }
+  this.getVirtualWorldToImageTransform(projectionTransform);
   this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
 
   // Second draw opaque geometries
@@ -1344,6 +1347,24 @@ HTMLCanvas3D.prototype.repaint = function() {
   }
 }
 
+/**
+ * Returns <code>mat4</code> filled with the transformation used to obtain 
+ * pixel point from virtual world coordinates. 
+ * @param {mat4} transform
+ * @param {number} [aspect] image aspect ratio (width / height)
+ */
+HTMLCanvas3D.prototype.getVirtualWorldToImageTransform = function(transform, aspect) {
+  if (aspect === undefined) {
+    aspect = this.viewportWidth / this.viewportHeight;
+  }
+  var verticalFieldOfView = 2 * Math.atan(Math.tan(this.fieldOfView / 2) / aspect);
+  if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
+    mat4.ortho(transform, -1., 1., -1., 1., this.frontClipDistance, this.backClipDistance);
+  } else {
+    mat4.perspective(transform, verticalFieldOfView, aspect, this.frontClipDistance, this.backClipDistance);
+  }
+  return transform;
+}
 
 /**
  * Returns <code>true</code> if all data of the scene are ready to be displayed.
@@ -1381,6 +1402,7 @@ HTMLCanvas3D.prototype.getImage = function(observer) {
   }
   
   var image = new Image();
+  image.crossOrigin = "anonymous";
   var imageLoadingListener;
   if (observer !== undefined) {
     imageLoadingListener = function(ev) {
@@ -1501,13 +1523,7 @@ HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
     
     // Convert horizontal field of view to vertical
     var projectionTransform = mat4.create();
-    var verticalFieldOfView = 2 * Math.atan(this.canvas.height / this.canvas.width * Math.tan(this.fieldOfView / 2));
-    if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
-      mat4.ortho(projectionTransform, -1., 1., -1., 1., this.frontClipDistance, this.backClipDistance);
-    } else {
-      mat4.perspective(projectionTransform, verticalFieldOfView, this.canvas.width / this.canvas.height,  
-          this.frontClipDistance, this.backClipDistance);
-    }
+    this.getVirtualWorldToImageTransform(projectionTransform, this.canvas.width / this.canvas.height);
     this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
     
     // Draw not background and opaque geometries without light and textures
