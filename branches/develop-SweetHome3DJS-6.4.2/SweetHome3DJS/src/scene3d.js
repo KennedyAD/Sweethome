@@ -253,8 +253,11 @@ Shape3D.prototype.removeGeometry = function(index) {
 }
 
 Shape3D.prototype.getBounds = function() {
-  if (this.geometries.length > 0
-      && this.bounds === null) {
+  if (this.geometries.length === 0) {
+    return new BoundingBox3D(
+        vec3.fromValues(-Infinity, -Infinity, -Infinity), 
+        vec3.fromValues(Infinity, Infinity, Infinity));
+  } else if (this.bounds === null) {
     // Recompute bounds
     var lower = vec3.fromValues(Infinity, Infinity, Infinity);
     var upper = vec3.fromValues(-Infinity, -Infinity, -Infinity);
@@ -271,11 +274,7 @@ Shape3D.prototype.getBounds = function() {
     this.bounds = new BoundingBox3D(lower, upper);
   }
 
-  if (this.bounds !== null) {
-    return this.bounds.clone();
-  } else {
-    return null;
-  }
+  return this.bounds.clone();
 }
 
 Shape3D.prototype.getGeometries = function() {
@@ -1011,10 +1010,10 @@ Appearance3D.prototype.clone = function() {
 
 /**
  * Creates an indexed 3D geometry array.
- * @param {vec3[]} vertices 
- * @param {number[]} vertexIndices
- * @param {vec2[]} textureCoordinates
- * @param {number[]} textureCoordinateIndices
+ * @param {vec3 []} vertices 
+ * @param {number []} vertexIndices
+ * @param {vec2 []} textureCoordinates
+ * @param {number []} textureCoordinateIndices
  * @constructor
  * @author Emmanuel Puybaret
  */
@@ -1043,10 +1042,10 @@ IndexedGeometryArray3D.prototype.disposeCoordinates = function() {
 
 /**
  * Creates the 3D geometry of an indexed line array.
- * @param {vec3[]} vertices 
- * @param {number[]} vertexIndices
- * @param {vec2[]} textureCoordinates
- * @param {number[]} textureCoordinateIndices
+ * @param {vec3 []} vertices 
+ * @param {number []} vertexIndices
+ * @param {vec2 []} textureCoordinates
+ * @param {number []} textureCoordinateIndices
  * @constructor
  * @extends IndexedGeometryArray3D
  * @author Emmanuel Puybaret
@@ -1061,12 +1060,12 @@ IndexedLineArray3D.prototype.constructor = IndexedLineArray3D;
 
 /**
  * Creates the 3D geometry of an indexed triangle array.
- * @param {vec3[]} vertices 
- * @param {number[]} vertexIndices
- * @param {vec2[]} textureCoordinates
- * @param {number[]} textureCoordinateIndices
- * @param {vec3[]} normals 
- * @param {number[]} normalsIndices
+ * @param {vec3 []} vertices 
+ * @param {number []} vertexIndices
+ * @param {vec2 []} textureCoordinates
+ * @param {number []} textureCoordinateIndices
+ * @param {vec3 []} normals 
+ * @param {number []} normalsIndices
  * @constructor
  * @extends IndexedGeometryArray3D
  * @author Emmanuel Puybaret
@@ -1123,29 +1122,52 @@ BoundingBox3D.prototype.getUpper = function(p) {
   vec3.copy(p, this.upper);
 }
 
+/**
+ * Returns <code>true</code> if this bounding box is undefined.
+ * @returns {boolean}
+ */
+BoundingBox3D.prototype.isEmpty = function() {
+  return this.lower[0] == -Infinity
+      && this.lower[1] == -Infinity
+      && this.lower[2] == -Infinity
+      && this.upper[0] == Infinity
+      && this.upper[1] == Infinity
+      && this.upper[2] == Infinity;
+}
+
 /** 
  * Combines this bounding box by the bounds or point given in parameter.
  * @param {BoundingBox3D|vec3} bounds
  */
 BoundingBox3D.prototype.combine = function(bounds) {
+  if (this.isEmpty()) {
+    this.lower[0] = bounds.lower[0];
+    this.lower[1] = bounds.lower[1];
+    this.lower[2] = bounds.lower[2];
+    this.upper[0] = bounds.upper[0];
+    this.upper[1] = bounds.upper[1];
+    this.upper[2] = bounds.upper[2];
+  }
   if (bounds instanceof BoundingBox3D) {
-    if (this.lower[0] > bounds.lower[0]) {
-      this.lower[0] = bounds.lower[0];
-    }
-    if (this.lower[1] > bounds.lower[1]) {
-      this.lower[1] = bounds.lower[1];
-    }
-    if (this.lower[2] > bounds.lower[2]) {
-      this.lower[2] = bounds.lower[2];
-    }
-    if (this.upper[0] < bounds.upper[0]) {
-      this.upper[0] = bounds.upper[0];
-    }
-    if (this.upper[1] < bounds.upper[1]) {
-      this.upper[1] = bounds.upper[1];
-    }
-    if (this.upper[2] < bounds.upper[2]) {
-      this.upper[2] = bounds.upper[2];
+    if (!bounds.isEmpty()) {
+      if (this.lower[0] > bounds.lower[0]) {
+        this.lower[0] = bounds.lower[0];
+      }
+      if (this.lower[1] > bounds.lower[1]) {
+        this.lower[1] = bounds.lower[1];
+      }
+      if (this.lower[2] > bounds.lower[2]) {
+        this.lower[2] = bounds.lower[2];
+      }
+      if (this.upper[0] < bounds.upper[0]) {
+        this.upper[0] = bounds.upper[0];
+      }
+      if (this.upper[1] < bounds.upper[1]) {
+        this.upper[1] = bounds.upper[1];
+      }
+      if (this.upper[2] < bounds.upper[2]) {
+        this.upper[2] = bounds.upper[2];
+      }
     }
   } else {
     var point = bounds;
@@ -1175,7 +1197,8 @@ BoundingBox3D.prototype.combine = function(bounds) {
  * @param {vec3} point
  */
 BoundingBox3D.prototype.intersect = function(point) {
-  return point[0] >= this.lower[0] 
+  return !this.isEmpty()
+      && point[0] >= this.lower[0] 
       && point[0] <= this.upper[0] 
       && point[1] >= this.lower[1] 
       && point[1] <= this.upper[1] 
@@ -1188,167 +1211,169 @@ BoundingBox3D.prototype.intersect = function(point) {
  * @param {mat4} transform
  */
 BoundingBox3D.prototype.transform = function(transform) {
-  var xUpper = this.upper [0]; 
-  var yUpper = this.upper [1]; 
-  var zUpper = this.upper [2];
-  var xLower = this.lower [0]; 
-  var yLower = this.lower [1]; 
-  var zLower = this.lower [2];
-  
-  var vector = vec3.fromValues(xUpper, yUpper, zUpper);
-  vec3.transformMat4(vector, vector, transform);
-  this.upper [0] = vector [0];
-  this.upper [1] = vector [1];
-  this.upper [2] = vector [2];
-  this.lower [0] = vector [0];
-  this.lower [1] = vector [1];
-  this.lower [2] = vector [2];
-  
-  vec3.set(vector, xLower, yUpper, zUpper);
-  vec3.transformMat4(vector, vector, transform); 
-  if (vector [0]  > this.upper [0]) {
+  if (!this.isEmpty()) {
+    var xUpper = this.upper [0]; 
+    var yUpper = this.upper [1]; 
+    var zUpper = this.upper [2];
+    var xLower = this.lower [0]; 
+    var yLower = this.lower [1]; 
+    var zLower = this.lower [2];
+    
+    var vector = vec3.fromValues(xUpper, yUpper, zUpper);
+    vec3.transformMat4(vector, vector, transform);
     this.upper [0] = vector [0];
-  }
-  if (vector [1]  > this.upper [1]) {
     this.upper [1] = vector [1];
-  }
-  if (vector [2]  > this.upper [2]) {
     this.upper [2] = vector [2];
-  }
-  if (vector [0]  < this.lower [0]) {
     this.lower [0] = vector [0];
-  }
-  if (vector [1]  < this.lower [1]) {
     this.lower [1] = vector [1];
-  }
-  if (vector [2]  < this.lower [2]) {
     this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xLower, yLower, zUpper);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0]  > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1]  > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2]  > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0]  < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1]  < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2]  < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xUpper, yLower, zUpper);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xLower, yUpper, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xUpper, yUpper, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xLower, yLower, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
-  }
-  
-  vec3.set(vector, xUpper, yLower, zLower);
-  vec3.transformMat4(vector, vector, transform);
-  if (vector [0] > this.upper [0]) {
-    this.upper [0] = vector [0];
-  }
-  if (vector [1] > this.upper [1]) {
-    this.upper [1] = vector [1];
-  }
-  if (vector [2] > this.upper [2]) {
-    this.upper [2] = vector [2];
-  }
-  if (vector [0] < this.lower [0]) {
-    this.lower [0] = vector [0];
-  }
-  if (vector [1] < this.lower [1]) {
-    this.lower [1] = vector [1];
-  }
-  if (vector [2] < this.lower [2]) {
-    this.lower [2] = vector [2];
+    
+    vec3.set(vector, xLower, yUpper, zUpper);
+    vec3.transformMat4(vector, vector, transform); 
+    if (vector [0]  > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1]  > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2]  > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0]  < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1]  < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2]  < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xLower, yLower, zUpper);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0]  > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1]  > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2]  > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0]  < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1]  < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2]  < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xUpper, yLower, zUpper);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xLower, yUpper, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xUpper, yUpper, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xLower, yLower, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
+    
+    vec3.set(vector, xUpper, yLower, zLower);
+    vec3.transformMat4(vector, vector, transform);
+    if (vector [0] > this.upper [0]) {
+      this.upper [0] = vector [0];
+    }
+    if (vector [1] > this.upper [1]) {
+      this.upper [1] = vector [1];
+    }
+    if (vector [2] > this.upper [2]) {
+      this.upper [2] = vector [2];
+    }
+    if (vector [0] < this.lower [0]) {
+      this.lower [0] = vector [0];
+    }
+    if (vector [1] < this.lower [1]) {
+      this.lower [1] = vector [1];
+    }
+    if (vector [2] < this.lower [2]) {
+      this.lower [2] = vector [2];
+    }
   }
 }
 
@@ -1429,7 +1454,7 @@ GeometryInfo3D.POLYGON_ARRAY = 20;
 
 /**
  * Sets the coordinates of the vertices of the geometry.
- * @param {vec3[]} vertices
+ * @param {vec3 []} vertices
  */
 GeometryInfo3D.prototype.setCoordinates = function(vertices) {
   this.vertices = vertices;
@@ -1437,7 +1462,7 @@ GeometryInfo3D.prototype.setCoordinates = function(vertices) {
 
 /**
  * Sets the indices of each vertex of the geometry.
- * @param {vec3[]} coordinatesIndices
+ * @param {vec3 []} coordinatesIndices
  */
 GeometryInfo3D.prototype.setCoordinateIndices = function(coordinatesIndices) {
   this.coordinatesIndices = coordinatesIndices;
@@ -1445,7 +1470,7 @@ GeometryInfo3D.prototype.setCoordinateIndices = function(coordinatesIndices) {
 
 /**
  * Sets the coordinates of the normals of the geometry.
- * @param {vec3[]} normals
+ * @param {vec3 []} normals
  */
 GeometryInfo3D.prototype.setNormals = function(normals) {
   this.normals = normals;
@@ -1453,7 +1478,7 @@ GeometryInfo3D.prototype.setNormals = function(normals) {
 
 /**
  * Sets the indices of each normal of the geometry.
- * @param {vec3[]} normalIndices
+ * @param {vec3 []} normalIndices
  */
 GeometryInfo3D.prototype.setNormalIndices = function(normalIndices) {
   this.normalIndices = normalIndices;
@@ -1461,7 +1486,7 @@ GeometryInfo3D.prototype.setNormalIndices = function(normalIndices) {
 
 /**
  * Sets the texture coordinates of the vertices of the geometry.
- * @param {vec2[]} textureCoordinates
+ * @param {vec2 []} textureCoordinates
  */
 GeometryInfo3D.prototype.setTextureCoordinates = function(textureCoordinates) {
   this.textureCoordinates = textureCoordinates;
@@ -1469,7 +1494,7 @@ GeometryInfo3D.prototype.setTextureCoordinates = function(textureCoordinates) {
 
 /**
  * Sets the indices of texture coordinates of the geometry.
- * @param {vec2[]} textureCoordinateIndices
+ * @param {vec2 []} textureCoordinateIndices
  */
 GeometryInfo3D.prototype.setTextureCoordinateIndices = function(textureCoordinateIndices) {
   this.textureCoordinateIndices = textureCoordinateIndices;
@@ -1477,7 +1502,7 @@ GeometryInfo3D.prototype.setTextureCoordinateIndices = function(textureCoordinat
 
 /**
  * Sets the strip counts of a polygon geometry.
- * @param {number[]} stripCounts
+ * @param {number []} stripCounts
  */
 GeometryInfo3D.prototype.setStripCounts = function(stripCounts) {
   this.stripCounts = stripCounts;
@@ -1485,7 +1510,7 @@ GeometryInfo3D.prototype.setStripCounts = function(stripCounts) {
 
 /**
  * Sets the contour counts of a polygon geometry.
- * @param {number[]} contourCounts
+ * @param {number []} contourCounts
  * @private
  */
 GeometryInfo3D.prototype.setContourCounts = function(contourCounts) {
