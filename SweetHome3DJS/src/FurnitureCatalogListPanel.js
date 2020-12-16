@@ -232,13 +232,14 @@ FurnitureCatalogListPanel.prototype.hideTooltip = function () {
 FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(piece) {
   if (this.preferences != null) {
     var creator = piece.getCreator();
+    var tipTextCreator = null;
     if (creator != null && creator.length > 0) {
       tipTextCreator = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipCreator", creator);
     }
-    var tipTextModelSize;
     var format = this.preferences.getLengthUnit().getFormatWithUnit();
-    tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipPieceOfFurnitureDimensions",
-      format.format(piece.getWidth()), format.format(piece.getDepth()), format.format(piece.getHeight()));
+    var tipTextDimensions = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipPieceOfFurnitureDimensions",
+        format.format(piece.getWidth()), format.format(piece.getDepth()), format.format(piece.getHeight()));
+    var tipTextModelSize = null;
     if (piece.getModelSize() != null && piece.getModelSize() > 0) {
       tipTextModelSize = this.preferences.getLocalizedString("CatalogItemToolTip", "tooltipModelSize",
         Math.max(1, Math.round(piece.getModelSize() / 1000)));
