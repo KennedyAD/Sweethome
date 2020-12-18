@@ -625,10 +625,12 @@
         <include name="test/**" />
         <include name="install/viewer/*"/>
         <include name="deploy/*.jsp" />
-        <include name="tools/JSweet/**" />
+        <include name="tools/JSweet/*.*" />
+        <include name="tools/JSweet/src/**" />
+        <include name="tools/JSweet/lib/**" />
         <include name="tools/JSDocTemplate/**" />
         <include name="tools/json/**" />
-        <include name="tools/deploy/**" />
+        <include name="tools/deploy/*.jsp" />
         <!-- Eclipse project files -->
         <include name=".settings/**" />
         <include name=".classpath" />
