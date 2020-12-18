@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,12 +34,15 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.json.JSONObject;
@@ -54,13 +58,40 @@ public class PropertiesToJson {
         "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"};
 
     if (args.length >= 5) {
-      convert(args [0],               // Source root
-          new String [] {args [1]},   // Source properties file
+      String sourceRoot = args [0];
+      String sourcePropertyFile = args [1];
+      if (!sourcePropertyFile.endsWith(".properties")) {
+        // Handle second parameter as library file containing PluginFurnitureCatalog.properties or PluginTexturesCatalog.properties
+        File tempFile = File.createTempFile("extract", "");
+        tempFile.delete();
+        tempFile.mkdir();
+        tempFile.deleteOnExit();
+        Path tempDir = tempFile.toPath();
+        // Extract library content
+        try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(new File (sourceRoot, sourcePropertyFile)))) {
+          for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null; ) {
+            Path path = tempDir.resolve(entry.getName());
+            if (entry.isDirectory()) {
+              Files.createDirectories(path);
+            } else {
+              Files.createDirectories(path.getParent());
+              Files.copy(zipIn, path);
+            }
+            path.toFile().deleteOnExit();
+            if (entry.getName().endsWith("Catalog.properties")) {
+              sourcePropertyFile = entry.getName().substring(0, entry.getName().lastIndexOf("."));
+            }
+          }
+        }
+        sourceRoot = tempFile.getAbsolutePath();
+      }
+      convert(sourceRoot,               // Source root
+          new String [] {sourcePropertyFile}, // Source properties file
           args [2],                   // Output directory
           args [3],                   // Output name
+          null,
           args [4],                   // Resources output directory
-          args.length > 5 ? Boolean.parseBoolean(args [5]) : false,
-          supportedLanguages);
+          args.length > 5 ? Boolean.parseBoolean(args [5]) : false, supportedLanguages);
     } else {
       String    sourceRoot = "../SweetHome3D/src";
       String [] sourceProperties = {"com/eteks/sweethome3d/package",
@@ -68,25 +99,34 @@ public class PropertiesToJson {
           "com/eteks/sweethome3d/swing/package",
           "com/eteks/sweethome3d/viewcontroller/package",
           "com/sun/swing/internal/plaf/basic/resources/basic"};
-      String outputDirectory = "lib/resources";
+      String outputDirectory = args.length > 0 ? args [0] : "lib/resources";
 
-      convert(sourceRoot, sourceProperties,
-          outputDirectory, "localization", null, false, supportedLanguages);
+      Map<String, Properties> localizationProperties = convert(sourceRoot, sourceProperties,
+          outputDirectory, "localization", null, null, false, supportedLanguages);
+      if (args.length > 1) {
+        for (int i = 1; i < args.length; i += 2) {
+          convert(args [i], new String [] {args [i + 1]},
+              outputDirectory, "localization", localizationProperties, null, false, supportedLanguages);
+        }
+      }
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/model/LengthUnit" },
-          outputDirectory, "LengthUnit", null, false, supportedLanguages);
+          outputDirectory, "LengthUnit", null, null, false, supportedLanguages);
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-          outputDirectory, "DefaultFurnitureCatalog", "lib/resources/models", true, supportedLanguages);
+          outputDirectory, "DefaultFurnitureCatalog", null, outputDirectory + "/models", true, supportedLanguages);
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
-          outputDirectory, "DefaultTexturesCatalog", "lib/resources/textures", true, supportedLanguages);
+          outputDirectory, "DefaultTexturesCatalog", null, outputDirectory + "/textures", true, supportedLanguages);
     }
   }
 
-  private static void convert(String sourceRoot, String[] sourcePropertyFiles,
-                              String outputDirectory, String outputName, String resourcesOutputDirectory,
-                              boolean copyResources, String[] supportedLanguages) throws IOException {
+  private static Map<String, Properties> convert(String sourceRoot, String[] sourcePropertyFiles,
+                              String outputDirectory, String outputName, Map<String, Properties> languageProperties,
+                              String resourcesOutputDirectory, boolean copyResources, String[] supportedLanguages) throws IOException {
     new File(outputDirectory).mkdirs();
     for (String language : supportedLanguages) {
       Properties mergedProperties = new Properties();
+      if (languageProperties != null && languageProperties.get(language) != null) {
+        mergedProperties.putAll(languageProperties.get(language));
+      }
       for (String sourcePropertyFile : sourcePropertyFiles) {
         File sourceFile = new File(sourceRoot, sourcePropertyFile);
         File directory = sourceFile.getParentFile();
@@ -107,9 +147,14 @@ public class PropertiesToJson {
         Path outputFilePath = Paths.get(outputDirectory, outputName + ("".equals(language) ? "" : "_") + language + ".json");
         System.out.println("Writing " + mergedProperties.size() + " properties to " + outputFilePath + ".");
         Files.write(outputFilePath, (new JSONObject(mergedProperties).toString(2) + "\n").getBytes("UTF-8"),
-            StandardOpenOption.CREATE);
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        if (languageProperties == null) {
+          languageProperties = new HashMap<String, Properties>();
+        }
+        languageProperties.put(language, mergedProperties);
       }
     }
+    return languageProperties;
   }
 
   private static void afterLoaded(Properties properties, String sourceRoot, String resourcesOutputDirectory, String propertyFileBaseName,
@@ -145,13 +190,13 @@ public class PropertiesToJson {
             String extension = modelFile.substring(modelFile.lastIndexOf('.'));
 
             // Create a .zip file containing the 3D model
-            String newPath = (resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "")
-                + modelFile.replace(extension, ".zip");
+            String zipModelFile = modelFile.replace(extension, ".zip");
             Path modelPath = Paths.get(sourceRoot, currentPath);
             Path modelFolder = modelPath.getParent();
             if (copyResources) {
               new File(resourcesOutputDirectory).mkdirs();
-              ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath));
+              ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(
+                  new File(resourcesOutputDirectory, URLDecoder.decode(zipModelFile, "UTF-8"))));
               if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
                 // Include multiPart files in same folder
                 Files.walkFileTree(modelFolder,
@@ -190,6 +235,8 @@ public class PropertiesToJson {
               properties.put(modelSizeKey, size.longValue());
             }
 
+            String newPath = resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "";
+            newPath += zipModelFile;
             entry.setValue((newPath.toString().contains("://") ? "jar:" : "") + newPath + "!/" + modelFile);
           }
         }
