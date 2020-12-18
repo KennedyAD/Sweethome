@@ -112,9 +112,9 @@ public class PropertiesToJson {
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/model/LengthUnit" },
           outputDirectory, "LengthUnit", null, null, false, supportedLanguages);
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-          outputDirectory, "DefaultFurnitureCatalog", null, "lib/resources/models", true, supportedLanguages);
+          outputDirectory, "DefaultFurnitureCatalog", null, outputDirectory + "/models", true, supportedLanguages);
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
-          outputDirectory, "DefaultTexturesCatalog", null, "lib/resources/textures", true, supportedLanguages);
+          outputDirectory, "DefaultTexturesCatalog", null, outputDirectory + "/textures", true, supportedLanguages);
     }
   }
 
@@ -190,13 +190,13 @@ public class PropertiesToJson {
             String extension = modelFile.substring(modelFile.lastIndexOf('.'));
 
             // Create a .zip file containing the 3D model
-            String newPath = (resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "")
-                + URLDecoder.decode(modelFile, "UTF-8").replace(extension, ".zip");
+            String zipModelFile = modelFile.replace(extension, ".zip");
             Path modelPath = Paths.get(sourceRoot, currentPath);
             Path modelFolder = modelPath.getParent();
             if (copyResources) {
               new File(resourcesOutputDirectory).mkdirs();
-              ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(newPath));
+              ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(
+                  new File(resourcesOutputDirectory, URLDecoder.decode(zipModelFile, "UTF-8"))));
               if (Boolean.parseBoolean(properties.getProperty("multiPartModel#" + index))) {
                 // Include multiPart files in same folder
                 Files.walkFileTree(modelFolder,
@@ -235,6 +235,8 @@ public class PropertiesToJson {
               properties.put(modelSizeKey, size.longValue());
             }
 
+            String newPath = resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "";
+            newPath += zipModelFile;
             entry.setValue((newPath.toString().contains("://") ? "jar:" : "") + newPath + "!/" + modelFile);
           }
         }
