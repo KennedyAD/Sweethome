@@ -1,0 +1,24 @@
+# Blender MTL File: 'silla_teca.blend'
+# Material Count: 2
+
+newmtl theca
+Ns 10
+Ka 1.000000 1.000000 1.000000
+Kd 0.947273 0.814164 0.430202
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd teca_tileable.jpg
+
+newmtl theca2
+Ns 10
+Ka 1.000000 1.000000 1.000000
+Kd 0.954497 0.688458 0.336951
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd teca_tileable.jpg

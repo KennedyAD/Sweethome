@@ -1,0 +1,23 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl metal
+Ns 128
+Ka 0.6 0.6 0.6
+Kd 0.65 0.65 0.65
+Ks 1 1 1
+Ke 0.000000 0.000000 0.000000
+Ni 3.000000
+d 1.000000
+illum 2
+
+newmtl toalla_blanca
+Ns 1
+Ka 1 1 1
+Kd 0.999736 0.985215 0.906621
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd toalla_bump.jpg

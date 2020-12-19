@@ -1,0 +1,30 @@
+# thonet.mtl
+#
+# Created by JoelEapen
+# https://blendswap.com/blend/25377
+# Modified by Emmanuel Puybaret / eTeks to decimate vertices
+#
+# This file is distributed under CC-0 Creative Commons Zero (Public Domain) license:
+# See http://creativecommons.org/choose/zero/
+# This means that you can use it for any purpose you see fit, even commercially,
+# with no requirements.
+
+newmtl Seat
+Ns 10
+Ka 0.05 0.05 0.05
+Kd 0.05 0.05 0.05
+Ks 0.2 0.2 0.2
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Tube
+Ns 10
+Ka 0.05 0.05 0.05
+Kd 0.05 0.05 0.05
+Ks 0.2 0.2 0.2
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3

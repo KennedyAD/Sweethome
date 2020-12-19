@@ -1,0 +1,40 @@
+# outdoorLamp.mtl
+#
+# Created by Mindfront
+# https://blendswap.com/blend/23992
+# Modified by Emmanuel Puybaret / eTeks to make the chain shorter and add materials
+#
+# This file is distributed under CC-0 Creative Commons Zero (Public Domain) license:
+# See http://creativecommons.org/choose/zero/
+# This means that you can use it for any purpose you see fit, even commercially,
+# with no requirements.
+
+newmtl Chain
+Ns 20
+Ka 0.09 0.09 0.09
+Kd 0.09 0.09 0.09
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Lamp
+Ns 20
+Ka 0.09 0.09 0.09
+Kd 0.09 0.09 0.09
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Pane
+Ns 5
+Ka 1 0.86 0.64
+Kd 1 0.86 0.64
+Ks 0 0 0
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1
+illum 2

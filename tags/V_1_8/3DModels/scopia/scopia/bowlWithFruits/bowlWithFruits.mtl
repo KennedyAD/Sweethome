@@ -1,0 +1,131 @@
+# Blender MTL File: 'bowlWithFruits.blend'
+# Material Count: 12
+
+newmtl banana
+Ns 15
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd bananaTexture.jpg
+
+newmtl banana2
+Ns 15
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd bananaTexture.jpg
+
+newmtl glassBowl
+Ns 80
+Ka 0.711223 0.772074 0.800000
+Kd 0.711223 0.772074 0.800000
+Ks 0.799213 0.799213 0.799213
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.708661
+illum 9
+
+newmtl orange
+Ns 15
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.224409 0.224409 0.224409
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureOrange.jpg
+
+newmtl orange2
+Ns 15
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.224409 0.224409 0.224409
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureOrange.jpg
+
+newmtl applePal
+Ns 10
+Ka 0.317669 0.225016 0.046327
+Kd 0.317669 0.225016 0.046327
+Ks 0.085274 0.085274 0.085274
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl applePal2
+Ns 10
+Ka 0.317669 0.225016 0.046327
+Kd 0.317669 0.225016 0.046327
+Ks 0.085274 0.085274 0.085274
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl pear
+Ns 30
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd pearTexture.jpg
+
+newmtl pear2
+Ns 30
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd pearTexture.jpg
+
+newmtl pear3
+Ns 30
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.066929 0.066929 0.066929
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd pearTexture.jpg
+
+newmtl apple
+Ns 27.450978
+Ka 0.696471 0.699608 0.050196
+Kd 0.696471 0.699608 0.050196
+Ks 0.140809 0.140809 0.140809
+Ke 0.000000 0.000000 0.000000
+Ni 1.350000
+d 1.000000
+illum 2
+map_Kd appleTexture.jpg
+
+newmtl apple2
+Ns 27.450978
+Ka 0.696471 0.699608 0.050196
+Kd 0.696471 0.699608 0.050196
+Ks 0.140809 0.140809 0.140809
+Ke 0.000000 0.000000 0.000000
+Ni 1.350000
+d 1.000000
+illum 2
+map_Kd appleTexture.jpg
