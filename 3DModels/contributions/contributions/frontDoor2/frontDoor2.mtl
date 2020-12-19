@@ -1,0 +1,94 @@
+# frontDoor2.mtl
+#
+# Created by SEBER RIDER 
+# https://sourceforge.net/p/sweethome3d/d-models/561/
+# Modified by Emmanuel Puybaret / eTeks to reduce shapes count and texture images size
+#
+# This file is distributed under Free Art License, see http://artlibre.org/licence/lal/en for more informations
+# and under CC-BY Creative Commons Attribution 3.0 Unported license, see http://creativecommons.org/licenses/by/3.0/
+# at your choice
+#
+
+newmtl Door_Frame
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Door_Frame.jpg
+
+newmtl Pole_A
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Pole_A.jpg
+
+newmtl Pole_B
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Pole_B.jpg
+
+newmtl Door_Frame_Head
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Door_Frame_Head.jpg
+
+newmtl Wall_A
+illum 1
+Ka 0.9411765 0.9411765 0.94509804
+Kd 0.9411765 0.9411765 0.94509804
+Ks 0.0 0.0 0.0
+Ns 1.0
+
+newmtl Wall_B
+illum 1
+Ka 0.9411765 0.9411765 0.9411765
+Kd 0.9411765 0.9411765 0.9411765
+Ks 0.0 0.0 0.0
+Ns 1.0
+
+newmtl Hinge
+illum 1
+Ka 0.3764706 0.25490198 0.1764706
+Kd 0.3764706 0.25490198 0.1764706
+Ks 0.0 0.0 0.0
+Ns 1.0
+
+newmtl Handles
+illum 2
+Ka 0.6666667 0.6666667 0.6666667
+Kd 0.6666667 0.6666667 0.6666667
+Ks 0.1 0.1 0.1
+Ns 10
+
+newmtl Leaf_Side_B
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Leaf_Side_B.jpg
+
+newmtl Leaf_Side_A
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Leaf_Side_A.jpg
+
+newmtl Leaf_Frame
+illum 1
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+Ns 1.0
+map_Kd front_door_Leaf_Frame.jpg

@@ -1,0 +1,35 @@
+# Blender MTL File: 'HojaSabalPalmeto.blend'
+# Material Count: 3
+
+newmtl Leaves
+Ns 25
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.0500000 0.0500000 0.0500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd sabalPalmetoLeaf.jpg
+
+newmtl OldLeaves
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd sabalPalmetoTexture.jpg
+
+newmtl Trunk
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd sabalPalmetoTexture.jpg

@@ -22,13 +22,16 @@ Under the following terms:
 	Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es)
 
 
-(C) Copyrights 2014-2019 Emmanuel PUYBARET / eTeks <info@eteks.com> and Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
+(C) Copyrights 2014-2020 Emmanuel PUYBARET / eTeks <info@eteks.com> and Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
 
-for the icons and the 223 following models:
+for the icons and the 265 following models:
 - air-mattress
 - antenna-whites
 - aquarium
+- avenueTree
 - baby_high_chair
+- bamboo
+- basicTree
 - bague
 - barnum
 - basic_camera
@@ -41,11 +44,16 @@ for the icons and the 223 following models:
 - billet-50-euros
 - birthday_cake
 - blouson
+- bluePineSnow
 - bonsai-tree
+- bowlWithFruits
+- bowlWithSalad
 - broom
 - bus
 - bush
+- campingTent
 - candelabre
+- candle
 - captains-bed
 - cardboard-box
 - casque
@@ -62,16 +70,23 @@ for the icons and the 223 following models:
 - child_swing
 - chimney
 - christmas_tree
+- cityBus
 - clothes-basket
 - clothes-horse
 - clothes-rack
 - clothes_washing_machine
+- coconutTree
+- coconutTreeBended
 - coffee-table2
 - cone
 - convertible-sofa-BZ-closed
 - convertible-sofa-BZ-opened
+- cooker
+- cooperBeech
 - curtain
+- cypress
 - dart_game
+- deepFryerWithFrenchFries
 - dimmer-whites
 - diving-board
 - dog
@@ -88,6 +103,7 @@ for the icons and the 223 following models:
 - dryer_machine
 - electric_water_heater
 - electric_water_heater_big
+- electronicScale
 - ensemble-assiette-couteau-fourchette-cuillere-verre
 - entry-bell-ring
 - entry-bell-speech-unit
@@ -104,13 +120,17 @@ for the icons and the 223 following models:
 - flipper
 - folded_clothes
 - football-goal
+- frenchFries
 - furnace
+- futon
 - gant-textured
 - garage-door
 - garage-door2
 - garden-hut
 - gaz_water_heater
 - glass_door
+- glassDoor2
+- hammock
 - hedge
 - hedgeTextured
 - high-hedge
@@ -125,12 +145,17 @@ for the icons and the 223 following models:
 - iron-railing-1
 - iron-railing-2
 - iron-railing-3
+- islandBath
 - jacuzzi
 - japanese_style_screen
+- japaneseMaple
 - jupe
 - jupe-doeskin
 - keys
+- kitchenHood
+- kitchenKnifeStandSet
 - letters_box
+- littleTree
 - mannequinBrunette
 - mannequinMale
 - marteau
@@ -143,13 +168,18 @@ for the icons and the 223 following models:
 - mini_stereo
 - mp3_base_for_ipad
 - open-cardboard-box
+- palm
 - pantalon-shadows
+- paperTowelHolder
 - passage-a-niveau
 - passage-pieton
+- peachBlossom
+- pine
 - pelle
 - perceuse-electrique
 - peugeot-308
 - pince-coupante
+- pineSnow
 - playstation4
 - plug-TypeA-whites
 - plug-TypeB-whites
@@ -161,6 +191,9 @@ for the icons and the 223 following models:
 - puff
 - rabbit
 - rails
+- rattanArmchair
+- rattanSofa
+- rattanTable
 - rectangle-swimming-pool
 - reflex_camera
 - renault-scenic
@@ -182,7 +215,10 @@ for the icons and the 223 following models:
 - rounded-plug-TypeE
 - rounded-plug-TypeG
 - rounded-switch
+- ryokanChair
+- sabalPalmeto
 - sandpit
+- sandwichMaker
 - scie-egoine
 - scooter
 - scooter2
@@ -190,11 +226,13 @@ for the icons and the 223 following models:
 - short-shadows
 - shovel
 - skateboard
+- sleepingBag
 - small-oven
 - small-urinal
 - smart-car
 - smoke-detector
 - sneakers
+- spiceTower
 - square-RJ-45
 - square-antenna
 - square-dimmer
@@ -210,17 +248,21 @@ for the icons and the 223 following models:
 - stationnement-epi-45
 - stationnement-epi-60
 - stationnement-epi-75
+- steak
 - step-ladder-metal
 - step-ladder-wood
 - stereo_amplifier
+- stoneGrillDevice
 - stroller
 - suv
 - swimming-pool
 - switch-whites
+- sycamoreMaple
 - table-on-trestles
 - table-with-leaning-feet
 - tablet
 - tatami
+- toaster
 - tournevis
 - trampoline
 - tricycle
@@ -250,6 +292,6 @@ for the icons and the 223 following models:
 - yamaha-yzr-r6			
 
 
-(C) Copyrights 2006-2019 Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
+(C) Copyrights 2006-2020 Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
 
 for all the other models
