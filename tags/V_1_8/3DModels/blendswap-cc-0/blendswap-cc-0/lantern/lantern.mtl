@@ -1,0 +1,13 @@
+# Blender MTL File: 'Lantern.blend'
+# Material Count: 1
+
+newmtl Lamp
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.090909 0.090909 0.090909
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd lantern_1024_c.jpg
