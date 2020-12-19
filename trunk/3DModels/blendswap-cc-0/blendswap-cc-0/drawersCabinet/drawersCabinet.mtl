@@ -1,0 +1,87 @@
+# drawersCabinet.mtl
+#
+# Created by Vladoffsky
+# http://www.blendswap.com/blends/view/87216
+# Modified by Emmanuel Puybaret / eTeks to extract cabinets, bevel doors edges, add texture coordinates 
+# and CC-0 textures coming from https://www.sharetextures.com/textures/wood/american_oak_1/
+# and https://www.sharetextures.com/textures/floor/marble-14/
+#
+# This file is distributed under CC-0 Creative Commons Zero (Public Domain) license:
+# See http://creativecommons.org/choose/zero/
+# This means that you can use it for any purpose you see fit, even commercially,
+# with no requirements.
+
+newmtl cabinetBody
+Ns 10
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd american_oak.jpg
+
+newmtl cabinetBaseboard
+Ns 10
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd american_oak.jpg
+
+newmtl cabinetDoor
+Ns 10
+Ka 0.85 0.85 0.85
+Kd 0.85 0.85 0.85
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl cabinetDoorBorder
+Ns 10
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd american_oak.jpg
+
+newmtl cabinetHandle
+Ns 90
+Ka 0.7 0.7 0.7
+Kd 0.7 0.7 0.7
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl counter
+Ns 25
+Ka 0.8 0.5 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd marble_14.jpg
+
+newmtl counterBorder
+Ns 25
+Ka 0.8 0.5 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd marble_14.jpg

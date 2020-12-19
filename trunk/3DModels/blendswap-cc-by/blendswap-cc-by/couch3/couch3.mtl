@@ -1,0 +1,38 @@
+# couch3.mtl
+#
+# Created by MatBot
+# https://blendswap.com/blend/26175
+# Modified by Emmanuel Puybaret / eTeks to add some faces and materials
+#
+# This file is distributed under CC-BY Creative Commons Attribution 3.0 Unported license 
+# see http://creativecommons.org/licenses/by/3.0/
+
+newmtl Base
+Ns 20
+Ka 0.19 0.18 0.16
+Kd 0.19 0.18 0.16
+Ks 0.2 0.2 0.2
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Cushion
+Ns 20
+Ka 0.19 0.18 0.16
+Kd 0.19 0.18 0.16
+Ks 0.2 0.2 0.2
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Feet
+Ns 80
+Ka 1.000000 1.000000 1.000000
+Kd 0.5 0.5 0.5
+Ks 0.5 0.5 0.5
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
