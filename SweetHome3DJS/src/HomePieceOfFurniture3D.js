@@ -1,7 +1,7 @@
 /*
  * HomePieceOfFurniture3D.js
  *
- * Sweet Home 3D, Copyright (c) 2015 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2015-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,6 @@ HomePieceOfFurniture3D.prototype.update = function() {
   if (this.isVisible()) {
     this.updatePieceOfFurnitureModelTransformations();
     this.updatePieceOfFurnitureTransform();
-    this.updatePieceOfFurnitureModelMirrored();
     this.updatePieceOfFurnitureColorAndTexture(false);      
   }
   this.updatePieceOfFurnitureVisibility();      
@@ -123,19 +122,19 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureColorAndTexture = functio
   var modelChild = modelNode.getChild(0);
   if (modelChild.getUserData() !== HomePieceOfFurniture3D.DEFAULT_BOX) {
     if (piece.getColor() !== null) {
-      this.setColorAndTexture(modelNode, piece.getColor(), null, piece.getShininess(), null, false, 
+      this.setColorAndTexture(modelNode, piece.getColor(), null, piece.getShininess(), null, piece.isModelMirrored(), piece.isBackFaceShown(), false, 
           null, null, []);
     } else if (piece.getTexture() !== null) {
-      this.setColorAndTexture(modelNode, null, piece.getTexture(), piece.getShininess(), null, waitTextureLoadingEnd,
+      this.setColorAndTexture(modelNode, null, piece.getTexture(), piece.getShininess(), null, piece.isModelMirrored(), piece.isBackFaceShown(), waitTextureLoadingEnd,
           vec3.fromValues(piece.getWidth(), piece.getHeight(), piece.getDepth()), ModelManager.getInstance().getBounds(modelChild),
           []);
     } else if (piece.getModelMaterials() !== null) {
-      this.setColorAndTexture(modelNode, null, null, null, piece.getModelMaterials(), waitTextureLoadingEnd,
+      this.setColorAndTexture(modelNode, null, null, null, piece.getModelMaterials(), piece.isModelMirrored(), piece.isBackFaceShown(), waitTextureLoadingEnd,
           vec3.fromValues(piece.getWidth(), piece.getHeight(), piece.getDepth()), ModelManager.getInstance().getBounds(modelChild), 
           []);
     } else {
       // Set default material and texture of model
-      this.setColorAndTexture(modelNode, null, null, piece.getShininess(), null, false, null, null, []);
+      this.setColorAndTexture(modelNode, null, null, piece.getShininess(), null, piece.isModelMirrored(), piece.isBackFaceShown(), false, null, null, []);
     }
   }
 }
@@ -162,16 +161,6 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureVisibility = function() {
       ? piece.getModelMaterials()
       : null;
   this.setVisible(this.getModelNode(), visible, materials);
-}
-
-/**
- * Sets whether this piece model is mirrored or not.
- * @private
- */
-HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureModelMirrored = function() {
-  var piece = this.getUserData();
-  // Cull front or back model faces whether its model is mirrored or not
-  this.setCullFace(this.getModelNode(), piece.isModelMirrored(), piece.isBackFaceShown());
 }
 
 /**
@@ -323,9 +312,7 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureModelNode = function(mode
   if (piece.isBackFaceShown()) {
     this.setBackFaceNormalFlip(this.getModelNode(), true);
   }
-  // Update piece color, visibility and model mirror in dispatch thread as
-  // these attributes may be changed in that thread
-  this.updatePieceOfFurnitureModelMirrored();
+  // Update piece color, visibility and model mirror
   this.updatePieceOfFurnitureColorAndTexture(waitTextureLoadingEnd);      
   this.updatePieceOfFurnitureVisibility();
 }
@@ -348,20 +335,21 @@ HomePieceOfFurniture3D.prototype.getModelBox = function(color) {
  * from the given <code>color</code> and <code>texture</code>. 
  * @private
  */
-HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, texture, shininess, materials, waitTextureLoadingEnd, 
+HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, texture, shininess, 
+                                                               materials, mirrored, backFaceShown, waitTextureLoadingEnd, 
                                                                pieceSize, modelBounds, modifiedAppearances) {
   if (node instanceof Group3D) {
     // Set material and texture of all children
     var children = node.getChildren(); 
     for (var i = 0; i < children.length; i++) {
       this.setColorAndTexture(children [i], color, 
-          texture, shininess, materials, waitTextureLoadingEnd, pieceSize,
-          modelBounds, modifiedAppearances);
+          texture, shininess, materials, mirrored, backFaceShown, waitTextureLoadingEnd, 
+          pieceSize, modelBounds, modifiedAppearances);
     }
   } else if (node instanceof Link3D) {
     this.setColorAndTexture(node.getSharedGroup(), color,
-        texture, shininess, materials, waitTextureLoadingEnd, pieceSize,
-        modelBounds, modifiedAppearances);
+        texture, shininess, materials, mirrored, backFaceShown, waitTextureLoadingEnd, 
+        pieceSize, modelBounds, modifiedAppearances);
   } else if (node instanceof Shape3D) {
     var shape = node;
     var shapeName = shape.getName();
@@ -383,7 +371,9 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
       var appearanceModified = colorModified            
           || textureModified
           || materialModified
-          || shininess !== null;
+          || shininess !== null
+          || mirrored
+          || backFaceShown;
       var windowPane = shapeName !== null
           && shapeName.indexOf(ModelManager.WINDOW_PANE_SHAPE_PREFIX) === 0;
       if (!windowPane && appearanceModified            
@@ -418,9 +408,6 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
           if (defaultAppearance.getCullFace() !== undefined) {
             appearance.setCullFace(defaultAppearance.getCullFace());
           }
-          if (defaultAppearance.getBackFaceNormalFlip() !== undefined) {
-            appearance.setBackFaceNormalFlip(defaultAppearance.getBackFaceNormalFlip());
-          }
           appearance.setTextureCoordinatesGeneration(defaultAppearance.getTextureCoordinatesGeneration());
           appearance.setTextureImage(null);
         }
@@ -433,7 +420,7 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
           this.updateTextureTransform(appearance, texture, true);
           this.updateAppearanceMaterial(appearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, materialShininess);
           TextureManager.getInstance().loadTexture(texture.getImage(), 0, 
-              waitTextureLoadingEnd, this.getTextureObserver(appearance));
+              waitTextureLoadingEnd, this.getTextureObserver(appearance, mirrored, backFaceShown));
         }
       } else if (materialModified) {
         var materialFound = false;
@@ -458,9 +445,6 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
               if (defaultAppearance.getCullFace() !== undefined) {
                 appearance.setCullFace(defaultAppearance.getCullFace());
               }
-              if (defaultAppearance.getBackFaceNormalFlip() !== undefined) {
-                appearance.setBackFaceNormalFlip(defaultAppearance.getBackFaceNormalFlip());
-              }
               appearance.setTextureImage(null);
             } else if (color === null && material.getTexture() !== null) {
               var materialTexture = material.getTexture();
@@ -474,7 +458,7 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
               this.updateAppearanceMaterial(appearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, materialShininess);
               var materialTexture = material.getTexture();
               TextureManager.getInstance().loadTexture(materialTexture.getImage(), 0, 
-                  waitTextureLoadingEnd, this.getTextureObserver(appearance));
+                  waitTextureLoadingEnd, this.getTextureObserver(appearance, mirrored, backFaceShown));
             } else {
               this.restoreDefaultAppearance(appearance, material.getShininess());
             }
@@ -488,6 +472,9 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
       } else {
         this.restoreDefaultAppearance(appearance, shininess);
       }
+
+      this.setCullFace(appearance, mirrored, backFaceShown);
+
       // Store modified appearances to avoid changing their values more than once
       modifiedAppearances.push(appearance);
     }
@@ -498,7 +485,8 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
  * Returns a texture observer that will update the given <code>appearance</code>.
  * @private
  */
-HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance) {
+HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance, mirrored, backFaceShown) {
+  var piece3D = this;
   return {
       textureUpdated : function(textureImage) {
         if (TextureManager.getInstance().isTextureTransparent(textureImage)) {
@@ -513,6 +501,8 @@ HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance) {
         if (appearance.getTextureImage() !== textureImage) {
           appearance.setTextureImage(textureImage);
         }
+
+        piece3D.setCullFace(appearance, mirrored, backFaceShown);
       },
       textureError : function(error) {
         return this.textureUpdated(TextureManager.getInstance().getErrorImage());
@@ -554,6 +544,26 @@ HomePieceOfFurniture3D.prototype.isTexturesCoordinatesDefined = function(shape) 
 }
 
 /**
+ * Sets the cull face of the given <code>appearance</code>.
+ * @private
+ */
+HomePieceOfFurniture3D.prototype.setCullFace = function(appearance, mirrored, backFaceShown) {
+  // Change cull face 
+  if (appearance.getCullFace() !== Appearance3D.CULL_NONE) {
+    var cullFace = appearance.getCullFace() !== undefined 
+        ? appearance.getCullFace()
+        : Appearance3D.CULL_BACK;
+    var defaultCullFace = appearance.defaultCullFace; 
+    if (defaultCullFace === undefined) {
+      appearance.defaultCullFace = (defaultCullFace = cullFace);
+    }
+    appearance.setCullFace((mirrored ^ backFaceShown ^ defaultCullFace === Appearance3D.CULL_FRONT)
+        ? Appearance3D.CULL_FRONT 
+        : Appearance3D.CULL_BACK);
+  }
+}
+
+/**
  * Restores default material and texture of the given <code>appearance</code>.
  * @private
  */
@@ -573,7 +583,6 @@ HomePieceOfFurniture3D.prototype.restoreDefaultAppearance = function(appearance,
     }
     if (appearance.getCullFace() !== undefined) {
       appearance.setCullFace(defaultAppearance.getCullFace());
-      appearance.setBackFaceNormalFlip(defaultAppearance.isBackFaceNormalFlip());
     }
     if (defaultAppearance.getTextureCoordinatesGeneration() !== undefined) {
       appearance.setTextureCoordinatesGeneration(defaultAppearance.getTextureCoordinatesGeneration());
@@ -674,42 +683,6 @@ HomePieceOfFurniture3D.prototype.isSelected = function(selectedItems) {
     }
   }
   return false;
-}
-
-/**
- * Sets the cull face of all <code>Shape3D</code> children nodes of <code>node</code>.
- * @param cullFace <code>Appearance3D.CULL_FRONT</code> or <code>Appearance3D.CULL_BACK</code>
- * @private
- */
-HomePieceOfFurniture3D.prototype.setCullFace = function(node, mirrored, backFaceShown) {
-  if (node instanceof Group3D) {
-    // Set cull face of all children
-    var children = node.getChildren(); 
-    for (var i = 0; i < children.length; i++) {
-      this.setCullFace(children [i], mirrored, backFaceShown);
-    }
-  } else if (node instanceof Link3D) {
-    this.setCullFace(node.getSharedGroup(), mirrored, backFaceShown);
-  } else if (node instanceof Shape3D) {
-    var appearance = node.getAppearance();
-    if (appearance === null) {
-      appearance = new Appearance3D();
-      node.setAppearance(appearance);
-    }
-    // Change cull face 
-    if (appearance.getCullFace() !== Appearance3D.CULL_NONE) {
-      var cullFace = appearance.getCullFace() !== undefined 
-          ? appearance.getCullFace()
-          : Appearance3D.CULL_BACK;
-      var defaultCullFace = appearance.defaultCullFace; 
-      if (defaultCullFace === undefined) {
-        appearance.defaultCullFace = (defaultCullFace = cullFace);
-      }
-      appearance.setCullFace((mirrored ^ backFaceShown ^ defaultCullFace === Appearance3D.CULL_FRONT)
-          ? Appearance3D.CULL_FRONT 
-          : Appearance3D.CULL_BACK);
-    }
-  }
 }
 
 /**
