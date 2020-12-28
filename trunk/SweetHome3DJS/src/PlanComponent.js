@@ -4313,7 +4313,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
       g2D.draw(new java.awt.geom.Line2D.Float(points[2][0], points[2][1], points[3][0], points[3][1]));
       
       if (items.length === 1 && indicatorPaint != null) {
-        plan.paintPieceOFFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
+        plan.paintPieceOfFurnitureIndicators(g2D, piece, indicatorPaint, planScale);
       }
     });
 }
@@ -4475,7 +4475,7 @@ PlanComponent.prototype.paintPieceOfFurnitureTop = function(g2D, piece, pieceSha
  * @param {number} planScale
  * @private
  */
-PlanComponent.prototype.paintPieceOFFurnitureIndicators = function(g2D, piece, indicatorPaint, planScale) {
+PlanComponent.prototype.paintPieceOfFurnitureIndicators = function(g2D, piece, indicatorPaint, planScale) {
   if (this.resizeIndicatorVisible) {
     g2D.setPaint(indicatorPaint);
     g2D.setStroke(PlanComponent.INDICATOR_STROKE);
