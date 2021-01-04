@@ -159,6 +159,9 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
       && this.configuration.readHomeURL !== undefined) {
     // Replace % sequence by %% except %s before formating readHomeURL with home name 
     var readHomeUrl = CoreTools.format(this.configuration.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
+    if (readHomeUrl.indexOf("?") > 0) {
+      readHomeUrl += "&requestId=" + encodeURIComponent(UUID.randomUUID());
+    }
     homeName = readHomeUrl;
   }
   HomeRecorder.prototype.readHome.call(this, homeName, observer);
@@ -623,7 +626,7 @@ function SweetHome3DJSApplication(params) {
   var application = this;
   this.addHomesListener(function(ev) {
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        var homeController = this.application.createHomeController(ev.getItem());
+        var homeController = application.createHomeController(ev.getItem());
         application.homeControllers.push(homeController); 
         application.getHomeRecorder().addHome(ev.getItem());
         homeController.getView();
