@@ -1496,10 +1496,10 @@ HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.pickingFrameBuffer);
     this.pickingFrameBuffer.width = Appearance3D.isPowerOfTwo(this.canvas.width) 
         ? this.canvas.width 
-        : Appearance3D.getNextHighestPowerOfTwo(this.canvas.width) / 2;
+        : Appearance3D.getNextHighestPowerOfTwo(this.canvas.width);
     this.pickingFrameBuffer.height = Appearance3D.isPowerOfTwo(this.canvas.height) 
         ? this.canvas.height 
-        : Appearance3D.getNextHighestPowerOfTwo(this.canvas.height) / 2;
+        : Appearance3D.getNextHighestPowerOfTwo(this.canvas.height);
     this.pickingFrameBuffer.colorMap = new Uint8Array(this.pickingFrameBuffer.width * this.pickingFrameBuffer.height * 4);
 
     var renderedTexture = this.gl.createTexture();
@@ -1513,6 +1513,7 @@ HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
     this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, renderedTexture, 0);
     this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.pickingFrameBuffer.width, this.pickingFrameBuffer.height);
     this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, renderBuffer);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, null);
   }
 
   if (this.pickingFrameBufferNeededRepaint) {
