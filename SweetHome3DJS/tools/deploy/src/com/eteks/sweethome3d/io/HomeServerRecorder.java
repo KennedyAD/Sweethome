@@ -1,5 +1,5 @@
 /*
- * HomeAppletRecorder.java
+ * HomeServerRecorder.java
  *
  * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
@@ -74,8 +74,15 @@ public class HomeServerRecorder {
       }
     } else {
       // If home file doesn't exist, simply instantiate a new home
-      this.home = new Home();
+      this.home = createHome();
     }
+  }
+
+  /**
+   * Returns a new home if home file doesn't exist yet.
+   */
+  protected Home createHome() {
+    return new Home();
   }
 
   /**
