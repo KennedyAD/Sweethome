@@ -69,7 +69,7 @@ public class PropertiesToJson {
           for (Enumeration<? extends ZipEntry> zipEntries = zipFile.entries(); zipEntries.hasMoreElements(); ) {
             ZipEntry entry = zipEntries.nextElement();
             if (!entry.isDirectory() && entry.getName().endsWith("Catalog.properties")) {
-              sourcePropertyFile = entry.getName().substring(0, entry.getName().lastIndexOf("."));
+              sourcePropertyFile = entry.getName();
               resourceNameFromFile = false;
 
               File tempFile = File.createTempFile("extract", "");
@@ -97,13 +97,15 @@ public class PropertiesToJson {
           // Not a zip file
         }
       }
-      convert(sourceRoot,               // Source root
+      sourcePropertyFile = sourcePropertyFile.substring(0, sourcePropertyFile.lastIndexOf("."));
+      convert(sourceRoot,             // Source root
           new String [] {sourcePropertyFile}, // Source properties file
           args [2],                   // Output directory
           args [3],                   // Output name
           null,
           args [4],                   // Resources output directory
-          args.length > 5 ? Boolean.parseBoolean(args [5]) : false,
+          args.length > 5 ? args [5] : null, // Relative output directory stored in .json file
+          args.length > 6 ? Boolean.parseBoolean(args [6]) : false,
           resourceNameFromFile,
           supportedLanguages);
     } else {
@@ -116,25 +118,31 @@ public class PropertiesToJson {
       String outputDirectory = args.length > 0 ? args [0] : "lib/resources";
 
       Map<String, Properties> localizationProperties = convert(sourceRoot, sourceProperties,
-          outputDirectory, "localization", null, null, false, true, supportedLanguages);
+          outputDirectory, "localization", null, supportedLanguages);
       if (args.length > 1) {
         for (int i = 1; i < args.length; i += 2) {
           convert(args [i], new String [] {args [i + 1]},
-              outputDirectory, "localization", localizationProperties, null, false, true, supportedLanguages);
+              outputDirectory, "localization", localizationProperties, supportedLanguages);
         }
       }
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/model/LengthUnit" },
-          outputDirectory, "LengthUnit", null, null, false, true, supportedLanguages);
+          outputDirectory, "LengthUnit", null, null, null, false, true, supportedLanguages);
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
-          outputDirectory, "DefaultFurnitureCatalog", null, outputDirectory + "/models", true, true, supportedLanguages);
+          outputDirectory, "DefaultFurnitureCatalog", null, outputDirectory + "/models", null, true, true, supportedLanguages);
       convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
-          outputDirectory, "DefaultTexturesCatalog", null, outputDirectory + "/textures", true, true, supportedLanguages);
+          outputDirectory, "DefaultTexturesCatalog", null, outputDirectory + "/textures", null, true, true, supportedLanguages);
     }
   }
 
   private static Map<String, Properties> convert(String sourceRoot, String[] sourcePropertyFiles,
                               String outputDirectory, String outputName, Map<String, Properties> languageProperties,
-                              String resourcesOutputDirectory, boolean copyResources, boolean resourceNameFromFile,
+                              String[] supportedLanguages) throws IOException {
+    return convert(sourceRoot, sourcePropertyFiles, outputDirectory, outputName, languageProperties, null, null, false, true, supportedLanguages);
+  }
+
+  private static Map<String, Properties> convert(String sourceRoot, String[] sourcePropertyFiles,
+                              String outputDirectory, String outputName, Map<String, Properties> languageProperties,
+                              String resourcesOutputDirectory, String resourcesRelativeDirectory, boolean copyResources, boolean resourceNameFromFile,
                               String[] supportedLanguages) throws IOException {
     new File(outputDirectory).mkdirs();
     for (String language : supportedLanguages) {
@@ -155,7 +163,7 @@ public class PropertiesToJson {
             mergedProperties.putAll(properties);
           }
         }
-        afterLoaded(mergedProperties, sourceRoot, resourcesOutputDirectory, propertyFileName, copyResources, resourceNameFromFile,
+        afterLoaded(mergedProperties, sourceRoot, resourcesOutputDirectory, propertyFileName, resourcesRelativeDirectory, copyResources, resourceNameFromFile,
             "".equals(language) ? "en" : language);
       }
       if (mergedProperties.size() > 0) {
@@ -173,7 +181,7 @@ public class PropertiesToJson {
   }
 
   private static void afterLoaded(Properties properties, String sourceRoot, String resourcesOutputDirectory, String propertyFileBaseName,
-                                  boolean copyResources, boolean resourceNameFromFile, String language) throws IOException {
+                                  String resourcesRelativeDirectory, boolean copyResources, boolean resourceNameFromFile, String language) throws IOException {
     if ("LengthUnit".equals(propertyFileBaseName)) {
       System.out.println("***** Adding extra keys for '" + language + "'");
       properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getGroupingSeparator());
@@ -193,8 +201,8 @@ public class PropertiesToJson {
     } else {
       if (propertyFileBaseName.endsWith("FurnitureCatalog")) {
         // Copy icon#, planIcon# images and create a .zip file containing the file pointed by model# property
-        updateImageEntries(properties, sourceRoot, "icon#", resourcesOutputDirectory, copyResources);
-        updateImageEntries(properties, sourceRoot, "planIcon#", resourcesOutputDirectory, copyResources);
+        updateImageEntries(properties, sourceRoot, "icon#", resourcesOutputDirectory, resourcesRelativeDirectory, copyResources);
+        updateImageEntries(properties, sourceRoot, "planIcon#", resourcesOutputDirectory, resourcesRelativeDirectory, copyResources);
 
         for (Entry<Object, Object> entry : ((Properties)properties.clone()).entrySet()) {
           String key = (String)entry.getKey();
@@ -256,31 +264,38 @@ public class PropertiesToJson {
               properties.put(modelSizeKey, size.longValue());
             }
 
-            String newPath = resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "";
+            String newPath = resourcesRelativeDirectory != null
+                ? resourcesRelativeDirectory + "/"
+                : (resourcesOutputDirectory.length() > 0
+                    ? resourcesOutputDirectory + "/"
+                    : "");
             newPath += zipModelFile;
             properties.put(key, (newPath.toString().contains("://") ? "jar:" : "") + newPath + "!/" + modelFile);
           }
         }
       } else if (propertyFileBaseName.endsWith("TexturesCatalog")) {
-        updateImageEntries(properties, sourceRoot, "image#", resourcesOutputDirectory, copyResources);
+        updateImageEntries(properties, sourceRoot, "image#", resourcesOutputDirectory, resourcesRelativeDirectory, copyResources);
       }
     }
   }
 
   private static void updateImageEntries(Properties properties, String sourceRoot, String imagePrefix,
-                                         String resourcesOutputDirectory, boolean copyResources) throws IOException {
+                                         String resourcesOutputDirectory, String resourcesRelativeDirectory,
+                                         boolean copyResources) throws IOException {
     for (Entry<Object, Object> entry : properties.entrySet()) {
       String key = (String)entry.getKey();
       if (key.startsWith(imagePrefix)) {
         String currentPath = properties.getProperty(key);
-        String newPath = (resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "")
-            + currentPath.substring(currentPath.lastIndexOf("/") + 1);
+        String image = currentPath.substring(currentPath.lastIndexOf("/") + 1);
+        String newPath = (resourcesOutputDirectory.length() > 0  ? resourcesOutputDirectory + "/"  : "") + image;
         if (copyResources) {
           new File(resourcesOutputDirectory).mkdirs();
           Files.copy(Paths.get(sourceRoot, currentPath), Paths.get(newPath), StandardCopyOption.REPLACE_EXISTING);
         }
 
-        entry.setValue(newPath.toString());
+        entry.setValue(resourcesRelativeDirectory != null
+            ? resourcesRelativeDirectory + "/" + image
+            : newPath.toString());
       }
     }
   }
