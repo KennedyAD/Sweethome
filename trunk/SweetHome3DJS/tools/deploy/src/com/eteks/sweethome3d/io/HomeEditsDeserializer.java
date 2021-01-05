@@ -63,14 +63,14 @@ import com.eteks.sweethome3d.viewcontroller.PlanController;
 import com.eteks.sweethome3d.viewcontroller.PlanController.EditableProperty;
 import com.eteks.sweethome3d.viewcontroller.PlanView;
 import com.eteks.sweethome3d.viewcontroller.View;
+import com.eteks.sweethome3d.viewcontroller.ViewFactory;
 import com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter;
 
 import sun.misc.Unsafe;
 
 /**
  * A class used to deserialize undoable edits sent from a SweetHome3D client
- * (see <code>IncrementalHomeRecorder</code>).
- *
+ * (see <code>IncrementalHomeRecorder</code> JavaScript class).
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
  */
@@ -79,30 +79,33 @@ public class HomeEditsDeserializer {
   private File                    homeFile;
   private String                  baseUrl;
   private HomeController          homeController;
-  private DefaultUserPreferences  preferences;
+  private UserPreferences         preferences;
   private Map<String, HomeObject> homeObjects;
 
   /**
    * Creates a new home edit deserializer.
-   *
    * @param home     the target home (where the edit will be applied)
    * @param homeFile the file path from which <code>home</code> was read
    * @param baseUrl  the base URL (server) for the resources found within the home
    */
   public HomeEditsDeserializer(Home home, File homeFile, String baseUrl) {
-    super();
+    this(home, homeFile, baseUrl, null, null);
+  }
+
+  public HomeEditsDeserializer(Home home, File homeFile, String baseUrl,
+                               UserPreferences preferences, HomeController homeController) {
     this.home = home;
     this.homeFile = homeFile;
     this.baseUrl = baseUrl;
-    // Default user preferences are needed to decode default wall patterns
-    this.preferences = new DefaultUserPreferences();
-    this.homeController = new HomeController(home, this.preferences,
-        new ViewFactoryAdapter() {
-          @Override
-          public PlanView createPlanView(Home home, UserPreferences preferences, PlanController planController) {
-            return new DummyPlanView();
-          }
-        });
+    // User preferences are needed to decode default wall patterns
+    this.preferences = preferences != null
+        ? preferences
+        : new DefaultUserPreferences();
+    if (homeController != null) {
+      this.homeController = homeController;
+    } else {
+      this.homeController = new HomeController(home, this.preferences, createNoOperationViewFactory());
+    }
     this.homeObjects = new HashMap<String, HomeObject>();
     for (HomeObject homeObject : home.getHomeObjects()) {
       this.homeObjects.put(homeObject.getId(), homeObject);
@@ -112,7 +115,6 @@ public class HomeEditsDeserializer {
   /**
    * Applies a list of edits that have been deserialized. Most of the time, edits are
    * redone, but they maybe undone in case of an undo action.
-   *
    * @param edits the list of edits to be run
    * @return the number of edits that have been applied
    */
@@ -433,6 +435,18 @@ public class HomeEditsDeserializer {
       edits.add(deserializeObject(UndoableEdit.class, jsonObject, jsonObject.has("_action") && "undo".equals(jsonObject.getString("_action"))));
     }
     return edits;
+  }
+
+  /**
+   * Returns a view factory with a plan view that performs no operation.
+   */
+  public static ViewFactory createNoOperationViewFactory() {
+    return new ViewFactoryAdapter() {
+        @Override
+        public PlanView createPlanView(Home home, UserPreferences preferences, PlanController planController) {
+          return new DummyPlanView();
+        }
+      };
   }
 
   // Dummy view able to perform some plan controller tasks during undoable edits operations (setScale, makeSelectionVisible).
