@@ -15,7 +15,7 @@
 -->
 <project basedir="." default="viewerBuild" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.4.2"/>
+  <property name="version" value="6.4.6"/>
 
   <!-- Java to JavaScript and TypeScript transpilation with JSweet -->
   <target name="transpiledLibraries" 
