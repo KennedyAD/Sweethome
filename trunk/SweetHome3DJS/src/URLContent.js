@@ -36,6 +36,39 @@ URLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
  * @return {string}
  */
 URLContent.prototype.getURL = function() {
+  var httpsSchemeIndex = this.url.indexOf("https://");
+  var httpSchemeIndex = this.url.indexOf("http://");
+  if (httpsSchemeIndex !== -1
+      || httpSchemeIndex !== -1) {
+    var scripts = document.getElementsByTagName("script");
+    if (scripts && scripts.length > 0) {
+      var scriptUrl = document.getElementsByTagName("script") [0].src;
+      var scriptColonSlashIndex = scriptUrl.indexOf("://");
+      var scriptScheme = scriptUrl.substring(0, scriptColonSlashIndex);
+      var scheme = httpsSchemeIndex !== -1  ? "https"  : "http";
+      // If scheme is different from script one, replace scheme and port with script ones to avoid CORS issues
+      if (scriptScheme != scheme) {
+        var scriptServer = scriptUrl.substring(scriptColonSlashIndex + "://".length, scriptUrl.indexOf("/", scriptColonSlashIndex + "://".length));
+        var scriptPort = "";
+        var colonIndex = scriptServer.indexOf(":");
+        if (colonIndex > 0) {
+          scriptPort = scriptServer.substring(colonIndex);
+          scriptServer = scriptServer.substring(0, colonIndex);
+        }
+        var schemeIndex = httpsSchemeIndex !== -1  ? httpsSchemeIndex  : httpSchemeIndex;
+        var colonSlashIndex = this.url.indexOf("://", schemeIndex);
+        var fileIndex = this.url.indexOf("/", colonSlashIndex + "://".length);
+        var server = this.url.substring(colonSlashIndex + "://".length, fileIndex);
+        if (server.indexOf(":") > 0) {
+          server = server.substring(0, server.indexOf(":"));
+        }
+        if (scriptServer == server) {
+          return this.url.substring(0, schemeIndex) + scriptScheme + "://" + scriptServer + scriptPort + this.url.substring(fileIndex); 
+        }
+      }
+    }
+  } 
+  
   return this.url;
 }
 
@@ -56,7 +89,9 @@ URLContent.prototype.getJAREntryURL = function() {
   if (!this.isJAREntry()) {
     throw new IllegalStateException("Content isn't a JAR entry");
   }
-  return this.url.substring("jar:".length, this.url.indexOf("!/"));
+  // Use URL returned by getURL() rather that this.url to get adjusted URL
+  var url = this.getURL(); 
+  return url.substring("jar:".length, url.indexOf("!/"));
 }
 
 /**
