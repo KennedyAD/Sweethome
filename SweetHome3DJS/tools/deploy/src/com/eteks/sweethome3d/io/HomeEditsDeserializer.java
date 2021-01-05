@@ -22,7 +22,6 @@ package com.eteks.sweethome3d.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -39,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
@@ -49,22 +47,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.eteks.sweethome3d.model.Content;
-import com.eteks.sweethome3d.model.DimensionLine;
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.HomeObject;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Selectable;
-import com.eteks.sweethome3d.model.TextStyle;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.SimpleURLContent;
 import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
+import com.eteks.sweethome3d.viewcontroller.NoOperationViewFactory;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
-import com.eteks.sweethome3d.viewcontroller.PlanController.EditableProperty;
-import com.eteks.sweethome3d.viewcontroller.PlanView;
-import com.eteks.sweethome3d.viewcontroller.View;
-import com.eteks.sweethome3d.viewcontroller.ViewFactory;
-import com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter;
 
 import sun.misc.Unsafe;
 
@@ -104,7 +95,7 @@ public class HomeEditsDeserializer {
     if (homeController != null) {
       this.homeController = homeController;
     } else {
-      this.homeController = new HomeController(home, this.preferences, createNoOperationViewFactory());
+      this.homeController = new HomeController(home, this.preferences, new NoOperationViewFactory());
     }
     this.homeObjects = new HashMap<String, HomeObject>();
     for (HomeObject homeObject : home.getHomeObjects()) {
@@ -435,166 +426,5 @@ public class HomeEditsDeserializer {
       edits.add(deserializeObject(UndoableEdit.class, jsonObject, jsonObject.has("_action") && "undo".equals(jsonObject.getString("_action"))));
     }
     return edits;
-  }
-
-  /**
-   * Returns a view factory with a plan view that performs no operation.
-   */
-  public static ViewFactory createNoOperationViewFactory() {
-    return new ViewFactoryAdapter() {
-        @Override
-        public PlanView createPlanView(Home home, UserPreferences preferences, PlanController planController) {
-          return new DummyPlanView();
-        }
-      };
-  }
-
-  // Dummy view able to perform some plan controller tasks during undoable edits operations (setScale, makeSelectionVisible).
-  // Scale is ignored and one pixel = one centimeter.
-  private static class DummyPlanView implements PlanView {
-    @Override
-    public float getScale() {
-      return 1;
-    }
-
-    @Override
-    public void setScale(float scale) {
-    }
-
-    @Override
-    public void makeSelectionVisible() {
-    }
-
-    @Override
-    public void makePointVisible(float x, float y) {
-    }
-
-    @Override
-    public void moveView(float dx, float dy) {
-    }
-
-    @Override
-    public boolean isFormatTypeSupported(FormatType formatType) {
-      return false;
-    }
-
-    @Override
-    public void exportData(OutputStream out, FormatType formatType, Properties settings) throws IOException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object createTransferData(DataType dataType) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public float getPrintPreferredScale(float preferredWidth, float preferredHeight) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public float convertXPixelToModel(int x) {
-      return x;
-    }
-
-    @Override
-    public float convertYPixelToModel(int y) {
-      return y;
-    }
-
-    @Override
-    public int convertXModelToScreen(float x) {
-      return (int)x;
-    }
-
-    @Override
-    public int convertYModelToScreen(float y) {
-      return (int)y;
-    }
-
-    @Override
-    public float getPixelLength() {
-      return 1;
-    }
-
-    @Override
-    public float[][] getTextBounds(String text, TextStyle style, float x, float y, float angle) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setCursor(CursorType cursorType) {
-    }
-
-    @Override
-    public void setRectangleFeedback(float x0, float y0, float x1, float y1) {
-    }
-
-    @Override
-    public void setToolTipFeedback(String toolTipFeedback, float x, float y) {
-    }
-
-    @Override
-    public void setToolTipEditedProperties(EditableProperty[] toolTipEditedProperties, Object[] toolTipPropertyValues, float x, float y) {
-    }
-
-    @Override
-    public void deleteToolTipFeedback() {
-    }
-
-    @Override
-    public void setResizeIndicatorVisible(boolean resizeIndicatorVisible) {
-    }
-
-    @Override
-    public void setAlignmentFeedback(Class<? extends Selectable> alignedObjectClass, Selectable alignedObject,
-                                     float x, float y, boolean showPoint) {
-    }
-
-    @Override
-    public void setAngleFeedback(float xCenter, float yCenter, float x1, float y1, float x2, float y2) {
-    }
-
-    @Override
-    public void setDraggedItemsFeedback(List<Selectable> draggedItems) {
-    }
-
-    @Override
-    public void setDimensionLinesFeedback(List<DimensionLine> dimensionLines) {
-    }
-
-    @Override
-    public void deleteFeedback() {
-    }
-
-    @Override
-    public View getHorizontalRuler() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public View getVerticalRuler() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canImportDraggedItems(List<Selectable> items, int x, int y) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public float[] getPieceOfFurnitureSizeInPlan(HomePieceOfFurniture piece) {
-      if (piece.getRoll() == 0 && piece.getPitch() == 0) {
-        return new float [] {piece.getWidth(), piece.getDepth(), piece.getHeight()};
-      } else {
-        return null; // Size in plan will be computed proportionally or reset by undoable edit
-      }
-    }
-
-    @Override
-    public boolean isFurnitureSizeInPlanSupported() {
-      return false;
-    }
   }
 }
