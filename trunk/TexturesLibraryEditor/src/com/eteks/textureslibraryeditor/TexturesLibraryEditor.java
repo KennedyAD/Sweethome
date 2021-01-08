@@ -21,12 +21,23 @@ package com.eteks.textureslibraryeditor;
 
 import java.awt.EventQueue;
 import java.awt.Image;
+import java.awt.desktop.AboutEvent;
+import java.awt.desktop.AboutHandler;
+import java.awt.desktop.OpenFilesEvent;
+import java.awt.desktop.OpenFilesHandler;
+import java.awt.desktop.PreferencesEvent;
+import java.awt.desktop.PreferencesHandler;
+import java.awt.desktop.QuitEvent;
+import java.awt.desktop.QuitHandler;
+import java.awt.desktop.QuitResponse;
+import java.awt.desktop.QuitStrategy;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -76,13 +87,13 @@ public class TexturesLibraryEditor {
    * Returns a recorder able to write and read textures library files.
    */
   public TexturesLibraryRecorder getTexturesLibraryRecorder() {
-    // Initialize texturesLibraryRecorder lazily 
+    // Initialize texturesLibraryRecorder lazily
     if (this.texturesLibraryRecorder == null) {
       this.texturesLibraryRecorder = new TexturesLibraryFileRecorder();
     }
     return this.texturesLibraryRecorder;
   }
-  
+
   /**
    * Returns user preferences stored in resources and local file system.
    */
@@ -93,7 +104,7 @@ public class TexturesLibraryEditor {
     }
     return this.userPreferences;
   }
-  
+
   /**
    * Returns a content manager able to handle files.
    */
@@ -101,7 +112,7 @@ public class TexturesLibraryEditor {
     if (this.contentManager == null) {
       this.contentManager = new FileContentManager(getUserPreferences()) {
           private File texturesDirectory;
-  
+
           @Override
           public String showOpenDialog(View parentView,
                                      String dialogTitle,
@@ -138,9 +149,9 @@ public class TexturesLibraryEditor {
     }
     return this.contentManager;
   }
-  
+
   /**
-   * Returns a Swing view factory. 
+   * Returns a Swing view factory.
    */
   protected EditorViewFactory getViewFactory() {
     if (this.viewFactory == null) {
@@ -148,30 +159,30 @@ public class TexturesLibraryEditor {
     }
     return this.viewFactory;
   }
-  
+
   /**
    * Returns a new instance of an editor controller after <code>texturesLibrary</code> was created.
    */
   protected EditorController createEditorController(TexturesLibrary texturesLibrary) {
-    return new EditorController(texturesLibrary, getTexturesLibraryRecorder(), getUserPreferences(), 
+    return new EditorController(texturesLibrary, getTexturesLibraryRecorder(), getUserPreferences(),
         getViewFactory(), getContentManager());
   }
 
   /**
    * Textures Library Editor entry point.
-   * @param args may contain one .sh3f file to open, 
-   *     following a <code>-open</code> option.  
+   * @param args may contain one .sh3f file to open,
+   *     following a <code>-open</code> option.
    */
   public static void main(String [] args) {
     new TexturesLibraryEditor().init(args);
   }
-  
+
   /**
    * Initializes application instance.
    */
   protected void init(final String [] args) {
-    initSystemProperties();    
-    initLookAndFeel();    
+    initSystemProperties();
+    initLookAndFeel();
     EventQueue.invokeLater(new Runnable() {
       public void run() {
         TexturesLibraryEditor.this.run(args);
@@ -202,7 +213,7 @@ public class TexturesLibraryEditor {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       // Change default titled borders under Mac OS X 10.5
       if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-        UIManager.put("TitledBorder.border", 
+        UIManager.put("TitledBorder.border",
             UIManager.getBorder("TitledBorder.aquaVariant"));
       }
       SwingTools.updateSwingResourceLanguage();
@@ -226,7 +237,7 @@ public class TexturesLibraryEditor {
     final TexturesLibrary texturesLibrary = new TexturesLibrary();
     final EditorController editorController = createEditorController(texturesLibrary);
     final View editorView = editorController.getView();
-    
+
     final JFrame texturesFrame = new JFrame() {
         {
           if (editorView instanceof JRootPane) {
@@ -236,7 +247,7 @@ public class TexturesLibraryEditor {
           }
         }
       };
-    // Update frame image and title 
+    // Update frame image and title
     Image [] frameImages = {new ImageIcon(TexturesLibraryEditor.class.getResource("resources/frameIcon.png")).getImage(),
                             new ImageIcon(TexturesLibraryEditor.class.getResource("resources/frameIcon32x32.png")).getImage()};
     try {
@@ -260,11 +271,11 @@ public class TexturesLibraryEditor {
     if (texturesFrame.getJMenuBar() == null) {
       installAccelerators(texturesFrame, editorController);
     }
-    
+
     if (OperatingSystem.isMacOSX()) {
       MacOSXConfiguration.bindToApplicationMenu(editorController);
     }
-  
+
     if (texturesLibraryName != null) {
       editorController.open(texturesLibraryName);
     }
@@ -285,7 +296,7 @@ public class TexturesLibraryEditor {
   /**
    * Changes the input map of textures library view to ensure accelerators work even with no menu.
    */
-  private void installAccelerators(JFrame texturesFrame, 
+  private void installAccelerators(JFrame texturesFrame,
                                    final EditorController texturesLibraryController) {
     JComponent texturesLibraryView = (JComponent)texturesLibraryController.getView();
     InputMap inputMap = texturesLibraryView.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -296,34 +307,34 @@ public class TexturesLibraryEditor {
       }
     }
   }
-  
+
   /**
    * Updates <code>frame</code> title from <code>texturesLibrary</code> name.
    */
-  private void updateFrameTitle(JFrame frame, 
+  private void updateFrameTitle(JFrame frame,
                                 TexturesLibrary texturesLibrary,
                                 UserPreferences  preferences,
                                 ContentManager   contentManager) {
     String texturesLibraryLocation = texturesLibrary.getLocation();
     String texturesLibraryDisplayedName;
     if (texturesLibraryLocation == null) {
-      texturesLibraryDisplayedName = preferences.getLocalizedString(TexturesLibraryEditor.class, "untitled"); 
+      texturesLibraryDisplayedName = preferences.getLocalizedString(TexturesLibraryEditor.class, "untitled");
     } else {
       texturesLibraryDisplayedName = contentManager.getPresentationName(
           texturesLibraryLocation, ContentManager.ContentType.TEXTURES_LIBRARY);
     }
-    
+
     String title = texturesLibraryDisplayedName;
     if (OperatingSystem.isMacOSX()) {
-      // Use black indicator in close icon for a modified library 
+      // Use black indicator in close icon for a modified library
       Boolean texturesLibraryModified = Boolean.valueOf(texturesLibrary.isModified());
       // Set Mac OS X 10.4 property for backward compatibility
       frame.getRootPane().putClientProperty("windowModified", texturesLibraryModified);
-      
+
       if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
         frame.getRootPane().putClientProperty("Window.documentModified", texturesLibraryModified);
-        
-        if (texturesLibraryLocation != null) {        
+
+        if (texturesLibraryLocation != null) {
           File texturesLibraryFile = new File(texturesLibraryLocation);
           if (texturesLibraryFile.exists()) {
             // Update the icon in window title bar for library files
@@ -332,17 +343,17 @@ public class TexturesLibraryEditor {
         }
       }
     } else {
-      title += " - " + preferences.getLocalizedString(TexturesLibraryEditor.class, "title"); 
+      title += " - " + preferences.getLocalizedString(TexturesLibraryEditor.class, "title");
       if (texturesLibrary.isModified()) {
         title = "* " + title;
       }
     }
     frame.setTitle(title);
   }
-  
+
   /**
-   * Mac OS X configuration. The methods use in this class are invoked in a separated class 
-   * because they exist only under Mac OS X. 
+   * Mac OS X configuration. The methods use in this class are invoked in a separated class
+   * because they exist only under Mac OS X.
    */
   private static class MacOSXConfiguration {
     /**
@@ -350,38 +361,72 @@ public class TexturesLibraryEditor {
      */
     public static void bindToApplicationMenu(final EditorController controller) {
       Application macosxApplication = Application.getApplication();
-      // Add a listener to Mac OS X application that will call controller methods
-      macosxApplication.addApplicationListener(new ApplicationAdapter() {      
-        @Override
-        public void handleQuit(ApplicationEvent ev) { 
-          controller.exit();
-        }
-        
-        @Override
-        public void handleAbout(ApplicationEvent ev) {
-          controller.about();
-          ev.setHandled(true);
-        }
+      boolean applicationListenerSupported = false;
+      try {
+        // Add a listener to Mac OS X application that will call
+        // controller methods of the active frame
+        // Call macosxApplication.addApplicationListener(new MacOSXApplicationListener(homeApplication, defaultController, defaultFrame));
+        macosxApplication.getClass().getMethod("addApplicationListener", Class.forName("com.apple.eawt.ApplicationListener")).invoke(macosxApplication,
+            MacOSXApplicationListener.class.getConstructor(EditorController.class).newInstance(controller));
+        macosxApplication.setEnabledAboutMenu(true);
+        macosxApplication.setEnabledPreferencesMenu(true);
+        applicationListenerSupported = true;
+      } catch (NoSuchMethodException ex) {
+      } catch (IllegalAccessException ex) {
+      } catch (InvocationTargetException ex) {
+      } catch (ClassNotFoundException ex) {
+      } catch (InstantiationException ex) {
+      }
 
-        @Override
-        public void handlePreferences(ApplicationEvent ev) {
-          controller.editPreferences();
-          ev.setHandled(true);
+      if (!applicationListenerSupported) {
+        // Probably running under Java 9 where previous methods were removed
+        if (OperatingSystem.isJavaVersionGreaterOrEqual("1.9")) {
+          try {
+            // Instantiate Java 9 handlers and set them on desktop by reflection
+            Class<?> desktopClass = Class.forName("java.awt.Desktop");
+            Object desktopInstance = desktopClass.getMethod("getDesktop").invoke(null);
+
+            Object quitHandler = new QuitHandler() {
+                public void handleQuitRequestWith(QuitEvent ev, QuitResponse answer) {
+                  MacOSXConfiguration.handleQuit(controller);
+                  answer.cancelQuit();
+                }
+              };
+            desktopClass.getMethod("setQuitHandler", QuitHandler.class).invoke(desktopInstance, quitHandler);
+
+            Object aboutHandler = new AboutHandler() {
+                public void handleAbout(AboutEvent ev) {
+                  MacOSXConfiguration.handleAbout(controller);
+                }
+              };
+            desktopClass.getMethod("setAboutHandler", AboutHandler.class).invoke(desktopInstance, aboutHandler);
+
+            Object preferencesHandler = new PreferencesHandler() {
+                public void handlePreferences(PreferencesEvent ev) {
+                  MacOSXConfiguration.handlePreferences(controller);
+                }
+              };
+            desktopClass.getMethod("setPreferencesHandler", PreferencesHandler.class).invoke(desktopInstance, preferencesHandler);
+
+            Object openFilesHandler = new OpenFilesHandler() {
+                public void openFiles(OpenFilesEvent ev) {
+                  for (java.io.File file : ev.getFiles()) {
+                    MacOSXConfiguration.handleOpenFile(controller, file.getAbsolutePath());
+                  }
+                }
+              };
+            desktopClass.getMethod("setOpenFileHandler", OpenFilesHandler.class).invoke(desktopInstance, openFilesHandler);
+
+            // Call Desktop.getDesktop().setQuitStrategy(QuitStrategy.CLOSE_ALL_WINDOWS) to prevent default call to System#exit
+            desktopClass.getMethod("setQuitStrategy", QuitStrategy.class).invoke(desktopInstance, QuitStrategy.CLOSE_ALL_WINDOWS);
+          } catch (NoSuchMethodException ex) {
+          } catch (IllegalAccessException ex) {
+          } catch (InvocationTargetException ex) {
+          } catch (ClassNotFoundException ex) {
+          }
         }
-        
-        @Override
-        public void handleOpenFile(ApplicationEvent ev) {
-          controller.open(ev.getFilename());
-        }
-        
-        @Override
-        public void handleReOpenApplication(ApplicationEvent ev) {
-          SwingUtilities.getWindowAncestor((JComponent)controller.getView()).toFront();
-        }
-      });
-      macosxApplication.setEnabledAboutMenu(true);
-      macosxApplication.setEnabledPreferencesMenu(true);
-      
+      }
+
       // Set application icon if program wasn't launch from bundle
       if (!"true".equalsIgnoreCase(System.getProperty("textureslibraryeditor.bundle", "false"))) {
         try {
@@ -392,6 +437,80 @@ public class TexturesLibraryEditor {
         } catch (IOException ex) {
         }
       }
+    }
+
+    /**
+     * Handles quit action.
+     */
+    private static void handleQuit(final EditorController controller) {
+      controller.exit();
+    }
+
+    /**
+     * Handles how about pane is displayed.
+     */
+    protected static void handleAbout(final EditorController controller) {
+      controller.about();
+    }
+
+    /**
+     * Handles how preferences pane is displayed.
+     */
+    private static void handlePreferences(final EditorController controller) {
+      controller.editPreferences();
+    }
+
+    /**
+     * Handles the opening of a document.
+     */
+    private static void handleOpenFile(EditorController controller, String fileName) {
+      controller.open(fileName);
+    }
+
+    /**
+     * Handles application when it's reopened.
+     */
+    private static void handleReOpenApplication(EditorController controller) {
+      SwingUtilities.getWindowAncestor((JComponent)controller.getView()).toFront();
+    }
+  }
+
+  /**
+   * Listener for Mac OS X application events.
+   * Declared in a separated static class and instantiated by reflection to be able to run Sweet Home 3D with Java 10.
+   */
+  private static class MacOSXApplicationListener extends ApplicationAdapter {
+    private final EditorController controller;
+
+    public MacOSXApplicationListener(EditorController controller) {
+      this.controller = controller;
+    }
+
+    @Override
+    public void handleQuit(ApplicationEvent ev) {
+      MacOSXConfiguration.handleQuit(this.controller);
+    }
+
+    @Override
+    public void handleAbout(ApplicationEvent ev) {
+      MacOSXConfiguration.handleAbout(this.controller);
+      ev.setHandled(true);
+    }
+
+    @Override
+    public void handlePreferences(ApplicationEvent ev) {
+      MacOSXConfiguration.handlePreferences(this.controller);
+      ev.setHandled(true);
+    }
+
+    @Override
+    public void handleOpenFile(ApplicationEvent ev) {
+      MacOSXConfiguration.handleOpenFile(this.controller, ev.getFilename());
+    }
+
+    @Override
+    public void handleReOpenApplication(ApplicationEvent ev) {
+      MacOSXConfiguration.handleReOpenApplication(this.controller);
     }
   }
 }
