@@ -664,7 +664,7 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
     planElement.dispatchEvent(contextMenuEvent);
     return showPlanContextMenuAction;
   }, {
-    toolbarIcon: 'three-dots.png'
+    toolbarIcon: 'menu.png'
   });
   this.getActionMap()[showPlanContextMenuActionName] = showPlanContextMenuAction;
 
@@ -674,7 +674,7 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
     controller.editPreferences();
     return preferencesDialogAction;
   }, {
-    toolbarIcon: 'burger-menu.svg'
+    toolbarIcon: 'preferences.png'
   });
   this.getActionMap()[preferencesDialogActionName] = preferencesDialogAction;
 }
