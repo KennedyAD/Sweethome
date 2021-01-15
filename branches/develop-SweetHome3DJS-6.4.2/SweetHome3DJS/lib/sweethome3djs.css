@@ -15,6 +15,12 @@
   -webkit-tap-highlight-color:rgba(0,0,0,0);  
 }
 
+@media (hover: none), (pointer: coarse) {
+  body {
+	  font-size: 120%;
+  }
+}
+
 /********************************/
 /* PlanComponent                */
 /********************************/
@@ -309,7 +315,7 @@
   font-family: Arial;
   position: absolute;
   bottom: 2px;
-  font-size: 10px;
+  font-size: 0.7em;
   width: 70px;
   text-align: center;
   pointer-events: none;
@@ -389,7 +395,7 @@
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
   position: absolute;
   z-index: 1000;
-  font-size: 12px;
+  font-size: 1em;
   font-family: Arial, Helvetica, sans-serif;
 
   max-height: 100%;
@@ -524,7 +530,7 @@
   overflow: auto;
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.4);
-  font-size: 12px;
+  font-size: 1em;
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -573,7 +579,7 @@
   position: absolute;
   top: 2px;
   right: 5px;
-  font-size: 30px;
+  font-size: 2em;
   font-weight: bold;
 }
 
