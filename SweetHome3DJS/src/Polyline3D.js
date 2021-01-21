@@ -58,8 +58,9 @@ Polyline3D.prototype.update = function() {
   if (polyline.isVisibleIn3D() 
       && (polyline.getLevel() == null 
           || polyline.getLevel().isViewableAndVisible())) {
-    var stroke = ShapeTools.getStroke(polyline.getThickness(), polyline.getCapStyle(), 
-        polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset());
+    var stroke = ShapeTools.getStroke(polyline.getThickness(), polyline.getCapStyle(), polyline.getJoinStyle(), 
+        polyline.getDashStyle() !== Polyline.DashStyle.SOLID ? polyline.getDashPattern() : null, // null renders better closed shapes with a solid style
+        polyline.getDashOffset());
     var polylineShape = ShapeTools.getPolylineShape(polyline.getPoints(), 
         polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath());
     
