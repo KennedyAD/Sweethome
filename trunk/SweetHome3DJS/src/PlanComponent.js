@@ -4576,8 +4576,9 @@ PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems,
       if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
         g2D.setPaint(ColorTools.integerToHexadecimalString(polyline.getColor()));
         var thickness = polyline.getThickness();
-        g2D.setStroke(ShapeTools.getStroke(thickness, 
-            polyline.getCapStyle(), polyline.getJoinStyle(), polyline.getDashPattern(), polyline.getDashOffset()));
+        g2D.setStroke(ShapeTools.getStroke(thickness, polyline.getCapStyle(), polyline.getJoinStyle(), 
+            polyline.getDashStyle() !== Polyline.DashStyle.SOLID ? polyline.getDashPattern() : null, // null renders better closed shapes with a solid style 
+            polyline.getDashOffset()));
         var polylineShape = ShapeTools.getPolylineShape(polyline.getPoints(), 
             polyline.getJoinStyle() === Polyline.JoinStyle.CURVED, polyline.isClosedPath());
         g2D.draw(polylineShape);
