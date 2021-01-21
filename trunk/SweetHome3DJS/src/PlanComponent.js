@@ -4612,7 +4612,7 @@ PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems,
         if (selected && paintMode === PlanComponent.PaintMode.PAINT) {
           g2D.setPaint(selectionOutlinePaint);
           g2D.setStroke(ShapeTools.getStroke(thickness + 4 / planScale, 
-              polyline.getCapStyle(), polyline.getJoinStyle(), Polyline.DashStyle.SOLID));
+              polyline.getCapStyle(), polyline.getJoinStyle(), null));
           g2D.draw(polylineShape);
           
           if (selectedItems.length === 1 
