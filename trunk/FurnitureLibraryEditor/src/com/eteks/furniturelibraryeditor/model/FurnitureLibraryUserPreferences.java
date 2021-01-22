@@ -87,6 +87,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
    */
   public void removePropertyChangeListener(PropertyChangeListener listener) {
     this.propertyChangeSupport.removePropertyChangeListener(listener);
+    super.removePropertyChangeListener(listener);
   }
 
   /**
