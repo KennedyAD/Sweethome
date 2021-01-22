@@ -84,7 +84,7 @@ import com.eteks.sweethome3d.viewcontroller.View;
  */
 public class FurnitureLibraryTable extends JTable implements View {
   private ListSelectionListener tableSelectionListener;
-  private CatalogItemToolTip      toolTip;
+  private CatalogItemToolTip    toolTip;
 
   public FurnitureLibraryTable(FurnitureLibrary furnitureLibrary,
                                FurnitureLibraryUserPreferences preferences,
@@ -107,16 +107,19 @@ public class FurnitureLibraryTable extends JTable implements View {
       addFurnitureLanguageListener(furnitureLibrary, furnitureLanguageController);
       setTransferHandler(new TableTransferHandler(furnitureLibraryController));
     }
-    addUserPreferencesListener(preferences);
+    addUserPreferencesListener(preferences, furnitureLibrary, furnitureLanguageController);
   }
 
   /**
    * Adds a listener to <code>preferences</code> to repaint this table
    * and its header when unit changes.
    */
-  private void addUserPreferencesListener(UserPreferences preferences) {
-    preferences.addPropertyChangeListener(
-        UserPreferences.Property.UNIT, new UserPreferencesChangeListener(this));
+  private void addUserPreferencesListener(FurnitureLibraryUserPreferences preferences,
+                                          FurnitureLibrary furnitureLibrary,
+                                          FurnitureLanguageController furnitureLanguageController) {
+    UserPreferencesChangeListener listener = new UserPreferencesChangeListener(this, furnitureLibrary, furnitureLanguageController);
+    preferences.addPropertyChangeListener(UserPreferences.Property.UNIT, listener);
+    preferences.addPropertyChangeListener(FurnitureLibraryUserPreferences.Property.FURNITURE_ID_EDITABLE, listener);
   }
 
   /**
@@ -124,21 +127,33 @@ public class FurnitureLibraryTable extends JTable implements View {
    * strong link between user preferences and this table.
    */
   private static class UserPreferencesChangeListener implements PropertyChangeListener {
-    private WeakReference<FurnitureLibraryTable>  furnitureLibraryTable;
+    private WeakReference<FurnitureLibraryTable>        furnitureLibraryTable;
+    private WeakReference<FurnitureLibrary>             furnitureLibrary;
+    private WeakReference<FurnitureLanguageController>  furnitureLanguageController;
 
-    public UserPreferencesChangeListener(FurnitureLibraryTable furnitureTable) {
+    public UserPreferencesChangeListener(FurnitureLibraryTable furnitureTable,
+                                         FurnitureLibrary furnitureLibrary,
+                                         FurnitureLanguageController furnitureLanguageController) {
       this.furnitureLibraryTable = new WeakReference<FurnitureLibraryTable>(furnitureTable);
+      this.furnitureLibrary = new WeakReference<FurnitureLibrary>(furnitureLibrary);
+      this.furnitureLanguageController = new WeakReference<FurnitureLanguageController>(furnitureLanguageController);
     }
 
     public void propertyChange(PropertyChangeEvent ev) {
       // If furniture table was garbage collected, remove this listener from preferences
       FurnitureLibraryTable furnitureLibraryTable = this.furnitureLibraryTable.get();
+      FurnitureLibrary furnitureLibrary = this.furnitureLibrary.get();
+      FurnitureLanguageController furnitureLanguageController = this.furnitureLanguageController.get();
       if (furnitureLibraryTable == null) {
-        ((UserPreferences)ev.getSource()).removePropertyChangeListener(
+        ((FurnitureLibraryUserPreferences)ev.getSource()).removePropertyChangeListener(
             UserPreferences.Property.valueOf(ev.getPropertyName()), this);
       } else {
-        furnitureLibraryTable.repaint();
-        furnitureLibraryTable.getTableHeader().repaint();
+        if (UserPreferences.Property.UNIT.name().equals(ev.getPropertyName())) {
+          furnitureLibraryTable.repaint();
+          furnitureLibraryTable.getTableHeader().repaint();
+        } else {
+          furnitureLibraryTable.setColumnModel(new FurnitureLibraryTableColumnModel(furnitureLibrary, ((FurnitureLibraryUserPreferences)ev.getSource()), furnitureLanguageController));
+        }
       }
     }
   }
@@ -794,7 +809,12 @@ public class FurnitureLibraryTable extends JTable implements View {
                                FurnitureLanguageController controller) {
       // Create the list of custom columns
       TableCellRenderer headerRenderer = getHeaderRenderer();
-      for (String columnProperty : preferences.getEditedProperties()) {
+      List<String> editedProperties = new ArrayList<String>(Arrays.asList(preferences.getEditedProperties()));
+      if (preferences.isFurnitureIdEditable()
+          && !editedProperties.contains(FurnitureLibrary.FURNITURE_ID_PROPERTY)) {
+        editedProperties.add(0, FurnitureLibrary.FURNITURE_ID_PROPERTY);
+      }
+      for (String columnProperty : editedProperties) {
         if (!FurnitureLibrary.FURNITURE_MODEL_ROTATION_PROPERTY.equals(columnProperty)
             && !FurnitureLibrary.FURNITURE_MODEL_PROPERTY.equals(columnProperty)
             && !FurnitureLibrary.FURNITURE_DOOR_OR_WINDOW_CUT_OUT_SHAPE_PROPERTY.equals(columnProperty)) {

@@ -20,14 +20,18 @@
 package com.eteks.furniturelibraryeditor.swing;
 
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
@@ -44,14 +48,20 @@ import com.eteks.sweethome3d.tools.OperatingSystem;
  * @author Emmanuel Puybaret
  */
 public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
-  private JLabel      defaultCreatorLabel;
-  private JTextField  defaultCreatorTextField;
-  private JLabel      offlineFurnitureLibraryLabel;
-  private JCheckBox   offlineFurnitureLibraryCheckBox;
-  private JLabel      furnitureResourcesLocalDirectoryLabel;
-  private JTextField  furnitureResourcesLocalDirectoryTextField;
-  private JLabel      furnitureResourcesRemoteUrlBaseLabel;
-  private JTextField  furnitureResourcesRemoteUrlBaseTextField;
+  private JLabel       defaultCreatorLabel;
+  private JTextField   defaultCreatorTextField;
+  private JLabel       offlineFurnitureLibraryLabel;
+  private JCheckBox    offlineFurnitureLibraryCheckBox;
+  private JLabel       furnitureResourcesLocalDirectoryLabel;
+  private JTextField   furnitureResourcesLocalDirectoryTextField;
+  private JLabel       furnitureResourcesRemoteUrlBaseLabel;
+  private JTextField   furnitureResourcesRemoteUrlBaseTextField;
+  private JLabel       furnitureIdEditableLabel;
+  private JRadioButton furnitureIdEditableRadioButton;
+  private JRadioButton furnitureIdNotEditableRadioButton;
+  private JLabel       contentMatchingFurnitureNameLabel;
+  private JRadioButton contentMatchingFurnitureNameRadioButton;
+  private JRadioButton contentMatchingImportedFileRadioButton;
 
   public FurnitureLibraryUserPreferencesPanel(UserPreferences preferences,
                                               FurnitureLibraryUserPreferencesController controller) {
@@ -187,6 +197,64 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
           }
         });
     }
+
+    if (controller.isPropertyEditable(FurnitureLibraryUserPreferencesController.Property.FURNITURE_ID_EDITABLE)) {
+      // Create furniture catalog label and radio buttons bound to controller FURNITURE_ID_EDITABLE property
+      this.furnitureIdEditableLabel = new JLabel(preferences.getLocalizedString(
+          FurnitureLibraryUserPreferencesPanel.class, "furnitureIdEditableLabel.text"));
+      this.furnitureIdEditableRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "furnitureIdEditableRadioButton.text"),
+          controller.isFurnitureIdEditable());
+      this.furnitureIdNotEditableRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "furnitureIdNotEditableRadioButton.text"),
+          !controller.isFurnitureIdEditable());
+      ButtonGroup furnitureCatalogViewButtonGroup = new ButtonGroup();
+      furnitureCatalogViewButtonGroup.add(this.furnitureIdEditableRadioButton);
+      furnitureCatalogViewButtonGroup.add(this.furnitureIdNotEditableRadioButton);
+
+      ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
+          public void itemStateChanged(ItemEvent ev) {
+            controller.setFurnitureIdEditable(furnitureIdEditableRadioButton.isSelected());
+          }
+        };
+      this.furnitureIdEditableRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      this.furnitureIdNotEditableRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_ID_EDITABLE,
+          new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent ev) {
+              furnitureIdEditableRadioButton.setSelected(controller.isFurnitureIdEditable());
+            }
+          });
+    }
+
+    if (controller.isPropertyEditable(FurnitureLibraryUserPreferencesController.Property.CONTENT_MATCHING_FURNITURE_NAME)) {
+      // Create furniture catalog label and radio buttons bound to controller CONTENT_MATCHING_FURNITURE_NAME property
+      this.contentMatchingFurnitureNameLabel = new JLabel(preferences.getLocalizedString(
+          FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameLabel.text"));
+      this.contentMatchingFurnitureNameRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.text"),
+          controller.isContentMatchingFurnitureName());
+      this.contentMatchingImportedFileRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.text"),
+          !controller.isContentMatchingFurnitureName());
+      ButtonGroup furnitureCatalogViewButtonGroup = new ButtonGroup();
+      furnitureCatalogViewButtonGroup.add(this.contentMatchingFurnitureNameRadioButton);
+      furnitureCatalogViewButtonGroup.add(this.contentMatchingImportedFileRadioButton);
+
+      ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
+          public void itemStateChanged(ItemEvent ev) {
+            controller.setContentMatchingFurnitureName(contentMatchingFurnitureNameRadioButton.isSelected());
+          }
+        };
+      this.contentMatchingFurnitureNameRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      this.contentMatchingImportedFileRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.CONTENT_MATCHING_FURNITURE_NAME,
+          new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent ev) {
+              contentMatchingFurnitureNameRadioButton.setSelected(controller.isContentMatchingFurnitureName());
+            }
+          });
+    }
   }
 
   /**
@@ -212,6 +280,18 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
         this.furnitureResourcesRemoteUrlBaseLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             FurnitureLibraryUserPreferencesPanel.class, "furnitureResourcesRemoteUrlBaseLabel.mnemonic")).getKeyCode());
         this.furnitureResourcesRemoteUrlBaseLabel.setLabelFor(this.furnitureResourcesRemoteUrlBaseTextField);
+      }
+      if (this.furnitureIdEditableLabel != null) {
+        this.furnitureIdEditableRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "furnitureIdEditableRadioButton.mnemonic")).getKeyCode());
+        this.furnitureIdNotEditableRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "furnitureIdNotEditableRadioButton.mnemonic")).getKeyCode());
+      }
+      if (this.contentMatchingFurnitureNameLabel != null) {
+        this.contentMatchingFurnitureNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.mnemonic")).getKeyCode());
+        this.contentMatchingImportedFileRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.mnemonic")).getKeyCode());
       }
     }
   }
@@ -253,10 +333,36 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
     if (this.furnitureResourcesRemoteUrlBaseLabel != null) {
       add(this.furnitureResourcesRemoteUrlBaseLabel, new GridBagConstraints(
           0, 103, 1, 1, 0, 0, labelAlignment,
-          GridBagConstraints.NONE, new Insets(0, 0, 0, gap), 0, 0));
+          GridBagConstraints.NONE, labelInsets, 0, 0));
       add(this.furnitureResourcesRemoteUrlBaseTextField, new GridBagConstraints(
           1, 103, 2, 1, 0, 0, GridBagConstraints.LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+          GridBagConstraints.HORIZONTAL, componentInsets, 0, 0));
+    }
+    if (this.furnitureIdEditableLabel != null) {
+      add(this.furnitureIdEditableLabel, new GridBagConstraints(
+          0, 104, 1, 1, 0, 0, labelAlignment,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      JPanel panel = new JPanel(new GridBagLayout());
+      panel.add(this.furnitureIdEditableRadioButton, new GridBagConstraints(
+          0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, gap), 0, 0));
+      panel.add(this.furnitureIdNotEditableRadioButton, new GridBagConstraints(
+          1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+      add(panel, new GridBagConstraints(
+          1, 104, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, componentInsets, 0, 0));
+    }
+    if (this.contentMatchingFurnitureNameLabel != null) {
+      add(this.contentMatchingFurnitureNameLabel, new GridBagConstraints(
+          0, 105, 1, 1, 0, 0, labelAlignment,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      add(this.contentMatchingFurnitureNameRadioButton, new GridBagConstraints(
+          1, 105, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, componentInsets, 0, 0));
+      add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
+          1, 106, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
     }
   }
 }

@@ -54,12 +54,12 @@ import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.ThreadedTaskController;
 
 /**
- * A threaded task panel used for furniture importation. 
+ * A threaded task panel used for furniture importation.
  * @author Emmanuel Puybaret
  */
 public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements ImportFurnitureTaskView {
   private static final int PREVIEW_PREFERRED_SIZE = 128;
-  
+
   private final FurnitureLibraryUserPreferences preferences;
   private ModelPreviewComponent       iconPreviewComponent;
   private boolean                     firstRendering = true;
@@ -76,16 +76,16 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
     // Change layout
     GridBagLayout layout = new GridBagLayout();
     setLayout(layout);
-    layout.setConstraints(getComponent(0), new GridBagConstraints(1, 0, 1, 1, 0, 1, 
+    layout.setConstraints(getComponent(0), new GridBagConstraints(1, 0, 1, 1, 0, 1,
         GridBagConstraints.SOUTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 10, 0), 0, 0));
-    layout.setConstraints(getComponent(1), new GridBagConstraints(1, 1, 1, 1, 0, 1, 
+    layout.setConstraints(getComponent(1), new GridBagConstraints(1, 1, 1, 1, 0, 1,
         GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-    add(this.iconPreviewComponent, new GridBagConstraints(0, 0, 1, 2, 1, 1, 
+    add(this.iconPreviewComponent, new GridBagConstraints(0, 0, 1, 2, 1, 1,
         GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 10), 0, 0));
   }
 
   /**
-   * Returns the catalog piece of furniture matching <code>model</code> 3D model 
+   * Returns the catalog piece of furniture matching <code>model</code> 3D model
    * or <code>null</code> if the content doesn't contain a 3D model at a supported format.
    */
   public CatalogPieceOfFurniture readPieceOfFurniture(final Content model) throws InterruptedException {
@@ -93,12 +93,12 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
       String modelName = "model";
       final AtomicReference<BranchGroup> modelNode = new AtomicReference<BranchGroup>();
       try {
-        // Load model without ModelManager cache in case its content changed 
+        // Load model without ModelManager cache in case its content changed
         modelNode.set(ModelManager.getInstance().loadModel(model));
       } catch (IOException ex) {
         // modelNode not set
       }
-      
+
       URLContent pieceModel = null;
       if (modelNode.get() != null) {
         // Copy model to a temporary OBJ content with materials and textures
@@ -107,26 +107,26 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
           if (modelName.lastIndexOf('/') != -1) {
             modelName = modelName.substring(modelName.lastIndexOf('/') + 1);
           }
-        } 
+        }
 
         pieceModel = copyToTemporaryOBJContent(modelNode.get(), model);
         int dotIndex = modelName.lastIndexOf('.');
         if (dotIndex != -1) {
           modelName = modelName.substring(0, dotIndex);
-        } 
+        }
         // Load copied content in current thread using cache to make it accessible by preview components without waiting in EDT
         ModelManager.getInstance().loadModel(model, true, new ModelManager.ModelObserver() {
             public void modelUpdated(BranchGroup modelRoot) {
             }
-            
+
             public void modelError(Exception ex) {
             }
           });
       } else {
         ZipInputStream zipIn = null;
         try {
-          // If content couldn't be loaded, copy model content to a temporary content 
-          // and try to load model as a zipped file 
+          // If content couldn't be loaded, copy model content to a temporary content
+          // and try to load model as a zipped file
           URLContent urlContent = TemporaryURLContent.copyToTemporaryURLContent(model);
           // Open zipped stream
           zipIn = new ZipInputStream(urlContent.openStream());
@@ -144,7 +144,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
                 } else {
                   modelName = entryFileName;
                 }
-                URL entryUrl = new URL("jar:" + urlContent.getURL() + "!/" 
+                URL entryUrl = new URL("jar:" + urlContent.getURL() + "!/"
                     + URLEncoder.encode(entryName, "UTF-8").replace("+", "%20").replace("%2F", "/"));
                 final Content entryContent = new TemporaryURLContent(entryUrl);
                 // Load content using cache to make it accessible by preview components without waiting in EDT
@@ -152,11 +152,11 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
                     public void modelUpdated(BranchGroup modelRoot) {
                       modelNode.set(modelRoot);
                     }
-                    
+
                     public void modelError(Exception ex) {
                     }
                   });
-                
+
                 if (modelNode.get() != null) {
                   pieceModel = new TemporaryURLContent(entryUrl);
                   if (!entryFileName.toLowerCase().endsWith(".obj")
@@ -190,9 +190,9 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
       if (modelNode.get() == null) {
         return null;
       }
-      
+
       Vector3f size = ModelManager.getInstance().getSize(modelNode.get());
-      // Generate icon image        
+      // Generate icon image
       final Content previewModel = pieceModel;
       EventQueue.invokeAndWait(new Runnable() {
           public void run() {
@@ -208,12 +208,13 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
               iconContent.set(iconPreviewComponent.getIcon(100));
             } catch (IOException ex) {
               throw new RuntimeException("Couldn't retrieve icon", ex);
-            }    
+            }
           }
         });
-      
+
       String key;
-      if (Arrays.asList(preferences.getEditedProperties()).contains(FurnitureLibrary.FURNITURE_ID_PROPERTY)) {
+      if (Arrays.asList(this.preferences.getEditedProperties()).contains(FurnitureLibrary.FURNITURE_ID_PROPERTY)
+          || this.preferences.isFurnitureIdEditable()) {
         key = this.preferences.getDefaultCreator();
         if (key == null) {
           key = System.getProperty("user.name");
@@ -222,10 +223,10 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
       } else {
         key = null;
       }
-      
-      CatalogPieceOfFurniture piece = new CatalogPieceOfFurniture(key, 
-          getPieceOfFurnitureName(modelName), null, null, new String [0], null, null, iconContent.get(), null, pieceModel, 
-          size.x, size.z, size.y, 0f, 1f, true, null, null, false, pieceModel.getSize(), 
+
+      CatalogPieceOfFurniture piece = new CatalogPieceOfFurniture(key,
+          getPieceOfFurnitureName(modelName), null, null, new String [0], null, null, iconContent.get(), null, pieceModel,
+          size.x, size.z, size.y, 0f, 1f, true, null, null, false, pieceModel.getSize(),
           this.preferences.getDefaultCreator(), true, true, true, true, null, null, null);
       FurnitureCategory defaultCategory = new FurnitureCategory(
           this.preferences.getLocalizedString(ImportFurnitureTaskPanel.class, "defaultCategory"));
@@ -244,11 +245,11 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
   }
 
   /**
-   * Returns a human readable name matching the given model name with spaces instead of hyphens 
+   * Returns a human readable name matching the given model name with spaces instead of hyphens
    * and without camel case and trailing digit.
    */
   protected String getPieceOfFurnitureName(String modelName) {
-    // Compute a more human readable name with spaces instead of hyphens and without camel case and trailing digit 
+    // Compute a more human readable name with spaces instead of hyphens and without camel case and trailing digit
     String pieceName = "" + Character.toUpperCase(modelName.charAt(0));
     for (int i = 1; i < modelName.length(); i++) {
       char c = modelName.charAt(i);
@@ -256,7 +257,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
         pieceName += ' ';
       } else if (!Character.isDigit(c) || i < modelName.length() - 1) {
         // Remove camel case
-        if ((Character.isUpperCase(c) || Character.isDigit(c)) 
+        if ((Character.isUpperCase(c) || Character.isDigit(c))
             && Character.isLowerCase(modelName.charAt(i - 1))) {
           pieceName += ' ';
           c = Character.toLowerCase(c);
@@ -266,7 +267,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
     }
     return pieceName;
   }
-  
+
   /**
    * Returns a copy of a given <code>model</code> as a zip content at OBJ format.
    */
@@ -280,7 +281,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
       objFile = new File(objFile).getName();
       if (!objFile.toLowerCase().endsWith(".obj")) {
         if (objFile.lastIndexOf('.') != -1) {
-          objFile = objFile.substring(0, objFile.lastIndexOf('.')); 
+          objFile = objFile.substring(0, objFile.lastIndexOf('.'));
         }
         objFile += ".obj";
       }
@@ -297,7 +298,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
     File tempZipFile = File.createTempFile("urlContent", "tmp");
     tempZipFile.deleteOnExit();
     OBJWriter.writeNodeInZIPFile(model, tempZipFile, 0, objFile, "3D model " + objFile);
-    return new TemporaryURLContent(new URL("jar:" + tempZipFile.toURI().toURL() + "!/" 
+    return new TemporaryURLContent(new URL("jar:" + tempZipFile.toURI().toURL() + "!/"
         + URLEncoder.encode(objFile, "UTF-8").replace("+", "%20")));
   }
 }

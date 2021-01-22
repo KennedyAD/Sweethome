@@ -33,19 +33,20 @@ import com.eteks.sweethome3d.viewcontroller.ViewFactory;
  */
 public class FurnitureLibraryUserPreferencesController extends UserPreferencesController {
   /**
-   * The properties that may be edited by the view associated to this controller. 
+   * The properties that may be edited by the view associated to this controller.
    */
   public enum Property {DEFAULT_CREATOR, OFFLINE_FURNITURE_LIBRARY, FURNITURE_RESOURCES_LOCAL_DIRECTORY,
-      FURNITURE_RESOURCES_REMOTE_URL_BASE}
+      FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME}
 
   private final FurnitureLibraryUserPreferences preferences;
   private final PropertyChangeSupport   propertyChangeSupport;
-  
+
   private String    defaultCreator;
   private boolean   offlineFurnitureLibrary;
   private String    furnitureResourcesLocalDirectory;
   private String    furnitureResourcesRemoteUrlBase;
-
+  private boolean   furnitureIdEditable;
+  private boolean   contentMatchingFurnitureName;
 
   public FurnitureLibraryUserPreferencesController(FurnitureLibraryUserPreferences preferences,
                                                    ViewFactory viewFactory,
@@ -55,7 +56,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     this.propertyChangeSupport = new PropertyChangeSupport(this);
     updateFurnitureLibraryProperties();
   }
-  
+
   /**
    * Adds the property change <code>listener</code> in parameter to this controller.
    */
@@ -78,6 +79,8 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     setFurnitureLibraryOffline(this.preferences.isFurnitureLibraryOffline());
     setFurnitureResourcesLocalDirectory(this.preferences.getFurnitureResourcesLocalDirectory());
     setFurnitureResourcesRemoteURLBase(this.preferences.getFurnitureResourcesRemoteURLBase());
+    setFurnitureIdEditable(this.preferences.isFurnitureIdEditable());
+    setContentMatchingFurnitureName(this.preferences.isContentMatchingFurnitureName());
   }
 
   @Override
@@ -86,14 +89,16 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
       case UNIT :
       case LANGUAGE :
         return true;
-      default :        
+      default :
         return false;
     }
   }
 
-  public boolean isPropertyEditable(Property property) {    
+  public boolean isPropertyEditable(Property property) {
     return this.preferences.isOnlineFurnitureLibrarySupported()
-        || property == Property.DEFAULT_CREATOR;
+        || property == Property.DEFAULT_CREATOR
+        || property == Property.FURNITURE_ID_EDITABLE
+        || property == Property.CONTENT_MATCHING_FURNITURE_NAME;
   }
 
   /**
@@ -102,7 +107,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   public String getDefaultCreator() {
     return this.defaultCreator;
   }
-  
+
   /**
    * Sets the creator used by default for imported furniture.
    */
@@ -116,21 +121,21 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   }
 
   /**
-   * Returns <code>true</code> if resources needed by the furniture of a library 
-   * must be included with the library to let it work without connection. 
+   * Returns <code>true</code> if resources needed by the furniture of a library
+   * must be included with the library to let it work without connection.
    */
   public boolean isFurnitureLibraryOffline() {
     return this.offlineFurnitureLibrary;
   }
-  
+
   /**
-   * Sets whether resources needed by the furniture of a library 
+   * Sets whether resources needed by the furniture of a library
    * must be included with the library to let it work without connection or not.
    */
   public void setFurnitureLibraryOffline(boolean offlineFurnitureLibrary) {
     if (offlineFurnitureLibrary != this.offlineFurnitureLibrary) {
       this.offlineFurnitureLibrary = offlineFurnitureLibrary;
-      this.propertyChangeSupport.firePropertyChange(Property.OFFLINE_FURNITURE_LIBRARY.toString(), 
+      this.propertyChangeSupport.firePropertyChange(Property.OFFLINE_FURNITURE_LIBRARY.toString(),
           !offlineFurnitureLibrary, offlineFurnitureLibrary);
     }
   }
@@ -142,7 +147,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   public String getFurnitureResourcesLocalDirectory() {
     return this.furnitureResourcesLocalDirectory;
   }
-  
+
   /**
    * Sets the local directory where resources needed by the furniture of a library
    * will be saved before being deployed on server.
@@ -158,16 +163,16 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   }
 
   /**
-   * Returns the URL base (relative or absolute) used to build the path to resources 
-   * needed by the furniture of a library. 
+   * Returns the URL base (relative or absolute) used to build the path to resources
+   * needed by the furniture of a library.
    */
   public String getFurnitureResourcesRemoteURLBase() {
     return this.furnitureResourcesRemoteUrlBase;
   }
-  
+
   /**
-   * Sets the URL base (relative or absolute) used to build the path to resources 
-   * needed by the furniture of a library. 
+   * Sets the URL base (relative or absolute) used to build the path to resources
+   * needed by the furniture of a library.
    */
   public void setFurnitureResourcesRemoteURLBase(String furnitureResourcesRemoteUrlBase) {
     if (furnitureResourcesRemoteUrlBase != this.furnitureResourcesRemoteUrlBase
@@ -178,7 +183,44 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
           oldValue, furnitureResourcesRemoteUrlBase);
     }
   }
- 
+
+  /**
+   * Returns <code>true</code> if furniture ids are editable.
+   */
+  public boolean isFurnitureIdEditable() {
+    return this.furnitureIdEditable;
+  }
+
+  /**
+   * Sets whether furniture ids are editable.
+   */
+  public void setFurnitureIdEditable(boolean furnitureIdEditable) {
+    if (furnitureIdEditable != this.furnitureIdEditable) {
+      this.furnitureIdEditable = furnitureIdEditable;
+      this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_ID_EDITABLE.toString(), !furnitureIdEditable, furnitureIdEditable);
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if the furniture content saved with the library should be named
+   * from the furniture name in the default language.
+   */
+  public boolean isContentMatchingFurnitureName() {
+    return this.contentMatchingFurnitureName;
+  }
+
+  /**
+   * Sets whether the furniture content saved with the library should be named
+   * from the furniture name in the default language.
+   */
+  public void setContentMatchingFurnitureName(boolean contentMatchingFurnitureName) {
+    if (contentMatchingFurnitureName != this.contentMatchingFurnitureName) {
+      this.contentMatchingFurnitureName = contentMatchingFurnitureName;
+      this.propertyChangeSupport.firePropertyChange(Property.CONTENT_MATCHING_FURNITURE_NAME.toString(),
+          !contentMatchingFurnitureName, contentMatchingFurnitureName);
+    }
+  }
+
   /**
    * Updates user preferences and saves them.
    */
@@ -191,5 +233,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
       this.preferences.setFurnitureResourcesLocalDirectory(getFurnitureResourcesLocalDirectory());
       this.preferences.setFurnitureResourcesRemoteURLBase(getFurnitureResourcesRemoteURLBase());
     }
+    this.preferences.setFurnitureIdEditable(isFurnitureIdEditable());
+    this.preferences.setContentMatchingFurnitureName(isContentMatchingFurnitureName());
   }
 }

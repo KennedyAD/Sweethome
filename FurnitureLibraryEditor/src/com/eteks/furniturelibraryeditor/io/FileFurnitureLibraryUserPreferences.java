@@ -36,34 +36,38 @@ import com.eteks.sweethome3d.model.RecorderException;
 public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPreferences {
   private static final String LANGUAGE                              = "language";
   private static final String UNIT                                  = "unit";
-  private static final String DEFAULT_CREATOR                       = "defaultCreator";    
+  private static final String DEFAULT_CREATOR                       = "defaultCreator";
   private static final String OFFLINE_FURNITURE_LIBRARY             = "offlineFurnitureLibrary";
   private static final String FURNITURE_RESOURCES_LOCAL_DIRECTORY   = "furnitureResourcesLocalDirectory";
   private static final String FURNITURE_RESOURCES_REMOTE_URL_BASE   = "furnitureResourcesRemoteUrlBase";
+  private static final String FURNITURE_ID_EDITABLE                 = "furnitureIdEditable";
+  private static final String CONTENT_MATCHING_FURNITURE_NAME       = "contentMatchingFurnitureName";
 
   /**
    * Creates user preferences read from Java preferences.
    */
   public FileFurnitureLibraryUserPreferences() {
     Preferences preferences = getPreferences();
-    setLanguage(preferences.get(LANGUAGE, getLanguage()));    
+    setLanguage(preferences.get(LANGUAGE, getLanguage()));
     setUnit(LengthUnit.valueOf(preferences.get(UNIT, getLengthUnit().name())));
     setDefaultCreator(preferences.get(DEFAULT_CREATOR, getDefaultCreator()));
     boolean offlineFurnitureLibrary = preferences.getBoolean(OFFLINE_FURNITURE_LIBRARY, isFurnitureLibraryOffline());
     if (isOnlineFurnitureLibrarySupported()) {
       setFurnitureLibraryOffline(offlineFurnitureLibrary);
-      setFurnitureResourcesLocalDirectory(preferences.get(FURNITURE_RESOURCES_LOCAL_DIRECTORY, 
+      setFurnitureResourcesLocalDirectory(preferences.get(FURNITURE_RESOURCES_LOCAL_DIRECTORY,
           getFurnitureResourcesLocalDirectory()));
-      setFurnitureResourcesRemoteURLBase(preferences.get(FURNITURE_RESOURCES_REMOTE_URL_BASE, 
+      setFurnitureResourcesRemoteURLBase(preferences.get(FURNITURE_RESOURCES_REMOTE_URL_BASE,
           getFurnitureResourcesRemoteURLBase()));
     }
+    setFurnitureIdEditable(preferences.getBoolean(FURNITURE_ID_EDITABLE, isFurnitureIdEditable()));
+    setContentMatchingFurnitureName(preferences.getBoolean(CONTENT_MATCHING_FURNITURE_NAME, isContentMatchingFurnitureName()));
   }
-  
+
   @Override
   public void write() throws RecorderException {
     Preferences preferences = getPreferences();
     preferences.put(LANGUAGE, getLanguage());
-    preferences.put(UNIT, getLengthUnit().name());   
+    preferences.put(UNIT, getLengthUnit().name());
     if (getDefaultCreator() != null) {
       preferences.put(DEFAULT_CREATOR, getDefaultCreator());
     } else {
@@ -80,15 +84,17 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
     } else {
       preferences.remove(FURNITURE_RESOURCES_REMOTE_URL_BASE);
     }
-    
+    preferences.putBoolean(FURNITURE_ID_EDITABLE, isFurnitureIdEditable());
+    preferences.putBoolean(CONTENT_MATCHING_FURNITURE_NAME, isContentMatchingFurnitureName());
+
     try {
-      // Write preferences 
+      // Write preferences
       preferences.sync();
     } catch (BackingStoreException ex) {
       throw new RecorderException("Couldn't write preferences", ex);
     }
   }
-  
+
   /**
    * Returns Java preferences for current system user.
    */
