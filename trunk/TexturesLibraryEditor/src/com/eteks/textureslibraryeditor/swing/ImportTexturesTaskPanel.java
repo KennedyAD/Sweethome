@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.util.Arrays;
 
@@ -48,7 +49,7 @@ import com.eteks.textureslibraryeditor.model.TexturesLibraryUserPreferences;
 import com.eteks.textureslibraryeditor.viewcontroller.ImportTexturesTaskView;
 
 /**
- * A threaded task panel used for textures importation. 
+ * A threaded task panel used for textures importation.
  * @author Emmanuel Puybaret
  */
 public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements ImportTexturesTaskView {
@@ -67,16 +68,16 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
     // Change layout
     GridBagLayout layout = new GridBagLayout();
     setLayout(layout);
-    layout.setConstraints(getComponent(0), new GridBagConstraints(1, 0, 1, 1, 0, 1, 
+    layout.setConstraints(getComponent(0), new GridBagConstraints(1, 0, 1, 1, 0, 1,
         GridBagConstraints.SOUTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 10, 0), 0, 0));
-    layout.setConstraints(getComponent(1), new GridBagConstraints(1, 1, 1, 1, 0, 1, 
+    layout.setConstraints(getComponent(1), new GridBagConstraints(1, 1, 1, 1, 0, 1,
         GridBagConstraints.NORTHWEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-    add(this.imageComponent, new GridBagConstraints(0, 0, 1, 2, 1, 1, 
+    add(this.imageComponent, new GridBagConstraints(0, 0, 1, 2, 1, 1,
         GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 10), 0, 0));
   }
 
   /**
-   * Returns the catalog texture of textures matching <code>imageContent</code> 
+   * Returns the catalog texture of textures matching <code>imageContent</code>
    * or <code>null</code> if the content doesn't contain an image at a supported format.
    */
   public CatalogTexture readTexture(Content imageContent) throws InterruptedException {
@@ -87,18 +88,18 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
       in = imageContent.openStream();
       image = ImageIO.read(in);
       this.imageComponent.setImage(image);
-      // Copy image to a temporary OBJ content 
+      // Copy image to a temporary OBJ content
       if (imageContent instanceof URLContent) {
         textureName = URLDecoder.decode(((URLContent)imageContent).getURL().getFile().replace("+", "%2B"), "UTF-8");;
         if (textureName.lastIndexOf('/') != -1) {
           textureName = textureName.substring(textureName.lastIndexOf('/') + 1);
         }
-      } 
+      }
       imageContent = copyToTemporaryContent(image, imageContent);
       int dotIndex = textureName.lastIndexOf('.');
       if (dotIndex != -1) {
         textureName = textureName.substring(0, dotIndex);
-      } 
+      }
     } catch (IOException ex) {
        return null;
     } finally {
@@ -110,14 +111,15 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
         }
       }
     }
-    
+
     if (Thread.interrupted()) {
       throw new InterruptedException();
     }
 
     if (image != null) {
       String key;
-      if (Arrays.asList(preferences.getEditedProperties()).contains(TexturesLibrary.TEXTURES_ID_PROPERTY)) {
+      if (Arrays.asList(preferences.getEditedProperties()).contains(TexturesLibrary.TEXTURES_ID_PROPERTY)
+          || this.preferences.isTexturesIdEditable()) {
         key = this.preferences.getDefaultCreator();
         if (key == null) {
           key = System.getProperty("user.name");
@@ -126,7 +128,7 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
       } else {
         key = null;
       }
-      // Compute a more human readable name with spaces instead of hyphens and without camel case and trailing digit 
+      // Compute a more human readable name with spaces instead of hyphens and without camel case and trailing digit
       String displayedName = "" + Character.toUpperCase(textureName.charAt(0));
       for (int i = 1; i < textureName.length(); i++) {
         char c = textureName.charAt(i);
@@ -134,7 +136,7 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
           displayedName += ' ';
         } else if (!Character.isDigit(c) || i < textureName.length() - 1) {
           // Remove camel case
-          if ((Character.isUpperCase(c) || Character.isDigit(c)) 
+          if ((Character.isUpperCase(c) || Character.isDigit(c))
               && Character.isLowerCase(textureName.charAt(i - 1))) {
             displayedName += ' ';
             c = Character.toLowerCase(c);
@@ -142,7 +144,7 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
           displayedName += c;
         }
       }
-      CatalogTexture texture = new CatalogTexture(key, 
+      CatalogTexture texture = new CatalogTexture(key,
           displayedName, imageContent, image.getWidth() / 10f, image.getHeight() / 10f, this.preferences.getDefaultCreator());
       TexturesCategory defaultCategory = new TexturesCategory(
           this.preferences.getLocalizedString(ImportTexturesTaskPanel.class, "defaultCategory"));
@@ -152,13 +154,40 @@ public class ImportTexturesTaskPanel extends ThreadedTaskPanel implements Import
       return null;
     }
   }
-  
+
   /**
    * Returns a copy of a given <code>image</code>.
    */
   static Content copyToTemporaryContent(BufferedImage image, Content imageContent) throws IOException {
     if (imageContent instanceof URLContent) {
-      return TemporaryURLContent.copyToTemporaryURLContent(imageContent);
+      // Copy content with same file name in a temp folder
+      File tempFile = OperatingSystem.createTemporaryFile("temp", "");
+      tempFile.delete();
+      tempFile.mkdir();
+      tempFile.deleteOnExit();
+      String fileName = ((URLContent)imageContent).getURL().getFile();
+      fileName = fileName.substring(fileName.lastIndexOf('/') + 1, fileName.length());
+      tempFile = new File(tempFile, fileName);
+      InputStream tempIn = null;
+      OutputStream tempOut = null;
+      try {
+        tempIn = imageContent.openStream();
+        tempOut = new FileOutputStream(tempFile);
+        byte [] buffer = new byte [8192];
+        int size;
+        while ((size = tempIn.read(buffer)) != -1) {
+          tempOut.write(buffer, 0, size);
+        }
+      } finally {
+        if (tempIn != null) {
+          tempIn.close();
+        }
+        if (tempOut != null) {
+          tempOut.close();
+        }
+      }
+      tempFile.deleteOnExit();
+      return new TemporaryURLContent(tempFile.toURI().toURL());
     } else {
       File tempFile = OperatingSystem.createTemporaryFile("texture", "png");
       FileOutputStream out = null;

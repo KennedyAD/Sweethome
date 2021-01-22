@@ -1,5 +1,5 @@
 /*
- * TexturesController.java 
+ * TexturesController.java
  *
  * Textures Library Editor, Copyright (c) 2012 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
@@ -49,12 +49,12 @@ import com.eteks.textureslibraryeditor.model.TexturesLibraryUserPreferences;
  */
 public class TexturesController implements Controller {
   /**
-   * The properties that may be edited by the view associated to this controller. 
+   * The properties that may be edited by the view associated to this controller.
    */
   public enum Property {ID, NAME, CATEGORY, IMAGE, WIDTH, HEIGHT, CREATOR}
-  
+
   private static final Map<String, Property> PROPERTIES_MAP = new HashMap<String, Property>();
-  
+
   static {
     PROPERTIES_MAP.put(TexturesLibrary.TEXTURES_ID_PROPERTY, Property.ID);
     PROPERTIES_MAP.put(TexturesLibrary.TEXTURES_NAME_PROPERTY, Property.NAME);
@@ -64,7 +64,7 @@ public class TexturesController implements Controller {
     PROPERTIES_MAP.put(TexturesLibrary.TEXTURES_WIDTH_PROPERTY, Property.WIDTH);
     PROPERTIES_MAP.put(TexturesLibrary.TEXTURES_HEIGHT_PROPERTY, Property.HEIGHT);
   }
-  
+
   private final TexturesLibrary                texturesLibrary;
   private final List<CatalogTexture>           modifiedTextures;
   private final Set<Property>                  editableProperties;
@@ -83,16 +83,16 @@ public class TexturesController implements Controller {
   private Float             height;
   private Float             proportionalHeight;
   private String            creator;
-  
+
   private PropertyChangeListener widthChangeListener;
   private PropertyChangeListener heightChangeListener;
-  
+
   /**
    * Creates the controller of catalog textures view.
    */
-  public TexturesController(TexturesLibrary texturesLibrary, 
+  public TexturesController(TexturesLibrary texturesLibrary,
                              List<CatalogTexture> modifiedTextures,
-                             TexturesLibraryUserPreferences preferences, 
+                             TexturesLibraryUserPreferences preferences,
                              TexturesLanguageController texturesLanguageController,
                              EditorViewFactory viewFactory) {
     this.texturesLibrary = texturesLibrary;
@@ -101,10 +101,13 @@ public class TexturesController implements Controller {
     this.texturesLanguageController = texturesLanguageController;
     this.viewFactory = viewFactory;
     this.propertyChangeSupport = new PropertyChangeSupport(this);
-    
+
     this.editableProperties = new HashSet<Property>();
     for (String editedProperty : preferences.getEditedProperties()) {
       this.editableProperties.add(PROPERTIES_MAP.get(editedProperty));
+    }
+    if (preferences.isTexturesIdEditable()) {
+      this.editableProperties.add(PROPERTIES_MAP.get(TexturesLibrary.TEXTURES_ID_PROPERTY));
     }
 
     updateProperties();
@@ -117,11 +120,11 @@ public class TexturesController implements Controller {
   public DialogView getView() {
     // Create view lazily only once it's needed
     if (this.homeTexturesView == null) {
-      this.homeTexturesView = this.viewFactory.createTexturesView(this.preferences, this); 
+      this.homeTexturesView = this.viewFactory.createTexturesView(this.preferences, this);
     }
     return this.homeTexturesView;
   }
-  
+
   /**
    * Displays the view controlled by this controller.
    */
@@ -150,30 +153,30 @@ public class TexturesController implements Controller {
     this.widthChangeListener = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent ev) {
           removePropertyChangeListener(Property.HEIGHT, heightChangeListener);
-          
-          if (ev.getNewValue() != null 
+
+          if (ev.getNewValue() != null
               && ev.getOldValue() != null
               && proportionalHeight != null) {
             // If proportions should be kept, update height
             float ratio = (Float)ev.getNewValue() / (Float)ev.getOldValue();
             setHeight(proportionalHeight * ratio, true);
           }
-          
+
           addPropertyChangeListener(Property.HEIGHT, heightChangeListener);
         }
       };
     this.heightChangeListener = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent ev) {
           removePropertyChangeListener(Property.WIDTH, widthChangeListener);
-          
-          if (ev.getNewValue() != null 
+
+          if (ev.getNewValue() != null
               && ev.getOldValue() != null
               && proportionalWidth != null) {
-            // If proportions should be kept, update width 
+            // If proportions should be kept, update width
             float ratio = (Float)ev.getNewValue() / (Float)ev.getOldValue();
             setWidth(proportionalWidth * ratio, true);
           }
-          
+
           addPropertyChangeListener(Property.WIDTH, widthChangeListener);
         }
       };
@@ -196,7 +199,7 @@ public class TexturesController implements Controller {
           && property != Property.IMAGE;
     }
   }
-  
+
   /**
    * Updates edited properties from selected textures in the home edited by this controller.
    */
@@ -211,13 +214,13 @@ public class TexturesController implements Controller {
       setCreator(null);
     } else {
       CatalogTexture firstTexture = this.modifiedTextures.get(0);
-      
+
       if (this.modifiedTextures.size() == 1) {
         setImage(firstTexture.getImage());
       } else {
         setImage(null);
       }
-      
+
       // Search the common properties among selected textures
       String id = firstTexture.getId();
       if (id != null) {
@@ -229,7 +232,7 @@ public class TexturesController implements Controller {
         }
       }
       setId(id);
-      
+
       String texturesLanguage = this.texturesLanguageController.getTexturesLangauge();
       String name = (String)this.texturesLibrary.getTextureLocalizedData(
           firstTexture, texturesLanguage, TexturesLibrary.TEXTURES_NAME_PROPERTY, firstTexture.getName());
@@ -244,7 +247,7 @@ public class TexturesController implements Controller {
         }
       }
       setName(name);
-      
+
       TexturesCategory category = firstTexture.getCategory();
       String categoryName = (String)this.texturesLibrary.getTextureLocalizedData(
           firstTexture, texturesLanguage, TexturesLibrary.TEXTURES_CATEGORY_PROPERTY, category.getName());
@@ -289,8 +292,8 @@ public class TexturesController implements Controller {
       }
       setCreator(creator);
     }
-  }  
-  
+  }
+
   /**
    * Sets the edited id.
    */
@@ -308,7 +311,7 @@ public class TexturesController implements Controller {
   public String getId() {
     return this.id;
   }
-  
+
   /**
    * Sets the edited name.
    */
@@ -326,7 +329,7 @@ public class TexturesController implements Controller {
   public String getName() {
     return this.name;
   }
-  
+
   /**
    * Sets the edited category.
    */
@@ -344,7 +347,7 @@ public class TexturesController implements Controller {
   public TexturesCategory getCategory() {
     return this.category;
   }
-  
+
   /**
    * Returns the list of available categories in textures library sorted in alphabetical order.
    */
@@ -412,10 +415,10 @@ public class TexturesController implements Controller {
   }
 
   private void setWidth(Float width, boolean keepProportionalWidthUnchanged) {
-    Float adjustedWidth = width != null 
+    Float adjustedWidth = width != null
         ? Math.max(width, 0.001f)
         : null;
-    if (adjustedWidth == width 
+    if (adjustedWidth == width
         || adjustedWidth != null && adjustedWidth.equals(width)
         || !keepProportionalWidthUnchanged) {
       this.proportionalWidth = width;
@@ -434,7 +437,7 @@ public class TexturesController implements Controller {
   public Float getWidth() {
     return this.width;
   }
-  
+
   /**
    * Sets the edited height.
    */
@@ -443,10 +446,10 @@ public class TexturesController implements Controller {
   }
 
   private void setHeight(Float height, boolean keepProportionalHeightUnchanged) {
-    Float adjustedHeight = height != null 
+    Float adjustedHeight = height != null
         ? Math.max(height, 0.001f)
         : null;
-    if (adjustedHeight == height 
+    if (adjustedHeight == height
         || adjustedHeight != null && adjustedHeight.equals(height)
         || !keepProportionalHeightUnchanged) {
       this.proportionalHeight = height;
@@ -465,7 +468,7 @@ public class TexturesController implements Controller {
   public Float getHeight() {
     return this.height;
   }
-  
+
   /**
    * Sets the edited creator.
    */
@@ -483,13 +486,13 @@ public class TexturesController implements Controller {
   public String getCreator() {
     return this.creator;
   }
-  
+
   /**
    * Controls the modification of selected textures in the edited home.
    */
   public void modifyTextures() {
     if (!this.modifiedTextures.isEmpty()) {
-      String id = getId(); 
+      String id = getId();
       String name = getName();
       TexturesCategory category = getCategory();
       Content image = getImage();
@@ -497,7 +500,7 @@ public class TexturesController implements Controller {
       Float height = getHeight();
       String creator = getCreator();
       boolean defaultTexturesLanguage = TexturesLibrary.DEFAULT_LANGUAGE.equals(this.texturesLanguageController.getTexturesLangauge());
-      
+
       // Apply modification
       int texturesCount = this.modifiedTextures.size();
       for (CatalogTexture texture : this.modifiedTextures) {
@@ -515,7 +518,7 @@ public class TexturesController implements Controller {
         retrieveLocalizedData(texture, localizedNames, TexturesLibrary.TEXTURES_NAME_PROPERTY);
         Map<String, Object> localizedCategories = new HashMap<String, Object>();
         retrieveLocalizedData(texture, localizedCategories, TexturesLibrary.TEXTURES_CATEGORY_PROPERTY);
-        
+
         // Update mandatory not localizable data
         if (image != null) {
           textureImage = image;
@@ -531,7 +534,7 @@ public class TexturesController implements Controller {
           textureHeight = texture.getHeight() * width / texture.getWidth();
         }
         // Update not mandatory and not localizable data
-        // When only one texture is updated, data can be reset to empty 
+        // When only one texture is updated, data can be reset to empty
         if (id != null || texturesCount == 1) {
           textureId = id;
         }
@@ -553,10 +556,10 @@ public class TexturesController implements Controller {
             localizedCategories.put(this.texturesLanguageController.getTexturesLangauge(), category.getName());
           }
         }
-       
+
         // Create update texture
         CatalogTexture updatedTexture = new CatalogTexture(textureId, textureName, textureImage, textureWidth, textureHeight, textureCreator);
-        
+
         new TexturesCatalog().add(textureCategory, updatedTexture);
         this.texturesLibrary.addTexture(updatedTexture, index);
         Set<String> supportedLanguages = new HashSet<String>(this.texturesLibrary.getSupportedLanguages());
@@ -575,7 +578,7 @@ public class TexturesController implements Controller {
             }
           }
         }
-        
+
         // Remove old texture from library
         this.texturesLibrary.deleteTexture(texture);
       }

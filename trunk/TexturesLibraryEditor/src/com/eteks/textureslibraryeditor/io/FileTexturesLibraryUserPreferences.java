@@ -36,34 +36,38 @@ import com.eteks.textureslibraryeditor.model.TexturesLibraryUserPreferences;
 public class FileTexturesLibraryUserPreferences extends TexturesLibraryUserPreferences {
   private static final String LANGUAGE                             = "language";
   private static final String UNIT                                 = "unit";
-  private static final String DEFAULT_CREATOR                      = "defaultCreator";    
+  private static final String DEFAULT_CREATOR                      = "defaultCreator";
   private static final String OFFLINE_TEXTURES_LIBRARY             = "offlineTexturesLibrary";
   private static final String TEXTURES_RESOURCES_LOCAL_DIRECTORY   = "texturesResourcesLocalDirectory";
   private static final String TEXTURES_RESOURCES_REMOTE_URL_BASE   = "texturesResourcesRemoteUrlBase";
+  private static final String TEXTURES_ID_EDITABLE                 = "texturesIdEditable";
+  private static final String CONTENT_MATCHING_TEXTURES_NAME       = "contentMatchingTexturesName";
 
   /**
    * Creates user preferences read from Java preferences.
    */
   public FileTexturesLibraryUserPreferences() {
     Preferences preferences = getPreferences();
-    setLanguage(preferences.get(LANGUAGE, getLanguage()));    
+    setLanguage(preferences.get(LANGUAGE, getLanguage()));
     setUnit(LengthUnit.valueOf(preferences.get(UNIT, getLengthUnit().name())));
     setDefaultCreator(preferences.get(DEFAULT_CREATOR, getDefaultCreator()));
     boolean offlineTexturesLibrary = preferences.getBoolean(OFFLINE_TEXTURES_LIBRARY, isTexturesLibraryOffline());
     if (isOnlineTexturesLibrarySupported()) {
       setTexturesLibraryOffline(offlineTexturesLibrary);
-      setTexturesResourcesLocalDirectory(preferences.get(TEXTURES_RESOURCES_LOCAL_DIRECTORY, 
+      setTexturesResourcesLocalDirectory(preferences.get(TEXTURES_RESOURCES_LOCAL_DIRECTORY,
           getTexturesResourcesLocalDirectory()));
-      setTexturesResourcesRemoteURLBase(preferences.get(TEXTURES_RESOURCES_REMOTE_URL_BASE, 
+      setTexturesResourcesRemoteURLBase(preferences.get(TEXTURES_RESOURCES_REMOTE_URL_BASE,
           getTexturesResourcesRemoteURLBase()));
     }
+    setTexturesIdEditable(preferences.getBoolean(TEXTURES_ID_EDITABLE, isTexturesIdEditable()));
+    setContentMatchingTexturesName(preferences.getBoolean(CONTENT_MATCHING_TEXTURES_NAME, isContentMatchingTexturesName()));
   }
-  
+
   @Override
   public void write() throws RecorderException {
     Preferences preferences = getPreferences();
     preferences.put(LANGUAGE, getLanguage());
-    preferences.put(UNIT, getLengthUnit().name());   
+    preferences.put(UNIT, getLengthUnit().name());
     if (getDefaultCreator() != null) {
       preferences.put(DEFAULT_CREATOR, getDefaultCreator());
     } else {
@@ -80,15 +84,17 @@ public class FileTexturesLibraryUserPreferences extends TexturesLibraryUserPrefe
     } else {
       preferences.remove(TEXTURES_RESOURCES_REMOTE_URL_BASE);
     }
-    
+    preferences.putBoolean(TEXTURES_ID_EDITABLE, isTexturesIdEditable());
+    preferences.putBoolean(CONTENT_MATCHING_TEXTURES_NAME, isContentMatchingTexturesName());
+
     try {
-      // Write preferences 
+      // Write preferences
       preferences.sync();
     } catch (BackingStoreException ex) {
       throw new RecorderException("Couldn't write preferences", ex);
     }
   }
-  
+
   /**
    * Returns Java preferences for current system user.
    */

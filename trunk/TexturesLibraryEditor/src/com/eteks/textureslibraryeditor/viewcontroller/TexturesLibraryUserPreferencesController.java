@@ -33,19 +33,20 @@ import com.eteks.textureslibraryeditor.model.TexturesLibraryUserPreferences;
  */
 public class TexturesLibraryUserPreferencesController extends UserPreferencesController {
   /**
-   * The properties that may be edited by the view associated to this controller. 
+   * The properties that may be edited by the view associated to this controller.
    */
   public enum Property {DEFAULT_CREATOR, OFFLINE_TEXTURES_LIBRARY, TEXTURES_RESOURCES_LOCAL_DIRECTORY,
-      TEXTURES_RESOURCES_REMOTE_URL_BASE}
+      TEXTURES_RESOURCES_REMOTE_URL_BASE, TEXTURES_ID_EDITABLE, CONTENT_MATCHING_TEXTURES_NAME}
 
   private final TexturesLibraryUserPreferences preferences;
   private final PropertyChangeSupport          propertyChangeSupport;
-  
+
   private String    defaultCreator;
   private boolean   offlineTexturesLibrary;
   private String    texturesResourcesLocalDirectory;
   private String    texturesResourcesRemoteUrlBase;
-
+  private boolean   texturesIdEditable;
+  private boolean   contentMatchingTexturesName;
 
   public TexturesLibraryUserPreferencesController(TexturesLibraryUserPreferences preferences,
                                                    ViewFactory viewFactory,
@@ -55,7 +56,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
     this.propertyChangeSupport = new PropertyChangeSupport(this);
     updateTexturesLibraryProperties();
   }
-  
+
   /**
    * Adds the property change <code>listener</code> in parameter to this controller.
    */
@@ -78,6 +79,8 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
     setTexturesLibraryOffline(this.preferences.isTexturesLibraryOffline());
     setTexturesResourcesLocalDirectory(this.preferences.getTexturesResourcesLocalDirectory());
     setTexturesResourcesRemoteURLBase(this.preferences.getTexturesResourcesRemoteURLBase());
+    setTexturesIdEditable(this.preferences.isTexturesIdEditable());
+    setContentMatchingTexturesName(this.preferences.isContentMatchingTexturesName());
   }
 
   @Override
@@ -86,14 +89,16 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
       case UNIT :
       case LANGUAGE :
         return true;
-      default :        
+      default :
         return false;
     }
   }
 
-  public boolean isPropertyEditable(Property property) {    
+  public boolean isPropertyEditable(Property property) {
     return this.preferences.isOnlineTexturesLibrarySupported()
-        || property == Property.DEFAULT_CREATOR;
+        || property == Property.DEFAULT_CREATOR
+        || property == Property.TEXTURES_ID_EDITABLE
+        || property == Property.CONTENT_MATCHING_TEXTURES_NAME;
   }
 
   /**
@@ -102,7 +107,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
   public String getDefaultCreator() {
     return this.defaultCreator;
   }
-  
+
   /**
    * Sets the creator used by default for imported textures.
    */
@@ -116,21 +121,21 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
   }
 
   /**
-   * Returns <code>true</code> if resources needed by the textures of a library 
-   * must be included with the library to let it work without connection. 
+   * Returns <code>true</code> if resources needed by the textures of a library
+   * must be included with the library to let it work without connection.
    */
   public boolean isTexturesLibraryOffline() {
     return this.offlineTexturesLibrary;
   }
-  
+
   /**
-   * Sets whether resources needed by the textures of a library 
+   * Sets whether resources needed by the textures of a library
    * must be included with the library to let it work without connection or not.
    */
   public void setTexturesLibraryOffline(boolean offlineTexturesLibrary) {
     if (offlineTexturesLibrary != this.offlineTexturesLibrary) {
       this.offlineTexturesLibrary = offlineTexturesLibrary;
-      this.propertyChangeSupport.firePropertyChange(Property.OFFLINE_TEXTURES_LIBRARY.toString(), 
+      this.propertyChangeSupport.firePropertyChange(Property.OFFLINE_TEXTURES_LIBRARY.toString(),
           !offlineTexturesLibrary, offlineTexturesLibrary);
     }
   }
@@ -142,7 +147,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
   public String getTexturesResourcesLocalDirectory() {
     return this.texturesResourcesLocalDirectory;
   }
-  
+
   /**
    * Sets the local directory where resources needed by the textures of a library
    * will be saved before being deployed on server.
@@ -158,16 +163,16 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
   }
 
   /**
-   * Returns the URL base (relative or absolute) used to build the path to resources 
-   * needed by the textures of a library. 
+   * Returns the URL base (relative or absolute) used to build the path to resources
+   * needed by the textures of a library.
    */
   public String getTexturesResourcesRemoteURLBase() {
     return this.texturesResourcesRemoteUrlBase;
   }
-  
+
   /**
-   * Sets the URL base (relative or absolute) used to build the path to resources 
-   * needed by the textures of a library. 
+   * Sets the URL base (relative or absolute) used to build the path to resources
+   * needed by the textures of a library.
    */
   public void setTexturesResourcesRemoteURLBase(String texturesResourcesRemoteUrlBase) {
     if (texturesResourcesRemoteUrlBase != this.texturesResourcesRemoteUrlBase
@@ -178,7 +183,44 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
           oldValue, texturesResourcesRemoteUrlBase);
     }
   }
- 
+
+  /**
+   * Returns <code>true</code> if texture ids are editable.
+   */
+  public boolean isTexturesIdEditable() {
+    return this.texturesIdEditable;
+  }
+
+  /**
+   * Sets whether texture ids are editable.
+   */
+  public void setTexturesIdEditable(boolean texturesIdEditable) {
+    if (texturesIdEditable != this.texturesIdEditable) {
+      this.texturesIdEditable = texturesIdEditable;
+      this.propertyChangeSupport.firePropertyChange(Property.TEXTURES_ID_EDITABLE.toString(), !texturesIdEditable, texturesIdEditable);
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if the textures content saved with the library should be named
+   * from the textures name in the default language.
+   */
+  public boolean isContentMatchingTexturesName() {
+    return this.contentMatchingTexturesName;
+  }
+
+  /**
+   * Sets whether the textures content saved with the library should be named
+   * from the textures name in the default language.
+   */
+  public void setContentMatchingTexturesName(boolean contentMatchingTexturesName) {
+    if (contentMatchingTexturesName != this.contentMatchingTexturesName) {
+      this.contentMatchingTexturesName = contentMatchingTexturesName;
+      this.propertyChangeSupport.firePropertyChange(Property.CONTENT_MATCHING_TEXTURES_NAME.toString(),
+          !contentMatchingTexturesName, contentMatchingTexturesName);
+    }
+  }
+
   /**
    * Updates user preferences and saves them.
    */
@@ -191,5 +233,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
       this.preferences.setTexturesResourcesLocalDirectory(getTexturesResourcesLocalDirectory());
       this.preferences.setTexturesResourcesRemoteURLBase(getTexturesResourcesRemoteURLBase());
     }
+    this.preferences.setTexturesIdEditable(isTexturesIdEditable());
+    this.preferences.setContentMatchingTexturesName(isContentMatchingTexturesName());
   }
 }
