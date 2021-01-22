@@ -20,14 +20,18 @@
 package com.eteks.textureslibraryeditor.swing;
 
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
@@ -44,14 +48,20 @@ import com.eteks.textureslibraryeditor.viewcontroller.TexturesLibraryUserPrefere
  * @author Emmanuel Puybaret
  */
 public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
-  private JLabel      defaultCreatorLabel;
-  private JTextField  defaultCreatorTextField;
-  private JLabel      offlineTexturesLibraryLabel;
-  private JCheckBox   offlineTexturesLibraryCheckBox;
-  private JLabel      texturesResourcesLocalDirectoryLabel;
-  private JTextField  texturesResourcesLocalDirectoryTextField;
-  private JLabel      texturesResourcesRemoteUrlBaseLabel;
-  private JTextField  texturesResourcesRemoteUrlBaseTextField;
+  private JLabel       defaultCreatorLabel;
+  private JTextField   defaultCreatorTextField;
+  private JLabel       offlineTexturesLibraryLabel;
+  private JCheckBox    offlineTexturesLibraryCheckBox;
+  private JLabel       texturesResourcesLocalDirectoryLabel;
+  private JTextField   texturesResourcesLocalDirectoryTextField;
+  private JLabel       texturesResourcesRemoteUrlBaseLabel;
+  private JTextField   texturesResourcesRemoteUrlBaseTextField;
+  private JLabel       texturesIdEditableLabel;
+  private JRadioButton texturesIdEditableRadioButton;
+  private JRadioButton texturesIdNotEditableRadioButton;
+  private JLabel       contentMatchingTexturesNameLabel;
+  private JRadioButton contentMatchingTexturesNameRadioButton;
+  private JRadioButton contentMatchingImportedFileRadioButton;
 
   public TexturesLibraryUserPreferencesPanel(UserPreferences preferences,
                                               TexturesLibraryUserPreferencesController controller) {
@@ -187,6 +197,65 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
           }
         });
     }
+
+
+    if (controller.isPropertyEditable(TexturesLibraryUserPreferencesController.Property.TEXTURES_ID_EDITABLE)) {
+      // Create textures catalog label and radio buttons bound to controller TEXTURES_ID_EDITABLE property
+      this.texturesIdEditableLabel = new JLabel(preferences.getLocalizedString(
+          TexturesLibraryUserPreferencesPanel.class, "texturesIdEditableLabel.text"));
+      this.texturesIdEditableRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          TexturesLibraryUserPreferencesPanel.class, "texturesIdEditableRadioButton.text"),
+          controller.isTexturesIdEditable());
+      this.texturesIdNotEditableRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          TexturesLibraryUserPreferencesPanel.class, "texturesIdNotEditableRadioButton.text"),
+          !controller.isTexturesIdEditable());
+      ButtonGroup texturesCatalogViewButtonGroup = new ButtonGroup();
+      texturesCatalogViewButtonGroup.add(this.texturesIdEditableRadioButton);
+      texturesCatalogViewButtonGroup.add(this.texturesIdNotEditableRadioButton);
+
+      ItemListener texturesCatalogViewChangeListener = new ItemListener() {
+          public void itemStateChanged(ItemEvent ev) {
+            controller.setTexturesIdEditable(texturesIdEditableRadioButton.isSelected());
+          }
+        };
+      this.texturesIdEditableRadioButton.addItemListener(texturesCatalogViewChangeListener);
+      this.texturesIdNotEditableRadioButton.addItemListener(texturesCatalogViewChangeListener);
+      controller.addPropertyChangeListener(TexturesLibraryUserPreferencesController.Property.TEXTURES_ID_EDITABLE,
+          new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent ev) {
+              texturesIdEditableRadioButton.setSelected(controller.isTexturesIdEditable());
+            }
+          });
+    }
+
+    if (controller.isPropertyEditable(TexturesLibraryUserPreferencesController.Property.CONTENT_MATCHING_TEXTURES_NAME)) {
+      // Create textures catalog label and radio buttons bound to controller CONTENT_MATCHING_TEXTURES_NAME property
+      this.contentMatchingTexturesNameLabel = new JLabel(preferences.getLocalizedString(
+          TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameLabel.text"));
+      this.contentMatchingTexturesNameRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameRadioButton.text"),
+          controller.isContentMatchingTexturesName());
+      this.contentMatchingImportedFileRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          TexturesLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.text"),
+          !controller.isContentMatchingTexturesName());
+      ButtonGroup texturesCatalogViewButtonGroup = new ButtonGroup();
+      texturesCatalogViewButtonGroup.add(this.contentMatchingTexturesNameRadioButton);
+      texturesCatalogViewButtonGroup.add(this.contentMatchingImportedFileRadioButton);
+
+      ItemListener texturesCatalogViewChangeListener = new ItemListener() {
+          public void itemStateChanged(ItemEvent ev) {
+            controller.setContentMatchingTexturesName(contentMatchingTexturesNameRadioButton.isSelected());
+          }
+        };
+      this.contentMatchingTexturesNameRadioButton.addItemListener(texturesCatalogViewChangeListener);
+      this.contentMatchingImportedFileRadioButton.addItemListener(texturesCatalogViewChangeListener);
+      controller.addPropertyChangeListener(TexturesLibraryUserPreferencesController.Property.CONTENT_MATCHING_TEXTURES_NAME,
+          new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent ev) {
+              contentMatchingTexturesNameRadioButton.setSelected(controller.isContentMatchingTexturesName());
+            }
+          });
+    }
   }
 
   /**
@@ -212,6 +281,18 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
         this.texturesResourcesRemoteUrlBaseLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             TexturesLibraryUserPreferencesPanel.class, "texturesResourcesRemoteUrlBaseLabel.mnemonic")).getKeyCode());
         this.texturesResourcesRemoteUrlBaseLabel.setLabelFor(this.texturesResourcesRemoteUrlBaseTextField);
+      }
+      if (this.texturesIdEditableLabel != null) {
+        this.texturesIdEditableRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            TexturesLibraryUserPreferencesPanel.class, "texturesIdEditableRadioButton.mnemonic")).getKeyCode());
+        this.texturesIdNotEditableRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            TexturesLibraryUserPreferencesPanel.class, "texturesIdNotEditableRadioButton.mnemonic")).getKeyCode());
+      }
+      if (this.contentMatchingTexturesNameLabel != null) {
+        this.contentMatchingTexturesNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameRadioButton.mnemonic")).getKeyCode());
+        this.contentMatchingImportedFileRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            TexturesLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.mnemonic")).getKeyCode());
       }
     }
   }
@@ -253,10 +334,36 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
     if (this.texturesResourcesRemoteUrlBaseLabel != null) {
       add(this.texturesResourcesRemoteUrlBaseLabel, new GridBagConstraints(
           0, 103, 1, 1, 0, 0, labelAlignment,
-          GridBagConstraints.NONE, new Insets(0, 0, 0, gap), 0, 0));
+          GridBagConstraints.NONE, labelInsets, 0, 0));
       add(this.texturesResourcesRemoteUrlBaseTextField, new GridBagConstraints(
           1, 103, 2, 1, 0, 0, GridBagConstraints.LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+          GridBagConstraints.HORIZONTAL, componentInsets, 0, 0));
+    }
+    if (this.texturesIdEditableLabel != null) {
+      add(this.texturesIdEditableLabel, new GridBagConstraints(
+          0, 104, 1, 1, 0, 0, labelAlignment,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      JPanel panel = new JPanel(new GridBagLayout());
+      panel.add(this.texturesIdEditableRadioButton, new GridBagConstraints(
+          0, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, gap), 0, 0));
+      panel.add(this.texturesIdNotEditableRadioButton, new GridBagConstraints(
+          1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+      add(panel, new GridBagConstraints(
+          1, 104, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, componentInsets, 0, 0));
+    }
+    if (this.contentMatchingTexturesNameLabel != null) {
+      add(this.contentMatchingTexturesNameLabel, new GridBagConstraints(
+          0, 105, 1, 1, 0, 0, labelAlignment,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      add(this.contentMatchingTexturesNameRadioButton, new GridBagConstraints(
+          1, 105, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, componentInsets, 0, 0));
+      add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
+          1, 106, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
     }
   }
 }

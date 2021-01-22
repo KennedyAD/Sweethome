@@ -101,16 +101,19 @@ public class TexturesLibraryTable extends JTable implements View {
       addTexturesLanguageListener(texturesLibrary, texturesLanguageController);
       setTransferHandler(new TableTransferHandler(texturesLibraryController));
     }
-    addUserPreferencesListener(preferences);
+    addUserPreferencesListener(preferences, texturesLibrary, texturesLanguageController);
   }
 
   /**
    * Adds a listener to <code>preferences</code> to repaint this table
    * and its header when unit changes.
    */
-  private void addUserPreferencesListener(UserPreferences preferences) {
-    preferences.addPropertyChangeListener(
-        UserPreferences.Property.UNIT, new UserPreferencesChangeListener(this));
+  private void addUserPreferencesListener(TexturesLibraryUserPreferences preferences,
+                                          TexturesLibrary texturesLibrary,
+                                          TexturesLanguageController texturesLanguageController) {
+    UserPreferencesChangeListener listener = new UserPreferencesChangeListener(this, texturesLibrary, texturesLanguageController);
+    preferences.addPropertyChangeListener(UserPreferences.Property.UNIT, listener);
+    preferences.addPropertyChangeListener(TexturesLibraryUserPreferences.Property.TEXTURES_ID_EDITABLE, listener);
   }
 
   /**
@@ -118,21 +121,33 @@ public class TexturesLibraryTable extends JTable implements View {
    * strong link between user preferences and this table.
    */
   private static class UserPreferencesChangeListener implements PropertyChangeListener {
-    private WeakReference<TexturesLibraryTable>  texturesLibraryTable;
+    private WeakReference<TexturesLibraryTable>        texturesLibraryTable;
+    private WeakReference<TexturesLibrary>             texturesLibrary;
+    private WeakReference<TexturesLanguageController>  texturesLanguageController;
 
-    public UserPreferencesChangeListener(TexturesLibraryTable texturesTable) {
+    public UserPreferencesChangeListener(TexturesLibraryTable texturesTable,
+                                         TexturesLibrary texturesLibrary,
+                                         TexturesLanguageController texturesLanguageController) {
       this.texturesLibraryTable = new WeakReference<TexturesLibraryTable>(texturesTable);
-    }
+      this.texturesLibrary = new WeakReference<TexturesLibrary>(texturesLibrary);
+      this.texturesLanguageController = new WeakReference<TexturesLanguageController>(texturesLanguageController);
+   }
 
     public void propertyChange(PropertyChangeEvent ev) {
       // If textures table was garbage collected, remove this listener from preferences
       TexturesLibraryTable texturesLibraryTable = this.texturesLibraryTable.get();
+      TexturesLibrary texturesLibrary = this.texturesLibrary.get();
+      TexturesLanguageController texturesLanguageController = this.texturesLanguageController.get();
       if (texturesLibraryTable == null) {
-        ((UserPreferences)ev.getSource()).removePropertyChangeListener(
+        ((TexturesLibraryUserPreferences)ev.getSource()).removePropertyChangeListener(
             UserPreferences.Property.valueOf(ev.getPropertyName()), this);
       } else {
-        texturesLibraryTable.repaint();
-        texturesLibraryTable.getTableHeader().repaint();
+        if (UserPreferences.Property.UNIT.name().equals(ev.getPropertyName())) {
+          texturesLibraryTable.repaint();
+          texturesLibraryTable.getTableHeader().repaint();
+        } else {
+          texturesLibraryTable.setColumnModel(new TexturesLibraryTableColumnModel(texturesLibrary, ((TexturesLibraryUserPreferences)ev.getSource()), texturesLanguageController));
+        }
       }
     }
   }
@@ -619,7 +634,12 @@ public class TexturesLibraryTable extends JTable implements View {
                                TexturesLanguageController controller) {
         // Create the list of custom columns
       TableCellRenderer headerRenderer = getHeaderRenderer();
-      for (String columnProperty : preferences.getEditedProperties()) {
+      List<String> editedProperties = new ArrayList<String>(Arrays.asList(preferences.getEditedProperties()));
+      if (preferences.isTexturesIdEditable()
+          && !editedProperties.contains(TexturesLibrary.TEXTURES_ID_PROPERTY)) {
+        editedProperties.add(0, TexturesLibrary.TEXTURES_ID_PROPERTY);
+      }
+      for (String columnProperty : editedProperties) {
         TableColumn tableColumn = new TableColumn();
         tableColumn.setIdentifier(columnProperty);
         tableColumn.setHeaderValue(getColumnName(columnProperty, preferences));
