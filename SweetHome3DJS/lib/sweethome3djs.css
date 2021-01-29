@@ -22,6 +22,42 @@
 }
 
 /********************************/
+/* Splitter                */
+/********************************/
+
+.pane-splitter {
+  z-index: 4;
+  background-color: gray;
+  cursor: pointer;
+}
+
+.pane-splitter.vertical {
+  width: 10px;
+}
+
+.pane-splitter.horizontal {
+  height: 10px;
+}
+
+.pane-splitter:hover {
+  background-color: rgb(180, 180, 180);
+}
+.pane-splitter.moving {
+  background-color: rgb(200, 200, 200);
+}
+
+.pane-splitter::after {
+  content: '=';
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  line-height: 50%;
+}
+
+/********************************/
 /* PlanComponent                */
 /********************************/
 
@@ -277,6 +313,7 @@
   overflow-y: scroll;
   overflow-x: hidden;
   border: 1px solid gray;
+  background-color: white;
   -moz-user-select: none; 
   -ms-user-select: none; 
   -webkit-user-select: none; 
