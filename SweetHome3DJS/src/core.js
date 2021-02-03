@@ -36,6 +36,17 @@ function IllegalArgumentException(message) {
 
 
 /**
+ * Creates an ParseException instance.
+ * Adapted from java.text.ParseException
+ * @constructor
+ * @ignore
+ */
+function ParseException(message, errorOffset) {
+  this.message = message;
+  this.errorOffset = errorOffset;
+}
+
+/**
  * Creates an NullPointerException instance.
  * Adapted from java.lang.NullPointerException
  * @constructor
@@ -268,6 +279,83 @@ function Format() {
 
 Format.prototype.format = function(object) {
   return "" + object;
+}
+
+/**
+ * Returns the object parsed from the given string and updates optional parse position.
+ * @param {string} string
+ * @param {ParsePosition} [parsePosition] 
+ * @returns the parsed object or if the string can't be parsed, <code>null</code> when position is given
+ *              or throws a ParseException if position isn't given
+ */
+Format.prototype.parseObject = function(string, position) {
+  var exactParsing = position === undefined;
+  if (position === undefined) {
+    position = new ParsePosition(0);
+  }
+  var value = this.parse(string, position);
+  if (exactParsing && position.getIndex() !== string.length) {
+    throw new ParseException(s, position.getIndex());
+  }
+  return value;
+}
+
+/**
+ * Returns the date or number parsed from the given string and updates optional parse position.
+ * @param {string} string a date or number with English notation
+ * @param {ParsePosition} [parsePosition] 
+ * @returns the parsed date or number or if the string can't be parsed, <code>null</code> when position is given
+ *              or throws a ParseException if position isn't given
+ */
+Format.prototype.parse = function(string, position) {
+  var s = position === undefined
+      ? string
+      : string.substring(position.getIndex());
+  var value = Date.parse(s);
+  if (isNaN(value)) {
+    var value = parseInt(s);
+    if (isNaN(value)) {
+      var value = parseFloat(s);
+      if (isNaN(value)) {
+        if (position === undefined) {
+          throw new ParseException(s, 0);
+        } else {
+          return null;
+        }
+      }
+    }
+  } 
+  if (position !== undefined) {
+    position.setIndex(string.length);
+  }
+  return value;
+}
+
+/**
+ * Parse position used to track current parsing position.
+ * Adapted from java.text.ParsePosition.
+ * @constructor
+ * @ignore
+ */
+function ParsePosition(index) {
+  this.index = index;
+  this.errorIndex = -1;
+}
+
+ParsePosition.prototype.getIndex = function() {
+  return this.index;
+}
+
+ParsePosition.prototype.setIndex = function(index) {
+  this.index = index;
+}
+
+ParsePosition.prototype.getErrorIndex = function() {
+  return this.errorIndex;
+}
+
+ParsePosition.prototype.setErrorIndex = function(errorIndex) {
+  this.errorIndex = errorIndex;
 }
 
 /**

@@ -186,6 +186,7 @@ public class PropertiesToJson {
       System.out.println("***** Adding extra keys for '" + language + "'");
       properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getGroupingSeparator());
       properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getDecimalSeparator());
+      properties.put("minusSign", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getMinusSign());
     } else if ("package".equals(propertyFileBaseName)) {
       for (Iterator<Entry<Object, Object>> it = properties.entrySet().iterator(); it.hasNext(); ) {
         String key = (String)it.next().getKey();

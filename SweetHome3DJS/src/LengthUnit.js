@@ -141,8 +141,9 @@ LengthUnit.MILLIMETER.checkLocaleChange = function() {
     this.name = CoreTools.getStringFromKey(resource, "millimeterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10, this.name);          
-    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10);
+    var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "", 10, this.name);          
+    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "", 10);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
@@ -206,8 +207,9 @@ LengthUnit.CENTIMETER.checkLocaleChange = function() {
     this.name = CoreTools.getStringFromKey(resource, "centimeterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1, this.name);          
-    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1);
+    var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "#", 1, this.name);          
+    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "#", 1);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
@@ -270,8 +272,9 @@ LengthUnit.METER.checkLocaleChange = function() {
     this.name = CoreTools.getStringFromKey(resource, "meterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01, this.name);          
-    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01);
+    var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "00#", 0.01, this.name);          
+    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "00#", 0.01);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
   }
@@ -332,8 +335,12 @@ LengthUnit.INCH.checkLocaleChange = function() {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.name = CoreTools.getStringFromKey(resource, "inchUnit");
-    this.lengthFormat = new InchFormat(this.name);
-    this.lengthFormatWithUnit = new InchFormat(this.name);
+    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
+    var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
+    var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
+    this.lengthFormat = new InchFormat(this.name, groupingSeparator, decimalSeparator, minusSign, footInchSeparator);
+    this.lengthFormatWithUnit = new InchFormat(this.name, groupingSeparator, decimalSeparator, minusSign, footInchSeparator);
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
   }
@@ -397,8 +404,9 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
     this.name = CoreTools.getStringFromKey(resource, "inchUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###", this.name); 
-    this.lengthFormat = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###");
+    var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
+    this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, "###", this.name); 
+    this.lengthFormat = new InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, "###");
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
   }
@@ -431,10 +439,12 @@ LengthUnit.INCH_DECIMALS.unitToCentimeter = function(length) {
 // Specific format classes for lengths
 
 /** @private */
-function MeterFamilyFormat(groupingSeparator, decimalSeparator, decimalsFormat, unitMultiplier, unit) {
+function MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, 
+                           decimalsFormat, unitMultiplier, unit) {
   Format.call(this);
   this.groupingSeparator = groupingSeparator;
   this.decimalSeparator = decimalSeparator;
+  this.minusSign = minusSign;
   this.decimalsFormat = decimalsFormat;
   this.unitMultiplier = unitMultiplier;
   this.unit = unit;
@@ -444,9 +454,18 @@ MeterFamilyFormat.prototype.constructor = MeterFamilyFormat;
 
 MeterFamilyFormat.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(number * this.unitMultiplier, 
-      this.groupingSeparator, this.decimalSeparator,
+      this.groupingSeparator, this.decimalSeparator, this.minusSign,
       { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 }); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
+}
+
+MeterFamilyFormat.prototype.parse = function(text, parsePosition) {
+  var number = parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, parsePosition);
+  if (number === null) {
+    return null;
+  } else {
+    return number / this.unitMultiplier;
+  }
 }
 
 /** @private */
@@ -461,7 +480,7 @@ SquareMeterAreaFormatWithUnit.prototype.constructor = SquareMeterAreaFormatWithU
 
 SquareMeterAreaFormatWithUnit.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(number / 10000, 
-      this.groupingSeparator, this.decimalSeparator,
+      this.groupingSeparator, this.decimalSeparator, 
       { maximumFractionDigits: 2, minimumFractionDigits: 0 }); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
@@ -475,9 +494,13 @@ var inchFractionCharacters = ['\u215b',   // 1/8
                               '\u215e'];  // 7/8        
 
 /** @private */
-function InchFormat(unit) {
+function InchFormat(unit, groupingSeparator, decimalSeparator, minusSign, footInchSeparator) {
   Format.call(this);
   this.unit = unit;
+  this.groupingSeparator = groupingSeparator;
+  this.decimalSeparator = decimalSeparator;
+  this.minusSign = minusSign;
+  this.footInchSeparator = footInchSeparator;
 }
 InchFormat.prototype = Object.create(Format.prototype);
 InchFormat.prototype.constructor = InchFormat;
@@ -490,15 +513,17 @@ InchFormat.prototype.format = function(number) {
     feet++;
     remainingInches -= 12;
   }
-  //fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
+  // fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
   var result = number >= 0 ? "" : "-";
   // Format remaining inches only if it's larger that 0.0005
+  var feetString = toLocaleStringUniversal(feet, this.groupingSeparator, ".", this.minusSign,
+        { maximumFractionDigits: 0, minimumFractionDigits: 0 });
   if (remainingInches >= 0.0005) {
     // Try to format decimals with 1/8, 1/4, 1/2 fractions first
     var integerPart = Math.floor(remainingInches);
     var fractionPart = remainingInches - integerPart;
     var eighth = Math.round(fractionPart * 8); 
-    result += feet;
+    result += feetString;
     if (eighth === 0 || eighth === 8) {
       result += "'";
       result += Math.round(remainingInches * 8) / 8;
@@ -510,123 +535,144 @@ InchFormat.prototype.format = function(number) {
       result += "\"";
     }
   } else {
-    result += feet;
+    result += feetString;
     result += "'";
   }
   return result;
 }
 
-//    var inchFractionStrings  = ["1/8",
-//                                "1/4",  
-//                                "3/8",
-//                                "1/2",
-//                                "5/8",
-//                                "3/4",
-//                                "7/8"];     
+var inchFractionStrings = ["1/8",
+                           "1/4",  
+                           "3/8",
+                           "1/2",
+                           "5/8",
+                           "3/4",
+                           "7/8"];     
 
-//        public Number parse(String text, ParsePosition parsePosition) {
-//          double value = 0;
-//          ParsePosition numberPosition = new ParsePosition(parsePosition.getIndex());
-//          skipWhiteSpaces(text, numberPosition);
-//          // Parse feet
-//          int quoteIndex = text.indexOf('\'', parsePosition.getIndex());
-//          boolean negative = numberPosition.getIndex() < text.length()  
-//              && text.charAt(numberPosition.getIndex()) === this.getDecimalFormatSymbols().getMinusSign();
-//          if (quoteIndex != -1) {
-//            Number feet = footNumberFormat.parse(text, numberPosition);
-//            if (feet === null) {
-//              parsePosition.setErrorIndex(numberPosition.getErrorIndex());
-//              return null;
-//            }
-//            skipWhiteSpaces(text, numberPosition);
-//            if (numberPosition.getIndex() != quoteIndex) {
-//              parsePosition.setErrorIndex(numberPosition.getIndex());
-//              return null;
-//            }
-//            value = LengthUnit.footToCentimeter(feet.intValue());                
-//            numberPosition = new ParsePosition(quoteIndex + 1);
-//            skipWhiteSpaces(text, numberPosition);
-//            // Test optional foot inch separator
-//            if (numberPosition.getIndex() < text.length()
-//                && footInchSeparator.indexOf(text.charAt(numberPosition.getIndex())) >= 0) {
-//              numberPosition.setIndex(numberPosition.getIndex() + 1);
-//              skipWhiteSpaces(text, numberPosition);
-//            }
-//            if (numberPosition.getIndex() === text.length()) {
-//              parsePosition.setIndex(text.length());
-//              return value;
-//            }
-//          } 
-//          // Parse inches
-//          Number inches = inchNumberFormat.parse(text, numberPosition);
-//          if (inches === null) {
-//            parsePosition.setErrorIndex(numberPosition.getErrorIndex());
-//            return null;
-//          }
-//          if (negative) {
-//            if (quoteIndex === -1) {
-//              value = inchToCentimeter(inches.floatValue());
-//            } else {
-//              value -= inchToCentimeter(inches.floatValue());
-//            }
-//          } else {
-//            value += inchToCentimeter(inches.floatValue());
-//          }
-//          // Parse fraction
-//          skipWhiteSpaces(text, numberPosition);
-//          if (numberPosition.getIndex() === text.length()) {
-//            parsePosition.setIndex(text.length());
-//            return value;
-//          }
-//          if (text.charAt(numberPosition.getIndex()) === '\"') {
-//            parsePosition.setIndex(numberPosition.getIndex() + 1);
-//            return value;
-//          }
-//
-//          var fractionChar = text.charAt(numberPosition.getIndex());    
-//          var fractionString = text.length() - numberPosition.getIndex() >= 3 
-//              ? text.substring(numberPosition.getIndex(), numberPosition.getIndex() + 3)
-//              : null;
-//          for (var i = 0; i < inchFractionCharacters.length; i++) {
-//            if (inchFractionCharacters [i] === fractionChar
-//                || inchFractionStrings [i] == fractionString) {
-//              // Check no decimal fraction was specified
-//              int lastDecimalSeparatorIndex = text.lastIndexOf(getDecimalFormatSymbols().getDecimalSeparator(), 
-//                  numberPosition.getIndex() - 1);
-//              if (lastDecimalSeparatorIndex > quoteIndex) {
-//                return null;
-//              } else {
-//                if (negative) {
-//                  value -= inchToCentimeter((i + 1) / 8f);
-//                } else {
-//                  value += inchToCentimeter((i + 1) / 8f);
-//                }
-//                parsePosition.setIndex(numberPosition.getIndex() 
-//                    + (inchFractionCharacters [i] === fractionChar ? 1 : 3));
-//                skipWhiteSpaces(text, parsePosition);
-//                if (parsePosition.getIndex() < text.length() 
-//                    && text.charAt(parsePosition.getIndex()) === '\"') {
-//                  parsePosition.setIndex(parsePosition.getIndex() + 1);
-//                }
-//                return value;
-//              }
-//            }
-//          }
-//          
-//          parsePosition.setIndex(numberPosition.getIndex());
-//          return value;
-//        }
-//        
-//        /**
-//         * Increases the index of <code>fieldPosition</code> to skip white spaces. 
-//         */
-//        private void skipWhiteSpaces(String text, ParsePosition fieldPosition) {
-//          while (fieldPosition.getIndex() < text.length()
-//              && Character.isWhitespace(text.charAt(fieldPosition.getIndex()))) {
-//            fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-//          }
-//        }
-//      };
+InchFormat.prototype.parse = function(text, parsePosition) {
+  var value = 0;
+  var numberPosition = new ParsePosition(parsePosition.getIndex());
+  this.skipWhiteSpaces(text, numberPosition);
+  // Parse feet
+  var quoteIndex = text.indexOf('\'', parsePosition.getIndex());
+  var negative = numberPosition.getIndex() < text.length  
+      && text.charAt(numberPosition.getIndex()) === this.minusSign;
+  var footValue = false;
+  if (quoteIndex !== -1) {
+    var feet = parseLocalizedNumber(text, this.groupingSeparator, this.minusSign, numberPosition); 
+    if (feet === null) {
+      parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+      return null;
+    }
+    this.skipWhiteSpaces(text, numberPosition);
+    if (numberPosition.getIndex() === quoteIndex) {
+      value = LengthUnit.footToCentimeter(feet);
+      footValue = true;
+      numberPosition = new ParsePosition(quoteIndex + 1);
+      this.skipWhiteSpaces(text, numberPosition);
+      // Test optional foot inch separator
+      if (numberPosition.getIndex() < text.length
+          && this.footInchSeparator.indexOf(text.charAt(numberPosition.getIndex())) >= 0) {
+        numberPosition.setIndex(numberPosition.getIndex() + 1);
+        this.skipWhiteSpaces(text, numberPosition);
+      }
+      if (numberPosition.getIndex() === text.length) {
+        parsePosition.setIndex(text.length);
+        return value;
+      }
+    } else {
+      if (this.decimalSeparator === text.charAt(numberPosition.getIndex())) {
+        var decimalNumberPosition = new ParsePosition(parsePosition.getIndex());
+        if (parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, decimalNumberPosition) !== null
+            && decimalNumberPosition.getIndex() === quoteIndex) {
+          // Don't allow a decimal number in front of a quote
+          parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+          return null;
+        }
+      }
+      // Try to parse beginning as inches
+      numberPosition.setIndex(parsePosition.getIndex());
+    }
+  }
+    
+  // Parse inches
+  var inches = parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, numberPosition);
+  if (inches === null) {
+    if (footValue) {
+      parsePosition.setIndex(numberPosition.getIndex());
+      return value;
+    } else {
+      parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+      return null;
+    }
+  }
+  if (negative) {
+    if (quoteIndex === -1) {
+      value = LengthUnit.inchToCentimeter(inches);
+    } else {
+      value -= LengthUnit.inchToCentimeter(inches);
+    }
+  } else {
+    value += LengthUnit.inchToCentimeter(inches);
+  }
+  // Parse fraction
+  this.skipWhiteSpaces(text, numberPosition);
+  if (numberPosition.getIndex() === text.length) {
+    parsePosition.setIndex(text.length);
+    return value;
+  }
+  if (text.charAt(numberPosition.getIndex()) === '\"') {
+    parsePosition.setIndex(numberPosition.getIndex() + 1);
+    return value;
+  }
+
+  var fractionChar = text.charAt(numberPosition.getIndex());    
+  var fractionString = text.length - numberPosition.getIndex() >= 3 
+      ? text.substring(numberPosition.getIndex(), numberPosition.getIndex() + 3)
+      : null;
+  for (var i = 0; i < inchFractionCharacters.length; i++) {
+    if (inchFractionCharacters [i] === fractionChar
+        || inchFractionStrings [i] == fractionString) {
+      // Check no decimal fraction was specified
+      var lastDecimalSeparatorIndex = text.lastIndexOf(this.decimalSeparator, 
+          numberPosition.getIndex() - 1);
+      if (lastDecimalSeparatorIndex > quoteIndex) {
+        return null;
+      } else {
+        if (negative) {
+          value -= LengthUnit.inchToCentimeter((i + 1) / 8);
+        } else {
+          value += LengthUnit.inchToCentimeter((i + 1) / 8);
+        }
+        parsePosition.setIndex(numberPosition.getIndex() 
+            + (inchFractionCharacters [i] === fractionChar ? 1 : 3));
+        this.skipWhiteSpaces(text, parsePosition);
+        if (parsePosition.getIndex() < text.length
+            && text.charAt(parsePosition.getIndex()) === '\"') {
+          parsePosition.setIndex(parsePosition.getIndex() + 1);
+        }
+        return value;
+      }
+    }
+  }
+  
+  parsePosition.setIndex(numberPosition.getIndex());
+  return value;
+}
+
+/**
+ * Increases the index of <code>fieldPosition</code> to skip white spaces.
+ * @param {string} text
+ * @param {ParsePosition} fieldPosition
+ * @private 
+ */
+InchFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
+  while (fieldPosition.getIndex() < text.length
+      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
+    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
+  }
+}
+
 /** @private */
 function SquareFootAreaFormatWithUnit(formatLocale, unit) {
   Format.call(this);
@@ -644,10 +690,11 @@ SquareFootAreaFormatWithUnit.prototype.format = function(number) {
 }
 
 /** @private */
-function InchDecimalFormat(groupingSeparator, decimalSeparator, decimalsFormat) {
+function InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, decimalsFormat) {
   Format.call(this);
   this.groupingSeparator = groupingSeparator;
   this.decimalSeparator = decimalSeparator;
+  this.minusSign = minusSign;
   this.decimalsFormat = decimalsFormat;
 }
 InchDecimalFormat.prototype = Object.create(Format.prototype);
@@ -655,42 +702,44 @@ InchDecimalFormat.prototype.constructor = InchDecimalFormat;
 
 InchDecimalFormat.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(LengthUnit.centimeterToInch(number), 
-      this.groupingSeparator, this.decimalSeparator,
+      this.groupingSeparator, this.decimalSeparator, this.minusSign,
       { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 });
   return formattedNumber + "\"";
 }
 
-//      public Number parse(String text, ParsePosition parsePosition) {
-//        ParsePosition numberPosition = new ParsePosition(parsePosition.getIndex());
-//        skipWhiteSpaces(text, numberPosition);
-//        // Parse inches
-//        Number inches = this.inchNumberFormat.parse(text, numberPosition);
-//        if (inches === null) {
-//          parsePosition.setErrorIndex(numberPosition.getErrorIndex());
-//          return null;
-//        }
-//        double value = LengthUnit.inchToCentimeter(inches.floatValue());
-//        // Parse "
-//        skipWhiteSpaces(text, numberPosition);
-//        if (numberPosition.getIndex() < text.length() 
-//            && text.charAt(numberPosition.getIndex()) === '\"') {
-//          parsePosition.setIndex(numberPosition.getIndex() + 1);
-//        } else {
-//          parsePosition.setIndex(numberPosition.getIndex());
-//        }
-//        return value;
-//      }
-//
-//      /**
-//       * Increases the index of <code>fieldPosition</code> to skip white spaces. 
-//       */
-//      private void skipWhiteSpaces(String text, ParsePosition fieldPosition) {
-//        while (fieldPosition.getIndex() < text.length()
-//            && Character.isWhitespace(text.charAt(fieldPosition.getIndex()))) {
-//          fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-//        }
-//      }
-//    }
+InchDecimalFormat.prototype.parse = function(text, parsePosition) {
+  var numberPosition = new ParsePosition(parsePosition.getIndex());
+  this.skipWhiteSpaces(text, numberPosition);
+  // Parse inches
+  var inches = parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, numberPosition);
+  if (inches === null) {
+    parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+    return null;
+  }
+  var value = LengthUnit.inchToCentimeter(inches);
+  // Parse "
+  this.skipWhiteSpaces(text, numberPosition);
+  if (numberPosition.getIndex() < text.length 
+      && text.charAt(numberPosition.getIndex()) === '\"') {
+    parsePosition.setIndex(numberPosition.getIndex() + 1);
+  } else {
+    parsePosition.setIndex(numberPosition.getIndex());
+  }
+  return value;
+}
+
+/**
+ * Increases the index of <code>fieldPosition</code> to skip white spaces.
+ * @param {string} text
+ * @param {ParsePosition} fieldPosition
+ * @private 
+ */
+InchDecimalFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
+  while (fieldPosition.getIndex() < text.length
+      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
+    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
+  }
+}
 
 /**
  * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
@@ -698,10 +747,15 @@ InchDecimalFormat.prototype.format = function(number) {
  * @param {number} number
  * @param {string} groupingSeparator
  * @param {string} decimalSeparator
+ * @param {string} [minusSign]
  * @param {Object} options
  * @ignore
  */
-function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, options) {
+function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, minusSign, options) {
+  if (options === undefined) {
+    options = minusSign;
+    minusSign = undefined;
+  }
   var formattedNumber = number.toLocaleString("en", options);
   var decimalSeparatorIndex = formattedNumber.indexOf('.');
   if (decimalSeparatorIndex === -1) {
@@ -744,5 +798,48 @@ function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, op
     }
   } 
   
-  return formattedNumber.replace(".", "#").replace(",", groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
+  formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
+  if (minusSign !== undefined) {
+    formattedNumber = formattedNumber.replace("-", minusSign);
+  }
+  return formattedNumber;
+}
+
+/**
+ * Returns the number parsed from the given string and updates parse position.
+ * @param {string} string
+ * @param {string} groupingSeparator
+ * @param {string} [decimalSeparator] if omitted the string only integer is parsed
+ * @param {string} minusSign
+ * @param {ParsePosition} parsePosition
+ * @returns the parsed number or <code>null</code> if the string can't be parsed 
+ * @ignore
+ */
+function parseLocalizedNumber(string, groupingSeparator, decimalSeparator, minusSign, parsePosition) {
+  var integer = parsePosition === undefined;
+  if (integer) {
+    // 4 parameters 
+    parsePosition = minusSign;
+    minusSign = decimalSeparator;
+  }
+  
+  string = string.substring(parsePosition.getIndex(), string.length)
+      .replace(new RegExp(groupingSeparator, "g"), "").replace(new RegExp(minusSign, "g"), "-");
+  if (!integer) {
+    string = string.replace(decimalSeparator, ".");
+  }
+  var numberRegExp = integer 
+      ? /\d+/g 
+      : /^(?:-?\d*)\.?(\d+)?/g;
+  if (numberRegExp.test(string) 
+      && numberRegExp.lastIndex > 0) {      
+    string = string.substring(0, numberRegExp.lastIndex);
+    var number = integer
+        ? parseInt(string)
+        : parseFloat(string);
+    parsePosition.setIndex(parsePosition.getIndex() + numberRegExp.lastIndex);
+    return number;
+  } else {
+    return null;
+  } 
 }
