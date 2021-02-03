@@ -133,7 +133,7 @@ CoreTools.loadResourceBundles = function(baseURL, language) {
  */
 CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
   for (var i = 0; i < resourceBundles.length; i++) {
-    if (resourceBundles[i] != null && resourceBundles[i][key]) {
+    if (resourceBundles[i] != null && resourceBundles[i][key] !== undefined) {
       return CoreTools.format.apply(null, [resourceBundles[i][key]].concat(Array.prototype.slice.call(arguments, 2)));
     }
   }
