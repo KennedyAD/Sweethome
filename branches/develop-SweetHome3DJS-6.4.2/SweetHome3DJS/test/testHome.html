@@ -506,6 +506,9 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "0.935", LengthUnit.METER.getFormat().format(93.489));
   assertEquals("Wrong conversion", "-0.934", LengthUnit.METER.getFormat().format(-93.449));
   assertEquals("Wrong conversion", "95 sq ft", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
+  var format = LengthUnit.MILLIMETER.getFormat().clone();
+  format.setGroupingUsed(false);
+  assertEquals("Wrong conversion", "1023456", format.format(102345.6));
 
   
   Locale.setDefault("fr_FR");

@@ -442,6 +442,7 @@ function MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign,
                            decimalsFormat, unitMultiplier, unit) {
   Format.call(this);
   this.groupingSeparator = groupingSeparator;
+  this.groupingUsed = true;
   this.decimalSeparator = decimalSeparator;
   this.minusSign = minusSign;
   this.decimalsFormat = decimalsFormat;
@@ -453,7 +454,7 @@ MeterFamilyFormat.prototype.constructor = MeterFamilyFormat;
 
 MeterFamilyFormat.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(number * this.unitMultiplier, 
-      this.groupingSeparator, this.decimalSeparator, this.minusSign,
+      this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign,
       { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 }); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
@@ -465,6 +466,14 @@ MeterFamilyFormat.prototype.parse = function(text, parsePosition) {
   } else {
     return number / this.unitMultiplier;
   }
+}
+
+MeterFamilyFormat.prototype.setGroupingUsed = function(groupingUsed) {
+  this.groupingUsed = groupingUsed;
+}
+
+MeterFamilyFormat.prototype.isGroupingUsed = function(groupingUsed) {
+  return this.groupingUsed;
 }
 
 /** @private */
@@ -479,7 +488,7 @@ SquareMeterAreaFormatWithUnit.prototype.constructor = SquareMeterAreaFormatWithU
 
 SquareMeterAreaFormatWithUnit.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(number / 10000, 
-      this.groupingSeparator, this.decimalSeparator, 
+      this.groupingSeparator, true, this.decimalSeparator, 
       { maximumFractionDigits: 2, minimumFractionDigits: 0 }); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
@@ -496,6 +505,7 @@ var inchFractionCharacters = ['\u215b',   // 1/8
 function InchFormat(groupingSeparator, decimalSeparator, minusSign, footInchSeparator) {
   Format.call(this);
   this.groupingSeparator = groupingSeparator;
+  this.groupingUsed = true;
   this.decimalSeparator = decimalSeparator;
   this.minusSign = minusSign;
   this.footInchSeparator = footInchSeparator;
@@ -514,7 +524,7 @@ InchFormat.prototype.format = function(number) {
   // fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
   var result = number >= 0 ? "" : "-";
   // Format remaining inches only if it's larger that 0.0005
-  var feetString = toLocaleStringUniversal(feet, this.groupingSeparator, this.decimalSeparator, this.minusSign,
+  var feetString = toLocaleStringUniversal(feet, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign,
         { maximumFractionDigits: 0, minimumFractionDigits: 0 });
   if (remainingInches >= 0.0005) {
     // Try to format decimals with 1/8, 1/4, 1/2 fractions first
@@ -671,6 +681,14 @@ InchFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
   }
 }
 
+InchFormat.prototype.setGroupingUsed = function(groupingUsed) {
+  this.groupingUsed = groupingUsed;
+}
+
+InchFormat.prototype.isGroupingUsed = function(groupingUsed) {
+  return this.groupingUsed;
+}
+
 /** @private */
 function SquareFootAreaFormatWithUnit(formatLocale, unit) {
   Format.call(this);
@@ -682,7 +700,7 @@ SquareFootAreaFormatWithUnit.prototype.constructor = SquareFootAreaFormatWithUni
 
 SquareFootAreaFormatWithUnit.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(number / 929.0304, 
-      this.groupingSeparator, this.decimalSeparator,
+      this.groupingSeparator, true, this.decimalSeparator,
       { maximumFractionDigits: 0, minimumFractionDigits: 0 }); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
@@ -691,6 +709,7 @@ SquareFootAreaFormatWithUnit.prototype.format = function(number) {
 function InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, decimalsFormat, unit) {
   Format.call(this);
   this.groupingSeparator = groupingSeparator;
+  this.groupingUsed = true;
   this.decimalSeparator = decimalSeparator;
   this.minusSign = minusSign;
   this.decimalsFormat = decimalsFormat;
@@ -701,7 +720,7 @@ InchDecimalFormat.prototype.constructor = InchDecimalFormat;
 
 InchDecimalFormat.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(LengthUnit.centimeterToInch(number), 
-      this.groupingSeparator, this.decimalSeparator, this.minusSign,
+      this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign,
       { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 });
   return formattedNumber + (this.unit ? this.unit : "");
 }
@@ -740,17 +759,26 @@ InchDecimalFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
   }
 }
 
+InchDecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
+  this.groupingUsed = groupingUsed;
+}
+
+InchDecimalFormat.prototype.isGroupingUsed = function(groupingUsed) {
+  return this.groupingUsed;
+}
+
 /**
  * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
  * are not supported (mainly Safari 8/9).
  * @param {number} number
  * @param {string} groupingSeparator
+ * @param {boolean} groupingUsed
  * @param {string} decimalSeparator
  * @param {string} [minusSign]
  * @param {Object} options
  * @ignore
  */
-function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, minusSign, options) {
+function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decimalSeparator, minusSign, options) {
   if (options === undefined) {
     options = minusSign;
     minusSign = undefined;
@@ -789,12 +817,19 @@ function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, mi
     }
   }
   
-  if (decimalSeparatorIndex > 3 && formattedNumber.indexOf(',') === -1) {
-    // Missing grouping separator
-    for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
-      formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
-      decimalSeparatorIndex++;
-    }
+  if (decimalSeparatorIndex > 3) {
+    if (formattedNumber.indexOf(',') === -1) {
+      if (groupingUsed) {
+        // Add missing grouping separator
+        for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
+          formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
+          decimalSeparatorIndex++;
+        }
+      }
+    } else if (!groupingUsed) {
+      // Remove grouping separator
+      formattedNumber = formattedNumber.replace(/\,/g, "");
+    } 
   } 
   
   formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');

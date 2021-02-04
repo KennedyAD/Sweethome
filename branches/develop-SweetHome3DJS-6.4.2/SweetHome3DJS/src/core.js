@@ -331,6 +331,16 @@ Format.prototype.parse = function(string, position) {
   return value;
 }
 
+Format.prototype.clone = function() {
+  var clone = Object.create(this);
+  for (var attribute in this) {
+    if (this.hasOwnProperty(attribute)) {
+      clone [attribute] = this [attribute];
+    } 
+  }
+  return clone;
+}
+
 /**
  * Parse position used to track current parsing position.
  * Adapted from java.text.ParsePosition.
