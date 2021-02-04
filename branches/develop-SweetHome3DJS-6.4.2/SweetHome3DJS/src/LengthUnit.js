@@ -339,8 +339,7 @@ LengthUnit.INCH.checkLocaleChange = function() {
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
     var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
-    this.lengthFormat = new InchFormat(this.name, groupingSeparator, decimalSeparator, minusSign, footInchSeparator);
-    this.lengthFormatWithUnit = new InchFormat(this.name, groupingSeparator, decimalSeparator, minusSign, footInchSeparator);
+    this.lengthFormat = new InchFormat(groupingSeparator, decimalSeparator, minusSign, footInchSeparator);
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
   }
@@ -405,8 +404,8 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
-    this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, "###", this.name); 
     this.lengthFormat = new InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, "###");
+    this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, "###", "\""); 
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
   }
@@ -460,7 +459,7 @@ MeterFamilyFormat.prototype.format = function(number) {
 }
 
 MeterFamilyFormat.prototype.parse = function(text, parsePosition) {
-  var number = parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, parsePosition);
+  var number = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, parsePosition);
   if (number === null) {
     return null;
   } else {
@@ -494,9 +493,8 @@ var inchFractionCharacters = ['\u215b',   // 1/8
                               '\u215e'];  // 7/8        
 
 /** @private */
-function InchFormat(unit, groupingSeparator, decimalSeparator, minusSign, footInchSeparator) {
+function InchFormat(groupingSeparator, decimalSeparator, minusSign, footInchSeparator) {
   Format.call(this);
-  this.unit = unit;
   this.groupingSeparator = groupingSeparator;
   this.decimalSeparator = decimalSeparator;
   this.minusSign = minusSign;
@@ -516,7 +514,7 @@ InchFormat.prototype.format = function(number) {
   // fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
   var result = number >= 0 ? "" : "-";
   // Format remaining inches only if it's larger that 0.0005
-  var feetString = toLocaleStringUniversal(feet, this.groupingSeparator, ".", this.minusSign,
+  var feetString = toLocaleStringUniversal(feet, this.groupingSeparator, this.decimalSeparator, this.minusSign,
         { maximumFractionDigits: 0, minimumFractionDigits: 0 });
   if (remainingInches >= 0.0005) {
     // Try to format decimals with 1/8, 1/4, 1/2 fractions first
@@ -559,7 +557,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
       && text.charAt(numberPosition.getIndex()) === this.minusSign;
   var footValue = false;
   if (quoteIndex !== -1) {
-    var feet = parseLocalizedNumber(text, this.groupingSeparator, this.minusSign, numberPosition); 
+    var feet = parseLocalizedNumber(text, this.minusSign, numberPosition); 
     if (feet === null) {
       parsePosition.setErrorIndex(numberPosition.getErrorIndex());
       return null;
@@ -583,7 +581,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
     } else {
       if (this.decimalSeparator === text.charAt(numberPosition.getIndex())) {
         var decimalNumberPosition = new ParsePosition(parsePosition.getIndex());
-        if (parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, decimalNumberPosition) !== null
+        if (parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, decimalNumberPosition) !== null
             && decimalNumberPosition.getIndex() === quoteIndex) {
           // Don't allow a decimal number in front of a quote
           parsePosition.setErrorIndex(numberPosition.getErrorIndex());
@@ -596,7 +594,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
   }
     
   // Parse inches
-  var inches = parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, numberPosition);
+  var inches = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, numberPosition);
   if (inches === null) {
     if (footValue) {
       parsePosition.setIndex(numberPosition.getIndex());
@@ -690,12 +688,13 @@ SquareFootAreaFormatWithUnit.prototype.format = function(number) {
 }
 
 /** @private */
-function InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, decimalsFormat) {
+function InchDecimalFormat(groupingSeparator, decimalSeparator, minusSign, decimalsFormat, unit) {
   Format.call(this);
   this.groupingSeparator = groupingSeparator;
   this.decimalSeparator = decimalSeparator;
   this.minusSign = minusSign;
   this.decimalsFormat = decimalsFormat;
+  this.unit = unit;
 }
 InchDecimalFormat.prototype = Object.create(Format.prototype);
 InchDecimalFormat.prototype.constructor = InchDecimalFormat;
@@ -704,14 +703,14 @@ InchDecimalFormat.prototype.format = function(number) {
   var formattedNumber = toLocaleStringUniversal(LengthUnit.centimeterToInch(number), 
       this.groupingSeparator, this.decimalSeparator, this.minusSign,
       { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 });
-  return formattedNumber + "\"";
+  return formattedNumber + (this.unit ? this.unit : "");
 }
 
 InchDecimalFormat.prototype.parse = function(text, parsePosition) {
   var numberPosition = new ParsePosition(parsePosition.getIndex());
   this.skipWhiteSpaces(text, numberPosition);
   // Parse inches
-  var inches = parseLocalizedNumber(text, this.groupingSeparator, this.decimalSeparator, this.minusSign, numberPosition);
+  var inches = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, numberPosition);
   if (inches === null) {
     parsePosition.setErrorIndex(numberPosition.getErrorIndex());
     return null;
@@ -808,14 +807,13 @@ function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, mi
 /**
  * Returns the number parsed from the given string and updates parse position.
  * @param {string} string
- * @param {string} groupingSeparator
  * @param {string} [decimalSeparator] if omitted the string only integer is parsed
  * @param {string} minusSign
  * @param {ParsePosition} parsePosition
  * @returns the parsed number or <code>null</code> if the string can't be parsed 
  * @ignore
  */
-function parseLocalizedNumber(string, groupingSeparator, decimalSeparator, minusSign, parsePosition) {
+function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition) {
   var integer = parsePosition === undefined;
   if (integer) {
     // 4 parameters 
@@ -823,8 +821,7 @@ function parseLocalizedNumber(string, groupingSeparator, decimalSeparator, minus
     minusSign = decimalSeparator;
   }
   
-  string = string.substring(parsePosition.getIndex(), string.length)
-      .replace(new RegExp(groupingSeparator, "g"), "").replace(new RegExp(minusSign, "g"), "-");
+  string = string.substring(parsePosition.getIndex(), string.length).replace(minusSign, "-");
   if (!integer) {
     string = string.replace(decimalSeparator, ".");
   }

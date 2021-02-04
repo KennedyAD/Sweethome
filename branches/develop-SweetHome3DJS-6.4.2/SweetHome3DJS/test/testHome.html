@@ -556,6 +556,8 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "1\u00a0000'6\"",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1000.5)));
 
+  assertEquals("Wrong conversion", "11",
+      LengthUnit.INCH_DECIMALS.getFormat().format(LengthUnit.inchToCentimeter(11)));
   assertEquals("Wrong conversion", "11\"",
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
   assertEquals("Wrong conversion", "23\"",
