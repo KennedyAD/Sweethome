@@ -512,7 +512,7 @@
     <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
     <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
     <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
-           source="1.8" encoding="ISO-8859-1"
+           encoding="ISO-8859-1" target="1.8" source="1.8"
            debug="${debug}" debuglevel="lines,vars,source">
       <classpath>
         <fileset dir="deploy/WEB-INF/lib" />
@@ -630,7 +630,7 @@
         <include name="tools/JSweet/lib/**" />
         <include name="tools/JSDocTemplate/**" />
         <include name="tools/json/**" />
-        <include name="tools/deploy/*.jsp" />
+        <include name="tools/deploy/**" />
         <!-- Eclipse project files -->
         <include name=".settings/**" />
         <include name=".classpath" />
