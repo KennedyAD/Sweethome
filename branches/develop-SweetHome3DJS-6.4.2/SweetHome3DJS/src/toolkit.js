@@ -453,16 +453,6 @@ function JSContextMenu(preferences, sourceElements, behavior) {
     contextMenu.showForSourceElement(this, event);
   });
 
-  if (!JSContextMenu.globalCloserRegistered) {
-    document.addEventListener('click', function(event) {
-      if (JSContextMenu.current != null 
-        && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
-        // clicked outside menu
-        JSContextMenu.closeCurrentIfAny();
-      }
-    });
-    JSContextMenu.globalCloserRegistered = true;
-  }
 }
 JSContextMenu.prototype = Object.create(JSComponentView.prototype);
 JSContextMenu.prototype.constructor = JSContextMenu;
@@ -475,7 +465,9 @@ JSContextMenu.closeCurrentIfAny = function() {
   if (JSContextMenu.current != null) {
     console.debug('closing context menu');
     JSContextMenu.current.close();
+    return true;
   }
+  return false;
 }
 
 /**
@@ -771,6 +763,23 @@ JSContextMenu.Builder.prototype.addSeparator = function() {
     this.items.push(CONTEXT_MENU_SEPARATOR_ITEM);
   }
   return this;
+}
+
+// Global initializations of the toolkit
+
+if (!JSContextMenu.globalCloserRegistered) {
+  document.addEventListener('click', function(event) {
+    if (JSContextMenu.current != null 
+      && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
+      // clicked outside menu
+      if (JSContextMenu.closeCurrentIfAny()) {
+        console.info("stop propagation of event");
+        event.stopPropagation();
+        event.preventDefault();
+      }
+    }
+  });
+  JSContextMenu.globalCloserRegistered = true;
 }
 
 document.addEventListener('keyup', function(event) {
