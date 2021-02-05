@@ -1143,7 +1143,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             var clickCount = 1;
             if (mouseListener.initialPointerLocation != null
               && mouseListener.distance(ev.canvasX, ev.canvasY,
-                mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5
+                mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 10 // 10 looks like a good threshold for double click on iPhone (not tested elsewhere)
                 && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS) { 
                   clickCount = 2;
                   mouseListener.firstTouchStartedTimeStamp = 0;
