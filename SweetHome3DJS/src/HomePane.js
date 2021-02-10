@@ -181,8 +181,8 @@ ResourceAction.prototype.getOptionalString = function(preferences, resourceClass
  * Returns a localized text for menus items and labels depending on the system.
  * @param {UserPreferences} preferences
  * @param {Object} resourceClass
- * @param {string} propertyKey
- * @param {Array} label
+ * @param {string} resourceKey
+ * @param {Array} resourceParameters
  * @return {string}
  * @private
  */
