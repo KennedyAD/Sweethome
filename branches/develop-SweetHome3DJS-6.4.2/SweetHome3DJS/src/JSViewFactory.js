@@ -64,8 +64,26 @@ JSViewFactory.prototype.createHomeView = function(home, preferences, homeControl
   return new HomePane("home-pane", home, preferences, homeController);
 }
 
-JSViewFactory.prototype.createWizardView = function(preferences, wizardController) {
-  return dummyDialogView;
+/**
+ * Returns a new view that displays a wizard.
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {WizardController} controller wizard's controller
+ */
+JSViewFactory.prototype.createWizardView = function(preferences, controller) {
+  return new JSWizardDialog(this, controller, preferences, 
+    controller.getTitle() || '${WizardPane.wizard.title}', 
+    {
+      initializer: function(dialog) {
+        controller.addPropertyChangeListener('TITLE', function(event) {
+          dialog.setTitle(controller.getTitle());
+        });
+      },
+      applier: function(dialog) {
+      },
+      disposer: function(dialog) {
+      },
+    }
+  );
 }
 
 JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgroundImage, preferences, backgroundImageWizardController) {
@@ -76,11 +94,402 @@ JSViewFactory.prototype.createImportedFurnitureWizardStepsView = function(piece,
   return null;
 }
 
-JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture, textureName, preferences, importedTextureWizardController) {
-  return null;
+/**
+ * 
+ * @param {CatalogTexture} texture 
+ * @param {string} textureName 
+ * @param {UserPreferences} preferences 
+ * @param {ImportedTextureWizardController} controller 
+ * 
+ * @return {JSComponentView & { updateStep: function() }}
+ */
+JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture, textureName, preferences, controller) {
+  var viewFactory = this;
+
+  var LARGE_IMAGE_PIXEL_COUNT_THRESHOLD = 640 * 640;
+  var IMAGE_PREFERRED_MAX_SIZE = 512;
+  var LARGE_IMAGE_MAX_PIXEL_COUNT = IMAGE_PREFERRED_MAX_SIZE * IMAGE_PREFERRED_MAX_SIZE;
+
+  function onImageLoadingError(error) {
+    console.warn('error loading image: ' + error);
+    alert(ResourceAction.getLocalizedLabelText(
+      dialog.preferences,
+      'ImportedTextureWizardStepsPanel', 
+      'imageChoiceErrorLabel.text'));
+  }
+
+  function doesCanvasHaveAlpha(context, canvas) {
+    var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    var hasAlphaPixels = false;
+    for (var i = 3, n = data.length; i < n; i+=4) {
+        if (data[i] < 255) {
+            hasAlphaPixels = true;
+            break;
+        }
+    }
+    return hasAlphaPixels;
+  }
+
+  var stepsView = new JSComponentView(
+    this,
+    preferences, 
+    '<div imageStep>' + 
+    '  <div>${ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
+    '  <div class="buttons">' +
+    '    <button changeImage>${ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>' +
+    '    <button onclick="window.open(\'http://www.sweethome3d.com/fr/importTextures.jsp\', \'_blank\')">${ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
+    '    <input type="file" accept="image/*" style="display: none" /> ' +
+    '  </div>' +
+    '  <div preview>' +
+    '  </div>' +
+    '</div>' +
+    '<div attributesStep>' +
+    '  <div description></div>' +
+    '  <div form> ' +
+    '    <div preview> ' +
+    '      <img /> ' +
+    '    </div> ' +
+    '    <div>${ImportedTextureWizardStepsPanel.nameLabel.text}</div> ' +
+    '    <div>' +
+    '      <input type="text" name="name" />' +
+    '    </div> ' +
+    '    <div>${ImportedTextureWizardStepsPanel.categoryLabel.text}</div> ' +
+    '    <div>' +
+    '      <select name="category"></select>' +
+    '    </div> ' +
+    '    <div>${ImportedTextureWizardStepsPanel.creatorLabel.text}</div> ' +
+    '    <div>' +
+    '      <input type="text" name="creator" />' +
+    '    </div> ' +
+    '    <div widthLabel></div> ' +
+    '    <div>' +
+    '      <input type="number" name="width" min="0.5" max="100000" step="0.5" />' +
+    '    </div> ' +
+    '    <div heightLabel></div> ' +
+    '    <div>' +
+    '      <input type="number" name="height" min="0.5" max="100000" step="0.5" />' +
+    '    </div> ' +
+
+    '  </div>' +
+    '</div>', 
+    {
+      initializer: function(component) {
+        component.controller = controller;
+        component.rootNode.classList.add('imported-texture-wizard');
+
+        component.imageStepPanel = component.findElement('[imageStep]');
+        component.changeImageButton = component.findElement('button[changeImage]');
+        component.imageChooserInput = component.findElement('input[type="file"]');
+        component.previewPanel = component.findElement('[preview]');
+
+        component.attributesStepPanel = component.findElement('[attributesStep]');
+        component.attributesStepPanelDescription = component.findElement('[attributesStep] [description]');
+        
+        component.attributesPreviewPanel = component.findElement('[attributesStep] [preview]');
+        
+        component.nameInput = component.findElement('input[name="name"]');
+        component.categorySelect = component.findElement('select[name="category"]');
+        component.creatorInput = component.findElement('input[name="creator"]');
+        
+        component.findElement('[widthLabel]').textContent = component.getLocalizedLabelText(
+          'ImportedTextureWizardStepsPanel', 'widthLabel.text', component.preferences.getLengthUnit().getName()
+        );
+        component.widthInput = component.findElement('input[name="width"]');
+        component.findElement('[heightLabel]').textContent = component.getLocalizedLabelText(
+          'ImportedTextureWizardStepsPanel', 'heightLabel.text', component.preferences.getLengthUnit().getName()
+        );
+        component.heightInput = component.findElement('input[name="height"]');
+        
+        component.registerEventListener(component.changeImageButton, 'click', function() {
+          component.imageChooserInput.click();
+        });
+        
+        component.registerEventListener(component.imageChooserInput, 'input', function() {
+          var file = component.imageChooserInput.files[0];
+          if (!file) {
+            component.onImageSelected(null);
+          }
+          
+          var reader = new FileReader();
+          reader.onload = function(event) {
+            var image = new Image();
+            image.onload = function () {
+              component.onImageSelected(image);
+            };
+            image.onerror = onImageLoadingError;
+            image.src = event.target.result;  
+          };
+          reader.onerror = onImageLoadingError;
+          reader.readAsDataURL(file);
+        });
+
+        controller.addPropertyChangeListener('STEP', function(event) {
+          component.updateStep();
+        });
+        controller.addPropertyChangeListener('IMAGE', function(event) {
+          component.updateImagePreviews();
+        });
+        controller.addPropertyChangeListener('WIDTH', function(event) {
+          component.updateImagePreviews();
+        });
+        controller.addPropertyChangeListener('HEIGHT', function(event) {
+          component.updateImagePreviews();
+        });
+
+        var categories = this.preferences.getTexturesCatalog().getCategories();
+        for (var i = 0; i < categories.length; i++) {
+          var option = document.createElement('option');
+          option.value = categories[i].getName();
+          option.textContent = categories[i].getName();
+          option._category = categories[i];
+          component.categorySelect.appendChild(option);
+        }
+
+        component.attributesStepPanelDescription.innerHTML = component.getLocalizedLabelText(
+          'ImportedTextureWizardStepsPanel',
+          'attributesLabel.text')
+          .replace('<html>', '');
+        controller.addPropertyChangeListener('NAME', function() {
+          if (component.nameInput.value.trim() != controller.getName()) {
+            component.nameInput.value = controller.getName();
+          }
+        });
+        component.registerEventListener(
+          component.nameInput, 'change', function() {
+            controller.setName(component.nameInput.value.trim());
+          }
+        );
+
+        controller.addPropertyChangeListener('CATEGORY', function() {
+          var category = controller.getCategory();
+          if (category != null) {
+            component.categorySelect.value = category.getName();
+          }
+        });
+        component.registerEventListener(
+          component.categorySelect, 'change', function(event) {
+            var category = component.categorySelect.item(component.categorySelect.selectedIndex)._category;
+            controller.setCategory(category);
+          }
+        );
+
+        controller.addPropertyChangeListener('CREATOR', function() {
+          if (component.creatorInput.value.trim() != controller.getCreator()) {
+            component.creatorInput.value = controller.getCreator();
+          }
+        });
+        component.registerEventListener(
+          component.creatorInput, 'change', function(event) {
+            controller.setCreator(component.creatorInput.value.trim());
+          }
+        );
+
+        controller.addPropertyChangeListener('WIDTH', function() {
+          component.widthInput.value = controller.getWidth();
+        });
+        component.registerEventListener(
+          component.widthInput, 'change', function(event) {
+            controller.setWidth(parseFloat(component.widthInput.value));
+          }
+        );
+
+        controller.addPropertyChangeListener('HEIGHT', function() {
+          component.heightInput.value = controller.getHeight();
+        });
+        component.registerEventListener(
+          component.heightInput, 'change', function(event) {
+            controller.setHeight(parseFloat(component.heightInput.value));
+          }
+        );
+      }
+    });
+
+  /**
+   * @param {HTMLImageElement?} image 
+   * @private
+   */
+  stepsView.onImageSelected = function (image) {
+    console.info('image selected', image);
+    if (image != null) {
+
+      this.promptImageResize(image, function(image) {
+        this.controller.setImage(image);
+        this.controller.setName('My texture name');
+        var userCategory = new TexturesCategory(this.getLocalizedLabelText('ImportedTextureWizardStepsPanel', 'userCategory'));
+        var categories = this.preferences.getTexturesCatalog().getCategories();
+        for (var i = 0; i < categories.length; i++) {
+          if (categories[i].equals(userCategory)) {
+            userCategory = categories[i];
+            break;
+          }
+        }
+        this.controller.setCategory(userCategory);
+        this.controller.setCreator(null);
+        var defaultWidth = 20;
+        var lengthUnit = this.preferences.getLengthUnit();
+        if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_DECIMALS) {
+          defaultWidth = LengthUnit.inchToCentimeter(8);
+        }
+        this.controller.setWidth(defaultWidth);
+        this.controller.setHeight(defaultWidth / image.width * image.height);
+      });
+
+    } else {
+      this.controller.setImage(null);
+      onImageLoadingError('image is null');
+    }
+  }
+
+  /**
+   * @param {string} message message to be displayed
+   * @param {function()} onResizeOptionSelected called when user selected "resize image" option
+   * @param {function()} onKeepSizeOptionSelected called when user selected "keep image unchanged" option
+   */
+  function JSPromptImageResizeDialog(message, onResizeOptionSelected, onKeepSizeOptionSelected) {
+    this.controller = controller;
+    
+    JSDialogView.call(
+      this, 
+      viewFactory, 
+      preferences, 
+      '${ImportedTextureWizardStepsPanel.reduceImageSize.title}', 
+      '<div>' +
+      message +
+      '</div>',
+      {
+        initializer: function(dialog) {},
+        applier: function(dialog) {
+          if (dialog.resizeRequested) {
+            onResizeOptionSelected();
+          } else {
+            onKeepSizeOptionSelected();
+          }
+        },
+      });
+  }
+  JSPromptImageResizeDialog.prototype = Object.create(JSDialogView.prototype);
+  JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
+  
+  /**
+   * Append dialog buttons to given panel
+   * @param {HTMLElement} buttonsPanel Dialog buttons panel
+   * @protected
+   */
+  JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
+    
+    buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, 
+      '<button class="dialog-cancel-button">${ImportedTextureWizardStepsPanel.reduceImageSize.cancel}</button>' + 
+      '<button class="keep-image-unchanged-button dialog-ok-button">${ImportedTextureWizardStepsPanel.reduceImageSize.keepUnchanged}</button>' + 
+      '<button class="dialog-ok-button">${ImportedTextureWizardStepsPanel.reduceImageSize.reduceSize}</button>'
+    );
+
+    var dialog = this;
+
+    var cancelButton = this.findElement('.dialog-cancel-button');
+    this.registerEventListener(cancelButton, 'click', function() {
+      dialog.cancel();
+    });
+    var okButtons = this.findElements('.dialog-ok-button');
+    this.registerEventListener(okButtons, 'click', function(event) {
+      dialog.resizeRequested = !event.target.classList.contains('keep-image-unchanged-button');
+      dialog.validate();
+    });
+  };
+
+  /**
+   * @param {HTMLImageElement} image 
+   * @param {function(HTMLImageElement)} callback function called after resize with resized image (or with original image if resize was not necessary or declined by user)
+   * @private
+   */
+  stepsView.promptImageResize = function (image, callback) {
+    if (image.width * image.height < LARGE_IMAGE_PIXEL_COUNT_THRESHOLD) {
+      callback.call(this, image);
+      return;
+    }
+
+    var factor;
+    var ratio = image.width / image.height;
+    if (ratio < 0.5 || ratio > 2) {
+      factor = Math.sqrt(LARGE_IMAGE_MAX_PIXEL_COUNT / (image.width * image.height));
+    } else if (ratio < 1) {
+      factor = IMAGE_PREFERRED_MAX_SIZE / image.height;
+    } else {
+      factor = IMAGE_PREFERRED_MAX_SIZE / image.width;
+    }
+
+    var reducedWidth = Math.round(image.width * factor);
+    var reducedHeight = Math.round(image.height * factor);
+    var promptDialog = new JSPromptImageResizeDialog(
+      stepsView.getLocalizedLabelText(
+        'ImportedTextureWizardStepsPanel', 'reduceImageSize.message', [image.width, image.height, reducedWidth, reducedHeight]
+      ),
+      function onResizeRequested() {
+        var canvas = document.createElement('canvas');
+        canvas.width = reducedWidth;
+        canvas.height = reducedHeight;
+        var canvasContext = canvas.getContext('2d');
+        canvasContext.drawImage(image, 0, 0, reducedWidth, reducedHeight);
+        console.log(canvasContext.getImageData(1, 1, 1, 1).data[3], canvasContext.getImageData(1, 1, 1, 1).data[2]);
+        console.log(canvasContext.getImageData(0, 0, 1, 1).data[3], canvasContext.getImageData(0, 0, 1, 1).data[2]);
+
+        var resizedImage = new Image();
+        resizedImage.onload = function() {
+          callback.call(stepsView, resizedImage);
+        }
+        resizedImage.src = canvas.toDataURL(doesCanvasHaveAlpha(canvasContext, canvas) ? "image/png" : "image/jpeg");
+      },
+      function onKeepUnchangedRequested() { callback.call(stepsView, image) }
+    );
+    promptDialog.displayView();
+  }
+
+  /**
+   * @private
+   */
+  stepsView.updateImagePreviews = function() {
+    this.previewPanel.innerHTML = '';
+    if (this.controller.getImage() == null) {
+      return;
+    }
+
+    var image = this.controller.getImage().cloneNode(true);
+    delete image.width;
+    delete image.height;
+    this.previewPanel.appendChild(image);
+    
+    this.attributesPreviewPanel.innerHTML = '';
+    var previewImage = document.createElement('div');
+    previewImage.style.backgroundImage = "url('" + image.src + "')";
+    previewImage.style.backgroundRepeat = 'repeat';
+
+    var widthFactor = this.controller.getWidth() / 250;
+    var heightFactor = this.controller.getHeight() / 250;
+    previewImage.style.backgroundSize = 'calc(100% * ' + widthFactor + ') calc(100% * ' + heightFactor + ')';  
+    previewImage.classList.add('image');
+    this.attributesPreviewPanel.appendChild(previewImage);
+  };
+
+  /**
+   * change displayed view based on current step
+   */
+  stepsView.updateStep = function() {
+    var step = this.controller.getStep();
+    console.info("update step to " + step);
+    switch (step) {
+      case ImportedTextureWizardController.Step.IMAGE:
+        this.imageStepPanel.style.display = 'block';
+        this.attributesStepPanel.style.display = 'none';
+        break;
+      case ImportedTextureWizardController.Step.ATTRIBUTES:
+        this.imageStepPanel.style.display = 'none';
+        this.attributesStepPanel.style.display = 'block';
+        break;
+    }
+  };
+
+  return stepsView;
 }
 
-// TODO LOUIS nasty scroll on page level
 /**
  * @param {UserPreferences} preferences 
  * @param {UserPreferencesController} controller 
@@ -557,8 +966,7 @@ JSViewFactory.prototype.createWallView = function(preferences, wallController) {
         dialog.attachChildComponent('right-side-texture-selector-button', dialog.rightSideTextureSelector);
         dialog.rightSideTextureSelector.set(wallController.getRightSideTextureController().getTexture());
         
-        dialog.getElement('wall-orientation-label').innerHTML = ResourceAction.getLocalizedLabelText(
-          dialog.preferences,
+        dialog.getElement('wall-orientation-label').innerHTML = dialog.getLocalizedLabelText(
           'WallPanel', 
           'wallOrientationLabel.text',
           'lib/wallOrientation.png'
@@ -716,8 +1124,8 @@ JSViewFactory.prototype.createPolylineView = function(preferences, polylineContr
         dialog.colorSelector.set(polylineController.getColor());
 
         dialog.thicknessLabelElement = dialog.getElement('thickness-label');
-        dialog.thicknessLabelElement.textContent = ResourceAction.getLocalizedLabelText(
-          dialog.preferences, 'PolylinePanel', 'thicknessLabel.text', dialog.preferences.getLengthUnit().getName()
+        dialog.thicknessLabelElement.textContent = dialog.getLocalizedLabelText(
+          'PolylinePanel', 'thicknessLabel.text', dialog.preferences.getLengthUnit().getName()
         );
         
         dialog.thicknessInput = dialog.getElement('thickness-input');
@@ -773,8 +1181,8 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
         }
         
         dialog.textSizeLabel = dialog.getElement('text-size-label');
-        dialog.textSizeLabel.textContent = ResourceAction.getLocalizedLabelText(
-          dialog.preferences, 'LabelPanel', 'fontSizeLabel.text', dialog.preferences.getLengthUnit().getName()
+        dialog.textSizeLabel.textContent = dialog.getLocalizedLabelText(
+          'LabelPanel', 'fontSizeLabel.text', dialog.preferences.getLengthUnit().getName()
         );
         dialog.textSizeInput = dialog.getElement('text-size');
         dialog.textSizeInput.value = labelController.getFontSize();
@@ -796,8 +1204,8 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
         }
 
         dialog.elevationLabel = dialog.getElement('elevation-label');
-        dialog.elevationLabel.textContent = ResourceAction.getLocalizedLabelText(
-          dialog.preferences, 'LabelPanel', 'elevationLabel.text', dialog.preferences.getLengthUnit().getName()
+        dialog.elevationLabel.textContent = dialog.getLocalizedLabelText(
+          'LabelPanel', 'elevationLabel.text', dialog.preferences.getLengthUnit().getName()
         );
         dialog.elevationInput = dialog.getElement('elevation-input');
         dialog.elevationInput.value = labelController.getElevation();

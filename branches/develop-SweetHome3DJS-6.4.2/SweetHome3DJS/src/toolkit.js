@@ -238,6 +238,18 @@ JSComponentView.prototype.set = function(value) {
   }
 }
 
+/**
+ * Delegates to ResourceAction.getLocalizedLabelText(this.preferences, ...)
+ * @param {Object} resourceClass
+ * @param {string} propertyKey
+ * @param {Array} resourceParameters
+ * @return {string}
+ * @protected
+ */
+JSComponentView.prototype.getLocalizedLabelText = function(resourceClass, propertyKey, resourceParameters) {
+  return ResourceAction.getLocalizedLabelText(this.preferences, resourceClass, propertyKey, resourceParameters);
+}
+
 /*****************************************/
 /* JSDialogView                          */
 /*****************************************/
@@ -257,9 +269,7 @@ JSComponentView.prototype.set = function(value) {
  * @author Renaud Pawlak
  */
 function JSDialogView(viewFactory, preferences, title, template, behavior) {
-  if (title != null) {
-    this.title = JSComponentView.substituteWithLocale(preferences, title || '');
-  }
+  var dialog = this;
   if (behavior != null) {
     this.applier = behavior.applier;
   }
@@ -269,20 +279,51 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
   this.rootNode._dialogInstance = this;
 
   document.body.append(this.rootNode);
-  var dialog = this;
+
+  if (title != null) {
+    this.setTitle(title);
+  }
+
   this.getCloseButton().addEventListener('click', function() {
     dialog.cancel();
   });
-  this.getCancelButton().addEventListener('click', function() {
-    dialog.cancel();
-  });
-  this.getOKButton().addEventListener('click', function() {
-    dialog.validate();
-  });
 
+  this.buttonsPanel = this.findElement('.dialog-buttons');
+  this.appendButtons(this.buttonsPanel);
 }
 JSDialogView.prototype = Object.create(JSComponentView.prototype);
 JSDialogView.prototype.constructor = JSDialogView;
+
+/**
+ * Append dialog buttons to given panel
+ * @param {HTMLElement} buttonsPanel Dialog buttons panel
+ * @protected
+ */
+JSDialogView.prototype.appendButtons = function(buttonsPanel) {
+  
+  var html;
+  if (this.applier) {
+    html = '<button class="dialog-ok-button">${OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">${OptionPane.cancelButton.textAndMnemonic}</button>';
+  } else {
+    html = '<button class="dialog-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>';
+  }
+  buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, html);
+
+  var dialog = this;
+
+  var cancelButton = this.findElement('.dialog-cancel-button');
+  if (cancelButton) {
+    this.registerEventListener(cancelButton, 'click', function() {
+      dialog.cancel();
+    });
+  }
+  var okButton = this.findElement('.dialog-ok-button');
+  if (okButton) {
+    this.registerEventListener(okButton, 'click', function() {
+      dialog.validate();
+    });
+  }
+};
 
 /**
  * close currently displayed topmost dialog if any
@@ -305,19 +346,18 @@ JSDialogView.closeTopMostDialogIfAny = function() {
 }
 
 JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
-  return JSComponentView.substituteWithLocale(this.preferences, '<div class="dialog-content">' +
-         (this.title ? '<div class="dialog-title">' + this.title : '') + 
-         '    <span class="dialog-close-button">&times;</span>' +
-         (this.title ? '  </div>' : '') +
-         '  <div class="dialog-body">' +
-         JSComponentView.prototype.buildHtmlFromTemplate.call(this, templateHtml) +
-         '  </div>' +
-         '  <div class="dialog-buttons">' +
-         (this.applier 
-         ? '      <button class="dialog-ok-button">${OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">${OptionPane.cancelButton.textAndMnemonic}</button>' 
-         : '      <button class="dialog-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>') + 
-         '  </div>' +
-         '</div>');
+  return JSComponentView.substituteWithLocale(this.preferences, 
+    '<div class="dialog-content">' +
+    '  <div class="dialog-top">' + 
+    '    <span class="title"></span>' +
+    '    <span class="dialog-close-button">&times;</span>' +
+    '  </div>' +
+    '  <div class="dialog-body">' +
+    JSComponentView.prototype.buildHtmlFromTemplate.call(this, templateHtml) +
+    '  </div>' +
+    '  <div class="dialog-buttons">' +
+    '  </div>' +
+    '</div>');
 }
 
 /**
@@ -325,20 +365,6 @@ JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
  */
 JSDialogView.prototype.getInput = function(name) {
   return this.rootNode.querySelector('[name="' + name + '"]');
-}
-
-/**
- * Returns the OK button of this dialog.
- */
-JSDialogView.prototype.getOKButton = function() {
-  return this.rootNode.querySelector('.dialog-ok-button');
-}
-
-/**
- * Returns the cancel button of this dialog.
- */
-JSDialogView.prototype.getCancelButton = function() {
-  return this.rootNode.querySelector('.dialog-cancel-button');
 }
 
 /**
@@ -392,6 +418,15 @@ JSDialogView.prototype.dispose = function() {
 };
 
 /**
+ * Sets dialog title
+ * @param {string} title
+ */
+JSDialogView.prototype.setTitle = function(title) {
+  var titleElement = this.findElement('.dialog-top .title');
+  titleElement.textContent = JSComponentView.substituteWithLocale(this.preferences, title || '');
+};
+
+/**
  * Default implementation of the DialogView.displayView function.
  */
 JSDialogView.prototype.displayView = function(parentView) {
@@ -406,6 +441,167 @@ JSDialogView.prototype.displayView = function(parentView) {
   }, 100);
 }
 JSDialogView.shownDialogsCounter = 0;
+
+/*****************************************/
+/* JSWizardDialog                        */
+/*****************************************/
+
+/**
+ * A class to create dialogs.
+ *
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {WizardController} controller wizard's controller
+ * @param {string} title the dialog's title (may contain HTML)
+ * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
+ * for the root node)
+ * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView)}} [behavior]
+ * - initializer: an optional initialization function
+ * - applier: an optional dialog application function
+ * - disposer: an optional dialog function to release associated resources, listeners, ...
+ * @constructor
+ * @author Louis Grignon
+ */
+function JSWizardDialog(viewFactory, controller, preferences, title, behavior) {
+  this.controller = controller;
+  
+  JSDialogView.call(
+    this, 
+    viewFactory, 
+    preferences, 
+    title, 
+    '<div class="wizard">' +
+    '  <div stepIcon></div>' +
+    '  <div stepView></div>' +
+    '</div>',
+    behavior);
+
+  this.stepIconPanel = this.findElement('[stepIcon]');
+  this.stepViewPanel = this.findElement('[stepView]');
+
+  var dialog = this;
+  this.updateStepView();
+  this.controller.addPropertyChangeListener('STEP_VIEW', function() {
+    dialog.updateStepView();
+  });
+
+  this.updateStepIcon();
+  this.controller.addPropertyChangeListener('STEP_ICON', function() {
+    dialog.updateStepIcon();
+  });
+}
+JSWizardDialog.prototype = Object.create(JSDialogView.prototype);
+JSWizardDialog.prototype.constructor = JSWizardDialog;
+
+/**
+ * Append dialog buttons to given panel
+ * @param {HTMLElement} buttonsPanel Dialog buttons panel
+ * @protected
+ */
+JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
+  
+  buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, 
+    '<div class="wizard-buttons">' + 
+    '  <button class="wizard-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>' + 
+    '  <button class="wizard-back-button">${WizardPane.backOptionButton.text}</button>' + 
+    '  <button class="wizard-next-button"></button>' +
+    '</div>'
+  );
+
+  this.cancelButton = this.findElement('.wizard-cancel-button');
+  this.backButton = this.findElement('.wizard-back-button');
+  this.nextButton = this.findElement('.wizard-next-button');
+
+  var dialog = this;
+  var controller = this.controller;
+  this.registerEventListener(this.cancelButton, 'click', function() {
+    dialog.cancel();
+  });
+
+  this.backButton.disabled = !controller.isBackStepEnabled();
+  controller.addPropertyChangeListener('BACK_STEP_ENABLED', function(event) {
+    dialog.backButton.disabled = !controller.isBackStepEnabled();
+  });
+
+  this.nextButton.disabled = !controller.isNextStepEnabled();
+  controller.addPropertyChangeListener('NEXT_STEP_ENABLED', function(event) {
+    dialog.nextButton.disabled = !controller.isNextStepEnabled();
+  });
+
+  this.updateNextButtonText();
+  controller.addPropertyChangeListener('LAST_STEP', function(event) {
+    dialog.updateNextButtonText();
+  });
+
+  this.registerEventListener(this.backButton, 'click', function() {
+    controller.goBackToPreviousStep();
+  });
+  this.registerEventListener(this.nextButton, 'click', function() {
+    if (controller.isLastStep()) {
+      controller.finish();
+      if (dialog != null) {
+        dialog.validate();
+      }
+    } else {
+      controller.goToNextStep();
+    }
+  });
+};
+
+/**
+ * Change text of the next button depending on if state is last step or not
+ * @private
+ */
+JSWizardDialog.prototype.updateNextButtonText = function() {
+  this.nextButton.innerText = this.getLocalizedLabelText(
+    'WizardPane',
+    this.controller.isLastStep()
+      ? "finishOptionButton.text"
+      : "nextOptionButton.text"
+  );
+}
+
+/**
+ * Update UI for current step
+ * @private
+ */
+JSWizardDialog.prototype.updateStepView = function() {
+  var stepView = this.controller.getStepView();
+  this.stepViewPanel.innerHTML = '';
+  this.stepViewPanel.appendChild(stepView.getRootNode());
+}
+
+/**
+ * Update image for current step
+ * @private
+ */
+JSWizardDialog.prototype.updateStepIcon = function() {
+    this.stepIconPanel.innerHTML = '';
+    // Add new icon
+    var stepIcon = this.controller.getStepIcon();
+    if (stepIcon != null) {
+      console.log(stepIcon)
+      var backgroundColor1 = 'rgb(163, 168, 226)';
+      var backgroundColor2 = 'rgb(80, 86, 158)';
+      try {
+        // Read gradient colors used to paint icon background
+        var stepIconBackgroundColors = this.getLocalizedLabelText(
+            'WizardPane', 'stepIconBackgroundColors').trim().split(" ");
+        backgroundColor1 = parseInt(stepIconBackgroundColors[0]) || backgroundColor1;
+        if (stepIconBackgroundColors.length == 1) {
+          backgroundColor2 = backgroundColor1;
+        } else if (stepIconBackgroundColors.length == 2) {
+          backgroundColor2 = parseInt(stepIconBackgroundColors[1]) || backgroundColor2;
+        }
+      } catch (e) {
+        // do not change if exception
+      }
+
+      var gradientColor1 = backgroundColor1;
+      var gradientColor2 = backgroundColor2;
+      var cssBackground = 'linear-gradient(180deg, ' + gradientColor1 + ' 0%, ' + gradientColor2 + ' 100%)';
+      this.stepIconPanel.innerHTML = '<img src="lib/' + stepIcon + '" style="background: ' + cssBackground + '; border: solid 1px #333333;" />';
+    }
+}
 
 /*****************************************/
 /* JSContextMenu                         */

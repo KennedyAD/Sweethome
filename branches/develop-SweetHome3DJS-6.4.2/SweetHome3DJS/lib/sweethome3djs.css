@@ -564,18 +564,21 @@
   top: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
+  margin: 0;
+  padding: 0;
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.4);
   font-size: 1em;
   font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
 }
 
 /* Modal Content/Box */
 .dialog-content {
   background-color: #fefefe;
   border: 1px solid #888;
-  margin: 10% auto;
+  margin: 0 auto;
+  top: 10%;
   width: 0;
   max-height: 0;
   opacity: 0;
@@ -584,6 +587,8 @@
   transition-duration: 0.6s;
   overflow: hidden;
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  display: flex;
+  flex-direction: column;
 }
 
 .dialog-container.visible .dialog-content {
@@ -593,16 +598,27 @@
   opacity: 1;
 }
 
-@media (max-width: 800px) {
-	.dialog-container.visible .dialog-content {
-    margin: 0px;
-	  height: 100%;
+@media (max-height: 600px) {
+  .dialog-container.visible .dialog-content {
+    top: 0;
+    bottom: 0;
+    height: 100%;
     max-height: 100%;
-	  width: 100%;
-	}
+  }
 }
 
-.dialog-content .dialog-title {
+@media (max-width: 800px) {
+  .dialog-container.visible .dialog-content {
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    max-height: 100%;
+    width: 100%;
+    box-shadow: none;
+  }
+}
+
+.dialog-content .dialog-top {
   text-align: center;
   height: 40px;
   line-height: 40px;
@@ -628,17 +644,12 @@
 }
 
 .dialog-body {
+  flex-grow: 1;
+  box-sizing: border-box;
   padding: 2em;
   padding-top: 1em;
   overflow: scroll;
-  max-height: calc(80% /* max content height */ - 80px /* title and buttons */ - 4em /* body padding */);
-}
-
-@media (max-width: 800px) {
-  .dialog-body {
-    max-height: 100%;
-    height: calc(100% /* max content height */ - 80px /* title and buttons */ - 4em /* body padding */);
-  }
+  max-height: calc(100% /* max content height */ - 80px /* title and buttons */);
 }
 
 .dialog-body .columns-2 {
@@ -656,14 +667,91 @@
 
 .dialog-content .dialog-buttons {
 	border-top: lightgrey solid 2px; 
-  padding-left: 1em;
-  padding-right: 1em;
+  padding: 0 1em;
   height: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .dialog-content .dialog-buttons button {
-	padding: 5px;
+  position: relative;
+  top: 20%;
+  margin-right: 1em;
   font-size: 1em;
+  cursor: pointer;
+}
+
+/*********************************/
+/* WIZARD                        */
+/*********************************/
+
+.wizard {
+  display: flex;
+  flex-direction: row;
+  height: 30em;
+}
+
+.wizard [stepIcon] {
+  flex-shrink: 1;
+  margin-right: 2em;
+  height: 100%;
+}
+
+.wizard [stepView] {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.wizard-buttons {
+  text-align: right;
+  position: relative;
+  height: 100%;
+}
+
+.dialog-content .dialog-buttons .wizard-buttons button:last-child {
+  margin-right: 0;
+}
+
+.wizard-buttons button.wizard-cancel-button {
+  position: absolute;
+  left: 0;
+}
+
+.imported-texture-wizard [imageStep] .buttons {
+  text-align: center;
+  margin: 1em 0;
+}
+
+.imported-texture-wizard [imageStep] [preview] {
+  text-align: center;
+  width: 20em;
+  height: 20em;
+  margin: 0 auto;
+}
+
+.imported-texture-wizard [imageStep] [preview] img {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+.imported-texture-wizard [attributesStep] [form] {
+  display: grid;
+  grid-template-columns: 4fr 2.5fr 3fr;
+  grid-gap: 1em;
+  margin: 1em;
+}
+
+.imported-texture-wizard [attributesStep] [form] [preview] {
+  grid-row: 1 / span 5;
+  text-align: center;
+  
+} 
+
+.imported-texture-wizard [attributesStep] [form] [preview] .image {
+  width: 16em;
+  height: 16em;
 }
 
 /*********************************/
@@ -1027,6 +1115,25 @@
 .texture-selector-dialog .selected-texture-config :nth-child(even) {
   text-align: left;
 }
+
+.texture-selector-dialog .column2 hr {
+  margin: 2em 0;
+}
+
+.texture-selector-dialog .imported-textures-panel {
+  text-align: center;
+  display: grid;
+  grid-template-columns: max-content;
+  row-gap: 1em;
+  column-gap: 0.2em;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.texture-selector-dialog .imported-textures-panel button {
+  width: 100%;
+}
+
 
 .recent-textures {
   text-align: center;

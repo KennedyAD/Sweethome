@@ -67,6 +67,12 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '      <div>${TextureChoiceComponent.scaleLabel.text}</div>' + 
     '      <div><input type="number" name="selected-texture-scale" step="5" min="5" max="10000" value="100" /></div>' + 
     '    </div>' + 
+    '    <hr />' +
+    '    <div class="imported-textures-panel" style="display: none">' + // TODO LOUIS: for now we disable import texture because this needs discussion between Renaud & Emmanuel on how to persist 
+    '      <div><button import>${TextureChoiceComponent.importTextureButton.text}</button></div>' +  
+    '      <div><button disabled modify>${TextureChoiceComponent.modifyTextureButton.text}</button></div>' +  
+    '      <div><button disabled delete>${TextureChoiceComponent.deleteTextureButton.text}</button></div>' +  
+    '    </div>' +  
     '  </div>' + 
     '</div>' +
     '<div class="recent-textures"></div>';
@@ -105,8 +111,9 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
         dialog.onCatalogTextureSelected(this.dataset['catalogId']);
       });
 
-      this.initCatalogTextureSearch();
-      this.initRecentTextures();      
+      dialog.initCatalogTextureSearch();
+      dialog.initRecentTextures();
+      dialog.initImportTexturesPanel();
     },
     applier: function(dialog) {
 
@@ -300,6 +307,20 @@ JSTextureSelectorDialog.prototype.initRecentTextures = function() {
   });
 }
 
+/**
+ * @private
+ */
+JSTextureSelectorDialog.prototype.initImportTexturesPanel = function() {
+  this.importTextureButton = this.findElement('.imported-textures-panel [import]');
+  this.modifyTextureButton = this.findElement('.imported-textures-panel [modify]');
+  this.deleteTextureButton = this.findElement('.imported-textures-panel [delete]');
+
+  var dialog = this;
+  var controller = this.textureChoiceController;
+  this.registerEventListener(this.importTextureButton, 'click', function() { controller.importTexture() });
+  this.registerEventListener(this.modifyTextureButton, 'click', function() { controller.modifyTexture(dialog.selectedTextureModel.catalogTexture) });
+  this.registerEventListener(this.deleteTextureButton, 'click', function() { controller.deleteTexture(dialog.selectedTextureModel.catalogTexture) });
+}
 
 /**
  * A component to select a texture through a dialog, after clicking a button.
