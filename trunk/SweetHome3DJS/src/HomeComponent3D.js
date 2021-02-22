@@ -201,7 +201,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
             keyStroke += "shift ";
           }
           keyStroke += "pressed " + keyName;
-          component3D.callAction(keyStroke, ev);
+          component3D.callAction(ev, keyStroke);
         };
       var stopInterval = function(ev) {
           window.clearInterval(intervalId);
@@ -1007,20 +1007,21 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
   var component3D = this;
   this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
-        component3D.callAction(ev, "keydown");
+        component3D.callAction(ev, KeyStroke.getKeyStrokeForEvent(ev, "keydown"));
       }, false);
   this.canvas3D.getHTMLElement().addEventListener("keyup", 
       function(ev) {
-        component3D.callAction(ev, "keyup");
+        component3D.callAction(ev, KeyStroke.getKeyStrokeForEvent(ev, "keyup"));
       }, false);
 }
 
 /**
  * Runs the action bound to the key stroke in parameter.
+ * @param {UIEvent} ev
+ * @param {string} keyStroke
  * @private 
  */
-HomeComponent3D.prototype.callAction = function(ev, keyType) {
-  var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, keyType);
+HomeComponent3D.prototype.callAction = function(ev, keyStroke) {
   if (keyStroke !== undefined) {
     var actionKey = this.inputMap [keyStroke];
     if (actionKey !== undefined) {
