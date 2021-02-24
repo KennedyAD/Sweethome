@@ -1647,11 +1647,24 @@ HomeComponent3D.prototype.addFurnitureListener = function(group) {
         updatePieceOfFurnitureGeometry(updatedPiece, propertyName, ev.getOldValue());
       } else if ("HEIGHT" == propertyName
           || "ELEVATION" == propertyName
+          || "MODEL" == propertyName
+          || "MODEL_ROTATION" == propertyName
           || "MODEL_MIRRORED" == propertyName
+          || "BACK_FACE_SHOWN" == propertyName
           || "MODEL_TRANSFORMATIONS" == propertyName
+          || "STAIRCASE_CUT_OUT_SHAPE" == propertyName
           || "VISIBLE" == propertyName
           || "LEVEL" == propertyName) {
         updatePieceOfFurnitureGeometry(updatedPiece, null, null);
+      } else if ("CUT_OUT_SHAPE" == propertyName
+          || "WALL_CUT_OUT_ON_BOTH_SIDES" == propertyName
+          || "WALL_WIDTH" == propertyName
+          || "WALL_LEFT" == propertyName
+          || "WALL_HEIGHT" == propertyName
+          || "WALL_TOP" == propertyName) {
+        if (component3D.containsDoorsAndWindows(updatedPiece)) {
+          component3D.updateIntersectingWalls([updatedPiece]);
+        }
       } else if ("COLOR" == propertyName
           || "TEXTURE" == propertyName
           || "MODEL_MATERIALS" == propertyName

@@ -496,7 +496,10 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
   var plan = this;
   var furnitureChangeListener = function(ev) {
       if (plan.furnitureTopViewIconKeys != null 
-          && ("MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
+          && ("MODEL" == ev.getPropertyName() 
+              || "MODEL_ROTATION" == ev.getPropertyName() 
+              || "BACK_FACE_SHOWN" == ev.getPropertyName() 
+              || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
               || "ROLL" == ev.getPropertyName() 
               || "PITCH" == ev.getPropertyName() 
               || ("WIDTH_IN_PLAN" == ev.getPropertyName() 
@@ -530,10 +533,11 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
         }
         plan.revalidate();
       } else if (plan.furnitureTopViewIconKeys != null 
-          && ("COLOR" == ev.getPropertyName() 
-              || "TEXTURE" == ev.getPropertyName() 
-              || "MODEL_MATERIALS" == ev.getPropertyName() 
-              || "SHININESS" == ev.getPropertyName())) {
+                 && ("PLAN_ICON" == ev.getPropertyName() 
+                     || "COLOR" == ev.getPropertyName() 
+                     || "TEXTURE" == ev.getPropertyName() 
+                     || "MODEL_MATERIALS" == ev.getPropertyName() 
+                     || "SHININESS" == ev.getPropertyName())) {
         plan.removeTopViewIconFromCache(ev.getSource());
         plan.repaint();
       } else if ("ELEVATION" == ev.getPropertyName() 
@@ -541,15 +545,22 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
                 || "HEIGHT_IN_PLAN" == ev.getPropertyName()) {
         plan.sortedLevelFurniture = null;
         plan.repaint();
+      } else if ("ICON" == ev.getPropertyName() 
+                 || "WALL_CUT_OUT_ON_BOTH_SIDES" == ev.getPropertyName()) {
+        plan.repaint();
       } else if (plan.doorOrWindowWallThicknessAreasCache != null 
                 && ("WIDTH" == ev.getPropertyName() 
                     || "DEPTH" == ev.getPropertyName() 
                     || "ANGLE" == ev.getPropertyName() 
                     || "MODEL_MIRRORED" == ev.getPropertyName() 
-                    || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
                     || "X" == ev.getPropertyName() 
                     || "Y" == ev.getPropertyName() 
-                    || "LEVEL" == ev.getPropertyName())
+                    || "LEVEL" == ev.getPropertyName()
+                    || "WALL_THICKNESS" == ev.getPropertyName()
+                    || "WALL_DISTANCE" == ev.getPropertyName()
+                    || "WALL_WIDTH" == ev.getPropertyName()
+                    || "WALL_LEFT" == ev.getPropertyName()
+                    || "CUT_OUT_SHAPE" == ev.getPropertyName())
                  && CoreTools.removeFromMap(plan.doorOrWindowWallThicknessAreasCache, ev.getSource()) != null) {
         plan.revalidate();
       } else {
