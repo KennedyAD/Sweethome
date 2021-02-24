@@ -301,3 +301,18 @@ Object3DBranch.prototype.getAreaPoints = function (area, areaPoints, areaHoles, 
   }
   return areaPointsWithoutHoles;
 }
+
+/**
+ * Returns <code>true</code> if the given arrays contain the same values. 
+ * @private
+ */
+Object3DBranch.areModelRotationsEqual = function(rotation1, rotation2) {
+  for (var i = 0; i < rotation1.length; i++) {
+    for (var j = 0; j < rotation2.length; j++) {
+      if (rotation1[i][j] !== rotation2 [i][j]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
