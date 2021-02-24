@@ -56,18 +56,32 @@ HomePieceOfFurniture3D.prototype.createPieceOfFurnitureNode = function(piece, wa
   pieceTransformGroup.setCapability(TransformGroup3D.ALLOW_TRANSFORM_WRITE);
   this.addChild(pieceTransformGroup);
   
+  this.loadPieceOfFurnitureModel(waitModelAndTextureLoadingEnd);
+}
+
+/**
+ * @private
+ */
+HomePieceOfFurniture3D.prototype.loadPieceOfFurnitureModel = function(waitModelAndTextureLoadingEnd) {
   // While loading model use a temporary node that displays a white box  
   var waitBranch = new BranchGroup3D();
   var normalization = new TransformGroup3D();
   normalization.addChild(this.getModelBox(vec3.fromValues(1, 1, 1)));
+  normalization.setUserData(PieceOfFurniture.IDENTITY_ROTATION);
   waitBranch.addChild(normalization);      
-  pieceTransformGroup.addChild(waitBranch);
+  
+  var transformGroup = this.getChild(0);
+  transformGroup.removeAllChildren();
+  transformGroup.addChild(waitBranch);
   
   // Set piece model initial location, orientation and size      
   this.updatePieceOfFurnitureTransform();
   
-  // Load piece real 3D model
+  var piece = this.getUserData();
+  // Store 3D model for possible future changes
   var model = piece.getModel();
+  transformGroup.setUserData(model);
+  // Load piece real 3D model
   var piece3D = this;
   ModelManager.getInstance().loadModel(model, waitModelAndTextureLoadingEnd, {
       modelUpdated : function(modelRoot) {
@@ -77,6 +91,8 @@ HomePieceOfFurniture3D.prototype.createPieceOfFurnitureNode = function(piece, wa
         // Add piece model scene to a normalized transform group
         var modelTransformGroup = ModelManager.getInstance().getNormalizedTransformGroup(
             modelRoot, modelRotation, 1, piece.isModelCenteredAtOrigin());
+        // Store model rotation for possible future changes
+        modelTransformGroup.setUserData(modelRotation);
         piece3D.updatePieceOfFurnitureModelNode(modelRoot, modelTransformGroup, waitModelAndTextureLoadingEnd);            
       },        
       modelError : function(ex) {
@@ -92,9 +108,17 @@ HomePieceOfFurniture3D.prototype.createPieceOfFurnitureNode = function(piece, wa
  */
 HomePieceOfFurniture3D.prototype.update = function() {
   if (this.isVisible()) {
-    this.updatePieceOfFurnitureModelTransformations();
-    this.updatePieceOfFurnitureTransform();
-    this.updatePieceOfFurnitureColorAndTexture(false);      
+    var piece = this.getUserData();
+    var transformGroup = this.getChild(0);
+    var normalization = transformGroup.getChild(0).getChild(0);
+    if (piece.getModel().equals(transformGroup.getUserData())
+        && Object3DBranch.areModelRotationsEqual(piece.getModelRotation(), normalization.getUserData())) {
+      this.updatePieceOfFurnitureModelTransformations();
+      this.updatePieceOfFurnitureTransform();
+      this.updatePieceOfFurnitureColorAndTexture(false);      
+    } else {
+      this.loadPieceOfFurnitureModel(false);
+    }
   }
   this.updatePieceOfFurnitureVisibility();      
 }

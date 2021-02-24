@@ -447,6 +447,7 @@ Wall3D.prototype.createWallGeometries = function(bottomGeometries, sideGeometrie
                 Wall3D.rotatedModelsFrontAreas.push({
                     model : this.doorOrWindow.getModel(),
                     modelRotation : this.doorOrWindow.getModelRotation(),
+                    cutOutShape : this.doorOrWindow.getCutOutShape(),
                     frontArea : frontArea});
               }
               
@@ -471,6 +472,7 @@ Wall3D.prototype.createWallGeometries = function(bottomGeometries, sideGeometrie
                 Wall3D.rotatedModelsFrontAreas.push({
                     model : this.doorOrWindow.getModel(),
                     modelRotation : this.doorOrWindow.getModelRotation(),
+                    cutOutShape : this.doorOrWindow.getCutOutShape(),
                     frontArea : Wall3D.FULL_FACE_CUT_OUT_AREA});
               }
               if (!waitDoorOrWindowModelsLoadingEnd) {
@@ -491,27 +493,13 @@ Wall3D.prototype.createWallGeometries = function(bottomGeometries, sideGeometrie
 Wall3D.getRotatedModelFrontArea = function(piece) {
   var rotatedModelFrontArea = null;
   for (var j = 0; j < Wall3D.rotatedModelsFrontAreas.length; j++) {
-    if (Wall3D.rotatedModelsFrontAreas [j].model === piece.getModel()
-        && Wall3D.areModelRotationsEqual(Wall3D.rotatedModelsFrontAreas [j].modelRotation, piece.getModelRotation())) {
+    if (Wall3D.rotatedModelsFrontAreas [j].model.equals(piece.getModel())
+        && Object3DBranch.areModelRotationsEqual(Wall3D.rotatedModelsFrontAreas [j].modelRotation, piece.getModelRotation())
+        && Wall3D.rotatedModelsFrontAreas [j].cutOutShape == piece.getCutOutShape()) {
       return Wall3D.rotatedModelsFrontAreas [j].frontArea;
     }
   }
   return null;
-}
-
-/**
- * Returns <code>true</code> if the given arrays contain the same values. 
- * @private
- */
-Wall3D.areModelRotationsEqual = function(rotation1, rotation2) {
-  for (var i = 0; i < rotation1.length; i++) {
-    for (var j = 0; j < rotation2.length; j++) {
-      if (rotation1[i][j] !== rotation2 [i][j]) {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 /**
