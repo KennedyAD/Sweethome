@@ -929,7 +929,8 @@ ModelManager.prototype.createPickableTransformGroup = function(deformableGroupPr
 ModelManager.prototype.containsDeformableNode = function(node) {
   if (node instanceof TransformGroup3D
       && node.getName() !== null
-      && node.getName().indexOf(DEFORMABLE_TRANSFORM_GROUP_SUFFIX) === (node.getName().length - DEFORMABLE_TRANSFORM_GROUP_SUFFIX.length)) {
+      && node.getName().indexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) >= 0
+      && node.getName().indexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) === (node.getName().length - ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX.length)) {
     return true;
   } else if (node instanceof Group3D) {
     var children = node.getChildren();
@@ -950,6 +951,7 @@ ModelManager.prototype.containsDeformableNode = function(node) {
 ModelManager.prototype.isDeformed = function(node) {
   if (node instanceof TransformGroup3D
       && node.getName() !== null
+      && node.getName().indexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) >= 0 
       && node.getName().indexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) === (node.getName().length - ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX.length)) {
     var transform = mat4.create();
     node.getTransform(transform);

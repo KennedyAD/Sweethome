@@ -285,6 +285,7 @@ HomePieceOfFurniture3D.prototype.setNotUpdatedTranformationsToIdentity = functio
   if (node instanceof Group3D) {
     if (node instanceof TransformGroup3D
         && node.getName() !== null
+        && node.getName().indexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) >= 0
         && node.getName().indexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) === node.getName().length - ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX.length
         && (updatedTransformations === null
             || updatedTransformations.indexOf(node.getName()) < 0)) {
