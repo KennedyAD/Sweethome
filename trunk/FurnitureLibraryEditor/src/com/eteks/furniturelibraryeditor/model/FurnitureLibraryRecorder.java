@@ -40,9 +40,14 @@ public interface FurnitureLibraryRecorder {
                                             FurnitureLibraryUserPreferences preferences) throws RecorderException;
 
   /**
-   * Writes a furniture library at the given location.  
+   * Writes a furniture library at the given location.
    */
   public abstract void writeFurnitureLibrary(FurnitureLibrary furnitureLibrary,
                                              String furnitureLibraryLocation,
                                              FurnitureLibraryUserPreferences preferences) throws RecorderException;
+
+  /**
+   * Returns <code>true</code> if the given location matches the default furniture library of Sweet Home 3D.
+   */
+  public abstract boolean isDefaultFurnitureLibrary(String furnitureLibraryLocation);
 }
