@@ -51,7 +51,7 @@ public class EditorController implements Controller {
    */
   public EditorController(final TexturesLibrary texturesLibrary,
                           TexturesLibraryRecorder recorder,
-                          TexturesLibraryUserPreferences preferences, 
+                          TexturesLibraryUserPreferences preferences,
                           EditorViewFactory viewFactory,
                           ContentManager  contentManager) {
     this.texturesLibrary = texturesLibrary;
@@ -71,7 +71,7 @@ public class EditorController implements Controller {
     }
     return this.editorView;
   }
-  
+
   /**
    * Returns the textures library controller managed by this controller.
    */
@@ -118,12 +118,12 @@ public class EditorController implements Controller {
           texturesLibrary.setModified(false);
         }
       };
-      
+
     if (this.texturesLibrary.isModified()) {
       switch (getView().confirmSave(this.texturesLibrary.getLocation())) {
         case SAVE   : save(newLibraryTask); // Falls through
         case CANCEL : return;
-      }  
+      }
     }
     newLibraryTask.run();
   }
@@ -136,19 +136,19 @@ public class EditorController implements Controller {
     Runnable openTask = new Runnable() {
         public void run() {
           String openTitle = preferences.getLocalizedString(EditorController.class, "openTitle");
-          String texturesLibraryLocation = contentManager.showOpenDialog(null, openTitle, 
+          String texturesLibraryLocation = contentManager.showOpenDialog(null, openTitle,
               ContentManager.ContentType.TEXTURES_LIBRARY);
           if (texturesLibraryLocation != null) {
             open(texturesLibraryLocation);
           }
         }
       };
-      
+
     if (this.texturesLibrary.isModified()) {
       switch (getView().confirmSave(this.texturesLibrary.getLocation())) {
         case SAVE   : save(openTask); // Falls through
         case CANCEL : return;
-      }  
+      }
     }
     openTask.run();
   }
@@ -158,7 +158,7 @@ public class EditorController implements Controller {
    */
   public void merge() {
     String mergeTitle = preferences.getLocalizedString(EditorController.class, "mergeTitle");
-    final String texturesLibraryLocation = contentManager.showOpenDialog(null, mergeTitle, 
+    final String texturesLibraryLocation = contentManager.showOpenDialog(null, mergeTitle,
         ContentManager.ContentType.TEXTURES_LIBRARY);
     if (texturesLibraryLocation != null) {
       Callable<Void> saveTask = new Callable<Void>() {
@@ -168,20 +168,20 @@ public class EditorController implements Controller {
             return null;
           }
         };
-      ThreadedTaskController.ExceptionHandler exceptionHandler = 
+      ThreadedTaskController.ExceptionHandler exceptionHandler =
           new ThreadedTaskController.ExceptionHandler() {
             public void handleException(Exception ex) {
               if (!(ex instanceof InterruptedRecorderException)) {
                 ex.printStackTrace();
                 if (ex instanceof RecorderException) {
-                  getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+                  getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
                       preferences.getLocalizedString(EditorController.class, "invalidFile"));
                 }
               }
             }
           };
-      new ThreadedTaskController(saveTask, 
-          this.preferences.getLocalizedString(EditorController.class, "mergeMessage"), exceptionHandler, 
+      new ThreadedTaskController(saveTask,
+          this.preferences.getLocalizedString(EditorController.class, "mergeMessage"), exceptionHandler,
           this.preferences, this.viewFactory).executeTask(getView());
     }
   }
@@ -194,28 +194,30 @@ public class EditorController implements Controller {
         public Void call() throws RecorderException {
           recorder.readTexturesLibrary(texturesLibrary, texturesLibraryLocation, preferences);
           getTexturesLanguageController().setTexturesLanguage(TexturesLibrary.DEFAULT_LANGUAGE);
-          texturesLibrary.setLocation(texturesLibraryLocation);
+          if (!recorder.isDefaultTexturesLibrary(texturesLibraryLocation)) {
+            texturesLibrary.setLocation(texturesLibraryLocation);
+          }
           texturesLibrary.setModified(false);
           return null;
         }
       };
-    ThreadedTaskController.ExceptionHandler exceptionHandler = 
+    ThreadedTaskController.ExceptionHandler exceptionHandler =
         new ThreadedTaskController.ExceptionHandler() {
           public void handleException(Exception ex) {
             if (!(ex instanceof InterruptedRecorderException)) {
               ex.printStackTrace();
               if (ex instanceof RecorderException) {
-                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
                     preferences.getLocalizedString(EditorController.class, "invalidFile"));
               }
             }
           }
         };
-    new ThreadedTaskController(saveTask, 
-        this.preferences.getLocalizedString(EditorController.class, "openMessage"), exceptionHandler, 
+    new ThreadedTaskController(saveTask,
+        this.preferences.getLocalizedString(EditorController.class, "openMessage"), exceptionHandler,
         this.preferences, this.viewFactory).executeTask(getView());
   }
-  
+
   /**
    * Saves the textures library.
    */
@@ -224,7 +226,7 @@ public class EditorController implements Controller {
   }
 
   /**
-   * Saves the library managed by this controller and executes <code>postSaveTask</code> 
+   * Saves the library managed by this controller and executes <code>postSaveTask</code>
    * if it's not <code>null</code>.
    */
   private void save(Runnable postSaveTask) {
@@ -234,7 +236,7 @@ public class EditorController implements Controller {
       save(this.texturesLibrary.getLocation(), postSaveTask);
     }
   }
-  
+
   /**
    * Saves the textures library under a different location.
    */
@@ -243,23 +245,23 @@ public class EditorController implements Controller {
   }
 
   /**
-   * Saves the textures library under a different location and executes <code>postSaveTask</code> 
+   * Saves the textures library under a different location and executes <code>postSaveTask</code>
    * if it's not <code>null</code>.
    */
   private void saveAs(Runnable postSaveTask) {
     String saveTitle = this.preferences.getLocalizedString(EditorController.class, "saveTitle");
-    String texturesLibraryLocation = this.contentManager.showSaveDialog(null, saveTitle, 
+    String texturesLibraryLocation = this.contentManager.showSaveDialog(null, saveTitle,
         ContentManager.ContentType.TEXTURES_LIBRARY, this.texturesLibrary.getLocation());
     if (texturesLibraryLocation != null) {
       save(texturesLibraryLocation, postSaveTask);
     }
   }
-  
+
   /**
-   * Actually saves the library managed by this controller and executes <code>postSaveTask</code> 
+   * Actually saves the library managed by this controller and executes <code>postSaveTask</code>
    * if it's not <code>null</code>.
    */
-  private void save(final String location, 
+  private void save(final String location,
                     final Runnable postSaveTask) {
     Callable<Void> saveTask = new Callable<Void>() {
         public Void call() throws RecorderException {
@@ -276,20 +278,20 @@ public class EditorController implements Controller {
           return null;
         }
       };
-    ThreadedTaskController.ExceptionHandler exceptionHandler = 
+    ThreadedTaskController.ExceptionHandler exceptionHandler =
         new ThreadedTaskController.ExceptionHandler() {
           public void handleException(Exception ex) {
             if (!(ex instanceof InterruptedRecorderException)) {
               ex.printStackTrace();
               if (ex instanceof RecorderException) {
-                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
                     preferences.getLocalizedString(EditorController.class, "saveError"));
               }
             }
           }
         };
-    new ThreadedTaskController(saveTask, 
-        this.preferences.getLocalizedString(EditorController.class, "saveMessage"), exceptionHandler, 
+    new ThreadedTaskController(saveTask,
+        this.preferences.getLocalizedString(EditorController.class, "saveMessage"), exceptionHandler,
         this.preferences, this.viewFactory).executeTask(getView());
   }
 
@@ -303,12 +305,12 @@ public class EditorController implements Controller {
           System.exit(0);
         }
       };
-      
+
     if (this.texturesLibrary.isModified()) {
       switch (getView().confirmSave(this.texturesLibrary.getLocation())) {
         case SAVE   : save(exitTask); // Falls through
         case CANCEL : return;
-      }  
+      }
     }
     exitTask.run();
   }
@@ -329,7 +331,7 @@ public class EditorController implements Controller {
           this.viewFactory, this.contentManager).displayView(getView());
       this.preferences.write();
     } catch (RecorderException ex) {
-      getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+      getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
           preferences.getLocalizedString(EditorController.class, "savePreferencesError"));
     }
   }

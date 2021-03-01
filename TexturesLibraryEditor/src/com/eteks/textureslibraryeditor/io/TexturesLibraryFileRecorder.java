@@ -66,24 +66,26 @@ import com.eteks.textureslibraryeditor.model.TexturesLibraryUserPreferences;
  * @author Emmanuel Puybaret
  */
 public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
+  private static final String DEFAULT_TEXTURES_LIBRARY = "Textures.jar";
+
   private static final Locale DEFAULT_LOCALE = new Locale("");
-  
-  private static final String ID          = "id"; 
-  private static final String NAME        = "name"; 
-  private static final String DESCRIPTION = "description"; 
-  private static final String VERSION     = "version"; 
-  private static final String LICENSE     = "license"; 
-  private static final String PROVIDER    = "provider"; 
-  
+
+  private static final String ID          = "id";
+  private static final String NAME        = "name";
+  private static final String DESCRIPTION = "description";
+  private static final String VERSION     = "version";
+  private static final String LICENSE     = "license";
+  private static final String PROVIDER    = "provider";
+
   /**
    * Reads a textures library from the given file, after clearing the given library.
    */
-  public void readTexturesLibrary(final TexturesLibrary texturesLibrary, 
+  public void readTexturesLibrary(final TexturesLibrary texturesLibrary,
                                   String texturesLibraryLocation,
                                   TexturesLibraryUserPreferences preferences) throws RecorderException {
     readTexturesLibrary(texturesLibrary, texturesLibraryLocation, preferences, false);
   }
-  
+
   /**
    * Merges a textures library with one in the given file.
    */
@@ -94,19 +96,56 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
   }
 
   /**
+   * Returns <code>true</code> if the given location matches the default textures library of Sweet Home 3D.
+   */
+  public boolean isDefaultTexturesLibrary(String texturesLibraryLocation) {
+    return DEFAULT_TEXTURES_LIBRARY.equals(new File(texturesLibraryLocation).getName());
+  }
+
+  /**
    * Reads a Textures library from the given file.
    */
-  private void readTexturesLibrary(final TexturesLibrary texturesLibrary, 
-                                   String texturesLibraryLocation, 
-                                   TexturesLibraryUserPreferences preferences, 
+  private void readTexturesLibrary(final TexturesLibrary texturesLibrary,
+                                   String texturesLibraryLocation,
+                                   TexturesLibraryUserPreferences preferences,
                                    final boolean mergeLibrary) throws RecorderException {
     try {
-      // Retrieve textures library with default reader and locale 
+      // Retrieve textures library with default reader and locale
       Locale defaultLocale = Locale.getDefault();
       Locale.setDefault(DEFAULT_LOCALE);
       File texturesLibraryFile = File.createTempFile("textures", ".sh3t");
       texturesLibraryFile.deleteOnExit();
-      copyFile(new File(texturesLibraryLocation), texturesLibraryFile);      
+      if (isDefaultTexturesLibrary(texturesLibraryLocation)) {
+        // Copy default textures library entries, renaming entries with DefaultTexturesCatalog as PluginTexturesCatalog
+        String defaultTexturesCatalogPrefix = DefaultTexturesCatalog.class.getName().replace('.', '/');
+        URL texturesLibraryUrl = new File(texturesLibraryLocation).toURI().toURL();
+        List<ZipEntry> zipEntries = getZipEntries(texturesLibraryUrl);
+        ZipOutputStream zipOut = null;
+        try {
+          zipOut = new ZipOutputStream(new FileOutputStream(texturesLibraryFile));
+          zipOut.setLevel(0);
+          for (ZipEntry zipEntry : zipEntries) {
+            String entryName = zipEntry.getName();
+            if (entryName.startsWith(defaultTexturesCatalogPrefix)
+                && entryName.endsWith(".properties")) {
+              entryName = entryName.replace(defaultTexturesCatalogPrefix, DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY);
+            }
+            writeZipEntry(zipOut, new URLContent(new URL("jar:" + texturesLibraryUrl + "!/" + zipEntry.getName())), entryName);
+          }
+        } catch (IOException ex) {
+          throw new RecorderException("Can't copy library file " + texturesLibraryLocation, ex);
+        } finally {
+          if (zipOut != null) {
+            try {
+              zipOut.close();
+            } catch (IOException ex) {
+              throw new RecorderException("Can't copy library file " + texturesLibraryLocation, ex);
+            }
+          }
+        }
+      } else {
+        copyFile(new File(texturesLibraryLocation), texturesLibraryFile);
+      }
       URL texturesLibraryUrl = texturesLibraryFile.toURI().toURL();
       String texturesResourcesLocalDirectory = preferences.getTexturesResourcesLocalDirectory();
       URL texturesResourcesUrlBase = texturesResourcesLocalDirectory != null
@@ -136,7 +175,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             }
             return texture;
           }
-          
+
           private String getOptionalString(ResourceBundle resource, String propertyKey) {
             try {
               return resource.getString(propertyKey);
@@ -145,10 +184,10 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             }
           }
         };
-      
+
       // Search which locales are supported
       List<ZipEntry> zipEntries = getZipEntries(texturesLibraryUrl);
-      Set<Locale>    supportedLocales = new HashSet<Locale>(); 
+      Set<Locale>    supportedLocales = new HashSet<Locale>();
       for (ZipEntry zipEntry : zipEntries) {
         String entryName = zipEntry.getName();
         if (entryName.startsWith(DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY)
@@ -169,7 +208,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
 
       // Get textures name and category name in each supported locale
       for (Locale locale : supportedLocales) {
-        if (!TexturesLibrary.DEFAULT_LANGUAGE.equals(locale.toString())) {          
+        if (!TexturesLibrary.DEFAULT_LANGUAGE.equals(locale.toString())) {
           Locale.setDefault(locale);
           final String language = locale.toString();
           new DefaultTexturesCatalog(new URL [] {texturesLibraryUrl}, texturesResourcesUrlBase) {
@@ -182,9 +221,9 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
                 if (texture != null) {
                   TexturesCategory category = super.readTexturesCategory(resource, index);
                   CatalogTexture texturesLibraryItem = textures.get(index - 1);
-                  texturesLibrary.setTextureLocalizedData(texturesLibraryItem, language, 
+                  texturesLibrary.setTextureLocalizedData(texturesLibraryItem, language,
                       TexturesLibrary.TEXTURES_NAME_PROPERTY, texture.getName());
-                  texturesLibrary.setTextureLocalizedData(texturesLibraryItem, language, 
+                  texturesLibrary.setTextureLocalizedData(texturesLibraryItem, language,
                       TexturesLibrary.TEXTURES_CATEGORY_PROPERTY, category.getName());
                 }
                 return texture;
@@ -192,7 +231,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             };
         }
       }
-      
+
       Locale.setDefault(defaultLocale);
     } catch (IOException ex) {
       throw new RecorderException("Invalid textures library file " + texturesLibraryLocation, ex);
@@ -213,32 +252,32 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       return new Locale(localeString.substring(1, 3), localeString.substring(4));
     } else {
       return DEFAULT_LOCALE;
-    }  
+    }
   }
-  
+
   /**
-   * Writes textures library in the <code>texturesLibraryName</code> file.  
+   * Writes textures library in the <code>texturesLibraryName</code> file.
    */
   public void writeTexturesLibrary(TexturesLibrary texturesLibrary,
                                     String texturesLibraryName,
                                     TexturesLibraryUserPreferences userPreferences) throws RecorderException {
-    writeTexturesLibrary(texturesLibrary, texturesLibraryName, 
-        userPreferences.isTexturesLibraryOffline(), 
+    writeTexturesLibrary(texturesLibrary, texturesLibraryName,
+        userPreferences.isTexturesLibraryOffline(),
         userPreferences.isContentMatchingTexturesName(),
-        userPreferences.getTexturesResourcesLocalDirectory(), 
+        userPreferences.getTexturesResourcesLocalDirectory(),
         userPreferences.getTexturesResourcesRemoteURLBase());
   }
 
   /**
-   * Writes textures library .properties files in the <code>texturesLibraryName</code> file. 
-   * @param offlineTexturesLibrary if <code>offlineTexturesLibrary</code> is <code>true</code> content 
+   * Writes textures library .properties files in the <code>texturesLibraryName</code> file.
+   * @param offlineTexturesLibrary if <code>offlineTexturesLibrary</code> is <code>true</code> content
    *                       referenced by textures is always embedded in the file
-   * @param contentMatchingTexturesName <code>true</code> if the textures content saved with the library 
-   *                       should be named from the textures name in the default language                      
+   * @param contentMatchingTexturesName <code>true</code> if the textures content saved with the library
+   *                       should be named from the textures name in the default language
    * @param texturesResourcesLocalDirectory  directory where content referenced by textures will be saved
    *                       if it isn't <code>null</code>
-   * @param texturesResourcesRemoteUrlBase   URL base used for content referenced by textures in .properties file 
-   *                       if <code>texturesResourcesLocalDirectory</code> isn't <code>null</code>              
+   * @param texturesResourcesRemoteUrlBase   URL base used for content referenced by textures in .properties file
+   *                       if <code>texturesResourcesLocalDirectory</code> isn't <code>null</code>
    */
   private void writeTexturesLibrary(TexturesLibrary texturesLibrary,
                                      String texturesLibraryLocation,
@@ -248,7 +287,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
                                      String  texturesResourcesRemoteUrlBase) throws RecorderException {
     URL texturesResourcesRemoteAbsoluteUrlBase = null;
     String texturesResourcesRemoteRelativeUrlBase = null;
-    if (!offlineTexturesLibrary 
+    if (!offlineTexturesLibrary
         && texturesResourcesLocalDirectory != null
         && texturesResourcesRemoteUrlBase != null) {
       try {
@@ -264,22 +303,22 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
         }
       }
     }
-    
+
     ZipOutputStream zipOut = null;
     Map<Content, String> contentEntries = new HashMap<Content, String>();
     File texturesLibraryFile = new File(texturesLibraryLocation);
     File tmpFile = null;
     try {
-      tmpFile = File.createTempFile("temp", ".sh3t"); 
+      tmpFile = File.createTempFile("temp", ".sh3t");
       OutputStream out = new FileOutputStream(tmpFile);
       if (out != null) {
-        // Create a zip output on file  
+        // Create a zip output on file
         zipOut = new ZipOutputStream(out);
-        // Write textures description file in first entry 
+        // Write textures description file in first entry
         zipOut.putNextEntry(new ZipEntry(DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + ".properties"));
-        writeTexturesLibraryProperties(zipOut, texturesLibrary, texturesLibraryFile, 
+        writeTexturesLibraryProperties(zipOut, texturesLibrary, texturesLibraryFile,
             offlineTexturesLibrary, contentMatchingTexturesName,
-            texturesResourcesRemoteAbsoluteUrlBase, texturesResourcesRemoteRelativeUrlBase, 
+            texturesResourcesRemoteAbsoluteUrlBase, texturesResourcesRemoteRelativeUrlBase,
             contentEntries);
         zipOut.closeEntry();
         // Write supported languages description files
@@ -289,7 +328,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             writeTexturesLibraryLocalizedProperties(zipOut, texturesLibrary, language);
             zipOut.closeEntry();
           }
-        }        
+        }
         // Write Content objects in files
         writeContents(zipOut, offlineTexturesLibrary, texturesResourcesLocalDirectory, contentEntries);
         // Finish zip writing
@@ -315,24 +354,24 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
 
   /**
    * Writes in <code>output</code> the given textures library
-   * with properties as defined as in <code>DefaultTexturesCatalog</code>. 
+   * with properties as defined as in <code>DefaultTexturesCatalog</code>.
    */
   private void writeTexturesLibraryProperties(OutputStream output,
                                                TexturesLibrary texturesLibrary,
                                                File texturesLibraryFile,
-                                               boolean offlineTexturesLibrary, 
+                                               boolean offlineTexturesLibrary,
                                                boolean contentMatchingTexturesName,
                                                URL texturesResourcesRemoteAbsoluteUrlBase,
-                                               String texturesResourcesRemoteRelativeUrlBase, 
+                                               String texturesResourcesRemoteRelativeUrlBase,
                                                Map<Content, String> contentEntries) throws IOException {
     boolean keepURLContentUnchanged = !offlineTexturesLibrary
-        && texturesResourcesRemoteAbsoluteUrlBase == null 
+        && texturesResourcesRemoteAbsoluteUrlBase == null
         && texturesResourcesRemoteRelativeUrlBase == null;
     // Store existing entries in lower case to be able to compare their names ignoring case
     Set<String> existingEntryNamesLowerCase = new HashSet<String>();
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "ISO-8859-1"));
-    final String CATALOG_FILE_HEADER = "#\n# " 
-        + DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + ".properties %tc\n" 
+    final String CATALOG_FILE_HEADER = "#\n# "
+        + DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + ".properties %tc\n"
         + "# Generated by Textures Library Editor\n#\n";
     writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
     writer.newLine();
@@ -342,7 +381,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     writeProperty(writer, VERSION, texturesLibrary.getVersion());
     writeProperty(writer, LICENSE, texturesLibrary.getLicense());
     writeProperty(writer, PROVIDER, texturesLibrary.getProvider());
-    
+
     int i = 1;
     for (CatalogTexture texture : texturesLibrary.getTextures()) {
       writer.newLine();
@@ -374,14 +413,14 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       String imageContentEntryName = contentEntries.get(textureImage);
       // If image content not referenced among saved content yet
       if (imageContentEntryName == null) {
-        imageContentEntryName = getContentEntry(textureImage, contentBaseName + contentExtension, 
+        imageContentEntryName = getContentEntry(textureImage, contentBaseName + contentExtension,
             keepURLContentUnchanged, existingEntryNamesLowerCase);
         if (imageContentEntryName != null) {
           contentEntries.put(textureImage, imageContentEntryName);
         }
       }
-      writeProperty(writer, DefaultTexturesCatalog.PropertyKey.IMAGE, i, 
-          getContentProperty(textureImage, imageContentEntryName, offlineTexturesLibrary, 
+      writeProperty(writer, DefaultTexturesCatalog.PropertyKey.IMAGE, i,
+          getContentProperty(textureImage, imageContentEntryName, offlineTexturesLibrary,
               texturesResourcesRemoteAbsoluteUrlBase, texturesResourcesRemoteRelativeUrlBase));
       writeProperty(writer, DefaultTexturesCatalog.PropertyKey.WIDTH, i, texture.getWidth());
       writeProperty(writer, DefaultTexturesCatalog.PropertyKey.HEIGHT, i, texture.getHeight());
@@ -390,17 +429,17 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     }
     writer.flush();
   }
-  
+
   /**
    * Writes in <code>output</code> the given textures library
-   * with properties as defined as in <code>DefaultTexturesCatalog</code>. 
+   * with properties as defined as in <code>DefaultTexturesCatalog</code>.
    */
   private void writeTexturesLibraryLocalizedProperties(OutputStream output,
                                                         TexturesLibrary texturesLibrary,
                                                         String language) throws IOException {
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "ISO-8859-1"));
-    final String CATALOG_FILE_HEADER = "#\n# " 
-        + DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + "_" + language + ".properties %tc\n" 
+    final String CATALOG_FILE_HEADER = "#\n# "
+        + DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + "_" + language + ".properties %tc\n"
         + "# Generated by Textures Library Editor\n#\n";
     writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
     int i = 1;
@@ -420,17 +459,17 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     }
     writer.flush();
   }
-    
+
   /**
    * Returns the entry name of a <code>content</code>.
    */
   private String getContentEntry(Content content,
                                  String entryName,
-                                 boolean keepURLContentUnchanged, 
+                                 boolean keepURLContentUnchanged,
                                  Set<String> existingEntryNamesLowerCase) throws IOException {
     if (content instanceof TemporaryURLContent
         || content instanceof ResourceURLContent) {
-      int slashIndex = entryName.indexOf('/'); 
+      int slashIndex = entryName.indexOf('/');
       if (slashIndex == -1) {
         if (existingEntryNamesLowerCase.contains(entryName.toLowerCase())) {
           // Search an unexisting entry name
@@ -438,8 +477,8 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
           String defaultEntryName = entryName;
           do {
             int dotIndex = defaultEntryName.lastIndexOf('.');
-            entryName = defaultEntryName.substring(0, dotIndex) 
-                + i++ + defaultEntryName.substring(dotIndex);  
+            entryName = defaultEntryName.substring(0, dotIndex)
+                + i++ + defaultEntryName.substring(dotIndex);
           } while (existingEntryNamesLowerCase.contains(entryName.toLowerCase()));
         }
       } else {
@@ -458,7 +497,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
           }
           if (entryDirectoryExists) {
             entryDirectory = entryName.substring(0, slashIndex) + i++ + "/";
-          } else {            
+          } else {
             entryName = entryDirectory + entryName.substring(slashIndex + 1);
             break;
           }
@@ -498,8 +537,8 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    * Returns the property value saved for a resource <code>content</code>.
    */
   private String getContentProperty(Content content,
-                                    String  entryName, 
-                                    boolean offlineTexturesLibrary, 
+                                    String  entryName,
+                                    boolean offlineTexturesLibrary,
                                     URL texturesResourcesRemoteAbsoluteUrlBase,
                                     String texturesResourcesRemoteRelativeUrlBase) throws IOException {
     if (offlineTexturesLibrary
@@ -520,10 +559,10 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       } else {
         String encodedEntry = URLEncoder.encode(entryName.substring(slashIndex + 1), "UTF-8").replace("+", "%20").replace("%2F", "/");
         if (texturesResourcesRemoteAbsoluteUrlBase != null) {
-          return "jar:" + new URL(texturesResourcesRemoteAbsoluteUrlBase, entryName.substring(0, slashIndex) + ".zip") 
+          return "jar:" + new URL(texturesResourcesRemoteAbsoluteUrlBase, entryName.substring(0, slashIndex) + ".zip")
               + "!/" + encodedEntry;
         } else {
-          return texturesResourcesRemoteRelativeUrlBase + entryName.substring(0, slashIndex) + ".zip" 
+          return texturesResourcesRemoteRelativeUrlBase + entryName.substring(0, slashIndex) + ".zip"
               + "!/" + encodedEntry;
         }
       }
@@ -531,13 +570,13 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       return ((URLContent)content).getURL().toString();
     }
   }
-  
+
   /**
    * Writes the (<code>key</code>, <code>value</code>) of a property
    * in <code>writer</code>.
    */
-  private void writeProperty(BufferedWriter writer, 
-                             DefaultTexturesCatalog.PropertyKey key, 
+  private void writeProperty(BufferedWriter writer,
+                             DefaultTexturesCatalog.PropertyKey key,
                              int index, Object value) throws IOException {
     writeProperty(writer, key.getKey(index), value);
   }
@@ -546,16 +585,16 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    * Writes the (<code>key</code>, <code>value</code>) of a property
    * in <code>writer</code>, if the <code>value</code> isn't <code>null</code>.
    */
-  private void writeProperty(BufferedWriter writer, 
-                             String key, 
+  private void writeProperty(BufferedWriter writer,
+                             String key,
                              Object value) throws IOException {
     if (value != null) {
       writer.write(key);
-      writer.write("=");    
+      writer.write("=");
       String s = value.toString();
       CharsetEncoder encoder = Charset.forName("ISO-8859-1").newEncoder();
       for (int i = 0; i < s.length(); i++) {
-        char c = s.charAt(i);      
+        char c = s.charAt(i);
         switch (c) {
           case '\\':
             writer.write('\\');
@@ -586,8 +625,8 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    * Writes in <code>zipOut</code> stream the given contents.
    */
   private void writeContents(ZipOutputStream zipOut,
-                             boolean offlineTexturesLibrary, 
-                             String  texturesResourcesLocalDirectory, 
+                             boolean offlineTexturesLibrary,
+                             String  texturesResourcesLocalDirectory,
                              Map<Content, String> contentEntries) throws IOException, InterruptedRecorderException {
     if (!offlineTexturesLibrary && texturesResourcesLocalDirectory != null) {
       // Check local directory
@@ -600,15 +639,15 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
         throw new IOException(directory + " isn't a directory");
       }
     }
-    
+
     Map<String, List<ZipEntry>> zipUrlsEntries = new HashMap<String, List<ZipEntry>>();
     for (Map.Entry<Content, String> contentEntry : contentEntries.entrySet()) {
       Content content = contentEntry.getKey();
       if (content instanceof URLContent) {
         URLContent urlContent = (URLContent)content;
         String entryName = contentEntry.getValue();
-        if (entryName.indexOf('/') != -1) { 
-          writeZipEntries(zipOut, offlineTexturesLibrary, texturesResourcesLocalDirectory, 
+        if (entryName.indexOf('/') != -1) {
+          writeZipEntries(zipOut, offlineTexturesLibrary, texturesResourcesLocalDirectory,
               urlContent, entryName, zipUrlsEntries);
         } else if (offlineTexturesLibrary || texturesResourcesLocalDirectory == null) {
           writeZipEntry(zipOut, urlContent, entryName);
@@ -622,20 +661,20 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       if (Thread.interrupted()) {
         throw new InterruptedRecorderException();
       }
-    }  
+    }
   }
-  
+
   /**
-   * Writes in <code>zipOut</code> stream all the sibling files of the zipped 
+   * Writes in <code>zipOut</code> stream all the sibling files of the zipped
    * <code>content</code>.
    */
   private void writeZipEntries(ZipOutputStream zipOut,
                                boolean offlineTexturesLibrary,
-                               String texturesResourcesLocalDirectory, 
-                               URLContent content, 
-                               String mainEntryName, 
+                               String texturesResourcesLocalDirectory,
+                               URLContent content,
+                               String mainEntryName,
                                Map<String, List<ZipEntry>> zipUrlsEntries) throws IOException {
-    String mainEntryDirectory = mainEntryName.substring(0, mainEntryName.indexOf('/')); 
+    String mainEntryDirectory = mainEntryName.substring(0, mainEntryName.indexOf('/'));
     if (!offlineTexturesLibrary && texturesResourcesLocalDirectory != null) {
       // Write content entries in a separate zipped file, if the file doesn't exist
       File file = new File(texturesResourcesLocalDirectory, mainEntryDirectory + ".zip");
@@ -647,31 +686,31 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     } else {
       mainEntryDirectory += "/";
     }
-    
+
     String contentDirectory = "";
     if (content instanceof ResourceURLContent) {
       contentDirectory = URLDecoder.decode(content.getJAREntryName().replace("+", "%2B"), "UTF-8");
-      int slashIndex = contentDirectory.lastIndexOf('/'); 
+      int slashIndex = contentDirectory.lastIndexOf('/');
       if (slashIndex != -1) {
         contentDirectory = contentDirectory.substring(0, slashIndex + 1);
       }
     }
-    
+
     URL zipUrl = content.getJAREntryURL();
-    // Keep in cache the entries of the read zip files to speed up save process 
+    // Keep in cache the entries of the read zip files to speed up save process
     List<ZipEntry> entries = zipUrlsEntries.get(zipUrl.toString());
     if (entries == null) {
       zipUrlsEntries.put(zipUrl.toString(), entries = getZipEntries(zipUrl));
     }
     for (ZipEntry entry : entries) {
       String zipEntryName = entry.getName();
-      URLContent siblingContent = new URLContent(new URL("jar:" + zipUrl + "!/" + 
+      URLContent siblingContent = new URLContent(new URL("jar:" + zipUrl + "!/" +
           URLEncoder.encode(zipEntryName, "UTF-8").replace("+", "%20")));
       if (contentDirectory.length() == 0) {
-        // Write each zipped stream entry that is stored in content except useless content  
+        // Write each zipped stream entry that is stored in content except useless content
         writeZipEntry(zipOut, siblingContent, mainEntryDirectory + zipEntryName);
       } else if (zipEntryName.startsWith(contentDirectory)) {
-        // Write each zipped stream entry that is stored in the same directory as content  
+        // Write each zipped stream entry that is stored in the same directory as content
         writeZipEntry(zipOut, siblingContent, mainEntryDirectory + zipEntryName.substring(contentDirectory.length()));
       }
     }
@@ -703,24 +742,24 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
   }
 
   /**
-   * Writes in <code>zipOut</code> stream a new entry named <code>entryName</code> that 
+   * Writes in <code>zipOut</code> stream a new entry named <code>entryName</code> that
    * contains a given <code>content</code>.
    */
-  private void writeZipEntry(ZipOutputStream zipOut, 
-                             URLContent content, 
+  private void writeZipEntry(ZipOutputStream zipOut,
+                             URLContent content,
                              String entryName) throws IOException {
     byte [] buffer = new byte [8096];
     InputStream contentIn = null;
     try {
       zipOut.putNextEntry(new ZipEntry(entryName));
-      contentIn = content.openStream();          
-      int size; 
+      contentIn = content.openStream();
+      int size;
       while ((size = contentIn.read(buffer)) != -1) {
         zipOut.write(buffer, 0, size);
       }
-      zipOut.closeEntry();  
+      zipOut.closeEntry();
     } finally {
-      if (contentIn != null) {          
+      if (contentIn != null) {
         contentIn.close();
       }
     }
@@ -734,11 +773,11 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     try {
       in = content.openStream();
       copyContentToFile(in, file);
-    } catch (IOException ex) { 
+    } catch (IOException ex) {
       throw new IOException("Can't copy content " + content + " to " + file);
     } finally {
       try {
-        if (in != null) {          
+        if (in != null) {
           in.close();
         }
       } catch (IOException ex) {
@@ -755,11 +794,11 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     try {
       in = new FileInputStream(file1);
       copyContentToFile(in, file2);
-    } catch (IOException ex) { 
+    } catch (IOException ex) {
       throw new IOException("Can't copy file " + file1 + " to " + file2);
     } finally {
       try {
-        if (in != null) {          
+        if (in != null) {
           in.close();
         }
       } catch (IOException ex) {
@@ -767,7 +806,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       }
     }
   }
-  
+
   /**
    * Copy the content of <code>in</code> stream to <code>file</code>.
    */
@@ -776,13 +815,13 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     OutputStream out = null;
     try {
       out = new FileOutputStream(file);
-      int size; 
+      int size;
       while ((size = in.read(buffer)) != -1) {
         out.write(buffer, 0, size);
       }
     } finally {
       try {
-        if (out != null) {          
+        if (out != null) {
           out.close();
         }
       } catch (IOException ex) {
