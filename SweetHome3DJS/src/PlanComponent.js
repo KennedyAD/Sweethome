@@ -506,7 +506,9 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
                   || "DEPTH_IN_PLAN" == ev.getPropertyName() 
                   || "HEIGHT_IN_PLAN" == ev.getPropertyName())
                  && (ev.getSource().isHorizontallyRotated() 
-                     || ev.getSource().getTexture() != null))) {
+                     || ev.getSource().getTexture() != null)
+              || "MODEL_MIRRORED" == ev.getPropertyName() 
+                 && ev.getSource().getRoll() != 0)) {
         if ("HEIGHT_IN_PLAN" == ev.getPropertyName()) {
           plan.sortedLevelFurniture = null;
         }
@@ -4468,7 +4470,8 @@ PlanComponent.prototype.paintPieceOfFurnitureTop = function(g2D, piece, pieceSha
     g2D.translate(bounds.getCenterX(), bounds.getCenterY());
     g2D.rotate(piece.getAngle());
     var pieceDepth = piece.getDepthInPlan();
-    if (piece.isModelMirrored()) {
+    if (piece.isModelMirrored()
+        && piece.getRoll() == 0) {
       g2D.scale(-piece.getWidthInPlan() / icon.getIconWidth(), pieceDepth / icon.getIconHeight());
     } else {
       g2D.scale(piece.getWidthInPlan() / icon.getIconWidth(), pieceDepth / icon.getIconHeight());
@@ -6142,7 +6145,8 @@ PlanComponent.PieceOfFurnitureModelIcon = function(piece, object3dFactory, waiti
   ModelManager.getInstance().loadModel(piece.getModel(), waitingComponent === null, {
       modelUpdated: function(modelRoot) {
         var normalizedPiece = piece.clone();
-        if (normalizedPiece.isResizable()) {
+        if (normalizedPiece.isResizable()
+            && piece.getRoll() == 0) {
           normalizedPiece.setModelMirrored(false);
         }
         var pieceWidth = normalizedPiece.getWidthInPlan();
@@ -6196,8 +6200,8 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     mat4.fromXRotation(rotation, -Math.PI / 2);
     canvas3D.setViewPlatformTransform(rotation);
     canvas3D.setProjectionPolicy(HTMLCanvas3D.PARALLEL_PROJECTION);
-    canvas3D.setFrontClipDistance(-1.01);
-    canvas3D.setBackClipDistance(1.01);
+    canvas3D.setFrontClipDistance(-1.1);
+    canvas3D.setBackClipDistance(1.1);
     var sceneRoot = new BranchGroup3D();
     sceneRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
     var lights = [
@@ -6324,6 +6328,9 @@ PlanComponent.HomePieceOfFurnitureTopViewIconKey = function(piece) {
         + 37 * (piece.getDepthInPlan() | 0)
         + 37 * (piece.getHeightInPlan() | 0);
   }
+  if (piece.getRoll() != 0) {
+    this.hashCode += 37 * (piece.isModelMirrored() ? 1231 : 1237);
+  }
   if (piece.getPlanIcon() != null) {
     this.hashCode +=
           37 * (function(matrix) { 
@@ -6381,6 +6388,9 @@ PlanComponent.HomePieceOfFurnitureTopViewIconKey.prototype.equals = function(obj
             || this.piece.getWidthInPlan() == piece2.getWidthInPlan()
                 && this.piece.getDepthInPlan() == piece2.getDepthInPlan()
                 && this.piece.getHeightInPlan() == piece2.getHeightInPlan())
+        && (this.piece.getRoll() == 0
+                && piece2.getRoll() == 0
+            || this.piece.isModelMirrored() == piece2.isModelMirrored())
         && (this.piece.getPlanIcon() != null
             || (function(matrix1, matrix2) { 
                   return matrix1[0][0] == matrix2[0][0] && matrix1[0][1] == matrix2[0][1] && matrix1[0][2] == matrix2[0][2]
