@@ -44,6 +44,7 @@ public class FurnitureLibraryEditorBootstrap {
     Class<?> furnitureLibraryEditorBootstrapClass = FurnitureLibraryEditorBootstrap.class;
     List<String> extensionJarsAndDlls = new ArrayList<String>(Arrays.asList(new String [] {
         "batik-svgpathparser-1.7.jar", // Jars included in editor executable jar file
+        "jeksparser-calculator.jar",
         "jnlp.jar"}));
 
     String operatingSystemName = System.getProperty("os.name");
