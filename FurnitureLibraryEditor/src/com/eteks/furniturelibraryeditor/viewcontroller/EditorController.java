@@ -51,7 +51,7 @@ public class EditorController implements Controller {
    */
   public EditorController(final FurnitureLibrary furnitureLibrary,
                           FurnitureLibraryRecorder recorder,
-                          FurnitureLibraryUserPreferences preferences, 
+                          FurnitureLibraryUserPreferences preferences,
                           EditorViewFactory viewFactory,
                           ContentManager  contentManager) {
     this.furnitureLibrary = furnitureLibrary;
@@ -71,7 +71,7 @@ public class EditorController implements Controller {
     }
     return this.editorView;
   }
-  
+
   /**
    * Returns the furniture library controller managed by this controller.
    */
@@ -118,12 +118,12 @@ public class EditorController implements Controller {
           furnitureLibrary.setModified(false);
         }
       };
-      
+
     if (this.furnitureLibrary.isModified()) {
       switch (getView().confirmSave(this.furnitureLibrary.getLocation())) {
         case SAVE   : save(newLibraryTask); // Falls through
         case CANCEL : return;
-      }  
+      }
     }
     newLibraryTask.run();
   }
@@ -136,19 +136,19 @@ public class EditorController implements Controller {
     Runnable openTask = new Runnable() {
         public void run() {
           String openTitle = preferences.getLocalizedString(EditorController.class, "openTitle");
-          String furnitureLibraryLocation = contentManager.showOpenDialog(null, openTitle, 
+          String furnitureLibraryLocation = contentManager.showOpenDialog(null, openTitle,
               ContentManager.ContentType.FURNITURE_LIBRARY);
           if (furnitureLibraryLocation != null) {
             open(furnitureLibraryLocation);
           }
         }
       };
-      
+
     if (this.furnitureLibrary.isModified()) {
       switch (getView().confirmSave(this.furnitureLibrary.getLocation())) {
         case SAVE   : save(openTask); // Falls through
         case CANCEL : return;
-      }  
+      }
     }
     openTask.run();
   }
@@ -161,34 +161,36 @@ public class EditorController implements Controller {
         public Void call() throws RecorderException {
           recorder.readFurnitureLibrary(furnitureLibrary, furnitureLibraryLocation, preferences);
           getFurnitureLanguageController().setFurnitureLanguage(FurnitureLibrary.DEFAULT_LANGUAGE);
-          furnitureLibrary.setLocation(furnitureLibraryLocation);
+          if (!recorder.isDefaultFurnitureLibrary(furnitureLibraryLocation)) {
+            furnitureLibrary.setLocation(furnitureLibraryLocation);
+          }
           furnitureLibrary.setModified(false);
           return null;
         }
       };
-    ThreadedTaskController.ExceptionHandler exceptionHandler = 
+    ThreadedTaskController.ExceptionHandler exceptionHandler =
         new ThreadedTaskController.ExceptionHandler() {
           public void handleException(Exception ex) {
             if (!(ex instanceof InterruptedRecorderException)) {
               ex.printStackTrace();
               if (ex instanceof RecorderException) {
-                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
                     preferences.getLocalizedString(EditorController.class, "invalidFile"));
               }
             }
           }
         };
-    new ThreadedTaskController(saveTask, 
-        this.preferences.getLocalizedString(EditorController.class, "openMessage"), exceptionHandler, 
+    new ThreadedTaskController(saveTask,
+        this.preferences.getLocalizedString(EditorController.class, "openMessage"), exceptionHandler,
         this.preferences, this.viewFactory).executeTask(getView());
   }
-  
+
   /**
    * Merges the current library with a furniture library chosen by user.
    */
   public void merge() {
     String mergeTitle = preferences.getLocalizedString(EditorController.class, "mergeTitle");
-    final String furnitureLibraryLocation = contentManager.showOpenDialog(null, mergeTitle, 
+    final String furnitureLibraryLocation = contentManager.showOpenDialog(null, mergeTitle,
         ContentManager.ContentType.FURNITURE_LIBRARY);
     if (furnitureLibraryLocation != null) {
       Callable<Void> saveTask = new Callable<Void>() {
@@ -198,20 +200,20 @@ public class EditorController implements Controller {
             return null;
           }
         };
-      ThreadedTaskController.ExceptionHandler exceptionHandler = 
+      ThreadedTaskController.ExceptionHandler exceptionHandler =
           new ThreadedTaskController.ExceptionHandler() {
             public void handleException(Exception ex) {
               if (!(ex instanceof InterruptedRecorderException)) {
                 ex.printStackTrace();
                 if (ex instanceof RecorderException) {
-                  getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+                  getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
                       preferences.getLocalizedString(EditorController.class, "invalidFile"));
                 }
               }
             }
           };
-      new ThreadedTaskController(saveTask, 
-          this.preferences.getLocalizedString(EditorController.class, "mergeMessage"), exceptionHandler, 
+      new ThreadedTaskController(saveTask,
+          this.preferences.getLocalizedString(EditorController.class, "mergeMessage"), exceptionHandler,
           this.preferences, this.viewFactory).executeTask(getView());
     }
   }
@@ -224,7 +226,7 @@ public class EditorController implements Controller {
   }
 
   /**
-   * Saves the library managed by this controller and executes <code>postSaveTask</code> 
+   * Saves the library managed by this controller and executes <code>postSaveTask</code>
    * if it's not <code>null</code>.
    */
   private void save(Runnable postSaveTask) {
@@ -234,7 +236,7 @@ public class EditorController implements Controller {
       save(this.furnitureLibrary.getLocation(), postSaveTask);
     }
   }
-  
+
   /**
    * Saves the furniture library under a different name.
    */
@@ -243,23 +245,23 @@ public class EditorController implements Controller {
   }
 
   /**
-   * Saves the furniture library under a different name and executes <code>postSaveTask</code> 
+   * Saves the furniture library under a different name and executes <code>postSaveTask</code>
    * if it's not <code>null</code>.
    */
   private void saveAs(Runnable postSaveTask) {
     String saveTitle = this.preferences.getLocalizedString(EditorController.class, "saveTitle");
-    String furnitureLibraryLocation = this.contentManager.showSaveDialog(null, saveTitle, 
+    String furnitureLibraryLocation = this.contentManager.showSaveDialog(null, saveTitle,
         ContentManager.ContentType.FURNITURE_LIBRARY, this.furnitureLibrary.getLocation());
     if (furnitureLibraryLocation != null) {
       save(furnitureLibraryLocation, postSaveTask);
     }
   }
-  
+
   /**
-   * Actually saves the library managed by this controller and executes <code>postSaveTask</code> 
+   * Actually saves the library managed by this controller and executes <code>postSaveTask</code>
    * if it's not <code>null</code>.
    */
-  private void save(final String location, 
+  private void save(final String location,
                     final Runnable postSaveTask) {
     Callable<Void> saveTask = new Callable<Void>() {
         public Void call() throws RecorderException {
@@ -276,20 +278,20 @@ public class EditorController implements Controller {
           return null;
         }
       };
-    ThreadedTaskController.ExceptionHandler exceptionHandler = 
+    ThreadedTaskController.ExceptionHandler exceptionHandler =
         new ThreadedTaskController.ExceptionHandler() {
           public void handleException(Exception ex) {
             if (!(ex instanceof InterruptedRecorderException)) {
               ex.printStackTrace();
               if (ex instanceof RecorderException) {
-                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+                getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
                     preferences.getLocalizedString(EditorController.class, "saveError"));
               }
             }
           }
         };
-    new ThreadedTaskController(saveTask, 
-        this.preferences.getLocalizedString(EditorController.class, "saveMessage"), exceptionHandler, 
+    new ThreadedTaskController(saveTask,
+        this.preferences.getLocalizedString(EditorController.class, "saveMessage"), exceptionHandler,
         this.preferences, this.viewFactory).executeTask(getView());
   }
 
@@ -303,12 +305,12 @@ public class EditorController implements Controller {
           System.exit(0);
         }
       };
-      
+
     if (this.furnitureLibrary.isModified()) {
       switch (getView().confirmSave(this.furnitureLibrary.getLocation())) {
         case SAVE   : save(exitTask); // Falls through
         case CANCEL : return;
-      }  
+      }
     }
     exitTask.run();
   }
@@ -329,7 +331,7 @@ public class EditorController implements Controller {
           this.viewFactory, this.contentManager).displayView(getView());
       this.preferences.write();
     } catch (RecorderException ex) {
-      getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"), 
+      getView().showError(preferences.getLocalizedString(EditorController.class, "errorTitle"),
           preferences.getLocalizedString(EditorController.class, "savePreferencesError"));
     }
   }

@@ -78,8 +78,10 @@ import com.eteks.sweethome3d.tools.URLContent;
  * @author Emmanuel Puybaret
  */
 public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
-  private static final String [] IGNORED_EXTENSIONS = {".gsm", ".max", ".lwo", ".dxf"};
-  private static final Locale DEFAULT_LOCALE = new Locale("");
+  private static final String       DEFAULT_FURNITURE_LIBRARY = "Furniture.jar";
+
+  private static final String []    IGNORED_EXTENSIONS = {".gsm", ".max", ".lwo", ".dxf"};
+  private static final Locale       DEFAULT_LOCALE = new Locale("");
   private static final NumberFormat DECIMAL_FORMAT = new DecimalFormat("0.#####", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
   private static final String ID          = "id";
@@ -108,6 +110,13 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
   }
 
   /**
+   * Returns <code>true</code> if the given location matches the default furniture library of Sweet Home 3D.
+   */
+  public boolean isDefaultFurnitureLibrary(String furnitureLibraryLocation) {
+    return DEFAULT_FURNITURE_LIBRARY.equals(new File(furnitureLibraryLocation).getName());
+  }
+
+  /**
    * Reads a furniture library from the given file.
    */
   private void readFurnitureLibrary(final FurnitureLibrary furnitureLibrary,
@@ -120,7 +129,37 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       Locale.setDefault(DEFAULT_LOCALE);
       File furnitureLibraryFile = File.createTempFile("furniture", ".sh3f");
       furnitureLibraryFile.deleteOnExit();
-      copyFile(new File(furnitureLibraryLocation), furnitureLibraryFile);
+      if (isDefaultFurnitureLibrary(furnitureLibraryLocation)) {
+        // Copy default furniture library entries, renaming entries with DefaultFurnitureCatalog as PluginFurnitureCatalog
+        String defaultFurnitureCatalogPrefix = DefaultFurnitureCatalog.class.getName().replace('.', '/');
+        URL furnitureLibraryUrl = new File(furnitureLibraryLocation).toURI().toURL();
+        List<ZipEntry> zipEntries = getZipEntries(furnitureLibraryUrl);
+        ZipOutputStream zipOut = null;
+        try {
+          zipOut = new ZipOutputStream(new FileOutputStream(furnitureLibraryFile));
+          zipOut.setLevel(0);
+          for (ZipEntry zipEntry : zipEntries) {
+            String entryName = zipEntry.getName();
+            if (entryName.startsWith(defaultFurnitureCatalogPrefix)
+                && entryName.endsWith(".properties")) {
+              entryName = entryName.replace(defaultFurnitureCatalogPrefix, DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY);
+            }
+            writeZipEntry(zipOut, new URLContent(new URL("jar:" + furnitureLibraryUrl + "!/" + zipEntry.getName())), entryName);
+          }
+        } catch (IOException ex) {
+          throw new RecorderException("Can't copy library file " + furnitureLibraryLocation, ex);
+        } finally {
+          if (zipOut != null) {
+            try {
+              zipOut.close();
+            } catch (IOException ex) {
+              throw new RecorderException("Can't copy library file " + furnitureLibraryLocation, ex);
+            }
+          }
+        }
+      } else {
+        copyFile(new File(furnitureLibraryLocation), furnitureLibraryFile);
+      }
       URL furnitureLibraryUrl = furnitureLibraryFile.toURI().toURL();
       String furnitureResourcesLocalDirectory = preferences.getFurnitureResourcesLocalDirectory();
       URL furnitureResourcesUrlBase = furnitureResourcesLocalDirectory != null
