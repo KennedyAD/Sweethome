@@ -40,9 +40,14 @@ public interface TexturesLibraryRecorder {
                                            TexturesLibraryUserPreferences preferences) throws RecorderException;
 
   /**
-   * Writes textures library at the given location.  
+   * Writes textures library at the given location.
    */
   public abstract void writeTexturesLibrary(TexturesLibrary texturesLibrary,
                                             String texturesLibraryLocation,
                                             TexturesLibraryUserPreferences preferences) throws RecorderException;
+
+  /**
+   * Returns <code>true</code> if the given location matches the default textures library of Sweet Home 3D.
+   */
+  public abstract boolean isDefaultTexturesLibrary(String texturesLibraryLocation);
 }

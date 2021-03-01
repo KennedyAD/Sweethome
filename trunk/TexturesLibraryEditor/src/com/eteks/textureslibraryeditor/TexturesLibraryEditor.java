@@ -38,6 +38,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,6 +54,7 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileFilter;
 
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationAdapter;
@@ -144,6 +146,28 @@ public class TexturesLibraryEditor {
             } else {
               return super.showOpenDialog(parentView, dialogTitle, contentType);
             }
+          }
+
+          @Override
+          protected FileFilter [] getFileFilter(ContentType contentType) {
+            FileFilter [] fileFilter = super.getFileFilter(contentType);
+            if (contentType == ContentType.TEXTURES_LIBRARY) {
+              List<FileFilter> filters = new ArrayList<FileFilter>(fileFilter.length + 1);
+              filters.addAll(Arrays.asList(fileFilter));
+              filters.add(new FileFilter() {
+                  @Override
+                  public String getDescription() {
+                    return "Default library";
+                  }
+
+                  @Override
+                  public boolean accept(File f) {
+                    return f.isFile() && getTexturesLibraryRecorder().isDefaultTexturesLibrary(f.getAbsolutePath());
+                  }
+                });
+              fileFilter = filters.toArray(new FileFilter [filters.size()]);
+            }
+            return fileFilter;
           }
         };
     }
