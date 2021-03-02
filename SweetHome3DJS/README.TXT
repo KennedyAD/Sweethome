@@ -1,4 +1,4 @@
-SWEET HOME 3D JS v 6.4.6
+SWEET HOME 3D JS v 6.5
 ------------------------
 
 This archive contains source code of Sweet Home 3D JS, a HTML5 3D viewer and editor
@@ -6,13 +6,13 @@ for Sweet Home 3D files saved with version 5.3 or a more recent version.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_4_6/SweetHome3DJS SweetHome3DJS
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_5/SweetHome3DJS SweetHome3DJS
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code 
 with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_4_6/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_5/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
@@ -50,5 +50,5 @@ Read LICENSE.TXT file for more details about licenses applicable to this softwar
 and included materials developed by third parties.
     
     
-Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks. 
+Sweet Home 3D, Copyright (c) 2016-2021 Emmanuel PUYBARET / eTeks. 
 Distributed under GNU General Public License    
