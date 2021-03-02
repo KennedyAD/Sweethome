@@ -37,21 +37,13 @@ with Eclipse, please follow the next steps:
 You may execute com.eteks.furniturelibraryeditor.FurnitureLibraryEditor 
 application included in this archive, with the Eclipse Run menu.
 As this application requires Java 3D, open Run Dialog in Eclipse, 
-select the Arguments tab of the target application, and add to the VM arguments 
-text field the following option.
-If you run applications with Java 5 to 8, add: 
--Djava.ext.dirs=../SweetHome3D/lib/java3d-1.6/windows/i386;../SweetHome3D/lib/java3d-1.6;../SweetHome3D/lib
--Djava.ext.dirs=../SweetHome3D/lib/java3d-1.6/windows/x64;../SweetHome3D/lib/java3d-1.6;../SweetHome3D/lib
--Djava.ext.dirs=../SweetHome3D/lib/java3d-1.6/macosx:../SweetHome3D/lib/java3d-1.6:../SweetHome3D/lib
--Djava.ext.dirs=../SweetHome3D/lib/java3d-1.6/linux/i386:../SweetHome3D/lib/java3d-1.6:../SweetHome3D/lib 
-or -Djava.ext.dirs=../SweetHome3D/lib/java3d-1.6/linux/x64:../SweetHome3D/lib/java3d-1.6:../SweetHome3D/lib
-according to your system and its architecture.
-If you run applications with Java >= 9, add the following VM argument:
--Djava.library.path=../SweetHome3D/lib/java3d-1.6/windows/i386
--Djava.library.path=../SweetHome3D/lib/java3d-1.6/windows/x64
+select the Arguments tab of the target application, add to the VM arguments 
+text field the option:
+-Djava.library.path=../SweetHome3D/lib/java3d-1.6/windows/i586
+-Djava.library.path=../SweetHome3D/lib/java3d-1.6/windows/amd64
 -Djava.library.path=../SweetHome3D/lib/java3d-1.6/macosx
--Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/i386 
-or -Djava.ext.dirs=../SweetHome3D/lib/java3d-1.6/linux/x64
+-Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/i586 
+or -Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/amd64
 according to your system and its architecture.
 
 If you want to build Furniture Library Editor with Ant, please install last JDK 5 or greater and 
