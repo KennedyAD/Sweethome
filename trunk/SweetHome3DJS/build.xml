@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- build.xml
 
-     Sweet Home 3D JS, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>. 
+     Sweet Home 3D JS, Copyright (c) 2016-2021 Emmanuel PUYBARET / eTeks <info@eteks.com>. 
      
      Ant build file. Available targets :
      - viewerLibraries         : Generates JavaScript libraries required for the viewer project
@@ -15,7 +15,7 @@
 -->
 <project basedir="." default="viewerBuild" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.4.6"/>
+  <property name="version" value="6.5"/>
 
   <!-- Java to JavaScript and TypeScript transpilation with JSweet -->
   <target name="transpiledLibraries" 
@@ -59,14 +59,12 @@
       <arg value="../SweetHome3D/src:tools/JSweet/src" />
       <arg value="--includes" />
       <arg value="def:com/eteks/sweethome3d/model:com/eteks/sweethome3d/tools:com/eteks/sweethome3d/viewcontroller:com/eteks/sweethome3d/io" />
-      <sysproperty key="java.ext.dirs" value="../SweetHome3D/lib"/>
       <!-- Transpilation target may contain almost all com.eteks.sweethome3d.viewcontroller classes or only the subset needed to run 
            Sweet Home 3D JS Viewer (in which case swingundo.js extracted from tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js isn't required) -->
       <sysproperty key="transpilationTarget" value="${buildType}"/> 
       <classpath>
         <fileset dir="tools/JSweet/lib" excludes="generated/" />
         <pathelement location="tools/JSweet/build/SweetHome3DJSweetExtension"/>
-        <pathelement location="../SweetHome3D/libtest/jnlp.jar"/>
         <pathelement location="../SweetHome3D/libtest/AppleJavaExtensions.jar"/>
       </classpath>
     </java>
