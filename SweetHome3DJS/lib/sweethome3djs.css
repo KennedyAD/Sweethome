@@ -28,15 +28,13 @@
 .pane-splitter {
   z-index: 4;
   background-color: gray;
-  cursor: pointer;
-}
-
-.pane-splitter.vertical {
-  width: 10px;
+  cursor: ew-resize;
+  width: 4px;
+  height: 4px;
 }
 
 .pane-splitter.horizontal {
-  height: 10px;
+  cursor: ns-resize;
 }
 
 .pane-splitter:hover {
@@ -44,17 +42,6 @@
 }
 .pane-splitter.moving {
   background-color: rgb(200, 200, 200);
-}
-
-.pane-splitter::after {
-  content: '=';
-  text-align: center;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  line-height: 50%;
 }
 
 /********************************/

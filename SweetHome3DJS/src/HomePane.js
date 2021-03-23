@@ -1271,9 +1271,16 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
   onResize = onResize || function() {}
 
   splitterElement.draggable = false;
-  splitterElement.addEventListener('mousedown', mouseDown, true);
 
-  var horizontal = splitterElement.classList.contains('horizontal');
+  splitterElement.addEventListener('mousedown', mouseDown, true);
+  splitterElement.addEventListener('touchstart', mouseDown, true);
+
+  var horizontal = splitterElement.clientWidth > splitterElement.clientHeight;
+  if (horizontal) {
+    splitterElement.classList.add('horizontal');
+  } else {
+    splitterElement.classList.add('vertical');
+  }
  
   var positionStyleProperty = horizontal ? 'top' : 'left';
   var dimensionStyleProperty = horizontal ? 'height' : 'width';
@@ -1287,10 +1294,13 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
   var offsetTopFirst = firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty];
 
   function mouseDown(event) {
+    
     event.stopImmediatePropagation();
     splitterElement.classList.add('moving');
     window.addEventListener('mousemove', mouseMove, true);
     window.addEventListener('mouseup', mouseUp, true);
+    window.addEventListener('touchmove', mouseMove, true);
+    window.addEventListener('touchend', mouseUp, true);
   }
 
   function mouseUp(event) {
@@ -1298,12 +1308,15 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
     splitterElement.classList.remove('moving');
     window.removeEventListener('mousemove', mouseMove, true);
     window.removeEventListener('mouseup', mouseUp, true);
+    window.removeEventListener('touchmove', mouseMove, true);
+    window.removeEventListener('touchend', mouseUp, true);
   }
 
   function mouseMove(event) {
     event.stopImmediatePropagation();
+    var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
     
-    var relativePositionValue = event[pointerPositionProperty] - offsetParent[offsetProperty];
+    var relativePositionValue = pointerCoordinatesObject[pointerPositionProperty] - offsetParent[offsetProperty];
     if (relativePositionValue < offsetTopFirst) {
       // try to move splitter beyond limit (before first elements) -- no can't do
       relativePositionValue = offsetTopFirst;
@@ -1324,7 +1337,7 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
     // elements in second groups move & grow / shrink
     for (var i = 0; i < secondGroupElements.length; i++) {
       secondGroupElements[i].style[positionStyleProperty] = (relativePositionValue + splitterElement[dimensionProperty]) + 'px';
-      secondGroupElements[i].style[dimensionStyleProperty] = (offsetParent[dimensionProperty] - relativePositionValue) + 'px';
+      secondGroupElements[i].style[dimensionStyleProperty] = 'calc(100% - ' + relativePositionValue + 'px)';
     }
 
     onResize();
@@ -1348,7 +1361,12 @@ HomePane.prototype.initSplitters = function() {
     this.initSplitter(
       furnitureSplitter, 
       [catalogView.getHTMLElement()], 
-      [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()]
+      [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()],
+      function() {
+        // refresh 2D/3D plan views on resize
+        planView.revalidate();
+        home3DView.canvas3D.updateViewportSize()
+      }
     );
   }
 
