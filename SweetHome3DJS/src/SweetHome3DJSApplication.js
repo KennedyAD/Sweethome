@@ -31,6 +31,7 @@
  * @param {{readHomeURL: string,
  *          writeHomeEditsURL: string,
  *          closeHomeURL: string,
+ *          loadResourceURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
  *          trackedHomeProperties: string[],
@@ -609,6 +610,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
  *          texturesResourcesURLBase: string,
  *          readHomeURL: string,
  *          writeHomeEditsURL: string,
+ *          loadResourceURL: string,
  *          closeHomeURL: string}} [params] the URLs of resources and services required on server 
  *                                                  (if undefined, will use local files for testing)
  * @constructor
@@ -655,7 +657,8 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
     this.preferences = this.params !== undefined 
       ? new DefaultUserPreferences(
             this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase, 
-            this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase)
+            this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase, 
+            this.params.userResourcesURLBase, this.params.loadResourceURL)
       : new DefaultUserPreferences();
     this.preferences.setFurnitureViewedFromTop(true);
   }

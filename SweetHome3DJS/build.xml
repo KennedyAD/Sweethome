@@ -131,6 +131,11 @@
   	<copy todir="lib/resources/icons/tango">
       <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/swing/resources/icons/tango"/>
     </copy>
+  	<copy todir="lib/resources">
+  	  <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/swing/resources">
+        <include name="*.png" />
+      </fileset>
+    </copy>
     <copy todir="lib/resources">
       <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/viewcontroller/resources">
         <include name="*.png" />

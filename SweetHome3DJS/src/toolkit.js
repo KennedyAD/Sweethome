@@ -330,19 +330,30 @@ JSDialogView.prototype.appendButtons = function(buttonsPanel) {
  * @static
  */
 JSDialogView.closeTopMostDialogIfAny = function() {
+  var topMostDialog = JSDialogView.getTopMostDialog();
+  if (topMostDialog != null) {
+    topMostDialog.close();
+  }
+}
+
+/**
+ * gets currently displayed topmost dialog if any
+ * @return currently displayed topmost dialog if any, otherwise null
+ * @static
+ */
+JSDialogView.getTopMostDialog = function() {
   var visibleDialogElements = document.querySelectorAll('.dialog-container.visible');
   if (visibleDialogElements.length > 0) {
     /** @type JSDialogView */
-    var topMostDialog = undefined;
+    var topMostDialog = null;
     for (var i = 0; i < visibleDialogElements.length; i++) {
       var visibleDialog = visibleDialogElements[i]._dialogInstance;
       if (topMostDialog == null || topMostDialog.displayIndex <= visibleDialog.displayIndex) {
         topMostDialog = visibleDialog;
       }
     }
-
-    topMostDialog.close();
   }
+  return topMostDialog;
 }
 
 JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
@@ -425,6 +436,13 @@ JSDialogView.prototype.setTitle = function(title) {
   var titleElement = this.findElement('.dialog-top .title');
   titleElement.textContent = JSComponentView.substituteWithLocale(this.preferences, title || '');
 };
+
+/**
+ * @return {boolean} true if this dialog is currently shown, false otherwise
+ */
+JSDialogView.prototype.isDisplayed = function() {
+  return this.getRootNode().classList.contains('visible');
+}
 
 /**
  * Default implementation of the DialogView.displayView function.

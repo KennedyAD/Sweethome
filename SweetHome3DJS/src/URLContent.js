@@ -167,6 +167,53 @@ SimpleURLContent.prototype.constructor = SimpleURLContent;
 SimpleURLContent["__class"] = "com.eteks.sweethome3d.tools.SimpleURLContent";
 SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
+/**
+ * Content read from a URL to a JS Blob
+ * @constructor
+ * 
+ * @param {Blob} blob
+ * 
+ * @author Louis Grignon
+ */
+function BlobURLContent(blob) {
+  var url = URL.createObjectURL(blob);
+  URLContent.call(this, url);
+
+  /**
+   * @private
+   */
+  this.blob = blob;
+}
+BlobURLContent.prototype = Object.create(URLContent.prototype);
+BlobURLContent.prototype.constructor = BlobURLContent;
+
+BlobURLContent["__class"] = "com.eteks.sweethome3d.tools.BlobURLContent";
+BlobURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+/**
+ * @return {Blob} blob content 
+ */
+BlobURLContent.prototype.getBlob = function() {
+  return this.blob;
+}
+
+/**
+ * Load a BlobURLContent from a JS image
+ * 
+ * @param {HTMLImageElement} image the image to be used as content source
+ * @param {string} imageType resulting image blob mime type
+ * @param {function(BlobURLContent)} onContentReadyCallback called when content is ready, with content instance as only parameter
+ */
+BlobURLContent.fromImage = function(image, imageType, onContentReadyCallback) {
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  ctx.drawImage(image, 0, 0, image.width, image.height);
+  canvas.toBlob(function (blob) {
+    onContentReadyCallback(new BlobURLContent(blob));
+  }, imageType, 1);
+}
 
 /**
  * Utilities for requests about the system environment.

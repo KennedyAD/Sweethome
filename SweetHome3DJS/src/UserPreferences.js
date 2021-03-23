@@ -1077,13 +1077,22 @@ UserPreferences.prototype.setCheckUpdatesEnabled = function(updatesChecked) {
  * @param {string|UserPreferences} [furnitureResourcesUrlBase]
  * @param {string[]} [texturesCatalogUrls]
  * @param {string}   [texturesResourcesUrlBase]
+ * @param {string}   [loadResourceURL] URL to which upload new resource files
  * @constructor
  * @extends UserPreferences
  * @author Emmanuel Puybaret
  */
 function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase, 
-                                texturesCatalogUrls, texturesResourcesUrlBase) {
+                                texturesCatalogUrls, texturesResourcesUrlBase, 
+                                userResourcesURLBase, loadResourceURL) {
   UserPreferences.call(this);
+
+  this.furnitureCatalogUrls = furnitureCatalogUrls;
+  this.furnitureResourcesUrlBase = furnitureResourcesUrlBase;
+  this.texturesCatalogUrls = texturesCatalogUrls;
+  this.texturesResourcesUrlBase = texturesResourcesUrlBase;
+  this.userResourcesURLBase = userResourcesURLBase;
+  this.loadResourceURL = loadResourceURL;
   
   // Build default patterns catalog
   var patterns = [];
@@ -1104,7 +1113,7 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
       : new FurnitureCatalog());
   this.setTexturesCatalog(typeof DefaultTexturesCatalog === "function"
       ? (Array.isArray(texturesCatalogUrls)
-           ? new DefaultTexturesCatalog(texturesCatalogUrls, texturesResourcesUrlBase) 
+           ? new DefaultTexturesCatalog(this, texturesCatalogUrls, texturesResourcesUrlBase) 
            : new DefaultTexturesCatalog(this))
       : new TexturesCatalog());
 
@@ -1129,6 +1138,143 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
 
+/**
+ * Writes user preferences.
+ * @param {function()} onSuccess called when preferences are fully saved
+ * @param {function()} onError called if any error occurs during save
+ */
+DefaultUserPreferences.prototype.write = function(onSuccess, onError) {
+
+  var onSuccessLocal = function() {
+    console.info('DefaultUserPreferences saved');
+    if (typeof onSuccess == 'function') {
+      onSuccess();
+    }
+  };
+  var onErrorLocal = function(e) {
+    console.error(e, 'ERROR during DefaultUserPreferences save');
+    if (typeof onError == 'function') {
+      onError(e);
+    }
+  };
+
+  try {
+    UserPreferences.prototype.write.call(this);
+
+    if (this.loadResourceURL) {
+      // TODO LOUIS how to handle async - UserPreferencesChangeListener.prototype.writePreferences in SweetHome3D.js will continue while this is running
+      this.saveTexturesCatalog(onSuccessLocal, onErrorLocal);
+    } else {
+      onSuccessLocal();
+    }
+  } catch (e) {
+    onErrorLocal(e);
+  }
+}
+
+/**
+ * Save modifiable textures to catalog.json and upload new resources
+ * 
+ * @param {function()} onSuccess called when textures catalog is fully saved
+ * @param {function()} onError called if any error occurs during save
+ * 
+ * @private
+ */
+DefaultUserPreferences.prototype.saveTexturesCatalog = function(onSuccess, onError) {
+  console.info("save textures catalog");
+
+  var texturesCatalogJson = {};
+  function putTextureProperty(propertyKey, index, value) {
+    texturesCatalogJson[DefaultTexturesCatalog.PropertyKey.getKey(propertyKey, index)] = value;
+  }
+  
+  var texturesDirectoryPathRelativeToUserResources = this.texturesResourcesUrlBase.substring(this.userResourcesURLBase.length);
+  
+  var expectedUploadCount = 1;
+  function onUploadSuccess() {
+    expectedUploadCount--;
+    if (expectedUploadCount === 0) {
+      onSuccess();
+    }
+  }
+
+  var uploadDate = new Date();
+  var uploadId = '' + uploadDate.getFullYear() + '-' + uploadDate.getMonth() + '-' + uploadDate.getDate() 
+    + '_' + uploadDate.getHours() + 'h' + uploadDate.getMinutes() + 'm' + uploadDate.getSeconds() + '.' + uploadDate.getMilliseconds();
+
+  var index = 1;
+  var texturesCatalog = this.getTexturesCatalog();
+  for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
+    var textureCategory = texturesCatalog.getCategory(i);
+    for (var j = 0; j < textureCategory.getTexturesCount(); j++) {
+      var catalogTexture = textureCategory.getTexture(j);
+      if (catalogTexture.isModifiable()) {
+        if (catalogTexture.getName() != null) {
+          putTextureProperty(DefaultTexturesCatalog.PropertyKey.NAME, index, catalogTexture.getName());
+        }
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.CATEGORY, index, textureCategory.getName());
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.MODIFIABLE, index, catalogTexture.isModifiable());
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.WIDTH, index, catalogTexture.getWidth());
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.HEIGHT, index, catalogTexture.getHeight());
+        if (catalogTexture.getCreator() != null) {
+          putTextureProperty(DefaultTexturesCatalog.PropertyKey.CREATOR, index, catalogTexture.getCreator());
+        }
+        if (catalogTexture.getId() != null) {
+          putTextureProperty(DefaultTexturesCatalog.PropertyKey.ID, index, catalogTexture.getId());
+        }
+
+        var textureImageFileName = "";
+        var textureImage = catalogTexture.getImage();
+        if (textureImage instanceof BlobURLContent) {
+          var imageExtension = textureImage.getBlob().type == 'image/png' ? 'png' : 'jpg';
+          textureImageFileName = 'preferencesCatalogTexture_' + uploadId + '_' + index + '.' + imageExtension;
+          var imagePath = texturesDirectoryPathRelativeToUserResources + textureImageFileName;
+
+          expectedUploadCount++;
+          this.uploadContent(imagePath, textureImage.getBlob(), onUploadSuccess, onError);
+
+          // TODO LOUIS this looks like messing with private properties...
+          catalogTexture.image = new URLContent(this.texturesResourcesUrlBase + textureImageFileName);
+        } else if (textureImage instanceof URLContent) {
+          textureImageFileName = textureImage.getURL();
+          if (this.texturesResourcesUrlBase != null) {
+            textureImageFileName = textureImageFileName.substring(this.texturesResourcesUrlBase.length);
+          }
+        }
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.IMAGE, index, textureImageFileName);
+
+        index++;
+      }
+    }
+  }
+
+  this.uploadContent(
+    texturesDirectoryPathRelativeToUserResources + 'catalog.json',
+    new Blob([JSON.stringify(texturesCatalogJson)], { type: "application/json"}), 
+    onUploadSuccess, 
+    onError
+  );
+}
+
+/**
+ * @param {string} path uploaded file path relative to userResources directory
+ * @param {Blob} blob file content
+ * @param {function()} onSuccess called when content is uploaded
+ * @param {function()} onError called if error is detected
+ * @private
+ */
+DefaultUserPreferences.prototype.uploadContent = function(path, blob, onSuccess, onError) {
+  console.info("uploading blob content to " + path);
+  var request = new XMLHttpRequest();
+  
+  var uploadUrl = CoreTools.format(this.loadResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
+  request.open("POST", uploadUrl);
+  request.onload = onSuccess;
+  request.onerror = onError;
+  request.ontimeout = onError;
+  
+  request.send(blob);
+}
 
 /**
  * Creates a pattern built from resources.
