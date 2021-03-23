@@ -262,6 +262,11 @@ function HomePane(containerId, home, preferences, controller) {
   // Keyboard accelerators management
   var homePane = this;
   document.addEventListener("keydown", function(ev) {
+    if (JSDialogView.getTopMostDialog()) {
+      // ignore keystrokes when dialog is displayed
+      return;
+    }
+
       var keyStroke = KeyStroke.getKeyStrokeForEvent(ev);
       if (keyStroke !== undefined) {
         // Search action matching shortcut and call its actionPerformed method

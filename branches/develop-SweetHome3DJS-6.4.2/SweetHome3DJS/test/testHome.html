@@ -1695,35 +1695,200 @@ testHome();
 
 </div>
 
+<!--
+name-input
+name-visible-checkbox
+
+-->
 <div id="home-furniture-dialog-template" class="dialog-template">
   
   <div class="home-furniture-dialog">
-
-    <div class="color-and-texture-panel">
+    <h3>${HomeFurniturePanel.nameAndPricePanel.title}</h3>
+    <div data-name="name-and-price-panel">
+      <div class="label-cell">
+        <div data-name="name-label">${HomeFurniturePanel.nameLabel.text}</div>
+      </div>
       <div>
+        <input name="name-input" size="50" type="text" />
+        
         <label>
-          <input type="radio" name="furniture-color-and-texture-choice" value="default">
-          ${HomeFurniturePanel.defaultColorAndTextureRadioButton.text}
+          <input name="name-visible-checkbox" type="checkbox" />
+          <span>${HomeFurniturePanel.nameVisibleCheckBox.text}</span>
         </label>
       </div>
-      <div></div>
 
-      <div>
-        <label>
-          <input type="radio" name="furniture-color-and-texture-choice" value="color">
-          ${HomeFurniturePanel.colorRadioButton.text}
-        </label>
+      <div class="label-cell">
+        <div data-name="price-label">${HomeFurniturePanel.priceLabel.text}</div>
       </div>
-      <div data-name="color-selector-button"></div>
-
       <div>
-        <label>
-          <input type="radio" name="furniture-color-and-texture-choice" value="texture">
-          ${HomeFurniturePanel.textureRadioButton.text}
-        </label>
+        <input name="price-input" type="number" min="0" max="1000000000" step="1" />
+        
+        <span>${HomeFurniturePanel.valueAddedTaxPercentageLabel.text}</span>
+        <input name="value-added-tax-percentage-input" type="number" min="0" max="100" step="0.5" />
       </div>
-      <div data-name="texture-selector-button"></div>
     </div>
+    <br />
+    
+    <div class="columns-3">
+      <div class="column1">
+        <h3>${HomeFurniturePanel.locationPanel.title}</h3>
+        <div data-name="location-panel">
+          <div data-name="x-label" class="label-cell"></div>
+          <div>
+            <input name="x-input" type="number" min="0" max="100000" step="0.5" />
+          </div>
+
+          <div data-name="y-label" class="label-cell"></div>
+          <div>
+            <input name="y-input" type="number" min="0" max="100000" step="0.5" />
+          </div>
+          
+          <div data-name="elevation-label" class="label-cell"></div>
+          <div>
+            <input name="elevation-input" type="number" min="0" max="100000" step="0.5" />
+          </div>
+          
+          <label title="${HomeFurniturePanel.mirroredModelCheckBox.tooltip}" class="whole-line">
+            <input name="mirrored-model-checkbox" type="checkbox" />
+            <span>${HomeFurniturePanel.mirroredModelCheckBox.text}</span>
+          </label>
+          
+          <label title="${HomeFurniturePanel.basePlanItemCheckBox.tooltip}" class="whole-line">
+            <input name="base-plan-item-checkbox" type="checkbox" />
+            <span>${HomeFurniturePanel.basePlanItemCheckBox.text}</span>
+          </label>
+        </div>
+
+        <br />
+
+        <h3>${HomeFurniturePanel.colorAndTexturePanel.title}</h3>
+        <div data-name="paint-panel">
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="default">
+              ${HomeFurniturePanel.defaultColorAndTextureRadioButton.text}
+            </label>
+          </div>
+          <div></div>
+    
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="color">
+              ${HomeFurniturePanel.colorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="color-selector-button"></div>
+    
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="texture">
+              ${HomeFurniturePanel.textureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="texture-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="MODEL_MATERIALS" disabled>
+              ${HomeFurniturePanel.modelMaterialsRadioButton.text}
+            </label>
+          </div>
+          <div data-name="material-selector-button"></div>
+        </div>
+      </div>
+      <div class="column2">
+        <h3>${HomeFurniturePanel.orientationPanel.title}</h3>
+        <div data-name="orientation-panel">
+
+          <div class="whole-line" data-name="vertical-rotation-label">${HomeFurniturePanel.verticalRotationLabel.text}</div>
+          
+          <div class="label-cell" data-name="angle-label">${HomeFurniturePanel.angleLabel.text}</div>
+          <div>
+            <input name="angle-input" type="number" min="0" max="360" step="1" />
+          </div>
+          
+          <div class="whole-line"  data-name="horizontal-rotation-label">${HomeFurniturePanel.horizontalRotationLabel.text}</div>
+          
+          <label class="label-cell">
+            <input type="radio" name="horizontal-rotation-radio" value="PITCH" />
+            ${HomeFurniturePanel.pitchRadioButton.text}
+          </label>
+          <div>
+            <input name="pitch-input" type="number" min="0" max="360" step="1" />
+          </div>
+          
+          <label class="label-cell">
+            <input type="radio" name="horizontal-rotation-radio" value="ROLL" />
+            ${HomeFurniturePanel.rollRadioButton.text}
+          </label>
+          <div>
+            <input name="roll-input" type="number" min="0" max="360" step="1" />
+          </div>
+
+          <div class="whole-line" data-name="furniture-orientation-image">
+            <img src="lib/resources/furnitureOrientation.png" />
+          </div>
+        </div>
+      </div>
+      <div class="column3">
+        <h3>${HomeFurniturePanel.sizePanel.title}</h3>
+        <div data-name="size-panel">
+          <div data-name="width-label" class="label-cell"></div>
+          <div>
+            <input name="width-input" type="number" min="0" max="100000" step="0.5" />
+          </div>
+          <div data-name="depth-label" class="label-cell"></div>
+          <div>
+            <input name="depth-input" type="number" min="0" max="100000" step="0.5" />
+          </div>
+          <div data-name="height-label" class="label-cell"></div>
+          <div>
+            <input name="height-input" type="number" min="0" max="100000" step="0.5" />
+          </div>
+
+          <label class="whole-line">
+            <input name="keep-proportions-checkbox" type="checkbox" />
+            <span>${ImportedFurnitureWizardStepsPanel.keepProportionsCheckBox.text}</span>
+          </label>
+          
+        </div>
+        <br />
+
+        <h3>${HomeFurniturePanel.shininessPanel.title}</h3>
+        <div data-name="shininess-panel">
+
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="DEFAULT" />
+              <span>${HomeFurniturePanel.defaultShininessRadioButton.text}</span>
+            </label>
+          </div>
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="MATT" />
+              <span>${HomeFurniturePanel.mattRadioButton.text}</span>
+            </label>
+          </div>
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="SHINY" />
+              <span>${HomeFurniturePanel.shinyRadioButton.text}</span>
+            </label>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <hr />
+    <div>
+      <label>
+        <input name="visible-checkbox" type="checkbox" />
+        <span>${HomeFurniturePanel.visibleCheckBox.text}</span>
+      </label>
+    </div>
+    
   </div>
 </div>
 
@@ -1735,7 +1900,6 @@ testHome();
 
       <div class="column1">
         <h3>${WallPanel.leftSidePanel.title}</h3>
-        <hr />
         <div class="color-and-texture-panel">
           <div>
             <label>
@@ -1757,7 +1921,6 @@ testHome();
       
       <div class="column2">
         <h3>${WallPanel.rightSidePanel.title}</h3>
-        <hr />
         <div class="color-and-texture-panel">
           <div>
             <label>
@@ -1789,7 +1952,6 @@ testHome();
   
   <div class="room-dialog">
     <h3>${RoomPanel.nameAndAreaPanel.title}</h3>
-    <hr />
     <div data-name="name-and-area-panel">
       ${RoomPanel.nameLabel.text}
       <input name="name-input" type="text" />
@@ -1804,7 +1966,6 @@ testHome();
     
       <div class="column1">
         <h3>${RoomPanel.floorPanel.title}</h3>
-        <hr />
         <div data-name="floor-panel">
 
           <div class="whole-line">
@@ -1851,7 +2012,6 @@ testHome();
       
       <div class="column2">
         <h3>${RoomPanel.ceilingPanel.title}</h3>
-        <hr />
         <div data-name="ceiling-panel">
     
           <div class="whole-line">
@@ -2062,7 +2222,6 @@ testHome();
   <div class="label-dialog">
 
     <h3>${LabelPanel.textAndStylePanel.title}</h3>
-    <hr />
     <div data-name="text-and-style-panel">
       <div>
         ${LabelPanel.textLabel.text}
@@ -2113,8 +2272,9 @@ testHome();
 
     </div>
 
+    <br />
+
     <h3>${LabelPanel.rendering3DPanel.title}</h3>
-    <hr />
     <div data-name="rendering-3D-panel">
       <div>
         <label>
@@ -2162,14 +2322,20 @@ testHome();
 <script type="text/javascript">
 // If true, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var useServer = false;
+var backendURLBase = 'http://localhost:8080';
+var useServer = backendURLBase != null;
 
+var userResourcesURLBase = backendURLBase + '/userResources/';
 var application = useServer
     ? new SweetHome3DJSApplication(
-          {readHomeURL:       "http://localhost:8080/readHome.jsp?home=%s",
-           writeHomeEditsURL: "http://localhost:8080/writeHomeEdits.jsp",
-           closeHomeURL:      "http://localhost:8080/closeHome.jsp?home=%s",
-           pingURL:           "http://localhost:8080/ping.jsp",
+          {readHomeURL:                backendURLBase + "/readHome.jsp?home=%s",
+           writeHomeEditsURL:          backendURLBase + "/writeHomeEdits.jsp",
+           closeHomeURL:               backendURLBase + "/closeHome.jsp?home=%s",
+           loadResourceURL:            backendURLBase + "/loadResource.jsp?path=%s",
+           pingURL:                    backendURLBase + "/ping.jsp",
+           texturesCatalogURLs:        [userResourcesURLBase + "textures/catalog.json"],
+           texturesResourcesURLBase:   userResourcesURLBase + "textures/",
+           userResourcesURLBase:       userResourcesURLBase,
            autoWriteDelay:    1000,
            autoWriteTrackedStateChange: true,
            writingObserver:   {

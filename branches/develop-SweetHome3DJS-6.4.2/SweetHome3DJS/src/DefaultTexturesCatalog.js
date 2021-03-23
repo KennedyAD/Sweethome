@@ -30,17 +30,23 @@ function DefaultTexturesCatalog(preferences, texturesCatalogUrls, texturesResour
   TexturesCatalog.call(this);
   this.libraries = [];
   
+  // TODO LOUIS /!\ to be discussed with Emmanuel, default textures catalog was disabled after first texture import
   var identifiedTextures = [];
-  if (texturesCatalogUrls === undefined) {
-    this.readDefaultTexturesCatalogs(preferences, identifiedTextures);
-  } else {
-    // Two parameters texturesCatalogUrls, texturesResourcesUrlBase
-    texturesResourcesUrlBase = texturesCatalogUrls;
-    texturesCatalogUrls = preferences;
+  this.readDefaultTexturesCatalogs(preferences, identifiedTextures);
+  if (texturesCatalogUrls !== undefined) {
+    if (typeof texturesCatalogUrls == 'string') {
+      // Two parameters overload: (texturesCatalogUrls, texturesResourcesUrlBase)
+      texturesResourcesUrlBase = texturesCatalogUrls;
+      texturesCatalogUrls = preferences;
+    }
     if (texturesCatalogUrls != null) {
       for (var i = 0; i < texturesCatalogUrls.length; i++) {
         var texturesCatalogUrl = texturesCatalogUrls [i];
-        var resourceBundle = CoreTools.loadResourceBundles(texturesCatalogUrl.substring(0, texturesCatalogUrl.lastIndexOf(".json")), Locale.getDefault())
+        var resourceBundle = CoreTools.loadResourceBundles(
+          texturesCatalogUrl.substring(0, texturesCatalogUrl.lastIndexOf(".json")), 
+          Locale.getDefault(),
+          true
+        );
         this.readTextures(resourceBundle, texturesCatalogUrl, texturesResourcesUrlBase, identifiedTextures);
       }
     }
@@ -146,7 +152,9 @@ DefaultTexturesCatalog.prototype.readTexture = function(resource, index, texture
   var height = parseFloat(CoreTools.getStringFromKey(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.HEIGHT, index)));
   var creator = this.getOptionalString(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.CREATOR, index), null);
   var id = this.getOptionalString(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.ID, index), null);
-  return new CatalogTexture(id, name, image, width, height, creator);
+  var modifiable = this.getOptionalBoolean(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.MODIFIABLE, index), false);
+
+  return new CatalogTexture(id, name, image, width, height, creator, modifiable);
 }
 
 /**
@@ -198,6 +206,27 @@ DefaultTexturesCatalog.prototype.readTexturesCategory = function(resource, index
 DefaultTexturesCatalog.prototype.getOptionalString = function(resource, propertyKey, defaultValue) {
   try {
     return CoreTools.getStringFromKey(resource, propertyKey);
+  } catch (ex) {
+    return defaultValue;
+  }
+}
+
+/**
+ * Returns the value of <code>propertyKey</code> in <code>resource</code>,
+ * or <code>defaultValue</code> if the property doesn't exist.
+ * @param {java.util.ResourceBundle} resource
+ * @param {string} propertyKey
+ * @param {boolean} defaultValue
+ * @return {boolean}
+ * @private
+ */
+DefaultTexturesCatalog.prototype.getOptionalBoolean = function(resource, propertyKey, defaultValue) {
+  try {
+    var value = CoreTools.getStringFromKey(resource, propertyKey);
+    if (value === null || value === undefined) {
+      return defaultValue;
+    }
+    return value === true || value === 'true';
   } catch (ex) {
     return defaultValue;
   }
@@ -284,6 +313,12 @@ DefaultTexturesCatalog.PropertyKey = {
    */
   CREATOR: "creator",
    
+  /**
+   * The key for the modifiable aspect of a texture (optional). 
+   * Should be true for user defined textures
+   */
+  MODIFIABLE: "modifiable",
+
   getKey : function(keyPrefix, textureIndex) {
     return keyPrefix + "#" + textureIndex;
   },

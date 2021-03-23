@@ -30,6 +30,8 @@
  * @param {{selectedTexture, applier: function(JSDialogView)}} [options]
  * > selectedTexture: selected texture
  * > applier: when dialog closes, takes dialog as parameter
+ * 
+ * @extends JSDialogView
  * @constructor
  */
 function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceController, options) {
@@ -40,6 +42,21 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     yOffset: 0, 
     angleInRadians: 0, 
     scale: 1
+  }
+
+  /**
+   * @param {CatalogTexture} catalogTexture 
+   * 
+   * @return {HTMLElement}
+   */
+  function createTextureListItem(catalogTexture) {
+    var textureCategory = catalogTexture.getCategory();
+    var catalogTextureItem = document.createElement('div');
+    catalogTextureItem.classList.add('item');
+    catalogTextureItem.innerHTML = '<img src="' + catalogTexture.getImage().getURL() + '" />' 
+      + textureCategory.getName() + ' - ' + catalogTexture.getName();
+    catalogTextureItem[JSTextureSelectorDialog.ITEM_TEXTURE_PROPERTY] = catalogTexture;
+    return catalogTextureItem;
   }
 
   var applier = function() {};
@@ -68,9 +85,9 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '      <div><input type="number" name="selected-texture-scale" step="5" min="5" max="10000" value="100" /></div>' + 
     '    </div>' + 
     '    <hr />' +
-    '    <div class="imported-textures-panel" style="display: none">' + // TODO LOUIS: for now we disable import texture because this needs discussion between Renaud & Emmanuel on how to persist 
+    '    <div class="imported-textures-panel">' +
     '      <div><button import>${TextureChoiceComponent.importTextureButton.text}</button></div>' +  
-    '      <div><button disabled modify>${TextureChoiceComponent.modifyTextureButton.text}</button></div>' +  
+    '      <div style="display: none; /* feature switched off for now */"><button disabled modify>${TextureChoiceComponent.modifyTextureButton.text}</button></div>' +  
     '      <div><button disabled delete>${TextureChoiceComponent.deleteTextureButton.text}</button></div>' +  
     '    </div>' +  
     '  </div>' + 
@@ -98,22 +115,43 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
         var textureCategory = textureCategories[i];
         for (var j = 0; j < textureCategory.getTextures().length; j++) {
           var catalogTexture = textureCategory.getTextures()[j];
-          var catalogTextureItem = document.createElement('div');
-          catalogTextureItem.classList.add('item');
-          catalogTextureItem.innerHTML = '<img src="' + catalogTexture.image.url + '" />' + textureCategory.name + ' - ' + catalogTexture.name;
-          catalogTextureItem.dataset['catalogId'] = catalogTexture.getId();
-          dialog.catalogList.appendChild(catalogTextureItem);
+          dialog.catalogList.appendChild(createTextureListItem(catalogTexture));
         }
       }
-      dialog.texturesCatalogItems = Array.from(dialog.catalogList.childNodes);
+      dialog.texturesCatalogItems = dialog.catalogList.childNodes;
 
       dialog.registerEventListener(dialog.texturesCatalogItems, 'click', function() {
-        dialog.onCatalogTextureSelected(this.dataset['catalogId']);
+        dialog.onCatalogTextureSelected(dialog.getCatalogTextureFromItem(this));
       });
 
       dialog.initCatalogTextureSearch();
       dialog.initRecentTextures();
+      preferences.addPropertyChangeListener('RECENT_TEXTURES', function() {
+        dialog.initRecentTextures();
+      });
+
       dialog.initImportTexturesPanel();
+
+      dialog.texturesCatalogListener = function(ev) {
+        console.debug('on texture catalog changed');
+        var catalogTexture = ev.getItem && ev.getItem();
+        switch (ev.getType()) {
+          case CollectionEvent.Type.ADD:
+            dialog.searchInput.value = '';
+            dialog.catalogList.appendChild(createTextureListItem(catalogTexture));
+            dialog.onCatalogTextureSelected(catalogTexture);
+            break;
+          case CollectionEvent.Type.DELETE:
+            var catalogTextureItem = dialog.getCatalogTextureItem(catalogTexture);
+            dialog.catalogList.removeChild(catalogTextureItem);
+            var firstItem = dialog.catalogList.querySelector('.item');
+            if (firstItem) {
+              dialog.onCatalogTextureSelected(dialog.getCatalogTextureFromItem(firstItem));
+            }
+            break;
+        }
+      };
+      preferences.getTexturesCatalog().addTexturesListener(this.texturesCatalogListener);
     },
     applier: function(dialog) {
 
@@ -129,12 +167,20 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
       }
 
       applier(dialog);
+    },
+    disposer: function(dialog) {
+      preferences.getTexturesCatalog().removeTexturesListener(dialog.texturesCatalogListener);
     }
   });
 }
 
 JSTextureSelectorDialog.prototype = Object.create(JSDialogView.prototype);
 JSTextureSelectorDialog.prototype.constructor = JSTextureSelectorDialog;
+
+/**
+ * @private
+ */
+JSTextureSelectorDialog.ITEM_TEXTURE_PROPERTY = '_catalogTexture';
 
 /**
  * Returns the currently selected texture.
@@ -158,14 +204,35 @@ JSTextureSelectorDialog.prototype.getTexture = function() {
  * @param {HomeTexture} texture 
  */
 JSTextureSelectorDialog.prototype.setTexture = function(texture) {
-  this.selectedTextureModel.catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(texture.getCatalogId(), this.preferences);
+  if (!texture || !texture.getImage() || !texture.getImage().getURL()) {
+    return;
+  }
+
+  // resolve texture from url
+  var textureUrl = texture.getImage().getURL();
+  var textureCategories = this.preferences.getTexturesCatalog().getCategories();
+  resolveTextureLoop:
+  for (var i = 0; i < textureCategories.length; i++) {
+    var textureCategory = textureCategories[i];
+    for (var j = 0; j < textureCategory.getTextures().length; j++) {
+      var catalogTexture = textureCategory.getTextures()[j];
+      if (catalogTexture.getImage().getURL() == textureUrl
+          || textureUrl.endsWith(catalogTexture.getImage().getURL())) {
+        this.selectedTextureModel.catalogTexture = catalogTexture;
+        break resolveTextureLoop;
+      }
+    }
+  }
+  if (this.selectedTextureModel.catalogTexture == null) {
+    return;
+  }
+
   this.selectedTextureModel.xOffset = texture.getXOffset();
   this.selectedTextureModel.yOffset = texture.getYOffset();
   this.selectedTextureModel.angleInRadians = texture.getAngle();
   this.selectedTextureModel.scale = texture.getScale();
 
-  var catalogTextureId = this.selectedTextureModel.catalogTexture.getId();
-  this.onCatalogTextureSelected(catalogTextureId);
+  this.onCatalogTextureSelected(this.selectedTextureModel.catalogTexture);
   this.xOffsetInput.value = this.selectedTextureModel.xOffset * 100;
   this.yOffsetInput.value = this.selectedTextureModel.yOffset * 100;
   this.angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.selectedTextureModel.angleInRadians));
@@ -174,43 +241,13 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
 };
 
 /**
- * Returns the catalog texture by id.
- *
- * @param {string} id catalog texture id in catalog
- * @param {UserPreferences} preferences the current user preferences
- * 
- * @return {CatalogTexture} matching texture in catalog or null if not found (or if id is null)
- * 
- * @static
- */
-JSTextureSelectorDialog.getCatalogTextureById = function(id, preferences) {
-  if (id == null) {
-    return null;
-  }
-
-  var textureCategories = preferences.getTexturesCatalog().getCategories();
-  for (var i = 0; i < textureCategories.length; i++) {
-    var textureCategory = textureCategories[i];
-    for (var j = 0; j < textureCategory.getTextures().length; j++) {
-      var catalogTexture = textureCategory.getTextures()[j];
-      if (catalogTexture.getId() == id) {
-        return catalogTexture;
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * @param {number} catalogId the selected catalog texture id
+ * @param {CatalogTexture} catalogTexture the selected catalog texture 
  * 
  * @private
  */
-JSTextureSelectorDialog.prototype.onCatalogTextureSelected = function(catalogId) {
-  var catalogTextureItem = this.getCatalogTextureItemById(catalogId);
+JSTextureSelectorDialog.prototype.onCatalogTextureSelected = function(catalogTexture) {
+  var catalogTextureItem = this.getCatalogTextureItem(catalogTexture);
   
-  var catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(catalogId, this.preferences);
   console.info("catalog texture selected", catalogTexture);
   
   this.selectedTextureModel.catalogTexture = catalogTexture;
@@ -220,6 +257,10 @@ JSTextureSelectorDialog.prototype.onCatalogTextureSelected = function(catalogId)
   }
   catalogTextureItem.classList.add('selected');
   this.selectedTextureOverview.style.backgroundImage = "url('" + catalogTextureItem.querySelector('img').src + "')";
+
+  var modifyTextureEnabled = catalogTexture != null;
+  this.modifyTextureButton.disabled = !modifyTextureEnabled;
+  this.deleteTextureButton.disabled = !modifyTextureEnabled;
 }
 
 /**
@@ -242,14 +283,35 @@ JSTextureSelectorDialog.prototype.onTextureTransformConfigurationChanged = funct
 }
 
 /**
- * @param {string} id catalog texture id in catalog
+ * @param {CatalogTexture} catalogTexture 
  * 
- * @return {HTMLElement}
+ * @return {HTMLElement | null} null if no item found for given texture
  * 
  * @private
  */
-JSTextureSelectorDialog.prototype.getCatalogTextureItemById = function(id) {
-  return this.catalogList.querySelector('.item[data-catalog-id="' + id + '"]');
+JSTextureSelectorDialog.prototype.getCatalogTextureItem = function(catalogTexture) {
+  if (catalogTexture != null) {
+    var requestedImageUrl = catalogTexture.getImage().getURL();
+    for (var i = 0; i < this.texturesCatalogItems.length; i++) {
+      var item = this.texturesCatalogItems[i];
+      var itemImageUrl = this.getCatalogTextureFromItem(item).getImage().getURL();
+      if (requestedImageUrl == itemImageUrl) {
+        return item;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * @param {HTMLElement} item 
+ * 
+ * @return {CatalogTexture} corresponding texture
+ * 
+ * @private
+ */
+JSTextureSelectorDialog.prototype.getCatalogTextureFromItem = function(item) {
+  return item[JSTextureSelectorDialog.ITEM_TEXTURE_PROPERTY];
 }
 
 /**
@@ -257,9 +319,9 @@ JSTextureSelectorDialog.prototype.getCatalogTextureItemById = function(id) {
  */
 JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function() {
   var dialog = this;
-  var searchInput = this.getRootNode().querySelector('.texture-search input');
-  dialog.registerEventListener(searchInput, 'keyup', CoreTools.debounce(function() {
-    var searchTerm = searchInput.value.trim().toLowerCase();
+  dialog.searchInput = this.getRootNode().querySelector('.texture-search input');
+  dialog.registerEventListener(dialog.searchInput, 'keyup', CoreTools.debounce(function() {
+    var searchTerm = dialog.searchInput.value.trim().toLowerCase();
     for (var i = 0; i < dialog.texturesCatalogItems.length; i++) {
       var item = dialog.texturesCatalogItems[i];
       var isVisible = searchTerm.length <= 0 || item.textContent.toLowerCase().indexOf(searchTerm) > -1;
@@ -277,33 +339,24 @@ JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function() {
  * @private
  */
 JSTextureSelectorDialog.prototype.initRecentTextures = function() {
-  
+  var dialog = this; 
+
+  this.recentTexturesPanel.innerHTML = '';
+
   var recentTextures = this.preferences.getRecentTextures();
   for (var i = 0; i < recentTextures.length; i++) {
     var recentTexture = recentTextures[i];
-    var catalogId = null;
-    if (typeof recentTexture.getId == 'function') {
-      catalogId = recentTexture.getId();
-    } else if (typeof recentTexture.getCatalogId == 'function') {
-      catalogId = recentTexture.getCatalogId();
-    }
-
-    var catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(catalogId, this.preferences);
-    if (catalogTexture == null) {
-      console.warn('unsupported recent texture', recentTexture);
-      continue;
-    }
-
+    
     var recentTextureElement = document.createElement('div');
-    recentTextureElement.style.backgroundImage = "url('" + catalogTexture.image.url + "')";
+    recentTextureElement.style.backgroundImage = "url('" + recentTexture.getImage().getURL() + "')";
     recentTextureElement.classList.add('texture-overview');
-    recentTextureElement.dataset['catalogId'] = catalogId;
+    recentTextureElement[JSTextureSelectorDialog.ITEM_TEXTURE_PROPERTY] = recentTexture;
     this.recentTexturesPanel.appendChild(recentTextureElement);
   }
 
   var dialog = this;
   this.registerEventListener(Array.from(this.recentTexturesPanel.childNodes), 'click', function() {
-    dialog.onCatalogTextureSelected(this.dataset['catalogId']);
+    dialog.onCatalogTextureSelected(dialog.getCatalogTextureFromItem(this));
   });
 }
 
@@ -314,12 +367,60 @@ JSTextureSelectorDialog.prototype.initImportTexturesPanel = function() {
   this.importTextureButton = this.findElement('.imported-textures-panel [import]');
   this.modifyTextureButton = this.findElement('.imported-textures-panel [modify]');
   this.deleteTextureButton = this.findElement('.imported-textures-panel [delete]');
-
+  
   var dialog = this;
   var controller = this.textureChoiceController;
   this.registerEventListener(this.importTextureButton, 'click', function() { controller.importTexture() });
   this.registerEventListener(this.modifyTextureButton, 'click', function() { controller.modifyTexture(dialog.selectedTextureModel.catalogTexture) });
   this.registerEventListener(this.deleteTextureButton, 'click', function() { controller.deleteTexture(dialog.selectedTextureModel.catalogTexture) });
+}
+
+/**
+ * @return {boolean}
+ */
+JSTextureSelectorDialog.prototype.confirmDeleteSelectedCatalogTexture = function() {
+  // TODO This SH3D dialog won't work because this method expects a sync boolean return 
+  // var textureDialog = this;
+  // function JSConfirmDialog() {
+  //   JSDialogView.call(
+  //     this, 
+  //     textureDialog.viewFactory, 
+  //     textureDialog.preferences, 
+  //     '${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.title}', 
+  //     '<div>${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.message}</div>',
+  //     {
+  //       initializer: function(dialog) {},
+  //       applier: function(dialog) {
+          
+  //       },
+  //     });
+  // }
+  // JSConfirmDialog.prototype = Object.create(JSDialogView.prototype);
+  // JSConfirmDialog.prototype.constructor = JSConfirmDialog;
+  
+  // JSConfirmDialog.prototype.appendButtons = function(buttonsPanel) {
+  //   buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, 
+  //     '<button class="dialog-cancel-button">${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.cancel}</button>' + 
+  //     '<button class="dialog-ok-button">${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.delete}</button>'
+  //   );
+
+  //   var confirmDialog = this;
+  //   var cancelButton = this.findElement('.dialog-cancel-button');
+  //   this.registerEventListener(cancelButton, 'click', function() {
+  //     confirmDialog.cancel();
+  //   });
+  //   var okButtons = this.findElements('.dialog-ok-button');
+  //   this.registerEventListener(okButtons, 'click', function() {
+  //     confirmDialog.validate();
+  //   });
+  // };
+
+  // var confirmDialog = new JSConfirmDialog();
+  // confirmDialog.displayView();
+
+  // remove html tags from message because confirm does not support it
+  var messageText = this.getLocalizedLabelText('TextureChoiceComponent', 'confirmDeleteSelectedCatalogTexture.message').replaceAll(/\<[^\>]*\>/g, ' ').replaceAll(/[ ]+/g, ' ');
+  return confirm(messageText);
 }
 
 /**
@@ -370,10 +471,7 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
 
       var backgroundImage = 'none';
       if (texture != null) {
-        var catalogTexture = JSTextureSelectorDialog.getCatalogTextureById(texture.getCatalogId(), preferences);
-        if (catalogTexture != null) {
-          backgroundImage = "url('" + catalogTexture.image.url + "')";
-        }
+        backgroundImage = "url('" + texture.getImage().getURL() + "')";
       }
       component.overview.style.backgroundImage = backgroundImage;
     }
@@ -401,6 +499,10 @@ JSTextureSelectorButton.prototype.enable = function(enabled) {
  * @private
  */
 JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
+  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
+    return;
+  }
+
   this.currentDialog = new JSTextureSelectorDialog(this.viewFactory, this.preferences, this.textureChoiceController);
   if (this.get() != null) {
     this.currentDialog.setTexture(this.get());
@@ -408,6 +510,11 @@ JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
   this.currentDialog.displayView();
 };
 
+JSTextureSelectorButton.prototype.confirmDeleteSelectedCatalogTexture = function() {
+  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
+    return this.currentDialog.confirmDeleteSelectedCatalogTexture();
+  }
+}
 
 JSTextureSelectorButton.prototype.dispose = function() {
   this.textureChoiceController.removePropertyChangeListener(this.textureChangeListener);

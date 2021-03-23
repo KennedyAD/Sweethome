@@ -118,6 +118,19 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
       'imageChoiceErrorLabel.text'));
   }
 
+  /**
+   * @param {HTMLImageElement} image 
+   * @return {boolean} true if image needs alpha channel
+   */
+  function doesImageHaveAlpha(image) {
+    var canvas = document.createElement("canvas");
+    var context = canvas.getContext("2d");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    context.drawImage(image, 0, 0, image.width, image.height);
+    return doesCanvasHaveAlpha(context, canvas);
+  }
+
   function doesCanvasHaveAlpha(context, canvas) {
     var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
     var hasAlphaPixels = false;
@@ -128,6 +141,24 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         }
     }
     return hasAlphaPixels;
+  }
+
+  var USER_CATEGORY = new TexturesCategory(
+    ResourceAction.getLocalizedLabelText(preferences, 'ImportedTextureWizardStepsPanel', 'userCategory')
+  );
+  /**
+   * @param {TexturesCategory[]} categories 
+   * @return {TexturesCategory | null} found user category, or null if not found
+   * @see USER_CATEGORY
+   */
+  function findUserCategory(categories) {
+    var categories = preferences.getTexturesCatalog().getCategories();
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i].equals(USER_CATEGORY)) {
+        return categories[i];
+      }
+    }
+    return null;
   }
 
   var stepsView = new JSComponentView(
@@ -237,6 +268,9 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         });
 
         var categories = this.preferences.getTexturesCatalog().getCategories();
+        if (findUserCategory(categories) == null) {
+          categories = categories.concat([USER_CATEGORY]);
+        }
         for (var i = 0; i < categories.length; i++) {
           var option = document.createElement('option');
           option.value = categories[i].getName();
@@ -309,33 +343,36 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
    * @private
    */
   stepsView.onImageSelected = function (image) {
+    var view = this;
+    var controller = this.controller;
+
     console.info('image selected', image);
     if (image != null) {
 
-      this.promptImageResize(image, function(image) {
-        this.controller.setImage(image);
-        this.controller.setName('My texture name');
-        var userCategory = new TexturesCategory(this.getLocalizedLabelText('ImportedTextureWizardStepsPanel', 'userCategory'));
-        var categories = this.preferences.getTexturesCatalog().getCategories();
-        for (var i = 0; i < categories.length; i++) {
-          if (categories[i].equals(userCategory)) {
-            userCategory = categories[i];
-            break;
+      var imageType = doesImageHaveAlpha(image) ? "image/png" : "image/jpeg";
+
+      this.promptImageResize(image, imageType, function(image) {
+        BlobURLContent.fromImage(image, imageType, function (content) {
+
+          controller.setImage(content);
+          controller.setName('My texture name');
+          var categories = view.preferences.getTexturesCatalog().getCategories();
+          var userCategory = findUserCategory(categories) || USER_CATEGORY;
+          controller.setCategory(userCategory);
+          controller.setCreator(null);
+          var defaultWidth = 20;
+          var lengthUnit = view.preferences.getLengthUnit();
+          if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_DECIMALS) {
+            defaultWidth = LengthUnit.inchToCentimeter(8);
           }
-        }
-        this.controller.setCategory(userCategory);
-        this.controller.setCreator(null);
-        var defaultWidth = 20;
-        var lengthUnit = this.preferences.getLengthUnit();
-        if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_DECIMALS) {
-          defaultWidth = LengthUnit.inchToCentimeter(8);
-        }
-        this.controller.setWidth(defaultWidth);
-        this.controller.setHeight(defaultWidth / image.width * image.height);
+          controller.setWidth(defaultWidth);
+          controller.setHeight(defaultWidth / image.width * image.height);
+        });
+
       });
 
     } else {
-      this.controller.setImage(null);
+      controller.setImage(null);
       onImageLoadingError('image is null');
     }
   }
@@ -398,10 +435,12 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
 
   /**
    * @param {HTMLImageElement} image 
+   * @param {string} imageType can be "image/png" or "image/jpeg" depending on image alpha channel requirements
    * @param {function(HTMLImageElement)} callback function called after resize with resized image (or with original image if resize was not necessary or declined by user)
+   * 
    * @private
    */
-  stepsView.promptImageResize = function (image, callback) {
+  stepsView.promptImageResize = function (image, imageType, callback) {
     if (image.width * image.height < LARGE_IMAGE_PIXEL_COUNT_THRESHOLD) {
       callback.call(this, image);
       return;
@@ -429,14 +468,12 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         canvas.height = reducedHeight;
         var canvasContext = canvas.getContext('2d');
         canvasContext.drawImage(image, 0, 0, reducedWidth, reducedHeight);
-        console.log(canvasContext.getImageData(1, 1, 1, 1).data[3], canvasContext.getImageData(1, 1, 1, 1).data[2]);
-        console.log(canvasContext.getImageData(0, 0, 1, 1).data[3], canvasContext.getImageData(0, 0, 1, 1).data[2]);
 
         var resizedImage = new Image();
         resizedImage.onload = function() {
           callback.call(stepsView, resizedImage);
         }
-        resizedImage.src = canvas.toDataURL(doesCanvasHaveAlpha(canvasContext, canvas) ? "image/png" : "image/jpeg");
+        resizedImage.src = canvas.toDataURL(imageType);
       },
       function onKeepUnchangedRequested() { callback.call(stepsView, image) }
     );
@@ -452,9 +489,15 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
       return;
     }
 
-    var image = this.controller.getImage().cloneNode(true);
-    delete image.width;
-    delete image.height;
+    var image;
+    if (this.controller.getImage() instanceof HTMLImageElement) {
+      image = this.controller.getImage().cloneNode(true);
+      delete image.width;
+      delete image.height;
+    } else {
+      image = new Image();
+      image.src = this.controller.getImage().getURL();
+    }
     this.previewPanel.appendChild(image);
     
     this.attributesPreviewPanel.innerHTML = '';
@@ -829,59 +872,600 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
   var FurniturePaint = HomeFurnitureController.FurniturePaint;
   var viewFactory = this;
   
-  return new JSDialogView(viewFactory, preferences, 
-    '${HomeFurniturePanel.homeFurniture.title}', 
-    document.getElementById("home-furniture-dialog-template"), {
-      initializer: function(dialog) {
-        dialog.colorSelector = viewFactory.createColorSelector(preferences, {
-          onColorSelected: function(color) {
-            dialog.radioButtons[FurniturePaint.COLORED].checked = true;
-            homeFurnitureController.setPaint(FurniturePaint.COLORED);
-            homeFurnitureController.setColor(color);
-          }
-        });
-        dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
-        dialog.colorSelector.set(homeFurnitureController.getColor());
+  function JSHomeFurnitureDialog() {
+    this.controller = homeFurnitureController;
     
-        dialog.textureSelector = homeFurnitureController.getTextureController().getView();
-        dialog.textureSelector.onTextureSelected = function(texture) {
-          dialog.radioButtons[FurniturePaint.TEXTURED].checked = true;
-          homeFurnitureController.setPaint(FurniturePaint.TEXTURED);
-          homeFurnitureController.getTextureController().setTexture(texture);
-        };
-        dialog.attachChildComponent('texture-selector-button', dialog.textureSelector);
-        dialog.textureSelector.set(homeFurnitureController.getTextureController().getTexture());
-        
-        var selectedPaint = homeFurnitureController.getPaint();
-  
-        dialog.radioButtons = [];
-        dialog.radioButtons[FurniturePaint.DEFAULT] = dialog.findElement('[name="furniture-color-and-texture-choice"][value="default"]');
-        dialog.radioButtons[FurniturePaint.COLORED] = dialog.findElement('[name="furniture-color-and-texture-choice"][value="color"]');
-        dialog.radioButtons[FurniturePaint.TEXTURED] = dialog.findElement('[name="furniture-color-and-texture-choice"][value="texture"]');
-        
-        for (var paint = 0; paint < dialog.radioButtons.length; paint++) {
-          var radioButton = dialog.radioButtons[paint];
-          radioButton.checked = paint == selectedPaint 
-            || (paint == FurniturePaint.DEFAULT && !dialog.radioButtons[selectedPaint]);
+    JSDialogView.call(
+      this, 
+      viewFactory, 
+      preferences, 
+      '${HomeFurniturePanel.homeFurniture.title}', 
+      document.getElementById("home-furniture-dialog-template"),
+      {
+        initializer: function(dialog) {
+
+          
+          dialog.initNameAndPricePanel();
+          dialog.initLocationPanel();
+          dialog.initPaintPanel();
+          dialog.initOrientationPanel();
+          dialog.initSizePanel();
+          dialog.initShininessPanel();
+
+          if (dialog.controller.isPropertyEditable('VISIBLE')) {
+            // Create visible check box bound to VISIBLE controller property
+            var visibleCheckBox = this.getElement('visible-checkbox');
+            visibleCheckBox.checked = dialog.controller.getVisible();
+            this.controller.addPropertyChangeListener('VISIBLE', function(event) {
+              visibleCheckBox.checked = event.getNewValue();
+            });
+
+            this.registerEventListener(
+              visibleCheckBox,
+              'input',
+              function() {
+                dialog.controller.setVisible(visibleCheckBox.checked);
+              }
+            );
+          }
+
+          // must be done at last, needs multiple components to be initialized
+          if (dialog.controller.isPropertyEditable('PAINT')) {
+            dialog.updatePaintRadioButtons();
+          }
+        },
+        applier: function() {
+          homeFurnitureController.modifyFurniture();
+        },
+        disposer: function(dialog) {
+          dialog.paintPanel.colorSelector.dispose();
+          dialog.paintPanel .textureSelector.dispose();
         }
+      });
+  }
+  JSHomeFurnitureDialog.prototype = Object.create(JSDialogView.prototype);
+  JSHomeFurnitureDialog.prototype.constructor = JSHomeFurnitureDialog;
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.initNameAndPricePanel = function() {
+    var nameLabel = this.getElement('name-label');
+    var nameInput = this.getElement('name-input');
+    var nameVisibleCheckbox = this.getElement('name-visible-checkbox');
+    var priceLabel = this.getElement('price-label');
+    var priceInput = this.getElement('price-input');
+    var valueAddedTaxPercentageInput = this.getElement('value-added-tax-percentage-input');
+
+    // 1) adjust visibility
+    var nameDisplay = this.controller.isPropertyEditable('NAME') ? 'initial' : 'none';
+    var nameVisibleDisplay = this.controller.isPropertyEditable('NAME_VISIBLE') ? 'initial' : 'none';
+    var priceDisplay = this.controller.isPropertyEditable('PRICE') ? 'initial' : 'none';
+    var vatDisplay = this.controller.isPropertyEditable('VALUE_ADDED_TAX_PERCENTAGE') ? 'initial' : 'none';
+
+    nameLabel.style.display = nameDisplay;
+    nameInput.style.display = nameDisplay;
+    
+    nameVisibleCheckbox.parentElement.style.display = nameVisibleDisplay;
+    
+    priceLabel.style.display = priceDisplay;
+    priceInput.style.display = priceDisplay;
+
+    valueAddedTaxPercentageInput.previousElementSibling.style.display = vatDisplay;
+    valueAddedTaxPercentageInput.style.display = vatDisplay;
+
+    // 2) set values
+    nameInput.value = this.controller.getName();
+    nameVisibleCheckbox.checked = this.controller.getNameVisible();
+    priceInput.value = this.controller.getPrice();
+    if (this.controller.getValueAddedTaxPercentage()) {
+      valueAddedTaxPercentageInput.value = this.controller.getValueAddedTaxPercentage() * 100;
+    }
+
+    // 3) add property listeners
+    var controller = this.controller;
+    this.controller.addPropertyChangeListener('NAME', function(event) {
+      nameInput.value = controller.getName();
+    });
+    this.controller.addPropertyChangeListener('NAME_VISIBLE', function(event) {
+      nameVisibleCheckbox.checked = controller.getNameVisible();
+    });
+    this.controller.addPropertyChangeListener('PRICE', function(event) {
+      priceInput.value = controller.getPrice();
+    });
+    this.controller.addPropertyChangeListener('VALUE_ADDED_TAX_PERCENTAGE', function(event) {
+      if (controller.getValueAddedTaxPercentage()) {
+        valueAddedTaxPercentageInput.value = controller.getValueAddedTaxPercentage() * 100;
+      } else {
+        valueAddedTaxPercentageInput.value = null;
+      }
+    });
+
+    // 4) add change listeners
+    this.registerEventListener(
+      [nameInput, nameVisibleCheckbox, priceInput, valueAddedTaxPercentageInput],
+      'input',
+      function() {
+        controller.setName(nameInput.value);
+        controller.setNameVisible(nameVisibleCheckbox.checked);
+        controller.setPrice(priceInput.value != null && priceInput.value != '' ? parseFloat(priceInput.value) : null);
+        controller.setValueAddedTaxPercentage(
+          valueAddedTaxPercentageInput.value != null && valueAddedTaxPercentageInput.value != null ? parseFloat(valueAddedTaxPercentageInput.value) / 100 : null
+        );
+      }
+    );
+  }
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.initLocationPanel = function() {
+    var xLabel = this.getElement('x-label');
+    var xInput = this.getElement('x-input');
+    var yLabel = this.getElement('y-label');
+    var yInput = this.getElement('y-input');
+    var elevationLabel = this.getElement('elevation-label');
+    var elevationInput = this.getElement('elevation-input');
+
+    var mirroredModelCheckbox = this.getElement('mirrored-model-checkbox');
+    var basePlanItemCheckbox = this.getElement('base-plan-item-checkbox');
+
+    // 1) adjust visibility
+    var xDisplay = this.controller.isPropertyEditable('X') ? 'initial' : 'none';
+    var yDisplay = this.controller.isPropertyEditable('Y') ? 'initial' : 'none';
+    var elevationDisplay = this.controller.isPropertyEditable('ELEVATION') ? 'initial' : 'none';
+    var modelMirroredDisplay = this.controller.isPropertyEditable('MODEL_MIRRORED') ? 'initial' : 'none';
+    var basePlanItemDisplay = this.controller.isPropertyEditable('BASE_PLAN_ITEM') ? 'initial' : 'none';
+
+    xLabel.style.display = xDisplay;
+    xInput.parentElement.style.display = xDisplay;
+    yLabel.style.display = yDisplay;
+    yInput.parentElement.style.display = yDisplay;
+    elevationLabel.style.display =  elevationDisplay;
+    elevationInput.parentElement.style.display = elevationDisplay;
+    
+    mirroredModelCheckbox.parentElement.style.display = modelMirroredDisplay;
+    basePlanItemCheckbox.parentElement.style.display = basePlanItemDisplay;
+
+    // 2) set values
+    xInput.value = this.controller.getX();
+    yInput.value = this.controller.getY();
+    elevationInput.value = this.controller.getElevation();
+    mirroredModelCheckbox.checked = this.controller.getModelMirrored();
+    basePlanItemCheckbox.checked = this.controller.getBasePlanItem();
+
+    // 3) set labels
+    var unitName = this.preferences.getLengthUnit().getName();
+    xLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'xLabel.text', unitName);
+    yLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'yLabel.text', unitName);
+    elevationLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'elevationLabel.text', unitName);
+    
+    // 4) set custom attributes
+    var maximumLength = this.preferences.getLengthUnit().getMaximumLength();
+    var maximumElevation = this.preferences.getLengthUnit().getMaximumElevation();
+    xInput.min = yInput.min = -maximumLength;
+    xInput.max = yInput.max = maximumLength;
+    elevationInput.min = 0;
+    elevationInput.max = maximumElevation;
+
+    // 5) add property listeners
+    var controller = this.controller;
+    this.controller.addPropertyChangeListener('X', function(event) {
+      xInput.value = controller.getX();
+    });
+    this.controller.addPropertyChangeListener('Y', function(event) {
+      yInput.value = controller.getY();
+    });
+    this.controller.addPropertyChangeListener('ELEVATION', function(event) {
+      elevationInput.value = controller.getElevation();
+    });
+    this.controller.addPropertyChangeListener('MODEL_MIRRORED', function(event) {
+      mirroredModelCheckbox.checked = controller.getModelMirrored();
+    });
+    this.controller.addPropertyChangeListener('BASE_PLAN_ITEM', function(event) {
+      basePlanItemCheckbox.checked = controller.getBasePlanItem();
+    });
+
+    // 6) add change listeners
+    this.registerEventListener(
+      [xInput, yInput, elevationInput, mirroredModelCheckbox, basePlanItemCheckbox],
+      'input',
+      function() {
+        controller.setX(xInput.value != null && xInput.value != '' ? parseFloat(xInput.value) : null);
+        controller.setY(yInput.value != null && yInput.value != '' ? parseFloat(yInput.value) : null);
+        controller.setElevation(elevationInput.value != null && elevationInput.value != '' ? parseFloat(elevationInput.value) : null);
+        controller.setModelMirrored(mirroredModelCheckbox.checked);
+        controller.setBasePlanItem(basePlanItemCheckbox.checked);
+      }
+    );
+  }
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.initOrientationPanel = function() {
+    var controller = this.controller;
+
+    var angleLabel = this.getElement('angle-label');
+    var angleInput = this.getElement('angle-input');
+    var horizontalRotationRadioRoll = this.findElement('[name="horizontal-rotation-radio"][value="ROLL"]');
+    var horizontalRotationRadioPitch = this.findElement('[name="horizontal-rotation-radio"][value="PITCH"]');
+    var rollInput = this.getElement('roll-input');
+    var pitchInput = this.getElement('pitch-input');
+
+    var verticalRotationLabel = this.getElement("vertical-rotation-label");
+    var horizontalRotationLabel = this.getElement("horizontal-rotation-label");
+    var furnitureOrientationImage = this.getElement("furniture-orientation-image");
+
+    // 1) adjust visibility
+    var angleDisplay = this.controller.isPropertyEditable('ANGLE_IN_DEGREES') || this.controller.isPropertyEditable('ANGLE') ? 'initial' : 'none';
+    var rollDisplay = this.controller.isPropertyEditable('ROLL') ? 'initial' : 'none';
+    var pitchDisplay = this.controller.isPropertyEditable('PITCH') ? 'initial' : 'none';
+
+    var rollAndPitchDisplayed = this.controller.isPropertyEditable('ROLL') && this.controller.isPropertyEditable('PITCH');
+    var verticalRotationLabelDisplay = rollAndPitchDisplayed ? 'initial' : 'none';
+    var horizontalRotationLabelDisplay = verticalRotationLabelDisplay;
+    var furnitureOrientationImageDisplay = this.controller.isTexturable() && rollAndPitchDisplayed ? 'initial' : 'none';
+
+    angleLabel.style.display = angleDisplay;
+    angleInput.parentElement.style.display = angleDisplay;
+
+    horizontalRotationRadioRoll.parentElement.style.display = rollDisplay; 
+    rollInput.parentElement.style.display = rollDisplay; 
+    
+    horizontalRotationRadioPitch.parentElement.style.display = pitchDisplay; 
+    pitchInput.parentElement.style.display = pitchDisplay; 
+
+    horizontalRotationLabel.style.display = horizontalRotationLabelDisplay;    
+    verticalRotationLabel.style.display = verticalRotationLabelDisplay;
+    furnitureOrientationImage.style.display = furnitureOrientationImageDisplay;
+
+    // 2) set values
+    if (this.controller.getAngle() != null) {
+      angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.controller.getAngle()));
+    } else {
+      angleInput.value = null;
+    }
+    if (this.controller.getRoll() != null) {
+      rollInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.controller.getRoll()));
+    } else {
+      rollInput.value = null;
+    }
+    if (this.controller.getPitch() != null) {
+      pitchInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.controller.getPitch()));
+    } else {
+      pitchInput.value = null;
+    }
+
+    function updateHorizontalAxisRadioButtons() {
+      horizontalRotationRadioRoll.checked = controller.getHorizontalAxis() == HomeFurnitureController.FurnitureHorizontalAxis.ROLL;
+      horizontalRotationRadioPitch.checked = controller.getHorizontalAxis() == HomeFurnitureController.FurnitureHorizontalAxis.PITCH;
+    }
+    updateHorizontalAxisRadioButtons();
+
+    // 3) add property listeners
+    this.controller.addPropertyChangeListener('ANGLE', function(event) {
+      if (controller.getAngle() != null) {
+        angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(controller.getAngle()));
+      } else {
+        angleInput.value = null;
+      }
+    });
+    this.controller.addPropertyChangeListener('ROLL', function(event) {
+      if (controller.getRoll() != null) {
+        rollInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(controller.getRoll()));
+      } else {
+        rollInput.value = null;
+      }
+    });
+    this.controller.addPropertyChangeListener('PITCH', function(event) {
+      if (controller.getPitch() != null) {
+        pitchInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(controller.getPitch()));
+      } else {
+        pitchInput.value = null;
+      }
+    });
+    this.controller.addPropertyChangeListener('HORIZONTAL_AXIS', function(event) {
+      updateHorizontalAxisRadioButtons();
+    });
+
+    // 4) add change listeners
+    this.registerEventListener(angleInput, 'input', function() {
+      if (angleInput.value == null || angleInput.value == '') {
+        controller.setAngle(null);
+      } else {
+        controller.setAngle(/* toRadians */ (function (x) { return x * Math.PI / 180; })(angleInput.value));
+      }
+    });
+    this.registerEventListener(rollInput, 'input', function() {
+      if (rollInput.value == null || rollInput.value == '') {
+        controller.setRoll(null);
+      } else {
+        controller.setRoll(/* toRadians */ (function (x) { return x * Math.PI / 180; })(rollInput.value));
+        controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
+      }
+    });
+    this.registerEventListener(pitchInput, 'input', function() {
+      if (pitchInput.value == null || pitchInput.value == '') {
+        // we force 0 here because null seems to create a bug in save (furniture entirely disappears)
+        controller.setPitch(null);
+      } else {
+        controller.setPitch(/* toRadians */ (function (x) { return x * Math.PI / 180; })(pitchInput.value));
+        controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
+      }
+    });
+    this.registerEventListener([horizontalRotationRadioRoll, horizontalRotationRadioPitch], 'input', function() {
+      if (horizontalRotationRadioRoll.checked) {
+        controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
+      } else {
+        controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
+      }
+    });
+  }
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.initPaintPanel = function() {
+    var dialog = this;
+    var controller = this.controller;
+    var preferences = this.preferences;
+
+    var colorSelector = viewFactory.createColorSelector(preferences, {
+      onColorSelected: function(color) {
+        colorAndTextureRadioButtons[FurniturePaint.COLORED].checked = true;
+        controller.setPaint(FurniturePaint.COLORED);
+        controller.setColor(color);
+      }
+    });
+    dialog.attachChildComponent('color-selector-button', colorSelector)
+    colorSelector.set(controller.getColor());
+
+    var textureSelector = controller.getTextureController().getView();
+    textureSelector.onTextureSelected = function(texture) {
+      colorAndTextureRadioButtons[FurniturePaint.TEXTURED].checked = true;
+      controller.setPaint(FurniturePaint.TEXTURED);
+      controller.getTextureController().setTexture(texture);
+    };
+    dialog.attachChildComponent('texture-selector-button', textureSelector);
+    textureSelector.set(controller.getTextureController().getTexture());
+    
+    var selectedPaint = controller.getPaint();
+
+    var colorAndTextureRadioButtons = [];
+    colorAndTextureRadioButtons[FurniturePaint.DEFAULT] = dialog.findElement('[name="paint-checkbox"][value="default"]');
+    colorAndTextureRadioButtons[FurniturePaint.COLORED] = dialog.findElement('[name="paint-checkbox"][value="color"]');
+    colorAndTextureRadioButtons[FurniturePaint.TEXTURED] = dialog.findElement('[name="paint-checkbox"][value="texture"]');
+    colorAndTextureRadioButtons[FurniturePaint.MODEL_MATERIALS] = dialog.findElement('[name="paint-checkbox"][value="MODEL_MATERIALS"]');
+    
+    for (var paint = 0; paint < colorAndTextureRadioButtons.length; paint++) {
+      var radioButton = colorAndTextureRadioButtons[paint];
+      radioButton.checked = paint == selectedPaint || (paint == FurniturePaint.DEFAULT && !colorAndTextureRadioButtons[selectedPaint]);
+    }
+
+    dialog.paintPanel = {
+      colorAndTextureRadioButtons: colorAndTextureRadioButtons,
+      colorSelector: colorSelector,
+      textureSelector: textureSelector,
+    }
+
+    var panelDisplay = controller.isPropertyEditable('PAINT') ? undefined : 'none';
+    this.getElement('paint-panel').style.display = panelDisplay;
+    this.getElement('paint-panel').previousElementSibling.style.display = panelDisplay;
+
+    controller.addPropertyChangeListener('PAINT', function() {
+      dialog.updatePaintRadioButtons();
+    });
+
+    dialog.registerEventListener(
+      colorAndTextureRadioButtons, 
+      'change', 
+      function(event) { 
+        var paint = colorAndTextureRadioButtons.indexOf(event.target);
+        controller.setPaint(paint);
+      });
+  }
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.updatePaintRadioButtons = function() {
+    var controller = this.controller;
+    if (controller.getPaint() == null) {
+      for (var i = 0; i < dialog.colorAndTextureRadioButtons.length; i++) {
+        this.paintPanel.colorAndTextureRadioButtons[i].checked = false;
+      }
+    } else {
+      var selectedRadio = this.paintPanel.colorAndTextureRadioButtons[controller.getPaint()];
+      if (selectedRadio) {
+        selectedRadio.checked = true;
+      }
+      this.updateShininessRadioButtons(controller);
+    }
+  };
   
-        dialog.registerEventListener(
-          dialog.radioButtons, 
-          'change', 
-          function(event) { 
-            var paint = dialog.radioButtons.indexOf(event.target);
-            homeFurnitureController.setPaint(paint);
-          });
-      },
-      applier: function() {
-        homeFurnitureController.modifyFurniture();
-      },
-      disposer: function(dialog) {
-        dialog.colorSelector.dispose();
-        dialog.textureSelector.dispose();
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.initSizePanel = function() {
+    var dialog = this;
+    var controller = this.controller;
+  
+    var widthLabel = this.getElement('width-label');
+    var widthInput = this.getElement('width-input');
+    var depthLabel = this.getElement('depth-label');
+    var depthInput = this.getElement('depth-input');
+    var heightLabel = this.getElement('height-label');
+    var heightInput = this.getElement('height-input');
+    var keepProportionsCheckbox = this.getElement('keep-proportions-checkbox');
+
+    // 1) adjust visibility
+    var widthDisplay = this.controller.isPropertyEditable('WIDTH') ? 'initial' : 'none';
+    var depthDisplay = this.controller.isPropertyEditable('DEPTH') ? 'initial' : 'none';
+    var heightDisplay = this.controller.isPropertyEditable('HEIGHT') ? 'initial' : 'none';
+    var keepProportionsDisplay = this.controller.isPropertyEditable('PROPORTIONAL') ? 'initial' : 'none';
+
+    widthLabel.style.display = widthDisplay;
+    widthInput.parentElement.style.display = widthDisplay;
+    depthLabel.style.display = depthDisplay;
+    depthInput.parentElement.style.display = depthDisplay;
+    heightLabel.style.display = heightDisplay;
+    heightInput.parentElement.style.display = heightDisplay;
+    keepProportionsCheckbox.parentElement.style.display = keepProportionsDisplay;
+    
+    // 2) set values
+    widthInput.value = this.controller.getWidth();
+    depthInput.value = this.controller.getDepth();
+    heightInput.value = this.controller.getHeight();
+    keepProportionsCheckbox.checked = this.controller.isProportional();
+
+    // 3) set labels
+    var unitName = this.preferences.getLengthUnit().getName();
+    widthLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'widthLabel.text', unitName);
+    depthLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'depthLabel.text', unitName);
+    heightLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'heightLabel.text', unitName);
+
+    // 4) set custom attributes
+    var minimumLength = this.preferences.getLengthUnit().getMinimumLength();
+    var maximumLength = this.preferences.getLengthUnit().getMaximumLength();
+    widthInput.min = depthInput.min = heightInput.min = minimumLength;
+    widthInput.max = depthInput.max = heightInput.max = maximumLength;
+
+    // 5) add property listeners
+    var controller = this.controller;
+    this.controller.addPropertyChangeListener('WIDTH', function(event) {
+      widthInput.value = controller.getWidth();
+    });
+    this.controller.addPropertyChangeListener('DEPTH', function(event) {
+      depthInput.value = controller.getDepth();
+    });
+    this.controller.addPropertyChangeListener('HEIGHT', function(event) {
+      heightInput.value = controller.getHeight();
+    });
+    this.controller.addPropertyChangeListener('PROPORTIONAL', function(event) {
+      keepProportionsCheckbox.checked = controller.isProportional();
+    });
+
+    // 6) add change listeners
+    this.registerEventListener(
+      [widthInput, depthInput, heightInput, keepProportionsCheckbox],
+      'input',
+      function() {
+        controller.setWidth(widthInput.value != null && widthInput.value != '' ? parseFloat(widthInput.value) : null);
+        controller.setDepth(depthInput.value != null && depthInput.value != '' ? parseFloat(depthInput.value) : null);
+        controller.setHeight(heightInput.value != null && heightInput.value != '' ? parseFloat(heightInput.value) : null);
+        controller.setProportional(keepProportionsCheckbox.checked);
+      }
+    );
+
+    // 7) assign panel's components
+    this.sizePanel = {
+      widthLabel: widthLabel,
+      widthInput: widthInput,
+      depthLabel: depthLabel,
+      depthInput: depthInput,
+      heightLabel: heightLabel,
+      heightInput: heightInput,
+      keepProportionsCheckbox: keepProportionsCheckbox,
+    };
+
+    // 8) handle components activation
+    dialog.updateSizeComponents();
+    // Add a listener that enables / disables size fields depending on furniture
+    // resizable and deformable
+    dialog.controller.addPropertyChangeListener('RESIZABLE', function() {
+      dalog.updateSizeComponents();
+    });
+    dialog.controller.addPropertyChangeListener('DEFORMABLE', function() {
+      dalog.updateSizeComponents();
+    });
+  };
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.updateSizeComponents = function() {
+    var editableSize = this.controller.isResizable();
+    this.sizePanel.widthLabel.disabled = !editableSize;
+    this.sizePanel.widthInput.disabled = !editableSize;
+    this.sizePanel.depthLabel.disabled = !editableSize;
+    this.sizePanel.depthInput.disabled = !editableSize;
+    this.sizePanel.heightLabel.disabled = !editableSize;
+    this.sizePanel.heightInput.disabled = !editableSize;
+    this.sizePanel.keepProportionsCheckbox.disabled = !editableSize || !this.controller.isDeformable();
+  };
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.initShininessPanel = function() {
+    var controller = this.controller;
+    var dialog = this;
+
+    var defaultShininessRadioButton = this.findElement('[name="shininess-radio"][value="DEFAULT"]');
+    var mattRadioButton = this.findElement('[name="shininess-radio"][value="MATT"]');
+    var shinyRadioButton = this.findElement('[name="shininess-radio"][value="SHINY"]');
+    this.shininessPanel = {
+      defaultShininessRadioButton: defaultShininessRadioButton,
+      mattRadioButton: mattRadioButton,
+      shinyRadioButton: shinyRadioButton,
+    };
+
+    var radiosDisplay = controller.isPropertyEditable('SHININESS') ? 'initial' : 'none';
+
+    defaultShininessRadioButton.parentElement.style.display = radiosDisplay;
+    mattRadioButton.parentElement.style.display = radiosDisplay;
+    shinyRadioButton.parentElement.style.display = radiosDisplay;
+
+    if (controller.isPropertyEditable('SHININESS')) {
+      // Create radio buttons bound to SHININESS controller properties
+      this.registerEventListener(
+        [defaultShininessRadioButton, mattRadioButton, shinyRadioButton],
+        'input',
+        function() {
+          var selectedRadio = dialog.findElement('[name="shininess-radio"]:checked');
+          controller.setShininess(HomeFurnitureController.FurnitureShininess[selectedRadio.value]);
+        }
+      );
+      controller.addPropertyChangeListener('SHININESS', function() {
+        dialog.updateShininessRadioButtons(controller);
+      });
+      
+      this.updateShininessRadioButtons(controller);
+    }
+  }
+
+  /**
+   * @private
+   */
+  JSHomeFurnitureDialog.prototype.updateShininessRadioButtons = function() {
+    var controller = this.controller;
+
+    if (controller.isPropertyEditable('SHININESS')) {
+      if (controller.getShininess() == HomeFurnitureController.FurnitureShininess.DEFAULT) {
+        this.shininessPanel.defaultShininessRadioButton.checked = true;
+      } else if (controller.getShininess() == HomeFurnitureController.FurnitureShininess.MATT) {
+        this.shininessPanel.mattRadioButton.checked = true;
+      } else if (controller.getShininess() == HomeFurnitureController.FurnitureShininess.SHINY) {
+        this.shininessPanel.shinyRadioButton.checked = true;
+      } else { // null
+        this.shininessPanel.defaultShininessRadioButton.checked = false;
+        this.shininessPanel.mattRadioButton.checked = false;
+        this.shininessPanel.shinyRadioButton.checked = false;
+      }
+      var shininessEnabled = controller.getPaint() != HomeFurnitureController.FurniturePaint.MODEL_MATERIALS;
+      this.shininessPanel.defaultShininessRadioButton.disabled = !shininessEnabled;
+      this.shininessPanel.mattRadioButton.disabled = !shininessEnabled;
+      this.shininessPanel.shinyRadioButton.disabled = !shininessEnabled;
+      if (!shininessEnabled) {
+        this.shininessPanel.defaultShininessRadioButton.checked = false;
+        this.shininessPanel.mattRadioButton.checked = false;
+        this.shininessPanel.shinyRadioButton.checked = false;
       }
     }
-  );
+  };
+
+  return new JSHomeFurnitureDialog();
 }
 
 JSViewFactory.prototype.createWallView = function(preferences, wallController) {

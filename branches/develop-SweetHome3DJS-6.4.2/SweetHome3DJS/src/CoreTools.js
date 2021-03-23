@@ -108,17 +108,22 @@ CoreTools.capitalize = function(string) {
  *
  * @param baseURL the base URL of the localized resource to be loaded
  * @param language the language to be loaded (Java conventions)
+ * @param {boolean} noCache force refresh content
  * @returns an array of bundle objects, starting with the most specific localization to the default
  */
-CoreTools.loadResourceBundles = function(baseURL, language) {
+CoreTools.loadResourceBundles = function(baseURL, language, noCache) {
+
+  var queryString = noCache ? '?ts=' + Date.now() : '';
+
   var resourceBundles = [];
   if (language) {
-    resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language + ".json"));
+    resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language + ".json" + queryString));
     if (language.indexOf("_") > 0) {
-      resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language.split("_")[0] + ".json"));
+      resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language.split("_")[0] + ".json" + queryString));
     }
   }
-  resourceBundles.push(CoreTools.loadJSON(baseURL + ".json"));
+
+  resourceBundles.push(CoreTools.loadJSON(baseURL + ".json" + queryString));
   return resourceBundles;  
 }
 
