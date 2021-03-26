@@ -250,6 +250,16 @@ JSComponentView.prototype.getLocalizedLabelText = function(resourceClass, proper
   return ResourceAction.getLocalizedLabelText(this.preferences, resourceClass, propertyKey, resourceParameters);
 }
 
+/**
+ * @return {number} return step size for length inputs based on user preferences
+ * 
+ * @protected
+ */
+JSComponentView.prototype.getLengthInputStepSize = function() {
+  return this.preferences.getLengthUnit() == LengthUnit.INCH || 
+    this.preferences.getLengthUnit() == LengthUnit.INCH_DECIMALS ? LengthUnit.inchToCentimeter(0.125) : 0.5;
+}
+
 /*****************************************/
 /* JSDialogView                          */
 /*****************************************/
@@ -804,6 +814,13 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
     this.registerEventListener(itemElement, 'click', function() {
       subMenuElement.classList.add('visible');
     });
+    this.registerEventListener(itemElement, 'mouseover', function() {
+      
+      var itemRect = itemElement.getBoundingClientRect();
+      subMenuElement.style.position = 'fixed';
+      subMenuElement.style.left = itemRect.x + itemElement.clientWidth;
+      subMenuElement.style.top = itemRect.y;
+    });
 
     itemElement.appendChild(subMenuElement);
   }
@@ -1002,3 +1019,168 @@ document.addEventListener('keyup', function(event) {
     JSContextMenu.closeCurrentIfAny();
   }
 });
+
+/*****************************************/
+/* JSSpinner                          */
+/*****************************************/
+/**
+ * The root class for component views.
+ *
+ * @param {JSViewFactory} viewFactory the view factory
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {HTMLElement} input input of type text on which install the spinner
+ * @param {{format: Format, nullable?: boolean, min?: number, max?: number, step?: number}} [options]
+ * - format: number format to be used for this input
+ * - nullable: false if null/undefined is not allowed - default true
+ * - min: minimum number value,
+ * - max: maximum number value,
+ * - step: step between values when increment / decrement using UI
+ * @constructor
+ * @extends JSComponentView
+ * @author Louis Grignon
+ * 
+ */
+function JSSpinner(viewFactory, preferences, input, options) {
+  if (input.tagName.toUpperCase() != 'SPAN') {
+    throw new Error('JSSpinner: please provide a span for the spinner to work - ' + input + ' is not a span');
+  }
+  if (options 
+      && options.min != null && options.max != null
+      && options.min >= options.max) {
+    throw new Error('JSSpinner: min is not below max - min=' + options.min + ' max=' + options.max);
+  }
+  if (!options || !options.format) {
+    throw new Error('JSSpinner: format must not be null');
+  }
+
+  var rootElement = input;
+  if (!options) { options = {}; }
+  if (isNaN(parseFloat(options.step))) { options.step = 1; }
+  if (typeof options.nullable != 'boolean') { options.nullable = true; }
+
+  var defaultValue = 0;
+  if (options.min != null && options.min > defaultValue) {
+    defaultValue = options.min;
+  } 
+
+  /** @var {JSSpinner} */
+  var component = this;
+  JSComponentView.call(this, viewFactory, preferences, rootElement, {
+    initializer: function(component) {
+      component.options = options;
+      
+      rootElement.classList.add('spinner');
+
+      component.textInput = document.createElement('input');
+      component.textInput.type = 'text';
+      rootElement.appendChild(component.textInput);
+
+      component.incrementButton = document.createElement('button');
+      component.incrementButton.setAttribute('increment', '');
+      component.incrementButton.textContent = '+';
+      rootElement.appendChild(component.incrementButton);
+
+      component.decrementButton = document.createElement('button');
+      component.decrementButton.setAttribute('decrement', '');
+      component.decrementButton.textContent = '-';
+      rootElement.appendChild(component.decrementButton);
+
+      component.registerEventListener(component.textInput, 'input', function(event) {
+        var actualValue = component.parseFloatValueFromInput();
+
+        component.textInput.style.color = null;
+        if (actualValue == null) {
+          component.textInput.style.color = 'red';
+        }
+      });
+
+      component.registerEventListener(component.textInput, 'blur', function(event) {
+        var actualValue = component.parseFloatValueFromInput();
+        if (actualValue == null && !options.nullable) {
+          var restoredValue = component.__value;
+          if (restoredValue == null) {
+            restoredValue = defaultValue;
+          }
+          actualValue = restoredValue;
+        }
+        component.value = actualValue;
+        component.textInput.style.color = null;
+      });
+
+      component.configureIncrementDecrement();
+
+      Object.defineProperty(this, 'value', { 
+        get: function() { return component.get() }, 
+        set: function(value) { component.set(value) } 
+      });
+      
+      if (!options.nullable) {
+        component.value = defaultValue; 
+      }
+    },
+    getter: function(component) {
+      return component.__value;
+    },
+    setter: function(component, value) {
+      if (value != null && typeof value != 'number') {
+        throw new Error('JSSpinner: expected values of type number');
+      }
+      component.__value = value;
+      component.textInput.value = options.format.format(value);
+    },
+  });
+}
+
+JSSpinner.prototype = Object.create(JSComponentView.prototype);
+JSSpinner.prototype.constructor = JSSpinner;
+
+/**
+ * 
+ * @return {number}
+ * 
+ * @private
+ */
+JSSpinner.prototype.parseFloatValueFromInput = function() {
+  return this.options.format.parse(this.textInput.value, new ParsePosition(0));
+}
+
+/**
+ * @private
+ */
+JSSpinner.prototype.configureIncrementDecrement = function() {
+  var component = this;
+  var options = this.options;
+
+  this.registerEventListener(component.textInput, 'keydown', function(event) {
+    var keyStroke = KeyStroke.getKeyStrokeForEvent(event, "keydown"); 
+    if (keyStroke.endsWith(" UP")) {
+      event.stopImmediatePropagation();
+      component.incrementButton.click();
+    } else if (keyStroke.endsWith(" DOWN")) {
+      event.stopImmediatePropagation();
+      component.decrementButton.click();
+    }
+  });
+
+  this.registerEventListener(component.incrementButton, 'click', function(event) {
+    var previousValue = parseFloat(component.value);
+    if (previousValue == null) {
+      previousValue = options.min == null ? 0 : options.min;
+      if (options.max != null && previousValue >= options.max) {
+        previousValue = options.max - options.step;
+      }
+    }
+    component.value = previousValue + options.step;
+  });
+  
+  this.registerEventListener(component.decrementButton, 'click', function(event) {
+    var previousValue = parseFloat(component.value);
+    if (previousValue == null) {
+      previousValue = options.max == null ? 0 : options.max;
+      if (options.min != null && previousValue <= options.min) {
+        previousValue = options.min + options.step;
+      }
+    }
+    component.value = previousValue - options.step;
+  });
+}
