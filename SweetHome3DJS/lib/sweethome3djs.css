@@ -45,6 +45,41 @@
 }
 
 /********************************/
+/* Spinner                */
+/********************************/
+
+.spinner {
+  padding-right: 21px;
+  display: inline-block;
+  position: relative;
+}
+
+.spinner button {
+  display: block;
+  width: 20px;
+  height: 49%;
+  border: solid 1px #AAAAAA;
+  border-radius: 10%;
+  background: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 0;
+  line-height: 70%;
+  user-select: none;
+}
+
+.spinner [increment] {
+  margin-bottom: 2%;
+}
+
+.spinner [decrement] {
+  top: 51%;
+}
+
+/********************************/
 /* PlanComponent                */
 /********************************/
 
@@ -440,6 +475,8 @@
   height: 2.6em;
   line-height: 1.8em;
   box-sizing: border-box;
+  overflow: auto;
+  white-space: nowrap;
 }
 
 .context-menu .item:hover {
@@ -492,10 +529,7 @@
   background-color: white;
   border: solid 1px black;
   position: absolute;
-  left: 100%;
-  top: 0.2em;
   display: block;
-  width: 100%;
 }
 
 .context-menu .back {
@@ -518,12 +552,14 @@
     }
 
     .context-menu .sub-menu > .items.visible {
-      position: static;
-      left: 0;
+      position: static !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
     }
 
     .context-menu .sub-menu:hover > .items:not(.visible) {
-      display: none;
+      display: none !important;
     }
 
     .context-menu .back {

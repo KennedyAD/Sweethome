@@ -1768,7 +1768,14 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
         dialog.textSizeLabel.textContent = dialog.getLocalizedLabelText(
           'LabelPanel', 'fontSizeLabel.text', dialog.preferences.getLengthUnit().getName()
         );
-        dialog.textSizeInput = dialog.getElement('text-size');
+        
+        dialog.textSizeInput = new JSSpinner(viewFactory, preferences, dialog.getElement('text-size'), { 
+          format: this.preferences.getLengthUnit().getFormat(),
+          nullable: false,
+          min: 5,
+          max: 999,
+          step: this.getLengthInputStepSize(),
+        });
         dialog.textSizeInput.value = labelController.getFontSize();
         
         dialog.colorSelector = viewFactory.createColorSelector(preferences);
@@ -1803,9 +1810,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
           }
         }
 
-        if (dialog.textSizeInput.value.trim() != '') {
-          labelController.setFontSize(parseFloat(dialog.textSizeInput.value));
-        }
+        labelController.setFontSize(dialog.textSizeInput.value);
 
         labelController.setColor(dialog.colorSelector.get());
 
