@@ -76,26 +76,47 @@ body {
 
 #furniture-catalog {
   top: 30px;
-  width: 300px;
+  width: 296px;
   height: calc(100% - 30px);
   overflow-y: scroll; 
+}
+
+.pane-splitter.vertical::after {
+  transform: rotate(90deg);
+  bottom: initial;
+  top: 50%;
+}
+
+#furniture-plan-splitter {
+  position: absolute;
+  top: 30px;
+  left: 296px;
+  height: calc(100% - 30px);
+}
+
+#plan-panes-splitter {
+  position: absolute;
+  
+  top: calc(30px + 50% - 15px - 2px);
+  left: 300px;
+  width: calc(100% - 300px);
 }
 
 #home-plan {
   top: 30px;
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 16px);
+  height: calc(50% - 15px - 2px);
   font-family: sans-serif;
   border-top: 1px solid gray; 
   border-bottom: 1px solid gray; 
 }
 
 #home-3D-view {
-  top: calc(50% + 16px);
+  top: calc(50% + 15px + 2px);
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 16px);
+  height: calc(50% - 15px - 2px);
 }
 
 @media (orientation: portrait) {
@@ -104,22 +125,34 @@ body {
     width: 160px;
   }
 
-  #home-plan {
+  #furniture-plan-splitter {
+    left: 160px;
+  }
+
+  #plan-panes-splitter {
     left: 160px;
     width: calc(100% - 160px);
+  }
+
+  #home-plan {
+    left: 164px;
+    width: calc(100% - 164px);
   }
 
   #home-3D-view {
-    left: 160px;
-    width: calc(100% - 160px);
+    left: 164px;
+    width: calc(100% - 164px);
   }
-
 }
 
 /*
  * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
  */
 @media (hover: none), (pointer: coarse) {
+
+  .pane-splitter {
+    display: none;
+  }
 
   body {
     margin: 5px;
@@ -210,6 +243,15 @@ body {
 
   @media (orientation: landscape) {
 
+    #plan-panes-splitter {
+      display: initial;
+      position: absolute;
+      width: 4px;
+      left: calc(50% + 73px);
+      height: calc(100% - 40px - 2px);
+      top: 0%;
+    }
+
     #furniture-catalog {
       top: 0%;
       left: 0%;
@@ -230,8 +272,8 @@ body {
 
     #home-3D-view {
       top: 0%;
-      left: calc(50% + 75px);
-      width: calc(50% - 75px - 1px);
+      left: calc(50% + 73px);
+      width: calc(50% - 75px - 2px /* splitter */ - 1px);
       height: calc(100% - 40px - 2px);
       border: 1px solid gray; 
       border-left: 0px; 
@@ -245,6 +287,10 @@ body {
  * Touch devices common CSS - ignored by IE
  */
 @media (hover: none) {
+  
+  .pane-splitter {
+    display: none;
+  }
 
   body {
     margin: 5px;
@@ -381,14 +427,13 @@ body {
 
 <div id="home-pane">
 
-  <canvas id="home-3D-view" style="background-color: #CCCCCC;" 
-          tabIndex="1"></canvas>
-
-  <div id="home-plan" style="background-color: #FFFFFF; color: #000000"         
-          tabIndex="2" ></div>
+  <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabIndex="1"></canvas>
+  <div id="plan-panes-splitter" class="pane-splitter"></div>
+  <div id="home-plan" style="background-color: #FFFFFF; color: #000000" tabIndex="2" ></div>
 
   <div id="home-pane-toolbar"></div>
 
+  <div id="furniture-plan-splitter" class="pane-splitter"></div>
   <div id="furniture-catalog"></div>
 
 </div>
