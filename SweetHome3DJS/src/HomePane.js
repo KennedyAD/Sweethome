@@ -1263,17 +1263,14 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
  * @param {HTMLElement} splitterElement
  * @param {HTMLElement[]} firstGroupElements elements displayed before the splitter
  * @param {HTMLElement[]} secondGroupElements elements displayed after the splitter
- * @param {function()} onResize
+ * @param {function()} [onResize]
  * @private
  */
 HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements, secondGroupElements, onResize) {
   
-  onResize = onResize || function() {}
+  if (onResize == null) { onResize = function() {} }
 
   splitterElement.draggable = false;
-
-  splitterElement.addEventListener('mousedown', mouseDown, true);
-  splitterElement.addEventListener('touchstart', mouseDown, true);
 
   var horizontal = splitterElement.clientWidth > splitterElement.clientHeight;
   if (horizontal) {
@@ -1293,8 +1290,7 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
   var offsetProperty = 'offset' + CoreTools.capitalize(positionStyleProperty);
   var offsetTopFirst = firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty];
 
-  function mouseDown(event) {
-    
+  var mouseDown = function(event) {
     event.stopImmediatePropagation();
     splitterElement.classList.add('moving');
     window.addEventListener('mousemove', mouseMove, true);
@@ -1303,7 +1299,7 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
     window.addEventListener('touchend', mouseUp, true);
   }
 
-  function mouseUp(event) {
+  var mouseUp = function(event) {
     event.stopImmediatePropagation();
     splitterElement.classList.remove('moving');
     window.removeEventListener('mousemove', mouseMove, true);
@@ -1312,7 +1308,7 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
     window.removeEventListener('touchend', mouseUp, true);
   }
 
-  function mouseMove(event) {
+  var mouseMove = function(event) {
     event.stopImmediatePropagation();
     var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
     
@@ -1342,6 +1338,9 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
 
     onResize();
   }
+
+  splitterElement.addEventListener('mousedown', mouseDown, true);
+  splitterElement.addEventListener('touchstart', mouseDown, true);
 }
 
 /**

@@ -563,6 +563,9 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
    * @private
    */
   function isElementVisible(element) {
+    if (element instanceof JSComponentView) {
+      element = element.getRootNode();
+    }
     return window.getComputedStyle(element).display !== "none";
   }
 
@@ -650,6 +653,11 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
               controller.getUnit() == LengthUnit.INCH_DECIMALS
             )
           );
+
+          dialog.registerEventListener(dialog.unitSelect, 'input', function() {
+            var selectedUnitOption = dialog.unitSelect.options[dialog.unitSelect.selectedIndex];
+            controller.setUnit(selectedUnitOption == null ? null : LengthUnit[selectedUnitOption.value]);
+          });
         } else {
           disablePreferenceRow(dialog.unitSelect);
         }
@@ -773,7 +781,9 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 
         /** NEW WALL THICKNESS */
         var newWallThicknessEnabled = controller.isPropertyEditable('NEW_WALL_THICKNESS');
-        dialog.newWallThicknessInput = dialog.getElement('new-wall-thickness-input');
+        dialog.newWallThicknessInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('new-wall-thickness-input'), {
+          value: 1,  min: 0, max: 100000
+        });
         if (newWallThicknessEnabled) {
           dialog.newWallThicknessInput.value = controller.getNewWallThickness();
         } else {
@@ -782,7 +792,9 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 
         /** NEW WALL HEIGHT */
         var newWallHeightEnabled = controller.isPropertyEditable('NEW_WALL_HEIGHT');
-        dialog.newWallHeightInput = dialog.getElement('new-wall-height-input');
+        dialog.newWallHeightInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('new-wall-height-input'), {
+          value: 1,  min: 0, max: 100000
+        });
         if (newWallHeightEnabled) {
           dialog.newWallHeightInput.value = controller.getNewWallHeight();
         } else {
@@ -791,25 +803,42 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 
         /** NEW FLOOR THICKNESS */
         var newFloorThicknessEnabled = controller.isPropertyEditable('NEW_FLOOR_THICKNESS');
-        dialog.newFloorThicknessInput = dialog.getElement('new-floor-thickness-input');
+        dialog.newFloorThicknessInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('new-floor-thickness-input'), {
+          value: 1,  min: 0, max: 100000
+        });
         if (newFloorThicknessEnabled) {
           dialog.newFloorThicknessInput.value = controller.getNewFloorThickness();
         } else {
           disablePreferenceRow(dialog.newFloorThicknessInput);
         }
 
+        var updateSpinnerStepsAndLength = function(spinner, centimeterStepSize, inchStepSize) {
+          if (controller.getUnit() == LengthUnit.INCH || controller.getUnit() == LengthUnit.INCH_DECIMALS) {
+            spinner.step = LengthUnit.inchToCentimeter(inchStepSize);
+          } else {
+            spinner.step = centimeterStepSize;
+          }
+          spinner.format = controller.getUnit().getFormat();
+        }
+
+        var updateStepsAndLength = function() {
+          updateSpinnerStepsAndLength(dialog.newWallThicknessInput, 0.5, 0.125);
+          updateSpinnerStepsAndLength(dialog.newWallHeightInput, 10, 2);
+          updateSpinnerStepsAndLength(dialog.newFloorThicknessInput, 0.5, 0.125);
+        };
+
+        updateStepsAndLength();
+        controller.addPropertyChangeListener('UNIT', function(event) {
+          updateStepsAndLength();
+        });
       },
       applier: function(dialog) {
         if (isElementVisible(dialog.languageSelect)) {
-          var selectedLanguageOption = dialog.languageSelect.selectedOptions[0];
+          var selectedLanguageOption = dialog.languageSelect.options[dialog.languageSelect.selectedIndex];
           controller.setLanguage(selectedLanguageOption == null ? null : selectedLanguageOption.value);
         }
-        if (isElementVisible(dialog.unitSelect)) {
-          var selectedUnitOption = dialog.unitSelect.selectedOptions[0];
-          controller.setUnit(selectedUnitOption == null ? null : LengthUnit[selectedUnitOption.value]);
-        }
         if (isElementVisible(dialog.currencySelect)) {
-          var selectedCurrencyOption = dialog.currencySelect.selectedOptions[0];
+          var selectedCurrencyOption = dialog.currencySelect.options[dialog.currencySelect.selectedIndex];
           controller.setCurrency(selectedCurrencyOption == null ? null : selectedCurrencyOption.value);
         }
         if (isElementVisible(dialog.furnitureCatalogViewTreeRadio)) {
@@ -934,8 +963,12 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     var nameInput = this.getElement('name-input');
     var nameVisibleCheckbox = this.getElement('name-visible-checkbox');
     var priceLabel = this.getElement('price-label');
-    var priceInput = this.getElement('price-input');
-    var valueAddedTaxPercentageInput = this.getElement('value-added-tax-percentage-input');
+    var priceInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('price-input'), {
+      value: 0, min: 0, max: 1000000000
+    });
+    var valueAddedTaxPercentageInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('value-added-tax-percentage-input'), {
+      value: 0, min: 0, max: 100, step: 0.5
+    });
 
     // 1) adjust visibility
     var nameDisplay = this.controller.isPropertyEditable('NAME') ? 'initial' : 'none';
@@ -951,7 +984,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     priceLabel.style.display = priceDisplay;
     priceInput.style.display = priceDisplay;
 
-    valueAddedTaxPercentageInput.previousElementSibling.style.display = vatDisplay;
+    valueAddedTaxPercentageInput.getRootNode().previousElementSibling.style.display = vatDisplay;
     valueAddedTaxPercentageInput.style.display = vatDisplay;
 
     // 2) set values
@@ -988,7 +1021,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
       function() {
         controller.setName(nameInput.value);
         controller.setNameVisible(nameVisibleCheckbox.checked);
-        controller.setPrice(priceInput.value != null && priceInput.value != '' ? parseFloat(priceInput.value) : null);
+        controller.setPrice(priceInput.value != null && priceInput.value != '' ? new Big(parseFloat(priceInput.value)) : null);
         controller.setValueAddedTaxPercentage(
           valueAddedTaxPercentageInput.value != null && valueAddedTaxPercentageInput.value != null ? parseFloat(valueAddedTaxPercentageInput.value) / 100 : null
         );
@@ -1001,11 +1034,24 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
    */
   JSHomeFurnitureDialog.prototype.initLocationPanel = function() {
     var xLabel = this.getElement('x-label');
-    var xInput = this.getElement('x-input');
+    var xInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('x-input'), {
+      nullable: this.controller.getX() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+    });
+
     var yLabel = this.getElement('y-label');
-    var yInput = this.getElement('y-input');
+    var yInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('y-input'), {
+      nullable: this.controller.getY() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+    });
     var elevationLabel = this.getElement('elevation-label');
-    var elevationInput = this.getElement('elevation-input');
+    var elevationInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('elevation-input'), {
+      nullable: this.controller.getElevation() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+    });
 
     var mirroredModelCheckbox = this.getElement('mirrored-model-checkbox');
     var basePlanItemCheckbox = this.getElement('base-plan-item-checkbox');
@@ -1018,11 +1064,11 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     var basePlanItemDisplay = this.controller.isPropertyEditable('BASE_PLAN_ITEM') ? 'initial' : 'none';
 
     xLabel.style.display = xDisplay;
-    xInput.parentElement.style.display = xDisplay;
+    xInput.getRootNode().parentElement.style.display = xDisplay;
     yLabel.style.display = yDisplay;
-    yInput.parentElement.style.display = yDisplay;
+    yInput.getRootNode().parentElement.style.display = yDisplay;
     elevationLabel.style.display =  elevationDisplay;
-    elevationInput.parentElement.style.display = elevationDisplay;
+    elevationInput.getRootNode().parentElement.style.display = elevationDisplay;
     
     mirroredModelCheckbox.parentElement.style.display = modelMirroredDisplay;
     basePlanItemCheckbox.parentElement.style.display = basePlanItemDisplay;
@@ -1087,11 +1133,31 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     var controller = this.controller;
 
     var angleLabel = this.getElement('angle-label');
-    var angleInput = this.getElement('angle-input');
+    
+    var angleDecimalFormat = new DecimalFormat();
+    angleDecimalFormat.maximumFractionDigits = 1;
+
+    var angleInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('angle-input'), {
+      nullable: this.controller.getAngle() == null,
+      format: angleDecimalFormat,
+      min: 0,
+      max: 360,
+    });
+
     var horizontalRotationRadioRoll = this.findElement('[name="horizontal-rotation-radio"][value="ROLL"]');
     var horizontalRotationRadioPitch = this.findElement('[name="horizontal-rotation-radio"][value="PITCH"]');
-    var rollInput = this.getElement('roll-input');
-    var pitchInput = this.getElement('pitch-input');
+    var rollInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('roll-input'), {
+      nullable: this.controller.getRoll() == null,
+      format: angleDecimalFormat,
+      min: 0,
+      max: 360,
+    });
+    var pitchInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('pitch-input'), {
+      nullable: this.controller.getPitch() == null,
+      format: angleDecimalFormat,
+      min: 0,
+      max: 360,
+    });
 
     var verticalRotationLabel = this.getElement("vertical-rotation-label");
     var horizontalRotationLabel = this.getElement("horizontal-rotation-label");
@@ -1108,13 +1174,13 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     var furnitureOrientationImageDisplay = this.controller.isTexturable() && rollAndPitchDisplayed ? 'initial' : 'none';
 
     angleLabel.style.display = angleDisplay;
-    angleInput.parentElement.style.display = angleDisplay;
+    angleInput.getRootNode().parentElement.style.display = angleDisplay;
 
     horizontalRotationRadioRoll.parentElement.style.display = rollDisplay; 
-    rollInput.parentElement.style.display = rollDisplay; 
+    rollInput.getRootNode().parentElement.style.display = rollDisplay; 
     
     horizontalRotationRadioPitch.parentElement.style.display = pitchDisplay; 
-    pitchInput.parentElement.style.display = pitchDisplay; 
+    pitchInput.getRootNode().parentElement.style.display = pitchDisplay; 
 
     horizontalRotationLabel.style.display = horizontalRotationLabelDisplay;    
     verticalRotationLabel.style.display = verticalRotationLabelDisplay;
@@ -1292,11 +1358,26 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     var controller = this.controller;
   
     var widthLabel = this.getElement('width-label');
-    var widthInput = this.getElement('width-input');
+    var widthInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('width-input'), {
+      nullable: controller.getWidth() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+    });
+
     var depthLabel = this.getElement('depth-label');
-    var depthInput = this.getElement('depth-input');
+    var depthInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('depth-input'), {
+      nullable: controller.getDepth() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+    });
+
     var heightLabel = this.getElement('height-label');
     var heightInput = this.getElement('height-input');
+    var heightInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('height-input'), {
+      nullable: controller.getHeight() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+    });
     var keepProportionsCheckbox = this.getElement('keep-proportions-checkbox');
 
     // 1) adjust visibility
@@ -1689,9 +1770,9 @@ JSViewFactory.prototype.createRoomView = function(preferences, roomController) {
 /**
  * Creates a polyline editor dialog
  * @param {UserPreferences} preferences 
- * @param {PolylineController} polylineController 
+ * @param {PolylineController} controller 
  */
-JSViewFactory.prototype.createPolylineView = function(preferences, polylineController) {
+JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
   var viewFactory = this;
 
   return new JSDialogView(viewFactory, preferences, 
@@ -1701,41 +1782,50 @@ JSViewFactory.prototype.createPolylineView = function(preferences, polylineContr
 
         dialog.colorSelector = viewFactory.createColorSelector(preferences, {
           onColorSelected: function(selectedColor) {
-            polylineController.setColor(selectedColor);
+            controller.setColor(selectedColor);
           }
         });
         dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
-        dialog.colorSelector.set(polylineController.getColor());
+        dialog.colorSelector.set(controller.getColor());
 
         dialog.thicknessLabelElement = dialog.getElement('thickness-label');
         dialog.thicknessLabelElement.textContent = dialog.getLocalizedLabelText(
           'PolylinePanel', 'thicknessLabel.text', dialog.preferences.getLengthUnit().getName()
         );
         
-        dialog.thicknessInput = dialog.getElement('thickness-input');
-        dialog.thicknessInput.value = polylineController.getThickness();
+        dialog.thicknessInput = new JSSpinner(viewFactory, preferences, dialog.getElement('thickness-input'), { 
+          format: preferences.getLengthUnit().getFormat(),
+          value: controller.getThickness(),
+          step: dialog.getLengthInputStepSize(),
+          nullable: controller.getThickness() == null,
+          min: preferences.getLengthUnit().getMinimumLength(),
+          max: 50,
+        });
 
-        dialog.dashOffsetInput = dialog.getElement('dash-offset-input');
-        dialog.dashOffsetInput.value = polylineController.getDashOffset();
+        dialog.dashOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement('dash-offset-input'), { 
+          value: controller.getDashOffset() == null ? null : controller.getDashOffset() * 100,
+          step: 5,
+          nullable: controller.getDashOffset() == null,
+          min: 0,
+          max: 100,
+        });
 
         dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
-        dialog.visibleIn3DCheckbox.checked = polylineController.isElevationEnabled() && polylineController.getElevation() != null;
+        dialog.visibleIn3DCheckbox.checked = controller.isElevationEnabled() && controller.getElevation() != null;
       },
       applier: function(dialog) {
-        if (dialog.thicknessInput.value.trim() != '') {
-          polylineController.setThickness(parseFloat(dialog.thicknessInput.value));
-        }
+        controller.setThickness(dialog.thicknessInput.value);
         if (dialog.visibleIn3DCheckbox.checked) {
-          polylineController.setElevation(0);
+          controller.setElevation(0);
         } else {
-          polylineController.setElevation(null);
+          controller.setElevation(null);
         }
 
-        if (dialog.dashOffsetInput.value.trim() != '') {
-          polylineController.setDashOffset(parseFloat(dialog.dashOffsetInput.value));
-        }
+        controller.setDashOffset(dialog.dashOffsetInput.value != null
+              ? dialog.dashOffsetInput.value / 100
+              : null);
         
-        polylineController.modifyPolylines();
+        controller.modifyPolylines();
       },
       disposer: function(dialog) {
         dialog.colorSelector.dispose();
@@ -1744,7 +1834,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, polylineContr
   );
 }
 
-JSViewFactory.prototype.createLabelView = function(modification, preferences, labelController) {
+JSViewFactory.prototype.createLabelView = function(modification, preferences, controller) {
 
   var viewFactory = this;
 
@@ -1754,11 +1844,11 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
       initializer: function(dialog) {
 
         dialog.nameInput = dialog.getElement('text');
-        dialog.nameInput.value = modification ? labelController.getText() : "Text";
+        dialog.nameInput.value = modification ? controller.getText() : "Text";
         
         dialog.alignmentRadios = dialog.getRootNode().querySelectorAll('[name="label-alignment-radio"]');
-        if (labelController.getAlignment() != null) {
-          var selectedAlignmentRadio = dialog.findElement('[name="label-alignment-radio"][value="' + TextStyle.Alignment[labelController.getAlignment()] + '"]');
+        if (controller.getAlignment() != null) {
+          var selectedAlignmentRadio = dialog.findElement('[name="label-alignment-radio"][value="' + TextStyle.Alignment[controller.getAlignment()] + '"]');
           if (selectedAlignmentRadio != null) {
             selectedAlignmentRadio.checked = true;
           }
@@ -1769,69 +1859,77 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, la
           'LabelPanel', 'fontSizeLabel.text', dialog.preferences.getLengthUnit().getName()
         );
         
-        dialog.textSizeInput = new JSSpinner(viewFactory, preferences, dialog.getElement('text-size'), { 
-          format: this.preferences.getLengthUnit().getFormat(),
-          nullable: false,
+        dialog.textSizeInput = new JSSpinner(viewFactory, preferences, dialog.getElement('text-size-input'), { 
+          format: preferences.getLengthUnit().getFormat(),
+          value: controller.getFontSize(),
+          step: dialog.getLengthInputStepSize(),
+          nullable: controller.getFontSize() == null,
           min: 5,
           max: 999,
-          step: this.getLengthInputStepSize(),
         });
-        dialog.textSizeInput.value = labelController.getFontSize();
         
         dialog.colorSelector = viewFactory.createColorSelector(preferences);
         dialog.attachChildComponent('color-selector-button', dialog.colorSelector)
-        dialog.colorSelector.set(labelController.getColor());
+        dialog.colorSelector.set(controller.getColor());
         
-        var pitchEnabled = labelController.isPitchEnabled() && labelController.getPitch() != null;
+        var pitchEnabled = controller.isPitchEnabled() && controller.getPitch() != null;
         dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
         dialog.visibleIn3DCheckbox.checked = pitchEnabled;
         
         dialog.pitchRadios = dialog.getRootNode().querySelectorAll('[name="label-pitch-radio"]');
         if (pitchEnabled) {
-          var selectedPitchRadio = dialog.findElement('[name="label-pitch-radio"][value="' + labelController.getPitch() + '"]');
-          if (selectedPitchRadio != null) {
-            selectedPitchRadio.checked = true;
+          var selectedPitch = controller.getPitch();
+          if (selectedPitch != 0) {
+            selectedPitch = 90;
           }
+          var selectedPitchRadio = dialog.findElement('[name="label-pitch-radio"][value="' + selectedPitch + '"]');
+          selectedPitchRadio.checked = true;
         }
 
         dialog.elevationLabel = dialog.getElement('elevation-label');
         dialog.elevationLabel.textContent = dialog.getLocalizedLabelText(
           'LabelPanel', 'elevationLabel.text', dialog.preferences.getLengthUnit().getName()
         );
-        dialog.elevationInput = dialog.getElement('elevation-input');
-        dialog.elevationInput.value = labelController.getElevation();
+
+        dialog.elevationInput = new JSSpinner(viewFactory, preferences, dialog.getElement('elevation-input'), { 
+          format: preferences.getLengthUnit().getFormat(),
+          value: controller.getElevation(),
+          step: dialog.getLengthInputStepSize(),
+          nullable: controller.getElevation() == null,
+          min: 0,
+          max: preferences.getLengthUnit().getMaximumElevation(),
+        });
       },
       applier: function(dialog) {
-        labelController.setText(dialog.nameInput.value);
+        controller.setText(dialog.nameInput.value);
 
         for (var i = 0; i < dialog.alignmentRadios.length; i++) {
           if (dialog.alignmentRadios[i].checked) {
-            labelController.setAlignment(TextStyle.Alignment[dialog.alignmentRadios[i].value]);
+            controller.setAlignment(TextStyle.Alignment[dialog.alignmentRadios[i].value]);
           }
         }
 
-        labelController.setFontSize(dialog.textSizeInput.value);
+        controller.setFontSize(dialog.textSizeInput.value);
 
-        labelController.setColor(dialog.colorSelector.get());
+        controller.setColor(dialog.colorSelector.get());
 
         if (dialog.visibleIn3DCheckbox.checked) {
-          for (var i = 0; i < dialog.pitchRadios.length; i++) {
-            if (dialog.pitchRadios[i].checked) {
-              labelController.setPitch(parseFloat(dialog.pitchRadios[i].value) || 0);
-            }
+          var pitch = 0;
+          var pitch90Selected = dialog.findElement('[name="label-pitch-radio"][value="90"]:checked') != null;
+          if (pitch90Selected) {
+            pitch = Math.PI / 2;
           }
+          controller.setPitch(pitch);
         } else {
-          labelController.setPitch(null);
+          controller.setPitch(null);
         }
 
-        if (dialog.elevationInput.value.trim() != '') {
-          labelController.setElevation(parseFloat(dialog.elevationInput.value));
-        }
+        controller.setElevation(dialog.elevationInput.value);
 
         if (modification) {
-          labelController.modifyLabels();
+          controller.modifyLabels();
         } else {
-          labelController.createLabel();
+          controller.createLabel();
         }
       },
       disposer: function(dialog) {

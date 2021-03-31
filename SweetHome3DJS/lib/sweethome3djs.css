@@ -71,6 +71,18 @@
   user-select: none;
 }
 
+.spinner button:hover {
+  background: #EEEEEE;
+}
+
+.spinner button:active {
+  background: #AAAAAA;
+}
+
+.spinner button:focus {
+  outline: 0;
+}
+
 .spinner [increment] {
   margin-bottom: 2%;
 }

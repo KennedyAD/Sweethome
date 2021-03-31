@@ -31,13 +31,14 @@
  * @param {UserPreferences} preferences the current user preferences
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
  * for the root node)
- * @param {{initializer: function(JSComponentView), getter: function, setter: function, disposer: function(JSDialogView)}} [behavior]
+ * @param {{initializer: function(JSComponentView), getter: function, setter: function, disposer: function(JSDialogView), useElementAsRootNode?: boolean}} [behavior]
  * - initializer: an optional initialization function
  * - getter: an optional function that returns the value of the component 
  *   (typically for inputs)
  * - setter: an optional function that sets the value of the component 
  *   (typically for inputs)
  * - disposer: an optional function to release associated resources, listeners, ...
+ * - useElementAsRootNode: will use given HTMLElement as root element without creating a new div - default false
  * @constructor
  * @author Renaud Pawlak
  */
@@ -46,12 +47,18 @@ function JSComponentView(viewFactory, preferences, template, behavior) {
   this.viewFactory = viewFactory;
 
   this.preferences = preferences;
-  var html = '';
-  if (template != null) {
-    html = typeof template == 'string' ? template : template.innerHTML;
+  
+  if (template instanceof HTMLElement && behavior.useElementAsRootNode === true) {
+    this.rootNode = template;
+  } else {
+    var html = '';
+    if (template != null) {
+      html = typeof template == 'string' ? template : template.innerHTML;
+    }
+    this.rootNode = document.createElement('div');
+    this.rootNode.innerHTML = this.buildHtmlFromTemplate(html);
   }
-  this.rootNode = document.createElement('div');
-  this.rootNode.innerHTML = this.buildHtmlFromTemplate(html);
+
   if (behavior != null) {
     this.initializer = behavior.initializer;
     this.disposer = behavior.disposer;
@@ -607,7 +614,6 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     // Add new icon
     var stepIcon = this.controller.getStepIcon();
     if (stepIcon != null) {
-      console.log(stepIcon)
       var backgroundColor1 = 'rgb(163, 168, 226)';
       var backgroundColor2 = 'rgb(80, 86, 158)';
       try {
@@ -1029,12 +1035,13 @@ document.addEventListener('keyup', function(event) {
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} input input of type text on which install the spinner
- * @param {{format: Format, nullable?: boolean, min?: number, max?: number, step?: number}} [options]
- * - format: number format to be used for this input
+ * @param {{format?: Format, nullable?: boolean, value?: number, min?: number, max?: number, step?: number}} [options]
+ * - format: number format to be used for this input - default to DecimalFormat for current content
  * - nullable: false if null/undefined is not allowed - default true
+ * - value: initial value,
  * - min: minimum number value,
  * - max: maximum number value,
- * - step: step between values when increment / decrement using UI
+ * - step: step between values when increment / decrement using UI - default 1
  * @constructor
  * @extends JSComponentView
  * @author Louis Grignon
@@ -1044,28 +1051,33 @@ function JSSpinner(viewFactory, preferences, input, options) {
   if (input.tagName.toUpperCase() != 'SPAN') {
     throw new Error('JSSpinner: please provide a span for the spinner to work - ' + input + ' is not a span');
   }
-  if (options 
-      && options.min != null && options.max != null
-      && options.min >= options.max) {
-    throw new Error('JSSpinner: min is not below max - min=' + options.min + ' max=' + options.max);
-  }
-  if (!options || !options.format) {
-    throw new Error('JSSpinner: format must not be null');
-  }
-
+  
   var rootElement = input;
   if (!options) { options = {}; }
   if (isNaN(parseFloat(options.step))) { options.step = 1; }
   if (typeof options.nullable != 'boolean') { options.nullable = true; }
+  if (!(options.format instanceof Format)) { options.format = new DecimalFormat(); }
+  
+  function checkMinMax(min, max) {
+    if (min != null && max != null && min >= max) {
+      throw new Error('JSSpinner: min is not below max - min=' + min + ' max=' + max);
+    }
+  }
+  
+  checkMinMax(options.min, options.max);
 
-  var defaultValue = 0;
-  if (options.min != null && options.min > defaultValue) {
-    defaultValue = options.min;
-  } 
+  function getDefaultValue() {
+    var defaultValue = 0;
+    if (options.min != null && options.min > defaultValue) {
+      defaultValue = options.min;
+    }
+    return defaultValue;
+  }
 
   /** @var {JSSpinner} */
   var component = this;
   JSComponentView.call(this, viewFactory, preferences, rootElement, {
+    useElementAsRootNode: true,
     initializer: function(component) {
       component.options = options;
       
@@ -1078,20 +1090,31 @@ function JSSpinner(viewFactory, preferences, input, options) {
       component.incrementButton = document.createElement('button');
       component.incrementButton.setAttribute('increment', '');
       component.incrementButton.textContent = '+';
+      component.incrementButton.tabIndex = -1;
       rootElement.appendChild(component.incrementButton);
 
       component.decrementButton = document.createElement('button');
       component.decrementButton.setAttribute('decrement', '');
       component.decrementButton.textContent = '-';
+      component.decrementButton.tabIndex = -1;
       rootElement.appendChild(component.decrementButton);
+
+      component.registerEventListener(component.textInput, 'focus', function(event) {
+        component.refreshUI();
+      });
+      component.registerEventListener(component.textInput, 'focusout', function(event) {
+        component.refreshUI();
+      });
 
       component.registerEventListener(component.textInput, 'input', function(event) {
         var actualValue = component.parseFloatValueFromInput();
 
         component.textInput.style.color = null;
-        if (actualValue == null) {
+        if (actualValue == null || (options.min != null && actualValue < options.min) || (options.max != null && actualValue > options.max)) {
           component.textInput.style.color = 'red';
         }
+
+        component.__value = actualValue;
       });
 
       component.registerEventListener(component.textInput, 'blur', function(event) {
@@ -1099,7 +1122,7 @@ function JSSpinner(viewFactory, preferences, input, options) {
         if (actualValue == null && !options.nullable) {
           var restoredValue = component.__value;
           if (restoredValue == null) {
-            restoredValue = defaultValue;
+            restoredValue = getDefaultValue();
           }
           actualValue = restoredValue;
         }
@@ -1110,29 +1133,105 @@ function JSSpinner(viewFactory, preferences, input, options) {
       component.configureIncrementDecrement();
 
       Object.defineProperty(this, 'value', { 
-        get: function() { return component.get() }, 
-        set: function(value) { component.set(value) } 
+        get: function() { return component.get(); }, 
+        set: function(value) { component.set(value); } 
+      });
+      Object.defineProperty(this, 'width', { 
+        get: function() { return rootElement.style.width; }, 
+        set: function(value) { rootElement.style.width = value; } 
+      });
+      Object.defineProperty(this, 'parentElement', { 
+        get: function() { return rootElement.parentElement; }
+      });
+      Object.defineProperty(this, 'previousElementSibling', { 
+        get: function() { return rootElement.previousElementSibling; }
+      });
+      Object.defineProperty(this, 'style', { 
+        get: function() { return rootElement.style; } 
+      });
+      Object.defineProperty(this, 'min', {
+        get: function() { return options.min; }, 
+        set: function(min) { 
+          checkMinMax(min, options.max); 
+          options.min = min; 
+        }, 
+      });
+      Object.defineProperty(this, 'max', {
+        get: function() { return options.max; }, 
+        set: function(max) { 
+          checkMinMax(options.min, max); 
+          options.max = max; 
+        }, 
+      });
+      Object.defineProperty(this, 'step', {
+        get: function() { return options.step; }, 
+        set: function(step) { options.step = step; }, 
+      });
+      Object.defineProperty(this, 'format', {
+        get: function() { return options.format; }, 
+        set: function(format) { 
+          options.format = format; 
+          component.refreshUI();
+        }, 
       });
       
-      if (!options.nullable) {
-        component.value = defaultValue; 
-      }
+      var initialValue = options.value;
+      component.value = initialValue;   
     },
     getter: function(component) {
       return component.__value;
     },
     setter: function(component, value) {
+      if (value instanceof Big) {
+        value = parseFloat(value);
+      }
       if (value != null && typeof value != 'number') {
         throw new Error('JSSpinner: expected values of type number');
       }
-      component.__value = value;
-      component.textInput.value = options.format.format(value);
+      if (value == null && !options.nullable) {
+        value = getDefaultValue();
+      }
+      if (options.min != null && value < options.min) {
+        value = options.min;
+      }
+      if (options.max != null && value > options.max) {
+        value = options.max;
+      }
+
+      if (value != component.value) {
+        component.__value = value;
+        component.refreshUI();
+      }
     },
   });
-}
+};
 
 JSSpinner.prototype = Object.create(JSComponentView.prototype);
 JSSpinner.prototype.constructor = JSSpinner;
+
+/**
+ * @return {HTMLInputElement} underlying input element
+ */
+ JSSpinner.prototype.getInputElement = function() {
+  return this.textInput;
+};
+
+JSSpinner.prototype.addEventListener = function() {
+  return this.textInput.addEventListener.apply(this.textInput, arguments);
+};
+
+JSSpinner.prototype.removeEventListener = function() {
+  return this.textInput.removeEventListener.apply(this.textInput, arguments);
+};
+
+/**
+ * Refreshes UI for current state / options. For instance, if format has changed, displayed text is updated
+ * 
+ * @private
+ */
+JSSpinner.prototype.refreshUI = function() {
+  this.textInput.value = this.formatValueForUI(this.value);
+};
 
 /**
  * 
@@ -1142,9 +1241,37 @@ JSSpinner.prototype.constructor = JSSpinner;
  */
 JSSpinner.prototype.parseFloatValueFromInput = function() {
   return this.options.format.parse(this.textInput.value, new ParsePosition(0));
-}
+};
 
 /**
+ * @param {number} value 
+ * @return {string}
+ * 
+ * @private
+ */
+JSSpinner.prototype.formatValueForUI = function(value) {
+  if (!this.isFocused()) {
+    return this.options.format.format(value);
+  }
+  if (this.focusedFormatCache == null || this.lastFormat !== this.options.format) {
+    // format has been changed, let's compute focused format
+    this.lastFormat = this.options.format;
+    this.focusedFormatCache = this.lastFormat.clone();
+    this.focusedFormatCache.setGroupingUsed(false);
+  }
+  return this.focusedFormatCache.format(value);
+};
+
+/**
+ * @return {boolean} true if this spinner has focus
+ */
+JSSpinner.prototype.isFocused = function() {
+  return this.textInput === document.activeElement;
+};
+
+/**
+ * Creates and initialize increment & decrement buttons + related keystrokes
+ * 
  * @private
  */
 JSSpinner.prototype.configureIncrementDecrement = function() {
@@ -1171,6 +1298,7 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
       }
     }
     component.value = previousValue + options.step;
+    component.raiseInputEvent();
   });
   
   this.registerEventListener(component.decrementButton, 'click', function(event) {
@@ -1182,5 +1310,19 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
       }
     }
     component.value = previousValue - options.step;
+    component.raiseInputEvent();
   });
-}
+};
+
+/**
+ * Raises an 'input' event on behalf of underlying text input
+ * @private
+ */
+ JSSpinner.prototype.raiseInputEvent = function() {
+  var event = new Event('input', {
+    bubbles: true,
+    cancelable: true,
+  });
+  
+  this.textInput.dispatchEvent(event);
+};

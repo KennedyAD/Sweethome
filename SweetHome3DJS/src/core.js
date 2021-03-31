@@ -572,3 +572,187 @@ if (!String.prototype.endsWith) {
     return lastIndex !== -1 && lastIndex === position;
   };
 }
+
+
+/**
+ * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
+ * are not supported (mainly Safari 8/9).
+ * @param {number} number
+ * @param {string} groupingSeparator
+ * @param {boolean} groupingUsed
+ * @param {string} decimalSeparator
+ * @param {string} [minusSign]
+ * @param {Object} options
+ * @ignore
+ */
+function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decimalSeparator, minusSign, options) {
+  if (options === undefined) {
+    options = minusSign;
+    minusSign = undefined;
+  }
+  var formattedNumber = number.toLocaleString("en", options);
+  var decimalSeparatorIndex = formattedNumber.indexOf('.');
+  if (decimalSeparatorIndex === -1) {
+    decimalSeparatorIndex = formattedNumber.length;
+  }
+  
+  if (options.maximumFractionDigits === 0) {
+    if (decimalSeparatorIndex < formattedNumber.length) {
+      // Remove last decimals
+      formattedNumber = Math.round(number).toString();
+      decimalSeparatorIndex = formattedNumber.length;
+    }
+  } else if (options.maximumFractionDigits < formattedNumber.length - decimalSeparatorIndex - 1) {
+    // Limit decimals to the required maximum using an integer with the right number of digits
+    formattedNumber = Math.round(number * Math.pow(10, options.maximumFractionDigits)).toString();
+    if (Math.abs(number) < 1) {
+      formattedNumber = number > 0 
+          ? '0.' + formattedNumber 
+          : '-0.' + formattedNumber.substring(1);
+    } else {
+      formattedNumber = formattedNumber.substring(0, decimalSeparatorIndex) + '.' + formattedNumber.substring(decimalSeparatorIndex);
+    }
+  }
+  
+  // Add a decimal separator if needed followed by the required number of zeros
+  if (options.minimumFractionDigits > 0) {
+    if (decimalSeparatorIndex === formattedNumber.length) {
+      formattedNumber += '.';
+    }
+    while (options.minimumFractionDigits > formattedNumber.length - decimalSeparatorIndex - 1) {
+      formattedNumber += '0';
+    }
+  }
+  
+  if (decimalSeparatorIndex > 3) {
+    if (formattedNumber.indexOf(',') === -1) {
+      if (groupingUsed) {
+        // Add missing grouping separator
+        for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
+          formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
+          decimalSeparatorIndex++;
+        }
+      }
+    } else if (!groupingUsed) {
+      // Remove grouping separator
+      formattedNumber = formattedNumber.replace(/\,/g, "");
+    } 
+  } 
+  
+  formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
+  if (minusSign !== undefined) {
+    formattedNumber = formattedNumber.replace("-", minusSign);
+  }
+  return formattedNumber;
+}
+
+/**
+ * Returns the number parsed from the given string and updates parse position.
+ * @param {string} string
+ * @param {string} [decimalSeparator] if omitted the string only integer is parsed
+ * @param {string} minusSign
+ * @param {ParsePosition} parsePosition
+ * @returns the parsed number or <code>null</code> if the string can't be parsed 
+ * @ignore
+ */
+function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition) {
+  var integer = parsePosition === undefined;
+  if (integer) {
+    // 4 parameters 
+    parsePosition = minusSign;
+    minusSign = decimalSeparator;
+  }
+  
+  string = string.substring(parsePosition.getIndex(), string.length).replace(minusSign, "-");
+  if (!integer) {
+    string = string.replace(decimalSeparator, ".");
+  }
+  var numberRegExp = integer 
+      ? /\d+/g 
+      : /^(?:-?\d*)\.?(\d+)?/g;
+  if (numberRegExp.test(string) 
+      && numberRegExp.lastIndex > 0) {      
+    string = string.substring(0, numberRegExp.lastIndex);
+    var number = integer
+        ? parseInt(string)
+        : parseFloat(string);
+    parsePosition.setIndex(parsePosition.getIndex() + numberRegExp.lastIndex);
+    return number;
+  } else {
+    return null;
+  } 
+}
+
+/**
+ * A Format for numbers.
+ * Inspired by java.text.DecimalFormat
+ *
+ * @constructor
+ * @extends Format
+ * @author Louis Grignon
+ */
+function DecimalFormat() {
+  Format.call(this);
+
+  // TODO LOUIS how to retrieve localized decimal separator? grouping config? IMHO It should be available on Locale 
+  this.decimalSeparator = '.';
+  this.minusSign = '-';
+  this.maximumFractionDigits = 2;
+  this.groupingSeparator = ' ';
+  this.groupingUsed = false;
+}
+DecimalFormat.prototype = Object.create(Format.prototype);
+DecimalFormat.prototype.constructor = DecimalFormat;
+
+DecimalFormat.prototype.format = function(number) {
+  if (number == null) {
+    return '';
+  }
+
+  var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign, { 
+    maximumFractionDigits: this.maximumFractionDigits
+  }); 
+  return formattedNumber;
+}
+
+DecimalFormat.prototype.parse = function(text, parsePosition) {
+  var number = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, parsePosition);
+  if (number === null) {
+    return null;
+  } else {
+    return number;
+  }
+}
+
+DecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
+  this.groupingUsed = groupingUsed;
+}
+
+DecimalFormat.prototype.isGroupingUsed = function() {
+  return this.groupingUsed;
+}
+
+/**
+ * A Format for integers numbers.
+ * Inspired by java.text.DecimalFormat & java.text.NumberFormat.getIntegerInstance()
+ *
+ * @constructor
+ * @extends DecimalFormat
+ * @author Louis Grignon
+ */
+function IntegerFormat() {
+  DecimalFormat.call(this);
+
+  this.maximumFractionDigits = 0;
+}
+IntegerFormat.prototype = Object.create(DecimalFormat.prototype);
+IntegerFormat.prototype.constructor = IntegerFormat;
+
+IntegerFormat.prototype.parse = function(text, parsePosition) {
+  var number = DecimalFormat.prototype.parse.call(this, text, parsePosition);
+  if (number === null) {
+    return null;
+  } else {
+    return Math.floor(number);
+  }
+}
