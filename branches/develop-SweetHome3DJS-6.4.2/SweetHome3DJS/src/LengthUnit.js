@@ -472,7 +472,7 @@ MeterFamilyFormat.prototype.setGroupingUsed = function(groupingUsed) {
   this.groupingUsed = groupingUsed;
 }
 
-MeterFamilyFormat.prototype.isGroupingUsed = function(groupingUsed) {
+MeterFamilyFormat.prototype.isGroupingUsed = function() {
   return this.groupingUsed;
 }
 
@@ -685,7 +685,7 @@ InchFormat.prototype.setGroupingUsed = function(groupingUsed) {
   this.groupingUsed = groupingUsed;
 }
 
-InchFormat.prototype.isGroupingUsed = function(groupingUsed) {
+InchFormat.prototype.isGroupingUsed = function() {
   return this.groupingUsed;
 }
 
@@ -763,115 +763,6 @@ InchDecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
   this.groupingUsed = groupingUsed;
 }
 
-InchDecimalFormat.prototype.isGroupingUsed = function(groupingUsed) {
+InchDecimalFormat.prototype.isGroupingUsed = function() {
   return this.groupingUsed;
-}
-
-/**
- * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
- * are not supported (mainly Safari 8/9).
- * @param {number} number
- * @param {string} groupingSeparator
- * @param {boolean} groupingUsed
- * @param {string} decimalSeparator
- * @param {string} [minusSign]
- * @param {Object} options
- * @ignore
- */
-function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decimalSeparator, minusSign, options) {
-  if (options === undefined) {
-    options = minusSign;
-    minusSign = undefined;
-  }
-  var formattedNumber = number.toLocaleString("en", options);
-  var decimalSeparatorIndex = formattedNumber.indexOf('.');
-  if (decimalSeparatorIndex === -1) {
-    decimalSeparatorIndex = formattedNumber.length;
-  }
-  
-  if (options.maximumFractionDigits === 0) {
-    if (decimalSeparatorIndex < formattedNumber.length) {
-      // Remove last decimals
-      formattedNumber = Math.round(number).toString();
-      decimalSeparatorIndex = formattedNumber.length;
-    }
-  } else if (options.maximumFractionDigits < formattedNumber.length - decimalSeparatorIndex - 1) {
-    // Limit decimals to the required maximum using an integer with the right number of digits
-    formattedNumber = Math.round(number * Math.pow(10, options.maximumFractionDigits)).toString();
-    if (Math.abs(number) < 1) {
-      formattedNumber = number > 0 
-          ? '0.' + formattedNumber 
-          : '-0.' + formattedNumber.substring(1);
-    } else {
-      formattedNumber = formattedNumber.substring(0, decimalSeparatorIndex) + '.' + formattedNumber.substring(decimalSeparatorIndex);
-    }
-  }
-  
-  // Add a decimal separator if needed followed by the required number of zeros
-  if (options.minimumFractionDigits > 0) {
-    if (decimalSeparatorIndex === formattedNumber.length) {
-      formattedNumber += '.';
-    }
-    while (options.minimumFractionDigits > formattedNumber.length - decimalSeparatorIndex - 1) {
-      formattedNumber += '0';
-    }
-  }
-  
-  if (decimalSeparatorIndex > 3) {
-    if (formattedNumber.indexOf(',') === -1) {
-      if (groupingUsed) {
-        // Add missing grouping separator
-        for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
-          formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
-          decimalSeparatorIndex++;
-        }
-      }
-    } else if (!groupingUsed) {
-      // Remove grouping separator
-      formattedNumber = formattedNumber.replace(/\,/g, "");
-    } 
-  } 
-  
-  formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
-  if (minusSign !== undefined) {
-    formattedNumber = formattedNumber.replace("-", minusSign);
-  }
-  return formattedNumber;
-}
-
-/**
- * Returns the number parsed from the given string and updates parse position.
- * @param {string} string
- * @param {string} [decimalSeparator] if omitted the string only integer is parsed
- * @param {string} minusSign
- * @param {ParsePosition} parsePosition
- * @returns the parsed number or <code>null</code> if the string can't be parsed 
- * @ignore
- */
-function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition) {
-  var integer = parsePosition === undefined;
-  if (integer) {
-    // 4 parameters 
-    parsePosition = minusSign;
-    minusSign = decimalSeparator;
-  }
-  
-  string = string.substring(parsePosition.getIndex(), string.length).replace(minusSign, "-");
-  if (!integer) {
-    string = string.replace(decimalSeparator, ".");
-  }
-  var numberRegExp = integer 
-      ? /\d+/g 
-      : /^(?:-?\d*)\.?(\d+)?/g;
-  if (numberRegExp.test(string) 
-      && numberRegExp.lastIndex > 0) {      
-    string = string.substring(0, numberRegExp.lastIndex);
-    var number = integer
-        ? parseInt(string)
-        : parseFloat(string);
-    parsePosition.setIndex(parsePosition.getIndex() + numberRegExp.lastIndex);
-    return number;
-  } else {
-    return null;
-  } 
 }

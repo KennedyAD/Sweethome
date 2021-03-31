@@ -1730,10 +1730,10 @@ name-visible-checkbox
         <div data-name="price-label">${HomeFurniturePanel.priceLabel.text}</div>
       </div>
       <div>
-        <input name="price-input" type="number" min="0" max="1000000000" step="1" />
+        <span data-name="price-input" />
         
         <span>${HomeFurniturePanel.valueAddedTaxPercentageLabel.text}</span>
-        <input name="value-added-tax-percentage-input" type="number" min="0" max="100" step="0.5" />
+        <span data-name="value-added-tax-percentage-input" />
       </div>
     </div>
     <br />
@@ -1744,17 +1744,17 @@ name-visible-checkbox
         <div data-name="location-panel">
           <div data-name="x-label" class="label-cell"></div>
           <div>
-            <input name="x-input" type="number" min="0" max="100000" step="0.5" />
+            <span data-name="x-input" />
           </div>
 
           <div data-name="y-label" class="label-cell"></div>
           <div>
-            <input name="y-input" type="number" min="0" max="100000" step="0.5" />
+            <span data-name="y-input" />
           </div>
           
           <div data-name="elevation-label" class="label-cell"></div>
           <div>
-            <input name="elevation-input" type="number" min="0" max="100000" step="0.5" />
+            <span data-name="elevation-input" />
           </div>
           
           <label title="${HomeFurniturePanel.mirroredModelCheckBox.tooltip}" class="whole-line">
@@ -1813,7 +1813,7 @@ name-visible-checkbox
           
           <div class="label-cell" data-name="angle-label">${HomeFurniturePanel.angleLabel.text}</div>
           <div>
-            <input name="angle-input" type="number" min="0" max="360" step="1" />
+            <span data-name="angle-input"></span>
           </div>
           
           <div class="whole-line"  data-name="horizontal-rotation-label">${HomeFurniturePanel.horizontalRotationLabel.text}</div>
@@ -1823,7 +1823,7 @@ name-visible-checkbox
             ${HomeFurniturePanel.pitchRadioButton.text}
           </label>
           <div>
-            <input name="pitch-input" type="number" min="0" max="360" step="1" />
+            <span data-name="pitch-input"></span>
           </div>
           
           <label class="label-cell">
@@ -1831,7 +1831,7 @@ name-visible-checkbox
             ${HomeFurniturePanel.rollRadioButton.text}
           </label>
           <div>
-            <input name="roll-input" type="number" min="0" max="360" step="1" />
+            <span data-name="roll-input"></span>
           </div>
 
           <div class="whole-line" data-name="furniture-orientation-image">
@@ -1844,15 +1844,15 @@ name-visible-checkbox
         <div data-name="size-panel">
           <div data-name="width-label" class="label-cell"></div>
           <div>
-            <input name="width-input" type="number" min="0" max="100000" step="0.5" />
+            <span data-name="width-input"></span>
           </div>
           <div data-name="depth-label" class="label-cell"></div>
           <div>
-            <input name="depth-input" type="number" min="0" max="100000" step="0.5" />
+            <span data-name="depth-input"></span>
           </div>
           <div data-name="height-label" class="label-cell"></div>
           <div>
-            <input name="height-input" type="number" min="0" max="100000" step="0.5" />
+            <span data-name="height-input"></span>
           </div>
 
           <label class="whole-line">
@@ -2180,15 +2180,15 @@ name-visible-checkbox
 
     <div>${UserPreferencesPanel.newWallThicknessLabel.text}</div>
     <div>
-      <input name="new-wall-thickness-input" type="number" min="0" step="0.5" />
+      <span data-name="new-wall-thickness-input"></span>
     </div>
     <div>${UserPreferencesPanel.newWallHeightLabel.text}</div>
     <div>
-      <input name="new-wall-height-input" type="number" min="0" step="10" />
+      <span data-name="new-wall-height-input"></span>
     </div>
     <div>${UserPreferencesPanel.newFloorThicknessLabel.text}</div>
     <div>
-      <input name="new-floor-thickness-input" type="number" min="0" step="0.5" />
+      <span data-name="new-floor-thickness-input"></span>
     </div>
 
   </div>
@@ -2201,14 +2201,14 @@ name-visible-checkbox
     <div data-name="thickness-label">
     </div>
     <div>
-      <input name="thickness-input" type="number" step="0.5" min="0.1" max="50" />
+      <span data-name="thickness-input"></span>
     </div>
 
     <div>
       ${PolylinePanel.dashOffsetLabel.text}
     </div>
     <div>
-      <input name="dash-offset-input" type="number" step="5" min="0" max="100" />
+      <span data-name="dash-offset-input"></span>
     </div>
 
     <div>
@@ -2271,7 +2271,7 @@ name-visible-checkbox
       <div data-name="text-size-label">
       </div>
       <div data-name="text-size-input-container">
-        <span data-name="text-size" />
+        <span data-name="text-size-input" />
       </div>
 
       <div data-name="color-label">
@@ -2320,7 +2320,7 @@ name-visible-checkbox
       <div data-name="elevation-label">
       </div>
       <div>
-        <input name="elevation-input" type="number" max="10000" min="0" step="0.5" />
+        <span data-name="elevation-input" />
       </div>
       
     </div>
