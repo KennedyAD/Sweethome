@@ -15,6 +15,14 @@
   -webkit-tap-highlight-color:rgba(0,0,0,0);  
 }
 
+input {
+  -webkit-user-select:text;
+  -khtml-user-select:text;
+  -moz-user-select:text;
+  -ms-user-select:text;
+  user-select:text;
+}
+
 @media (hover: none), (pointer: coarse) {
   body {
 	  font-size: 120%;
