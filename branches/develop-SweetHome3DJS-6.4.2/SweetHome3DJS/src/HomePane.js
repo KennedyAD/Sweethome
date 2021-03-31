@@ -1310,6 +1310,7 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
 
   var mouseMove = function(event) {
     event.stopImmediatePropagation();
+
     var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
     
     var relativePositionValue = pointerCoordinatesObject[pointerPositionProperty] - offsetParent[offsetProperty];
