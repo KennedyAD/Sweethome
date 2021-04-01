@@ -1263,10 +1263,11 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
  * @param {HTMLElement} splitterElement
  * @param {HTMLElement[]} firstGroupElements elements displayed before the splitter
  * @param {HTMLElement[]} secondGroupElements elements displayed after the splitter
+ * @param {number} [initialSplitterPosition] initial splitter position in pixel relative to its offset parent
  * @param {function()} [onResize]
  * @private
  */
-HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements, secondGroupElements, onResize) {
+HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements, secondGroupElements, initialSplitterPosition, onResize) {
   
   if (onResize == null) { onResize = function() {} }
 
@@ -1308,12 +1309,7 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
     window.removeEventListener('touchend', mouseUp, true);
   }
 
-  var mouseMove = function(event) {
-    event.stopImmediatePropagation();
-
-    var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
-    
-    var relativePositionValue = pointerCoordinatesObject[pointerPositionProperty] - offsetParent[offsetProperty];
+  var setSplitterPosition = function(relativePositionValue) {
     if (relativePositionValue < offsetTopFirst) {
       // try to move splitter beyond limit (before first elements) -- no can't do
       relativePositionValue = offsetTopFirst;
@@ -1337,9 +1333,21 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
       secondGroupElements[i].style[dimensionStyleProperty] = 'calc(100% - ' + relativePositionValue + 'px)';
     }
 
-    onResize();
+    onResize(relativePositionValue);
   }
 
+  var mouseMove = function(event) {
+    event.stopImmediatePropagation();
+
+    var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
+    
+    var relativePositionValue = pointerCoordinatesObject[pointerPositionProperty] - offsetParent[offsetProperty];
+    setSplitterPosition(relativePositionValue);
+  }
+
+  if (initialSplitterPosition != null) {
+    setSplitterPosition(initialSplitterPosition);
+  }
   splitterElement.addEventListener('mousedown', mouseDown, true);
   splitterElement.addEventListener('touchstart', mouseDown, true);
 }
@@ -1349,12 +1357,19 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
  * @private
  */
 HomePane.prototype.initSplitters = function() {
-  var catalogView = this.controller.getFurnitureCatalogController().getView();
-  var planView = this.controller.getPlanController().getView();
-  var home3DView = this.controller.getHomeController3D().getView();
+  var home = this.home;
+  var controller = this.controller;
+
+  var catalogView = controller.getFurnitureCatalogController().getView();
+  var planView = controller.getPlanController().getView();
+  var home3DView = controller.getHomeController3D().getView();
   
   var furnitureSplitter = document.getElementById("furniture-plan-splitter");
   var planPanesSplitter = document.getElementById("plan-panes-splitter");
+
+  var saveSplitterPositionOnceSettledFunction = CoreTools.debounce(function(splitterPositionPropertyName, splitterPosition) {
+    controller.setHomeProperty(splitterPositionPropertyName, splitterPosition == null ? null : splitterPosition.toString());
+  }, 1000 /* send save after 1s */);
 
   var furnitureSplitterVisible = furnitureSplitter.clientWidth > 0;
   if (furnitureSplitterVisible) {
@@ -1362,10 +1377,12 @@ HomePane.prototype.initSplitters = function() {
       furnitureSplitter, 
       [catalogView.getHTMLElement()], 
       [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()],
-      function() {
+      home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+      function(splitterPosition) {
         // refresh 2D/3D plan views on resize
         planView.revalidate();
-        home3DView.canvas3D.updateViewportSize()
+        home3DView.canvas3D.updateViewportSize();
+        saveSplitterPositionOnceSettledFunction(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
       }
     );
   }
@@ -1376,10 +1393,12 @@ HomePane.prototype.initSplitters = function() {
       planPanesSplitter, 
       [planView.getHTMLElement()], 
       [home3DView.getHTMLElement()],
-      function() {
+      home.getNumericProperty(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+      function(splitterPosition) {
         // refresh 2D/3D plan views on resize
         planView.revalidate();
-        home3DView.canvas3D.updateViewportSize()
+        home3DView.canvas3D.updateViewportSize();
+        saveSplitterPositionOnceSettledFunction(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
       }
     );
   }

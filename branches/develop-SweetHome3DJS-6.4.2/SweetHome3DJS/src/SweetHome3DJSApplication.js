@@ -70,6 +70,8 @@ IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
 IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
             HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
             HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
+            HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 
+            HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 
             PlanController.SCALE_VISUAL_PROPERTY,
             // supported built-in properties
             'CAMERA', 'SELECTED_LEVEL'];
