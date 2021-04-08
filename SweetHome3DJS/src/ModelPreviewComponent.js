@@ -233,59 +233,140 @@ ModelPreviewComponent.prototype.updateViewPlatformTransform = function() {
 
 /**
  * Loads and displays the given 3D model.
- * @param {URLContent} content a content with a URL pointing to a 3D model to parse and view
+ * @param {URLContent} model a content with a URL pointing to a 3D model to parse and view
+ * @param {boolean} [backFaceShown] if <code>true</code>, displays opposite faces
  * @param {Array} modelRotation  a 3x3 array describing how to transform the 3D model
+ * @param {number} [width] optional width of the model
+ * @param {number} [depth] optional width of the model
+ * @param {number} [height] optional width of the model
  * @param onerror       callback called in case of error while reading the model
  * @param onprogression callback to follow the reading of the model
  */
-ModelPreviewComponent.prototype.setModel = function(content, modelRotation, onerror, onprogression) {
-  this.content = content;
-  this.canvas3D.clear();          
-  var previewComponent = this;
-  ModelManager.getInstance().loadModel(content,
-      {
-        modelUpdated : function(model) {
-          if (content === previewComponent.content) {
-            // Place model at origin in a box as wide as the canvas
-            var modelManager = ModelManager.getInstance();
-            var modelTransform = modelRotation  
-                ? modelManager.getRotationTransformation(modelRotation)  
-                : mat4.create();
-            var size = modelManager.getSize(model);
-            var scaleFactor = 1.8 / Math.max(Math.max(size[0], size[1]), size[2]);
-            mat4.scale(modelTransform, modelTransform, vec3.fromValues(scaleFactor, scaleFactor, scaleFactor));
-            mat4.scale(modelTransform, modelTransform, size);
-            mat4.mul(modelTransform, modelTransform, modelManager.getNormalizedTransform(model, null, 1));
-            
-            var transformGroup = new TransformGroup3D(modelTransform); 
-            transformGroup.addChild(model);
-            var scene = new BranchGroup3D(); 
-            scene.addChild(transformGroup);
-            // Add lights
-            scene.addChild(new DirectionalLight3D(vec3.fromValues(0.9, 0.9, 0.9), vec3.fromValues(1.732, -0.8, -1)));
-            scene.addChild(new DirectionalLight3D(vec3.fromValues(0.9, 0.9, 0.9), vec3.fromValues(-1.732, -0.8, -1))); 
-            scene.addChild(new DirectionalLight3D(vec3.fromValues(0.9, 0.9, 0.9), vec3.fromValues(0, -0.8, 1)));
-            scene.addChild(new DirectionalLight3D(vec3.fromValues(0.66, 0.66, 0.66), vec3.fromValues(0, 1, 0)));
-            scene.addChild(new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))); 
-            
-            previewComponent.setDefaultTransform();
-            previewComponent.canvas3D.setScene(scene, onprogression);
-            previewComponent.canvas3D.updateViewportSize();
+ModelPreviewComponent.prototype.setModel = function(model, backFaceShown, modelRotation,
+                                                    width, depth, height,
+                                                    onerror, onprogression) {
+  if (depth === undefined 
+      && height === undefined                                                     
+      && onerror === undefined  
+      && onprogression === undefined) {
+    // Only model, modelRotation, onerror, onprogression parameters
+    onprogression = width;
+    onerror = modelRotation;
+    modelRotation = backFaceShown;
+    backFaceShown = false;
+    width = -1;
+    depth = -1;
+    height = -1;
+  }
+  this.model = model;
+  this.canvas3D.clear();       
+  if (typeof HomePieceOfFurniture !== "undefined") {
+    this.previewedPiece = null;
+  }
+  if (model !== null) {
+    var previewComponent = this;
+    ModelManager.getInstance().loadModel(model,
+        {
+          modelUpdated : function(modelRoot) {
+            if (model === previewComponent.model) {
+              // Place model at origin in a box as wide as the canvas
+              var modelManager = ModelManager.getInstance();
+              var size = width < 0
+                  ? modelManager.getSize(modelRoot)
+                  : vec3.fromValues(width, height, depth); 
+              var scaleFactor = 1.8 / Math.max(Math.max(size[0], size[2]), size[1]);
+              
+              var modelTransformGroup;
+              if (typeof HomePieceOfFurniture !== "undefined") {
+                previewComponent.previewedPiece = new HomePieceOfFurniture(
+                    new CatalogPieceOfFurniture(null, null, model,
+                        size[0], size[2], size[1], 0, false, null, null, modelRotation, backFaceShown, 
+                        null, null, 0, false));
+                previewComponent.previewedPiece.setX(0);
+                previewComponent.previewedPiece.setY(0);
+                previewComponent.previewedPiece.setElevation(-previewComponent.previewedPiece.getHeight() / 2);
+                
+                var modelTransform = mat4.create();
+                mat4.scale(modelTransform, modelTransform, vec3.fromValues(scaleFactor, scaleFactor, scaleFactor));
+                modelTransformGroup = new TransformGroup3D(modelTransform);
+                
+                var piece3D = new HomePieceOfFurniture3D(previewComponent.previewedPiece, null, true);
+                modelTransformGroup.addChild(piece3D);
+              } else {
+                var modelTransform = modelRotation   
+                    ? modelManager.getRotationTransformation(modelRotation)  
+                    : mat4.create();
+                mat4.scale(modelTransform, modelTransform, vec3.fromValues(scaleFactor, scaleFactor, scaleFactor));
+                mat4.scale(modelTransform, modelTransform, size);
+                mat4.mul(modelTransform, modelTransform, modelManager.getNormalizedTransform(modelRoot, null, 1));
+                
+                modelTransformGroup = new TransformGroup3D(modelTransform); 
+                modelTransformGroup.addChild(modelRoot);
+              }
+              
+              var scene = new BranchGroup3D(); 
+              scene.addChild(modelTransformGroup);
+              // Add lights
+              scene.addChild(new DirectionalLight3D(vec3.fromValues(0.9, 0.9, 0.9), vec3.fromValues(1.732, -0.8, -1)));
+              scene.addChild(new DirectionalLight3D(vec3.fromValues(0.9, 0.9, 0.9), vec3.fromValues(-1.732, -0.8, -1))); 
+              scene.addChild(new DirectionalLight3D(vec3.fromValues(0.9, 0.9, 0.9), vec3.fromValues(0, -0.8, 1)));
+              scene.addChild(new DirectionalLight3D(vec3.fromValues(0.66, 0.66, 0.66), vec3.fromValues(0, 1, 0)));
+              scene.addChild(new AmbientLight3D(vec3.fromValues(0.2, 0.2, 0.2))); 
+              
+              previewComponent.setDefaultTransform();
+              previewComponent.canvas3D.setScene(scene, onprogression);
+              previewComponent.canvas3D.updateViewportSize();
+            }
+          },
+          modelError : function(err) {
+            if (model === previewComponent.model
+                && onerror !== undefined) {
+              onerror(err);
+            }
+          },
+          progression : function(part, info, percentage) {
+            if (model === previewComponent.model
+                && onprogression !== undefined) {
+              onprogression(part, info, percentage);
+            }
           }
-        },
-        modelError : function(err) {
-          if (content === previewComponent.content
-              && onerror !== undefined) {
-            onerror(err);
-          }
-        },
-        progression : function(part, info, percentage) {
-          if (content === previewComponent.content
-              && onprogression !== undefined) {
-            onprogression(part, info, percentage);
-          }
-        }
-      });
+        });
+  }
+}
+
+/**
+ * Returns the 3D model node displayed by this component.
+ * @private
+ */
+ModelPreviewComponent.prototype.getModelNode = function() {
+  var modelTransformGroup = this.canvas3D.getScene().getChild(0);
+  if (modelTransformGroup.getChildren().length > 0) {
+    return modelTransformGroup.getChild(0);
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Sets the materials applied to 3D model.
+ * @param {Array} materials
+ */
+ModelPreviewComponent.prototype.setModelMaterials = function(materials) {
+  if (this.previewedPiece != null) {
+    this.previewedPiece.setModelMaterials(materials);
+    this.getModelNode().update();
+  }
+}
+
+/**
+ * Sets the transformations applied to 3D model
+ * @param {Array} transformations
+ */
+ModelPreviewComponent.prototype.setModelTranformations = function(transformations) {
+  if (this.previewedPiece != null) {
+    this.previewedPiece.setModelTransformations(transformations);
+    this.getModelNode().update();
+  }
 }
 
 /**
