@@ -567,41 +567,41 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
           }
         }
       }
+    }
       
-      if (params.selectableCameras !== undefined) {
-        var cameras = home.getStoredCameras();
-        if (cameras.length > 0) {
-          var addSeparator = levelsAndCamerasList.options.length > 0;
-          for (var i = 0; i < cameras.length; i++) {
-            var camera = cameras [i];
-            if (params.selectableCameras.indexOf(camera.getName()) >= 0) {
-              if (addSeparator) {
-                levelsAndCamerasList.add(document.createElement("option"));
-                addSeparator = false;
-              }
-              var option = document.createElement("option");
-              option.text  = camera.getName();
-              option.camera = camera;
-              levelsAndCamerasList.add(option);
+    if (params.selectableCameras !== undefined) {
+      var cameras = home.getStoredCameras();
+      if (cameras.length > 0) {
+        var addSeparator = levelsAndCamerasList.options.length > 0;
+        for (var i = 0; i < cameras.length; i++) {
+          var camera = cameras [i];
+          if (params.selectableCameras.indexOf(camera.getName()) >= 0) {
+            if (addSeparator) {
+              levelsAndCamerasList.add(document.createElement("option"));
+              addSeparator = false;
             }
+            var option = document.createElement("option");
+            option.text  = camera.getName();
+            option.camera = camera;
+            levelsAndCamerasList.add(option);
           }
         }
       }
+    }
         
-      if (levelsAndCamerasList.options.length > 1) {
-        var controller = this.getController();
-        levelsAndCamerasList.addEventListener("change", 
-            function() {
-              previewComponent.startRotationAnimationAfterLoading = false;
-              var selectedOption = levelsAndCamerasList.options [levelsAndCamerasList.selectedIndex];
-              if (selectedOption.level !== undefined) {
-                home.setSelectedLevel(selectedOption.level);
-              } else if (selectedOption.camera !== undefined) {
-                controller.goToCamera(selectedOption.camera);
-              }  
-            });
-        levelsAndCamerasList.style.visibility = "visible";
-      }
+    if (levelsAndCamerasList.options.length > 1) {
+      var controller = this.getController();
+      levelsAndCamerasList.addEventListener("change", 
+          function() {
+            previewComponent.startRotationAnimationAfterLoading = false;
+            var selectedOption = levelsAndCamerasList.options [levelsAndCamerasList.selectedIndex];
+            if (selectedOption.level !== undefined) {
+              home.setSelectedLevel(selectedOption.level);
+            } else if (selectedOption.camera !== undefined) {
+              controller.goToCamera(selectedOption.camera);
+            }  
+          });
+      levelsAndCamerasList.style.visibility = "visible";
     }
   }
   
