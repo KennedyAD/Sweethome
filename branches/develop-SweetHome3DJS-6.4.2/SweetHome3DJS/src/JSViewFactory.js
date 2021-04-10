@@ -1650,73 +1650,112 @@ JSViewFactory.prototype.createWallView = function(preferences, wallController) {
   );
 }
 
-JSViewFactory.prototype.createRoomView = function(preferences, roomController) {
+JSViewFactory.prototype.createRoomView = function(preferences, controller) {
 
   var viewFactory = this;
 
   function initFloorPanel(dialog) {
-    dialog.floorVisibleCheckBox = dialog.getElement('floor-visible-checkbox');
-    dialog.floorVisibleCheckBox.checked = roomController.getFloorVisible();
 
+    // visible
+    var floorVisibleDisplay = controller.isPropertyEditable('FLOOR_VISIBLE') ? 'initial' : 'none';
+    dialog.floorVisibleCheckBox = dialog.getElement('floor-visible-checkbox');
+    dialog.floorVisibleCheckBox.checked = controller.getFloorVisible();
+    dialog.floorVisibleCheckBox.parentElement.style.display = floorVisibleDisplay;
+    dialog.registerEventListener(dialog.floorVisibleCheckBox, 'input', function() {
+      controller.setFloorVisible(dialog.floorVisibleCheckBox.checked);
+    });
+    controller.addPropertyChangeListener('FLOOR_VISIBLE', function(event) {
+      dialog.floorVisibleCheckBox.checked = controller.getFloorVisible();
+    });
+
+    // paint
+    var floorColorCheckbox = dialog.findElement('[name="floor-color-and-texture-choice"][value="COLORED"]');
     dialog.floorColorSelector = viewFactory.createColorSelector(preferences, {
       onColorSelected: function(selectedColor) {
-        dialog.findElement('[name="floor-color-and-texture-choice"][value="COLORED"]').checked = true;
-        roomController.setFloorPaint(RoomController.RoomPaint.COLORED);
-        roomController.setFloorColor(selectedColor);
+        floorColorCheckbox.checked = true;
+        controller.setFloorPaint(RoomController.RoomPaint.COLORED);
+        controller.setFloorColor(selectedColor);
       }
     });
     dialog.attachChildComponent('floor-color-selector-button', dialog.floorColorSelector)
-    dialog.floorColorSelector.set(roomController.getFloorColor());
+    dialog.floorColorSelector.set(controller.getFloorColor());
 
-    dialog.floorTextureSelector = roomController.getFloorTextureController().getView();
+    var floorTextureCheckbox = dialog.findElement('[name="floor-color-and-texture-choice"][value="TEXTURED"]');
+    dialog.floorTextureSelector = controller.getFloorTextureController().getView();
     dialog.floorTextureSelector.onTextureSelected = function(texture) {
-      dialog.findElement('[name="floor-color-and-texture-choice"][value="TEXTURED"]').checked = true;
-      roomController.setFloorPaint(RoomController.RoomPaint.TEXTURED);
-      roomController.getFloorTextureController().setTexture(texture);
+      floorTextureCheckbox.checked = true;
+      controller.setFloorPaint(RoomController.RoomPaint.TEXTURED);
+      controller.getFloorTextureController().setTexture(texture);
     };
     dialog.attachChildComponent('floor-texture-selector-button', dialog.floorTextureSelector);
-    dialog.floorTextureSelector.set(roomController.getFloorTextureController().getTexture());
-    
-    dialog.findElement('[name="floor-color-and-texture-choice"][value="COLORED"]').checked 
-      = roomController.getFloorPaint() == RoomController.RoomPaint.COLORED;
-    dialog.findElement('[name="floor-color-and-texture-choice"][value="TEXTURED"]').checked 
-      = roomController.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
+    dialog.floorTextureSelector.set(controller.getFloorTextureController().getTexture());
 
-    var selectedFloorShininessRadio = dialog.findElement('[name="floor-shininess-choice"][value="' + roomController.getFloorShininess() + '"]');
-    if (selectedFloorShininessRadio != null) {
-      selectedFloorShininessRadio.checked = true;
+    dialog.registerEventListener([floorColorCheckbox, floorTextureCheckbox], 'input', function() {
+      var selectedPaint = RoomController.RoomPaint[this.value];
+      controller.setFloorPaint(selectedPaint);
+      controller.setFloorColor(200);
+    });
+
+    function setPaintFromController() {
+      floorColorCheckbox.checked = controller.getFloorPaint() == RoomController.RoomPaint.COLORED;
+      floorTextureCheckbox.checked = controller.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
     }
+    setPaintFromController();
+    controller.addPropertyChangeListener('FLOOR_PAINT', setPaintFromController);
+
+    var floorPaintDisplay = controller.isPropertyEditable('FLOOR_PAINT') ? 'initial' : 'none';
+    floorColorCheckbox.parentElement.parentElement.style.display = floorPaintDisplay;
+    floorTextureCheckbox.parentElement.parentElement.style.display = floorPaintDisplay;
+    dialog.getElement('floor-color-selector-button').style.display = floorPaintDisplay;
+    dialog.getElement('floor-texture-selector-button').style.display = floorPaintDisplay;
+
+    // Shininess
+    var shininessRadioButtons = dialog.findElements('[name="floor-shininess-choice"]');
+    dialog.registerEventListener(shininessRadioButtons, 'input', function() {
+      controller.setFloorShininess(parseFloat(this.value));
+    });
+
+    function setShininessFromController() {
+      for (var i = 0; i < shininessRadioButtons.length; i++) {
+        shininessRadioButtons[i].checked = controller.getFloorShininess() == parseFloat(shininessRadioButtons[i].value);
+      }
+    }
+    setShininessFromController();
+    controller.addPropertyChangeListener('FLOOR_SHININESS', setPaintFromController);
+
+    var floorShininessDisplay = controller.isPropertyEditable('FLOOR_SHININESS') ? 'initial' : 'none';
+    shininessRadioButtons[0].parentElement.parentElement = floorShininessDisplay;
   }
 
   function initCeilingPanel(dialog) {
     dialog.ceilingVisibleCheckBox = dialog.getElement('ceiling-visible-checkbox');
-    dialog.ceilingVisibleCheckBox.checked = roomController.getCeilingVisible();
+    dialog.ceilingVisibleCheckBox.checked = controller.getCeilingVisible();
     
     dialog.ceilingColorSelector = viewFactory.createColorSelector(preferences, {
         onColorSelected: function(selectedColor) {
           dialog.findElement('[name="ceiling-color-and-texture-choice"][value="COLORED"]').checked = true;
-          roomController.setCeilingPaint(RoomController.RoomPaint.COLORED);
-          roomController.setCeilingColor(selectedColor);
+          controller.setCeilingPaint(RoomController.RoomPaint.COLORED);
+          controller.setCeilingColor(selectedColor);
         }
     });
     dialog.attachChildComponent('ceiling-color-selector-button', dialog.ceilingColorSelector)
-    dialog.ceilingColorSelector.set(roomController.getCeilingColor());
+    dialog.ceilingColorSelector.set(controller.getCeilingColor());
     
-    dialog.ceilingTextureSelector = roomController.getCeilingTextureController().getView();
+    dialog.ceilingTextureSelector = controller.getCeilingTextureController().getView();
     dialog.ceilingTextureSelector.onTextureSelected = function(texture) {
         dialog.findElement('[name="ceiling-color-and-texture-choice"][value="TEXTURED"]').checked = true;
-        roomController.setCeilingPaint(RoomController.RoomPaint.TEXTURED);
-        roomController.getCeilingTextureController().setTexture(texture);
+        controller.setCeilingPaint(RoomController.RoomPaint.TEXTURED);
+        controller.getCeilingTextureController().setTexture(texture);
     };
     dialog.attachChildComponent('ceiling-texture-selector-button', dialog.ceilingTextureSelector);
-    dialog.ceilingTextureSelector.set(roomController.getCeilingTextureController().getTexture());
+    dialog.ceilingTextureSelector.set(controller.getCeilingTextureController().getTexture());
     
     dialog.findElement('[name="ceiling-color-and-texture-choice"][value="COLORED"]').checked 
-        = roomController.getCeilingPaint() == RoomController.RoomPaint.COLORED;
+        = controller.getCeilingPaint() == RoomController.RoomPaint.COLORED;
     dialog.findElement('[name="ceiling-color-and-texture-choice"][value="TEXTURED"]').checked 
-        = roomController.getCeilingPaint() == RoomController.RoomPaint.TEXTURED;
+        = controller.getCeilingPaint() == RoomController.RoomPaint.TEXTURED;
     
-    var selectedCeilingShininessRadio = dialog.findElement('[name="ceiling-shininess-choice"][value="' + roomController.getCeilingShininess() + '"]');
+    var selectedCeilingShininessRadio = dialog.findElement('[name="ceiling-shininess-choice"][value="' + controller.getCeilingShininess() + '"]');
     if (selectedCeilingShininessRadio != null) {
         selectedCeilingShininessRadio.checked = true;
     }
@@ -1728,34 +1767,41 @@ JSViewFactory.prototype.createRoomView = function(preferences, roomController) {
       initializer: function(dialog) {
         var behavior = this;
 
+        var nameDisplay = controller.isPropertyEditable('NAME') ? 'initial' : 'none';
         dialog.nameInput = dialog.getElement('name-input');
-        dialog.nameInput.value = roomController.getName();
-        
+        dialog.nameInput.value = controller.getName();
+        dialog.nameInput.parentElement.style.display = nameDisplay;
+        dialog.registerEventListener(dialog.nameInput, 'input', function() {
+          controller.setName(dialog.nameInput.trim());
+        });
+        controller.addPropertyChangeListener('NAME', function(event) {
+          dialog.nameInput.value = controller.getName();
+        });
+
+        var areaVisiblePanelDisplay = controller.isPropertyEditable('AREA_VISIBLE') ? 'initial' : 'none';
         dialog.areaVisibleCheckbox = dialog.getElement('area-visible-checkbox');
-        dialog.areaVisibleCheckbox.checked = roomController.getAreaVisible();
+        dialog.areaVisibleCheckbox.checked = controller.getAreaVisible();
+        dialog.areaVisibleCheckbox.parentElement.style.display = areaVisiblePanelDisplay;
+        dialog.registerEventListener(dialog.areaVisibleCheckbox, 'input', function() {
+          controller.setAreaVisible(dialog.areaVisibleCheckbox.checked);
+        });
+        controller.addPropertyChangeListener('AREA_VISIBLE', function(event) {
+          dialog.areaVisibleCheckbox.checked = controller.getAreaVisible();
+        });
 
         initFloorPanel(dialog);
         initCeilingPanel(dialog);
       },
       applier: function(dialog) {
-        roomController.setName(dialog.nameInput.value);
-        roomController.setAreaVisible(dialog.areaVisibleCheckbox.checked);
 
-        roomController.setFloorVisible(dialog.floorVisibleCheckBox.checked);
-    
-        var selectedFloorShininessRadio = dialog.findElement('[name="floor-shininess-choice"]:checked');
-        if (selectedFloorShininessRadio != null) {
-          roomController.setFloorShininess(parseFloat(selectedFloorShininessRadio.value));
-        }
-
-        roomController.setCeilingVisible(dialog.ceilingVisibleCheckBox.checked);
+        controller.setCeilingVisible(dialog.ceilingVisibleCheckBox.checked);
 
         var selectedCeilingShininessRadio = dialog.findElement('[name="ceiling-shininess-choice"]:checked');
         if (selectedCeilingShininessRadio != null) {
-          roomController.setCeilingShininess(parseFloat(selectedCeilingShininessRadio.value));
+          controller.setCeilingShininess(parseFloat(selectedCeilingShininessRadio.value));
         }
         
-        roomController.modifyRooms();
+        controller.modifyRooms();
       },
       disposer: function(dialog) {
         dialog.floorColorSelector.dispose();

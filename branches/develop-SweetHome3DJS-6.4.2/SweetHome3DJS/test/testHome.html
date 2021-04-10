@@ -1737,7 +1737,7 @@ name-visible-checkbox
       </div>
     </div>
     <br />
-    
+
     <div class="columns-3">
       <div class="column1">
         <h3>${HomeFurniturePanel.locationPanel.title}</h3>
@@ -1962,18 +1962,20 @@ name-visible-checkbox
   <div class="room-dialog">
     <h3>${RoomPanel.nameAndAreaPanel.title}</h3>
     <div data-name="name-and-area-panel">
-      ${RoomPanel.nameLabel.text}
-      <input name="name-input" type="text" />
-      
+      <span>
+        ${RoomPanel.nameLabel.text}
+        <input name="name-input" type="text" />
+      </span>
+
       <label>
         <input name="area-visible-checkbox" type="checkbox"  />
         ${RoomPanel.areaVisibleCheckBox.text}
       </label>
     </div>
 
-    <div class="columns-2">
+    <div class="columns">
     
-      <div class="column1">
+      <div>
         <h3>${RoomPanel.floorPanel.title}</h3>
         <div data-name="floor-panel">
 
@@ -2018,18 +2020,18 @@ name-visible-checkbox
         </div>
 
       </div>
-      
-      <div class="column2">
+
+      <div>
         <h3>${RoomPanel.ceilingPanel.title}</h3>
         <div data-name="ceiling-panel">
-    
+
           <div class="whole-line">
             <label>
               <input name="ceiling-visible-checkbox" type="checkbox"  />
               ${RoomPanel.ceilingVisibleCheckBox.text}
             </label>
           </div>
-    
+
           <div>
             <label>
               <input type="radio" name="ceiling-color-and-texture-choice" value="COLORED">
@@ -2037,7 +2039,7 @@ name-visible-checkbox
             </label>
           </div>
           <div data-name="ceiling-color-selector-button"></div>
-    
+
           <div>
             <label>
               <input type="radio" name="ceiling-color-and-texture-choice" value="TEXTURED">
@@ -2045,11 +2047,11 @@ name-visible-checkbox
             </label>
           </div>
           <div data-name="ceiling-texture-selector-button"></div>
-    
+
           <div class="whole-line">
             <hr />
           </div>
-    
+
           <div class="whole-line">
             <label>
               <input type="radio" name="ceiling-shininess-choice" value="0">
@@ -2060,9 +2062,64 @@ name-visible-checkbox
               ${RoomPanel.ceilingShinyRadioButton.text}
             </label>
           </div>
-          
+
         </div>
       </div>
+
+<!--      <div>-->
+<!--        <h3>${RoomPanel.wallSidesPanel.title}</h3>-->
+<!--        <div data-name="wall-sides-panel">-->
+
+<!--          <div class="whole-line">-->
+<!--            <label>-->
+<!--              <input name="split-surrounding-walls-checkbox" type="checkbox"  />-->
+<!--              ${RoomPanel.splitSurroundingWallsCheckBox.text}-->
+<!--            </label>-->
+<!--          </div>-->
+
+<!--          <div>-->
+<!--            <label>-->
+<!--              <input type="radio" name="wall-sides-color-and-texture-choice" value="COLORED">-->
+<!--              ${RoomPanel.wallSidesColorRadioButton.text}-->
+<!--            </label>-->
+<!--          </div>-->
+<!--          <div data-name="wall-sides-color-selector-button"></div>-->
+
+<!--          <div>-->
+<!--            <label>-->
+<!--              <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">-->
+<!--              ${RoomPanel.wallSidesTextureRadioButton.text}-->
+<!--            </label>-->
+<!--          </div>-->
+<!--          <div data-name="wall-sides-texture-selector-button"></div>-->
+
+<!--          <div class="whole-line">-->
+<!--            <hr />-->
+<!--          </div>-->
+
+<!--          <div class="whole-line">-->
+<!--            <label>-->
+<!--              <input type="radio" name="wall-sides-shininess-choice" value="0">-->
+<!--              ${RoomPanel.ceilingMattRadioButton.text}-->
+<!--            </label>-->
+<!--            <label>-->
+<!--              <input type="radio" name="wall-sides-shininess-choice" value="0.25">-->
+<!--              ${RoomPanel.ceilingShinyRadioButton.text}-->
+<!--            </label>-->
+<!--          </div>-->
+
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div>-->
+<!--          <h3>${RoomPanel.wallSidesBaseboardPanel.title}</h3>-->
+<!--          <div >-->
+
+<!--              uchentein222...-->
+
+<!--          </div>-->
+<!--      </div>-->
+
     </div>
     
   </div>
@@ -2331,8 +2388,8 @@ name-visible-checkbox
 <script type="text/javascript">
 // If set to not null value, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var backendURLBase = 'http://localhost:8080';
-// var backendURLBase = null;
+//var backendURLBase = 'http://localhost:8080';
+var backendURLBase = null;
 var useServer = backendURLBase != null;
 
 var userResourcesURLBase = backendURLBase + '/userResources/';
