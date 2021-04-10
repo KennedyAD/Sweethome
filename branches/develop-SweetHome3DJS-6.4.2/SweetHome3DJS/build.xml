@@ -17,6 +17,10 @@
   <!-- The current version of Sweet Home 3D JS -->
   <property name="version" value="6.4.2"/>
 
+  <!-- The version of JSweet transpiler (use version 3.1.0-SNAPSHOT to compile with Java 11) -->
+	<!-- To compile with JSweet 3 / Java 11, comment the JSweet 2 specifics options in the Java task below -->
+  <property name="jsweet-version" value="2.4.0-RC1"/>
+  	
   <!-- Java to JavaScript and TypeScript transpilation with JSweet -->
   <target name="transpiledLibraries" 
           description="Transpiles Sweet Home 3D classes to tools/JSweet/build">
@@ -24,7 +28,7 @@
     <mkdir dir="tools/JSweet/build/SweetHome3DJSweetExtension"/>
     <javac srcdir="tools/JSweet/src" 
         destdir="tools/JSweet/build/SweetHome3DJSweetExtension" 
-        classpath="tools/JSweet/lib/jsweet-transpiler-2.4.0-RC1-jar-with-dependencies.jar" 
+        classpath="tools/JSweet/lib/jsweet-transpiler-${jsweet-version}-jar-with-dependencies.jar" 
         source="1.8" 
         encoding="ISO-8859-1"
         includes="com/eteks/sweethome3d/jsweet/*" />
@@ -48,9 +52,6 @@
       <arg value="-o" />
       <arg value="tools/JSweet/build/js" />
       <arg value="--declaration" />
-      <!-- input dir -->
-      <arg value="--jdkHome" />
-      <arg value="${java.home}" />
       <arg value="--encoding" />
       <arg value="ISO-8859-1" />
       <arg value="--candiesJsOut"/>
@@ -59,12 +60,23 @@
       <arg value="../SweetHome3D/src:tools/JSweet/src" />
       <arg value="--includes" />
       <arg value="def:com/eteks/sweethome3d/model:com/eteks/sweethome3d/tools:com/eteks/sweethome3d/viewcontroller:com/eteks/sweethome3d/io" />
-      <sysproperty key="java.ext.dirs" value="../SweetHome3D/lib"/>
       <!-- Transpilation target may contain almost all com.eteks.sweethome3d.viewcontroller classes or only the subset needed to run 
            Sweet Home 3D JS Viewer (in which case swingundo.js extracted from tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js isn't required) -->
+    	
+      <!-- BEGIN JSweet 2 specifics: delete for JSweet 3+ -->
+      <arg value="--jdkHome" />
+      <arg value="${java.home}" />
+      <sysproperty key="java.ext.dirs" value="../SweetHome3D/lib"/> 
+    	<!-- END JSweet 2 specifics -->
+    	
       <sysproperty key="transpilationTarget" value="${buildType}"/> 
       <classpath>
-        <fileset dir="tools/JSweet/lib" excludes="generated/" />
+        <pathelement location="tools/JSweet/lib/jsweet-transpiler-${jsweet-version}-jar-with-dependencies.jar"/>
+        <pathelement location="tools/JSweet/lib/bigjs-3.1.0-20170726.jar"/>
+        <pathelement location="tools/JSweet/lib/j4ts-awtgeom-1.8.132-20200519.jar"/>
+        <pathelement location="tools/JSweet/lib/j4ts-batik-svgpathparser-1.10.0-20170726.jar"/>
+        <pathelement location="tools/JSweet/lib/j4ts-swingundo-1.8.132-20170726.jar"/>
+        <pathelement location="tools/JSweet/lib/jsweet-core-5-20170726.jar"/>
         <pathelement location="tools/JSweet/build/SweetHome3DJSweetExtension"/>
         <pathelement location="../SweetHome3D/libtest/jnlp.jar"/>
         <pathelement location="../SweetHome3D/libtest/AppleJavaExtensions.jar"/>
