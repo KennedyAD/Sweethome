@@ -1712,8 +1712,8 @@ name-visible-checkbox
 <div id="home-furniture-dialog-template" class="dialog-template">
   
   <div class="home-furniture-dialog">
-    <h3>${HomeFurniturePanel.nameAndPricePanel.title}</h3>
-    <div data-name="name-and-price-panel">
+    <h3 class="card">${HomeFurniturePanel.nameAndPricePanel.title}</h3>
+    <div data-name="name-and-price-panel" class="card">
       <div class="label-cell">
         <div data-name="name-label">${HomeFurniturePanel.nameLabel.text}</div>
       </div>
@@ -1740,8 +1740,8 @@ name-visible-checkbox
 
     <div class="columns-3">
       <div class="column1">
-        <h3>${HomeFurniturePanel.locationPanel.title}</h3>
-        <div data-name="location-panel">
+        <h3 class="card">${HomeFurniturePanel.locationPanel.title}</h3>
+        <div data-name="location-panel" class="card">
           <div data-name="x-label" class="label-cell"></div>
           <div>
             <span data-name="x-input" />
@@ -1770,8 +1770,8 @@ name-visible-checkbox
 
         <br />
 
-        <h3>${HomeFurniturePanel.colorAndTexturePanel.title}</h3>
-        <div data-name="paint-panel">
+        <h3 class="card">${HomeFurniturePanel.colorAndTexturePanel.title}</h3>
+        <div data-name="paint-panel" class="card">
           <div>
             <label>
               <input type="radio" name="paint-checkbox" value="default">
@@ -1806,8 +1806,8 @@ name-visible-checkbox
         </div>
       </div>
       <div class="column2">
-        <h3>${HomeFurniturePanel.orientationPanel.title}</h3>
-        <div data-name="orientation-panel">
+        <h3 class="card">${HomeFurniturePanel.orientationPanel.title}</h3>
+        <div data-name="orientation-panel" class="card">
 
           <div class="whole-line" data-name="vertical-rotation-label">${HomeFurniturePanel.verticalRotationLabel.text}</div>
           
@@ -1840,8 +1840,8 @@ name-visible-checkbox
         </div>
       </div>
       <div class="column3">
-        <h3>${HomeFurniturePanel.sizePanel.title}</h3>
-        <div data-name="size-panel">
+        <h3 class="card">${HomeFurniturePanel.sizePanel.title}</h3>
+        <div data-name="size-panel" class="card">
           <div data-name="width-label" class="label-cell"></div>
           <div>
             <span data-name="width-input"></span>
@@ -1863,8 +1863,8 @@ name-visible-checkbox
         </div>
         <br />
 
-        <h3>${HomeFurniturePanel.shininessPanel.title}</h3>
-        <div data-name="shininess-panel">
+        <h3 class="card">${HomeFurniturePanel.shininessPanel.title}</h3>
+        <div data-name="shininess-panel" class="card">
 
           <div>
             <label>
@@ -1890,8 +1890,7 @@ name-visible-checkbox
     </div>
 
     <br />
-    <hr />
-    <div>
+    <div class="card">
       <label>
         <input name="visible-checkbox" type="checkbox" />
         <span>${HomeFurniturePanel.visibleCheckBox.text}</span>
@@ -1908,9 +1907,9 @@ name-visible-checkbox
     <div class="columns-2">
 
       <div class="column1">
-        <h3>${WallPanel.leftSidePanel.title}</h3>
-        <div class="color-and-texture-panel">
-          <div>
+        <h3 class="card">${WallPanel.leftSidePanel.title}</h3>
+        <div class="color-and-texture-panel card">
+          <div class="float-left">
             <label>
               <input type="radio" name="left-side-color-and-texture-choice" value="COLORED">
               ${WallPanel.leftSideColorRadioButton.text}
@@ -1918,7 +1917,7 @@ name-visible-checkbox
           </div>
           <div data-name="left-side-color-selector-button"></div>
           
-          <div>
+          <div class="float-left">
             <label>
               <input type="radio" name="left-side-color-and-texture-choice" value="TEXTURED">
               ${WallPanel.leftSideTextureRadioButton.text}
@@ -1929,9 +1928,9 @@ name-visible-checkbox
       </div>
       
       <div class="column2">
-        <h3>${WallPanel.rightSidePanel.title}</h3>
-        <div class="color-and-texture-panel">
-          <div>
+        <h3 class="card">${WallPanel.rightSidePanel.title}</h3>
+        <div class="color-and-texture-panel card">
+          <div class="float-left">
             <label>
               <input type="radio" name="right-side-color-and-texture-choice" value="COLORED">
               ${WallPanel.rightSideColorRadioButton.text}
@@ -1939,7 +1938,7 @@ name-visible-checkbox
           </div>
           <div data-name="right-side-color-selector-button"></div>
           
-          <div>
+          <div class="float-left">
             <label>
               <input type="radio" name="right-side-color-and-texture-choice" value="TEXTURED">
               ${WallPanel.rightSideTextureRadioButton.text}
@@ -1951,8 +1950,9 @@ name-visible-checkbox
  
     </div>
     
-    <hr />
-    <div data-name="wall-orientation-label">
+    <br/>
+    
+    <div data-name="wall-orientation-label" class="card">
     </div>
   </div>
 </div>
@@ -1960,8 +1960,8 @@ name-visible-checkbox
 <div id="room-dialog-template" class="dialog-template">
   
   <div class="room-dialog">
-    <h3>${RoomPanel.nameAndAreaPanel.title}</h3>
-    <div data-name="name-and-area-panel">
+    <h3 class=card>${RoomPanel.nameAndAreaPanel.title}</h3>
+    <div data-name="name-and-area-panel" class=card>
       <span>
         ${RoomPanel.nameLabel.text}
         <input name="name-input" type="text" />
@@ -1976,8 +1976,8 @@ name-visible-checkbox
     <div class="columns">
     
       <div>
-        <h3>${RoomPanel.floorPanel.title}</h3>
-        <div data-name="floor-panel">
+        <h3 class=card>${RoomPanel.floorPanel.title}</h3>
+        <div data-name="floor-panel" class=card>
 
           <div class="whole-line">
             <label>
@@ -2022,8 +2022,8 @@ name-visible-checkbox
       </div>
 
       <div>
-        <h3>${RoomPanel.ceilingPanel.title}</h3>
-        <div data-name="ceiling-panel">
+        <h3 class=card>${RoomPanel.ceilingPanel.title}</h3>
+        <div data-name="ceiling-panel" class=card>
 
           <div class="whole-line">
             <label>
@@ -2287,8 +2287,8 @@ name-visible-checkbox
   
   <div class="label-dialog">
 
-    <h3>${LabelPanel.textAndStylePanel.title}</h3>
-    <div data-name="text-and-style-panel">
+    <h3 class=card>${LabelPanel.textAndStylePanel.title}</h3>
+    <div data-name="text-and-style-panel" class=card>
       <div>
         ${LabelPanel.textLabel.text}
       </div>
@@ -2340,8 +2340,8 @@ name-visible-checkbox
 
     <br />
 
-    <h3>${LabelPanel.rendering3DPanel.title}</h3>
-    <div data-name="rendering-3D-panel">
+    <h3 class=card>${LabelPanel.rendering3DPanel.title}</h3>
+    <div data-name="rendering-3D-panel" class=card>
       <div>
         <label>
           <input name="visible-in-3D-checkbox" type="checkbox"  />

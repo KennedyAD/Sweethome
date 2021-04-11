@@ -1556,6 +1556,7 @@ JSViewFactory.prototype.createWallView = function(preferences, wallController) {
   return new JSDialogView(viewFactory, preferences, 
     '${WallPanel.wall.title}', 
     document.getElementById("wall-dialog-template"), {
+      small: true,
       initializer: function(dialog) {
 
         // Find which wall side is the closest to the pointer location
@@ -1824,6 +1825,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
   return new JSDialogView(viewFactory, preferences, 
     '${PolylinePanel.polyline.title}', 
     document.getElementById("polyline-dialog-template"), {
+      small: true,
       initializer: function(dialog) {
 
         dialog.colorSelector = viewFactory.createColorSelector(preferences, {

@@ -29,6 +29,16 @@ input {
   }
 }
 
+.float-left {
+	float: left;
+	margin-right: 5px;
+}
+
+.float-right {
+  float: right;
+  margin-left: 5px;
+}
+
 /********************************/
 /* Splitter                */
 /********************************/
@@ -626,12 +636,19 @@ input {
   max-height: 0;
   opacity: 0;
   position: relative;
-  transition-property: width, height, max-height, opacity;
-  transition-duration: 0.6s;
+  transition-property: opacity;
+  transition-duration: 0.4s;
   overflow: hidden;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.5),0 6px 20px 0 rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
+}
+
+
+.dialog-container.closing  {
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: 0.3s;
 }
 
 .dialog-container.visible .dialog-content {
@@ -639,10 +656,17 @@ input {
   /* height: auto; */
   width: 80%;
   opacity: 1;
+  border-radius: 8px;
+  transition-property: opacity;
+  transition-duration: 0.4s;
+}
+
+.dialog-container.visible.small .dialog-content {
+  width: 40%;
 }
 
 @media (max-height: 600px) {
-  .dialog-container.visible .dialog-content {
+  .dialog-container.visible:not(.small) .dialog-content {
     top: 0;
     bottom: 0;
     height: 100%;
@@ -651,13 +675,16 @@ input {
 }
 
 @media (max-width: 800px) {
-  .dialog-container.visible .dialog-content {
+  .dialog-container.visible:not(.small) .dialog-content {
     top: 0;
     bottom: 0;
     height: 100%;
     max-height: 100%;
     width: 100%;
     box-shadow: none;
+  }
+	.dialog-container.visible.small .dialog-content {
+	  width: 80%;
   }
 }
 
@@ -666,7 +693,9 @@ input {
   height: 40px;
   line-height: 40px;
   box-sizing: border-box;
-  border-bottom: lightgrey solid 2px;
+  border-bottom: lightgrey solid 1px;
+  font-weight: bold;
+  background-color: #F0F0F0;
 }
 
 /* The Close Button */
@@ -674,7 +703,7 @@ input {
   color: #aaa;
   position: absolute;
   top: 2px;
-  right: 5px;
+  right: 8px;
   font-size: 2em;
   font-weight: bold;
 }
@@ -693,6 +722,16 @@ input {
   padding-top: 1em;
   overflow: scroll;
   max-height: calc(100% /* max content height */ - 80px /* title and buttons */);
+  background-color: #E9E9E9;
+}
+
+.dialog-body div.card {
+	background-color: #E0E0E0;
+	border: solid #D0D0D0 1px;
+	border-radius: 8px;
+	padding: 10px;
+  /*box-shadow: 0 4px 8px 0 rgba(0,0,0,0.5);*/
+	
 }
 
 .dialog-body .columns-2 {
@@ -734,6 +773,15 @@ input {
   padding-bottom: .2em;
 }
 
+.dialog-body h3.card {
+  font-size: 1em;
+  font-weight: normal;
+  border-bottom: none;
+  padding-bottom: 0px;
+  padding-left: 1em;
+  margin-bottom: .1em;
+}
+  
 @media (min-width: 600px) {
   .dialog-body .columns-2 {
 	  display: grid;
@@ -744,17 +792,19 @@ input {
 }
 
 .dialog-content .dialog-buttons {
-	border-top: lightgrey solid 2px; 
   padding: 0 1em;
   height: 40px;
   min-height: 40px;
   box-sizing: border-box;
   position: relative;
+  background-color: #E9E9E9;
+	padding-top: 0.3em;
+	border-top: solid lightgrey 1px;  
 }
 
 .dialog-content .dialog-buttons button {
   position: relative;
-  top: 20%;
+  float: right;
   margin-right: 1em;
   font-size: 1em;
   cursor: pointer;
@@ -1025,6 +1075,7 @@ input {
 .color-button {
   width: 3rem;
   height: 1.5rem;
+  margin-top: -3px;
 }
 
 .color-button:not([disabled]) {
@@ -1064,11 +1115,11 @@ input {
   cursor: pointer;
 }
 
-.color-selector div {
+.color-selector div.picker div {
   border: white solid 2px;
 }
 
-.color-selector div.selected {
+.color-selector div.picker div.selected {
   border: grey solid 2px;
 }
 
@@ -1110,6 +1161,7 @@ input {
 .texture-button {
   width: 3rem;
   height: 1.5rem;
+  margin-top: -3px;
 }
 
 .texture-button:not([disabled]) {

@@ -23,7 +23,7 @@
 /*****************************************/
 /* JSComponentView                       */
 /*****************************************/
- 
+
 /**
  * The root class for component views.
  *
@@ -47,7 +47,7 @@ function JSComponentView(viewFactory, preferences, template, behavior) {
   this.viewFactory = viewFactory;
 
   this.preferences = preferences;
-  
+
   if (template instanceof HTMLElement && behavior.useElementAsRootNode === true) {
     this.rootNode = template;
   } else {
@@ -141,7 +141,7 @@ JSComponentView.prototype.registerEventListener = function(elements, eventName, 
     return;
   }
   if (elements instanceof NodeList) {
-    elements = Array.from(elements); 
+    elements = Array.from(elements);
   }
   if (!Array.isArray(elements)) {
     elements = [elements];
@@ -153,10 +153,10 @@ JSComponentView.prototype.registerEventListener = function(elements, eventName, 
     var element = elements[j];
     element.addEventListener(eventName, listener, true);
   }
-  this.listeners.push({ 
-    listener: listener, 
-    eventName: eventName, 
-    elements: elements 
+  this.listeners.push({
+    listener: listener,
+    eventName: eventName,
+    elements: elements
   });
 }
 
@@ -263,7 +263,7 @@ JSComponentView.prototype.getLocalizedLabelText = function(resourceClass, proper
  * @protected
  */
 JSComponentView.prototype.getLengthInputStepSize = function() {
-  return this.preferences.getLengthUnit() == LengthUnit.INCH || 
+  return this.preferences.getLengthUnit() == LengthUnit.INCH ||
     this.preferences.getLengthUnit() == LengthUnit.INCH_DECIMALS ? LengthUnit.inchToCentimeter(0.125) : 0.5;
 }
 
@@ -289,11 +289,16 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
   var dialog = this;
   if (behavior != null) {
     this.applier = behavior.applier;
+    this.small = behavior.small;
   }
 
   JSComponentView.call(this, viewFactory, preferences, template, behavior);
+
   this.rootNode.classList.add('dialog-container');
   this.rootNode._dialogInstance = this;
+  if (this.small === true) {
+    this.rootNode.classList.add('small');
+  }
 
   document.body.append(this.rootNode);
 
@@ -317,7 +322,7 @@ JSDialogView.prototype.constructor = JSDialogView;
  * @protected
  */
 JSDialogView.prototype.appendButtons = function(buttonsPanel) {
-  
+
   var html;
   if (this.applier) {
     html = '<button class="dialog-ok-button">${OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">${OptionPane.cancelButton.textAndMnemonic}</button>';
@@ -374,9 +379,9 @@ JSDialogView.getTopMostDialog = function() {
 }
 
 JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
-  return JSComponentView.substituteWithLocale(this.preferences, 
+  return JSComponentView.substituteWithLocale(this.preferences,
     '<div class="dialog-content">' +
-    '  <div class="dialog-top">' + 
+    '  <div class="dialog-top">' +
     '    <span class="title"></span>' +
     '    <span class="dialog-close-button">&times;</span>' +
     '  </div>' +
@@ -433,9 +438,14 @@ JSDialogView.prototype.cancel = function() {
  * Closes the dialog and discard the associated DOM.
  */
 JSDialogView.prototype.close = function() {
-  this.rootNode.classList.remove('visible');
-  this.dispose();
-  document.body.removeChild(this.rootNode);
+  this.rootNode.classList.add('closing');
+  var dialog = this;
+  // Let 500ms before releasing the dialog so that the closing animation can apply 
+  setTimeout(function() {
+    dialog.rootNode.classList.remove('visible');
+    dialog.dispose();
+    document.body.removeChild(dialog.rootNode);
+  }, 500);
 }
 
 /**
@@ -468,7 +478,7 @@ JSDialogView.prototype.displayView = function(parentView) {
   var dialog = this;
 
   this.getRootNode().style.display = 'block';
-  
+
   // force browser to refresh before adding visible class to allow transition on width and height
   setTimeout(function() {
     dialog.rootNode.classList.add('visible');
@@ -498,12 +508,12 @@ JSDialogView.shownDialogsCounter = 0;
  */
 function JSWizardDialog(viewFactory, controller, preferences, title, behavior) {
   this.controller = controller;
-  
+
   JSDialogView.call(
-    this, 
-    viewFactory, 
-    preferences, 
-    title, 
+    this,
+    viewFactory,
+    preferences,
+    title,
     '<div class="wizard">' +
     '  <div stepIcon></div>' +
     '  <div stepView></div>' +
@@ -533,11 +543,11 @@ JSWizardDialog.prototype.constructor = JSWizardDialog;
  * @protected
  */
 JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
-  
-  buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, 
-    '<div class="wizard-buttons">' + 
-    '  <button class="wizard-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>' + 
-    '  <button class="wizard-back-button">${WizardPane.backOptionButton.text}</button>' + 
+
+  buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
+    '<div class="wizard-buttons">' +
+    '  <button class="wizard-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>' +
+    '  <button class="wizard-back-button">${WizardPane.backOptionButton.text}</button>' +
     '  <button class="wizard-next-button"></button>' +
     '</div>'
   );
@@ -610,31 +620,31 @@ JSWizardDialog.prototype.updateStepView = function() {
  * @private
  */
 JSWizardDialog.prototype.updateStepIcon = function() {
-    this.stepIconPanel.innerHTML = '';
-    // Add new icon
-    var stepIcon = this.controller.getStepIcon();
-    if (stepIcon != null) {
-      var backgroundColor1 = 'rgb(163, 168, 226)';
-      var backgroundColor2 = 'rgb(80, 86, 158)';
-      try {
-        // Read gradient colors used to paint icon background
-        var stepIconBackgroundColors = this.getLocalizedLabelText(
-            'WizardPane', 'stepIconBackgroundColors').trim().split(" ");
-        backgroundColor1 = parseInt(stepIconBackgroundColors[0]) || backgroundColor1;
-        if (stepIconBackgroundColors.length == 1) {
-          backgroundColor2 = backgroundColor1;
-        } else if (stepIconBackgroundColors.length == 2) {
-          backgroundColor2 = parseInt(stepIconBackgroundColors[1]) || backgroundColor2;
-        }
-      } catch (e) {
-        // do not change if exception
+  this.stepIconPanel.innerHTML = '';
+  // Add new icon
+  var stepIcon = this.controller.getStepIcon();
+  if (stepIcon != null) {
+    var backgroundColor1 = 'rgb(163, 168, 226)';
+    var backgroundColor2 = 'rgb(80, 86, 158)';
+    try {
+      // Read gradient colors used to paint icon background
+      var stepIconBackgroundColors = this.getLocalizedLabelText(
+        'WizardPane', 'stepIconBackgroundColors').trim().split(" ");
+      backgroundColor1 = parseInt(stepIconBackgroundColors[0]) || backgroundColor1;
+      if (stepIconBackgroundColors.length == 1) {
+        backgroundColor2 = backgroundColor1;
+      } else if (stepIconBackgroundColors.length == 2) {
+        backgroundColor2 = parseInt(stepIconBackgroundColors[1]) || backgroundColor2;
       }
-
-      var gradientColor1 = backgroundColor1;
-      var gradientColor2 = backgroundColor2;
-      var cssBackground = 'linear-gradient(180deg, ' + gradientColor1 + ' 0%, ' + gradientColor2 + ' 100%)';
-      this.stepIconPanel.innerHTML = '<img src="lib/' + stepIcon + '" style="background: ' + cssBackground + '; border: solid 1px #333333;" />';
+    } catch (e) {
+      // do not change if exception
     }
+
+    var gradientColor1 = backgroundColor1;
+    var gradientColor2 = backgroundColor2;
+    var cssBackground = 'linear-gradient(180deg, ' + gradientColor1 + ' 0%, ' + gradientColor2 + ' 100%)';
+    this.stepIconPanel.innerHTML = '<img src="lib/' + stepIcon + '" style="background: ' + cssBackground + '; border: solid 1px #333333;" />';
+  }
 }
 
 /*****************************************/
@@ -711,14 +721,14 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
 
   var builder = new JSContextMenu.Builder();
   this.build(builder, sourceElement);
-  
+
   var items = builder.items;
   // Remove last element if it is a separator 
   if (items.length > 0 && items[items.length - 1] == CONTEXT_MENU_SEPARATOR_ITEM) {
     items.pop();
   }
   var menuElement = this.createMenuElement(items);
-  
+
   this.getRootNode().appendChild(menuElement);
 
   // we temporarily use hidden visibility to get element's height
@@ -731,7 +741,7 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
   } else if (anchorY + menuElement.clientHeight > window.innerHeight) {
     anchorY = window.innerHeight - menuElement.clientHeight;
   }
-  
+
   this.getRootNode().style.visibility = 'initial';
   this.getRootNode().style.left = anchorX + 'px';
   this.getRootNode().style.top = anchorY + 'px';
@@ -751,7 +761,7 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
-    
+
     var itemElement = document.createElement('li');
     if (item == CONTEXT_MENU_SEPARATOR_ITEM) {
       itemElement.classList.add('separator');
@@ -805,7 +815,7 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
     itemIconElement.src = item.iconPath;
     itemIconElement.classList.add('visible');
   }
-  
+
   var itemLabelElement = document.createElement('span');
   itemLabelElement.textContent = JSComponentView.substituteWithLocale(this.preferences, item.label);
 
@@ -821,7 +831,7 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
       subMenuElement.classList.add('visible');
     });
     this.registerEventListener(itemElement, 'mouseover', function() {
-      
+
       var itemRect = itemElement.getBoundingClientRect();
       subMenuElement.style.position = 'fixed';
       subMenuElement.style.left = itemRect.x + itemElement.clientWidth;
@@ -855,7 +865,7 @@ JSContextMenu.prototype.close = function() {
   for (var i = 0; i < this.listenerUnregisterCallbacks.length; i++) {
     this.listenerUnregisterCallbacks[i]();
   }
-  
+
   this.listenerUnregisterCallbacks = null;
   this.getRootNode().innerHTML = '';
 };
@@ -890,7 +900,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
   var onItemSelected = null;
   // Defined only for a toggle action
   var selected = undefined;
-  
+
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
@@ -898,7 +908,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     if (!action.isEnabled()) {
       return this;
     }
-    
+
     label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
 
     var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
@@ -948,7 +958,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
 JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
   var label = null;
   var iconPath = null;
-  
+
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
@@ -956,20 +966,20 @@ JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, l
     if (!action.isEnabled()) {
       return this;
     }
-    
+
     label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
 
     var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
     if (libIconPath != null) {
       iconPath = 'lib/' + libIconPath;
     }
-    buildSubMenuCallback = labelOrbuildSubMenuCallback;    
+    buildSubMenuCallback = labelOrbuildSubMenuCallback;
   } else if (typeof buildSubMenuCallback == 'function') {
     label = labelOrbuildSubMenuCallback;
     iconPath = actionOrIconPathOrLabel;
   } else {
     label = actionOrIconPathOrLabel;
-    buildSubMenuCallback = labelOrbuildSubMenuCallback;    
+    buildSubMenuCallback = labelOrbuildSubMenuCallback;
   }
 
   var subMenuBuilder = new JSContextMenu.Builder();
@@ -1006,7 +1016,7 @@ JSContextMenu.Builder.prototype.addSeparator = function() {
 
 if (!JSContextMenu.globalCloserRegistered) {
   document.addEventListener('click', function(event) {
-    if (JSContextMenu.current != null 
+    if (JSContextMenu.current != null
       && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
       // clicked outside menu
       if (JSContextMenu.closeCurrentIfAny()) {
@@ -1051,19 +1061,19 @@ function JSSpinner(viewFactory, preferences, input, options) {
   if (input.tagName.toUpperCase() != 'SPAN') {
     throw new Error('JSSpinner: please provide a span for the spinner to work - ' + input + ' is not a span');
   }
-  
+
   var rootElement = input;
   if (!options) { options = {}; }
   if (isNaN(parseFloat(options.step))) { options.step = 1; }
   if (typeof options.nullable != 'boolean') { options.nullable = true; }
   if (!(options.format instanceof Format)) { options.format = new DecimalFormat(); }
-  
+
   function checkMinMax(min, max) {
     if (min != null && max != null && min >= max) {
       throw new Error('JSSpinner: min is not below max - min=' + min + ' max=' + max);
     }
   }
-  
+
   checkMinMax(options.min, options.max);
 
   function getDefaultValue() {
@@ -1080,7 +1090,7 @@ function JSSpinner(viewFactory, preferences, input, options) {
     useElementAsRootNode: true,
     initializer: function(component) {
       component.options = options;
-      
+
       rootElement.classList.add('spinner');
 
       component.textInput = document.createElement('input');
@@ -1132,51 +1142,51 @@ function JSSpinner(viewFactory, preferences, input, options) {
 
       component.configureIncrementDecrement();
 
-      Object.defineProperty(this, 'value', { 
-        get: function() { return component.get(); }, 
-        set: function(value) { component.set(value); } 
+      Object.defineProperty(this, 'value', {
+        get: function() { return component.get(); },
+        set: function(value) { component.set(value); }
       });
-      Object.defineProperty(this, 'width', { 
-        get: function() { return rootElement.style.width; }, 
-        set: function(value) { rootElement.style.width = value; } 
+      Object.defineProperty(this, 'width', {
+        get: function() { return rootElement.style.width; },
+        set: function(value) { rootElement.style.width = value; }
       });
-      Object.defineProperty(this, 'parentElement', { 
+      Object.defineProperty(this, 'parentElement', {
         get: function() { return rootElement.parentElement; }
       });
-      Object.defineProperty(this, 'previousElementSibling', { 
+      Object.defineProperty(this, 'previousElementSibling', {
         get: function() { return rootElement.previousElementSibling; }
       });
-      Object.defineProperty(this, 'style', { 
-        get: function() { return rootElement.style; } 
+      Object.defineProperty(this, 'style', {
+        get: function() { return rootElement.style; }
       });
       Object.defineProperty(this, 'min', {
-        get: function() { return options.min; }, 
-        set: function(min) { 
-          checkMinMax(min, options.max); 
-          options.min = min; 
-        }, 
+        get: function() { return options.min; },
+        set: function(min) {
+          checkMinMax(min, options.max);
+          options.min = min;
+        },
       });
       Object.defineProperty(this, 'max', {
-        get: function() { return options.max; }, 
-        set: function(max) { 
-          checkMinMax(options.min, max); 
-          options.max = max; 
-        }, 
+        get: function() { return options.max; },
+        set: function(max) {
+          checkMinMax(options.min, max);
+          options.max = max;
+        },
       });
       Object.defineProperty(this, 'step', {
-        get: function() { return options.step; }, 
-        set: function(step) { options.step = step; }, 
+        get: function() { return options.step; },
+        set: function(step) { options.step = step; },
       });
       Object.defineProperty(this, 'format', {
-        get: function() { return options.format; }, 
-        set: function(format) { 
-          options.format = format; 
+        get: function() { return options.format; },
+        set: function(format) {
+          options.format = format;
           component.refreshUI();
-        }, 
+        },
       });
-      
+
       var initialValue = options.value;
-      component.value = initialValue;   
+      component.value = initialValue;
     },
     getter: function(component) {
       return component.__value;
@@ -1212,7 +1222,7 @@ JSSpinner.prototype.constructor = JSSpinner;
 /**
  * @return {HTMLInputElement} underlying input element
  */
- JSSpinner.prototype.getInputElement = function() {
+JSSpinner.prototype.getInputElement = function() {
   return this.textInput;
 };
 
@@ -1279,7 +1289,7 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
   var options = this.options;
 
   this.registerEventListener(component.textInput, 'keydown', function(event) {
-    var keyStroke = KeyStroke.getKeyStrokeForEvent(event, "keydown"); 
+    var keyStroke = KeyStroke.getKeyStrokeForEvent(event, "keydown");
     if (keyStroke.endsWith(" UP")) {
       event.stopImmediatePropagation();
       component.incrementButton.click();
@@ -1300,7 +1310,7 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
     component.value = previousValue + options.step;
     component.raiseInputEvent();
   });
-  
+
   this.registerEventListener(component.decrementButton, 'click', function(event) {
     var previousValue = parseFloat(component.value);
     if (previousValue == null) {
@@ -1318,11 +1328,11 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
  * Raises an 'input' event on behalf of underlying text input
  * @private
  */
- JSSpinner.prototype.raiseInputEvent = function() {
+JSSpinner.prototype.raiseInputEvent = function() {
   var event = new Event('input', {
     bubbles: true,
     cancelable: true,
   });
-  
+
   this.textInput.dispatchEvent(event);
 };
