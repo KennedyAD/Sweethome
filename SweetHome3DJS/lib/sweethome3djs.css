@@ -13,6 +13,7 @@
   -ms-user-select:none;
   user-select:none;
   -webkit-tap-highlight-color:rgba(0,0,0,0);  
+  color: #404040;
 }
 
 input {
@@ -22,6 +23,10 @@ input {
   -ms-user-select:text;
   user-select:text;
 }
+
+input, textarea, keygen, select, button {
+  font-size: 0.9em;
+}	
 
 @media (hover: none), (pointer: coarse) {
   body {
@@ -477,11 +482,12 @@ input {
 /** CONTEXT MENU **/
 /******************/
 .context-menu {
-  background-color: white;
+  background-color: #E9E9E9;
   display: none;
   position: absolute;
-  border: solid 1px black;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  border: solid 0.1em lightgray;
+  border-radius: 0.5em;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.5),0 6px 20px 0 rgba(0,0,0,0.5);
   position: absolute;
   z-index: 1000;
   font-size: 1em;
@@ -500,17 +506,20 @@ input {
 .context-menu .item,
 .context-menu .back {
   cursor: pointer;
-  padding: 0.4rem 1.2rem;
+  padding: 0.1em 1em;
   position: relative;
-  height: 2.6em;
   line-height: 1.8em;
   box-sizing: border-box;
   overflow: auto;
   white-space: nowrap;
+  margin: 0.2em 0.4em;
 }
 
 .context-menu .item:hover {
-  background-color: #DDDDDD; 
+  /*background-color: #909090;*/
+  background-color: highlight;
+  border-radius: 0.5em;
+  color: black;
 }
 
 .context-menu .item input[type='radio'] {
@@ -534,9 +543,9 @@ input {
 }
 
 .context-menu .separator {
-  border-bottom: solid 1px gray;
+  border-bottom: solid 1px #C0C0C0;
   margin-top: 0.4em;
-  margin-bottom: 0.8em;
+  margin-bottom: 0.4em;
 }
 
 .context-menu .sub-menu .items:not(.visible) {
