@@ -34,16 +34,6 @@ input, textarea, keygen, select, button {
   }
 }
 
-.float-left {
-	float: left;
-	margin-right: 5px;
-}
-
-.float-right {
-  float: right;
-  margin-left: 5px;
-}
-
 /********************************/
 /* Splitter                */
 /********************************/
@@ -739,8 +729,12 @@ input, textarea, keygen, select, button {
 	border: solid #D0D0D0 1px;
 	border-radius: 8px;
 	padding: 10px;
-  /*box-shadow: 0 4px 8px 0 rgba(0,0,0,0.5);*/
-	
+}
+
+.dialog-body div.card .label-cell,
+.dialog-body .label-input-grid .label-cell{
+  text-align: right;
+  white-space: nowrap;
 }
 
 .dialog-body .columns-2 {
@@ -797,7 +791,43 @@ input, textarea, keygen, select, button {
 	  row-gap: 1em;
 	  column-gap: 2em;
       grid-template-columns: 1fr 1fr
-	}
+  }
+}
+
+.dialog-body .label-input-grid {
+  display: -ms-grid;
+  row-gap: 0.5em;
+  column-gap: 0.2em;
+  grid-template-columns: 1fr 1fr;
+  -ms-grid-columns: 1fr 1fr;
+}
+@supports(grid-area: auto) {
+  .dialog-body .label-input-grid {
+    display: grid;
+  }
+}
+
+.dialog-body .label-input-grid .label-and-input {
+  grid-column: span 2;
+}
+
+.dialog-body .label-input-grid .whole-line {
+  -ms-grid-column: 1;
+  -ms-grid-column-span: 2;
+  grid-column: 1 / span 2;
+}
+
+/* if screen is wide enough, allow double layout: 2 label+input pairs per line */
+@media (min-width: 600px) {
+  .dialog-body .label-input-grid.double {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    -ms-grid-columns: 1fr 1fr 1fr 1fr;
+  }
+  .dialog-body .label-input-grid.double .whole-line {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 4;
+    grid-column: 1 / span 4;
+  }
 }
 
 .dialog-content .dialog-buttons {
@@ -904,10 +934,6 @@ input, textarea, keygen, select, button {
   cursor: pointer;
 }
 
-.home-furniture-dialog .label-cell {
-  text-align: right;
-}
-
 .home-furniture-dialog [data-name="name-and-price-panel"],
 .home-furniture-dialog [data-name="location-panel"],
 .home-furniture-dialog [data-name="orientation-panel"],
@@ -929,6 +955,8 @@ input, textarea, keygen, select, button {
 .home-furniture-dialog [data-name="orientation-panel"] > .whole-line,
 .home-furniture-dialog [data-name="size-panel"] > .whole-line,
 .home-furniture-dialog [data-name="paint-panel"] > .whole-line {
+  -ms-grid-column: 1;
+  -ms-grid-column-span: 2;
   grid-column: 1 / span 2;
 }
 
@@ -966,7 +994,9 @@ input, textarea, keygen, select, button {
 }
 
 .room-dialog [data-name="floor-panel"],
-.room-dialog [data-name="ceiling-panel"] {
+.room-dialog [data-name="ceiling-panel"],
+.room-dialog [data-name="wall-sides-panel"],
+.room-dialog [data-name="baseboard-panel"] {
   display: grid;
   grid-template-columns: max-content auto;
   row-gap: 1em;
@@ -974,7 +1004,9 @@ input, textarea, keygen, select, button {
 }
 
 .room-dialog [data-name="floor-panel"] .whole-line,
-.room-dialog [data-name="ceiling-panel"] .whole-line {
+.room-dialog [data-name="ceiling-panel"] .whole-line,
+.room-dialog [data-name="wall-sides-panel"] .whole-line,
+.room-dialog [data-name="baseboard-panel"] .whole-line  {
   grid-column: 1 / span 2;
 }
 
@@ -1315,4 +1347,42 @@ input, textarea, keygen, select, button {
   display: inline-block;
   cursor: pointer;
   background-size: 100% 100%;
+}
+
+.wall-dialog [name="pattern-select"] {
+  width: 3em;
+  height: 1.5em;
+}
+
+.wall-dialog [name="pattern-select"] .overview {
+  border: solid 1px black;
+  width: 60%;
+  height: 90%;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  background-size: 100% 100%;
+}
+
+.wall-dialog .pattern-selector-panel {
+  border: solid 1px gray;
+  background-color: white;
+  z-index: 30000;
+  transition: opacity 0.5s;
+  display: -ms-grid;
+  padding: 0.5em;
+  row-gap: 0.5em;
+  column-gap: 0.5em;
+  grid-template-columns: 1fr 1fr 1fr;
+  -ms-grid-columns: 1fr 1fr 1fr;
+}
+@supports(grid-area: auto) {
+  .wall-dialog .pattern-selector-panel {
+    display: grid;
+  }
+}
+
+.wall-dialog .pattern-selector-panel > * {
+  cursor: pointer;
+  border: solid 1px gray;
 }

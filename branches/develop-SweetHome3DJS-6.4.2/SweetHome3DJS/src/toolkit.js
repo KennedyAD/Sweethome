@@ -140,7 +140,7 @@ JSComponentView.prototype.registerEventListener = function(elements, eventName, 
   if (elements == null) {
     return;
   }
-  if (elements instanceof NodeList) {
+  if (elements instanceof NodeList || elements instanceof HTMLCollection) {
     elements = Array.from(elements);
   }
   if (!Array.isArray(elements)) {
@@ -1335,4 +1335,17 @@ JSSpinner.prototype.raiseInputEvent = function() {
   });
 
   this.textInput.dispatchEvent(event);
+};
+
+/**
+ * Enables or disables this component
+ * @param {boolean} [enabled] defaults to true
+ */
+JSSpinner.prototype.enable = function(enabled) {
+  if (typeof enabled == 'undefined') {
+    enabled = true;
+  }
+  this.textInput.disabled = !enabled;
+  this.incrementButton.disabled = !enabled;
+  this.decrementButton.disabled = !enabled;
 };

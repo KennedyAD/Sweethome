@@ -1904,12 +1904,34 @@ name-visible-checkbox
   
   <div class="wall-dialog">
 
+    <h3 class="card">${WallPanel.startPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-start-label"></span>
+      <span data-name="x-start-input"></span>
+      <span data-name="y-start-label"></span>
+      <span data-name="y-start-input"></span>
+    </div>
+
+    <br />
+    <h3 class="card">${WallPanel.endPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-end-label"></span>
+      <span data-name="x-end-input"></span>
+      <span data-name="y-end-label"></span>
+      <span data-name="y-end-input"></span>
+      <span class="whole-line">
+        <span data-name="distance-to-end-point-label"></span>
+        <span data-name="distance-to-end-point-input"></span>
+      </span>
+    </div>
+
+    <br />
     <div class="columns-2">
 
       <div class="column1">
         <h3 class="card">${WallPanel.leftSidePanel.title}</h3>
-        <div class="color-and-texture-panel card">
-          <div class="float-left">
+        <div class="color-and-texture-panel card label-input-grid">
+          <div>
             <label>
               <input type="radio" name="left-side-color-and-texture-choice" value="COLORED">
               ${WallPanel.leftSideColorRadioButton.text}
@@ -1917,20 +1939,37 @@ name-visible-checkbox
           </div>
           <div data-name="left-side-color-selector-button"></div>
           
-          <div class="float-left">
+          <div>
             <label>
               <input type="radio" name="left-side-color-and-texture-choice" value="TEXTURED">
               ${WallPanel.leftSideTextureRadioButton.text}
             </label>
           </div>
           <div data-name="left-side-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <label>
+            <input type="radio" name="left-side-shininess-choice" value="0">
+            ${WallPanel.leftSideMattRadioButton.text}
+          </label>
+          <label>
+            <input type="radio" name="left-side-shininess-choice" value="0.25">
+            ${WallPanel.leftSideShinyRadioButton.text}
+          </label>
+
+          <div class="whole-line" style="text-align: center">
+            <button name="left-side-modify-baseboard-button"></button>
+          </div>
         </div>
       </div>
       
       <div class="column2">
         <h3 class="card">${WallPanel.rightSidePanel.title}</h3>
-        <div class="color-and-texture-panel card">
-          <div class="float-left">
+        <div class="color-and-texture-panel card label-input-grid">
+          <div>
             <label>
               <input type="radio" name="right-side-color-and-texture-choice" value="COLORED">
               ${WallPanel.rightSideColorRadioButton.text}
@@ -1938,16 +1977,101 @@ name-visible-checkbox
           </div>
           <div data-name="right-side-color-selector-button"></div>
           
-          <div class="float-left">
+          <div>
             <label>
               <input type="radio" name="right-side-color-and-texture-choice" value="TEXTURED">
               ${WallPanel.rightSideTextureRadioButton.text}
             </label>
           </div>         
           <div data-name="right-side-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <label>
+            <input type="radio" name="right-side-shininess-choice" value="0">
+            ${WallPanel.rightSideMattRadioButton.text}
+          </label>
+          <label>
+            <input type="radio" name="right-side-shininess-choice" value="0.25">
+            ${WallPanel.rightSideShinyRadioButton.text}
+          </label>
+
+          <div class="whole-line" style="text-align: center">
+            <button name="right-side-modify-baseboard-button"></button>
+          </div>
         </div>
       </div>
  
+    </div>
+
+    <br />
+    <h3 class="card">${WallPanel.topPanel.title}</h3>
+    <div class="card label-input-grid">
+      <span>${WallPanel.patternLabel.text}</span>
+      <div><button name="pattern-select"><div class="overview"></div></button></div>
+
+      <span>${WallPanel.topColorLabel.text}</span>
+      <span>
+        <label>
+          <input type="radio" name="top-color-choice" value="DEFAULT">
+          ${WallPanel.topDefaultColorRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="top-color-choice" value="COLORED">
+          ${WallPanel.topColorRadioButton.text}
+          <span data-name="top-color-selector-button"></span>
+        </label>
+      </span>
+    </div>
+
+    <br />
+    <h3 class="card">${WallPanel.heightPanel.title}</h3>
+    <div class="card">
+
+      <div class="columns-2">
+
+        <div class="column1">
+
+          <div>
+            <label>
+              <input type="radio" name="wall-shape-choice" value="RECTANGULAR_WALL_HEIGHT">
+              ${WallPanel.rectangularWallRadioButton.text}
+            </label>
+          </div>
+
+          <span data-name="rectangular-wall-height-label" class="label-cell"></span>
+          <span data-name="rectangular-wall-height-input"></span>
+        </div>
+
+        <div class="column2">
+
+          <div>
+            <label class="label-and-input">
+              <input type="radio" name="wall-shape-choice" value="SLOPING_WALL">
+              ${WallPanel.slopingWallRadioButton.text}
+            </label>
+          </div>
+
+          <div class="label-input-grid">
+            <span class="label-cell">${WallPanel.slopingWallHeightAtStartLabel.text}</span>
+            <span data-name="sloping-wall-height-at-start-input"></span>
+
+            <span class="label-cell">${WallPanel.slopingWallHeightAtEndLabel.text}</span>
+            <span data-name="sloping-wall-height-at-end-input"></span>
+          </div>
+        </div>
+      </div>
+
+      <br />
+      <div class="label-input-grid double">
+        <span data-name="thickness-label"></span>
+        <span data-name="thickness-input"></span>
+        <span data-name="arc-extent-label"></span>
+        <span data-name="arc-extent-input"></span>
+      </div>
+
     </div>
     
     <br/>
@@ -2005,7 +2129,7 @@ name-visible-checkbox
           <div class="whole-line">
             <hr />
           </div>
-    
+
           <div class="whole-line">
             <label>
               <input type="radio" name="floor-shininess-choice" value="0">
@@ -2066,59 +2190,57 @@ name-visible-checkbox
         </div>
       </div>
 
-<!--      <div>-->
-<!--        <h3>${RoomPanel.wallSidesPanel.title}</h3>-->
-<!--        <div data-name="wall-sides-panel">-->
+      <div>
+        <h3 class="card">${RoomPanel.wallSidesPanel.title}</h3>
+        <div data-name="wall-sides-panel" class="card">
 
-<!--          <div class="whole-line">-->
-<!--            <label>-->
-<!--              <input name="split-surrounding-walls-checkbox" type="checkbox"  />-->
-<!--              ${RoomPanel.splitSurroundingWallsCheckBox.text}-->
-<!--            </label>-->
-<!--          </div>-->
+          <div class="whole-line">
+            <label title="${RoomPanel.splitSurroundingWallsCheckBox.tooltip}">
+              <input name="split-surrounding-walls-checkbox" type="checkbox"  />
+              ${RoomPanel.splitSurroundingWallsCheckBox.text}
+            </label>
+          </div>
 
-<!--          <div>-->
-<!--            <label>-->
-<!--              <input type="radio" name="wall-sides-color-and-texture-choice" value="COLORED">-->
-<!--              ${RoomPanel.wallSidesColorRadioButton.text}-->
-<!--            </label>-->
-<!--          </div>-->
-<!--          <div data-name="wall-sides-color-selector-button"></div>-->
+          <div>
+            <label>
+              <input type="radio" name="wall-sides-color-and-texture-choice" value="COLORED">
+              ${RoomPanel.wallSidesColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="wall-sides-color-selector-button"></div>
 
-<!--          <div>-->
-<!--            <label>-->
-<!--              <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">-->
-<!--              ${RoomPanel.wallSidesTextureRadioButton.text}-->
-<!--            </label>-->
-<!--          </div>-->
-<!--          <div data-name="wall-sides-texture-selector-button"></div>-->
+          <div>
+            <label>
+              <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">
+              ${RoomPanel.wallSidesTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="wall-sides-texture-selector-button"></div>
 
-<!--          <div class="whole-line">-->
-<!--            <hr />-->
-<!--          </div>-->
+          <div class="whole-line">
+            <hr />
+          </div>
 
-<!--          <div class="whole-line">-->
-<!--            <label>-->
-<!--              <input type="radio" name="wall-sides-shininess-choice" value="0">-->
-<!--              ${RoomPanel.ceilingMattRadioButton.text}-->
-<!--            </label>-->
-<!--            <label>-->
-<!--              <input type="radio" name="wall-sides-shininess-choice" value="0.25">-->
-<!--              ${RoomPanel.ceilingShinyRadioButton.text}-->
-<!--            </label>-->
-<!--          </div>-->
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="wall-sides-shininess-choice" value="0">
+              ${RoomPanel.wallSidesMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="wall-sides-shininess-choice" value="0.25">
+              ${RoomPanel.wallSidesShinyRadioButton.text}
+            </label>
+          </div>
 
-<!--        </div>-->
-<!--      </div>-->
+        </div>
+      </div>
 
-<!--      <div>-->
-<!--          <h3>${RoomPanel.wallSidesBaseboardPanel.title}</h3>-->
-<!--          <div >-->
+      <div>
+          <h3 class="card">${RoomPanel.wallSidesBaseboardPanel.title}</h3>
+          <div data-name="wall-sides-baseboard-panel" class="card">
 
-<!--              uchentein222...-->
-
-<!--          </div>-->
-<!--      </div>-->
+          </div>
+      </div>
 
     </div>
     
