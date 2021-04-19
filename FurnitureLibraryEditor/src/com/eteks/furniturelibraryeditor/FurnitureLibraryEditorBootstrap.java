@@ -92,7 +92,6 @@ public class FurnitureLibraryEditorBootstrap {
             "java3d-1.6/macosx/libjogl_desktop.dylib",
             "java3d-1.6/macosx/libnativewindow_awt.dylib",
             "java3d-1.6/macosx/libnativewindow_macosx.dylib"}));
-        System.out.println("FurnitureLibraryEditorBootstrap.main()");
         // Disable JOGL library loader
         System.setProperty("jogamp.gluegen.UseTempJarCache", "false");
       }
@@ -164,8 +163,8 @@ public class FurnitureLibraryEditorBootstrap {
         "jogamp",
         "javax.media.opengl",
         "javax.media.nativewindow",
-        "javax.media.opengl",
-        "com.microcrowd.loader.java3d"};
+        "org.apache.batik",
+        "com.eteks.parser"};
     String applicationClassName = "com.eteks.furniturelibraryeditor.FurnitureLibraryEditor";
     ClassLoader java3DClassLoader = operatingSystemName.startsWith("Windows")
         ? new ExtensionsClassLoader(
