@@ -259,7 +259,8 @@ JSColorSelectorDialog.prototype.dispose = function() {
 function JSColorSelectorButton(viewFactory, preferences, targetNode, options) {
   this.options = options || {};
 
-  JSComponentView.call(this, viewFactory, preferences, null, {
+  JSComponentView.call(this, viewFactory, preferences, document.createElement('span'), {
+    useElementAsRootNode: true,
     initializer: function(component) {
       component.getRootNode().innerHTML = '<button class="color-button"><div class="color-overview" /></button>';
       component.button = component.getRootNode().querySelector('.color-button');
