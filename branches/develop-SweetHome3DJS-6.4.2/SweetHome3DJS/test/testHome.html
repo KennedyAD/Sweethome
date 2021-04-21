@@ -2010,7 +2010,7 @@ name-visible-checkbox
     <h3 class="card">${WallPanel.topPanel.title}</h3>
     <div class="card label-input-grid">
       <span>${WallPanel.patternLabel.text}</span>
-      <div><button name="pattern-select"><div class="overview"></div></button></div>
+      <div data-name="pattern-select"></div>
 
       <span>${WallPanel.topColorLabel.text}</span>
       <span>
@@ -2036,13 +2036,16 @@ name-visible-checkbox
 
           <div>
             <label>
-              <input type="radio" name="wall-shape-choice" value="RECTANGULAR_WALL_HEIGHT">
+              <input type="radio" name="wall-shape-choice" value="RECTANGULAR_WALL">
               ${WallPanel.rectangularWallRadioButton.text}
             </label>
           </div>
+          <br />
 
-          <span data-name="rectangular-wall-height-label" class="label-cell"></span>
-          <span data-name="rectangular-wall-height-input"></span>
+          <div class="label-input-grid">
+            <span data-name="rectangular-wall-height-label" class="label-cell"></span>
+            <span data-name="rectangular-wall-height-input"></span>
+          </div>
         </div>
 
         <div class="column2">
@@ -2053,6 +2056,7 @@ name-visible-checkbox
               ${WallPanel.slopingWallRadioButton.text}
             </label>
           </div>
+          <br />
 
           <div class="label-input-grid">
             <span class="label-cell">${WallPanel.slopingWallHeightAtStartLabel.text}</span>
@@ -2066,9 +2070,9 @@ name-visible-checkbox
 
       <br />
       <div class="label-input-grid double">
-        <span data-name="thickness-label"></span>
+        <span data-name="thickness-label" class="label-cell"></span>
         <span data-name="thickness-input"></span>
-        <span data-name="arc-extent-label"></span>
+        <span data-name="arc-extent-label" class="label-cell"></span>
         <span data-name="arc-extent-input"></span>
       </div>
 

@@ -29,13 +29,13 @@
  *
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
- * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
+ * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
  * @param {{initializer: function(JSComponentView), getter: function, setter: function, disposer: function(JSDialogView), useElementAsRootNode?: boolean}} [behavior]
  * - initializer: an optional initialization function
- * - getter: an optional function that returns the value of the component 
+ * - getter: an optional function that returns the value of the component
  *   (typically for inputs)
- * - setter: an optional function that sets the value of the component 
+ * - setter: an optional function that sets the value of the component
  *   (typically for inputs)
  * - disposer: an optional function to release associated resources, listeners, ...
  * - useElementAsRootNode: will use given HTMLElement as root element without creating a new div - default false
@@ -72,9 +72,9 @@ JSComponentView.prototype.constructor = JSComponentView;
 
 /**
  * Returns true if element is or is child of candidateParent, false otherwise.
- * 
- * @param {HTMLElement} element 
- * @param {HTMLElement} candidateParent 
+ *
+ * @param {HTMLElement} element
+ * @param {HTMLElement} candidateParent
  * @return {boolean}
  */
 JSComponentView.isElementContained = function(element, candidateParent) {
@@ -122,7 +122,7 @@ JSComponentView.prototype.getViewFactory = function() {
 
 /**
  * Attaches the given component to a child DOM element, becoming a child component.
- * 
+ *
  * @param {string} name the component's name, which matches child DOM element name (as defined in {@link JSComponentView#getElement})
  * @param {JSComponentView} component child component instance
  */
@@ -178,7 +178,7 @@ JSComponentView.prototype.unregisterEventListeners = function() {
 
 /**
  * Returns the named element that corresponds to the given name within this component.
- * A named element shall define the 'name' attribute (for instance an input), or 
+ * A named element shall define the 'name' attribute (for instance an input), or
  * a 'data-name' attribute if the name attribue is not supported.
  */
 JSComponentView.prototype.getElement = function(name) {
@@ -191,7 +191,7 @@ JSComponentView.prototype.getElement = function(name) {
 
 /**
  * Returns the element that matches the given query selector within this component.
- * 
+ *
  * @param {string} query css selector to be applied on children elements
  */
 JSComponentView.prototype.findElement = function(query) {
@@ -200,7 +200,7 @@ JSComponentView.prototype.findElement = function(query) {
 
 /**
  * Returns the elements that match the given query selector within this component.
- * 
+ *
  * @param {string} query css selector to be applied on children elements
  */
 JSComponentView.prototype.findElements = function(query) {
@@ -259,7 +259,7 @@ JSComponentView.prototype.getLocalizedLabelText = function(resourceClass, proper
 
 /**
  * @return {number} return step size for length inputs based on user preferences
- * 
+ *
  * @protected
  */
 JSComponentView.prototype.getLengthInputStepSize = function() {
@@ -276,12 +276,13 @@ JSComponentView.prototype.getLengthInputStepSize = function() {
  *
  * @param preferences      the current user preferences
  * @param {string} title the dialog's title (may contain HTML)
- * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
+ * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
- * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView)}} [behavior]
+ * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView), size?: 'small'|'medium'|'default'}} [behavior]
  * - initializer: an optional initialization function
  * - applier: an optional dialog application function
  * - disposer: an optional dialog function to release associated resources, listeners, ...
+ * - size: override style with "small" or "medium"
  * @constructor
  * @author Renaud Pawlak
  */
@@ -289,16 +290,12 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
   var dialog = this;
   if (behavior != null) {
     this.applier = behavior.applier;
-    this.small = behavior.small;
   }
 
   JSComponentView.call(this, viewFactory, preferences, template, behavior);
 
-  this.rootNode.classList.add('dialog-container');
+  this.rootNode.classList.add('dialog-container', behavior.size);
   this.rootNode._dialogInstance = this;
-  if (this.small === true) {
-    this.rootNode.classList.add('small');
-  }
 
   document.body.append(this.rootNode);
 
@@ -417,7 +414,7 @@ JSDialogView.prototype.initialize = function() {
 }
 
 /**
- * Called when the user presses the OK button. 
+ * Called when the user presses the OK button.
  * Override to implement custom behavior when the dialog is validated by the user.
  */
 JSDialogView.prototype.validate = function() {
@@ -440,7 +437,7 @@ JSDialogView.prototype.cancel = function() {
 JSDialogView.prototype.close = function() {
   this.rootNode.classList.add('closing');
   var dialog = this;
-  // Let 500ms before releasing the dialog so that the closing animation can apply 
+  // Let 500ms before releasing the dialog so that the closing animation can apply
   setTimeout(function() {
     dialog.rootNode.classList.remove('visible');
     dialog.dispose();
@@ -497,7 +494,7 @@ JSDialogView.shownDialogsCounter = 0;
  * @param {UserPreferences} preferences the current user preferences
  * @param {WizardController} controller wizard's controller
  * @param {string} title the dialog's title (may contain HTML)
- * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div 
+ * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
  * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView)}} [behavior]
  * - initializer: an optional initialization function
@@ -660,9 +657,9 @@ JSWizardDialog.prototype.updateStepIcon = function() {
  * for the root node)
  * @param {{build: function(JSContextMenu.Builder, HTMLElement)}} behavior
  * > build: called with a builder, and optionnally with source element (which was right clicked, to show this menu)
- * 
+ *
  * @constructor
- * 
+ *
  * @author Louis Grignon
  * @author Renaud Pawlak
  */
@@ -713,7 +710,7 @@ JSContextMenu.closeCurrentIfAny = function() {
 /**
  * @param {HTMLElement} sourceElement
  * @param {Event} event
- * 
+ *
  * @private
  */
 JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
@@ -723,7 +720,7 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
   this.build(builder, sourceElement);
 
   var items = builder.items;
-  // Remove last element if it is a separator 
+  // Remove last element if it is a separator
   if (items.length > 0 && items[items.length - 1] == CONTEXT_MENU_SEPARATOR_ITEM) {
     items.pop();
   }
@@ -790,10 +787,10 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 
 /**
  * Initializes a menu item element for the given item descriptor (model).
- * 
- * @param {HTMLElement} menuItemElement 
+ *
+ * @param {HTMLElement} menuItemElement
  * @param {{}[]} item an item from JSContextMenu.Builder.items
- * 
+ *
  * @private
  */
 JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
@@ -811,7 +808,7 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
 
   var itemIconElement = document.createElement('img');
   if (item.iconPath != null && item.selected === undefined) {
-    // Icons are not shown for toggle actions 
+    // Icons are not shown for toggle actions
     itemIconElement.src = item.iconPath;
     itemIconElement.classList.add('visible');
   }
@@ -871,7 +868,7 @@ JSContextMenu.prototype.close = function() {
 };
 
 /**
- * Builds items of a context menu which is about to be shown. 
+ * Builds items of a context menu which is about to be shown.
  */
 JSContextMenu.Builder = function() {
   /** @type {{ uid?: string, label?: string, iconPath?: string, onItemSelected?: function(), subItems?: {}[] }[] } } */
@@ -886,13 +883,13 @@ JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
  * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
  * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', 'myitem', function() { console.log('my item clicked') })
  * 3) builder.addItem('myitem', function() { console.log('my item clicked') })
- * 
+ *
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} [onItemSelectedCallbackOrLabel]
  * @param {function()} [onItemSelectedCallback]
- * 
+ *
  * @return {JSContextMenu.Builder}
- * 
+ *
  */
 JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
   var label = null;
@@ -904,7 +901,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
-    // do no show item if action is disabled    
+    // do no show item if action is disabled
     if (!action.isEnabled()) {
       return this;
     }
@@ -947,13 +944,13 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
  * Adds a sub menu to this menu, with an optional icon.
  * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', 'myitem', function(builder) { builder.addItem(...) })`
  * 2) `builder.addSubMenu('myitem', function(builder) { builder.addItem(...) })`
- * 
+ *
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} labelOrbuildSubMenuCallback
  * @param {function(JSContextMenu.Builder)} [buildSubMenuCallback]
- * 
+ *
  * @return {JSContextMenu.Builder}
- * 
+ *
  */
 JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
   var label = null;
@@ -962,7 +959,7 @@ JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, l
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
-    // do no show item if action is disabled    
+    // do no show item if action is disabled
     if (!action.isEnabled()) {
       return this;
     }
@@ -1055,7 +1052,7 @@ document.addEventListener('keyup', function(event) {
  * @constructor
  * @extends JSComponentView
  * @author Louis Grignon
- * 
+ *
  */
 function JSSpinner(viewFactory, preferences, input, options) {
   if (input.tagName.toUpperCase() != 'SPAN') {
@@ -1236,7 +1233,7 @@ JSSpinner.prototype.removeEventListener = function() {
 
 /**
  * Refreshes UI for current state / options. For instance, if format has changed, displayed text is updated
- * 
+ *
  * @private
  */
 JSSpinner.prototype.refreshUI = function() {
@@ -1244,9 +1241,9 @@ JSSpinner.prototype.refreshUI = function() {
 };
 
 /**
- * 
+ *
  * @return {number}
- * 
+ *
  * @private
  */
 JSSpinner.prototype.parseFloatValueFromInput = function() {
@@ -1254,9 +1251,9 @@ JSSpinner.prototype.parseFloatValueFromInput = function() {
 };
 
 /**
- * @param {number} value 
+ * @param {number} value
  * @return {string}
- * 
+ *
  * @private
  */
 JSSpinner.prototype.formatValueForUI = function(value) {
@@ -1281,7 +1278,7 @@ JSSpinner.prototype.isFocused = function() {
 
 /**
  * Creates and initialize increment & decrement buttons + related keystrokes
- * 
+ *
  * @private
  */
 JSSpinner.prototype.configureIncrementDecrement = function() {
@@ -1348,4 +1345,142 @@ JSSpinner.prototype.enable = function(enabled) {
   this.textInput.disabled = !enabled;
   this.incrementButton.disabled = !enabled;
   this.decrementButton.disabled = !enabled;
+};
+
+/*****************************************/
+/* JSComboBox                          */
+/*****************************************/
+/**
+ * A free combo box component, which allows any type of content (e.g. images)
+ *
+ * @param {JSViewFactory} viewFactory the view factory
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {HTMLElement} container html element on which install this component
+ * @param {{nullable?: boolean, value?: string | number, availableValues: (string | number)[], render?: function(value: string|number, element: HTMLElement), onSelectionChanged: function(newValue: string|number)}} [options]
+ * - nullable: false if null/undefined is not allowed - default true
+ * - value: initial value - default undefined if nullable or first available value,
+ * - availableValues: available values in this combo,
+ * - render: a function which builds displayed element for a given value - defaults to setting textContent to value.toString()
+ * - onSelectionChanged: called with new value when selected by user
+ * @constructor
+ * @extends JSComponentView
+ * @author Louis Grignon
+ *
+ */
+function JSComboBox(viewFactory, preferences, container, options) {
+  var rootElement = container;
+
+  if (!options) { options = {}; }
+  if (typeof options.nullable != 'boolean') { options.nullable = true; }
+  if (!Array.isArray(options.availableValues) || options.availableValues.length <= 0) {
+    throw new Error('JSComboBox: no available values provided');
+  }
+  if (typeof options.render != 'function') {
+    options.render = function(value, element) {
+      element.textContent = value == null ? '' : value.toString();
+    };
+  }
+  if (options.value == null && !options.nullable) {
+    options.value = options.availableValues[0];
+  }
+
+  var component = this;
+  JSComponentView.call(this, viewFactory, preferences, rootElement, {
+    useElementAsRootNode: true,
+    initializer: function(component) {
+      component.options = options;
+
+      rootElement.classList.add('combo-box');
+
+      component.button = document.createElement('button');
+      rootElement.appendChild(component.button);
+
+      component.overview = document.createElement('div');
+      component.overview.classList.add('overview');
+      component.button.appendChild(component.overview);
+
+      component.initSelectionPanel();
+
+      component.registerEventListener(component.button, 'click', function(event) {
+        event.stopImmediatePropagation();
+        component.openSelectionPanel(event.pageX, event.pageY);
+      });
+
+      var initialValue = options.value;
+      component.value = initialValue;
+    },
+    getter: function(component) {
+      return component.value;
+    },
+    setter: function(component, value) {
+      if (value == null && !options.nullable) {
+        value = options.availableValues[0];
+      }
+
+      if (value != component.value) {
+        component.value = value;
+        component.refreshUI();
+      }
+    },
+  });
+};
+
+JSComboBox.prototype = Object.create(JSComponentView.prototype);
+JSComboBox.prototype.constructor = JSComboBox;
+
+/**
+ * @private
+ */
+JSComboBox.prototype.initSelectionPanel = function() {
+  var component = this;
+
+  var selectionPanel = document.createElement('div');
+  selectionPanel.classList.add('selection-panel');
+
+  var availableValues = component.options.availableValues;
+  for (var i = 0; i < availableValues.length; i++) {
+    var currentItemElement = document.createElement('div');
+    currentItemElement.value = availableValues[i];
+    component.options.render(currentItemElement.value, currentItemElement);
+    selectionPanel.appendChild(currentItemElement);
+  }
+
+  this.getRootNode().appendChild(selectionPanel);
+  this.selectionPanel = selectionPanel;
+
+  this.registerEventListener(selectionPanel.children, 'click', function(event) {
+    component.value = this.value;
+    component.refreshUI();
+    if (typeof component.options.onSelectionChanged == 'function') {
+      component.options.onSelectionChanged(component.value);
+    }
+  });
+}
+
+/**
+ * Opens the combo box's selectionPanel
+ * @param {number} pageX
+ * @param {number} pageY
+ *
+ * @private
+ */
+JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
+  var component = this;
+  var selectionPanel = this.selectionPanel;
+
+  var closeSelectorPanel = function() {
+    document.removeEventListener('click', closeSelectorPanel);
+    selectionPanel.style.opacity = 0;
+    selectionPanel.style.display = 'none';
+  }
+
+  selectionPanel.style.display = 'block';
+  selectionPanel.style.opacity = 1;
+  selectionPanel.style.left = pageX + selectionPanel.clientWidth > window.width ? window.width - selectionPanel.clientWidth : pageX;
+  selectionPanel.style.top = pageY + selectionPanel.clientHeight > window.innerHeight ? window.innerHeight - selectionPanel.clientHeight : pageY;
+  document.addEventListener('click', closeSelectorPanel);
+};
+
+JSComboBox.prototype.refreshUI = function() {
+  this.options.render(this.get(), this.overview);
 };

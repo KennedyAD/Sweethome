@@ -379,7 +379,7 @@ JSTextureSelectorDialog.prototype.initImportTexturesPanel = function() {
  * @return {boolean}
  */
 JSTextureSelectorDialog.prototype.confirmDeleteSelectedCatalogTexture = function() {
-  // TODO This SH3D dialog won't work because this method expects a sync boolean return 
+  // TODO LOUIS This SH3D dialog won't work because this method expects a sync boolean return
   // var textureDialog = this;
   // function JSConfirmDialog() {
   //   JSDialogView.call(
@@ -443,7 +443,8 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
     this.onTextureSelected = options.onTextureSelected;
   }
 
-  JSComponentView.call(this, viewFactory, preferences, null, {
+  JSComponentView.call(this, viewFactory, preferences, document.createElement('span'), {
+    useElementAsRootNode: true,
     initializer: function(component) {
       component.getRootNode().innerHTML = '<button class="texture-button"><div class="texture-overview" /></button>';
       component.button = component.getRootNode().querySelector('.texture-button');

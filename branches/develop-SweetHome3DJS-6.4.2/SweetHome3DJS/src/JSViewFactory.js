@@ -1203,7 +1203,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
       pitchInput.value = null;
     }
 
-    function updateHorizontalAxisRadioButtons() {
+    var updateHorizontalAxisRadioButtons = function() {
       horizontalRotationRadioRoll.checked = controller.getHorizontalAxis() == HomeFurnitureController.FurnitureHorizontalAxis.ROLL;
       horizontalRotationRadioPitch.checked = controller.getHorizontalAxis() == HomeFurnitureController.FurnitureHorizontalAxis.PITCH;
     }
@@ -1670,11 +1670,11 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     var rightSidePaintRadioColor = dialog.findElement('[name="right-side-color-and-texture-choice"][value="COLORED"]');
     var rightSidePaintRadioTexture = dialog.findElement('[name="right-side-color-and-texture-choice"][value="TEXTURED"]');
 
-    function updateLeftSidePaint() {
+    var updateLeftSidePaint = function() {
       leftSidePaintRadioColor.checked = controller.getLeftSidePaint() == WallController.WallPaint.COLORED;
       leftSidePaintRadioTexture.checked = controller.getLeftSidePaint() == WallController.WallPaint.TEXTURED;
     }
-    function updateRightSidePaint() {
+    var updateRightSidePaint = function() {
       rightSidePaintRadioColor.checked = controller.getRightSidePaint() == WallController.WallPaint.COLORED;
       rightSidePaintRadioTexture.checked = controller.getRightSidePaint() == WallController.WallPaint.TEXTURED;
     }
@@ -1703,8 +1703,16 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         controller.setRightSideColor(selectedColor);
       }
     });
+    dialog.leftSideColorSelector = viewFactory.createColorSelector(preferences, {
+      onColorSelected: function(selectedColor) {
+        dialog.findElement('[name="left-side-color-and-texture-choice"][value="COLORED"]').checked = true;
+        controller.setLeftSidePaint(WallController.WallPaint.COLORED);
+        controller.setLeftSideColor(selectedColor);
+      }
+    });
     dialog.attachChildComponent('left-side-color-selector-button', dialog.leftSideColorSelector);
     dialog.attachChildComponent('right-side-color-selector-button', dialog.rightSideColorSelector);
+
     dialog.leftSideColorSelector.set(controller.getLeftSideColor());
     dialog.rightSideColorSelector.set(controller.getRightSideColor());
     controller.addPropertyChangeListener('LEFT_SIDE_COLOR', function() {
@@ -1739,11 +1747,11 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     var rightSideShininessRadioMatt = dialog.findElement('[name="right-side-shininess-choice"][value="0"]');
     var rightSideShininessRadioShiny = dialog.findElement('[name="right-side-shininess-choice"][value="0.25"]');
 
-    function updateLeftSideShininess() {
+    var updateLeftSideShininess = function() {
       leftSideShininessRadioMatt.checked = controller.getLeftSideShininess() == 0;
       leftSideShininessRadioShiny.checked = controller.getLeftSideShininess() == 0.25;
     }
-    function updateRightSideShininess() {
+    var updateRightSideShininess = function() {
       rightSideShininessRadioMatt.checked = controller.getRightSideShininess() == 0;
       rightSideShininessRadioShiny.checked = controller.getRightSideShininess() == 0.25
     }
@@ -1772,65 +1780,194 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     rightSideBaseboardButton.textContent = rightSideBaseboardButtonAction.getValue(AbstractAction.NAME);
   }
 
-  function initTopPanel(dialog) {
-    var patternSelect = dialog.getElement('pattern-select');
+  var initTopPanel = function(dialog) {
 
-    var selectorPanel = document.createElement('div');
-    selectorPanel.classList.add('pattern-selector-panel');
-    selectorPanel.style.position = 'fixed';
-    selectorPanel.style.opacity = 0;
-    selectorPanel.style.width = '20em';
-    selectorPanel.style.height = '20em';
-    patternSelect.parentElement.appendChild(selectorPanel);
-
-    var patternsByURL = {};
+    var patternsTexturesByURL = {};
     var patterns = preferences.getPatternsCatalog().getPatterns();
     for (var i = 0; i < patterns.length; i++) {
       var url = patterns[i].getImage().getURL();
-      patternsByURL[url] = patterns[i];
-
-      var patternElement = document.createElement('div');
-      patternElement.value = url;
-      patternElement.style.backgroundImage = "url('" + url + "')";
-      selectorPanel.appendChild(patternElement);
+      patternsTexturesByURL[url] = patterns[i];
     }
-
-    function closeSelectorPanel() {
-      document.removeEventListener('click', closeSelectorPanel);
-      selectorPanel.style.opacity = 0;
-    }
-
-    dialog.registerEventListener(patternSelect, 'click', function(event) {
-      event.stopImmediatePropagation();
-      selectorPanel.style.opacity = 1;
-      selectorPanel.style.left = event.pageX + selectorPanel.clientWidth > window.width ? window.width - selectorPanel.clientWidth : event.pageX;
-      selectorPanel.style.top = event.pageY + selectorPanel.clientHeight > window.innerHeight ? window.innerHeight - selectorPanel.clientHeight : event.pageY;
-      document.addEventListener('click', closeSelectorPanel);
+    var patternComboBox = new JSComboBox(this.viewFactory, this.preferences, dialog.getElement('pattern-select'), {
+      nullable: false,
+      availableValues: Object.keys(patternsTexturesByURL),
+      render: function(patternURL, patternItemElement) {
+        patternItemElement.style.backgroundImage = "url('" + patternURL + "')";
+      },
+      onSelectionChanged: function(newValue) {
+        controller.setPattern(patternsTexturesByURL[newValue]);
+      }
     });
 
-    dialog.registerEventListener(selectorPanel.children, 'click', function(event) {
-      patternSelect.querySelector('.overview').style.backgroundImage = "url('" + this.value + "')";
-    });
-
-    function setPatternFromController() {
+    var setPatternFromController = function() {
       var url = controller.getPattern().getImage().getURL();
-      patternSelect.querySelector('.overview').style.backgroundImage = "url('" + url + "')";
+      patternComboBox.set(url);
     }
     setPatternFromController();
     controller.addPropertyChangeListener('PATTERN', function() {
       setPatternFromController();
     });
+
+    var topPaintRadioDefault = dialog.findElement('[name="top-color-choice"][value="DEFAULT"]');
+    var topPaintRadioColor = dialog.findElement('[name="top-color-choice"][value="COLORED"]');
+    var topPaintRadioButtons = [topPaintRadioColor, topPaintRadioDefault];
+    var setTopPaintFromController = function() {
+      topPaintRadioDefault.checked = controller.getTopPaint() == WallController.WallPaint.DEFAULT;
+      topPaintRadioColor.checked = controller.getTopPaint() == WallController.WallPaint.COLORED;
+    }
+
+    dialog.registerEventListener(topPaintRadioButtons, 'click', function() {
+      controller.setTopPaint(WallController.WallPaint[this.value]);
+    });
+    setTopPaintFromController();
+    controller.addPropertyChangeListener('TOP_PAINT', function() {
+      setTopPaintFromController();
+    });
+
+    dialog.topColorSelector = viewFactory.createColorSelector(preferences, {
+      onColorSelected: function(selectedColor) {
+        topPaintRadioColor.checked = true;
+        controller.setTopPaint(WallController.WallPaint.COLORED);
+        controller.setTopColor(selectedColor);
+      }
+    });
+    dialog.attachChildComponent('top-color-selector-button', dialog.topColorSelector);
+    dialog.topColorSelector.set(controller.getTopColor());
+    controller.addPropertyChangeListener('TOP_COLOR', function() {
+      dialog.topColorSelector.set(controller.getTopColor());
+    });
   }
 
-  return new JSDialogView(viewFactory, preferences, 
+  var initHeightPanel = function(dialog) {
+    var unitName = preferences.getLengthUnit().getName();
+    dialog.getElement('rectangular-wall-height-label').textContent = dialog.getLocalizedLabelText('WallPanel', 'rectangularWallHeightLabel.text', unitName);
+
+    var wallShapeRadioRectangular = dialog.findElement('[name="wall-shape-choice"][value="RECTANGULAR_WALL"]');
+    var wallShapeRadioSloping = dialog.findElement('[name="wall-shape-choice"][value="SLOPING_WALL"]');
+
+    dialog.registerEventListener([wallShapeRadioRectangular, wallShapeRadioSloping], 'input', function() {
+      controller.setShape(WallController.WallShape[this.value]);
+    });
+    var setWallShapeFromController = function() {
+      wallShapeRadioRectangular.checked = controller.getShape() == WallController.WallShape.RECTANGULAR_WALL;
+      wallShapeRadioSloping.checked = controller.getShape() == WallController.WallShape.SLOPING_WALL;
+    }
+    setWallShapeFromController();
+    controller.addPropertyChangeListener('SHAPE', function() {
+      setWallShapeFromController();
+    });
+
+    var minimumLength = preferences.getLengthUnit().getMinimumLength();
+    var maximumLength = preferences.getLengthUnit().getMaximumLength();
+    var rectangularWallHeightInput = new JSSpinner(viewFactory, preferences, dialog.getElement('rectangular-wall-height-input'), {
+      format: preferences.getLengthUnit().getFormat(),
+      value: controller.getRectangularWallHeight(),
+      step: dialog.getLengthInputStepSize(),
+      nullable: controller.getRectangularWallHeight() == null,
+      min: minimumLength,
+      max: maximumLength,
+    });
+    controller.addPropertyChangeListener('RECTANGULAR_WALL_HEIGHT', function(event) {
+      rectangularWallHeightInput.value = event.getNewValue();
+    });
+    dialog.registerEventListener(rectangularWallHeightInput, 'input', function() {
+        controller.setRectangularWallHeight(rectangularWallHeightInput.value);
+    });
+
+    var minimumHeight = controller.getSlopingWallHeightAtStart() != null && controller.getSlopingWallHeightAtEnd() != null
+        ? 0
+        : minimumLength;
+    var slopingWallHeightAtStartInput = new JSSpinner(viewFactory, preferences, dialog.getElement('sloping-wall-height-at-start-input'), {
+      format: preferences.getLengthUnit().getFormat(),
+      value: controller.getSlopingWallHeightAtStart(),
+      step: dialog.getLengthInputStepSize(),
+      nullable: controller.getSlopingWallHeightAtStart() == null,
+      min: minimumHeight,
+      max: maximumLength,
+    });
+    controller.addPropertyChangeListener('SLOPING_WALL_HEIGHT_AT_START', function(event) {
+      slopingWallHeightAtStartInput.value = event.getNewValue();
+    });
+    dialog.registerEventListener(slopingWallHeightAtStartInput, 'input', function() {
+      controller.setSlopingWallHeightAtStart(slopingWallHeightAtStartInput.value);
+      if (minimumHeight == 0
+          && controller.getSlopingWallHeightAtStart() == 0
+          && controller.getSlopingWallHeightAtEnd() == 0) {
+        // Ensure wall height is never 0
+        controller.setSlopingWallHeightAtEnd(minimumLength);
+      }
+    });
+
+    var slopingWallHeightAtEndInput = new JSSpinner(viewFactory, preferences, dialog.getElement('sloping-wall-height-at-end-input'), {
+      format: preferences.getLengthUnit().getFormat(),
+      value: controller.getSlopingWallHeightAtEnd(),
+      step: dialog.getLengthInputStepSize(),
+      nullable: controller.getSlopingWallHeightAtEnd() == null,
+      min: minimumHeight,
+      max: maximumLength,
+    });
+    controller.addPropertyChangeListener('SLOPING_WALL_HEIGHT_AT_END', function(event) {
+      slopingWallHeightAtEndInput.value = event.getNewValue();
+    });
+    dialog.registerEventListener(slopingWallHeightAtEndInput, 'input', function() {
+      controller.setSlopingWallHeightAtEnd(slopingWallHeightAtEndInput.value);
+      if (minimumHeight == 0
+          && controller.getSlopingWallHeightAtStart() == 0
+          && controller.getSlopingWallHeightAtEnd() == 0) {
+        // Ensure wall height is never 0
+        controller.setSlopingWallHeightAtStart(minimumLength);
+      }
+    });
+
+    dialog.getElement('thickness-label').textContent = dialog.getLocalizedLabelText('WallPanel', 'thicknessLabel.text', unitName);
+    var thicknessInput = new JSSpinner(viewFactory, preferences, dialog.getElement('thickness-input'), {
+      format: preferences.getLengthUnit().getFormat(),
+      value: controller.getThickness(),
+      step: dialog.getLengthInputStepSize(),
+      nullable: controller.getThickness() == null,
+      min: minimumLength,
+      max: maximumLength / 10,
+    });
+    controller.addPropertyChangeListener('THICKNESS', function(event) {
+      thicknessInput.value = event.getNewValue();
+    });
+    dialog.registerEventListener(thicknessInput, 'input', function() {
+      controller.setThickness(thicknessInput.value);
+    });
+
+    dialog.getElement('arc-extent-label').textContent = dialog.getLocalizedLabelText('WallPanel', 'arcExtentLabel.text', unitName);
+    var angleDecimalFormat = new DecimalFormat();
+    angleDecimalFormat.maximumFractionDigits = 1;
+    var arcExtentInput = new JSSpinner(this.viewFactory, this.preferences, dialog.getElement('arc-extent-input'), {
+      nullable: controller.getArcExtentInDegrees() == null,
+      format: angleDecimalFormat,
+      value: 0,
+      min: -270,
+      max: 270,
+      step: 5
+    });
+    var setArcExtentFromController = function() {
+      arcExtentInput.value = controller.getArcExtentInDegrees();
+    };
+    setArcExtentFromController();
+    controller.addPropertyChangeListener('ARC_EXTENT_IN_DEGREES', function(event) {
+      setArcExtentFromController();
+    });
+
+    dialog.registerEventListener(arcExtentInput, 'input', function() {
+      controller.setArcExtentInDegrees(arcExtentInput.value != null ? arcExtentInput.value : null);
+    });
+  }
+
+  return new JSDialogView(viewFactory, preferences,
     '${WallPanel.wall.title}', 
     document.getElementById("wall-dialog-template"), {
-      small: true,
       initializer: function(dialog) {
 
         initStartAndEndPointsPanel(dialog);
         initLeftAndRightSidesPanels(dialog);
         initTopPanel(dialog);
+        initHeightPanel(dialog);
 
         dialog.getElement('wall-orientation-label').innerHTML = dialog.getLocalizedLabelText(
           'WallPanel', 
@@ -1846,7 +1983,9 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         dialog.rightSideColorSelector.dispose();
         dialog.leftSideTextureSelector.dispose();
         dialog.rightSideTextureSelector.dispose();
-      }
+        dialog.topColorSelector.dispose();
+      },
+      size: 'medium'
     }
   );
 }
@@ -2166,7 +2305,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
   return new JSDialogView(viewFactory, preferences, 
     '${PolylinePanel.polyline.title}', 
     document.getElementById("polyline-dialog-template"), {
-      small: true,
+      size: 'small',
       initializer: function(dialog) {
 
         dialog.colorSelector = viewFactory.createColorSelector(preferences, {
