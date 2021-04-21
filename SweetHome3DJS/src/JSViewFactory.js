@@ -2476,23 +2476,31 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
       render: function(dashStyle, itemElement) {
         itemElement.style.border = 'none';
         itemElement.style.textAlign = 'center';
+        itemElement.style.maxHeight = '2em';
+        itemElement.style.minWidth = '4em';
+
+        var factor = 10;
 
         var canvas = document.createElement('canvas');
-        canvas.width = 30;
-        canvas.height = 20;
-        canvas.style.maxWidth = "5em";
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
+        canvas.width = 500;
+        canvas.height = 100;
+        canvas.style.width = "5em";
+        canvas.style.maxWidth = "100%";
+        canvas.style.height = "1em";
         var canvasContext = canvas.getContext('2d');
+        canvasContext.imageSmoothingEnabled= false;
 
-        canvasContext.lineWidth = 5;
+        canvasContext.lineWidth = 10;
         canvasContext.beginPath();
-        canvasContext.moveTo(0, 10);
+        canvasContext.moveTo(0, canvas.height / 2);
         var dashPattern = dashStyle != Polyline.DashStyle.CUSTOMIZED ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() : controller.getDashPattern();
+
+        dashPattern = dashPattern.map(x => x*factor)
+
         var dashOffset = controller.getDashOffset() != null ? controller.getDashOffset() : 0;
         canvasContext.setLineDash(dashPattern);
         canvasContext.lineDashOffset = dashOffset * canvas.width;
-        canvasContext.lineTo(30, 10);
+        canvasContext.lineTo(canvas.width, canvas.height / 2);
         canvasContext.stroke();
 
         itemElement.appendChild(canvas);
