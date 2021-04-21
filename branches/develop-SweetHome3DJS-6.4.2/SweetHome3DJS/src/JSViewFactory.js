@@ -888,8 +888,117 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   );
 }
 
-JSViewFactory.prototype.createLevelView = function(preferences, levelController) {
-  return dummyDialogView;
+JSViewFactory.prototype.createLevelView = function(preferences, controller) {
+  var viewFactory = this;
+
+  return new JSDialogView(viewFactory, preferences,
+      '${LevelPanel.level.title}',
+      document.getElementById("level-dialog-template"), {
+        size: 'small',
+        initializer: function (dialog) {
+          var unitName = this.preferences.getLengthUnit().getName();
+
+          var visibleCheckbox = dialog.getElement('visible-checkbox');
+          var visibleCheckboxDisplay = controller.isPropertyEditable('VIEWABLE') ? 'initial' : 'none';
+          visibleCheckbox.parentElement.style.display = visibleCheckboxDisplay;
+          visibleCheckbox.checked = controller.getViewable();
+          dialog.registerEventListener(visibleCheckbox, 'input', function() {
+            controller.setViewable(visibleCheckbox.checked);
+          });
+          controller.addPropertyChangeListener('VIEWABLE', function() {
+            visibleCheckbox.checked = controller.getViewable();
+          });
+
+          var nameInput = dialog.getElement('name-input');
+          var nameDisplay = controller.isPropertyEditable('NAME') ? 'initial' : 'none';
+          nameInput.parentElement.style.display = nameDisplay;
+          nameInput.parentElement.previousElementSibling.style.display = nameDisplay;
+          nameInput.value = controller.getName();
+          dialog.registerEventListener(nameInput, 'input', function() {
+            var name = nameInput.value;
+            if (name == null || name.trim().length == 0) {
+              controller.setName(null);
+            } else {
+              controller.setName(name);
+            }
+          });
+          controller.addPropertyChangeListener('NAME', function() {
+            nameInput.value = controller.getName();
+          });
+
+          var minimumLength = preferences.getLengthUnit().getMinimumLength();
+          var maximumLength = preferences.getLengthUnit().getMaximumLength();
+
+          var setFloorThicknessEnabled = function() {
+            var selectedLevelIndex = controller.getSelectedLevelIndex();
+            if (selectedLevelIndex != null) {
+              var levels = controller.getLevels();
+              dialog.floorThicknessInput.enable(levels[selectedLevelIndex].getElevation() != levels[0].getElevation());
+            }
+          };
+
+          var elevationDisplay = controller.isPropertyEditable('ELEVATION') ? 'initial' : 'none';
+          dialog.getElement('elevation-label').textContent = dialog.getLocalizedLabelText('LevelPanel', 'elevationLabel.text', unitName);
+          var elevationInput = new JSSpinner(viewFactory, preferences, dialog.getElement('elevation-input'), {
+            format: preferences.getLengthUnit().getFormat(),
+            value: controller.getElevation(),
+            step: dialog.getLengthInputStepSize(),
+            nullable: controller.getElevation() == null,
+            min: -1000,
+            max: preferences.getLengthUnit().getMaximumElevation(),
+          });
+          elevationInput.parentElement.style.display = elevationDisplay;
+          elevationInput.parentElement.previousElementSibling.style.display = elevationDisplay;
+          dialog.registerEventListener(elevationInput, 'input', function() {
+            controller.setElevation(elevationInput.value);
+            setFloorThicknessEnabled(controller);
+            // TODO LOUIS setElevationIndexButtonsEnabled(controller);
+          });
+          controller.addPropertyChangeListener('ELEVATION', function(event) {
+            elevationInput.value = event.getNewValue();
+          });
+
+          var floorThicknessDisplay = controller.isPropertyEditable('FLOOR_THICKNESS') ? 'initial' : 'none';
+          dialog.getElement('floor-thickness-label').textContent = dialog.getLocalizedLabelText('LevelPanel', 'floorThicknessLabel.text', unitName);
+          var floorThicknessInput = new JSSpinner(viewFactory, preferences, dialog.getElement('floor-thickness-input'), {
+            format: preferences.getLengthUnit().getFormat(),
+            value: controller.getFloorThickness(),
+            step: dialog.getLengthInputStepSize(),
+            nullable: controller.getFloorThickness() == null,
+            min: minimumLength,
+            max: maximumLength / 10,
+          });
+          floorThicknessInput.parentElement.style.display = floorThicknessDisplay;
+          floorThicknessInput.parentElement.previousElementSibling.style.display = floorThicknessDisplay;
+          dialog.registerEventListener(floorThicknessInput, 'input', function() {
+            controller.setFloorThickness(floorThicknessInput.value);
+          });
+          controller.addPropertyChangeListener('FLOOR_THICKNESS', function(event) {
+            floorThicknessInput.value = event.getNewValue();
+          });
+          dialog.floorThicknessInput = floorThicknessInput;
+          setFloorThicknessEnabled(controller);
+
+          var heightDisplay = controller.isPropertyEditable('HEIGHT') ? 'initial' : 'none';
+          dialog.getElement('height-label').textContent = dialog.getLocalizedLabelText('LevelPanel', 'heightLabel.text', unitName);
+          var heightInput = new JSSpinner(viewFactory, preferences, dialog.getElement('height-input'), {
+            format: preferences.getLengthUnit().getFormat(),
+            value: controller.getElevation(),
+            step: dialog.getLengthInputStepSize(),
+            nullable: controller.getElevation() == null,
+            min: minimumLength,
+            max: maximumLength,
+          });
+          heightInput.parentElement.style.display = heightDisplay;
+          heightInput.parentElement.previousElementSibling.style.display = heightDisplay;
+          dialog.registerEventListener(heightInput, 'input', function() {
+            controller.setHeight(heightInput.value);
+          });
+          controller.addPropertyChangeListener('HEIGHT', function(event) {
+            heightInput.value = event.getNewValue();
+          });
+        }
+      });
 }
 
 /**
@@ -2562,6 +2671,12 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           min: preferences.getLengthUnit().getMinimumLength(),
           max: 50,
         });
+        controller.addPropertyChangeListener('THICKNESS', function() {
+          dialog.thicknessInput.value = controller.getThickness();
+        });
+        dialog.registerEventListener(dialog.thicknessInput, 'input', function() {
+          controller.setThickness(dialog.thicknessInput.value);
+        });
 
         initArrowsStyleComboBox(dialog);
         initJoinStyleComboBox(dialog);
@@ -2569,15 +2684,16 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
 
         dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
         dialog.visibleIn3DCheckbox.checked = controller.isElevationEnabled() && controller.getElevation() != null;
+
+        dialog.registerEventListener(dialog.visibleIn3DCheckbox, 'input', function() {
+          if (dialog.visibleIn3DCheckbox.checked) {
+            controller.setElevation(0);
+          } else {
+            controller.setElevation(null);
+          }
+        });
       },
       applier: function(dialog) {
-        controller.setThickness(dialog.thicknessInput.value);
-        if (dialog.visibleIn3DCheckbox.checked) {
-          controller.setElevation(0);
-        } else {
-          controller.setElevation(null);
-        }
-        
         controller.modifyPolylines();
       },
       disposer: function(dialog) {

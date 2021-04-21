@@ -1250,7 +1250,10 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
       });
             
       builder.addSeparator();
-      
+      builder.addItem(homePane.getAction(ActionType.MODIFY_LEVEL));
+
+      builder.addSeparator();
+
       builder.addItem(homePane.getAction(ActionType.ZOOM_OUT));
       builder.addItem(homePane.getAction(ActionType.ZOOM_IN));
       
