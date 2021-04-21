@@ -2302,6 +2302,231 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
 JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
   var viewFactory = this;
 
+  var initArrowsStyleComboBox = function(dialog) {
+
+    var arrowsStyles = [];
+    var arrowsStyleEnumValues = Object.keys(Polyline.ArrowStyle);
+    for (var i = 0; i < arrowsStyleEnumValues.length; i++) {
+      var arrowStyle = parseInt(arrowsStyleEnumValues[i]);
+      if (!isNaN(arrowStyle)) {
+        arrowsStyles.push(arrowStyle);
+      }
+    }
+
+    /** @var {{ startStyle: number, endStyle: number }[]} */
+    var arrowsStylesCombinations = [];
+    for (var i = 0; i < arrowsStyles.length; i++) {
+      for (var j = 0; j < arrowsStyles.length; j++) {
+        arrowsStylesCombinations.push({ startStyle: arrowsStyles[i], endStyle: arrowsStyles[j] });
+      }
+    }
+
+    var svgBase = `
+    <svg style="top: calc(50% - 5px); position: relative;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
+      <defs>
+        <marker id="startMarker%1$s" markerWidth="8" markerHeight="7" refX="1" refY="3.5" orient="auto">
+           %2$s
+        </marker>
+        <marker id="endMarker%1$s" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+          %3$s
+        </marker>
+      </defs>
+      <line x1="30" y1="50" x2="320" y2="50" stroke="#000" stroke-width="8" marker-start="url(#startMarker%1$s)" marker-end="url(#endMarker%1$s)" />
+    </svg>`;
+
+    var svgLeftArrow = '<polygon points="0 3.5, 8 0, 8 7" />';
+    var svgRightArrow = '<polygon points="0 0, 9 3.5, 0 7" />';
+    var svgLeftArrowOpen = '<polyline fill="none" stroke="black" stroke-width="1" points="8 0, 0 3.5, 8 7" />';
+    var svgRightArrowOpen = '<polyline fill="none" stroke="black" stroke-width="1" points="0 1, 8 3.5, 0 6" />';
+    var svgDisc = ' <circle cx="3.5" cy="3.5" r="3.5"/>';
+
+    var comboBox = new JSComboBox(this.viewFactory, this.preferences, dialog.getElement('arrows-style-select'), {
+      nullable: false,
+      availableValues: arrowsStylesCombinations,
+      render: function(arrowStyle, itemElement) {
+        itemElement.style.border = 'none';
+        itemElement.style.maxWidth = '6em';
+        itemElement.style.margin = 'auto';
+
+        var leftShape = '';
+        switch (arrowStyle.startStyle) {
+          case Polyline.ArrowStyle.DELTA:
+            leftShape = svgLeftArrow;
+            break;
+          case Polyline.ArrowStyle.OPEN:
+            leftShape = svgLeftArrowOpen;
+            break;
+          case Polyline.ArrowStyle.DISC:
+            leftShape = svgDisc;
+            break;
+        }
+        var rightShape = '';
+        switch (arrowStyle.endStyle) {
+          case Polyline.ArrowStyle.DELTA:
+            rightShape = svgRightArrow;
+            break;
+          case Polyline.ArrowStyle.OPEN:
+            rightShape = svgRightArrowOpen;
+            break;
+          case Polyline.ArrowStyle.DISC:
+            rightShape = svgDisc;
+            break;
+        }
+
+        var uid = UUID.randomUUID();
+        itemElement.innerHTML = CoreTools.format(svgBase, [uid, leftShape, rightShape]);
+      },
+      onSelectionChanged: function(newValue) {
+        controller.setStartArrowStyle(newValue.startStyle);
+        controller.setEndArrowStyle(newValue.endStyle);
+      }
+    });
+
+    var setFromController = function() {
+      var startArrowStyle = controller.getStartArrowStyle();
+      var endArrowStyle = controller.getEndArrowStyle();
+
+      comboBox.enable(controller.isArrowsStyleEditable());
+      comboBox.set({ startStyle: startArrowStyle, endStyle: endArrowStyle });
+    };
+    setFromController();
+    controller.addPropertyChangeListener('START_ARROW_STYLE', setFromController);
+    controller.addPropertyChangeListener('END_ARROW_STYLE', setFromController);
+  }
+
+
+  var initJoinStyleComboBox = function(dialog) {
+
+    var joinStyles = [];
+    var joinStyleEnumValues = Object.keys(Polyline.JoinStyle);
+    for (var i = 0; i < joinStyleEnumValues.length; i++) {
+      var joinStyle = parseInt(joinStyleEnumValues[i]);
+      if (!isNaN(joinStyle)) {
+        joinStyles.push(joinStyle);
+      }
+    }
+
+    var comboBox = new JSComboBox(this.viewFactory, this.preferences, dialog.getElement('join-style-select'), {
+      nullable: false,
+      availableValues: joinStyles,
+      render: function(joinStyle, itemElement) {
+        itemElement.style.border = 'none';
+        itemElement.style.textAlign = 'center';
+
+        var canvasJoinStyle = 'miter';
+        switch (joinStyle) {
+          case Polyline.JoinStyle.BEVEL:
+            canvasJoinStyle = 'bevel';
+            break;
+          case Polyline.JoinStyle.CURVED:
+          case Polyline.JoinStyle.ROUND:
+            canvasJoinStyle = 'round';
+            break;
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 40;
+        canvas.style.height = "100%";
+        canvas.style.maxWidth = "100%";
+        var canvasContext = canvas.getContext('2d');
+
+        canvasContext.lineJoin = canvasJoinStyle;
+        canvasContext.lineCap = "butt";
+        canvasContext.lineWidth = 6;
+        if (joinStyle == Polyline.JoinStyle.CURVED) {
+          canvasContext.beginPath();
+          canvasContext.ellipse(50, 30, 40, 10, 0, Math.PI, 0);
+          canvasContext.stroke();
+        } else {
+          canvasContext.beginPath();
+          canvasContext.moveTo(10, 10);
+          canvasContext.lineTo(80, 10);
+          canvasContext.lineTo(50, 35);
+          canvasContext.stroke();
+        }
+
+        itemElement.appendChild(canvas);
+      },
+      onSelectionChanged: function(newValue) {
+        controller.setJoinStyle(newValue);
+      }
+    });
+
+    var setFromController = function() {
+      comboBox.enable(controller.isJoinStyleEditable());
+      comboBox.set(controller.getJoinStyle());
+    };
+    setFromController();
+    controller.addPropertyChangeListener('JOIN_STYLE', setFromController);
+  }
+
+  var initDashStyleComboBox = function(dialog) {
+    var dashStyles = [];
+    var dashStyleEnumValues = Object.keys(Polyline.DashStyle);
+    for (var i = 0; i < dashStyleEnumValues.length; i++) {
+      var dashStyle = parseInt(dashStyleEnumValues[i]);
+      if (!isNaN(dashStyle) && (dashStyle != Polyline.DashStyle.CUSTOMIZED || controller.getDashStyle() == Polyline.DashStyle.CUSTOMIZED)) {
+        dashStyles.push(dashStyle);
+      }
+    }
+
+    var comboBox = new JSComboBox(this.viewFactory, this.preferences, dialog.getElement('dash-style-select'), {
+      nullable: false,
+      availableValues: dashStyles,
+      render: function(dashStyle, itemElement) {
+        itemElement.style.border = 'none';
+        itemElement.style.textAlign = 'center';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = 30;
+        canvas.height = 20;
+        canvas.style.maxWidth = "5em";
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        var canvasContext = canvas.getContext('2d');
+
+        canvasContext.lineWidth = 5;
+        canvasContext.beginPath();
+        canvasContext.moveTo(0, 10);
+        var dashPattern = dashStyle != Polyline.DashStyle.CUSTOMIZED ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() : controller.getDashPattern();
+        var dashOffset = controller.getDashOffset() != null ? controller.getDashOffset() : 0;
+        canvasContext.setLineDash(dashPattern);
+        canvasContext.lineDashOffset = dashOffset * canvas.width;
+        canvasContext.lineTo(30, 10);
+        canvasContext.stroke();
+
+        itemElement.appendChild(canvas);
+      },
+      onSelectionChanged: function(newValue) {
+        controller.setDashStyle(newValue);
+      }
+    });
+
+    var dashOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement('dash-offset-input'), {
+      value: controller.getDashOffset() == null ? null : controller.getDashOffset() * 100,
+      step: 5,
+      nullable: controller.getDashOffset() == null,
+      min: 0,
+      max: 100,
+    });
+    dialog.registerEventListener(dashOffsetInput, 'input', function() {
+      controller.setDashOffset(dashOffsetInput.value != null
+          ? dashOffsetInput.value / 100
+          : null);
+    })
+    controller.addPropertyChangeListener('DASH_OFFSET', function() {
+      dashOffsetInput.value = controller.getDashOffset() == null ? null : controller.getDashOffset() * 100;
+      comboBox.refreshUI();
+    });
+
+    var setDashStyleFromController = function() {
+      dashOffsetInput.enable(controller.getDashStyle() != Polyline.DashStyle.SOLID);
+      comboBox.set(controller.getDashStyle());
+    };
+    setDashStyleFromController();
+    controller.addPropertyChangeListener('DASH_STYLE', setDashStyleFromController);
+  }
+
   return new JSDialogView(viewFactory, preferences, 
     '${PolylinePanel.polyline.title}', 
     document.getElementById("polyline-dialog-template"), {
@@ -2330,13 +2555,9 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           max: 50,
         });
 
-        dialog.dashOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement('dash-offset-input'), { 
-          value: controller.getDashOffset() == null ? null : controller.getDashOffset() * 100,
-          step: 5,
-          nullable: controller.getDashOffset() == null,
-          min: 0,
-          max: 100,
-        });
+        initArrowsStyleComboBox(dialog);
+        initJoinStyleComboBox(dialog);
+        initDashStyleComboBox(dialog);
 
         dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
         dialog.visibleIn3DCheckbox.checked = controller.isElevationEnabled() && controller.getElevation() != null;
@@ -2348,10 +2569,6 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         } else {
           controller.setElevation(null);
         }
-
-        controller.setDashOffset(dialog.dashOffsetInput.value != null
-              ? dialog.dashOffsetInput.value / 100
-              : null);
         
         controller.modifyPolylines();
       },
@@ -2698,7 +2915,7 @@ JSViewFactory.prototype.createVideoView = function(home, preferences, videoContr
 /**
  * Creates a color selection component
  * @param {UserPreferences} preferences current user's preferences 
- * @param {{ onColorSelected: function(number) }} [options]
+ * @param {{onColorSelected: function(number)}} [options]
  * > onColorSelected: called with selected color, as RGB int, when a color is selected
  * 
  * @return {JSComponentView} 

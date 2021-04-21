@@ -65,11 +65,20 @@ CoreTools.format = function(formatString, args) {
     var currentIndex = 0;
     var values = Array.isArray(args) ? args : Array.prototype.slice.call(arguments, 1);
     var currentValueIndex = 0;
+
+    placeHolders.lastIndex = 0;
     while ((matchResult = placeHolders.exec(formatString)) !== null) {
-      // TODO: support explicit position in place holders (%x$s)
       result += formatString.slice(currentIndex, placeHolders.lastIndex - matchResult[0].length);
+
+      var indexResult;
       if (matchResult[0] == "%%") {
         result += '%';
+      } else if ((indexResult = /%(\d+)\$s/g.exec(matchResult[0])) !== null) {
+        var valueIndex = parseInt(indexResult[1]) - 1;
+        result += values[valueIndex];
+      } else if ((indexResult = /%(\d+)\$d/g.exec(matchResult[0])) !== null) {
+        var valueIndex = parseInt(indexResult[1]) - 1;
+        result += values[valueIndex];
       } else if (currentValueIndex < values.length) {
         result += values[currentValueIndex];
         currentValueIndex++;
