@@ -864,7 +864,7 @@ input, textarea, keygen, select, button {
   cursor: pointer;
 }
 
-.dialog-body input:not([type="radio"]) {
+.dialog-body input:not([type="radio"]):not([type="checkbox"]) {
   width: 12em;
 }
 
@@ -1212,7 +1212,7 @@ input, textarea, keygen, select, button {
 /**********************************/
 
 .combo-box button {
-  width: 3em;
+  width: 5em;
   height: 1.5em;
   cursor: pointer;
   vertical-align: middle;
@@ -1225,7 +1225,6 @@ input, textarea, keygen, select, button {
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
-  background-size: 100% 100%;
 }
 
 .combo-box .selection-panel {

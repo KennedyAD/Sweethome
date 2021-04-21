@@ -1356,7 +1356,7 @@ JSSpinner.prototype.enable = function(enabled) {
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} container html element on which install this component
- * @param {{nullable?: boolean, value?: string | number, availableValues: (string | number)[], render?: function(value: string|number, element: HTMLElement), onSelectionChanged: function(newValue: string|number)}} [options]
+ * @param {{nullable?: boolean, value?: any, availableValues: (any)[], render?: function(value: any, element: HTMLElement), onSelectionChanged: function(newValue: any)}} [options]
  * - nullable: false if null/undefined is not allowed - default true
  * - value: initial value - default undefined if nullable or first available value,
  * - availableValues: available values in this combo,
@@ -1390,6 +1390,10 @@ function JSComboBox(viewFactory, preferences, container, options) {
     initializer: function(component) {
       component.options = options;
 
+      Object.defineProperty(this, 'availableValues', {
+        get: function() { return options.availableValues; }
+      });
+
       rootElement.classList.add('combo-box');
 
       component.button = document.createElement('button');
@@ -1407,17 +1411,28 @@ function JSComboBox(viewFactory, preferences, container, options) {
       });
 
       var initialValue = options.value;
-      component.value = initialValue;
+      component.set(initialValue);
     },
     getter: function(component) {
       return component.value;
     },
     setter: function(component, value) {
+      var isValueAvailable = false;
+      for (var i = 0; i < component.availableValues.length; i++) {
+        if (component.areValuesEqual(value, component.availableValues[i])) {
+          isValueAvailable = true;
+          break;
+        }
+      }
+      if (!isValueAvailable) {
+        value = null;
+      }
+
       if (value == null && !options.nullable) {
         value = options.availableValues[0];
       }
 
-      if (value != component.value) {
+      if (!component.areValuesEqual(value, component.value)) {
         component.value = value;
         component.refreshUI();
       }
@@ -1437,7 +1452,7 @@ JSComboBox.prototype.initSelectionPanel = function() {
   var selectionPanel = document.createElement('div');
   selectionPanel.classList.add('selection-panel');
 
-  var availableValues = component.options.availableValues;
+  var availableValues = component.availableValues;
   for (var i = 0; i < availableValues.length; i++) {
     var currentItemElement = document.createElement('div');
     currentItemElement.value = availableValues[i];
@@ -1456,6 +1471,15 @@ JSComboBox.prototype.initSelectionPanel = function() {
     }
   });
 }
+
+/**
+ * Enable or disable this combo box
+ * @param {boolean} [enabled] true if should enable this combo box - defaults to true
+ */
+JSComboBox.prototype.enable = function(enabled) {
+  if (typeof enabled == 'undefined') { enabled = true; }
+  this.button.disabled = !enabled;
+};
 
 /**
  * Opens the combo box's selectionPanel
@@ -1481,6 +1505,23 @@ JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
   document.addEventListener('click', closeSelectorPanel);
 };
 
+/**
+ * Refreshes UI, i.e. overview of selected value
+ */
 JSComboBox.prototype.refreshUI = function() {
+  this.overview.innerHTML = '';
   this.options.render(this.get(), this.overview);
 };
+
+/**
+ * Checks if value1 and value2 are equal. Returns true if so.
+ * NOTE: this internally uses JSON.stringify to compare values
+ *
+ * @return {boolean}
+ * @private
+ */
+JSComboBox.prototype.areValuesEqual = function(value1, value2) {
+  return JSON.stringify(value1) == JSON.stringify(value2);
+};
+
+
