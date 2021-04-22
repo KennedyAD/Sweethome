@@ -232,6 +232,11 @@ input, textarea, keygen, select, button {
   visibility: visible;
 }
 
+#level-selector {
+  position: absolute;
+  z-index: 10;
+}
+
 /*******************************/
 /* HomePane                    */
 /*******************************/
