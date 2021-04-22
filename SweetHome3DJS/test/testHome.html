@@ -1902,30 +1902,59 @@ name-visible-checkbox
 
 <div id="level-dialog-template" class="dialog-template">
 
-  <div class="label-input-grid">
-    <span></span>
-    <label>
-      <input name="visible-checkbox" type="checkbox" />
-      <span>${LevelPanel.viewableCheckBox.text}</span>
-    </label>
+  <div class="level-dialog">
 
-    <span class="label-cell">${LevelPanel.nameLabel.text}</span>
-    <span><input name="name-input" type="text" /></span>
+    <div class="label-input-grid">
+      <span></span>
+      <label>
+        <input name="visible-checkbox" type="checkbox" />
+        <span>${LevelPanel.viewableCheckBox.text}</span>
+      </label>
 
-    <span data-name="elevation-label" class="label-cell"></span>
-    <span>
-      <span data-name="elevation-input"></span>
-    </span>
+      <span class="label-cell">${LevelPanel.nameLabel.text}</span>
+      <span><input name="name-input" type="text" /></span>
 
-    <span data-name="floor-thickness-label" class="label-cell"></span>
-    <span>
-      <span data-name="floor-thickness-input"></span>
-    </span>
+      <span data-name="elevation-label" class="label-cell"></span>
+      <span>
+        <span data-name="elevation-input"></span>
+      </span>
 
-    <span data-name="height-label" class="label-cell"></span>
-    <span>
-      <span data-name="height-input"></span>
-    </span>
+      <span data-name="floor-thickness-label" class="label-cell"></span>
+      <span>
+        <span data-name="floor-thickness-input"></span>
+      </span>
+
+      <span data-name="height-label" class="label-cell"></span>
+      <span>
+        <span data-name="height-input"></span>
+      </span>
+
+    </div>
+
+    <hr />
+    <div>${LevelPanel.levelsSummaryLabel.text}</div>
+    <br/>
+    <div class="levels-summary">
+      <table data-name="levels-table">
+        <thead>
+          <tr>
+            <th>${LevelPanel.nameColumn}</th>
+            <th>${LevelPanel.elevationColumn}</th>
+            <th>${LevelPanel.floorThicknessColumn}</th>
+            <th>${LevelPanel.heightColumn}</th>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+      </table>
+      <div class="levels-elevation-index-buttons">
+        <button name="increase-elevation-index-button"></button>
+        <br/>
+        <button name="decrease-elevation-index-button"></button>
+      </div>
+    </div>
+
   </div>
 </div>
 

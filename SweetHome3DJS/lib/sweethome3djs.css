@@ -1097,6 +1097,54 @@ input, textarea, keygen, select, button {
 }
 	
 /*********************************/
+/* Levels dialog         */
+/*********************************/
+.level-dialog .levels-summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.level-dialog .levels-summary > table {
+  flex-grow: 1;
+  text-align: right;
+  margin: 0 2em;
+  border-collapse: collapse;
+}
+
+.level-dialog .levels-summary > table tr[disabled] td {
+  color: lightgray;
+}
+
+.level-dialog .levels-summary > table tr.selected {
+  background-color: #DDDDFF;
+}
+
+.level-dialog .levels-summary > table td {
+  border: solid lightgrey 1px;
+  padding: 0.2em;
+}
+
+.level-dialog .levels-summary > table th,
+.level-dialog .levels-summary > table tbody td:first-child {
+  text-align: left;
+  padding: 0.2em;
+}
+
+.level-dialog .levels-elevation-index-buttons button {
+  background-size: 80%;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 1.6em;
+  height: 1.6em;
+  margin-bottom: 0.4em;
+}
+
+.level-dialog .levels-elevation-index-buttons button[disabled] {
+  filter: grayscale(0.8);
+}
+
+/*********************************/
 /* UserPreferencesDialog         */
 /*********************************/
 
