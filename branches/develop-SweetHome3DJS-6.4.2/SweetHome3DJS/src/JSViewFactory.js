@@ -936,6 +936,19 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
               dialog.floorThicknessInput.enable(levels[selectedLevelIndex].getElevation() != levels[0].getElevation());
             }
           };
+          var setElevationIndexButtonsEnabled = function() {
+            var selectedLevelIndex = controller.getSelectedLevelIndex();
+            if (selectedLevelIndex != null) {
+              var levels = controller.getLevels();
+              dialog.increaseElevationButton.disabled = !(selectedLevelIndex < levels.length - 1
+                  && levels [selectedLevelIndex].getElevation() == levels [selectedLevelIndex + 1].getElevation());
+              dialog.decreaseElevationButton.disabled = !(selectedLevelIndex > 0
+                  && levels [selectedLevelIndex].getElevation() == levels [selectedLevelIndex - 1].getElevation());
+            } else {
+              dialog.increaseElevationButton.setEnabled(false);
+              dialog.decreaseElevationButton.setEnabled(false);
+            }
+          };
 
           var elevationDisplay = controller.isPropertyEditable('ELEVATION') ? 'initial' : 'none';
           dialog.getElement('elevation-label').textContent = dialog.getLocalizedLabelText('LevelPanel', 'elevationLabel.text', unitName);
@@ -951,8 +964,8 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
           elevationInput.parentElement.previousElementSibling.style.display = elevationDisplay;
           dialog.registerEventListener(elevationInput, 'input', function() {
             controller.setElevation(elevationInput.value);
-            setFloorThicknessEnabled(controller);
-            // TODO LOUIS setElevationIndexButtonsEnabled(controller);
+            setFloorThicknessEnabled();
+            setElevationIndexButtonsEnabled();
           });
           controller.addPropertyChangeListener('ELEVATION', function(event) {
             elevationInput.value = event.getNewValue();
@@ -997,6 +1010,70 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
           controller.addPropertyChangeListener('HEIGHT', function(event) {
             heightInput.value = event.getNewValue();
           });
+
+          var elevationButtonsDisplay = controller.isPropertyEditable('ELEVATION_INDEX') ? 'initial' : 'none';
+          var increaseElevationButtonAction = new ResourceAction(preferences, 'LevelPanel', "INCREASE_ELEVATION_INDEX", true);
+          var decreaseElevationButtonAction = new ResourceAction(preferences, 'LevelPanel', "DECREASE_ELEVATION_INDEX", true);
+          dialog.increaseElevationButton = dialog.getElement('increase-elevation-index-button');
+          dialog.increaseElevationButton.style.backgroundImage = "url('lib/" + increaseElevationButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+          dialog.increaseElevationButton.style.display = elevationButtonsDisplay;
+          dialog.registerEventListener(dialog.increaseElevationButton, 'click', function() {
+            controller.setElevationIndex(controller.getElevationIndex() + 1);
+            setElevationIndexButtonsEnabled();
+          });
+
+          dialog.decreaseElevationButton = dialog.getElement('decrease-elevation-index-button');
+          dialog.decreaseElevationButton.style.backgroundImage = "url('lib/" + decreaseElevationButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+          dialog.decreaseElevationButton.style.display = elevationButtonsDisplay;
+          dialog.registerEventListener(dialog.decreaseElevationButton, 'click', function() {
+            controller.setElevationIndex(controller.getElevationIndex() - 1);
+            setElevationIndexButtonsEnabled();
+          });
+
+          setElevationIndexButtonsEnabled();
+
+          var levelsTableBody = dialog.getElement('levels-table').querySelector('tbody');
+
+          var refreshSelectedLevel = function() {
+            var selectedLevelIndex = controller.getSelectedLevelIndex();
+
+            var selectedLevelRow = levelsTableBody.querySelector('.selected');
+            if (selectedLevelRow != null) {
+              selectedLevelRow.classList.remove('selected');
+            }
+
+            if (selectedLevelIndex != null) {
+              // Levels are listed in the table in reverse order
+              var rowIndex = levelsTableBody.childElementCount - selectedLevelIndex - 1;
+              levelsTableBody.children[rowIndex].classList.add('selected');
+            }
+          };
+
+          var generateTableBody = function() {
+            var levels = controller.getLevels();
+            var bodyHtml = '';
+
+            var lengthFormat = preferences.getLengthUnit().getFormat();
+            for (var i = 0; i < levels.length; i++) {
+              var level = levels[i];
+              var disabledAttribute = level.isViewable() ? '' : 'disabled';
+              bodyHtml += '<tr ' + disabledAttribute + '>' +
+                  '  <td>' + level.getName() + '</td>' +
+                  '  <td>' + lengthFormat.format(level.getElevation()) + '</td>' +
+                  '  <td>' + (level.getElevation() == levels [0].getElevation() ? '' : lengthFormat.format(level.getFloorThickness())) + '</td>' +
+                  '  <td>' + lengthFormat.format(level.getHeight()) + '</td>' +
+                  '</tr>';
+            }
+
+            levelsTableBody.innerHTML = bodyHtml;
+
+            refreshSelectedLevel();
+          };
+
+          generateTableBody();
+
+          controller.addPropertyChangeListener('SELECT_LEVEL_INDEX', refreshSelectedLevel);
+          controller.addPropertyChangeListener('LEVELS', generateTableBody);
         }
       });
 }
