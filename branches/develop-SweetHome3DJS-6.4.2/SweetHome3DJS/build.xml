@@ -262,22 +262,22 @@
     </path>
     <property name="yuicompressor.jar" refid="yuicompressor.jar" />
     <!-- Minify Javascript files -->
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="src/core.js" />
       <arg value="-o" />
       <arg value="dist/build/core.min.js" />
     </java>
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="lib/generated/geom.js" />
       <arg value="-o" />
       <arg value="dist/build/geom.min.js" />
     </java>
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="lib/generated/batik-svgpathparser.js" />
       <arg value="-o" />
       <arg value="dist/build/batik-svgpathparser.min.js" />
     </java>
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="src/Triangulator.js" />
       <arg value="-o" />
       <arg value="dist/build/triangulator.min.js" />
@@ -363,12 +363,12 @@
     </path>
     <property name="yuicompressor.jar" refid="yuicompressor.jar" />
     <!-- Minify Javascript files -->
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="dist/build/viewmodel.min.js" />
       <arg value="-o" />
       <arg value="dist/build/viewmodel.min.js" />
     </java>
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="dist/build/viewhome.min.js" />
       <arg value="-o" />
       <arg value="dist/build/viewhome.min.js" />
@@ -413,17 +413,17 @@
     </path>
     <property name="yuicompressor.jar" refid="yuicompressor.jar" />
     <!-- Minify Javascript files -->
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="lib/generated/swingundo.js" />
       <arg value="-o" />
       <arg value="dist/build/swingundo.min.js" />
     </java>
-    <java jar="${yuicompressor.jar}" fork="true">
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="src/graphics2d.js" />
       <arg value="-o" />
       <arg value="dist/build/graphics2d.min.js" />
     </java>
-  	<java jar="${yuicompressor.jar}" fork="true">
+  	<java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="dist/build/sweethome3d.min.js" />
       <arg value="-o" />
       <arg value="dist/build/sweethome3d.min.js" />
