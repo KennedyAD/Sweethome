@@ -1,4 +1,4 @@
-FURNITURE LIBRARY EDITOR v 1.26
+FURNITURE LIBRARY EDITOR v 1.27
 -------------------------------
 
 This archive contains source code of the Furniture Library Editor for Sweet Home 3D.
