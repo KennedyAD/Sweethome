@@ -6,13 +6,13 @@ for Sweet Home 3D files saved with version 5.3 or a more recent version.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_5/SweetHome3DJS SweetHome3DJS
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_5_2/SweetHome3DJS SweetHome3DJS
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code 
 with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_5/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_5_2/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
