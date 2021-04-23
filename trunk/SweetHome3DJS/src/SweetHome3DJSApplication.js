@@ -640,7 +640,7 @@ SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
 SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
 
 SweetHome3DJSApplication.prototype.getVersion = function() {
-  return "6.5";
+  return "6.5.2";
 }
 
 SweetHome3DJSApplication.prototype.getHomeController = function(home) {
