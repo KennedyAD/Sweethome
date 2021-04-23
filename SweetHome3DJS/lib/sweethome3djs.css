@@ -1456,3 +1456,22 @@ input, textarea, keygen, select, button {
   cursor: pointer;
   background-size: 100% 100%;
 }
+
+/**********************************/
+/** MODEL MATERIALS SELECTOR     **/
+/**********************************/
+
+.modelMaterials-button {
+  width: 3rem;
+  height: 1.5rem;
+  vertical-align: middle;
+}
+
+.modelMaterials-selector-dialog .edit-panel {
+  display: flex;
+  flex-direction: row;
+}
+
+.modelMaterials-selector-dialog .edit-panel:last-child {
+  flex-grow: 1;
+}

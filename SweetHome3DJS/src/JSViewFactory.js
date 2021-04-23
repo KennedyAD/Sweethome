@@ -1481,7 +1481,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     };
     dialog.attachChildComponent('texture-selector-button', textureSelector);
     textureSelector.set(controller.getTextureController().getTexture());
-    
+
     var selectedPaint = controller.getPaint();
 
     var colorAndTextureRadioButtons = [];
@@ -1489,11 +1489,19 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     colorAndTextureRadioButtons[FurniturePaint.COLORED] = dialog.findElement('[name="paint-checkbox"][value="color"]');
     colorAndTextureRadioButtons[FurniturePaint.TEXTURED] = dialog.findElement('[name="paint-checkbox"][value="texture"]');
     colorAndTextureRadioButtons[FurniturePaint.MODEL_MATERIALS] = dialog.findElement('[name="paint-checkbox"][value="MODEL_MATERIALS"]');
-    
+
     for (var paint = 0; paint < colorAndTextureRadioButtons.length; paint++) {
       var radioButton = colorAndTextureRadioButtons[paint];
       radioButton.checked = paint == selectedPaint || (paint == FurniturePaint.DEFAULT && !colorAndTextureRadioButtons[selectedPaint]);
     }
+
+    // material
+    var materialSelector = controller.getModelMaterialsController().getView();
+    dialog.attachChildComponent('material-selector-button', materialSelector);
+
+    var uniqueModel = controller.getModelMaterialsController().getModel() != null;
+    colorAndTextureRadioButtons[FurniturePaint.MODEL_MATERIALS].disabled = !uniqueModel;
+    materialSelector.enable(uniqueModel);
 
     dialog.paintPanel = {
       colorAndTextureRadioButtons: colorAndTextureRadioButtons,
@@ -2507,18 +2515,18 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
       }
     }
 
-    var svgBase = `
-    <svg style="top: calc(50% - 5px); position: relative;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">
-      <defs>
-        <marker id="startMarker%1$s" markerWidth="8" markerHeight="7" refX="1" refY="3.5" orient="auto">
-           %2$s
-        </marker>
-        <marker id="endMarker%1$s" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
-          %3$s
-        </marker>
-      </defs>
-      <line x1="30" y1="50" x2="320" y2="50" stroke="#000" stroke-width="8" marker-start="url(#startMarker%1$s)" marker-end="url(#endMarker%1$s)" />
-    </svg>`;
+    var svgBase =
+      '<svg style="top: calc(50% - 5px); position: relative;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">' +
+      '  <defs>' +
+      '    <marker id="startMarker%1$s" markerWidth="8" markerHeight="7" refX="1" refY="3.5" orient="auto">' +
+      '       %2$s' +
+      '    </marker>' +
+      '    <marker id="endMarker%1$s" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">' +
+      '      %3$s' +
+      '    </marker>' +
+      '  </defs>' +
+      '  <line x1="30" y1="50" x2="320" y2="50" stroke="#000" stroke-width="8" marker-start="url(#startMarker%1$s)" marker-end="url(#endMarker%1$s)" />' +
+      '</svg>';
 
     var svgLeftArrow = '<polygon points="0 3.5, 8 0, 8 7" />';
     var svgRightArrow = '<polygon points="0 0, 9 3.5, 0 7" />';
@@ -2665,8 +2673,6 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         itemElement.style.maxHeight = '2em';
         itemElement.style.minWidth = '4em';
 
-        var factor = 10;
-
         var canvas = document.createElement('canvas');
         canvas.width = 500;
         canvas.height = 100;
@@ -2681,7 +2687,12 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         canvasContext.moveTo(0, canvas.height / 2);
         var dashPattern = dashStyle != Polyline.DashStyle.CUSTOMIZED ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() : controller.getDashPattern();
 
-        dashPattern = dashPattern.map(x => x*factor)
+        dashPattern = dashPattern.clone();
+
+        // apply 10 factor to enhance rendering
+        for (var i = 0; i < dashPattern.length; i++) {
+          dashPattern[i] = 10 * dashPattern[i];
+        }
 
         var dashOffset = controller.getDashOffset() != null ? controller.getDashOffset() : 0;
         canvasContext.setLineDash(dashPattern);
@@ -3085,8 +3096,8 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
   return view;
 }
 
-JSViewFactory.prototype.createModelMaterialsView = function(preferences, modelMaterialsController) {
-  return null;
+JSViewFactory.prototype.createModelMaterialsView = function(preferences, controller) {
+  return new JSModelMaterialsSelectorButton(this, preferences, controller, null);
 }
 
 JSViewFactory.prototype.createPageSetupView = function(preferences, pageSetupController) {

@@ -243,6 +243,7 @@
         <file name="toolkit.js"/>
         <file name="colorSelection.js"/>
         <file name="textureSelection.js"/>
+        <file name="modelMaterialsSelection.js"/>
         <file name="JSViewFactory.js"/>
         <file name="SweetHome3DJSApplication.js"/>
       </filelist>
