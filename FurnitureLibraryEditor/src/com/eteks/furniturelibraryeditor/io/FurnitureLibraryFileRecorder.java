@@ -82,7 +82,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
 
   private static final String []    IGNORED_EXTENSIONS = {".gsm", ".max", ".lwo", ".dxf"};
   private static final Locale       DEFAULT_LOCALE = new Locale("");
-  private static final NumberFormat DECIMAL_FORMAT = new DecimalFormat("0.#####", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+  private static final NumberFormat DECIMAL_FORMAT = new DecimalFormat("0.#####", new DecimalFormatSymbols(Locale.US));
 
   private static final String ID          = "id";
   private static final String NAME        = "name";
