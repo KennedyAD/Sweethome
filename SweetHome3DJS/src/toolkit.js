@@ -756,6 +756,19 @@ JSContextMenu.prototype.createMenuElement = function(items) {
   var menuElement = document.createElement('ul');
   menuElement.classList.add('items');
 
+  var backElement = document.createElement('li');
+  backElement.classList.add('item', 'back');
+  backElement.textContent = 'X';
+  this.registerEventListener(backElement, 'click', function() {
+    var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != 'li';
+    if (isRootMenu) {
+      JSContextMenu.closeCurrentIfAny();
+    } else {
+      menuElement.classList.remove('visible');
+    }
+  });
+  menuElement.appendChild(backElement);
+
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
 
@@ -768,19 +781,6 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 
     menuElement.appendChild(itemElement)
   }
-
-  var backElement = document.createElement('li');
-  backElement.classList.add('item', 'back');
-  backElement.textContent = '🔙';
-  this.registerEventListener(backElement, 'click', function() {
-    var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != 'li';
-    if (isRootMenu) {
-      JSContextMenu.closeCurrentIfAny();
-    } else {
-      menuElement.classList.remove('visible');
-    }
-  });
-  menuElement.appendChild(backElement);
 
   return menuElement;
 };
