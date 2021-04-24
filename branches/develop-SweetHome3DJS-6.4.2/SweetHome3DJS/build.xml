@@ -17,7 +17,7 @@
   <!-- The current version of Sweet Home 3D JS -->
   <property name="version" value="6.5"/>
 
-  <!-- The version of JSweet transpiler (use version 3.1.0-SNAPSHOT to compile with Java 11) -->
+  <!-- The version of JSweet transpiler (use version 3.1.0 to compile with Java 11) -->
 	<!-- To compile with JSweet 3 / Java 11, comment the JSweet 2 specifics options in the Java task below -->
   <property name="jsweet-version" value="2.4.0-RC1"/>
   	
