@@ -482,8 +482,9 @@ input, textarea, keygen, select, button {
 /******************/
 /** CONTEXT MENU **/
 /******************/
+
 .context-menu {
-  background-color: #E9E9E9;
+  background-color: #EFEFEF;
   display: none;
   position: absolute;
   border: solid 0.1em lightgray;
@@ -504,8 +505,7 @@ input, textarea, keygen, select, button {
   margin: 0;
 }
 
-.context-menu .item,
-.context-menu .back {
+.context-menu .item {
   cursor: pointer;
   padding: 0.1em 1em;
   position: relative;
@@ -515,6 +515,19 @@ input, textarea, keygen, select, button {
   white-space: nowrap;
   margin: 0.2em 0.4em;
 }
+
+
+.context-menu .back {
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  line-height: 1em;
+  box-sizing: border-box;
+  overflow: auto;
+  white-space: nowrap;
+  margin: 0.2em;
+}
+	
 
 .context-menu .item:hover {
   /*background-color: #909090;*/
@@ -530,14 +543,14 @@ input, textarea, keygen, select, button {
 }
 
 .context-menu .item img {
-  display: none;
+/*   display: none; */
   vertical-align: middle;
   margin-right: 0.6em;
 }
 
-.context-menu .item img.visible {
-  display: initial;
-}
+/* .context-menu .item img.visible { */
+/*   display: initial; */
+/* } */
 
 .context-menu.visible {
   display: block;
@@ -561,13 +574,13 @@ input, textarea, keygen, select, button {
   display: block;
   position: absolute;
   right: -0.2em;
-  top: 0.8em;
+  top: 0.5em;
 }
 
 .context-menu .sub-menu:hover > .items,
 .context-menu .sub-menu > .items.visible {
-  background-color: white;
-  border: solid 1px black;
+  background-color: #EFEFEF;
+/*   border: solid 1px black; */
   position: absolute;
   display: block;
 }
@@ -578,14 +591,25 @@ input, textarea, keygen, select, button {
 
 @media (hover: none), (pointer: coarse) {
   @media (orientation: portrait) {
+
     .context-menu {
+      display: block;
       position: fixed;
       top: 0 !important;
-      right: 0 !important;
       bottom: 0 !important;
-      left: initial !important;
+      left: -80% !important;
       width: 80%;
+      border-radius: 0;
+      transition-property: left;
+      transition-duration: 0.4s;
     }
+
+		.context-menu.visible {
+      transition-property: left;
+      transition-duration: 0.4s;
+	    left: 0% !important;
+		}
+
 
     .context-menu .item.sub-menu {
       height: auto;
@@ -605,8 +629,15 @@ input, textarea, keygen, select, button {
     .context-menu .back {
       display: block;
       text-align: left;
-      font-size: 2em;
+      color: rgba(0,0,0,0);
+      font-size: 1em;
       cursor: pointer;
+      background-image: url('menu.png');
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 0.5;
+      padding: 0.2em;
+      margin-left: 0.4em;
     }
   }
 }
