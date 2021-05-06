@@ -580,16 +580,16 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
                       geometry.shininess = newValue;
                       break;
                     case "TRANSPARENCY" : 
-                      geometry.transparency = newValue !== undefined 
+                      geometry.transparency = newValue != null 
                           ? 1 - newValue
                           : 1;
                       break;
                     case "ILLUMINATION" :
-                      geometry.lightingEnabled = (newValue === undefined || newValue >= 1)
+                      geometry.lightingEnabled = (newValue == null || newValue >= 1)
                           && geometry.mode === canvas3D.gl.TRIANGLES;
                       break;
                     case "TEXTURE_IMAGE" : 
-                      geometry.texture = newValue !== null
+                      geometry.texture = newValue != null
                           ? canvas3D.prepareTexture(newValue)
                           : undefined;
                       break;
@@ -751,9 +751,9 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
   }
   var illumination = nodeAppearance.getIllumination();
   geometry.lightingEnabled =  
-         (illumination === undefined || illumination >= 1)
+         (illumination == null || illumination >= 1)
       && geometry.normalBuffer !== null;
-  geometry.transparency = nodeAppearance.getTransparency() !== undefined 
+  geometry.transparency = nodeAppearance.getTransparency() != null 
       ? 1 - nodeAppearance.getTransparency()
       : 1;
       geometry.visible = nodeAppearance.isVisible();
