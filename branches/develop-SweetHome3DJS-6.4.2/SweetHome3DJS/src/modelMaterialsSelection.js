@@ -120,7 +120,7 @@ function JSModelMaterialsSelectorDialog(viewFactory, preferences, controller, op
 
               var materials = materialsList.getMaterials();
               if (materials == null) {
-                materials = new Array(materialsList.size()).fill(null);
+                materials = CoreTools.newArray(materialsList.size(),null);
               } else {
                 materials = Array.from(materials);
               }
@@ -212,7 +212,7 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
         // Keep only materials that are defined in default materials set
         // (the list can be different if the model loader interprets differently a 3D model file
         // or if materials come from a paste style action)
-        var updatedMaterials = new Array(defaultMaterials.length).fill(null);
+        var updatedMaterials = CoreTools.newArray(defaultMaterials.length,null);
         var foundInDefaultMaterials = false;
         for (var i = 0; i < defaultMaterials.length; i++) {
           var materialName = defaultMaterials [i].getName();
@@ -326,7 +326,7 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
         }
       } else {
         if (this.materials == null || this.materials.length != this.defaultMaterials.length) {
-          this.materials = new Array(this.defaultMaterials.length).fill(null);
+          this.materials = CoreTools.newArray(this.defaultMaterials.length,null);
         }
         this.materials [index] = material;
       }

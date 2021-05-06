@@ -344,6 +344,20 @@ CoreTools.debounce = function(actionFunction, waitMillis) {
 };
 
 /**
+ * Creates an array and initialize <size> items to initialValue
+ * @param {number} size
+ * @param {any} initialValue
+ * @return {any[]}
+ */
+CoreTools.newArray = function(size, initialValue) {
+  var array = [];
+  for (var i = 0; i < size; i++) {
+    array.push(initialValue);
+  }
+  return array;
+}
+
+/**
  * Utilities for colors.
  * @class
  * @ignore
