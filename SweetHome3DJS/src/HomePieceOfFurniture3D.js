@@ -598,7 +598,7 @@ HomePieceOfFurniture3D.prototype.restoreDefaultAppearance = function(appearance,
     if (defaultAppearance.getAmbientColor() !== undefined) {
       appearance.setAmbientColor(defaultAppearance.getAmbientColor());
     }
-    if (defaultAppearance.getDiffuseColor() !== undefined) {
+    if (defaultAppearance.getDiffuseColor() !== undefined && shininess !== null) {
       appearance.setDiffuseColor(defaultAppearance.getDiffuseColor());
       appearance.setSpecularColor(vec3.fromValues(shininess, shininess, shininess));
       appearance.setShininess(shininess * 128);
