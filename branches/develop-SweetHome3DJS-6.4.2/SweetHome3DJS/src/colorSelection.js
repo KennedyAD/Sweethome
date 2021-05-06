@@ -138,13 +138,13 @@ JSColorSelector.prototype.onColorTileClicked = function(tileElement) {
 };
 
 /**
- * Returns color as RGB number from tile element
+ * Returns color as ARGB number from tile element
  * @param {HTMLElement} tileElement
- * @return color as RGB number
+ * @return color as ARGB number
  * @private
  */
 JSColorSelector.prototype.getTileColor = function(tileElement) {
-  return parseInt(tileElement.dataset['color']);
+  return 0xFF000000 | parseInt(tileElement.dataset['color']);
 };
 
 /**
@@ -173,7 +173,7 @@ JSColorSelector.prototype.addAndSelectCustomColorTile = function(colorHex) {
   var tileElement = this.createColorTile(colorHex);
   this.customColorsContainerElement.appendChild(tileElement);
 
-  var colorNumber = ColorTools.hexadecimalStringToInteger(colorHex);
+  var colorNumber = 0xFF000000 | ColorTools.hexadecimalStringToInteger(colorHex);
   if (this.preferences.getRecentColors().indexOf(colorNumber) === -1) {
     var recentColors = [colorNumber].concat(this.preferences.getRecentColors());
     this.preferences.setRecentColors(recentColors);
@@ -197,8 +197,8 @@ JSColorSelector.prototype.dispose = function() {
  * @param {JSViewFactory} viewFactory the view factory
  * @param preferences      the current user preferences
  * @param {{selectedColor: number, applier: function(JSDialogView)}} [options]
- * > selectedColor: selected color as RGB int
- * > applier: apply color change, color as a RGB int
+ * > selectedColor: selected color as ARGB int
+ * > applier: apply color change, color as a ARGB int
  * @constructor
  */
 function JSColorSelectorDialog(viewFactory, preferences, options) {
@@ -253,7 +253,7 @@ JSColorSelectorDialog.prototype.dispose = function() {
  * @param {UserPreferences} preferences
  * @param {HTMLElement} [targetNode]
  * @param {{ onColorSelected: function(number) }} [options]
- * > onColorSelected: called with selected color, as RGB int, when a color is selected
+ * > onColorSelected: called with selected color, as ARGB int, when a color is selected
  * @constructor
  */
 function JSColorSelectorButton(viewFactory, preferences, targetNode, options) {
@@ -299,9 +299,6 @@ JSColorSelectorButton.prototype.enable = function(enabled) {
   this.button.disabled = !enabled;
 };
 
-/**
- * @private
- */
 JSColorSelectorButton.prototype.openColorSelectorDialog = function() {
   var colorSelectorButton = this;
   

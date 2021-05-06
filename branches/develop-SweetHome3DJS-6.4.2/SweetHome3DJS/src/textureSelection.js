@@ -470,11 +470,22 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
     setter: function(component, texture) {
       component.selectedTexture = texture;
 
-      var backgroundImage = 'none';
-      if (texture != null) {
-        backgroundImage = "url('" + texture.getImage().getURL() + "')";
+      if (texture == null) {
+        component.overview.style.backgroundImage = 'none';
+      } else {
+        TextureManager.getInstance().loadTexture(texture.getImage(), {
+          textureUpdated: function(image) {
+            var backgroundImage = 'none';
+            if (texture != null) {
+              backgroundImage = "url('" + image.src + "')";
+            }
+            component.overview.style.backgroundImage = backgroundImage;
+          },
+          textureError:  function(error) {
+            console.error("image cannot be loaded", error);
+          }
+        });
       }
-      component.overview.style.backgroundImage = backgroundImage;
     }
   });
   if (targetNode != null) {
@@ -496,9 +507,6 @@ JSTextureSelectorButton.prototype.enable = function(enabled) {
   this.button.disabled = !enabled;
 };
 
-/**
- * @private
- */
 JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
   if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
     return;

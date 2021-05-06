@@ -1134,7 +1134,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
         },
         disposer: function(dialog) {
           dialog.paintPanel.colorSelector.dispose();
-          dialog.paintPanel .textureSelector.dispose();
+          dialog.paintPanel.textureSelector.dispose();
         }
       });
   }
@@ -2685,9 +2685,9 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         canvasContext.lineWidth = 10;
         canvasContext.beginPath();
         canvasContext.moveTo(0, canvas.height / 2);
-        var dashPattern = dashStyle != Polyline.DashStyle.CUSTOMIZED ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() : controller.getDashPattern();
+        var dashPattern = dashStyle != null && dashStyle != Polyline.DashStyle.CUSTOMIZED ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() : controller.getDashPattern();
 
-        dashPattern = dashPattern.clone();
+        dashPattern = Array.from(dashPattern);
 
         // apply 10 factor to enhance rendering
         for (var i = 0; i < dashPattern.length; i++) {

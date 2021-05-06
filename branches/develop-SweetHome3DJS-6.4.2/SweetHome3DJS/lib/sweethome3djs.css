@@ -857,7 +857,6 @@ input, textarea, keygen, select, button {
   -ms-grid-column: 1;
   -ms-grid-column-span: 2;
   grid-column: 1 / span 2;
-  text-align: right;
 }
 
 /* if screen is wide enough, allow double layout: 2 label+input pairs per line */
@@ -1488,17 +1487,72 @@ input, textarea, keygen, select, button {
 /** MODEL MATERIALS SELECTOR     **/
 /**********************************/
 
-.modelMaterials-button {
+.model-materials-button {
   width: 6rem;
   height: 1.5rem;
   vertical-align: middle;
 }
 
-.modelMaterials-selector-dialog .edit-panel {
+.model-materials-selector-dialog [data-name="edit-panel"] {
   display: flex;
   flex-direction: row;
 }
 
-.modelMaterials-selector-dialog .edit-panel:last-child {
+.model-materials-selector-dialog [data-name="edit-panel"] > :first-child {
   flex-grow: 1;
+  margin-right: .8em;
+}
+
+.model-materials-selector-dialog [data-name="materials-list"] {
+
+}
+
+.model-materials-selector-dialog [data-name="materials-list"] > div {
+  height: 2em;
+  position: relative;
+  padding-left: 1.8em;
+  line-height: 2em;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.model-materials-selector-dialog [data-name="materials-list"] > div:hover,
+.model-materials-selector-dialog [data-name="materials-list"] > div.selected {
+  background-color: #DDDDDD;
+}
+
+.model-materials-selector-dialog [data-name="materials-list"] div.icon {
+  background-repeat: no-repeat;
+  background-size: cover;
+  border: solid 1px black;
+  width: 1.2em;
+  height: 1.2em;
+  position: absolute;
+  top: .3em;
+  left: .3em;
+}
+
+.model-materials-selector-dialog [name="shininess-slider"] {
+  width: 100%;
+}
+
+.model-materials-selector-dialog .shininess-slider-labels {
+  position: relative;
+}
+
+.model-materials-selector-dialog .shininess-slider-labels > :first-child {
+  position: absolute;
+  left: 0;
+}
+.model-materials-selector-dialog .shininess-slider-labels > :last-child {
+  position: absolute;
+  right: 0;
+}
+
+.model-materials-selector-dialog .dialog-body > div {
+  height: 100%;
+}
+
+.model-materials-selector-dialog #model-preview-canvas {
 }
