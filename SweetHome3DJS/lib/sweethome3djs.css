@@ -1533,26 +1533,27 @@ input, textarea, keygen, select, button {
   left: .3em;
 }
 
-.model-materials-selector-dialog [name="shininess-slider"] {
-  width: 100%;
-}
-
-.model-materials-selector-dialog .shininess-slider-labels {
-  position: relative;
-}
-
-.model-materials-selector-dialog .shininess-slider-labels > :first-child {
-  position: absolute;
-  left: 0;
-}
-.model-materials-selector-dialog .shininess-slider-labels > :last-child {
-  position: absolute;
-  right: 0;
-}
-
 .model-materials-selector-dialog .dialog-body > div {
   height: 100%;
 }
 
 .model-materials-selector-dialog #model-preview-canvas {
+}
+
+.dialog-body input[type="range"] {
+  width: 100%;
+}
+
+.slider-labels {
+  position: relative;
+  height: 1.2em;
+}
+
+.slider-labels > :first-child {
+  position: absolute;
+  left: 0;
+}
+.slider-labels > :last-child {
+  position: absolute;
+  right: 0;
 }
