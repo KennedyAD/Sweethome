@@ -67,7 +67,7 @@ function JSModelMaterialsSelectorDialog(viewFactory, preferences, controller, op
     '      <span>${ModelMaterialsComponent.shininessLabel.text}</span><br/>' +
     '      <input type="range" name="shininess-slider" min="0" max="128" list="model-materials-shininess-list" /> ' +
     '      <datalist id="model-materials-shininess-list"></datalist> ' +
-    '      <div class="shininess-slider-labels"><div>${ModelMaterialsComponent.mattLabel.text}</div><div>${ModelMaterialsComponent.shinyLabel.text}</div></div>' +
+    '      <div class="slider-labels"><div>${ModelMaterialsComponent.mattLabel.text}</div><div>${ModelMaterialsComponent.shinyLabel.text}</div></div>' +
     '    </div>' +
     '  </div>' +
     '</div>';

@@ -1712,7 +1712,7 @@ name-visible-checkbox
 
 -->
 <div id="home-furniture-dialog-template" class="dialog-template">
-  
+
   <div class="home-furniture-dialog">
     <h3 class="card">${HomeFurniturePanel.nameAndPricePanel.title}</h3>
     <div data-name="name-and-price-panel" class="card">
@@ -1721,7 +1721,7 @@ name-visible-checkbox
       </div>
       <div>
         <input name="name-input" size="50" type="text" />
-        
+
         <label>
           <input name="name-visible-checkbox" type="checkbox" />
           <span>${HomeFurniturePanel.nameVisibleCheckBox.text}</span>
@@ -1733,7 +1733,7 @@ name-visible-checkbox
       </div>
       <div>
         <span data-name="price-input" />
-        
+
         <span>${HomeFurniturePanel.valueAddedTaxPercentageLabel.text}</span>
         <span data-name="value-added-tax-percentage-input" />
       </div>
@@ -1753,17 +1753,17 @@ name-visible-checkbox
           <div>
             <span data-name="y-input" />
           </div>
-          
+
           <div data-name="elevation-label" class="label-cell"></div>
           <div>
             <span data-name="elevation-input" />
           </div>
-          
+
           <label title="${HomeFurniturePanel.mirroredModelCheckBox.tooltip}" class="whole-line">
             <input name="mirrored-model-checkbox" type="checkbox" />
             <span>${HomeFurniturePanel.mirroredModelCheckBox.text}</span>
           </label>
-          
+
           <label title="${HomeFurniturePanel.basePlanItemCheckBox.tooltip}" class="whole-line">
             <input name="base-plan-item-checkbox" type="checkbox" />
             <span>${HomeFurniturePanel.basePlanItemCheckBox.text}</span>
@@ -1781,7 +1781,7 @@ name-visible-checkbox
             </label>
           </div>
           <div></div>
-    
+
           <div>
             <label>
               <input type="radio" name="paint-checkbox" value="color">
@@ -1789,7 +1789,7 @@ name-visible-checkbox
             </label>
           </div>
           <div data-name="color-selector-button"></div>
-    
+
           <div>
             <label>
               <input type="radio" name="paint-checkbox" value="texture">
@@ -1812,14 +1812,14 @@ name-visible-checkbox
         <div data-name="orientation-panel" class="card">
 
           <div class="whole-line" data-name="vertical-rotation-label">${HomeFurniturePanel.verticalRotationLabel.text}</div>
-          
+
           <div class="label-cell" data-name="angle-label">${HomeFurniturePanel.angleLabel.text}</div>
           <div>
             <span data-name="angle-input"></span>
           </div>
-          
+
           <div class="whole-line"  data-name="horizontal-rotation-label">${HomeFurniturePanel.horizontalRotationLabel.text}</div>
-          
+
           <label class="label-cell">
             <input type="radio" name="horizontal-rotation-radio" value="PITCH" />
             ${HomeFurniturePanel.pitchRadioButton.text}
@@ -1827,7 +1827,7 @@ name-visible-checkbox
           <div>
             <span data-name="pitch-input"></span>
           </div>
-          
+
           <label class="label-cell">
             <input type="radio" name="horizontal-rotation-radio" value="ROLL" />
             ${HomeFurniturePanel.rollRadioButton.text}
@@ -1861,7 +1861,7 @@ name-visible-checkbox
             <input name="keep-proportions-checkbox" type="checkbox" />
             <span>${ImportedFurnitureWizardStepsPanel.keepProportionsCheckBox.text}</span>
           </label>
-          
+
         </div>
         <br />
 
@@ -1886,7 +1886,7 @@ name-visible-checkbox
               <span>${HomeFurniturePanel.shinyRadioButton.text}</span>
             </label>
           </div>
-          
+
         </div>
       </div>
     </div>
@@ -1898,7 +1898,155 @@ name-visible-checkbox
         <span>${HomeFurniturePanel.visibleCheckBox.text}</span>
       </label>
     </div>
-    
+
+  </div>
+</div>
+
+
+<div id="observer-camera-dialog-template" class="dialog-template">
+
+  <div class="observer-camera-dialog">
+
+    <div class="columns">
+      <div>
+        <h3 class="card">${ObserverCameraPanel.locationPanel.title}</h3>
+        <div data-name="location-panel" class="card label-input-grid">
+          <div data-name="x-label" class="label-cell"></div>
+          <div>
+            <span data-name="x-input" />
+          </div>
+
+          <div data-name="y-label" class="label-cell"></div>
+          <div>
+            <span data-name="y-input" />
+          </div>
+
+          <div data-name="elevation-label" class="label-cell"></div>
+          <div>
+            <span data-name="elevation-input" />
+          </div>
+        </div>
+
+      </div>
+
+      <div>
+        <h3 class="card">${ObserverCameraPanel.anglesPanel.title}</h3>
+        <div data-name="angles-panel" class="card label-input-grid">
+
+          <div class="label-cell">${ObserverCameraPanel.yawLabel.text}</div>
+          <div>
+            <span data-name="yaw-input"></span>
+          </div>
+
+          <div class="label-cell">${ObserverCameraPanel.pitchLabel.text}</div>
+          <div>
+            <span data-name="pitch-input"></span>
+          </div>
+
+          <div class="label-cell">${ObserverCameraPanel.fieldOfViewLabel.text}</div>
+          <div>
+            <span data-name="field-of-view-input"></span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <br />
+    <label>
+      <input type="checkbox" name="adjust-observer-camera-elevation-checkbox" />
+      ${ObserverCameraPanel.adjustObserverCameraElevationCheckBox.text}
+    </label>
+  </div>
+</div>
+
+<div id="home-3Dattributes-dialog-template" class="dialog-template">
+
+  <div class="home-3Dattributes-dialog">
+
+    <div class="columns">
+
+      <div class="column1">
+        <h3 class="card">${Home3DAttributesPanel.groundPanel.title}</h3>
+        <div class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="ground-color-and-texture-choice" value="COLORED">
+              ${Home3DAttributesPanel.groundColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ground-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="ground-color-and-texture-choice" value="TEXTURED">
+              ${Home3DAttributesPanel.groundTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ground-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="background-image-visible-on-ground-3D-checkbox" />
+              ${Home3DAttributesPanel.backgroundImageVisibleOnGround3DCheckBox.text}
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="column2">
+        <h3 class="card">${Home3DAttributesPanel.skyPanel.title}</h3>
+        <div class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="sky-color-and-texture-choice" value="COLORED">
+              ${Home3DAttributesPanel.skyColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="sky-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="sky-color-and-texture-choice" value="TEXTURED">
+              ${Home3DAttributesPanel.skyTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="sky-texture-selector-button"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <br />
+
+    <h3 class="card">${Home3DAttributesPanel.renderingPanel.title}</h3>
+    <div class="card label-input-grid">
+      <div>
+        ${Home3DAttributesPanel.brightnessLabel.text}
+      </div>
+      <div>
+        <input type="range" name="brightness-slider" min="0" max="255" list="home-3Dattributes-brightness-list" />
+        <datalist id="home-3Dattributes-brightness-list"></datalist>
+        <div class="slider-labels">
+          <div>${Home3DAttributesPanel.darkLabel.text}</div>
+          <div>${Home3DAttributesPanel.brightLabel.text}</div>
+        </div>
+      </div>
+
+      <div>
+        ${Home3DAttributesPanel.wallsTransparencyLabel.text}
+      </div>
+      <div>
+        <input type="range" name="walls-transparency-slider" min="0" max="255" list="home-3Dattributes-walls-transparency-list" />
+        <datalist id="home-3Dattributes-walls-transparency-list"></datalist>
+        <div class="slider-labels">
+          <div>${Home3DAttributesPanel.opaqueLabel.text}</div>
+          <div>${Home3DAttributesPanel.invisibleLabel.text}</div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </div>
 

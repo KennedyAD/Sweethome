@@ -1374,17 +1374,17 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
 
     // 2) set values
     if (this.controller.getAngle() != null) {
-      angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.controller.getAngle()));
+      angleInput.value = Math.toDegrees(this.controller.getAngle());
     } else {
       angleInput.value = null;
     }
     if (this.controller.getRoll() != null) {
-      rollInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.controller.getRoll()));
+      rollInput.value = Math.toDegrees(this.controller.getRoll());
     } else {
       rollInput.value = null;
     }
     if (this.controller.getPitch() != null) {
-      pitchInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.controller.getPitch()));
+      pitchInput.value = Math.toDegrees(this.controller.getPitch());
     } else {
       pitchInput.value = null;
     }
@@ -1398,21 +1398,21 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     // 3) add property listeners
     this.controller.addPropertyChangeListener('ANGLE', function(event) {
       if (controller.getAngle() != null) {
-        angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(controller.getAngle()));
+        angleInput.value = Math.toDegrees(controller.getAngle());
       } else {
         angleInput.value = null;
       }
     });
     this.controller.addPropertyChangeListener('ROLL', function(event) {
       if (controller.getRoll() != null) {
-        rollInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(controller.getRoll()));
+        rollInput.value = Math.toDegrees(controller.getRoll());
       } else {
         rollInput.value = null;
       }
     });
     this.controller.addPropertyChangeListener('PITCH', function(event) {
       if (controller.getPitch() != null) {
-        pitchInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(controller.getPitch()));
+        pitchInput.value = Math.toDegrees(controller.getPitch());
       } else {
         pitchInput.value = null;
       }
@@ -1426,14 +1426,14 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
       if (angleInput.value == null || angleInput.value == '') {
         controller.setAngle(null);
       } else {
-        controller.setAngle(/* toRadians */ (function (x) { return x * Math.PI / 180; })(angleInput.value));
+        controller.setAngle(Math.toRadians(angleInput.value));
       }
     });
     this.registerEventListener(rollInput, 'input', function() {
       if (rollInput.value == null || rollInput.value == '') {
         controller.setRoll(null);
       } else {
-        controller.setRoll(/* toRadians */ (function (x) { return x * Math.PI / 180; })(rollInput.value));
+        controller.setRoll(Math.toRadians(rollInput.value));
         controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
       }
     });
@@ -1442,7 +1442,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
         // we force 0 here because null seems to create a bug in save (furniture entirely disappears)
         controller.setPitch(null);
       } else {
-        controller.setPitch(/* toRadians */ (function (x) { return x * Math.PI / 180; })(pitchInput.value));
+        controller.setPitch(Math.toRadians(pitchInput.value));
         controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
       }
     });
@@ -2900,12 +2900,358 @@ JSViewFactory.prototype.createCompassView = function(preferences, compassControl
   return dummyDialogView;
 }
 
-JSViewFactory.prototype.createObserverCameraView = function(preferences, home3DAttributesController) {
-  return dummyDialogView;
+JSViewFactory.prototype.createObserverCameraView = function(preferences, controller) {
+  var viewFactory = this;
+
+  function JSObserverCameraDialogView() {
+    this.controller = controller;
+
+    JSDialogView.call(
+        this,
+        viewFactory,
+        preferences,
+        '${ObserverCameraPanel.observerCamera.title}',
+        document.getElementById("observer-camera-dialog-template"),
+        {
+          initializer: function (dialog) {
+            dialog.initLocationPanel();
+            dialog.initAnglesPanel();
+
+            var adjustObserverCameraElevationCheckBox = dialog.getElement('adjust-observer-camera-elevation-checkbox');
+            adjustObserverCameraElevationCheckBox.checked = controller.isElevationAdjusted();
+            var adjustObserverCameraElevationCheckBoxDisplay = controller.isObserverCameraElevationAdjustedEditable() ? 'initial' : 'none';
+            adjustObserverCameraElevationCheckBox.parentElement.style.display = adjustObserverCameraElevationCheckBoxDisplay;
+            dialog.registerEventListener(adjustObserverCameraElevationCheckBox, 'input', function() {
+              controller.setElevationAdjusted(adjustObserverCameraElevationCheckBox.checked);
+            });
+            controller.addPropertyChangeListener('OBSERVER_CAMERA_ELEVATION_ADJUSTED', function() {
+              adjustObserverCameraElevationCheckBox.checked = controller.isElevationAdjusted();
+            });
+          },
+          applier: function(dialog) {
+            dialog.controller.modifyObserverCamera();
+          }
+        });
+  }
+
+  JSObserverCameraDialogView.prototype = Object.create(JSDialogView.prototype);
+  JSObserverCameraDialogView.prototype.constructor = JSObserverCameraDialogView;
+
+  /**
+   * @private
+   */
+  JSObserverCameraDialogView.prototype.initLocationPanel = function() {
+    var maximumLength = 5E5;
+    var xLabel = this.getElement('x-label');
+    var xInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('x-input'), {
+      nullable: this.controller.getX() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+      min: -maximumLength,
+      max: maximumLength,
+    });
+
+    var yLabel = this.getElement('y-label');
+    var yInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('y-input'), {
+      nullable: this.controller.getY() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+      min: -maximumLength,
+      max: maximumLength,
+    });
+    var elevationLabel = this.getElement('elevation-label');
+    var elevationInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('elevation-input'), {
+      nullable: this.controller.getElevation() == null,
+      format: this.preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+      min: this.controller.getMinimumElevation(),
+      max: this.preferences.getLengthUnit().getMaximumElevation()
+    });
+
+    // set values
+    xInput.value = this.controller.getX();
+    yInput.value = this.controller.getY();
+    elevationInput.value = this.controller.getElevation();
+
+    // set labels
+    var unitName = this.preferences.getLengthUnit().getName();
+    xLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'xLabel.text', unitName);
+    yLabel.textContent = this.getLocalizedLabelText('HomeFurniturePanel', 'yLabel.text', unitName);
+    elevationLabel.textContent = this.getLocalizedLabelText('ObserverCameraPanel', 'elevationLabel.text', unitName);
+
+    // add property listeners
+    var controller = this.controller;
+    this.controller.addPropertyChangeListener('X', function (event) {
+      xInput.value = controller.getX();
+    });
+    this.controller.addPropertyChangeListener('Y', function (event) {
+      yInput.value = controller.getY();
+    });
+    this.controller.addPropertyChangeListener('ELEVATION', function (event) {
+      elevationInput.value = controller.getElevation();
+    });
+
+    // add change listeners
+    this.registerEventListener(
+        [xInput, yInput, elevationInput],
+        'input',
+        function () {
+          controller.setX(xInput.value != null && xInput.value != '' ? parseFloat(xInput.value) : null);
+          controller.setY(yInput.value != null && yInput.value != '' ? parseFloat(yInput.value) : null);
+          controller.setElevation(elevationInput.value != null && elevationInput.value != '' ? parseFloat(elevationInput.value) : null);
+        }
+    );
+  };
+
+  /**
+   * @private
+   */
+  JSObserverCameraDialogView.prototype.initAnglesPanel = function() {
+    var angleDecimalFormat = new DecimalFormat();
+    angleDecimalFormat.maximumFractionDigits = 1;
+
+    var yawInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('yaw-input'), {
+      nullable: this.controller.getYaw() == null,
+      format: angleDecimalFormat,
+      step: 5,
+      min: -10000,
+      max: 10000,
+      value: Math.toDegrees(this.controller.getYaw())
+    });
+
+    var pitchInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('pitch-input'), {
+      nullable: this.controller.getPitch() == null,
+      format: angleDecimalFormat,
+      step: 5,
+      min: -90,
+      max: 90,
+      value: Math.toDegrees(this.controller.getPitch())
+    });
+
+    var fieldOfViewInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('field-of-view-input'), {
+      nullable: this.controller.getFieldOfView() == null,
+      format: angleDecimalFormat,
+      step: 1,
+      min: 2,
+      max: 120,
+      value: Math.toDegrees(this.controller.getFieldOfView())
+    });
+
+    // add property listeners
+    var controller = this.controller;
+    this.controller.addPropertyChangeListener('YAW', function (event) {
+      yawInput.value = Math.toDegrees(this.controller.getYaw());
+    });
+    this.controller.addPropertyChangeListener('PITCH', function (event) {
+      pitchInput.value = Math.toDegrees(this.controller.getPitch());
+    });
+    this.controller.addPropertyChangeListener('FIELD_OF_VIEW', function (event) {
+      fieldOfViewInput.value = Math.toDegrees(this.controller.getFieldOfView());
+    });
+
+    // add change listeners
+    this.registerEventListener(
+        [yawInput, pitchInput, fieldOfViewInput],
+        'input',
+        function () {
+          controller.setYaw(yawInput.value != null && yawInput.value != '' ? Math.toRadians(parseFloat(yawInput.value)) : null);
+          controller.setPitch(pitchInput.value != null && pitchInput.value != '' ? Math.toRadians(parseFloat(pitchInput.value)) : null);
+          controller.setFieldOfView(fieldOfViewInput.value != null && fieldOfViewInput.value != '' ? Math.toRadians(parseFloat(fieldOfViewInput.value)) : null);
+        }
+    );
+  };
+
+  return new JSObserverCameraDialogView();
 }
 
-JSViewFactory.prototype.createHome3DAttributesView = function(preferences, home3DAttributesController) {
-  return dummyDialogView;
+JSViewFactory.prototype.createHome3DAttributesView = function(preferences, controller) {
+  var viewFactory = this;
+
+  function JSHome3DAttributesDialogView() {
+    this.controller = controller;
+
+    JSDialogView.call(
+        this,
+        viewFactory,
+        preferences,
+        '${Home3DAttributesPanel.home3DAttributes.title}',
+        document.getElementById("home-3Dattributes-dialog-template"),
+        {
+          size: 'small',
+          initializer: function (dialog) {
+            dialog.initGroundPanel();
+            dialog.initSkyPanel();
+            dialog.initRenderingPanel();
+          },
+          applier: function(dialog) {
+            dialog.controller.modify3DAttributes();
+          },
+          disposer: function(dialog) {
+            dialog.groundPanel.colorSelector.dispose();
+            dialog.groundPanel.textureSelector.dispose();
+            dialog.skyPanel.colorSelector.dispose();
+            dialog.skyPanel.textureSelector.dispose();
+          }
+        });
+  }
+
+  JSHome3DAttributesDialogView.prototype = Object.create(JSDialogView.prototype);
+  JSHome3DAttributesDialogView.prototype.constructor = JSHome3DAttributesDialogView;
+
+  /**
+   * @private
+   */
+  JSHome3DAttributesDialogView.prototype.initGroundPanel = function() {
+    var controller = this.controller;
+    var viewFactory = this.viewFactory;
+    var dialog = this;
+
+    var paintRadioColor = dialog.findElement('[name="ground-color-and-texture-choice"][value="COLORED"]');
+    var colorSelector = viewFactory.createColorSelector(preferences, {
+      onColorSelected: function(selectedColor) {
+        paintRadioColor.checked = true;
+
+        controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
+        controller.setGroundColor(selectedColor);
+      }
+    });
+    dialog.attachChildComponent('ground-color-selector-button', colorSelector)
+    colorSelector.set(controller.getGroundColor());
+
+    var paintRadioTexture = dialog.findElement('[name="ground-color-and-texture-choice"][value="TEXTURED"]');
+    var textureSelector = controller.getGroundTextureController().getView();
+    textureSelector.onTextureSelected = function(texture) {
+      paintRadioTexture.checked = true;
+      controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
+      controller.getGroundTextureController().setTexture(texture);
+    };
+    dialog.attachChildComponent('ground-texture-selector-button', textureSelector);
+    textureSelector.set(controller.getGroundTextureController().getTexture());
+
+    var radioButtons = [paintRadioColor, paintRadioTexture];
+    dialog.registerEventListener(radioButtons, 'input', function() {
+      if (this.checked) {
+        controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint[this.value]);
+      }
+    });
+
+    function setPaintFromController() {
+      paintRadioColor.checked = controller.getGroundPaint() == Home3DAttributesController.EnvironmentPaint.COLORED;
+      paintRadioTexture.checked = controller.getGroundPaint() == Home3DAttributesController.EnvironmentPaint.TEXTURED;
+    }
+    setPaintFromController();
+    controller.addPropertyChangeListener('GROUND_PAINT', setPaintFromController);
+    controller.addPropertyChangeListener('GROUND_COLOR', function() {
+      colorSelector.set(controller.getGroundColor());
+    });
+
+    var backgroundImageVisibleOnGround3DCheckBox = this.getElement('background-image-visible-on-ground-3D-checkbox');
+    backgroundImageVisibleOnGround3DCheckBox.checked = controller.isBackgroundImageVisibleOnGround3D();
+    this.registerEventListener(backgroundImageVisibleOnGround3DCheckBox, 'input', function() {
+        controller.setBackgroundImageVisibleOnGround3D(backgroundImageVisibleOnGround3DCheckBox.checked);
+    });
+    controller.addPropertyChangeListener('BACKGROUND_IMAGE_VISIBLE_ON_GROUND_3D', function() {
+      backgroundImageVisibleOnGround3DCheckBox.checked = controller.isBackgroundImageVisibleOnGround3D();
+    });
+
+    this.groundPanel = {
+      colorSelector: colorSelector,
+      textureSelector: textureSelector,
+    };
+  };
+
+  /**
+   * @private
+   */
+  JSHome3DAttributesDialogView.prototype.initSkyPanel = function() {
+    var controller = this.controller;
+    var viewFactory = this.viewFactory;
+    var dialog = this;
+
+    var paintRadioColor = dialog.findElement('[name="sky-color-and-texture-choice"][value="COLORED"]');
+    var colorSelector = viewFactory.createColorSelector(preferences, {
+      onColorSelected: function(selectedColor) {
+        paintRadioColor.checked = true;
+
+        controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.COLORED);
+        controller.setSkyColor(selectedColor);
+      }
+    });
+    dialog.attachChildComponent('sky-color-selector-button', colorSelector)
+    colorSelector.set(controller.getSkyColor());
+
+    var paintRadioTexture = dialog.findElement('[name="sky-color-and-texture-choice"][value="TEXTURED"]');
+    var textureSelector = controller.getSkyTextureController().getView();
+    textureSelector.onTextureSelected = function(texture) {
+      paintRadioTexture.checked = true;
+      controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
+      controller.getSkyTextureController().setTexture(texture);
+    };
+    dialog.attachChildComponent('sky-texture-selector-button', textureSelector);
+    textureSelector.set(controller.getSkyTextureController().getTexture());
+
+    var radioButtons = [paintRadioColor, paintRadioTexture];
+    dialog.registerEventListener(radioButtons, 'input', function() {
+      if (this.checked) {
+        controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint[this.value]);
+      }
+    });
+
+    function setPaintFromController() {
+      paintRadioColor.checked = controller.getSkyPaint() == Home3DAttributesController.EnvironmentPaint.COLORED;
+      paintRadioTexture.checked = controller.getSkyPaint() == Home3DAttributesController.EnvironmentPaint.TEXTURED;
+    }
+    setPaintFromController();
+    controller.addPropertyChangeListener('SKY_PAINT', setPaintFromController);
+    controller.addPropertyChangeListener('SKY_COLOR', function() {
+      colorSelector.set(controller.getSkyColor());
+    });
+
+    this.skyPanel = {
+      colorSelector: colorSelector,
+      textureSelector: textureSelector,
+    }
+  };
+
+  /**
+   * @private
+   */
+  JSHome3DAttributesDialogView.prototype.initRenderingPanel = function() {
+    var controller = this.controller;
+
+    var brightnessSlider = this.getElement('brightness-slider');
+    var brightnessList = this.findElement('#home-3Dattributes-brightness-list');
+
+    var wallsTransparencySlider = this.getElement('walls-transparency-slider');
+    var wallsTransparencyList = this.findElement('#home-3Dattributes-walls-transparency-list');
+
+    for (var i = 0; i <= 255; i+= 17) {
+      var option = document.createElement('option');
+      option.value = i;
+      brightnessList.appendChild(option);
+      wallsTransparencyList.appendChild(option.cloneNode());
+    }
+
+    brightnessSlider.value = controller.getLightColor() & 0xFF;
+    wallsTransparencySlider.value = controller.getWallsAlpha() * 255;
+
+    this.registerEventListener(brightnessSlider, 'input', function() {
+      var brightness = this.value;
+      controller.setLightColor((brightness << 16) + (brightness << 8) + brightness);
+    });
+    this.registerEventListener(wallsTransparencySlider, 'input', function() {
+      controller.setWallsAlpha(this.value / 255);
+    });
+
+    controller.addPropertyChangeListener('LIGHT_COLOR', function() {
+      brightnessSlider.value = controller.getLightColor() & 0xFF;
+    });
+    controller.addPropertyChangeListener('WALLS_ALPHA', function() {
+      wallsTransparencySlider.value = controller.getWallsAlpha() * 255;
+    });
+  };
+
+  return new JSHome3DAttributesDialogView();
 }
 
 /**

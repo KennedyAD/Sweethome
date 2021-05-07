@@ -1214,15 +1214,15 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
     build: function(builder) {
 
       builder.addItem(homePane.getAction(ActionType.UNDO));
-      
+
       builder.addSeparator();
-      
+
       builder.addItem(homePane.getAction(ActionType.CUT));
       builder.addItem(homePane.getAction(ActionType.COPY));
       builder.addItem(homePane.getAction(ActionType.PASTE));
-      
+
       builder.addSeparator();
-      
+
       builder.addItem(homePane.getAction(ActionType.SELECT_ALL));
 
       builder.addSeparator();
@@ -1248,7 +1248,7 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
         builder.addItem(homePane.getAction(ActionType.TOGGLE_BOLD_STYLE));
         builder.addItem(homePane.getAction(ActionType.TOGGLE_ITALIC_STYLE));
       });
-            
+
       builder.addSeparator();
       builder.addItem(homePane.getAction(ActionType.MODIFY_LEVEL));
 
@@ -1256,7 +1256,18 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
 
       builder.addItem(homePane.getAction(ActionType.ZOOM_OUT));
       builder.addItem(homePane.getAction(ActionType.ZOOM_IN));
-      
+
+    }
+  });
+
+  // 3D view context menu
+  var home3DView = this.controller.getHomeController3D().getView();
+  this.home3DMenu = new JSContextMenu(this.preferences, home3DView.getHTMLElement(), {
+    build: function(builder) {
+
+      // TODO add remaining items
+      builder.addItem(homePane.getAction(ActionType.MODIFY_3D_ATTRIBUTES));
+
     }
   });
 }

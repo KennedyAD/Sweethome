@@ -235,7 +235,7 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
   this.onCatalogTextureSelected(this.selectedTextureModel.catalogTexture);
   this.xOffsetInput.value = this.selectedTextureModel.xOffset * 100;
   this.yOffsetInput.value = this.selectedTextureModel.yOffset * 100;
-  this.angleInput.value = Math.round(/* toDegrees */ (function (x) { return x * 180 / Math.PI; })(this.selectedTextureModel.angleInRadians));
+  this.angleInput.value = Math.toDegrees(this.selectedTextureModel.angleInRadians);
   this.scaleInput.value = this.selectedTextureModel.scale * 100;
   this.onTextureTransformConfigurationChanged();
 };
@@ -271,7 +271,7 @@ JSTextureSelectorDialog.prototype.onTextureTransformConfigurationChanged = funct
 
   this.selectedTextureModel.xOffset = this.xOffsetInput.value / 100;
   this.selectedTextureModel.yOffset = this.yOffsetInput.value / 100;
-  this.selectedTextureModel.angleInRadians = /* toRadians */ (function (x) { return x * Math.PI / 180; })(this.angleInput.value);
+  this.selectedTextureModel.angleInRadians = Math.toRadians(this.angleInput.value);
   this.selectedTextureModel.scale = this.scaleInput.value / 100;
 
   var cssTransform = 

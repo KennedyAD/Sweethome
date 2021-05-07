@@ -421,6 +421,13 @@ UUID.randomUUID = function() {
   
 }
 
+Math.toDegrees = function (x) {
+  return x * 180 / Math.PI;
+}
+
+Math.toRadians = function (x) {
+  return x * Math.PI / 180;
+}
 
 /**
  * KeyStroke class.
