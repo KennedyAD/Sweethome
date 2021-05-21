@@ -68,7 +68,7 @@ input, textarea, keygen, select, button {
   text-align: right;
 }
 
-.spinner input {
+.spinner input[type="text"] {
   width: calc(100% - 2px);
   box-sizing: border-box;
 }
@@ -895,7 +895,7 @@ input, textarea, keygen, select, button {
   cursor: pointer;
 }
 
-.dialog-body input:not([type="radio"]):not([type="checkbox"]) {
+.dialog-body :not(.spinner) > input:not([type="radio"]):not([type="checkbox"]) {
   width: 12em;
 }
 

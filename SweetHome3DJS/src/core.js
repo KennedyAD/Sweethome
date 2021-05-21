@@ -643,11 +643,17 @@ function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decima
       // Remove grouping separator
       formattedNumber = formattedNumber.replace(/\,/g, "");
     } 
-  } 
-  
+  }
+
   formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
+  if (options.negativePrefix !== undefined) {
+    formattedNumber = formattedNumber.replace("-", options.negativePrefix);
+  }
   if (minusSign !== undefined) {
     formattedNumber = formattedNumber.replace("-", minusSign);
+  }
+  if (number > 0 && options.positivePrefix !== undefined) {
+    formattedNumber = options.positivePrefix + formattedNumber;
   }
   return formattedNumber;
 }
@@ -661,15 +667,30 @@ function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decima
  * @returns the parsed number or <code>null</code> if the string can't be parsed 
  * @ignore
  */
-function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition) {
+function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition, positivePrefix, negativePrefix) {
   var integer = parsePosition === undefined;
   if (integer) {
     // 4 parameters 
     parsePosition = minusSign;
     minusSign = decimalSeparator;
   }
-  
-  string = string.substring(parsePosition.getIndex(), string.length).replace(minusSign, "-");
+  if (!positivePrefix) {
+    positivePrefix = '';
+  }
+  if (!negativePrefix) {
+    negativePrefix = '';
+  }
+
+  string = string.substring(parsePosition.getIndex(), string.length);
+
+  if (string.indexOf(minusSign) >= 0) {
+    string = string.replace(minusSign, "-");
+  } else if (string.indexOf(positivePrefix) === 0) {
+    string = string.substring(positivePrefix.length);
+  } else if (string.indexOf(negativePrefix) === 0) {
+    string = string.replace(negativePrefix, "-");
+  }
+
   if (!integer) {
     string = string.replace(decimalSeparator, ".");
   }
@@ -693,19 +714,39 @@ function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition
  * A Format for numbers.
  * Inspired by java.text.DecimalFormat
  *
+ * @param {string} [pattern] partial support of pattern defined here https://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html
+ *
  * @constructor
  * @extends Format
  * @author Louis Grignon
  */
-function DecimalFormat() {
+function DecimalFormat(pattern) {
   Format.call(this);
 
-  // TODO LOUIS how to retrieve localized decimal separator? grouping config? IMHO It should be available on Locale 
-  this.decimalSeparator = '.';
-  this.minusSign = '-';
-  this.maximumFractionDigits = 2;
-  this.groupingSeparator = ' ';
   this.groupingUsed = false;
+  this.maximumFractionDigits = 2;
+  this.checkLocaleChange();
+
+  this.positivePrefix = '';
+  this.negativePrefix = '';
+  if (pattern && pattern.trim() != '') {
+    var patternParts = pattern.split(';');
+
+    var fractionDigitsMatch = patternParts[0].match(/[.]([0]+)/);
+    if (fractionDigitsMatch.length > 1) {
+      this.maximumFractionDigits = fractionDigitsMatch[1].length;
+    }
+
+    if (patternParts.length > 1) {
+      var part = patternParts[0].trim();
+      this.positivePrefix = part.substring(0, part.indexOf('#') == -1 ? part.indexOf('0') : part.indexOf('#'));
+      part = patternParts[1].trim();
+      this.negativePrefix = part.substring(0, part.indexOf('#') == -1 ? part.indexOf('0') : part.indexOf('#'));
+    } else {
+      var part = patternParts[0].trim();
+      this.positivePrefix = this.negativePrefix = part.substring(0, part.indexOf('#') == -1 ? part.indexOf('0') : part.indexOf('#'));
+    }
+  }
 }
 DecimalFormat.prototype = Object.create(Format.prototype);
 DecimalFormat.prototype.constructor = DecimalFormat;
@@ -714,15 +755,19 @@ DecimalFormat.prototype.format = function(number) {
   if (number == null) {
     return '';
   }
+  this.checkLocaleChange();
 
   var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign, { 
-    maximumFractionDigits: this.maximumFractionDigits
+    maximumFractionDigits: this.maximumFractionDigits,
+    positivePrefix: this.positivePrefix,
+    negativePrefix: this.negativePrefix,
   }); 
   return formattedNumber;
 }
 
 DecimalFormat.prototype.parse = function(text, parsePosition) {
-  var number = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, parsePosition);
+  this.checkLocaleChange();
+  var number = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, parsePosition, this.positivePrefix, this.negativePrefix);
   if (number === null) {
     return null;
   } else {
@@ -736,6 +781,38 @@ DecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
 
 DecimalFormat.prototype.isGroupingUsed = function() {
   return this.groupingUsed;
+}
+
+DecimalFormat.prototype.setPositivePrefix = function(positivePrefix) {
+  this.positivePrefix = positivePrefix;
+}
+
+DecimalFormat.prototype.getPositivePrefix = function() {
+  return this.positivePrefix;
+}
+
+DecimalFormat.prototype.setNegativePrefix = function(negativePrefix) {
+  this.negativePrefix = negativePrefix;
+}
+
+DecimalFormat.prototype.getNegativePrefix = function() {
+  return this.negativePrefix;
+}
+
+/**
+ * @protected
+ */
+DecimalFormat.prototype.checkLocaleChange = function() {
+  // Instantiate format if locale changed
+  if (Locale.getDefault() != this.formatLocale) {
+
+    this.formatLocale = Locale.getDefault();
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+
+    this.groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
+    this.decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
+    this.minusSign = CoreTools.getStringFromKey(resource, "minusSign");
+  }
 }
 
 /**
@@ -755,6 +832,7 @@ IntegerFormat.prototype = Object.create(DecimalFormat.prototype);
 IntegerFormat.prototype.constructor = IntegerFormat;
 
 IntegerFormat.prototype.parse = function(text, parsePosition) {
+  this.checkLocaleChange();
   var number = DecimalFormat.prototype.parse.call(this, text, parsePosition);
   if (number === null) {
     return null;

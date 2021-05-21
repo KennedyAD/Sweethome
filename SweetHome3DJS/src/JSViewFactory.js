@@ -2896,8 +2896,209 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
   );
 }
 
-JSViewFactory.prototype.createCompassView = function(preferences, compassController) {
-  return dummyDialogView;
+/**
+ * @param {UserPreferences} preferences
+ * @param {CompassController} controller
+ * @return {JSCompassDialogView}
+ */
+JSViewFactory.prototype.createCompassView = function(preferences, controller) {
+  var viewFactory = this;
+
+  function JSCompassDialogView() {
+    this.controller = controller;
+
+    JSDialogView.call(
+        this,
+        viewFactory,
+        preferences,
+        '${CompassPanel.compass.title}',
+        document.getElementById("compass-dialog-template"),
+        {
+          size: 'medium',
+          initializer: function (dialog) {
+            dialog.initRosePanel();
+            dialog.initGeographicLocationPanel();
+          },
+          applier: function(dialog) {
+            dialog.controller.modifyCompass();
+          }
+        });
+  }
+
+  JSCompassDialogView.prototype = Object.create(JSDialogView.prototype);
+  JSCompassDialogView.prototype.constructor = JSCompassDialogView;
+
+  /**
+   * @private
+   */
+  JSCompassDialogView.prototype.initRosePanel = function() {
+    var preferences = this.preferences;
+    var controller = this.controller;
+
+    var maximumLength = preferences.getLengthUnit().getMaximumLength();
+
+    var xLabel = this.getElement('x-label');
+    var xInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('x-input'), {
+      nullable: controller.getX() == null,
+      format: preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+      min: -maximumLength,
+      max: maximumLength,
+    });
+
+    var yLabel = this.getElement('y-label');
+    var yInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('y-input'), {
+      nullable: controller.getY() == null,
+      format: preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+      min: -maximumLength,
+      max: maximumLength,
+    });
+
+    var diameterLabel = this.getElement('diameter-label');
+    var diameterInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('diameter-input'), {
+      nullable: controller.getDiameter() == null,
+      format: preferences.getLengthUnit().getFormat(),
+      step: this.getLengthInputStepSize(),
+      min: preferences.getLengthUnit().getMinimumLength(),
+      max: preferences.getLengthUnit().getMaximumLength()  / 10
+    });
+
+    // set values
+    xInput.value = controller.getX();
+    yInput.value = controller.getY();
+    diameterInput.value = controller.getDiameter();
+
+    // set labels
+    var unitName = this.preferences.getLengthUnit().getName();
+    xLabel.textContent = this.getLocalizedLabelText('CompassPanel', 'xLabel.text', unitName);
+    yLabel.textContent = this.getLocalizedLabelText('CompassPanel', 'yLabel.text', unitName);
+    diameterLabel.textContent = this.getLocalizedLabelText('CompassPanel', 'diameterLabel.text', unitName);
+
+    // add property listeners
+    var controller = this.controller;
+    this.controller.addPropertyChangeListener('X', function (event) {
+      xInput.value = controller.getX();
+    });
+    this.controller.addPropertyChangeListener('Y', function (event) {
+      yInput.value = controller.getY();
+    });
+    this.controller.addPropertyChangeListener('DIAMETER', function (event) {
+      diameterInput.value = controller.getDiameter();
+    });
+
+    // add change listeners
+    this.registerEventListener(
+        [xInput, yInput, diameterInput],
+        'input',
+        function () {
+          controller.setX(xInput.value != null && xInput.value != '' ? parseFloat(xInput.value) : null);
+          controller.setY(yInput.value != null && yInput.value != '' ? parseFloat(yInput.value) : null);
+          controller.setDiameter(diameterInput.value != null && diameterInput.value != '' ? parseFloat(diameterInput.value) : null);
+        }
+    );
+
+    var visibleCheckBox = this.getElement('visible-checkbox');
+    visibleCheckBox.checked = controller.isVisible();
+    this.registerEventListener(visibleCheckBox, 'input', function() {
+      controller.setVisible(visibleCheckBox.checked);
+    });
+    controller.addPropertyChangeListener('VISIBLE', function(event) {
+      visibleCheckBox.checked = controller.isVisible();
+    });
+  };
+
+  /**
+   * @private
+   */
+  JSCompassDialogView.prototype.initGeographicLocationPanel = function() {
+    var preferences = this.preferences;
+    var controller = this.controller;
+
+    var latitudeInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('latitude-input'), {
+      nullable: controller.getLatitudeInDegrees() == null,
+      format: new DecimalFormat("N ##0.000;S ##0.000"),
+      min: -90,
+      max: 90,
+      step: 5,
+    });
+
+    var longitudeInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('longitude-input'), {
+      nullable: controller.getLongitudeInDegrees() == null,
+      format: new DecimalFormat("E ##0.000;W ##0.000"),
+      min: -180,
+      max: 180,
+      step: 5,
+    });
+
+    var northDirectionInput = new JSSpinner(this.viewFactory, this.preferences, this.getElement('north-direction-input'), {
+      nullable: controller.getNorthDirectionInDegrees() == null,
+      format: new IntegerFormat(),
+      min: 0,
+      max: 360,
+      step: 5,
+    });
+    northDirectionInput.getRootNode().style.width = '3em';
+    northDirectionInput.style.verticalAlign = 'super';
+
+    // set values
+    latitudeInput.value = controller.getLatitudeInDegrees();
+    longitudeInput.value = controller.getLongitudeInDegrees();
+    northDirectionInput.value = controller.getNorthDirectionInDegrees();
+
+    // add property listeners
+    controller.addPropertyChangeListener('LATITUDE_IN_DEGREES', function (event) {
+      latitudeInput.value = controller.getLatitudeInDegrees();
+    });
+    controller.addPropertyChangeListener('LONGITUDE_IN_DEGREES', function (event) {
+      longitudeInput.value = controller.getLongitudeInDegrees();
+    });
+    controller.addPropertyChangeListener('NORTH_DIRECTION_IN_DEGREES', function (event) {
+      northDirectionInput.value = controller.getNorthDirectionInDegrees();
+    });
+
+    // add change listeners
+    this.registerEventListener(
+        [latitudeInput, longitudeInput, northDirectionInput],
+        'input',
+        function () {
+          controller.setLatitudeInDegrees(latitudeInput.value != null && latitudeInput.value != '' ? parseFloat(latitudeInput.value) : null);
+          controller.setLongitudeInDegrees(longitudeInput.value != null && longitudeInput.value != '' ? parseFloat(longitudeInput.value) : null);
+          controller.setNorthDirectionInDegrees(northDirectionInput.value != null && northDirectionInput.value != '' ? parseFloat(northDirectionInput.value) : null);
+          updateOverview();
+        }
+    );
+
+    var compassOverviewCanvas = this.getElement('compass-overview');
+    compassOverviewCanvas.width = 140;
+    compassOverviewCanvas.height = 140;
+    compassOverviewCanvas.style.verticalAlign = 'middle';
+
+    compassOverviewCanvas.style.width = '35px';
+
+    var compassOverviewCanvasContext = compassOverviewCanvas.getContext('2d');
+    var canvasGraphics = new Graphics2D(compassOverviewCanvas);
+
+    var updateOverview = function () {
+      canvasGraphics.clear();
+      var previousTransform = canvasGraphics.getTransform();
+      canvasGraphics.translate(70, 70);
+      canvasGraphics.scale(100, 100);
+
+      canvasGraphics.setColor('#000000');
+      canvasGraphics.fill(PlanComponent.COMPASS);
+      canvasGraphics.setTransform(previousTransform);
+
+      if (controller.getNorthDirectionInDegrees() == 0 || controller.getNorthDirectionInDegrees() == null) {
+        compassOverviewCanvas.style.transform = '';
+      } else {
+        compassOverviewCanvas.style.transform = 'rotate(' + controller.getNorthDirectionInDegrees() + 'deg)';
+      }
+    }
+    updateOverview();
+  };
+
+  return new JSCompassDialogView();
 }
 
 JSViewFactory.prototype.createObserverCameraView = function(preferences, controller) {

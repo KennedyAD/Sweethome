@@ -2050,6 +2050,45 @@ name-visible-checkbox
   </div>
 </div>
 
+<div id="compass-dialog-template" class="dialog-template">
+  <div class="compass-dialog">
+
+    <h3 class="card">${CompassPanel.compassRosePanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-label" class="label-cell"></span>
+      <span data-name="x-input"></span>
+
+      <label class="label-and-input">
+        <input name="visible-checkbox" type="checkbox" />
+        <span>${CompassPanel.visibleCheckBox.text}</span>
+      </label>
+
+      <span data-name="y-label" class="label-cell"></span>
+      <span data-name="y-input"></span>
+
+      <span data-name="diameter-label" class="label-cell"></span>
+      <span data-name="diameter-input"></span>
+    </div>
+    <br />
+
+    <h3 class="card">${CompassPanel.geographicLocationPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span class="label-cell">${CompassPanel.latitudeLabel.text}</span>
+      <span data-name="latitude-input"></span>
+
+      <span class="label-cell">${CompassPanel.northDirectionLabel.text}</span>
+      <span>
+        <span data-name="north-direction-input"></span>
+        <canvas data-name="compass-overview">
+        </canvas>
+      </span>
+
+      <span class="label-cell">${CompassPanel.longitudeLabel.text}</span>
+      <span data-name="longitude-input"></span>
+    </div>
+
+  </div>
+</div>
 <div id="level-dialog-template" class="dialog-template">
 
   <div class="level-dialog">
