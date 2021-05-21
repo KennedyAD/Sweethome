@@ -661,13 +661,15 @@ function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decima
 /**
  * Returns the number parsed from the given string and updates parse position.
  * @param {string} string
+ * @param {ParsePosition} parsePosition
  * @param {string} [decimalSeparator] if omitted the string only integer is parsed
  * @param {string} minusSign
- * @param {ParsePosition} parsePosition
+ * @param {string} [positivePrefix] optionally specify a prefix before positive numbers which should be ignored for parsing (default: '')
+ * @param {string} [negativePrefix] optionally specify a prefix before negative numbers which should be ignored for parsing (default: '')
  * @returns the parsed number or <code>null</code> if the string can't be parsed 
  * @ignore
  */
-function parseLocalizedNumber(string, decimalSeparator, minusSign, parsePosition, positivePrefix, negativePrefix) {
+function parseLocalizedNumber(string, parsePosition, decimalSeparator, minusSign, positivePrefix, negativePrefix) {
   var integer = parsePosition === undefined;
   if (integer) {
     // 4 parameters 
@@ -767,7 +769,7 @@ DecimalFormat.prototype.format = function(number) {
 
 DecimalFormat.prototype.parse = function(text, parsePosition) {
   this.checkLocaleChange();
-  var number = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, parsePosition, this.positivePrefix, this.negativePrefix);
+  var number = parseLocalizedNumber(text, parsePosition, this.decimalSeparator, this.minusSign, this.positivePrefix, this.negativePrefix);
   if (number === null) {
     return null;
   } else {

@@ -460,7 +460,7 @@ MeterFamilyFormat.prototype.format = function(number) {
 }
 
 MeterFamilyFormat.prototype.parse = function(text, parsePosition) {
-  var number = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, parsePosition);
+  var number = parseLocalizedNumber(text, parsePosition, this.decimalSeparator, this.minusSign);
   if (number === null) {
     return null;
   } else {
@@ -567,7 +567,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
       && text.charAt(numberPosition.getIndex()) === this.minusSign;
   var footValue = false;
   if (quoteIndex !== -1) {
-    var feet = parseLocalizedNumber(text, this.minusSign, numberPosition); 
+    var feet = parseLocalizedNumber(text, numberPosition, this.minusSign);
     if (feet === null) {
       parsePosition.setErrorIndex(numberPosition.getErrorIndex());
       return null;
@@ -591,7 +591,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
     } else {
       if (this.decimalSeparator === text.charAt(numberPosition.getIndex())) {
         var decimalNumberPosition = new ParsePosition(parsePosition.getIndex());
-        if (parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, decimalNumberPosition) !== null
+        if (parseLocalizedNumber(text, decimalNumberPosition, this.decimalSeparator, this.minusSign) !== null
             && decimalNumberPosition.getIndex() === quoteIndex) {
           // Don't allow a decimal number in front of a quote
           parsePosition.setErrorIndex(numberPosition.getErrorIndex());
@@ -604,7 +604,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
   }
     
   // Parse inches
-  var inches = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, numberPosition);
+  var inches = parseLocalizedNumber(text, numberPosition, this.decimalSeparator, this.minusSign);
   if (inches === null) {
     if (footValue) {
       parsePosition.setIndex(numberPosition.getIndex());
@@ -729,7 +729,7 @@ InchDecimalFormat.prototype.parse = function(text, parsePosition) {
   var numberPosition = new ParsePosition(parsePosition.getIndex());
   this.skipWhiteSpaces(text, numberPosition);
   // Parse inches
-  var inches = parseLocalizedNumber(text, this.decimalSeparator, this.minusSign, numberPosition);
+  var inches = parseLocalizedNumber(text, numberPosition, this.decimalSeparator, this.minusSign);
   if (inches === null) {
     parsePosition.setErrorIndex(numberPosition.getErrorIndex());
     return null;
