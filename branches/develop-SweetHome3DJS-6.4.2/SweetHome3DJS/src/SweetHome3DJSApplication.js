@@ -695,3 +695,15 @@ ImportedTextureWizardController.prototype.addPropertyChangeListener = function (
   WizardController.prototype.addPropertyChangeListener.call(this, property, listener);
   return this.addPropertyChangeListener$com_eteks_sweethome3d_viewcontroller_ImportedTextureWizardController_Property$java_beans_PropertyChangeListener(property, listener);
 };
+
+HomeController.prototype.deleteCameras = function () {
+  /** @type {HomeController} */
+  var controller = this;
+  /** @type {HomePane} */
+  var homePane = this.getView();
+  homePane.showDeletedCamerasDialog(function(deletedCameraList) {
+    if (deletedCameraList != null) {
+      controller.getHomeController3D().deleteCameras(deletedCameraList);
+    }
+  });
+};

@@ -1194,6 +1194,7 @@ HomePane.prototype.createToolBar = function(home, preferences) {
  */
 HomePane.prototype.createContextMenus = function(home, preferences) {
   var homePane = this;
+  var controller = this.controller;
   var ActionType = HomeView.ActionType;
   
   // Catalog view context menu
@@ -1265,9 +1266,29 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   this.home3DMenu = new JSContextMenu(this.preferences, home3DView.getHTMLElement(), {
     build: function(builder) {
 
-      // TODO add remaining items
-      builder.addItem(homePane.getAction(ActionType.MODIFY_3D_ATTRIBUTES));
+      builder.addItem(homePane.getAction(ActionType.STORE_POINT_OF_VIEW));
 
+      var storedCameras = home.getStoredCameras();
+      if (storedCameras.length > 0) {
+        var goToPointOfViewAction = homePane.getMenuAction(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
+        if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
+          builder.addSubMenu(goToPointOfViewAction, function(builder) {
+            var storedCameras = home.getStoredCameras();
+            for (var i = 0; i < storedCameras.length; i++) {
+              (function(camera) {
+                builder.addItem(
+                    camera.getName(),
+                    function() { controller.getHomeController3D().goToCamera(camera) });
+              }) (storedCameras[i]);
+            }
+          });
+        }
+        builder.addItem(homePane.getAction(ActionType.DELETE_POINTS_OF_VIEW));
+      }
+
+      builder.addSeparator();
+
+      builder.addItem(homePane.getAction(ActionType.MODIFY_3D_ATTRIBUTES));
     }
   });
 }
@@ -2192,22 +2213,95 @@ HomePane.prototype.confirmDeleteCatalogSelection = function() {
 
 /**
  * Displays a dialog that lets the user choose a name for the current camera.
- * @return {string} the chosen name or <code>null</code> if the user canceled.
- * @param {string} cameraName
+ * @return {null} the chosen name or <code>null</code> if the user canceled.
+ * @param {string} cameraName default name
  * @ignore
  */
 HomePane.prototype.showStoreCameraDialog = function(cameraName) {
-  return null;
+  return prompt(this.preferences.getLocalizedString('HomePane', 'showStoreCameraDialog.message'), cameraName);
 }
 
 /**
  * Displays a dialog showing the list of cameras stored in home
  * and returns the ones selected by the user to be deleted.
- * @return {Camera[]}
- * @ignore
+ * @param {function(Camera[])} callback
  */
-HomePane.prototype.showDeletedCamerasDialog = function() {
-  return [];
+HomePane.prototype.showDeletedCamerasDialog = function(callback) {
+  var pane = this;
+  var viewFactory = this.controller.viewFactory;
+  var storedCameras = this.home.getStoredCameras();
+
+  // 1. confirm dialog
+  function JSConfirmDeleteCamerasDialog() {
+    JSDialogView.call(
+        this,
+        viewFactory,
+        pane.preferences,
+        '${HomePane.showDeletedCamerasDialog.title}',
+        '<div>${HomePane.confirmDeleteCameras.message}</div>',
+        {
+          initializer: function(dialog) {},
+          applier: function(dialog) {
+            console.log('confirmed delete cameras', dialog.selectedCameras);
+            callback(dialog.selectedCameras);
+          },
+        });
+  }
+  JSConfirmDeleteCamerasDialog.prototype = Object.create(JSDialogView.prototype);
+  JSConfirmDeleteCamerasDialog.prototype.constructor = JSConfirmDeleteCamerasDialog;
+
+  JSConfirmDeleteCamerasDialog.prototype.appendButtons = function(buttonsPanel) {
+    buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
+        '<button class="dialog-cancel-button">${HomePane.confirmDeleteCameras.cancel}</button>' +
+        '<button class="dialog-ok-button">${HomePane.confirmDeleteCameras.delete}</button>'
+    );
+
+    var confirmDialog = this;
+    var cancelButton = this.findElement('.dialog-cancel-button');
+    this.registerEventListener(cancelButton, 'click', function() {
+      confirmDialog.cancel();
+    });
+    var okButtons = this.findElements('.dialog-ok-button');
+    this.registerEventListener(okButtons, 'click', function() {
+      confirmDialog.validate();
+    });
+  };
+
+  var html = '<div>${HomePane.showDeletedCamerasDialog.message}</div><br />';
+  for (var i = 0; i < storedCameras.length; i++) {
+    html += '<div><label><input type="checkbox" value="' + i + '" />' + storedCameras[i].getName() + '</label></div>';
+  }
+
+  function JSDeleteCamerasDialog() {
+    JSDialogView.call(
+      this,
+      viewFactory,
+      pane.preferences,
+      '${HomePane.showDeletedCamerasDialog.title}',
+      html,
+      {
+        initializer: function(dialog) {},
+        applier: function(dialog) {
+
+          var checkboxes = dialog.findElements('input[type="checkbox"]:checked');
+          var selectedCameras = [];
+          for (var i = 0; i < checkboxes.length; i++) {
+            var cameraIndex = parseInt(checkboxes[i].value);
+            var camera = storedCameras[cameraIndex];
+            selectedCameras.push(camera);
+          }
+
+          var confirmDialog = new JSConfirmDeleteCamerasDialog();
+          confirmDialog.selectedCameras = selectedCameras;
+          confirmDialog.displayView();
+        },
+      });
+  }
+  JSDeleteCamerasDialog.prototype = Object.create(JSDialogView.prototype);
+  JSDeleteCamerasDialog.prototype.constructor = JSDeleteCamerasDialog;
+
+  var dialog = new JSDeleteCamerasDialog();
+  dialog.displayView();
 }
 
 /**
