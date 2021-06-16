@@ -696,6 +696,15 @@ ImportedTextureWizardController.prototype.addPropertyChangeListener = function (
   return this.addPropertyChangeListener$com_eteks_sweethome3d_viewcontroller_ImportedTextureWizardController_Property$java_beans_PropertyChangeListener(property, listener);
 };
 
+/**
+ * Hack to fix invalid overload of addPropertyChangeListener in which property is enum in Java, and string in TypeScript
+ */
+// TODO LOUIS RENAUD JSweet generates overload based on Property enum which becomes a string, so overload resolution does not work at the end - a decent solution would be to enhance the SH3D JSweet adapter to resolve overload variant depending on Property names
+BackgroundImageWizardController.prototype.addPropertyChangeListener = function (property, listener) {
+  WizardController.prototype.addPropertyChangeListener.call(this, property, listener);
+  return this.addPropertyChangeListener$com_eteks_sweethome3d_viewcontroller_BackgroundImageWizardController_Property$java_beans_PropertyChangeListener(property, listener);
+};
+
 HomeController.prototype.deleteCameras = function () {
   /** @type {HomeController} */
   var controller = this;

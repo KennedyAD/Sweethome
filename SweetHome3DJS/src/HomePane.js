@@ -1251,6 +1251,13 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
       });
 
       builder.addSeparator();
+      builder.addItem(homePane.getAction(ActionType.IMPORT_BACKGROUND_IMAGE));
+      builder.addItem(homePane.getAction(ActionType.MODIFY_BACKGROUND_IMAGE));
+      builder.addItem(homePane.getAction(ActionType.HIDE_BACKGROUND_IMAGE));
+      builder.addItem(homePane.getAction(ActionType.SHOW_BACKGROUND_IMAGE));
+      builder.addItem(homePane.getAction(ActionType.DELETE_BACKGROUND_IMAGE));
+
+      builder.addSeparator();
       builder.addItem(homePane.getAction(ActionType.MODIFY_LEVEL));
 
       builder.addSeparator();
@@ -1339,8 +1346,8 @@ HomePane.prototype.initSplitter = function (splitterElement, firstGroupElements,
     event.stopImmediatePropagation();
     splitterElement.classList.remove('moving');
     window.removeEventListener('mousemove', mouseMove, true);
-    window.removeEventListener('mouseup', mouseUp, true);
     window.removeEventListener('touchmove', mouseMove, true);
+    window.removeEventListener('mouseup', mouseUp, true);
     window.removeEventListener('touchend', mouseUp, true);
   }
 

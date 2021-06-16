@@ -87,7 +87,7 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '    <hr />' +
     '    <div class="imported-textures-panel">' +
     '      <div><button import>${TextureChoiceComponent.importTextureButton.text}</button></div>' +  
-    '      <div style="display: none; /* feature switched off for now */"><button disabled modify>${TextureChoiceComponent.modifyTextureButton.text}</button></div>' +  
+    '      <div><button disabled modify>${TextureChoiceComponent.modifyTextureButton.text}</button></div>' +
     '      <div><button disabled delete>${TextureChoiceComponent.deleteTextureButton.text}</button></div>' +  
     '    </div>' +  
     '  </div>' + 
@@ -379,45 +379,6 @@ JSTextureSelectorDialog.prototype.initImportTexturesPanel = function() {
  * @return {boolean}
  */
 JSTextureSelectorDialog.prototype.confirmDeleteSelectedCatalogTexture = function() {
-  // TODO LOUIS This SH3D dialog won't work because this method expects a sync boolean return
-  // var textureDialog = this;
-  // function JSConfirmDialog() {
-  //   JSDialogView.call(
-  //     this, 
-  //     textureDialog.viewFactory, 
-  //     textureDialog.preferences, 
-  //     '${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.title}', 
-  //     '<div>${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.message}</div>',
-  //     {
-  //       initializer: function(dialog) {},
-  //       applier: function(dialog) {
-          
-  //       },
-  //     });
-  // }
-  // JSConfirmDialog.prototype = Object.create(JSDialogView.prototype);
-  // JSConfirmDialog.prototype.constructor = JSConfirmDialog;
-  
-  // JSConfirmDialog.prototype.appendButtons = function(buttonsPanel) {
-  //   buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, 
-  //     '<button class="dialog-cancel-button">${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.cancel}</button>' + 
-  //     '<button class="dialog-ok-button">${TextureChoiceComponent.confirmDeleteSelectedCatalogTexture.delete}</button>'
-  //   );
-
-  //   var confirmDialog = this;
-  //   var cancelButton = this.findElement('.dialog-cancel-button');
-  //   this.registerEventListener(cancelButton, 'click', function() {
-  //     confirmDialog.cancel();
-  //   });
-  //   var okButtons = this.findElements('.dialog-ok-button');
-  //   this.registerEventListener(okButtons, 'click', function() {
-  //     confirmDialog.validate();
-  //   });
-  // };
-
-  // var confirmDialog = new JSConfirmDialog();
-  // confirmDialog.displayView();
-
   // remove html tags from message because confirm does not support it
   var messageText = this.getLocalizedLabelText('TextureChoiceComponent', 'confirmDeleteSelectedCatalogTexture.message').replaceAll(/\<[^\>]*\>/g, ' ').replaceAll(/[ ]+/g, ' ');
   return confirm(messageText);

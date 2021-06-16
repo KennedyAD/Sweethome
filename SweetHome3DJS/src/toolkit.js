@@ -441,7 +441,9 @@ JSDialogView.prototype.close = function() {
   setTimeout(function() {
     dialog.rootNode.classList.remove('visible');
     dialog.dispose();
-    document.body.removeChild(dialog.rootNode);
+    if (dialog.rootNode && document.body.contains(dialog.rootNode)) {
+      document.body.removeChild(dialog.rootNode);
+    }
   }, 500);
 }
 
@@ -859,8 +861,10 @@ JSContextMenu.prototype.close = function() {
   this.getRootNode().classList.remove('visible');
   JSContextMenu.current = null;
 
-  for (var i = 0; i < this.listenerUnregisterCallbacks.length; i++) {
-    this.listenerUnregisterCallbacks[i]();
+  if (this.listenerUnregisterCallbacks) {
+    for (var i = 0; i < this.listenerUnregisterCallbacks.length; i++) {
+      this.listenerUnregisterCallbacks[i]();
+    }
   }
 
   this.listenerUnregisterCallbacks = null;
@@ -1073,14 +1077,6 @@ function JSSpinner(viewFactory, preferences, input, options) {
 
   checkMinMax(options.min, options.max);
 
-  function getDefaultValue() {
-    var defaultValue = 0;
-    if (options.min != null && options.min > defaultValue) {
-      defaultValue = options.min;
-    }
-    return defaultValue;
-  }
-
   /** @var {JSSpinner} */
   var component = this;
   JSComponentView.call(this, viewFactory, preferences, rootElement, {
@@ -1129,7 +1125,7 @@ function JSSpinner(viewFactory, preferences, input, options) {
         if (actualValue == null && !options.nullable) {
           var restoredValue = component.__value;
           if (restoredValue == null) {
-            restoredValue = getDefaultValue();
+            restoredValue = component.getDefaultValue();
           }
           actualValue = restoredValue;
         }
@@ -1196,12 +1192,12 @@ function JSSpinner(viewFactory, preferences, input, options) {
         throw new Error('JSSpinner: expected values of type number');
       }
       if (value == null && !options.nullable) {
-        value = getDefaultValue();
+        value = component.getDefaultValue();
       }
-      if (options.min != null && value < options.min) {
+      if (value != null && options.min != null && value < options.min) {
         value = options.min;
       }
-      if (options.max != null && value > options.max) {
+      if (value != null && options.max != null && value > options.max) {
         value = options.max;
       }
 
@@ -1247,8 +1243,32 @@ JSSpinner.prototype.refreshUI = function() {
  * @private
  */
 JSSpinner.prototype.parseFloatValueFromInput = function() {
+  if (!this.textInput.value || this.textInput.value.trim() == "") {
+    if (this.options.nullable) {
+      return null;
+    } else {
+      return this.getDefaultValue();
+    }
+  }
   return this.options.format.parse(this.textInput.value, new ParsePosition(0));
 };
+
+/**
+ *
+ * @return {number}
+ *
+ * @private
+ */
+JSSpinner.prototype.getDefaultValue = function() {
+  var defaultValue = 0;
+  if (this.options.min != null && this.options.min > defaultValue) {
+    defaultValue = this.options.min;
+  }
+  if (this.options.max != null && this.options.max < defaultValue) {
+    defaultValue = this.options.max;
+  }
+  return defaultValue;
+}
 
 /**
  * @param {number} value
@@ -1257,6 +1277,10 @@ JSSpinner.prototype.parseFloatValueFromInput = function() {
  * @private
  */
 JSSpinner.prototype.formatValueForUI = function(value) {
+  if (value == null) {
+    return "";
+  }
+
   if (!this.isFocused()) {
     return this.options.format.format(value);
   }
@@ -1298,11 +1322,8 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
 
   this.registerEventListener(component.incrementButton, 'click', function(event) {
     var previousValue = parseFloat(component.value);
-    if (previousValue == null) {
-      previousValue = options.min == null ? 0 : options.min;
-      if (options.max != null && previousValue >= options.max) {
-        previousValue = options.max - options.step;
-      }
+    if (previousValue == null || isNaN(previousValue)) {
+      previousValue = component.getDefaultValue();
     }
     component.value = previousValue + options.step;
     component.raiseInputEvent();
@@ -1310,11 +1331,8 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
 
   this.registerEventListener(component.decrementButton, 'click', function(event) {
     var previousValue = parseFloat(component.value);
-    if (previousValue == null) {
-      previousValue = options.max == null ? 0 : options.max;
-      if (options.min != null && previousValue <= options.min) {
-        previousValue = options.min + options.step;
-      }
+    if (previousValue == null || isNaN(previousValue)) {
+      previousValue = component.getDefaultValue();
     }
     component.value = previousValue - options.step;
     component.raiseInputEvent();
