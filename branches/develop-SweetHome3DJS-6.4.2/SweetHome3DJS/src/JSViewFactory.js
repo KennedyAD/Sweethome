@@ -44,6 +44,85 @@ JSViewFactory.dummyDialogView = {
   displayView: function(parent) { }
 };
 
+/**
+ * @param {JSViewFactory} viewFactory
+ * @param {Controller} controller
+ * @param {UserPreferences} preferences
+ * @param {string} title title of the dialog
+ * @param {string} message message to be displayed
+ * @param {string} cancelButtonMessage
+ * @param {string} keepUnchangedButtonMessage
+ * @param {string} okButtonMessage
+ * @param {function()} onResizeOptionSelected called when user selected "resize image" option
+ * @param {function()} onKeepSizeOptionSelected called when user selected "keep image unchanged" option
+ */
+function JSPromptImageResizeDialog(
+    viewFactory,
+    controller,
+    preferences,
+    title,
+    message,
+    cancelButtonMessage,
+    keepUnchangedButtonMessage,
+    okButtonMessage,
+    onResizeOptionSelected,
+    onKeepSizeOptionSelected
+) {
+  this.controller = controller;
+  this.preferences = preferences;
+
+  JSDialogView.call(
+    this,
+    viewFactory,
+    preferences,
+    JSComponentView.substituteWithLocale(this.preferences, title),
+    '<div>' +
+    JSComponentView.substituteWithLocale(this.preferences, message) +
+    '</div>',
+    {
+      initializer: function(dialog) {
+        dialog.cancelButtonMessage = JSComponentView.substituteWithLocale(this.preferences, cancelButtonMessage);
+        dialog.keepUnchangedButtonMessage = JSComponentView.substituteWithLocale(this.preferences, keepUnchangedButtonMessage);
+        dialog.okButtonMessage = JSComponentView.substituteWithLocale(this.preferences, okButtonMessage);
+      },
+      applier: function(dialog) {
+        if (dialog.resizeRequested) {
+          onResizeOptionSelected();
+        } else {
+          onKeepSizeOptionSelected();
+        }
+      },
+    });
+}
+JSPromptImageResizeDialog.prototype = Object.create(JSDialogView.prototype);
+JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
+
+/**
+ * Append dialog buttons to given panel
+ * @param {HTMLElement} buttonsPanel Dialog buttons panel
+ * @protected
+ */
+JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
+
+  buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
+      '<button class="dialog-cancel-button">' + this.cancelButtonMessage + '</button>' +
+      '<button class="keep-image-unchanged-button dialog-ok-button">' + this.keepUnchangedButtonMessage + '</button>' +
+      '<button class="dialog-ok-button">' + this.okButtonMessage + '</button>'
+  );
+
+  var dialog = this;
+
+  var cancelButton = this.findElement('.dialog-cancel-button');
+  this.registerEventListener(cancelButton, 'click', function() {
+    dialog.cancel();
+  });
+  var okButtons = this.findElements('.dialog-ok-button');
+  this.registerEventListener(okButtons, 'click', function(event) {
+    dialog.resizeRequested = !event.target.classList.contains('keep-image-unchanged-button');
+    dialog.validate();
+  });
+};
+
 JSViewFactory.prototype.createFurnitureCatalogView = function(catalog, preferences, furnitureCatalogController) {
   return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
 }
@@ -73,6 +152,7 @@ JSViewFactory.prototype.createWizardView = function(preferences, controller) {
   return new JSWizardDialog(this, controller, preferences, 
     controller.getTitle() || '${WizardPane.wizard.title}', 
     {
+      size: 'medium',
       initializer: function(dialog) {
         controller.addPropertyChangeListener('TITLE', function(event) {
           dialog.setTitle(controller.getTitle());
@@ -86,8 +166,615 @@ JSViewFactory.prototype.createWizardView = function(preferences, controller) {
   );
 }
 
-JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgroundImage, preferences, backgroundImageWizardController) {
-  return null;
+JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgroundImage, preferences, controller) {
+  var viewFactory = this;
+
+  var LARGE_IMAGE_PIXEL_COUNT_THRESHOLD = 10000000;
+  var LARGE_IMAGE_MAX_PIXEL_COUNT = 8000000;
+  var CANVAS_TOUCHABLE_AREA_RADIUS = 10;
+
+  function onImageLoadingError(error) {
+    console.warn('error loading image: ' + error);
+    alert(ResourceAction.getLocalizedLabelText(
+        dialog.preferences,
+        'BackgroundImageWizardStepsPanel',
+        'imageChoiceError'));
+  }
+
+  function JSBackgroundImageWizardStepsView() {
+    JSComponentView.call(
+      this,
+      viewFactory,
+      preferences,
+      '<div choiceStep>' +
+      '  <div description>${BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>' +
+      '  <div class="buttons">' +
+      '    <button selectImage></button>' +
+      '    <input type="file" accept="image/*" style="display: none" /> ' +
+      '  </div>' +
+      '  <div preview>' +
+      '    <img />' +
+      '  </div>' +
+      '</div>' +
+      '<div scaleStep>' +
+      '  <div>${BackgroundImageWizardStepsPanel.scaleLabel.text}</div>' +
+      '  <br />' +
+      '  <div>' +
+      '    <span data-name="scale-distance-label"></span>' +
+      '    <span data-name="scale-distance-input"></span>' +
+      '  </div>' +
+      '  <br />' +
+      '  <div class="preview-panel">' +
+      '    <div preview>' +
+      '      <canvas />' +
+      '    </div>' +
+      '    <div class="preview-controls">' +
+      '      <div previewZoomIn></div>' +
+      '      <br />' +
+      '      <div previewZoomOut></div>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>' +
+      '<div originStep>' +
+      '  <div>${BackgroundImageWizardStepsPanel.originLabel.text}</div>' +
+      '  <br />' +
+      '  <div>' +
+        '    <span data-name="x-origin-label"></span>' +
+        '    <span data-name="x-origin-input"></span>' +
+        '    <span data-name="y-origin-label"></span>' +
+        '    <span data-name="y-origin-input"></span>' +
+      '  </div>' +
+      '  <br />' +
+      '  <div class="preview-panel">' +
+      '    <div preview>' +
+        '      <canvas />' +
+      '    </div>' +
+      '    <div class="preview-controls">' +
+      '      <div previewZoomIn></div>' +
+      '      <br />' +
+      '      <div previewZoomOut></div>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>',
+      {
+        initializer: function (wizard) {
+          /**
+           * @type {JSBackgroundImageWizardStepsView}
+           */
+          var component = wizard;
+
+          component.controller = controller;
+          component.rootNode.classList.add('background-image-wizard');
+
+          component.initImageChoiceStep();
+          component.initScaleStep();
+          component.initOriginStep();
+
+          controller.addPropertyChangeListener('STEP', function(event) {
+            component.updateStep();
+          });
+          controller.addPropertyChangeListener('IMAGE', function(event) {
+            component.updateImagePreviews();
+          });
+
+          component.updateImage(backgroundImage);
+        }
+      });
+  }
+  JSBackgroundImageWizardStepsView.prototype = Object.create(JSComponentView.prototype);
+  JSBackgroundImageWizardStepsView.prototype.constructor = JSBackgroundImageWizardStepsView;
+
+  /**
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.initImageChoiceStep = function () {
+    var component = this;
+
+    component.imageChoiceStep = {
+      panel: component.findElement('[choiceStep]'),
+      description: component.findElement('[choiceStep] [description]'),
+      selectButton: component.findElement('[choiceStep] [selectImage]'),
+      imageChooser: component.findElement('[choiceStep] input[type="file"]'),
+      preview: component.findElement('[choiceStep] [preview] img'),
+    };
+    component.registerEventListener(component.imageChoiceStep.selectButton, 'click', function() {
+      component.imageChoiceStep.imageChooser.click();
+    });
+    component.registerEventListener(component.imageChoiceStep.imageChooser, 'input', function() {
+      var file = this.files[0];
+      if (!file) {
+        component.onImageSelected(null);
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var image = new Image();
+        image.onload = function () {
+          component.onImageSelected(image);
+        };
+        image.onerror = onImageLoadingError;
+        image.src = event.target.result;
+      };
+      reader.onerror = onImageLoadingError;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /**
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.initScaleStep = function () {
+    var component = this;
+    var unitName = preferences.getLengthUnit().getName();
+    var maximumLength = preferences.getLengthUnit().getMaximumLength();
+
+    component.scaleStep = {
+      panel: component.findElement('[scaleStep]'),
+      preview: component.findElement('[scaleStep] [preview] canvas'),
+      previewZoomIn: component.findElement('[scaleStep] [previewZoomIn]'),
+      previewZoomOut: component.findElement('[scaleStep] [previewZoomOut]'),
+      scaleDistanceLabel: component.getElement('scale-distance-label'),
+      scaleDistanceInput: new JSSpinner(viewFactory, preferences, component.getElement('scale-distance-input'), {
+        format: preferences.getLengthUnit().getFormat(),
+        step: component.getLengthInputStepSize(),
+        min: preferences.getLengthUnit().getMinimumLength(),
+        max: maximumLength,
+      }),
+    };
+
+    component.scaleStep.scaleDistanceLabel.textContent = this.getLocalizedLabelText(
+        'BackgroundImageWizardStepsPanel', 'scaleDistanceLabel.text', unitName
+    );
+    component.registerEventListener(component.scaleStep.scaleDistanceInput, 'input', function() {
+      controller.setScaleDistance(parseFloat(component.scaleStep.scaleDistanceInput.value));
+    });
+    var setScaleDistanceFromController = function() {
+      var scaleDistance = controller.getScaleDistance();
+      component.scaleStep.scaleDistanceInput.value = scaleDistance;
+    };
+    setScaleDistanceFromController();
+    controller.addPropertyChangeListener('SCALE_DISTANCE', setScaleDistanceFromController);
+
+    var zoomInButtonAction = new ResourceAction(preferences, 'BackgroundImageWizardStepsPanel', "ZOOM_IN", true);
+    var zoomOutButtonAction = new ResourceAction(preferences, 'BackgroundImageWizardStepsPanel', "ZOOM_OUT", true);
+    component.scaleStep.previewZoomIn.style.backgroundImage = "url('lib/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    component.registerEventListener(component.scaleStep.previewZoomIn, 'click', function() {
+      component.scaleStep.preview.width *= 2;
+      component.repaintScaleCanvas();
+    });
+    component.scaleStep.previewZoomOut.style.backgroundImage = "url('lib/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    component.registerEventListener(component.scaleStep.previewZoomOut, 'click', function() {
+      component.scaleStep.preview.width /= 2;
+      component.repaintScaleCanvas();
+    });
+    controller.addPropertyChangeListener('SCALE_DISTANCE_POINTS', function() {
+      component.repaintScaleCanvas();
+    });
+
+    component.repaintScaleCanvas();
+
+    var canvas = this.scaleStep.preview;
+    canvas.style.touchAction = 'none';
+
+    var mouseUp = function(event) {
+      if (canvas.dragging) {
+        canvas.dragging = false;
+        canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
+      }
+    };
+
+    var mouseMove = function(event) {
+      event.stopImmediatePropagation();
+
+      var canvasRect = canvas.getBoundingClientRect();
+      var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
+      var x = pointerCoordinatesObject.clientX - canvasRect.x;
+      var y = pointerCoordinatesObject.clientY - canvasRect.y;
+
+      if (canvas.dragging) {
+        var actualX = (component.selectedImage.width / canvas.width) * x;
+        var actualY = (component.selectedImage.height / canvas.height) * y;
+        var scaleDistancePoints = controller.getScaleDistancePoints();
+        if (canvas.scaleDistanceStartReached) {
+          scaleDistancePoints[0][0] = actualX;
+          scaleDistancePoints[0][1] = actualY;
+        } else {
+          scaleDistancePoints[1][0] = actualX;
+          scaleDistancePoints[1][1] = actualY;
+        }
+        controller.setScaleDistancePoints(
+          scaleDistancePoints[0][0], scaleDistancePoints[0][1],
+          scaleDistancePoints[1][0], scaleDistancePoints[1][1],
+        );
+        component.repaintScaleCanvas();
+        return;
+      }
+
+      if (y < canvas.scaleDistanceStart.y + CANVAS_TOUCHABLE_AREA_RADIUS
+          && y > canvas.scaleDistanceStart.y - CANVAS_TOUCHABLE_AREA_RADIUS
+          && x < canvas.scaleDistanceStart.x + CANVAS_TOUCHABLE_AREA_RADIUS
+          && x > canvas.scaleDistanceStart.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
+
+        canvas.scaleDistanceStartReached = true;
+        canvas.style.cursor = 'crosshair';
+      } else if (y < canvas.scaleDistanceEnd.y + CANVAS_TOUCHABLE_AREA_RADIUS
+          && y > canvas.scaleDistanceEnd.y - CANVAS_TOUCHABLE_AREA_RADIUS
+          && x < canvas.scaleDistanceEnd.x + CANVAS_TOUCHABLE_AREA_RADIUS
+          && x > canvas.scaleDistanceEnd.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
+
+        canvas.scaleDistanceEndReached = true;
+        canvas.style.cursor = 'crosshair';
+      } else {
+
+        canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
+        canvas.style.cursor = 'default';
+      }
+    };
+
+    var mouseDown = function(event) {
+      event.stopImmediatePropagation();
+      mouseMove(event);
+
+      if (canvas.scaleDistanceStartReached || canvas.scaleDistanceEndReached) {
+        canvas.dragging = true;
+      }
+    };
+
+    this.registerEventListener(canvas, 'mousedown', mouseDown, true);
+    this.registerEventListener(canvas, 'touchstart', mouseDown, true);
+    this.registerEventListener(canvas, 'mousemove', mouseMove, true);
+    this.registerEventListener(canvas, 'touchmove', mouseMove, true);
+    this.registerEventListener(canvas, 'mouseup', mouseUp, true);
+    this.registerEventListener(canvas, 'touchend', mouseUp, true);
+  }
+
+  /**
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.repaintScaleCanvas = function () {
+    /**
+     * @type {HTMLCanvasElement}
+     */
+    var canvas = this.scaleStep.preview;
+    var canvasContext = canvas.getContext('2d');
+
+    var image = this.selectedImage;
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    if (image) {
+      canvas.height = (image.height / image.width) * canvas.width;
+
+      canvasContext.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      var xFactor = canvas.width / image.width;
+      var yFactor = canvas.height / image.height;
+
+      var scaleDistancePoints = controller.getScaleDistancePoints();
+      canvas.scaleDistanceStart = { x: xFactor * scaleDistancePoints [0][0], y: yFactor * scaleDistancePoints [0][1] };
+      canvas.scaleDistanceEnd = { x: xFactor * scaleDistancePoints [1][0], y: yFactor * scaleDistancePoints [1][1] };
+
+      canvasContext.strokeStyle = 'blue';
+      canvasContext.lineWidth = 3;
+      canvasContext.lineCap = 'square';
+      canvasContext.lineJoin = 'miter';
+      canvasContext.moveTo(canvas.scaleDistanceStart.x, canvas.scaleDistanceStart.y);
+      canvasContext.lineTo(canvas.scaleDistanceEnd.x, canvas.scaleDistanceEnd.y);
+      canvasContext.closePath();
+      canvasContext.stroke();
+
+      canvasContext.fillStyle = 'blue';
+      canvasContext.arc(canvas.scaleDistanceStart.x, canvas.scaleDistanceStart.y, 5, 0, 2 * Math.PI);
+      canvasContext.closePath();
+      canvasContext.fill();
+
+      canvasContext.arc(canvas.scaleDistanceEnd.x, canvas.scaleDistanceEnd.y, 5, 0, 2 * Math.PI);
+      canvasContext.closePath();
+      canvasContext.fill();
+    }
+  }
+
+  /**
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.initOriginStep = function () {
+    var component = this;
+    var unitName = preferences.getLengthUnit().getName();
+    var maximumLength = preferences.getLengthUnit().getMaximumLength();
+
+    component.originStep = {
+      panel: component.findElement('[originStep]'),
+      preview: component.findElement('[originStep] [preview] canvas'),
+      xOriginLabel: component.getElement('x-origin-label'),
+      xOriginInput: new JSSpinner(viewFactory, preferences, component.getElement('x-origin-input'), {
+        format: preferences.getLengthUnit().getFormat(),
+        step: component.getLengthInputStepSize(),
+        min: -maximumLength,
+        max: maximumLength,
+        value: controller.getXOrigin()
+      }),
+      yOriginLabel: component.getElement('y-origin-label'),
+      yOriginInput: new JSSpinner(viewFactory, preferences, component.getElement('y-origin-input'), {
+        format: preferences.getLengthUnit().getFormat(),
+        step: component.getLengthInputStepSize(),
+        min: -maximumLength,
+        max: maximumLength,
+        value: controller.getYOrigin()
+      }),
+    };
+
+    component.originStep.xOriginLabel.textContent = this.getLocalizedLabelText(
+        'BackgroundImageWizardStepsPanel', 'xOriginLabel.text', unitName
+    );
+    component.originStep.yOriginLabel.textContent = this.getLocalizedLabelText(
+        'BackgroundImageWizardStepsPanel', 'yOriginLabel.text', unitName
+    );
+    component.registerEventListener([component.originStep.xOriginInput, component.originStep.yOriginInput], 'input', function() {
+      controller.setOrigin(component.originStep.xOriginInput.value, component.originStep.yOriginInput.value);
+    });
+    controller.addPropertyChangeListener('X_ORIGIN', function() {
+      component.originStep.xOriginInput.value = controller.getXOrigin();
+      component.repaintOriginCanvas();
+    });
+    controller.addPropertyChangeListener('Y_ORIGIN', function() {
+      component.originStep.yOriginInput.value = controller.getYOrigin();
+      component.repaintOriginCanvas();
+    });
+
+    var canvas = component.originStep.preview;
+
+    var mouseUp = function(event) {
+      component.isMovingOrigin = false;
+      canvas.style.cursor = 'default';
+    };
+
+    var mouseMove = function(event) {
+      event.stopImmediatePropagation();
+      if (component.isMovingOrigin) {
+        var canvasRect = canvas.getBoundingClientRect();
+        var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
+        var x = pointerCoordinatesObject.clientX - canvasRect.x;
+        var y = pointerCoordinatesObject.clientY - canvasRect.y;
+        var actualX = (component.selectedImage.width / canvas.width) * x;
+        var actualY = (component.selectedImage.height / canvas.height) * y;
+        controller.setOrigin(actualX, actualY);
+        component.repaintOriginCanvas();
+      }
+    };
+
+    var mouseDown = function(event) {
+      component.isMovingOrigin = true;
+      canvas.style.cursor = 'crosshair';
+      mouseMove(event);
+    };
+
+    this.registerEventListener(canvas, 'mousedown', mouseDown, true);
+    this.registerEventListener(canvas, 'touchstart', mouseDown, true);
+    this.registerEventListener(canvas, 'mousemove', mouseMove, true);
+    this.registerEventListener(canvas, 'touchmove', mouseMove, true);
+    this.registerEventListener(canvas, 'mouseup', mouseUp, true);
+    this.registerEventListener(canvas, 'touchend', mouseUp, true);
+  }
+
+  /**
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.repaintOriginCanvas = function () {
+    /**
+     * @type {HTMLCanvasElement}
+     */
+    var canvas = this.originStep.preview;
+    var canvasContext = canvas.getContext('2d');
+
+    var image = this.selectedImage;
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    if (image) {
+      canvas.height = (image.height / image.width) * canvas.width;
+
+      canvasContext.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      var xFactor = canvas.width / image.width;
+      var yFactor = canvas.height / image.height;
+
+      var originInCanvas = { x: xFactor * controller.getXOrigin(), y: yFactor * controller.getYOrigin() };
+
+      canvasContext.fillStyle = 'blue';
+      canvasContext.arc(originInCanvas.x, originInCanvas.y, 5, 0, 2 * Math.PI);
+      canvasContext.closePath();
+      canvasContext.fill();
+    }
+  }
+
+  /**
+   * @param {'newImage'|'changeImage'} mode
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.setImageChoicePanelLabels = function (mode) {
+    if (mode == 'changeImage') {
+      this.imageChoiceStep.description.innerHTML = this.getLocalizedLabelText(
+          'BackgroundImageWizardStepsPanel', 'imageChangeLabel.text'
+      );
+      this.imageChoiceStep.selectButton.innerHTML = this.getLocalizedLabelText(
+          'BackgroundImageWizardStepsPanel', 'imageChangeButton.text'
+      );
+    } else {
+      this.imageChoiceStep.description.innerHTML = this.getLocalizedLabelText(
+          'BackgroundImageWizardStepsPanel', 'imageChoiceLabel.text'
+      );
+      this.imageChoiceStep.selectButton.innerHTML = this.getLocalizedLabelText(
+          'BackgroundImageWizardStepsPanel', 'imageChoiceButton.text'
+      );
+    }
+  }
+
+  /**
+   * @param {BackgroundImage} backgroundImage
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.updateImage = function (backgroundImage) {
+    if (backgroundImage == null) {
+      this.setImageChoicePanelLabels('newImage');
+      this.updateImagePreviews();
+    } else {
+      this.setImageChoicePanelLabels('changeImage');
+
+      // HACK: in Java's version: BackgroundImageWizardStepsPanel, image is updated in EDT (using invokeLater) when wizard view is initialized
+      // here, if we setImage right away, wizard won't be initialized yet, and next state enabled value won't be refreshed properly
+      // with this setTimeout, we ensure this code runs in next event loop
+      setTimeout(function() {
+        controller.setImage(backgroundImage.getImage());
+        controller.setScaleDistance(backgroundImage.getScaleDistance());
+        controller.setScaleDistancePoints(backgroundImage.getScaleDistanceXStart(),
+            backgroundImage.getScaleDistanceYStart(), backgroundImage.getScaleDistanceXEnd(),
+            backgroundImage.getScaleDistanceYEnd());
+        controller.setOrigin(backgroundImage.getXOrigin(), backgroundImage.getYOrigin());
+      }, 100);
+    }
+  }
+
+  /**
+   * @param {HTMLImageElement?} image
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.onImageSelected = function (image) {
+    var view = this;
+    var controller = this.controller;
+
+    if (image != null) {
+
+      var imageType = ImageTools.doesImageHaveAlpha(image) ? "image/png" : "image/jpeg";
+
+      this.promptImageResize(image, imageType, function(image) {
+        BlobURLContent.fromImage(image, imageType, function (content) {
+
+          controller.setImage(content);
+          view.setImageChoicePanelLabels('changeImage');
+          var referenceBackgroundImage = controller.getReferenceBackgroundImage();
+          if (referenceBackgroundImage != null
+              && referenceBackgroundImage.getScaleDistanceXStart() < image.width
+              && referenceBackgroundImage.getScaleDistanceXEnd() < image.width
+              && referenceBackgroundImage.getScaleDistanceYStart() < image.height
+              && referenceBackgroundImage.getScaleDistanceYEnd() < image.height) {
+            // Initialize distance and origin with values of the reference image
+            controller.setScaleDistance(referenceBackgroundImage.getScaleDistance());
+            controller.setScaleDistancePoints(referenceBackgroundImage.getScaleDistanceXStart(),
+                referenceBackgroundImage.getScaleDistanceYStart(),
+                referenceBackgroundImage.getScaleDistanceXEnd(),
+                referenceBackgroundImage.getScaleDistanceYEnd());
+            controller.setOrigin(referenceBackgroundImage.getXOrigin(), referenceBackgroundImage.getYOrigin());
+          } else {
+            // Initialize distance and origin with default values
+            controller.setScaleDistance(null);
+            var scaleDistanceXStart = image.width * 0.1;
+            var scaleDistanceYStart = image.height / 2;
+            var scaleDistanceXEnd = image.width * 0.9;
+            controller.setScaleDistancePoints(scaleDistanceXStart, scaleDistanceYStart,
+                scaleDistanceXEnd, scaleDistanceYStart);
+            controller.setOrigin(0, 0);
+          }
+        });
+
+      });
+
+    } else {
+      controller.setImage(null);
+      onImageLoadingError('image is null');
+    }
+  }
+
+  /**
+   * @param {HTMLImageElement} image
+   * @param {string} imageType can be "image/png" or "image/jpeg" depending on image alpha channel requirements
+   * @param {function(HTMLImageElement)} callback function called after resize with resized image (or with original image if resize was not necessary or declined by user)
+   *
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.promptImageResize = function (image, imageType, callback) {
+    if (image.width * image.height < LARGE_IMAGE_PIXEL_COUNT_THRESHOLD) {
+      callback.call(null, image);
+      return;
+    }
+
+    var stepsView = this;
+    var factor = Math.sqrt(LARGE_IMAGE_MAX_PIXEL_COUNT / (image.width * image.height));
+    var reducedWidth = Math.round(image.width * factor);
+    var reducedHeight = Math.round(image.height * factor);
+    var promptDialog = new JSPromptImageResizeDialog(
+        viewFactory,
+        controller,
+        preferences,
+        '${BackgroundImageWizardStepsPanel.reduceImageSize.title}',
+        stepsView.getLocalizedLabelText(
+            'BackgroundImageWizardStepsPanel', 'reduceImageSize.message', [image.width, image.height, reducedWidth, reducedHeight]
+        ),
+        '${BackgroundImageWizardStepsPanel.reduceImageSize.cancel}',
+        '${BackgroundImageWizardStepsPanel.reduceImageSize.keepUnchanged}',
+        '${BackgroundImageWizardStepsPanel.reduceImageSize.reduceSize}',
+        function onResizeRequested() {
+          ImageTools.resize(image, reducedWidth, reducedHeight, callback, imageType);
+        },
+        function onKeepUnchangedRequested() { callback.call(null, image) }
+    );
+    promptDialog.displayView();
+  }
+
+  /**
+   * @private
+   */
+  JSBackgroundImageWizardStepsView.prototype.updateImagePreviews = function() {
+    var component = this;
+    var image = this.controller.getImage();
+
+    delete this.imageChoiceStep.preview.src;
+    delete this.scaleStep.preview.src;
+    delete this.originStep.preview.src;
+    if (image == null) {
+      return;
+    }
+
+    TextureManager.getInstance().loadTexture(image, {
+      textureUpdated: function(image) {
+        component.imageChoiceStep.preview.src = image.src;
+
+        component.selectedImage = image;
+        if (image.width > 400) {
+          component.scaleStep.preview.width = 400;
+          component.originStep.preview.width = 400;
+        }
+
+        component.repaintScaleCanvas();
+        component.repaintOriginCanvas();
+      },
+      textureError:  function(error) {
+        onImageLoadingError(error);
+      }
+    });
+  };
+
+  /**
+   * change displayed view based on current step
+   */
+  JSBackgroundImageWizardStepsView.prototype.updateStep = function() {
+    var step = this.controller.getStep();
+    console.info("update step to " + step);
+    switch (step) {
+      case BackgroundImageWizardController.Step.CHOICE:
+        this.imageChoiceStep.panel.style.display = 'block';
+        this.scaleStep.panel.style.display = 'none';
+        this.originStep.panel.style.display = 'none';
+        break;
+      case BackgroundImageWizardController.Step.SCALE:
+        this.imageChoiceStep.panel.style.display = 'none';
+        this.scaleStep.panel.style.display = 'block';
+        this.originStep.panel.style.display = 'none';
+        break;
+      case BackgroundImageWizardController.Step.ORIGIN:
+        this.imageChoiceStep.panel.style.display = 'none';
+        this.scaleStep.panel.style.display = 'none';
+        this.originStep.panel.style.display = 'block';
+        break;
+    }
+  };
+
+  return new JSBackgroundImageWizardStepsView();
 }
 
 JSViewFactory.prototype.createImportedFurnitureWizardStepsView = function(piece, modelName, importHomePiece, preferences, importedFurnitureWizardController) {
@@ -114,33 +801,8 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     console.warn('error loading image: ' + error);
     alert(ResourceAction.getLocalizedLabelText(
       dialog.preferences,
-      'ImportedTextureWizardStepsPanel', 
+      'ImportedTextureWizardStepsPanel',
       'imageChoiceErrorLabel.text'));
-  }
-
-  /**
-   * @param {HTMLImageElement} image 
-   * @return {boolean} true if image needs alpha channel
-   */
-  function doesImageHaveAlpha(image) {
-    var canvas = document.createElement("canvas");
-    var context = canvas.getContext("2d");
-    canvas.width = image.width;
-    canvas.height = image.height;
-    context.drawImage(image, 0, 0, image.width, image.height);
-    return doesCanvasHaveAlpha(context, canvas);
-  }
-
-  function doesCanvasHaveAlpha(context, canvas) {
-    var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    var hasAlphaPixels = false;
-    for (var i = 3, n = data.length; i < n; i+=4) {
-        if (data[i] < 255) {
-            hasAlphaPixels = true;
-            break;
-        }
-    }
-    return hasAlphaPixels;
   }
 
   var USER_CATEGORY = new TexturesCategory(
@@ -165,7 +827,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this,
     preferences, 
     '<div imageStep>' + 
-    '  <div>${ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
+    '  <div description>${ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
     '  <div class="buttons">' +
     '    <button changeImage>${ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>' +
     '    <button onclick="window.open(\'http://www.sweethome3d.com/fr/importTextures.jsp\', \'_blank\')">${ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
@@ -209,9 +871,18 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         component.rootNode.classList.add('imported-texture-wizard');
 
         component.imageStepPanel = component.findElement('[imageStep]');
+        component.imageStepDescription = component.findElement('[imageStep] [description]');
         component.changeImageButton = component.findElement('button[changeImage]');
         component.imageChooserInput = component.findElement('input[type="file"]');
         component.previewPanel = component.findElement('[preview]');
+
+        if (texture == null) {
+          component.imageStepDescription.innerHTML = component.getLocalizedLabelText('ImportedTextureWizardStepsPanel', 'imageChoiceLabel.text');
+          component.changeImageButton.innerHTML = component.getLocalizedLabelText('ImportedTextureWizardStepsPanel', 'imageChoiceButton.text');
+        } else {
+          component.imageStepDescription.innerHTML = component.getLocalizedLabelText('ImportedTextureWizardStepsPanel', 'imageChangeLabel.text');
+          component.changeImageButton.innerHTML = component.getLocalizedLabelText('ImportedTextureWizardStepsPanel', 'imageChangeButton.text');
+        }
 
         component.attributesStepPanel = component.findElement('[attributesStep]');
         component.attributesStepPanelDescription = component.findElement('[attributesStep] [description]');
@@ -335,6 +1006,17 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
             controller.setHeight(parseFloat(component.heightInput.value));
           }
         );
+
+        if (texture != null) {
+          TextureManager.getInstance().loadTexture(texture.getImage(), {
+            textureUpdated: function(image) {
+              component.onImageSelected(image);
+            },
+            textureError:  function(error) {
+              onImageLoadingError(error);
+            }
+          });
+        }
       }
     });
 
@@ -346,10 +1028,9 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     var view = this;
     var controller = this.controller;
 
-    console.info('image selected', image);
     if (image != null) {
 
-      var imageType = doesImageHaveAlpha(image) ? "image/png" : "image/jpeg";
+      var imageType = ImageTools.doesImageHaveAlpha(image) ? "image/png" : "image/jpeg";
 
       this.promptImageResize(image, imageType, function(image) {
         BlobURLContent.fromImage(image, imageType, function (content) {
@@ -378,62 +1059,6 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   }
 
   /**
-   * @param {string} message message to be displayed
-   * @param {function()} onResizeOptionSelected called when user selected "resize image" option
-   * @param {function()} onKeepSizeOptionSelected called when user selected "keep image unchanged" option
-   */
-  function JSPromptImageResizeDialog(message, onResizeOptionSelected, onKeepSizeOptionSelected) {
-    this.controller = controller;
-    
-    JSDialogView.call(
-      this, 
-      viewFactory, 
-      preferences, 
-      '${ImportedTextureWizardStepsPanel.reduceImageSize.title}', 
-      '<div>' +
-      message +
-      '</div>',
-      {
-        initializer: function(dialog) {},
-        applier: function(dialog) {
-          if (dialog.resizeRequested) {
-            onResizeOptionSelected();
-          } else {
-            onKeepSizeOptionSelected();
-          }
-        },
-      });
-  }
-  JSPromptImageResizeDialog.prototype = Object.create(JSDialogView.prototype);
-  JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
-  
-  /**
-   * Append dialog buttons to given panel
-   * @param {HTMLElement} buttonsPanel Dialog buttons panel
-   * @protected
-   */
-  JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
-    
-    buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, 
-      '<button class="dialog-cancel-button">${ImportedTextureWizardStepsPanel.reduceImageSize.cancel}</button>' + 
-      '<button class="keep-image-unchanged-button dialog-ok-button">${ImportedTextureWizardStepsPanel.reduceImageSize.keepUnchanged}</button>' + 
-      '<button class="dialog-ok-button">${ImportedTextureWizardStepsPanel.reduceImageSize.reduceSize}</button>'
-    );
-
-    var dialog = this;
-
-    var cancelButton = this.findElement('.dialog-cancel-button');
-    this.registerEventListener(cancelButton, 'click', function() {
-      dialog.cancel();
-    });
-    var okButtons = this.findElements('.dialog-ok-button');
-    this.registerEventListener(okButtons, 'click', function(event) {
-      dialog.resizeRequested = !event.target.classList.contains('keep-image-unchanged-button');
-      dialog.validate();
-    });
-  };
-
-  /**
    * @param {HTMLImageElement} image 
    * @param {string} imageType can be "image/png" or "image/jpeg" depending on image alpha channel requirements
    * @param {function(HTMLImageElement)} callback function called after resize with resized image (or with original image if resize was not necessary or declined by user)
@@ -459,21 +1084,18 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     var reducedWidth = Math.round(image.width * factor);
     var reducedHeight = Math.round(image.height * factor);
     var promptDialog = new JSPromptImageResizeDialog(
+        viewFactory,
+        controller,
+        preferences,
+      '${ImportedTextureWizardStepsPanel.reduceImageSize.title}',
       stepsView.getLocalizedLabelText(
         'ImportedTextureWizardStepsPanel', 'reduceImageSize.message', [image.width, image.height, reducedWidth, reducedHeight]
       ),
+      '${ImportedTextureWizardStepsPanel.reduceImageSize.cancel}',
+      '${ImportedTextureWizardStepsPanel.reduceImageSize.keepUnchanged}',
+      '${ImportedTextureWizardStepsPanel.reduceImageSize.reduceSize}',
       function onResizeRequested() {
-        var canvas = document.createElement('canvas');
-        canvas.width = reducedWidth;
-        canvas.height = reducedHeight;
-        var canvasContext = canvas.getContext('2d');
-        canvasContext.drawImage(image, 0, 0, reducedWidth, reducedHeight);
-
-        var resizedImage = new Image();
-        resizedImage.onload = function() {
-          callback.call(stepsView, resizedImage);
-        }
-        resizedImage.src = canvas.toDataURL(imageType);
+        ImageTools.resize(image, reducedWidth, reducedHeight, callback, imageType);
       },
       function onKeepUnchangedRequested() { callback.call(stepsView, image) }
     );
@@ -3648,23 +4270,23 @@ JSViewFactory.prototype.createModelMaterialsView = function(preferences, control
 }
 
 JSViewFactory.prototype.createPageSetupView = function(preferences, pageSetupController) {
-  return dummyDialogView;
+  return this.dummyDialogView;
 }
 
 JSViewFactory.prototype.createPrintPreviewView = function(home, preferences, homeController, printPreviewController) {
-  return dummyDialogView;
+  return this.dummyDialogView;
 }
 
 JSViewFactory.prototype.createPhotoView = function(home, preferences, photoController) {
-  return dummyDialogView;
+  return this.dummyDialogView;
 }
 
 JSViewFactory.prototype.createPhotosView = function(home, preferences, photosController) {
-  return dummyDialogView;
+  return this.dummyDialogView;
 }
 
 JSViewFactory.prototype.createVideoView = function(home, preferences, videoController) {
-  return dummyDialogView;
+  return this.dummyDialogView;
 }
 
 /**********************************/

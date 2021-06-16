@@ -453,6 +453,7 @@ MeterFamilyFormat.prototype = Object.create(Format.prototype);
 MeterFamilyFormat.prototype.constructor = MeterFamilyFormat;
 
 MeterFamilyFormat.prototype.format = function(number) {
+
   var formattedNumber = toLocaleStringUniversal(number * this.unitMultiplier, 
       this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign,
       { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 }); 

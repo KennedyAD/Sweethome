@@ -447,3 +447,62 @@ ColorTools.toRGBAStyle = function(colorString, alpha) {
   return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
 
+/**
+ * Utilities for images.
+ * @class
+ * @ignore
+ * @author Louis Grignon
+ */
+var ImageTools = {};
+
+/**
+ * @param {HTMLImageElement} image
+ * @return {boolean} true if image has alpha channel
+ */
+ImageTools.doesImageHaveAlpha = function(image) {
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  context.drawImage(image, 0, 0, image.width, image.height);
+  return ImageTools.doesCanvasHaveAlpha(canvas, context);
+};
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param {CanvasRenderingContext2D} [context] given canvas context. If not provided, canvas.getContext("2d") will be used
+ * @return {boolean} true if image has alpha channel
+ */
+ImageTools.doesCanvasHaveAlpha = function(canvas, context) {
+  context = context ? context : canvas.getContext("2d");
+  var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  var hasAlphaPixels = false;
+  for (var i = 3, n = data.length; i < n; i+=4) {
+    if (data[i] < 255) {
+      hasAlphaPixels = true;
+      break;
+    }
+  }
+  return hasAlphaPixels;
+};
+
+/**
+ * @param {HTMLImageElement} image
+ * @param {number} targetWidth
+ * @param {number} targetHeight
+ * @param {function(HTMLImageElement)} onSuccess called when resize succeeded, with resized image as a parameter
+ * @param {string} [imageType] target image mime type, defaults to image/png
+ */
+ImageTools.resize = function(image, targetWidth, targetHeight, onSuccess, imageType) {
+  var canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  var canvasContext = canvas.getContext('2d');
+  canvasContext.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  var resizedImage = new Image();
+  resizedImage.onload = function () {
+    onSuccess.call(this, resizedImage);
+  }
+  resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
+}
