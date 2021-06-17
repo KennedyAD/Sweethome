@@ -326,7 +326,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         'BackgroundImageWizardStepsPanel', 'scaleDistanceLabel.text', unitName
     );
     component.registerEventListener(component.scaleStep.scaleDistanceInput, 'input', function() {
-      controller.setScaleDistance(parseFloat(component.scaleStep.scaleDistanceInput.value));
+      controller.setScaleDistance(component.scaleStep.scaleDistanceInput.value == null ? null : parseFloat(component.scaleStep.scaleDistanceInput.value));
     });
     var setScaleDistanceFromController = function() {
       var scaleDistance = controller.getScaleDistance();

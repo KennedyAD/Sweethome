@@ -302,6 +302,66 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
   }
 }
 
+/**
+ * Saves blob in currentObject, recursively. Only supports blobs from BlobURLContent for now: replaces blob:... url
+ * with url of saved resource
+ * @param {string} updateId current update ID
+ * @param {Object} currentObject current object in which blobs should be saved
+ * @param {function} serverErrorHandler error handler
+ * @private
+ */
+IncrementalHomeRecorder.prototype.saveBlobs = function(updateId, currentObject, serverErrorHandler) {
+  if (!currentObject) {
+    return;
+  }
+
+  if (currentObject.blob instanceof Blob) {
+    // BlobURLContent case
+    var blob = currentObject.blob;
+    var extension = 'dat';
+    if (blob.type == 'image/png') {
+      extension = 'png';
+    } else if (blob.type == 'image/jpeg') {
+      extension = 'jpg';
+    }
+
+    if (this.lastSavedBlobIndex == null) {
+      this.lastSavedBlobIndex = 0;
+    }
+
+    var path = 'homeImage_' + updateId + '_' + (this.lastSavedBlobIndex++) + '.' + extension;
+
+    var userResourcesURLBase = this.application.params.userResourcesURLBase;
+    var loadResourceURL = this.application.params.loadResourceURL;
+    currentObject.url = new URLContent(userResourcesURLBase + path).getURL();
+
+    console.info('send ' + blob.size + ' bytes to ' + currentObject.url);
+    var uploadUrl = CoreTools.format(loadResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
+    var request = new XMLHttpRequest();
+    request.open("POST", uploadUrl);
+    request.onload = function() {
+      console.info("image saved");
+    };
+    request.onerror = serverErrorHandler;
+    request.ontimeout = serverErrorHandler;
+    request.send(blob);
+
+    delete currentObject.blob;
+    return;
+  }
+
+  var propertyNames = Object.getOwnPropertyNames(currentObject);
+  for (var j = 0; j < propertyNames.length; j++) {
+    var propertyName = propertyNames[j];
+    if (propertyName != '_type') {
+      var propertyValue = currentObject[propertyName];
+      if (typeof propertyValue == 'object') {
+        this.saveBlobs(updateId, propertyValue, serverErrorHandler);
+      }
+    }
+  }
+};
+
 /** 
  * Sends to the server all the currently waiting edits for the given home.  
  * @param {Home} home
@@ -320,7 +380,18 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
         // TODO define a retry delay?
         recorder.scheduleWrite(home, 10000);
       };
-    var request = new XMLHttpRequest();
+
+    // 1. save blob if any
+    if (this.application.params.loadResourceURL) {
+
+      for (var i = 0; i < update.edits.length; i++) {
+        var edit = update.edits[i];
+        this.saveBlobs(update.id, edit, serverErrorHandler);
+      }
+    }
+
+    // 2. send edit
+    request = new XMLHttpRequest();
     request.open('POST', this.configuration['writeHomeEditsURL'], true);
     request.withCredentials = true;
     request.addEventListener('load', function (ev) {
@@ -581,6 +652,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
         && origin.constructor.__class != "com.eteks.sweethome3d.tools.URLContent") { // Don't write default class of content
       destination._type = origin.constructor.__class;
     }
+
     var propertyNames = Object.getOwnPropertyNames(origin);
     for (var j = 0; j < propertyNames.length; j++) {
       var propertyName = propertyNames[j];
@@ -595,6 +667,10 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
         }
       }
     }
+    if (origin instanceof BlobURLContent) {
+      destination.blob = origin.blob;
+    }
+
     if (origin.id !== undefined) {
       return origin.id;
     } else {
