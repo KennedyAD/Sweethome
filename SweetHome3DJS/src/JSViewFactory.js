@@ -384,7 +384,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         }
         controller.setScaleDistancePoints(
           scaleDistancePoints[0][0], scaleDistancePoints[0][1],
-          scaleDistancePoints[1][0], scaleDistancePoints[1][1],
+          scaleDistancePoints[1][0], scaleDistancePoints[1][1]
         );
         component.repaintScaleCanvas();
         return;
@@ -483,6 +483,8 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     component.originStep = {
       panel: component.findElement('[originStep]'),
       preview: component.findElement('[originStep] [preview] canvas'),
+      previewZoomIn: component.findElement('[originStep] [previewZoomIn]'),
+      previewZoomOut: component.findElement('[originStep] [previewZoomOut]'),
       xOriginLabel: component.getElement('x-origin-label'),
       xOriginInput: new JSSpinner(viewFactory, preferences, component.getElement('x-origin-input'), {
         format: preferences.getLengthUnit().getFormat(),
@@ -520,6 +522,19 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     });
 
     var canvas = component.originStep.preview;
+
+    var zoomInButtonAction = new ResourceAction(preferences, 'BackgroundImageWizardStepsPanel', "ZOOM_IN", true);
+    var zoomOutButtonAction = new ResourceAction(preferences, 'BackgroundImageWizardStepsPanel', "ZOOM_OUT", true);
+    component.originStep.previewZoomIn.style.backgroundImage = "url('lib/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    component.registerEventListener(component.originStep.previewZoomIn, 'click', function() {
+      component.originStep.preview.width *= 2;
+      component.repaintOriginCanvas();
+    });
+    component.originStep.previewZoomOut.style.backgroundImage = "url('lib/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    component.registerEventListener(component.originStep.previewZoomOut, 'click', function() {
+      component.originStep.preview.width /= 2;
+      component.repaintOriginCanvas();
+    });
 
     var mouseUp = function(event) {
       component.isMovingOrigin = false;
