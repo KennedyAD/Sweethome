@@ -56,7 +56,7 @@
       <arg value="--candiesJsOut"/>
       <arg value="tools/JSweet/build/js" />
       <arg value="-i" />
-      <arg value="../SweetHome3D/src:tools/JSweet/src" />
+      <arg value="../SweetHome3D/src${path.separator}tools/JSweet/src" />
       <arg value="--includes" />
       <arg value="def${path.separator}com/eteks/sweethome3d/model${path.separator}com/eteks/sweethome3d/tools${path.separator}com/eteks/sweethome3d/viewcontroller${path.separator}com/eteks/sweethome3d/io" />
       <!-- Transpilation target may contain almost all com.eteks.sweethome3d.viewcontroller classes or only the subset needed to run 
