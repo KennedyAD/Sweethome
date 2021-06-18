@@ -58,7 +58,7 @@
       <arg value="-i" />
       <arg value="../SweetHome3D/src:tools/JSweet/src" />
       <arg value="--includes" />
-      <arg value="def:com/eteks/sweethome3d/model:com/eteks/sweethome3d/tools:com/eteks/sweethome3d/viewcontroller:com/eteks/sweethome3d/io" />
+      <arg value="def${path.separator}com/eteks/sweethome3d/model${path.separator}com/eteks/sweethome3d/tools${path.separator}com/eteks/sweethome3d/viewcontroller${path.separator}com/eteks/sweethome3d/io" />
       <!-- Transpilation target may contain almost all com.eteks.sweethome3d.viewcontroller classes or only the subset needed to run 
            Sweet Home 3D JS Viewer (in which case swingundo.js extracted from tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js isn't required) -->
       <sysproperty key="transpilationTarget" value="${buildType}"/> 
