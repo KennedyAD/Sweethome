@@ -31,7 +31,7 @@
  * @param {{readHomeURL: string,
  *          writeHomeEditsURL: string,
  *          closeHomeURL: string,
- *          loadResourceURL: string,
+ *          writeResourceURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
  *          trackedHomeProperties: string[],
@@ -332,11 +332,11 @@ IncrementalHomeRecorder.prototype.saveBlobs = function(updateId, currentObject, 
     var path = 'homeImage_' + updateId + '_' + (this.lastSavedBlobIndex++) + '.' + extension;
 
     var userResourcesURLBase = this.application.params.userResourcesURLBase;
-    var loadResourceURL = this.application.params.loadResourceURL;
+    var writeResourceURL = this.application.params.writeResourceURL;
     currentObject.url = new URLContent(userResourcesURLBase + path).getURL();
 
     console.info('send ' + blob.size + ' bytes to ' + currentObject.url);
-    var uploadUrl = CoreTools.format(loadResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
+    var uploadUrl = CoreTools.format(writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
     var request = new XMLHttpRequest();
     request.open("POST", uploadUrl);
     request.onload = function() {
@@ -382,7 +382,7 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
       };
 
     // 1. save blob if any
-    if (this.application.params.loadResourceURL) {
+    if (this.application.params.writeResourceURL) {
 
       for (var i = 0; i < update.edits.length; i++) {
         var edit = update.edits[i];
@@ -688,8 +688,10 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
  *          texturesResourcesURLBase: string,
  *          readHomeURL: string,
  *          writeHomeEditsURL: string,
- *          loadResourceURL: string,
- *          closeHomeURL: string}} [params] the URLs of resources and services required on server 
+ *          writeResourceURL: string,
+ *          readPreferencesURL: string,
+ *          writePreferencesURL: string,
+ *          closeHomeURL: string}} [params] the URLs of resources and services required on server
  *                                                  (if undefined, will use local files for testing)
  * @constructor
  * @author Emmanuel Puybaret
@@ -732,12 +734,22 @@ SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
 
 SweetHome3DJSApplication.prototype.getUserPreferences = function() {
   if (this.preferences == null) {
-    this.preferences = this.params !== undefined 
-      ? new DefaultUserPreferences(
-            this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase, 
-            this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase, 
-            this.params.userResourcesURLBase, this.params.loadResourceURL)
-      : new DefaultUserPreferences();
+    if (this.params === undefined) {
+      this.preferences = new DefaultUserPreferences();
+    } else if (this.params.writePreferencesURL || this.params.readPreferencesURL) {
+      this.preferences = new RecordedUserPreferences(
+          this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
+          this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase,
+          this.params.userResourcesURLBase, this.params.writeResourceURL,
+          this.params.writePreferencesURL, this.params.readPreferencesURL
+      );
+    } else {
+      this.preferences = new DefaultUserPreferences(
+        this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
+        this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase,
+        this.params.userResourcesURLBase, this.params.writeResourceURL
+      );
+    }
     this.preferences.setFurnitureViewedFromTop(true);
   }
   return this.preferences;

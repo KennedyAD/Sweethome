@@ -107,11 +107,47 @@ LengthUnit.footToCentimeter = function(length) {
   return length * 2.54 * 12;
 }
 
+/**
+ * Return the enum name of the given unit
+ * <br/>
+ * <b>WARNING</b> enum name (CENTIMETERS, MILLIMETERS, ..) is different from unit's name (cm, mm, ..)
+ * @param {LengthUnit} unit
+ */
+LengthUnit.nameOf = function(unit) {
+  if (unit == null) {
+    return null;
+  }
+
+  var unitEnumNames = Object.keys(LengthUnit);
+  for (var i = 0; i < unitEnumNames.length; i++) {
+    var unitEnumName = unitEnumNames[i];
+    if (LengthUnit[unitEnumName] == unit) {
+      return unitEnumName;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Gets a LengthUnit by its enum name
+ * <br/>
+ * <b>WARNING</b> enum name (CENTIMETERS, MILLIMETERS, ..) is different from unit's name (cm, mm, ..)
+ * @param {string} unitEnumName
+ * @return {LengthUnit}
+ */
+LengthUnit.valueOf = function(unitEnumName) {
+  return LengthUnit[unitEnumName];
+}
 
 /**
  * Millimeter unit.
  */
 LengthUnit.MILLIMETER = {formatLocale : null};
+
+LengthUnit.MILLIMETER.name = function() {
+  return LengthUnit.nameOf(this);
+}
   
 LengthUnit.MILLIMETER.getFormatWithUnit = function() {
   this.checkLocaleChange();
@@ -130,7 +166,7 @@ LengthUnit.MILLIMETER.getFormat = function() {
 
 LengthUnit.MILLIMETER.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
 
 LengthUnit.MILLIMETER.checkLocaleChange = function() {
@@ -138,11 +174,11 @@ LengthUnit.MILLIMETER.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "millimeterUnit");
+    this.unitName = CoreTools.getStringFromKey(resource, "millimeterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "", 10, this.name);          
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "", 10, this.unitName);
     this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "", 10);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
@@ -178,7 +214,11 @@ LengthUnit.MILLIMETER.unitToCentimeter = function(length) {
  * Centimeter unit.
  */
 LengthUnit.CENTIMETER = {formatLocale : null};
-  
+
+LengthUnit.CENTIMETER.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
 LengthUnit.CENTIMETER.getFormatWithUnit = function() {
   this.checkLocaleChange();
   return this.lengthFormatWithUnit;
@@ -196,7 +236,7 @@ LengthUnit.CENTIMETER.getFormat = function() {
   
 LengthUnit.CENTIMETER.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
   
 LengthUnit.CENTIMETER.checkLocaleChange = function() {
@@ -204,11 +244,11 @@ LengthUnit.CENTIMETER.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "centimeterUnit");
+    this.unitName = CoreTools.getStringFromKey(resource, "centimeterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "#", 1, this.name);          
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "#", 1, this.unitName);
     this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "#", 1);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
@@ -243,7 +283,11 @@ LengthUnit.CENTIMETER.unitToCentimeter = function(length) {
  * Meter unit.
  */
 LengthUnit.METER = {formatLocale : null};
-  
+
+LengthUnit.METER.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
 LengthUnit.METER.getFormatWithUnit = function() {
   this.checkLocaleChange();
   return this.lengthFormatWithUnit;
@@ -261,7 +305,7 @@ LengthUnit.METER.getFormat = function() {
 
 LengthUnit.METER.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
 
 LengthUnit.METER.checkLocaleChange = function() {
@@ -269,11 +313,11 @@ LengthUnit.METER.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "meterUnit");
+    this.unitName = CoreTools.getStringFromKey(resource, "meterUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "00#", 0.01, this.name);          
+    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "00#", 0.01, this.unitName);
     this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, minusSign, "00#", 0.01);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
@@ -310,6 +354,10 @@ LengthUnit.METER.unitToCentimeter = function(length) {
  */
 LengthUnit.INCH = {formatLocale : null};
 
+LengthUnit.INCH.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
 LengthUnit.INCH.getFormatWithUnit = function() {
   this.checkLocaleChange();
   return this.lengthFormat;
@@ -326,7 +374,7 @@ LengthUnit.INCH.getAreaFormatWithUnit = function() {
 
 LengthUnit.INCH.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
 
 LengthUnit.INCH.checkLocaleChange = function() {
@@ -334,7 +382,7 @@ LengthUnit.INCH.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
+    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
@@ -375,6 +423,10 @@ LengthUnit.INCH.unitToCentimeter = function(length) {
  */
 LengthUnit.INCH_DECIMALS = {formatLocale : null};
 
+LengthUnit.INCH_DECIMALS.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
 LengthUnit.INCH_DECIMALS.getFormatWithUnit = function() {
   this.checkLocaleChange();
   return this.lengthFormatWithUnit;
@@ -392,7 +444,7 @@ LengthUnit.INCH_DECIMALS.getAreaFormatWithUnit = function() {
 
 LengthUnit.INCH_DECIMALS.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
   
 LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {  
@@ -400,7 +452,7 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
+    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
     var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
     var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
     var minusSign = CoreTools.getStringFromKey(resource, "minusSign");
