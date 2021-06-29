@@ -1177,49 +1177,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
 JSViewFactory.prototype.createUserPreferencesView = function(preferences, controller) {
   var viewFactory = this;
 
-  /**
-   * @param {function(string[])} onFontsListAvailable
-   */
-  function loadAvailableFontNames(onFontsListAvailable) {
-    var windowsFonts = [
-      'Arial', 'Arial Black', 'Bahnschrift', 'Calibri', 'Cambria', 'Cambria Math', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 'Corbel', 'Courier New', 'Ebrima', 'Franklin Gothic Medium', 'Gabriola', 'Gadugi', 'Georgia', 'HoloLens MDL2 Assets', 'Impact', 'Ink Free', 'Javanese Text', 'Leelawadee UI', 'Lucida Console', 'Lucida Sans Unicode', 'Malgun Gothic', 'Marlett', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft YaHei', 'Microsoft Yi Baiti', 'MingLiU-ExtB', 'Mongolian Baiti', 'MS Gothic', 'MV Boli', 'Myanmar Text', 'Nirmala UI', 'Palatino Linotype', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Historic', 'Segoe UI Emoji', 'Segoe UI Symbol', 'SimSun', 'Sitka', 'Sylfaen', 'Symbol', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic'
-    ];
-    var macosFonts = [
-      'American Typewriter', 'Andale Mono', 'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold', 'Arial Unicode MS', 'Avenir', 'Avenir Next', 'Avenir Next Condensed', 'Baskerville', 'Big Caslon', 'Bodoni 72', 'Bodoni 72 Oldstyle', 'Bodoni 72 Smallcaps', 'Bradley Hand', 'Brush Script MT', 'Chalkboard', 'Chalkboard SE', 'Chalkduster', 'Charter', 'Cochin', 'Comic Sans MS', 'Copperplate', 'Courier', 'Courier New', 'Didot', 'DIN Alternate', 'DIN Condensed', 'Futura', 'Geneva', 'Georgia', 'Gill Sans', 'Helvetica', 'Helvetica Neue', 'Herculanum', 'Hoefler Text', 'Impact', 'Lucida Grande', 'Luminari', 'Marker Felt', 'Menlo', 'Microsoft Sans Serif', 'Monaco', 'Noteworthy', 'Optima', 'Palatino', 'Papyrus', 'Phosphate', 'Rockwell', 'Savoye LET', 'SignPainter', 'Skia', 'Snell Roundhand', 'Tahoma', 'Times', 'Times New Roman', 'Trattatello', 'Trebuchet MS', 'Verdana', 'Zapfino'
-    ];
-    if (document.fonts) {
-      document.fonts.ready.then(function() {
-        var availableFonts = [];
-        var allTestedFonts = windowsFonts.concat(macosFonts);
-        for (var i = 0; i < allTestedFonts.length; i++) {
-          var fontName = allTestedFonts[i];
-          if (availableFonts.indexOf(fontName) < 0 && document.fonts.check('12px "' + fontName + '"')) {
-            availableFonts.push(fontName);
-          }
-        }
-        onFontsListAvailable(availableFonts.sort());
-      });
-    } else {
-      onFontsListAvailable((OperatingSystem.isMacOSX() ? macosFonts : windowsFonts).sort());
-    }
-  }
-
-  /**
-   * @param {string} value option's value
-   * @param {string} text option's display text
-   * @param {boolean} [selected] true if selected, default false
-   * @return {HTMLOptionElement}
-   * @private
-   */
-  function createOptionElement(value, text, selected) {
-    var option = document.createElement('option');
-    option.value = value;
-    option.textContent = text;
-    if (selected !== undefined) {
-      option.selected = selected;
-    }
-    return option;
-  }
+  var createOptionElement = JSComponentView.createOptionElement;
 
   /**
    * @param {HTMLElement} element 
@@ -1444,7 +1402,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
             }
           };
 
-          loadAvailableFontNames(function(fonts) {
+          CoreTools.loadAvailableFontNames(function(fonts) {
             fonts = [DEFAULT_SYSTEM_FONT_NAME].concat(fonts);
             for (var i = 0; i < fonts.length; i++) {
               var font = fonts[i];
@@ -3576,7 +3534,37 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
             selectedAlignmentRadio.checked = true;
           }
         }
-        
+
+        dialog.fontSelect = dialog.getElement('font-select');
+        var DEFAULT_SYSTEM_FONT_NAME = "DEFAULT_SYSTEM_FONT_NAME";
+        var setFontFromController = function() {
+          if (controller.isFontNameSet()) {
+            var selectedValue = controller.getFontName() == null ? DEFAULT_SYSTEM_FONT_NAME : controller.getFontName();
+            var selectedOption = dialog.fontSelect.querySelector('[value="' + selectedValue + '"]')
+            if (selectedOption) {
+              selectedOption.selected = true;
+            }
+          } else {
+            dialog.fontSelect.selectedIndex = undefined;
+          }
+        };
+
+        CoreTools.loadAvailableFontNames(function(fonts) {
+          fonts = [DEFAULT_SYSTEM_FONT_NAME].concat(fonts);
+          for (var i = 0; i < fonts.length; i++) {
+            var font = fonts[i];
+            var label = i == 0 ? dialog.getLocalizedLabelText('FontNameComboBox', 'systemFontName') : font;
+            dialog.fontSelect.appendChild(JSComponentView.createOptionElement(font, label));
+          }
+          setFontFromController();
+        });
+        controller.addPropertyChangeListener('FONT_NAME', setFontFromController);
+
+        dialog.registerEventListener(dialog.fontSelect, 'input', function() {
+          var selectedValue = dialog.fontSelect.querySelector('option:checked').value;
+          controller.setFontName(selectedValue == DEFAULT_SYSTEM_FONT_NAME ? null : selectedValue);
+        });
+
         dialog.textSizeLabel = dialog.getElement('text-size-label');
         dialog.textSizeLabel.textContent = dialog.getLocalizedLabelText(
           'LabelPanel', 'fontSizeLabel.text', dialog.preferences.getLengthUnit().getName()

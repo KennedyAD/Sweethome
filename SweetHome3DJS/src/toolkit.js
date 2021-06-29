@@ -267,6 +267,22 @@ JSComponentView.prototype.getLengthInputStepSize = function() {
     this.preferences.getLengthUnit() == LengthUnit.INCH_DECIMALS ? LengthUnit.inchToCentimeter(0.125) : 0.5;
 }
 
+/**
+ * @param {string} value option's value
+ * @param {string} text option's display text
+ * @param {boolean} [selected] true if selected, default false
+ * @return {HTMLOptionElement}
+ */
+JSComponentView.createOptionElement = function(value, text, selected) {
+  var option = document.createElement('option');
+  option.value = value;
+  option.textContent = text;
+  if (selected !== undefined) {
+    option.selected = selected;
+  }
+  return option;
+}
+
 /*****************************************/
 /* JSDialogView                          */
 /*****************************************/
