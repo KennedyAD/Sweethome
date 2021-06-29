@@ -580,6 +580,17 @@ if (!String.prototype.endsWith) {
   };
 }
 
+if (!Object.values) {
+  Object.values = function(object) {
+    var keys = Object.keys(object);
+    var values = [];
+    for (var i = 0; i < keys.length; i++) {
+      values.push(object[keys[i]]);
+    }
+    return values;
+  }
+}
+
 /**
  * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
  * are not supported (mainly Safari 8/9).

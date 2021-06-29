@@ -1178,6 +1178,33 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   var viewFactory = this;
 
   /**
+   * @param {function(string[])} onFontsListAvailable
+   */
+  function loadAvailableFontNames(onFontsListAvailable) {
+    var windowsFonts = [
+      'Arial', 'Arial Black', 'Bahnschrift', 'Calibri', 'Cambria', 'Cambria Math', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 'Corbel', 'Courier New', 'Ebrima', 'Franklin Gothic Medium', 'Gabriola', 'Gadugi', 'Georgia', 'HoloLens MDL2 Assets', 'Impact', 'Ink Free', 'Javanese Text', 'Leelawadee UI', 'Lucida Console', 'Lucida Sans Unicode', 'Malgun Gothic', 'Marlett', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft YaHei', 'Microsoft Yi Baiti', 'MingLiU-ExtB', 'Mongolian Baiti', 'MS Gothic', 'MV Boli', 'Myanmar Text', 'Nirmala UI', 'Palatino Linotype', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Historic', 'Segoe UI Emoji', 'Segoe UI Symbol', 'SimSun', 'Sitka', 'Sylfaen', 'Symbol', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic'
+    ];
+    var macosFonts = [
+      'American Typewriter', 'Andale Mono', 'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold', 'Arial Unicode MS', 'Avenir', 'Avenir Next', 'Avenir Next Condensed', 'Baskerville', 'Big Caslon', 'Bodoni 72', 'Bodoni 72 Oldstyle', 'Bodoni 72 Smallcaps', 'Bradley Hand', 'Brush Script MT', 'Chalkboard', 'Chalkboard SE', 'Chalkduster', 'Charter', 'Cochin', 'Comic Sans MS', 'Copperplate', 'Courier', 'Courier New', 'Didot', 'DIN Alternate', 'DIN Condensed', 'Futura', 'Geneva', 'Georgia', 'Gill Sans', 'Helvetica', 'Helvetica Neue', 'Herculanum', 'Hoefler Text', 'Impact', 'Lucida Grande', 'Luminari', 'Marker Felt', 'Menlo', 'Microsoft Sans Serif', 'Monaco', 'Noteworthy', 'Optima', 'Palatino', 'Papyrus', 'Phosphate', 'Rockwell', 'Savoye LET', 'SignPainter', 'Skia', 'Snell Roundhand', 'Tahoma', 'Times', 'Times New Roman', 'Trattatello', 'Trebuchet MS', 'Verdana', 'Zapfino'
+    ];
+    if (document.fonts) {
+      document.fonts.ready.then(function() {
+        var availableFonts = [];
+        var allTestedFonts = windowsFonts.concat(macosFonts);
+        for (var i = 0; i < allTestedFonts.length; i++) {
+          var fontName = allTestedFonts[i];
+          if (availableFonts.indexOf(fontName) < 0 && document.fonts.check('12px "' + fontName + '"')) {
+            availableFonts.push(fontName);
+          }
+        }
+        onFontsListAvailable(availableFonts.sort());
+      });
+    } else {
+      onFontsListAvailable((OperatingSystem.isMacOSX() ? macosFonts : windowsFonts).sort());
+    }
+  }
+
+  /**
    * @param {string} value option's value
    * @param {string} text option's display text
    * @param {boolean} [selected] true if selected, default false
@@ -1301,10 +1328,45 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 
         /** CURRENCY */
         dialog.currencySelect = dialog.getElement('currency-select');
+        dialog.valueAddedTaxCheckBox = dialog.getElement('value-added-tax-checkbox');
         var currencyEnabled = controller.isPropertyEditable('CURRENCY');
-        // TODO LOUIS how to retrieve currencies to match java ones
-        disablePreferenceRow(dialog.currencySelect);
-        
+        var vatEnabled = controller.isPropertyEditable('VALUE_ADDED_TAX_ENABLED');
+        var noCurrencyLabel = this.getLocalizedLabelText('UserPreferencesPanel', 'currencyComboBox.noCurrency.text');
+        if (currencyEnabled) {
+          dialog.currencySelect.appendChild(createOptionElement('', noCurrencyLabel, !controller.getCurrency()));
+          var currencies = Object.keys(UserPreferences.CURRENCIES);
+          for (var i = 0; i < currencies.length; i++) {
+            var currency = currencies[i];
+            var currencyLabel = UserPreferences.CURRENCIES[currency];
+            dialog.currencySelect.appendChild(createOptionElement(currency, currencyLabel, currency == controller.getCurrency()));
+          }
+
+          this.registerEventListener(dialog.currencySelect, 'input', function() {
+            var selectedIndex = dialog.currencySelect.selectedIndex;
+            var selectedCurrency = dialog.currencySelect.options[selectedIndex].value;
+            controller.setCurrency(selectedCurrency ? selectedCurrency : null);
+          });
+          controller.addPropertyChangeListener('CURRENCY', function() {
+            var option = dialog.currencySelect.querySelector('[value="' + (controller.getCurrency() ? controller.getCurrency() : '') + '"]');
+            option.selected = true;
+            dialog.valueAddedTaxCheckBox.disabled = controller.getCurrency() == null;
+          });
+
+          /** Value Added Tax */
+          dialog.valueAddedTaxCheckBox.parentElement.style.display = vatEnabled ? 'initial' : 'none';
+          dialog.valueAddedTaxCheckBox.disabled = controller.getCurrency() == null;
+          dialog.valueAddedTaxCheckBox.checked = controller.isValueAddedTaxEnabled();
+          this.registerEventListener(dialog.valueAddedTaxCheckBox, 'input', function() {
+            controller.setValueAddedTaxEnabled(dialog.valueAddedTaxCheckBox.checked);
+          });
+          controller.addPropertyChangeListener('VALUE_ADDED_TAX_ENABLED', function() {
+            dialog.valueAddedTaxCheckBox.disabled = controller.getCurrency() == null;
+            dialog.valueAddedTaxCheckBox.checked = controller.isValueAddedTaxEnabled();
+          });
+        } else {
+          disablePreferenceRow(dialog.currencySelect);
+        }
+
         /** FURNITURE CATALOG VIEW */
         dialog.furnitureCatalogViewTreeRadio = dialog.findElement('[name="furniture-catalog-view-radio"][value="tree"]');
         var furnitureCatalogViewEnabled = controller.isPropertyEditable('FURNITURE_CATALOG_VIEWED_IN_TREE');
@@ -1369,6 +1431,39 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
           disablePreferenceRow(dialog.gridCheckbox);
         }
 
+        /** DEFAULT FONT NAME */
+        var defaultFontNameEnabled = controller.isPropertyEditable('DEFAULT_FONT_NAME');
+        dialog.defaultFontNameSelect = dialog.getElement('default-font-name-select');
+        if (defaultFontNameEnabled) {
+          var DEFAULT_SYSTEM_FONT_NAME = "DEFAULT_SYSTEM_FONT_NAME";
+          var setDefaultFontFromController = function() {
+            var selectedValue = controller.getDefaultFontName() == null ? DEFAULT_SYSTEM_FONT_NAME : controller.getDefaultFontName();
+            var selectedOption = dialog.defaultFontNameSelect.querySelector('[value="' + selectedValue + '"]')
+            if (selectedOption) {
+              selectedOption.selected = true;
+            }
+          };
+
+          loadAvailableFontNames(function(fonts) {
+            fonts = [DEFAULT_SYSTEM_FONT_NAME].concat(fonts);
+            for (var i = 0; i < fonts.length; i++) {
+              var font = fonts[i];
+              var label = i == 0 ? dialog.getLocalizedLabelText('FontNameComboBox', 'systemFontName') : font;
+              dialog.defaultFontNameSelect.appendChild(createOptionElement(font, label));
+            }
+            setDefaultFontFromController();
+          });
+
+          controller.addPropertyChangeListener('DEFAULT_FONT_NAME', setDefaultFontFromController);
+
+          dialog.registerEventListener(dialog.defaultFontNameSelect, 'input', function() {
+            var selectedValue = dialog.defaultFontNameSelect.querySelector('option:checked').value;
+            controller.setDefaultFontName(selectedValue == DEFAULT_SYSTEM_FONT_NAME ? null : selectedValue);
+          });
+        } else {
+          disablePreferenceRow(dialog.defaultFontNameSelect);
+        }
+
         /** FURNITURE ICON */
         dialog.iconTopViewRadio = dialog.findElement('[name="furniture-icon-radio"][value="topView"]');
         dialog.iconSizeSelect = dialog.getElement('icon-size-select');
@@ -1414,6 +1509,39 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
           dialog.findElement('[name="room-rendering-radio"][value="' + roomRenderingValue + '"]').checked = true;
         } else {
           disablePreferenceRow(dialog.roomRenderingFloorColorOrTextureRadio);
+        }
+
+        /** NEW WALL PATTERN */
+        var newWallPatternEnabled = controller.isPropertyEditable('NEW_WALL_PATTERN');
+        var newWallPatternSelect = dialog.getElement('new-wall-pattern-select');
+        if (newWallPatternEnabled) {
+          var patternsTexturesByURL = {};
+          var patterns = preferences.getPatternsCatalog().getPatterns();
+          for (var i = 0; i < patterns.length; i++) {
+            var url = patterns[i].getImage().getURL();
+            patternsTexturesByURL[url] = patterns[i];
+          }
+          dialog.patternComboBox = new JSComboBox(viewFactory, preferences, dialog.getElement('new-wall-pattern-select'), {
+            nullable: false,
+            availableValues: Object.keys(patternsTexturesByURL),
+            render: function(patternURL, patternItemElement) {
+              patternItemElement.style.backgroundImage = "url('" + patternURL + "')";
+            },
+            onSelectionChanged: function(newValue) {
+              controller.setNewWallPattern(patternsTexturesByURL[newValue]);
+            }
+          });
+
+          var selectedUrl = (
+            controller.getNewWallPattern() != null ? controller.getNewWallPattern() : controller.getWallPattern()
+          ).getImage().getURL();
+          dialog.patternComboBox.set(selectedUrl);
+          controller.addPropertyChangeListener('NEW_WALL_PATTERN', function() {
+            var selectedUrl = controller.getNewWallPattern().getImage().getURL();
+            dialog.patternComboBox.set(selectedUrl);
+          });
+        } else {
+          disablePreferenceRow(dialog.newWallPatternSelect);
         }
 
         /** NEW WALL THICKNESS */
@@ -1473,10 +1601,6 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         if (isElementVisible(dialog.languageSelect)) {
           var selectedLanguageOption = dialog.languageSelect.options[dialog.languageSelect.selectedIndex];
           controller.setLanguage(selectedLanguageOption == null ? null : selectedLanguageOption.value);
-        }
-        if (isElementVisible(dialog.currencySelect)) {
-          var selectedCurrencyOption = dialog.currencySelect.options[dialog.currencySelect.selectedIndex];
-          controller.setCurrency(selectedCurrencyOption == null ? null : selectedCurrencyOption.value);
         }
         if (isElementVisible(dialog.furnitureCatalogViewTreeRadio)) {
           controller.setFurnitureCatalogViewedInTree(dialog.furnitureCatalogViewTreeRadio.checked);
@@ -1718,14 +1842,14 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
 /**
  * 
  * @param {UserPreferences} preferences 
- * @param {HomeFurnitureController} homeFurnitureController 
+ * @param {HomeFurnitureController} controller
  */
-JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurnitureController) {
+JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controller) {
   var FurniturePaint = HomeFurnitureController.FurniturePaint;
   var viewFactory = this;
   
   function JSHomeFurnitureDialog() {
-    this.controller = homeFurnitureController;
+    this.controller = controller;
     
     JSDialogView.call(
       this, 
@@ -1736,7 +1860,6 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
       {
         initializer: function(dialog) {
 
-          
           dialog.initNameAndPricePanel();
           dialog.initLocationPanel();
           dialog.initPaintPanel();
@@ -1767,7 +1890,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
           }
         },
         applier: function() {
-          homeFurnitureController.modifyFurniture();
+          controller.modifyFurniture();
         },
         disposer: function(dialog) {
           dialog.paintPanel.colorSelector.dispose();
@@ -1782,6 +1905,11 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
    * @private
    */
   JSHomeFurnitureDialog.prototype.initNameAndPricePanel = function() {
+    var title = this.getElement('name-and-price-title');
+    title.textContent = this.getLocalizedLabelText(
+      'HomeFurniturePanel', controller.isPropertyEditable('PRICE') ? "nameAndPricePanel.title" : "namePanel.title"
+    );
+
     var nameLabel = this.getElement('name-label');
     var nameInput = this.getElement('name-input');
     var nameVisibleCheckbox = this.getElement('name-visible-checkbox');
@@ -1796,8 +1924,8 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     // 1) adjust visibility
     var nameDisplay = this.controller.isPropertyEditable('NAME') ? 'initial' : 'none';
     var nameVisibleDisplay = this.controller.isPropertyEditable('NAME_VISIBLE') ? 'initial' : 'none';
-    var priceDisplay = this.controller.isPropertyEditable('PRICE') ? 'initial' : 'none';
-    var vatDisplay = this.controller.isPropertyEditable('VALUE_ADDED_TAX_PERCENTAGE') ? 'initial' : 'none';
+    var priceDisplay = this.controller.isPropertyEditable('PRICE') ? 'inline-block' : 'none';
+    var vatDisplay = this.controller.isPropertyEditable('VALUE_ADDED_TAX_PERCENTAGE') ? 'inline-block' : 'none';
 
     nameLabel.style.display = nameDisplay;
     nameInput.style.display = nameDisplay;
@@ -1819,7 +1947,6 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
     }
 
     // 3) add property listeners
-    var controller = this.controller;
     this.controller.addPropertyChangeListener('NAME', function(event) {
       nameInput.value = controller.getName();
     });
@@ -1845,8 +1972,10 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, homeFurn
         controller.setName(nameInput.value);
         controller.setNameVisible(nameVisibleCheckbox.checked);
         controller.setPrice(priceInput.value != null && priceInput.value != '' ? new Big(parseFloat(priceInput.value)) : null);
+
+        var vat = valueAddedTaxPercentageInput.value;
         controller.setValueAddedTaxPercentage(
-          valueAddedTaxPercentageInput.value != null && valueAddedTaxPercentageInput.value != null ? parseFloat(valueAddedTaxPercentageInput.value) / 100 : null
+          vat != null ? new Big(parseFloat(vat) / 100) : null
         );
       }
     );

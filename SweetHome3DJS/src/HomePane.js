@@ -858,6 +858,7 @@ HomePane.UserPreferencesChangeListener = function(homePane) {
 }
 
 HomePane.UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
+  var ActionType = HomeView.ActionType;
   var homePane = this.homePane;
   var preferences = ev.getSource();
   var property = ev.getPropertyName();
@@ -865,23 +866,22 @@ HomePane.UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
     preferences.removePropertyChangeListener(property, this);
   }
   else {
-    var actionMap = homePane.getActionMap();
     switch ((property)) {
     case "LANGUAGE":
       // TODO LOUIS refresh page language 
       // SwingTools.updateSwingResourceLanguage(ev.getSource());
       break;
     case "CURRENCY":
-      actionMap.get(HomeView.ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
-      actionMap.get(HomeView.ActionType.SORT_HOME_FURNITURE_BY_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
+      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
+      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
       break;
     case "VALUE_ADDED_TAX_ENABLED":
-      actionMap.get(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      actionMap.get(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      actionMap.get(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      actionMap.get(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      actionMap.get(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      actionMap.get(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
       break;
     }
   }
@@ -914,15 +914,15 @@ HomePane.prototype.initActions = function(preferences) {
 HomePane.prototype.addPlanControllerListener = function(planController) {
   var homePane = this;
   planController.addPropertyChangeListener("MODE", function(ev) {
-      var mode = planController.getMode();
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.SELECT, mode == PlanController.Mode.SELECTION);
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.PAN, mode == PlanController.Mode.PANNING);
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_WALLS, mode == PlanController.Mode.WALL_CREATION);
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_ROOMS, mode == PlanController.Mode.ROOM_CREATION);
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_POLYLINES, mode == PlanController.Mode.POLYLINE_CREATION);
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_DIMENSION_LINES, mode == PlanController.Mode.DIMENSION_LINE_CREATION);
-      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_LABELS, mode == PlanController.Mode.LABEL_CREATION);
-    });
+    var mode = planController.getMode();
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.SELECT, mode == PlanController.Mode.SELECTION);
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.PAN, mode == PlanController.Mode.PANNING);
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_WALLS, mode == PlanController.Mode.WALL_CREATION);
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_ROOMS, mode == PlanController.Mode.ROOM_CREATION);
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_POLYLINES, mode == PlanController.Mode.POLYLINE_CREATION);
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_DIMENSION_LINES, mode == PlanController.Mode.DIMENSION_LINE_CREATION);
+    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_LABELS, mode == PlanController.Mode.LABEL_CREATION);
+  });
 }
   
 /**

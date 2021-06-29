@@ -761,7 +761,7 @@ input, textarea, keygen, select, button {
   box-sizing: border-box;
   padding: 2em;
   padding-top: 1em;
-  overflow: scroll;
+  overflow: auto;
   max-height: calc(100% /* max content height */ - 80px /* title and buttons */);
   background-color: #E9E9E9;
 }

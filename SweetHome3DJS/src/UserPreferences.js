@@ -35,13 +35,25 @@ function UserPreferences() {
   this.resourceBundles = [];
   this.furnitureCatalogResourceBundles = [];
   this.texturesCatalogResourceBundles = [];
-  
+
+/**
+ * @type {FurnitureCatalog}
+ */
   this.furnitureCatalog = null;
+/**
+ * @type {TexturesCatalog}
+ */
   this.texturesCatalog = null;
+/**
+ * @type {PatternsCatalog}
+ */
   this.patternsCatalog = null;
   this.currency = null;
   this.valueAddedTaxEnabled = false
   this.defaultValueAddedTaxPercentage = null;
+/**
+ * @type {LengthUnit}
+ */
   this.unit = null;
   this.furnitureCatalogViewedInTree = true;
   this.aerialViewCenteredOnSelectionEnabled = false;
@@ -54,7 +66,13 @@ function UserPreferences() {
   this.furnitureViewedFromTop = true;
   this.furnitureModelIconSize = 128;
   this.roomFloorColoredOrTextured = true;
+/**
+ * @type {TextureImage}
+ */
   this.wallPattern = null;
+/**
+ * @type {TextureImage}
+ */
   this.newWallPattern = null;
   this.newWallThickness = 7.5;
   this.newWallHeight = 250;
@@ -68,12 +86,174 @@ function UserPreferences() {
   this.recentColors = [];
   this.recentTextures = [];
   this.homeExamples = [];
+
+  this.ignoredActionTips = {};
 }
 
 UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es", "fr", "it", "ja", "hu", "nl", "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"];
 
 UserPreferences.DEFAULT_TEXT_STYLE = new TextStyle(18);
 UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
+
+UserPreferences.CURRENCIES = {
+  EUR: 'EUR €',
+  AED: 'AED AED',
+  AFN: 'AFN ؋',
+  ALL: 'ALL Lekë',
+  AMD: 'AMD ֏',
+  ANG: 'ANG NAf.',
+  AOA: 'AOA Kz',
+  ARS: 'ARS $',
+  AUD: 'AUD $',
+  AWG: 'AWG Afl.',
+  AZN: 'AZN ₼',
+  BAM: 'BAM KM',
+  BBD: 'BBD $',
+  BDT: 'BDT ৳',
+  BGN: 'BGN лв.',
+  BHD: 'BHD د.ب.‏',
+  BIF: 'BIF FBu',
+  BMD: 'BMD $',
+  BND: 'BND $',
+  BOB: 'BOB Bs',
+  BRL: 'BRL R$',
+  BSD: 'BSD $',
+  BTN: 'BTN Nu.',
+  BWP: 'BWP P',
+  BYN: 'BYN Br',
+  BZD: 'BZD $',
+  CAD: 'CAD $',
+  CDF: 'CDF FC',
+  CHF: 'CHF CHF',
+  CLP: 'CLP $',
+  CNY: 'CNY ￥',
+  COP: 'COP $',
+  CRC: 'CRC ₡',
+  CSD: 'CSD CSD',
+  CUP: 'CUP $',
+  CVE: 'CVE ​',
+  CZK: 'CZK Kč',
+  DJF: 'DJF Fdj',
+  DKK: 'DKK kr',
+  DOP: 'DOP RD$',
+  DZD: 'DZD DA',
+  EGP: 'EGP ج.م.‏',
+  ERN: 'ERN Nfk',
+  ETB: 'ETB Br',
+  EUR: 'EUR €',
+  FJD: 'FJD $',
+  FKP: 'FKP £',
+  GBP: 'GBP £',
+  GEL: 'GEL ₾',
+  GHS: 'GHS GH₵',
+  GIP: 'GIP £',
+  GMD: 'GMD D',
+  GNF: 'GNF FG',
+  GTQ: 'GTQ Q',
+  GYD: 'GYD $',
+  HKD: 'HKD HK$',
+  HNL: 'HNL L',
+  HRK: 'HRK HRK',
+  HTG: 'HTG G',
+  HUF: 'HUF Ft',
+  IDR: 'IDR Rp',
+  ILS: 'ILS ₪',
+  INR: 'INR ₹',
+  IQD: 'IQD د.ع.‏',
+  IRR: 'IRR IRR',
+  ISK: 'ISK ISK',
+  JMD: 'JMD $',
+  JOD: 'JOD د.أ.‏',
+  JPY: 'JPY ￥',
+  KES: 'KES Ksh',
+  KGS: 'KGS сом',
+  KHR: 'KHR ៛',
+  KMF: 'KMF CF',
+  KPW: 'KPW KPW',
+  KRW: 'KRW ₩',
+  KWD: 'KWD د.ك.‏',
+  KYD: 'KYD $',
+  KZT: 'KZT ₸',
+  LAK: 'LAK ₭',
+  LBP: 'LBP ل.ل.‏',
+  LKR: 'LKR Rs.',
+  LRD: 'LRD $',
+  LSL: 'LSL LSL',
+  LYD: 'LYD د.ل.‏',
+  MAD: 'MAD MAD',
+  MDL: 'MDL L',
+  MGA: 'MGA Ar',
+  MKD: 'MKD den',
+  MMK: 'MMK K',
+  MNT: 'MNT ₮',
+  MOP: 'MOP MOP$',
+  MRU: 'MRU UM',
+  MUR: 'MUR Rs',
+  MWK: 'MWK MK',
+  MXN: 'MXN $',
+  MYR: 'MYR RM',
+  MZN: 'MZN MTn',
+  NAD: 'NAD $',
+  NGN: 'NGN ₦',
+  NIO: 'NIO C$',
+  NOK: 'NOK kr',
+  NPR: 'NPR नेरू',
+  NZD: 'NZD $',
+  OMR: 'OMR ر.ع.‏',
+  PAB: 'PAB B/.',
+  PEN: 'PEN S/',
+  PGK: 'PGK K',
+  PHP: 'PHP ₱',
+  PKR: 'PKR ر',
+  PLN: 'PLN zł',
+  PYG: 'PYG Gs.',
+  QAR: 'QAR ر.ق.‏',
+  RON: 'RON RON',
+  RSD: 'RSD RSD',
+  RUB: 'RUB ₽',
+  RWF: 'RWF RF',
+  SAR: 'SAR ر.س.‏',
+  SBD: 'SBD $',
+  SCR: 'SCR SR',
+  SDG: 'SDG SDG',
+  SEK: 'SEK kr',
+  SGD: 'SGD $',
+  SHP: 'SHP £',
+  SLL: 'SLL Le',
+  SOS: 'SOS S',
+  SRD: 'SRD $',
+  SSP: 'SSP £',
+  STN: 'STN Db',
+  SVC: 'SVC C',
+  SYP: 'SYP LS',
+  SZL: 'SZL E',
+  THB: 'THB ฿',
+  TJS: 'TJS сом.',
+  TMT: 'TMT TMT',
+  TND: 'TND DT',
+  TOP: 'TOP T$',
+  TRY: 'TRY ₺',
+  TTD: 'TTD $',
+  TWD: 'TWD $',
+  TZS: 'TZS TSh',
+  UAH: 'UAH ₴',
+  UGX: 'UGX USh',
+  USD: 'USD $',
+  UYU: 'UYU $',
+  UZS: 'UZS сўм',
+  VES: 'VES Bs.S',
+  VND: 'VND ₫',
+  VUV: 'VUV VT',
+  WST: 'WST WS$',
+  XAF: 'XAF FCFA',
+  XCD: 'XCD $',
+  XOF: 'XOF CFA',
+  XPF: 'XPF FCFP',
+  YER: 'YER ر.ي.‏',
+  ZAR: 'ZAR R',
+  ZMW: 'ZMW K',
+  ZWL: 'ZWL ZWL'
+};
 
 /**
  * Initializes the supportedLanguage property (and potentially the language property if it has to change)
@@ -217,6 +397,7 @@ UserPreferences.prototype.setPatternsCatalog = function(catalog) {
 
 /**
  * Returns the length unit currently in use.
+ * @return {LengthUnit}
  */
 UserPreferences.prototype.getLengthUnit = function() {
   return this.unit;
@@ -384,6 +565,11 @@ UserPreferences.prototype.getCurrency = function() {
  */
 UserPreferences.prototype.setCurrency = function(currency) {
   this.currency = currency;
+  if (currency != this.currency) {
+    var oldCurrency = this.currency;
+    this.currency = currency;
+    this.propertyChangeSupport.firePropertyChange("LANGUAGE", oldCurrency, currency);
+  }
 }
 
 /**
@@ -664,6 +850,7 @@ UserPreferences.prototype.setFloorColoredOrTextured = function(roomFloorColoredO
 
 /**
  * Returns the wall pattern in plan used by default.
+ * @return {TextureImage}
  * @ignore
  */
 UserPreferences.prototype.getWallPattern = function() {
@@ -686,6 +873,7 @@ UserPreferences.prototype.setWallPattern = function(wallPattern) {
 
 /**
  * Returns the pattern used for new walls in plan or <code>null</code> if it's not set.
+ * @return {TextureImage}
  */
 UserPreferences.prototype.getNewWallPattern = function() {
   return this.newWallPattern;
@@ -1077,14 +1265,14 @@ UserPreferences.prototype.setCheckUpdatesEnabled = function(updatesChecked) {
  * @param {string|UserPreferences} [furnitureResourcesUrlBase]
  * @param {string[]} [texturesCatalogUrls]
  * @param {string}   [texturesResourcesUrlBase]
- * @param {string}   [loadResourceURL] URL to which upload new resource files
+ * @param {string}   [writeResourceURL] URL to which upload new resource files
  * @constructor
  * @extends UserPreferences
  * @author Emmanuel Puybaret
  */
 function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase, 
                                 texturesCatalogUrls, texturesResourcesUrlBase, 
-                                userResourcesURLBase, loadResourceURL) {
+                                userResourcesURLBase, writeResourceURL) {
   UserPreferences.call(this);
 
   this.furnitureCatalogUrls = furnitureCatalogUrls;
@@ -1092,7 +1280,7 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
   this.texturesCatalogUrls = texturesCatalogUrls;
   this.texturesResourcesUrlBase = texturesResourcesUrlBase;
   this.userResourcesURLBase = userResourcesURLBase;
-  this.loadResourceURL = loadResourceURL;
+  this.writeResourceURL = writeResourceURL;
   
   // Build default patterns catalog
   var patterns = [];
@@ -1140,140 +1328,9 @@ DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
 
 /**
  * Writes user preferences.
- * @param {function()} onSuccess called when preferences are fully saved
- * @param {function()} onError called if any error occurs during save
  */
-DefaultUserPreferences.prototype.write = function(onSuccess, onError) {
-
-  var onSuccessLocal = function() {
-    console.info('DefaultUserPreferences saved');
-    if (typeof onSuccess == 'function') {
-      onSuccess();
-    }
-  };
-  var onErrorLocal = function(e) {
-    console.error(e, 'ERROR during DefaultUserPreferences save');
-    if (typeof onError == 'function') {
-      onError(e);
-    }
-  };
-
-  try {
-    UserPreferences.prototype.write.call(this);
-
-    if (this.loadResourceURL) {
-      // TODO LOUIS how to handle async - UserPreferencesChangeListener.prototype.writePreferences in SweetHome3D.js will continue while this is running
-      this.saveTexturesCatalog(onSuccessLocal, onErrorLocal);
-    } else {
-      onSuccessLocal();
-    }
-  } catch (e) {
-    onErrorLocal(e);
-  }
-}
-
-/**
- * Save modifiable textures to catalog.json and upload new resources
- * 
- * @param {function()} onSuccess called when textures catalog is fully saved
- * @param {function()} onError called if any error occurs during save
- * 
- * @private
- */
-DefaultUserPreferences.prototype.saveTexturesCatalog = function(onSuccess, onError) {
-  console.info("save textures catalog");
-
-  var texturesCatalogJson = {};
-  function putTextureProperty(propertyKey, index, value) {
-    texturesCatalogJson[DefaultTexturesCatalog.PropertyKey.getKey(propertyKey, index)] = value;
-  }
-  
-  var texturesDirectoryPathRelativeToUserResources = this.texturesResourcesUrlBase.substring(this.userResourcesURLBase.length);
-  
-  var expectedUploadCount = 1;
-  function onUploadSuccess() {
-    expectedUploadCount--;
-    if (expectedUploadCount === 0) {
-      onSuccess();
-    }
-  }
-
-  var uploadDate = new Date();
-  var uploadId = '' + uploadDate.getFullYear() + '-' + uploadDate.getMonth() + '-' + uploadDate.getDate() 
-    + '_' + uploadDate.getHours() + 'h' + uploadDate.getMinutes() + 'm' + uploadDate.getSeconds() + '.' + uploadDate.getMilliseconds();
-
-  var index = 1;
-  var texturesCatalog = this.getTexturesCatalog();
-  for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
-    var textureCategory = texturesCatalog.getCategory(i);
-    for (var j = 0; j < textureCategory.getTexturesCount(); j++) {
-      var catalogTexture = textureCategory.getTexture(j);
-      if (catalogTexture.isModifiable()) {
-        if (catalogTexture.getName() != null) {
-          putTextureProperty(DefaultTexturesCatalog.PropertyKey.NAME, index, catalogTexture.getName());
-        }
-        putTextureProperty(DefaultTexturesCatalog.PropertyKey.CATEGORY, index, textureCategory.getName());
-        putTextureProperty(DefaultTexturesCatalog.PropertyKey.MODIFIABLE, index, catalogTexture.isModifiable());
-        putTextureProperty(DefaultTexturesCatalog.PropertyKey.WIDTH, index, catalogTexture.getWidth());
-        putTextureProperty(DefaultTexturesCatalog.PropertyKey.HEIGHT, index, catalogTexture.getHeight());
-        if (catalogTexture.getCreator() != null) {
-          putTextureProperty(DefaultTexturesCatalog.PropertyKey.CREATOR, index, catalogTexture.getCreator());
-        }
-        if (catalogTexture.getId() != null) {
-          putTextureProperty(DefaultTexturesCatalog.PropertyKey.ID, index, catalogTexture.getId());
-        }
-
-        var textureImageFileName = "";
-        var textureImage = catalogTexture.getImage();
-        if (textureImage instanceof BlobURLContent) {
-          var imageExtension = textureImage.getBlob().type == 'image/png' ? 'png' : 'jpg';
-          textureImageFileName = 'preferencesCatalogTexture_' + uploadId + '_' + index + '.' + imageExtension;
-          var imagePath = texturesDirectoryPathRelativeToUserResources + textureImageFileName;
-
-          expectedUploadCount++;
-          this.uploadContent(imagePath, textureImage.getBlob(), onUploadSuccess, onError);
-
-          // TODO LOUIS this looks like messing with private properties...
-          catalogTexture.image = new URLContent(this.texturesResourcesUrlBase + textureImageFileName);
-        } else if (textureImage instanceof URLContent) {
-          textureImageFileName = textureImage.getURL();
-          if (this.texturesResourcesUrlBase != null) {
-            textureImageFileName = textureImageFileName.substring(this.texturesResourcesUrlBase.length);
-          }
-        }
-        putTextureProperty(DefaultTexturesCatalog.PropertyKey.IMAGE, index, textureImageFileName);
-
-        index++;
-      }
-    }
-  }
-
-  this.uploadContent(
-    texturesDirectoryPathRelativeToUserResources + 'catalog.json',
-    new Blob([JSON.stringify(texturesCatalogJson)], { type: "application/json"}), 
-    onUploadSuccess, 
-    onError
-  );
-}
-
-/**
- * @param {string} path uploaded file path relative to userResources directory
- * @param {Blob} blob file content
- * @param {function()} onSuccess called when content is uploaded
- * @param {function()} onError called if error is detected
- * @private
- */
-DefaultUserPreferences.prototype.uploadContent = function(path, blob, onSuccess, onError) {
-  console.info("uploading blob content to " + path);
-  var request = new XMLHttpRequest();
-  
-  var uploadUrl = CoreTools.format(this.loadResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
-  request.open("POST", uploadUrl);
-  request.onload = onSuccess;
-  request.onerror = onError;
-  request.ontimeout = onError;
-  
-  request.send(blob);
+DefaultUserPreferences.prototype.write = function() {
+  UserPreferences.prototype.write.call(this);
 }
 
 /**
@@ -1346,4 +1403,625 @@ DefaultPatternTexture.prototype.equals = function (obj) {
   } else {
     return false;
   }
+}
+
+/**
+ * User's preferences, synchronized with a backend.
+ * @param {string[]|boolean}       [furnitureCatalogUrls]
+ * @param {string|UserPreferences} [furnitureResourcesUrlBase]
+ * @param {string[]} [texturesCatalogUrls]
+ * @param {string}   [texturesResourcesUrlBase]
+ * @param {string}   [writeResourceURL] URL to which upload new resource files
+ * @param {string}   [writePreferencesURL] URL to which upload preference file
+ * @param {string}   [readPreferencesURL] URL from which download the preference file
+ * @constructor
+ * @extends UserPreferences
+ * @author Louis Grignon
+ */
+function RecordedUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
+                                texturesCatalogUrls, texturesResourcesUrlBase,
+                                userResourcesURLBase, writeResourceURL,
+                                writePreferencesURL, readPreferencesURL) {
+  UserPreferences.call(this);
+
+  this.furnitureCatalogUrls = furnitureCatalogUrls;
+  this.furnitureResourcesUrlBase = furnitureResourcesUrlBase;
+  this.texturesCatalogUrls = texturesCatalogUrls;
+  this.texturesResourcesUrlBase = texturesResourcesUrlBase;
+  this.userResourcesURLBase = userResourcesURLBase;
+  this.writeResourceURL = writeResourceURL;
+  this.writePreferencesURL = writePreferencesURL;
+  this.readPreferencesURL = readPreferencesURL;
+
+  this.readPreferences();
+  this.onReadPreferencesDone();
+};
+
+RecordedUserPreferences.prototype = Object.create(UserPreferences.prototype);
+RecordedUserPreferences.prototype.constructor = RecordedUserPreferences;
+
+RecordedUserPreferences.PROPERTIES = {
+  LANGUAGE                                  : "language",
+  UNIT                                      : "unit",
+  CURRENCY                                  : "currency",
+  VALUE_ADDED_TAX_ENABLED                   : "valueAddedTaxEnabled",
+  DEFAULT_VALUE_ADDED_TAX_PERCENTAGE        : "defaultValueAddedTaxPercentage",
+  FURNITURE_CATALOG_VIEWED_IN_TREE          : "furnitureCatalogViewedInTree",
+  NAVIGATION_PANEL_VISIBLE                  : "navigationPanelVisible",
+  AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED : "aerialViewCenteredOnSelectionEnabled",
+  OBSERVER_CAMERA_SELECTED_AT_CHANGE        : "observerCameraSelectedAtChange",
+  MAGNETISM_ENABLED                         : "magnetismEnabled",
+  RULERS_VISIBLE                            : "rulersVisible",
+  GRID_VISIBLE                              : "gridVisible",
+  DEFAULT_FONT_NAME                         : "defaultFontName",
+  FURNITURE_VIEWED_FROM_TOP                 : "furnitureViewedFromTop",
+  FURNITURE_MODEL_ICON_SIZE                 : "furnitureModelIconSize",
+  ROOM_FLOOR_COLORED_OR_TEXTURED            : "roomFloorColoredOrTextured",
+  WALL_PATTERN                              : "wallPattern",
+  NEW_WALL_PATTERN                          : "newWallPattern",
+  NEW_WALL_THICKNESS                        : "newWallThickness",
+  NEW_WALL_HEIGHT                           : "newHomeWallHeight",
+  NEW_FLOOR_THICKNESS                       : "newFloorThickness",
+  RECENT_HOMES                              : "recentHomes#",
+  IGNORED_ACTION_TIP                        : "ignoredActionTip#",
+  TEXTURE_NAME                              : "textureName#",
+  TEXTURE_CREATOR                           : "textureCreator#",
+  TEXTURE_CATEGORY                          : "textureCategory#",
+  TEXTURE_IMAGE                             : "textureImage#",
+  TEXTURE_WIDTH                             : "textureWidth#",
+  TEXTURE_HEIGHT                            : "textureHeight#"
+};
+
+/**
+ * Returns value of property in internal properties map, and return defaultValue if value is null or undefined
+ *
+ * @param {string} propertyKey
+ * @param {any} [defaultValue]
+ *
+ * @return {any} property's value
+ *
+ * @private
+ */
+RecordedUserPreferences.prototype.getProperty = function(propertyKey, defaultValue) {
+  if (this.properties[propertyKey] === undefined || this.properties[propertyKey] === null) {
+    return defaultValue;
+  }
+  return this.properties[propertyKey];
+};
+
+/**
+ * Sets value of a property in internal properties map
+ *
+ * @param {string} propertyKey
+ * @param {any} propertyValue
+ *
+ * @private
+ */
+RecordedUserPreferences.prototype.setProperty = function(propertyKey, propertyValue) {
+  this.properties[propertyKey] = propertyValue;
+};
+
+/**
+ * Loads saved preferences in this object's properties, from backend
+ * @private
+ */
+RecordedUserPreferences.prototype.onReadPreferencesDone = function() {
+  var PROPERTIES = RecordedUserPreferences.PROPERTIES;
+  var preferences = this;
+
+  var language = this.properties[PROPERTIES.LANGUAGE];
+  if (language == null) {
+    language = "en";
+  }
+  this.setLanguage(language);
+
+  // Read default furniture and textures catalog
+  this.setFurnitureCatalog(new FurnitureCatalog());
+  this.setTexturesCatalog(new TexturesCatalog());
+  this.updateDefaultCatalogs();
+
+  var defaultPreferences = new DefaultUserPreferences(this.furnitureCatalogUrls, this.furnitureResourcesUrlBase,
+    this.texturesCatalogUrls, this.texturesResourcesUrlBase, this.userResourcesURLBase, this.writeResourceURL);
+  defaultPreferences.setLanguage(this.getLanguage());
+
+  // Fill default patterns catalog
+  var patternsCatalog = defaultPreferences.getPatternsCatalog();
+  this.setPatternsCatalog(patternsCatalog);
+
+  // Read other preferences
+  var unit = LengthUnit[this.getProperty(PROPERTIES.UNIT)];
+  if (!unit) {
+    unit = defaultPreferences.getLengthUnit();
+  }
+  this.setUnit(unit);
+
+  this.setCurrency(this.getProperty(PROPERTIES.CURRENCY));
+  this.setValueAddedTaxEnabled(this.getProperty(PROPERTIES.VALUE_ADDED_TAX_ENABLED) == 'true');
+  this.setDefaultValueAddedTaxPercentage(this.getProperty(PROPERTIES.DEFAULT_VALUE_ADDED_TAX_PERCENTAGE) == null ? null : parseFloat(this.getProperty(PROPERTIES.DEFAULT_VALUE_ADDED_TAX_PERCENTAGE)));
+  this.setFurnitureModelIconSize(this.getProperty(PROPERTIES.FURNITURE_MODEL_ICON_SIZE) == null ? null : parseFloat(this.getProperty(PROPERTIES.FURNITURE_MODEL_ICON_SIZE)));
+
+  this.setFurnitureCatalogViewedInTree(
+    this.getProperty(PROPERTIES.FURNITURE_CATALOG_VIEWED_IN_TREE, '' + defaultPreferences.isFurnitureCatalogViewedInTree()) == 'true'
+  );
+  this.setNavigationPanelVisible(
+    this.getProperty(PROPERTIES.NAVIGATION_PANEL_VISIBLE, '' + defaultPreferences.isNavigationPanelVisible()) == 'true'
+  );
+  this.setAerialViewCenteredOnSelectionEnabled(
+    this.getProperty(
+      PROPERTIES.AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED,
+      '' + defaultPreferences.isAerialViewCenteredOnSelectionEnabled()
+    ) == 'true'
+  );
+  this.setObserverCameraSelectedAtChange(
+    this.getProperty(PROPERTIES.OBSERVER_CAMERA_SELECTED_AT_CHANGE, '' + defaultPreferences.isObserverCameraSelectedAtChange()) == 'true'
+  );
+  this.setMagnetismEnabled(
+    this.getProperty(PROPERTIES.MAGNETISM_ENABLED, 'true') == 'true'
+  );
+  this.setRulersVisible(
+    this.getProperty(PROPERTIES.RULERS_VISIBLE, '' + defaultPreferences.isMagnetismEnabled()) == 'true'
+  );
+  this.setGridVisible(
+    this.getProperty(PROPERTIES.GRID_VISIBLE, '' + defaultPreferences.isGridVisible()) == 'true'
+  );
+  this.setDefaultFontName(this.getProperty(PROPERTIES.DEFAULT_FONT_NAME, defaultPreferences.getDefaultFontName()));
+  this.setFurnitureViewedFromTop(
+    this.getProperty(PROPERTIES.FURNITURE_VIEWED_FROM_TOP, '' + defaultPreferences.isFurnitureViewedFromTop()) == 'true'
+  );
+  this.setFloorColoredOrTextured(
+    this.getProperty(PROPERTIES.ROOM_FLOOR_COLORED_OR_TEXTURED, '' + defaultPreferences.isRoomFloorColoredOrTextured()) == 'true'
+  );
+
+  try {
+    this.setWallPattern(patternsCatalog.getPattern(this.getProperty(PROPERTIES.WALL_PATTERN, defaultPreferences.getWallPattern().getName())));
+  } catch (ex) {
+    // Ensure wall pattern always exists even if new patterns are added in future versions
+    this.setWallPattern(defaultPreferences.getWallPattern());
+  }
+
+  try {
+    if (defaultPreferences.getNewWallPattern() != null) {
+      this.setNewWallPattern(patternsCatalog.getPattern(this.getProperty(PROPERTIES.NEW_WALL_PATTERN,
+        defaultPreferences.getNewWallPattern().getName())));
+    }
+  } catch (ex) {
+    // Keep new wall pattern unchanged
+  }
+
+  this.setNewWallThickness(parseFloat(this.getProperty(PROPERTIES.NEW_WALL_THICKNESS,
+    '' + defaultPreferences.getNewWallThickness())));
+  this.setNewWallHeight(parseFloat(this.getProperty(PROPERTIES.NEW_WALL_HEIGHT,
+    '' + defaultPreferences.getNewWallHeight())));
+  this.setNewWallBaseboardThickness(defaultPreferences.getNewWallBaseboardThickness());
+  this.setNewWallBaseboardHeight(defaultPreferences.getNewWallBaseboardHeight());
+  this.setNewFloorThickness(parseFloat(this.getProperty(PROPERTIES.NEW_FLOOR_THICKNESS,
+    '' + defaultPreferences.getNewFloorThickness())));
+  this.setCurrency(defaultPreferences.getCurrency());
+  // Read recent homes list
+  var recentHomes = [];
+  for (var i = 1; i <= this.getRecentHomesMaxCount(); i++) {
+    var recentHome = this.getProperty(PROPERTIES.RECENT_HOMES + i);
+    if (recentHome != null) {
+      recentHomes.add(recentHome);
+    }
+  }
+  this.setRecentHomes(recentHomes);
+
+  // Read ignored action tips
+  for (var i = 1; ; i++) {
+    var ignoredActionTip = this.getProperty(PROPERTIES.IGNORED_ACTION_TIP + i, "");
+    if (ignoredActionTip.length == 0) {
+      break;
+    } else {
+      this.ignoredActionTips[ignoredActionTip] = true;
+    }
+  }
+
+  this.addPropertyChangeListener('LANGUAGE', function() {
+    preferences.updateDefaultCatalogs();
+  });
+
+  // Add a listener to track written properties and ignore the other ones during a call to write
+  var savedPropertyListener = function() {
+      preferences.writtenPropertiesUpdated = true;
+  };
+  var writtenProperties = ["LANGUAGE", "UNIT", "CURRENCY", "VALUE_ADDED_TAX_ENABLED", "DEFAULT_VALUE_ADDED_TAX_PERCENTAGE",
+    "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", 'DEFAULT_FONT_NAME', "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
+    "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "FURNITURE_VIEWED_FROM_TOP",
+    "FURNITURE_MODEL_ICON_SIZE", "ROOM_FLOOR_COLORED_OR_TEXTURED", "NEW_WALL_PATTERN", "NEW_WALL_THICKNESS",
+    "NEW_WALL_HEIGHT", "NEW_FLOOR_THICKNESS", "TEXTURE_NAME", "TEXTURE_CREATOR", "TEXTURE_CATEGORY", "TEXTURE_IMAGE",
+    "TEXTURE_WIDTH", "TEXTURE_HEIGHT"];
+  for (var i = 0; i < writtenProperties.length; i++) {
+    var writtenProperty = writtenProperties[i];
+    this.addPropertyChangeListener(writtenProperty, savedPropertyListener);
+  }
+};
+
+/**
+ * Loads saved preferences from backend to this object's properties field
+ * @private
+ */
+RecordedUserPreferences.prototype.readPreferences = function() {
+  var properties = this.properties = {};
+  if (this.readPreferencesURL) {
+    try {
+      var timestampQueryStringSeparator = this.readPreferencesURL.indexOf('?') > -1 ? '&' : '?';
+      var responseText = null;
+      var request = new XMLHttpRequest();
+      request.open("GET", this.readPreferencesURL + timestampQueryStringSeparator + Date.now().toString(), false);
+      request.onload = function() {
+        responseText = request.responseText;
+      };
+      request.send();
+
+      if (responseText) {
+        console.debug("load preferences from data", responseText);
+        var preferencesData = JSON.parse(responseText);
+
+        var propertiesKeys = Object.values(RecordedUserPreferences.PROPERTIES);
+        for (var i = 0; i < propertiesKeys.length; i++) {
+          var propertyKey = propertiesKeys[i];
+          var propertyValue = preferencesData[propertyKey];
+          if (propertyValue !== undefined) {
+            properties[propertyKey] = propertyValue;
+          }
+        }
+        console.info("preferences read DONE", properties);
+      }
+    } catch(e) {
+        // proceed anyway
+    }
+  }
+};
+
+/**
+ * @private
+ */
+RecordedUserPreferences.prototype.updateDefaultCatalogs = function() {
+  // Delete default pieces of current furniture catalog
+  var furnitureCatalog = this.getFurnitureCatalog();
+  for (var i = 0; i < furnitureCatalog.getCategories().length; i++) {
+    var category = furnitureCatalog.getCategory(i);
+    for (var j = 0; j < category.getFurniture().length; j++) {
+      var piece = category.getPieceOfFurniture(j);
+      if (!piece.isModifiable()) {
+        furnitureCatalog['delete'](piece);
+      }
+    }
+  }
+
+  // Add default pieces
+  var defaultFurnitureCatalog = typeof DefaultFurnitureCatalog === "function"
+    ? (Array.isArray(this.furnitureCatalogUrls)
+      ? new DefaultFurnitureCatalog(this.furnitureCatalogUrls, this.furnitureResourcesUrlBase)
+      : new DefaultFurnitureCatalog(this))
+    : new FurnitureCatalog();
+  for (var i = 0; i < defaultFurnitureCatalog.getCategories().length; i++) {
+    var category = defaultFurnitureCatalog.getCategory(i);
+    for (var j = 0; j < category.getFurniture().length; j++) {
+      var piece = category.getPieceOfFurniture(j);
+      furnitureCatalog.add(category, piece);
+    }
+  }
+
+  // Delete default textures of current textures catalog
+  var texturesCatalog = this.getTexturesCatalog();
+  for (var i = 0; i < texturesCatalog.getCategories().length; i++) {
+    var category = texturesCatalog.getCategory(i);
+    for (var j = 0; j < category.getTextures().length; j++) {
+      var texture = category.getTexture(j);
+      if (!texture.isModifiable()) {
+        texturesCatalog['delete'](texture);
+      }
+    }
+  }
+  // Add default textures
+  var defaultTexturesCatalog = typeof DefaultTexturesCatalog === "function"
+    ? (Array.isArray(this.texturesCatalogUrls)
+      ? new DefaultTexturesCatalog(this, this.texturesCatalogUrls, this.texturesResourcesUrlBase)
+      : new DefaultTexturesCatalog(this))
+    : new TexturesCatalog();
+
+  for (var i = 0; i < defaultTexturesCatalog.getCategories().length; i++) {
+    var category = defaultTexturesCatalog.getCategory(i);
+    for (var j = 0; j < category.getTextures().length; j++) {
+      var texture = category.getTexture(j);
+      texturesCatalog.add(category, texture);
+    }
+  }
+}
+
+/**
+ * Writes user preferences to properties, and sends to the <code>writePreferencesURL</code> (if
+ * given at the creation) a JSON content describing preferences in a parameter named preferences.
+ * @override
+ */
+RecordedUserPreferences.prototype.write = function() {
+  UserPreferences.prototype.write.call(this);
+
+  if (this.writeResourceURL) {
+    this.saveTexturesCatalog();
+  }
+
+  if (this.writtenPropertiesUpdated) {
+    // Write actually preferences only if written properties were updated
+    this.writtenPropertiesUpdated = false;
+
+    var PROPERTIES = RecordedUserPreferences.PROPERTIES;
+    // Write other preferences
+    this.setProperty(PROPERTIES.LANGUAGE, this.getLanguage());
+
+    this.setProperty(PROPERTIES.CURRENCY, this.getCurrency());
+    this.setProperty(PROPERTIES.VALUE_ADDED_TAX_ENABLED, '' + this.isValueAddedTaxEnabled());
+    this.setProperty(PROPERTIES.DEFAULT_VALUE_ADDED_TAX_PERCENTAGE, this.getDefaultValueAddedTaxPercentage() == null ? null : '' + this.getDefaultValueAddedTaxPercentage());
+    this.setProperty(PROPERTIES.FURNITURE_MODEL_ICON_SIZE, this.getFurnitureModelIconSize() == null ? null : '' + this.getFurnitureModelIconSize());
+
+    this.setProperty(PROPERTIES.UNIT, this.getLengthUnit().name());
+    this.setProperty(PROPERTIES.FURNITURE_CATALOG_VIEWED_IN_TREE, '' + this.isFurnitureCatalogViewedInTree());
+    this.setProperty(PROPERTIES.NAVIGATION_PANEL_VISIBLE, '' + this.isNavigationPanelVisible());
+    this.setProperty(PROPERTIES.AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED, '' + this.isAerialViewCenteredOnSelectionEnabled());
+    this.setProperty(PROPERTIES.OBSERVER_CAMERA_SELECTED_AT_CHANGE, '' + this.isObserverCameraSelectedAtChange());
+    this.setProperty(PROPERTIES.MAGNETISM_ENABLED, '' + this.isMagnetismEnabled());
+    this.setProperty(PROPERTIES.RULERS_VISIBLE, '' + this.isRulersVisible());
+    this.setProperty(PROPERTIES.GRID_VISIBLE, '' + this.isGridVisible());
+    var defaultFontName = this.getDefaultFontName();
+    if (defaultFontName == null) {
+      delete this.properties[PROPERTIES.DEFAULT_FONT_NAME];
+    } else {
+      this.setProperty(PROPERTIES.DEFAULT_FONT_NAME, defaultFontName);
+    }
+    this.setProperty(PROPERTIES.FURNITURE_VIEWED_FROM_TOP, '' + this.isFurnitureViewedFromTop());
+    this.setProperty(PROPERTIES.ROOM_FLOOR_COLORED_OR_TEXTURED, '' + this.isRoomFloorColoredOrTextured());
+    this.setProperty(PROPERTIES.WALL_PATTERN, this.getWallPattern().getName());
+    var newWallPattern = this.getNewWallPattern();
+    if (newWallPattern != null) {
+      this.setProperty(PROPERTIES.NEW_WALL_PATTERN, newWallPattern.getName());
+    }
+    this.setProperty(PROPERTIES.NEW_WALL_THICKNESS, '' + this.getNewWallThickness());
+    this.setProperty(PROPERTIES.NEW_WALL_HEIGHT, '' + this.getNewWallHeight());
+    this.setProperty(PROPERTIES.NEW_FLOOR_THICKNESS, '' + this.getNewFloorThickness());
+    // Write recent homes list
+    var recentHomes = this.getRecentHomes();
+    for (var i = 0; i < recentHomes.length && i < this.getRecentHomesMaxCount(); i++) {
+      this.setProperty(PROPERTIES.RECENT_HOMES + (i + 1), recentHomes[i]);
+    }
+    // Write ignored action tips
+    var ignoredActionTipsKeys = Object.keys(this.ignoredActionTips);
+    for (var i = 0; i < ignoredActionTipsKeys.length; i++) {
+      var key = ignoredActionTipsKeys[i];
+      if (this.ignoredActionTips[key]) {
+        this.setProperty(PROPERTIES.IGNORED_ACTION_TIP + (i + 1), key);
+      }
+    }
+
+    try {
+      // Write preferences to back end
+      this.writePreferences();
+    } catch (ex) {
+      throw new RecorderException("Couldn't write preferences", ex);
+    }
+  }
+}
+
+/**
+ * Sends user preferences to backend
+ * @private
+ */
+RecordedUserPreferences.prototype.writePreferences = function() {
+  if (!this.writePreferencesURL) {
+    return;
+  }
+
+  var error = null;
+  var serverErrorHandler = function(theError) {
+    error = theError;
+    console.error('an error occurred during write preferences', error);
+  }
+
+  var jsonPreferences = JSON.stringify(this.properties);
+  var request = new XMLHttpRequest();
+  request.open("POST", this.writePreferencesURL, false);
+  request.onload = function() {
+    console.info("preferences saved");
+  };
+  request.onerror = serverErrorHandler;
+  request.ontimeout = serverErrorHandler;
+  request.send(jsonPreferences);
+
+  if (error) {
+    throw error;
+  }
+}
+
+/**
+ * Sets which action tip should be ignored.
+ * @override
+ */
+RecordedUserPreferences.prototype.setActionTipIgnored = function(actionKey) {
+  this.ignoredActionTips[actionKey] = true;
+  UserPreferences.prototype.setActionTipIgnored.call(this, actionKey);
+}
+
+/**
+ * Returns whether an action tip should be ignored or not.
+ * @override
+ */
+RecordedUserPreferences.prototype.isActionTipIgnored = function(actionKey) {
+  var ignoredActionTip = this.ignoredActionTips[actionKey];
+  return ignoredActionTip === true;
+}
+
+/**
+ * Resets the display flag of action tips.
+ * @override
+ */
+RecordedUserPreferences.prototype.resetIgnoredActionTips = function() {
+  var keys = Object.keys(this.ignoredActionTips);
+  for (var i = 0; i < keys.length; i++) {
+    this.ignoredActionTips[keys[i]] = false;
+  }
+  UserPreferences.prototype.resetIgnoredActionTips.call(this);
+}
+
+/**
+ * Throws an exception because applet user preferences can't manage language libraries.
+ * @override
+ */
+RecordedUserPreferences.prototype.addLanguageLibrary = function(location) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Throws an exception because applet user preferences can't manage additional language libraries.
+ * @override
+ */
+RecordedUserPreferences.prototype.languageLibraryExists = function(location) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Returns <code>true</code> if the furniture library at the given <code>location</code> exists.
+ * @override
+ */
+RecordedUserPreferences.prototype.furnitureLibraryExists = function(location) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Throws an exception because applet user preferences can't manage additional furniture libraries.
+ * @override
+ */
+RecordedUserPreferences.prototype.addFurnitureLibrary = function(location) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Returns <code>true</code> if the textures library at the given <code>location</code> exists.
+ * @override
+ */
+RecordedUserPreferences.prototype.texturesLibraryExists = function(location) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Throws an exception because applet user preferences can't manage additional textures libraries.
+ * @override
+ */
+RecordedUserPreferences.prototype.addTexturesLibrary = function(location) {
+  throw new UnsupportedOperationException();
+}
+
+/**
+ * Throws an exception because applet user preferences don't manage additional libraries.
+ * @override
+ */
+RecordedUserPreferences.prototype.getLibraries = function() {
+  throw new UnsupportedOperationException();
+}
+
+
+/**
+ * Save modifiable textures to catalog.json and upload new resources
+ *
+ * @param {function()} [onSuccess] called when textures catalog is fully saved
+ * @param {function()} [onError] called if any error occurs during save
+ *
+ * @private
+ */
+RecordedUserPreferences.prototype.saveTexturesCatalog = function(onSuccess, onError) {
+  console.info("save textures catalog");
+  if (!onSuccess) { onSuccess = function() {} }
+  if (!onError) { onError = function(error) { console.error('an error occurred during saveTexturesCatalog', error) } }
+
+  var texturesCatalogJson = {};
+  function putTextureProperty(propertyKey, index, value) {
+    texturesCatalogJson[DefaultTexturesCatalog.PropertyKey.getKey(propertyKey, index)] = value;
+  }
+
+  var texturesDirectoryPathRelativeToUserResources = this.texturesResourcesUrlBase.substring(this.userResourcesURLBase.length);
+
+  var expectedUploadCount = 1;
+  function onUploadSuccess() {
+    expectedUploadCount--;
+    if (expectedUploadCount === 0) {
+      onSuccess();
+    }
+  }
+
+  var uploadDate = new Date();
+  var uploadId = '' + uploadDate.getFullYear() + '-' + uploadDate.getMonth() + '-' + uploadDate.getDate()
+    + '_' + uploadDate.getHours() + 'h' + uploadDate.getMinutes() + 'm' + uploadDate.getSeconds() + '.' + uploadDate.getMilliseconds();
+
+  var index = 1;
+  var texturesCatalog = this.getTexturesCatalog();
+  for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
+    var textureCategory = texturesCatalog.getCategory(i);
+    for (var j = 0; j < textureCategory.getTexturesCount(); j++) {
+      var catalogTexture = textureCategory.getTexture(j);
+      if (catalogTexture.isModifiable()) {
+        if (catalogTexture.getName() != null) {
+          putTextureProperty(DefaultTexturesCatalog.PropertyKey.NAME, index, catalogTexture.getName());
+        }
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.CATEGORY, index, textureCategory.getName());
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.MODIFIABLE, index, catalogTexture.isModifiable());
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.WIDTH, index, catalogTexture.getWidth());
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.HEIGHT, index, catalogTexture.getHeight());
+        if (catalogTexture.getCreator() != null) {
+          putTextureProperty(DefaultTexturesCatalog.PropertyKey.CREATOR, index, catalogTexture.getCreator());
+        }
+        if (catalogTexture.getId() != null) {
+          putTextureProperty(DefaultTexturesCatalog.PropertyKey.ID, index, catalogTexture.getId());
+        }
+
+        var textureImageFileName = "";
+        var textureImage = catalogTexture.getImage();
+        if (textureImage instanceof BlobURLContent) {
+          var imageExtension = textureImage.getBlob().type == 'image/png' ? 'png' : 'jpg';
+          textureImageFileName = 'preferencesCatalogTexture_' + uploadId + '_' + index + '.' + imageExtension;
+          var imagePath = texturesDirectoryPathRelativeToUserResources + textureImageFileName;
+
+          expectedUploadCount++;
+          this.writeResource(imagePath, textureImage.getBlob(), onUploadSuccess, onError);
+
+          // TODO LOUIS this looks like messing with private properties...
+          catalogTexture.image = new URLContent(this.texturesResourcesUrlBase + textureImageFileName);
+        } else if (textureImage instanceof URLContent) {
+          textureImageFileName = textureImage.getURL();
+          if (this.texturesResourcesUrlBase != null) {
+            textureImageFileName = textureImageFileName.substring(this.texturesResourcesUrlBase.length);
+          }
+        }
+        putTextureProperty(DefaultTexturesCatalog.PropertyKey.IMAGE, index, textureImageFileName);
+
+        index++;
+      }
+    }
+  }
+
+  this.writeResource(
+    texturesDirectoryPathRelativeToUserResources + 'catalog.json',
+    new Blob([JSON.stringify(texturesCatalogJson)], { type: "application/json"}),
+    onUploadSuccess,
+    onError
+  );
+}
+
+/**
+ * @param {string} path uploaded file path relative to userResources directory
+ * @param {Blob} blob file content
+ * @param {function()} onSuccess called when content is uploaded
+ * @param {function()} onError called if error is detected
+ * @private
+ */
+RecordedUserPreferences.prototype.writeResource = function(path, blob, onSuccess, onError) {
+  console.info("uploading blob content to " + path);
+  var request = new XMLHttpRequest();
+
+  var uploadUrl = CoreTools.format(this.writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
+  request.open("POST", uploadUrl, false);
+  request.onload = onSuccess;
+  request.onerror = onError;
+  request.ontimeout = onError;
+
+  request.send(blob);
 }
