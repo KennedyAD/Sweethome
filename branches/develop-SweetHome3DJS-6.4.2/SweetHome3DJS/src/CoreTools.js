@@ -358,6 +358,110 @@ CoreTools.newArray = function(size, initialValue) {
 }
 
 /**
+ * Provides a list of available font names (asynchronously, see callback parameter).
+ *
+ * Internally uses a fixed list of standard Windows and macOS default fonts, and if FontFaceSet API is available, filter this list
+ *
+ * @param {function(string[])} onFontsListAvailable called back when list is available
+ */
+CoreTools.loadAvailableFontNames = function(onFontsListAvailable) {
+  var windowsFonts = [
+    'Arial', 'Arial Black', 'Bahnschrift', 'Calibri', 'Cambria', 'Cambria Math', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 'Corbel', 'Courier New', 'Ebrima', 'Franklin Gothic Medium', 'Gabriola', 'Gadugi', 'Georgia', 'HoloLens MDL2 Assets', 'Impact', 'Ink Free', 'Javanese Text', 'Leelawadee UI', 'Lucida Console', 'Lucida Sans Unicode', 'Malgun Gothic', 'Marlett', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft YaHei', 'Microsoft Yi Baiti', 'MingLiU-ExtB', 'Mongolian Baiti', 'MS Gothic', 'MV Boli', 'Myanmar Text', 'Nirmala UI', 'Palatino Linotype', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Historic', 'Segoe UI Emoji', 'Segoe UI Symbol', 'SimSun', 'Sitka', 'Sylfaen', 'Symbol', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic'
+  ];
+  var macosFonts = [
+    'American Typewriter', 'Andale Mono', 'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold', 'Arial Unicode MS', 'Avenir', 'Avenir Next', 'Avenir Next Condensed', 'Baskerville', 'Big Caslon', 'Bodoni 72', 'Bodoni 72 Oldstyle', 'Bodoni 72 Smallcaps', 'Bradley Hand', 'Brush Script MT', 'Chalkboard', 'Chalkboard SE', 'Chalkduster', 'Charter', 'Cochin', 'Comic Sans MS', 'Copperplate', 'Courier', 'Courier New', 'Didot', 'DIN Alternate', 'DIN Condensed', 'Futura', 'Geneva', 'Georgia', 'Gill Sans', 'Helvetica', 'Helvetica Neue', 'Herculanum', 'Hoefler Text', 'Impact', 'Lucida Grande', 'Luminari', 'Marker Felt', 'Menlo', 'Microsoft Sans Serif', 'Monaco', 'Noteworthy', 'Optima', 'Palatino', 'Papyrus', 'Phosphate', 'Rockwell', 'Savoye LET', 'SignPainter', 'Skia', 'Snell Roundhand', 'Tahoma', 'Times', 'Times New Roman', 'Trattatello', 'Trebuchet MS', 'Verdana', 'Zapfino'
+  ];
+  if (document.fonts) {
+    document.fonts.ready.then(function() {
+      var availableFonts = [];
+      var allTestedFonts = windowsFonts.concat(macosFonts);
+      for (var i = 0; i < allTestedFonts.length; i++) {
+        var fontName = allTestedFonts[i];
+        if (availableFonts.indexOf(fontName) < 0 && document.fonts.check('12px "' + fontName + '"')) {
+          availableFonts.push(fontName);
+        }
+      }
+      onFontsListAvailable(availableFonts.sort());
+    });
+  } else {
+    onFontsListAvailable((OperatingSystem.isMacOSX() ? macosFonts : windowsFonts).sort());
+  }
+}
+
+
+/**
+ * Utilities about the system environment.
+ * @class
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+var OperatingSystem = {}
+
+/**
+ * Returns <code>true</code> if the operating system is Linux.
+ */
+OperatingSystem.isLinux = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Linux") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns <code>true</code> if the operating system is Windows.
+ */
+OperatingSystem.isWindows = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Windows") !== -1 || navigator.platform.indexOf("Win") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns <code>true</code> if the operating system is Mac OS X.
+ */
+OperatingSystem.isMacOSX = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Mac") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns the operating system name used to filter some information.
+ */
+OperatingSystem.getName = function() {
+  if (OperatingSystem.isMacOSX()) {
+    return "Mac OS X";
+  } else if (OperatingSystem.isLinux()) {
+    return "Linux";
+  } else if (OperatingSystem.isWindows()) {
+    return "Windows";
+  } else {
+    return "Other";
+  }
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Internet Explorer or Edge (note based on Chromium).
+ */
+OperatingSystem.isInternetExplorerOrLegacyEdge = function() {
+  // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return (document.documentMode || /Edge/.test(navigator.userAgent));
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Internet Explorer.
+ */
+OperatingSystem.isInternetExplorer = function() {
+  // IE test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return document.documentMode;
+}
+
+/**
  * Utilities for colors.
  * @class
  * @ignore
