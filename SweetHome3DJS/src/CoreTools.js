@@ -359,9 +359,7 @@ CoreTools.newArray = function(size, initialValue) {
 
 /**
  * Provides a list of available font names (asynchronously, see callback parameter).
- *
  * Internally uses a fixed list of standard Windows and macOS default fonts, and if FontFaceSet API is available, filter this list
- *
  * @param {function(string[])} onFontsListAvailable called back when list is available
  */
 CoreTools.loadAvailableFontNames = function(onFontsListAvailable) {
@@ -373,16 +371,16 @@ CoreTools.loadAvailableFontNames = function(onFontsListAvailable) {
   ];
   if (document.fonts) {
     document.fonts.ready.then(function() {
-      var availableFonts = [];
-      var allTestedFonts = windowsFonts.concat(macosFonts);
-      for (var i = 0; i < allTestedFonts.length; i++) {
-        var fontName = allTestedFonts[i];
-        if (availableFonts.indexOf(fontName) < 0 && document.fonts.check('12px "' + fontName + '"')) {
-          availableFonts.push(fontName);
+        var availableFonts = [];
+        var allTestedFonts = windowsFonts.concat(macosFonts);
+        for (var i = 0; i < allTestedFonts.length; i++) {
+          var fontName = allTestedFonts[i];
+          if (availableFonts.indexOf(fontName) < 0 && document.fonts.check('12px "' + fontName + '"')) {
+            availableFonts.push(fontName);
+          }
         }
-      }
-      onFontsListAvailable(availableFonts.sort());
-    });
+        onFontsListAvailable(availableFonts.sort());
+      });
   } else {
     onFontsListAvailable((OperatingSystem.isMacOSX() ? macosFonts : windowsFonts).sort());
   }
@@ -570,7 +568,7 @@ ImageTools.doesImageHaveAlpha = function(image) {
   canvas.height = image.height;
   context.drawImage(image, 0, 0, image.width, image.height);
   return ImageTools.doesCanvasHaveAlpha(canvas, context);
-};
+}
 
 /**
  * @param {HTMLCanvasElement} canvas
@@ -581,14 +579,14 @@ ImageTools.doesCanvasHaveAlpha = function(canvas, context) {
   context = context ? context : canvas.getContext("2d");
   var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
   var hasAlphaPixels = false;
-  for (var i = 3, n = data.length; i < n; i+=4) {
+  for (var i = 3, n = data.length; i < n; i += 4) {
     if (data[i] < 255) {
       hasAlphaPixels = true;
       break;
     }
   }
   return hasAlphaPixels;
-};
+}
 
 /**
  * @param {HTMLImageElement} image
@@ -606,7 +604,7 @@ ImageTools.resize = function(image, targetWidth, targetHeight, onSuccess, imageT
 
   var resizedImage = new Image();
   resizedImage.onload = function () {
-    onSuccess.call(this, resizedImage);
-  }
+      onSuccess(resizedImage);
+    };
   resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
 }
