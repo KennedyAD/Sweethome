@@ -814,11 +814,11 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
   var contextMenu = this;
 
-  if (item.selected !== undefined) {
+  if (item.mode !== undefined) {
     // Toggle action case
     var toggle = document.createElement('input');
-    toggle.type = 'radio';
-    if (item.selected) {
+    toggle.type = item.mode;
+    if (item.selected === true) {
       toggle.checked = 'checked';
     }
     itemElement.appendChild(toggle);
@@ -899,6 +899,16 @@ JSContextMenu.Builder.prototype = Object.create(JSContextMenu.Builder.prototype)
 JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
 
 /**
+ * Add a checkable item
+ * @param {string} label
+ * @param {function()} [onItemSelected]
+ * @param {boolean} [checked]
+ */
+JSContextMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
+  this.addNewItem(label, undefined, onItemSelected, checked === true, 'checkbox');
+};
+
+/**
  * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback.
  * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
  * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', 'myitem', function() { console.log('my item clicked') })
@@ -915,6 +925,8 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
   var label = null;
   var iconPath = null;
   var onItemSelected = null;
+  // Defined only for a check action
+  var checked = undefined;
   // Defined only for a toggle action
   var selected = undefined;
 
@@ -922,7 +934,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     var action = actionOrIconPathOrLabel;
 
     // do no show item if action is disabled
-    if (!action.isEnabled()) {
+    if (!action.isEnabled() || action.getValue(ResourceAction.VISIBLE) === false) {
       return this;
     }
 
@@ -949,16 +961,31 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     onItemSelected = onItemSelectedCallbackOrLabel;
   }
 
+  this.addNewItem(label, iconPath, onItemSelected, selected, selected !== undefined ? 'radio' : undefined);
+
+  return this;
+}
+
+/**
+ *
+ * @param {string} label
+ * @param {string | undefined} [iconPath]
+ * @param {function() | undefined} [onItemSelected]
+ * @param {boolean | undefined} [selected]
+ * @param {'radio' | 'checkbox' | undefined} [mode]
+ */
+JSContextMenu.Builder.prototype.addNewItem = function(
+  label, iconPath, onItemSelected, selected, mode
+) {
   this.items.push({
     uid: UUID.randomUUID(),
     label: label,
     iconPath: iconPath,
     onItemSelected: onItemSelected,
-    selected: selected
+    selected: selected,
+    mode: mode
   });
-
-  return this;
-}
+};
 
 /**
  * Adds a sub menu to this menu, with an optional icon.
@@ -1559,3 +1586,511 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
 };
 
 
+/*****************************************/
+/* JSTreeTable                           */
+/*****************************************/
+/**
+ * @typedef {{
+ *   visibleColumnNames?: string[],
+ *   expandedRowsIndices?: number[],
+ *   expandedRowsValues?: any[],
+ *   sort?: { columnName: string, direction: 'asc' | 'desc' }
+ * }} TreeTableState
+ * @property TreeTableState.expandedRowsIndices index in filtered and sorted rows, expandedRowsValues can also be used but not both (expandedRowsValues will be preferred)
+ * @property TreeTableState.expandedRowsValues expanded rows listed by their values. It takes precedence over expandedRowsIndices but achieves the same goal
+ */
+/**
+ * @typedef {{
+ *   columns: {
+ *       name: string,
+ *       orderIndex: number,
+ *       label: string,
+ *       defaultWidth?: string
+ *   }[],
+ *   renderCell: function(value: any, columnName: string, cell: HTMLElement): void,
+ *   getValueComparator: function(sortConfig?: { columnName: string, direction: 'asc' | 'desc' }): function(value1: any, value2: any),
+ *   onSelectionChanged: function(values: any[]): void,
+ *   onRowDoubleClicked: function(value: any): void,
+ *   onExpandedRowsChanged: function(expandedRowsValues: any[], expandedRowsIndices: number[]): void,
+ *   onSortChanged: function(sort: { columnName: string, direction: 'asc' | 'desc' }): void,
+ *   initialState?: TreeTableState
+ * }} TreeTableModel
+ * @property TreeTableModel.renderCell render cell to given html element for given value, column name
+ * @property TreeTableModel.onSelectionChanged called when a row selection changes, passing updated selected values
+ * @property TreeTableModel.onRowDoubleClicked called when a row is double clicked, passing row's value
+ */
+/**
+ * A flexible tree table which allows grouping (tree aspect), sorting, some inline edition, single/multi selection, contextual menu, copy/paste
+ *
+ * @param {JSViewFactory} viewFactory the view factory
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {HTMLElement} container html element on which install this component
+ * @param {TreeTableModel} model table's configuration
+ * @param {{ value: any, children: {value, children}[] }[]} [data] data source for this tree table - defaults to empty data
+ * @constructor
+ * @extends JSComponentView
+ * @author Louis Grignon
+ *
+ */
+// TODO LOUIS contextual menu
+function JSTreeTable(viewFactory, preferences, container, model, data) {
+
+  /**
+   * @type {TreeTableState}
+   */
+  this.state = {};
+  this.selectedRowsValues = [];
+
+  var rootElement = container;
+  JSComponentView.call(this, viewFactory, preferences, rootElement, {
+    useElementAsRootNode: true,
+    initializer: function(table) {
+
+      table.tableElement = document.createElement('div');
+      table.tableElement.classList.add('tree-table');
+      rootElement.appendChild(table.tableElement);
+
+      table.setModel(model);
+      table.setData(data ? data : []);
+    }
+  });
+}
+
+JSTreeTable.prototype = Object.create(JSComponentView.prototype);
+JSTreeTable.prototype.constructor = JSTreeTable;
+
+/**
+ * Sets data and refreshes rows in UI
+ * @param {{ value: any, children: {value, children}[] }[]} dataList
+ */
+JSTreeTable.prototype.setData = function(dataList) {
+  this.data = dataList;
+
+  var expandedRowsValues = this.getExpandedRowsValues();
+  if (expandedRowsValues != null) {
+    this.updateState({
+      expandedRowsValues: expandedRowsValues
+    });
+  }
+  this.generateTableRows();
+
+  this.fireExpandedRowsChanged();
+}
+
+/**
+ * Gets current table data
+ * @return {{ value: any, children: {value, children}[] }[]}
+ */
+JSTreeTable.prototype.getData = function() {
+  return this.data;
+}
+
+/**
+ * @param {TreeTableModel} model
+ */
+JSTreeTable.prototype.setModel = function(model) {
+  this.model = model;
+
+  this.updateState(model.initialState);
+  this.columnsWidths = this.getColumnsWidthByName();
+
+  this.generateTableHeaders();
+  this.generateTableRows();
+}
+
+/**
+ * @param {any[]} values
+ */
+JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
+  this.selectedRowsValues = values;
+  this.generateTableRows();
+}
+
+/**
+ * @return {any[]} expanded rows by their values
+ * @private
+ */
+JSTreeTable.prototype.getExpandedRowsValues = function() {
+  if (this.state && this.state.expandedRowsValues) {
+    return this.state.expandedRowsValues;
+  }
+  return undefined;
+}
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.fireExpandedRowsChanged = function() {
+  if (this.state.expandedRowsValues != null) {
+    this.refreshExpandedRowsIndices();
+    this.model.onExpandedRowsChanged(this.state.expandedRowsValues, this.state.expandedRowsIndices);
+  }
+}
+
+/**
+ * Refreshes expandedRowsIndices from expandedRowsValues
+ * @private
+ */
+JSTreeTable.prototype.refreshExpandedRowsIndices = function() {
+  if (this.state.expandedRowsValues != null && this.data != null && this.data.sortedList != null) {
+    this.state.expandedRowsIndices = [];
+    for (var i = 0; i < this.data.sortedList.length; i++) {
+      var value = this.data.sortedList[i].value;
+      if (this.state.expandedRowsValues.indexOf(value) > -1) {
+        this.state.expandedRowsIndices.push(i);
+      }
+    }
+  }
+}
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.fireSortChanged = function() {
+  if (this.state.sort != null) {
+    this.model.onSortChanged(this.state.sort);
+  }
+}
+
+/**
+ * @param {Partial<TreeTableState>} [stateProperties]
+ * @private
+ */
+JSTreeTable.prototype.updateState = function(stateProperties) {
+  if (stateProperties) {
+    Object.assign(this.state, stateProperties);
+  }
+};
+
+/**
+ * @return {function(value1: any, value2: any)}
+ * @private
+ */
+JSTreeTable.prototype.getValueComparator = function() {
+  return this.model.getValueComparator(this.state.sort);
+};
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.generateTableHeaders = function() {
+  var treeTable = this;
+
+  var head = this.tableElement.querySelector('[header]');
+  if (!head) {
+    head = document.createElement('div');
+    head.setAttribute('header', 'true');
+    this.tableElement.appendChild(head);
+    this.tableElement.appendChild(document.createElement('br'));
+  }
+  head.innerHTML = "";
+
+  var columns = this.getSortedVisibleColumns();
+  for (var i = 0; i < columns.length; i++) {
+    var column = columns[i];
+    var headCell = document.createElement('div');
+    head.appendChild(headCell);
+    headCell.setAttribute('cell', 'true');
+    headCell.textContent = column.label;
+    headCell.dataset['name'] = column.name;
+    if (this.state.sort && this.state.sort.columnName == column.name) {
+      headCell.classList.add('sort');
+      if (this.state.sort.direction == 'desc') {
+        headCell.classList.add('descending');
+      }
+    }
+
+    headCell.style.width = treeTable.getColumnWidth(column.name);
+  }
+  this.registerEventListener(head.children, 'click', function(event) {
+    var columnName = this.dataset['name'];
+
+    var descending = this.classList.contains('sort') && !this.classList.contains('descending');
+
+    treeTable.onSortRequested(columnName, descending);
+  });
+};
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.generateTableRows = function() {
+  if (!this.data) {
+    return;
+  }
+
+  var treeTable = this;
+
+  var scrollTop = 0;
+  var body = this.tableElement.querySelector('[body]');
+  if (body) {
+    scrollTop = body.scrollTop;
+    body.remove();
+  }
+  body = document.createElement('div');
+  body.setAttribute('body', 'true');
+
+  var columns = this.getSortedVisibleColumns();
+  var columnNames = [];
+  for (var i = 0; i < columns.length; i++) {
+    columnNames.push(columns[i].name);
+  }
+
+  var comparator = this.getValueComparator();
+
+  // generate simplified table model: a sorted list of items
+  var sortedList = this.data.sortedList = [];
+
+  /**
+   * @param {{value: any, children: any[]}[]} currentNodes
+   * @param {number} currentIndentation
+   *
+   * @return {Object[]} generated children items
+   */
+  var sortDataTree = function(currentNodes, currentIndentation, parentSelected) {
+
+    // children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
+    var hideChildren = currentIndentation > 0;
+
+    var sortedCurrentNodes = currentNodes.sort(function(leftNode, rightNode) {
+      return comparator(leftNode.value, rightNode.value);
+    });
+    var currentNodesItems = [];
+    for (var i = 0; i < sortedCurrentNodes.length; i++) {
+      var currentNode = sortedCurrentNodes[i];
+
+      var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
+      var selected = parentSelected || currentNodeSelected;
+      var sortedListItem = {
+        value: currentNode.value,
+        indentation: currentIndentation,
+        group: false,
+        selected: selected,
+        hidden: hideChildren,
+        collapsed: undefined,
+        childrenItems: undefined,
+        setCollapsed: function() {},
+      };
+      currentNodesItems.push(sortedListItem);
+      sortedList.push(sortedListItem);
+
+      // create node's children items
+      if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
+        sortedListItem.group = true;
+        sortedListItem.collapsed = true;
+
+        sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, selected);
+
+        sortedListItem.setCollapsed = (function(item) {
+          return function(collapsed) {
+            item.collapsed = collapsed;
+            for (var i = 0; i < item.childrenItems.length; i++) {
+              item.childrenItems[i].hidden = collapsed;
+            }
+          }
+        })(sortedListItem);
+      }
+    }
+
+    return currentNodesItems;
+  };
+  sortDataTree(this.data, 0);
+
+  // synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
+  this.refreshExpandedRowsIndices();
+  if (this.state.expandedRowsIndices && this.state.expandedRowsIndices.length > 0) {
+    var expandedRowsValues = [];
+    for (var i = 0; i < this.state.expandedRowsIndices.length; i++) {
+      var item = sortedList[this.state.expandedRowsIndices[i]];
+      if (item) {
+        expandedRowsValues.push(item.value);
+        item.setCollapsed(false);
+      }
+    }
+    if (expandedRowsValues.length > 0) {
+      this.state.expandedRowsValues = expandedRowsValues;
+    }
+  }
+
+  // generate DOM for items
+  for (var i = 0; i < sortedList.length; i++) {
+    var row = this.generateRowElement(columnNames, i, sortedList[i]);
+    body.appendChild(row);
+  }
+
+  this.tableElement.appendChild(body);
+
+  body.scrollTop = scrollTop;
+};
+
+/**
+ * @param {string[]} columnNames
+ * @param {number} rowIndex
+ * @param {{
+        value: any,
+        indentation: number,
+        group: boolean,
+        selected: boolean,
+        hidden: boolean,
+        collapsed?: boolean,
+        childrenItems?: boolean,
+        setCollapsed: function(),
+    }} rowModel
+ * @private
+ */
+JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowModel) {
+  var treeTable = this;
+  var row = document.createElement('div');
+  row.setAttribute('row', 'true');
+
+  var mainCell = null;
+  for (var j = 0; j < columnNames.length; j++) {
+    var columnName = columnNames[j];
+    var cell = document.createElement('div');
+    cell.setAttribute('cell', 'true');
+    treeTable.model.renderCell(rowModel.value, columnName, cell);
+    cell.style.width = treeTable.getColumnWidth(columnName);
+
+    if (mainCell == null || cell.classList.contains('main')) {
+      mainCell = cell;
+    }
+
+    row.appendChild(cell);
+  }
+
+  if (mainCell != null) {
+    mainCell.classList.add('main');
+    mainCell.style.paddingLeft = (15 + rowModel.indentation * 10) + 'px';
+    if (rowModel.group) {
+      treeTable.registerEventListener(mainCell, 'click', function (event) {
+        event.stopImmediatePropagation();
+
+        treeTable.onExpandOrCollapseRequested(rowModel, mainCell.parentElement.classList.contains('collapsed'));
+        return false;
+      });
+
+      row.classList.add('group');
+      if (rowModel.collapsed) {
+        row.classList.add('collapsed');
+      }
+    }
+  }
+  if (rowModel.hidden) {
+    row.style.display = 'none';
+  }
+  if (rowModel.selected) {
+    row.classList.add('selected');
+  }
+  row._model = rowModel;
+
+  treeTable.registerEventListener(row, 'click', function(event) {
+    var row = this;
+    var rowValue = row._model.value;
+
+    row.classList.add('selected');
+    var child = row;
+    while ((child = child.nextSibling) && child._model.indentation > row._model.indentation) {
+      child.classList.add('selected');
+    }
+
+    if (event.shiftKey) {
+      treeTable.selectedRowsValues.push(rowValue);
+    } else {
+      treeTable.selectedRowsValues = [rowValue];
+    }
+    if (typeof treeTable.model.onSelectionChanged == 'function') {
+      treeTable.model.onSelectionChanged(treeTable.selectedRowsValues);
+    }
+  });
+  treeTable.registerEventListener(row, 'dblclick', function(event) {
+    if (typeof treeTable.model.onRowDoubleClicked == 'function') {
+      var row = this;
+      var rowValue = row._model.value;
+      treeTable.model.onRowDoubleClicked(rowValue);
+    }
+  });
+
+  return row;
+}
+
+/**
+ * @param {Object} rowModel
+ * @param {boolean} expand true if expanded, false if collapsed
+ * @private
+ */
+JSTreeTable.prototype.onExpandOrCollapseRequested = function(rowModel, expand) {
+  var treeTable = this;
+
+  // TODO LOUIS test on touch device
+  if (treeTable.state.expandedRowsValues == null) {
+    treeTable.state.expandedRowsValues = [];
+  }
+  if (expand) {
+    treeTable.state.expandedRowsValues.push(rowModel.value);
+  } else {
+    var index = treeTable.state.expandedRowsValues.indexOf(rowModel.value);
+    if (index > -1) {
+      treeTable.state.expandedRowsValues.splice(index, 1);
+    }
+  }
+  this.generateTableRows();
+  this.fireExpandedRowsChanged();
+}
+
+/**
+ * @param {string} columnName
+ * @param {boolean} descending
+ * @private
+ */
+JSTreeTable.prototype.onSortRequested = function(columnName, descending) {
+  if (!this.state.sort) {
+    this.state.sort = {};
+  }
+  this.state.sort.columnName = columnName;
+  this.state.sort.direction = descending ? 'desc' : 'asc';
+
+  this.fireSortChanged(this.state.sort);
+}
+
+/**
+ * @param {string} columnName
+ * @return {string} css width value, e.g. "2em"
+ * @private
+ */
+JSTreeTable.prototype.getColumnWidth = function(columnName) {
+  return this.columnsWidths[columnName];
+}
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.getSortedVisibleColumns = function() {
+  var columns = this.model.columns;
+  columns = columns.sort(function(column1, column2) {
+    return column1.orderIndex < column2.orderIndex;
+  });
+  var visibleColumns = [];
+  for (var i = 0; i < columns.length; i++) {
+    var column = columns[i];
+    if (!this.state.visibleColumnNames || this.state.visibleColumnNames.indexOf(column.name) > -1) {
+      visibleColumns.push(column);
+    }
+  }
+  return visibleColumns;
+}
+
+/**
+ * @return {{[name: string]: string}}
+ * @see getColumnWidth(name)
+ * @private
+ */
+JSTreeTable.prototype.getColumnsWidthByName = function() {
+  var columns = this.model.columns;
+  var widths = {};
+  for (var i = 0; i < columns.length; i++) {
+    var column = columns[i];
+    var width = column.defaultWidth ? column.defaultWidth : '6rem';
+    widths[column.name] = width;
+  }
+  return widths;
+}

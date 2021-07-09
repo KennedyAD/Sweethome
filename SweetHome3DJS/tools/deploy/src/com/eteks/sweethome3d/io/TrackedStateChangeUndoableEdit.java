@@ -26,6 +26,7 @@ import javax.swing.undo.CannotRedoException;
 
 import com.eteks.sweethome3d.model.Camera;
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.ObserverCamera;
 
@@ -48,6 +49,8 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   private Camera              camera;
   private Level               selectedLevel;
   private Map<String, String> homeProperties;
+  private String furnitureSortedProperty;
+  private Boolean furnitureDescendingSorted;
 
   private TrackedStateChangeUndoableEdit() {
   }
@@ -66,6 +69,12 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
       observerCamera.setCamera(this.observerCamera);
       observerCamera.setTime(this.observerCamera.getTime());
       observerCamera.setLens(this.observerCamera.getLens());
+    }
+    if (this.furnitureSortedProperty != null) {
+      this.home.setFurnitureSortedProperty(HomePieceOfFurniture.SortableProperty.valueOf(this.furnitureSortedProperty));
+    }
+    if (this.furnitureDescendingSorted != null) {
+      this.home.setFurnitureDescendingSorted(this.furnitureDescendingSorted);
     }
     if (this.camera != null) {
       this.home.setCamera(this.camera);

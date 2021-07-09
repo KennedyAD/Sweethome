@@ -613,7 +613,7 @@ UserPreferences.prototype.getDefaultValueAddedTaxPercentage = function() {
  */
 UserPreferences.prototype.setDefaultValueAddedTaxPercentage = function(valueAddedTaxPercentage) {
   if (valueAddedTaxPercentage !== this.defaultValueAddedTaxPercentage
-      && (valueAddedTaxPercentage == null || !valueAddedTaxPercentage.eq(this.defaultValueAddedTaxPercentage))) {
+      && (valueAddedTaxPercentage == null || this.defaultValueAddedTaxPercentage == null || !valueAddedTaxPercentage.eq(this.defaultValueAddedTaxPercentage))) {
     var oldValueAddedTaxPercentage = this.defaultValueAddedTaxPercentage;
     this.defaultValueAddedTaxPercentage = valueAddedTaxPercentage;
     this.propertyChangeSupport.firePropertyChange("DEFAULT_VALUE_ADDED_TAX_PERCENTAGE", oldValueAddedTaxPercentage, valueAddedTaxPercentage);

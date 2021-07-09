@@ -24,6 +24,22 @@
 // Requires HomePane.js
 // Requires JSViewFactory.js
 
+SweetHome3DJSApplication.HOME_FIELDS = {
+  FURNITURE_SORTED_PROPERTY: 'FURNITURE_SORTED_PROPERTY',
+  FURNITURE_DESCENDING_SORTED: 'FURNITURE_DESCENDING_SORTED',
+  FURNITURE_VISIBLE_PROPERTIES: 'FURNITURE_VISIBLE_PROPERTIES'
+};
+
+SweetHome3DJSApplication.HOME_PROPERTIES = {
+  EXPANDED_ROWS_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.ExpandedGroups",
+  MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.MainPaneDividerLocation",
+  CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.CatalogPaneDividerLocation",
+  PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.PlanPaneDividerLocation",
+  PLAN_VIEWPORT_X_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.PlanViewportX",
+  PLAN_VIEWPORT_Y_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.PlanViewportY",
+  FURNITURE_VIEWPORT_Y_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.FurnitureViewportY",
+};
+
 /**
  * A home recorder that is able to save the application homes incrementally by sending undoable edits 
  * to the SH3D server.
@@ -68,13 +84,16 @@ IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
  * The home properties that are tracked by default by incremental recorders.
  */
 IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
-            HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
-            HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
-            HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 
-            HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 
-            PlanController.SCALE_VISUAL_PROPERTY,
-            // supported built-in properties
-            'CAMERA', 'SELECTED_LEVEL'];
+  SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY,
+  SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_X_VISUAL_PROPERTY,
+  SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_Y_VISUAL_PROPERTY,
+  SweetHome3DJSApplication.HOME_PROPERTIES.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+  SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+  PlanController.SCALE_VISUAL_PROPERTY,
+  SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_SORTED_PROPERTY,
+  SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_DESCENDING_SORTED,
+  // supported built-in properties
+  'CAMERA', 'SELECTED_LEVEL'];
 
 /**
  * Gets the home properties that are tracked and potentially written by this recorder.
@@ -456,6 +475,12 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
             break;
           case 'SELECTED_LEVEL':
             trackedStateChangeUndoableEdit.selectedLevel = home.getSelectedLevel();
+            break;
+          case SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_SORTED_PROPERTY:
+            trackedStateChangeUndoableEdit.furnitureSortedProperty = home.getFurnitureSortedProperty();
+            break;
+          case SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_DESCENDING_SORTED:
+            trackedStateChangeUndoableEdit.furnitureDescendingSorted = home.isFurnitureDescendingSorted();
             break;
           default:
             // Non-builtin properties (may be user-defined)

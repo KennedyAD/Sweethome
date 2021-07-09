@@ -604,7 +604,7 @@ ImageTools.resize = function(image, targetWidth, targetHeight, onSuccess, imageT
 
   var resizedImage = new Image();
   resizedImage.onload = function () {
-      onSuccess(resizedImage);
-    };
+    onSuccess(resizedImage);
+  };
   resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
 }

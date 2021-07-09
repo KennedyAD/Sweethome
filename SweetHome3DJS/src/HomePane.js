@@ -300,16 +300,16 @@ function HomePane(containerId, home, preferences, controller) {
     });
 
   // Restore viewport position if it exists
-  var viewportX = home.getNumericProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
-  var viewportY = home.getNumericProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+  var viewportX = home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+  var viewportY = home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
   if (viewportX != null && viewportY != null) {
     planComponent.scrollPane.scrollLeft = viewportX | 0;
     planComponent.scrollPane.scrollTop = viewportY | 0;
   }
 
   planComponent.scrollPane.addEventListener("scroll", function(ev) {
-      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
-      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
+      controller.setHomeProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
+      controller.setHomeProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
     });
 
   // Create level selector
@@ -352,13 +352,6 @@ function HomePane(containerId, home, preferences, controller) {
 HomePane["__class"] = "HomePane";
 HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "com.eteks.sweethome3d.viewcontroller.View"];
 
-
-HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.MainPaneDividerLocation";
-HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.CatalogPaneDividerLocation";
-HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.PlanPaneDividerLocation";
-HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.PlanViewportX";
-HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.PlanViewportY";
-HomePane.FURNITURE_VIEWPORT_Y_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.FurnitureViewportY";
 HomePane.DETACHED_VIEW_VISUAL_PROPERTY = ".detachedView";
 HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY = ".detachedViewDividerLocation";
 HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY = ".detachedViewX";
@@ -1200,12 +1193,154 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   // Catalog view context menu
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   var furnitures = furnitureCatalogView.getFurnituresHTMLElement();
+  var furnitureTableElement = this.controller.getFurnitureController().getView().getHTMLElement();
 
   this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitures, {
     build: function(builder) {
       builder.addItem(homePane.getAction(ActionType.ADD_HOME_FURNITURE));
     }
   });
+
+  // Furniture view context menu
+  if (false && furnitureTableElement != null) {
+    new JSContextMenu(this.preferences, furnitureTableElement, {
+      build: function(builder) {
+        builder.addItem(homePane.getAction(ActionType.UNDO));
+        builder.addItem(homePane.getAction(ActionType.REDO));
+
+        builder.addSeparator();
+
+        builder.addItem(homePane.getAction(ActionType.CUT));
+        builder.addItem(homePane.getAction(ActionType.COPY));
+        builder.addItem(homePane.getAction(ActionType.PASTE));
+        builder.addItem(homePane.getAction(ActionType.PASTE_TO_GROUP));
+        builder.addItem(homePane.getAction(ActionType.PASTE_STYLE));
+
+        builder.addSeparator();
+
+        builder.addItem(homePane.getAction(ActionType.DELETE));
+        builder.addItem(homePane.getAction(ActionType.SELECT_ALL));
+
+        builder.addSeparator();
+
+        builder.addItem(homePane.getAction(ActionType.MODIFY_FURNITURE));
+        builder.addItem(homePane.getAction(ActionType.GROUP_FURNITURE));
+        builder.addItem(homePane.getAction(ActionType.UNGROUP_FURNITURE));
+
+        // furnitureViewPopup.add(createAlignOrDistributeMenu(home, preferences, true));
+
+        builder.addItem(homePane.getAction(ActionType.RESET_FURNITURE_ELEVATION));
+
+        builder.addSeparator();
+
+        builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU), function(builder) {
+          /**
+           * @param {HomeView.ActionType} type
+           * @param {string} sortableProperty
+           */
+          function addItem(type, sortableProperty) {
+            var action = homePane.getAction(type);
+            if (action && action.getValue(AbstractAction.NAME)) {
+              builder.addCheckItem(action.getValue(AbstractAction.NAME), function(){
+                action.actionPerformed();
+              }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
+            }
+          }
+          //action.getValue(ResourceAction.VISIBLE)
+          //home.getFurnitureVisibleProperties().contains(furnitureProperty)
+
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, 'CATALOG_ID');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, 'NAME');
+        });
+
+        // // Map displayProperty furniture properties to displayProperty actions
+        // Map<HomePieceOfFurniture.SortableProperty, Action> displayPropertyActions =
+        //   new LinkedHashMap<HomePieceOfFurniture.SortableProperty, Action>();
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.CATALOG_ID);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_NAME,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.NAME);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_CREATOR,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.CREATOR);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_WIDTH,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.WIDTH);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_DEPTH,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.DEPTH);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.HEIGHT);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_X,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.X);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_Y,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.Y);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.ELEVATION);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_ANGLE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.ANGLE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_LEVEL,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.LEVEL);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.MODEL_SIZE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_COLOR,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.COLOR);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.TEXTURE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.MOVABLE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.DOOR_OR_WINDOW);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.VISIBLE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_PRICE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.PRICE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.VALUE_ADDED_TAX_PERCENTAGE);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.VALUE_ADDED_TAX);
+        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED,
+        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.PRICE_VALUE_ADDED_TAX_INCLUDED);
+        //
+        // // Add radio button menu items to sub menu
+        // for (Map.Entry<HomePieceOfFurniture.SortableProperty, Action> entry : displayPropertyActions.entrySet()) {
+        //   final HomePieceOfFurniture.SortableProperty furnitureProperty = entry.getKey();
+        //   final Action displayPropertyAction = entry.getValue();
+        //   final JCheckBoxMenuItem displayPropertyMenuItem = new JCheckBoxMenuItem();
+        //   // Use a special model for displayProperty check box menu item that is selected if
+        //   // home furniture visible properties contains furnitureProperty
+        //   displayPropertyMenuItem.setModel(new JToggleButton.ToggleButtonModel() {
+        //   @Override
+        //     public boolean isSelected() {
+        //       return home.getFurnitureVisibleProperties().contains(furnitureProperty);
+        //     }
+        //   });
+        //   displayPropertyMenuItem.setVisible(Boolean.TRUE.equals(displayPropertyAction.getValue(ResourceAction.VISIBLE)));
+        //   // Configure check box menu item action after setting its model to avoid losing its mnemonic
+        //   displayPropertyMenuItem.setAction(displayPropertyAction);
+        //   // Add listener on action visibility to update menu item and furniture property visibility
+        //   displayPropertyAction.addPropertyChangeListener(new PropertyChangeListener() {
+        //     public void propertyChange(PropertyChangeEvent ev) {
+        //       if (ResourceAction.VISIBLE.equals(ev.getPropertyName())) {
+        //         Boolean visible = (Boolean)ev.getNewValue();
+        //         displayPropertyMenuItem.setVisible(visible);
+        //         if (!visible
+        //           && home.getFurnitureVisibleProperties().contains(furnitureProperty)) {
+        //           displayPropertyAction.actionPerformed(null);
+        //         }
+        //       }
+        //     }
+        //   });
+        //   displayPropertyMenu.add(displayPropertyMenuItem);
+        // }
+        // return displayPropertyMenu;
+
+        // furnitureViewPopup.add(createFurnitureDisplayPropertyMenu(home, preferences));
+        builder.addSeparator();
+
+        builder.addItem(homePane.getAction(ActionType.EXPORT_TO_CSV));
+
+
+      }
+    });
+  }
 
   // Plan view context menu
   var planController = this.controller.getPlanController();
@@ -1402,7 +1537,6 @@ HomePane.prototype.initSplitters = function() {
   var home = this.home;
   var controller = this.controller;
 
-  var catalogView = controller.getFurnitureCatalogController().getView();
   var planView = controller.getPlanController().getView();
   var home3DView = controller.getHomeController3D().getView();
   
@@ -1417,14 +1551,14 @@ HomePane.prototype.initSplitters = function() {
   if (furnitureSplitterVisible) {
     this.initSplitter(
       furnitureSplitter, 
-      [catalogView.getHTMLElement()], 
+      [document.getElementById("furnitures-panel")],
       [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()],
-      home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+      home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
       function(splitterPosition) {
         // refresh 2D/3D plan views on resize
         planView.revalidate();
         home3DView.canvas3D.updateViewportSize();
-        saveSplitterPositionOnceSettledFunction(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+        saveSplitterPositionOnceSettledFunction(SweetHome3DJSApplication.HOME_PROPERTIES.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
       }
     );
   }
@@ -1435,12 +1569,12 @@ HomePane.prototype.initSplitters = function() {
       planPanesSplitter, 
       [planView.getHTMLElement()], 
       [home3DView.getHTMLElement()],
-      home.getNumericProperty(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+      home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
       function(splitterPosition) {
         // refresh 2D/3D plan views on resize
         planView.revalidate();
         home3DView.canvas3D.updateViewportSize();
-        saveSplitterPositionOnceSettledFunction(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+        saveSplitterPositionOnceSettledFunction(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
       }
     );
   }
