@@ -2815,23 +2815,20 @@ testHome();
 // If set to not null value, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
 var backendURLBase = document.location.origin;
-//var backendURLBase = 'http://localhost:8080';
+// var backendURLBase = 'http://localhost:8080';
 var backendURLBase = null;
 var useServer = backendURLBase != null;
 
-var userResourcesURLBase = backendURLBase + '/userResources/';
 var application = useServer
     ? new SweetHome3DJSApplication(
           {readHomeURL:                 backendURLBase + "/readHome.jsp?home=%s",
            writeHomeEditsURL:           backendURLBase + "/writeHomeEdits.jsp",
            closeHomeURL:                backendURLBase + "/closeHome.jsp?home=%s",
-           writeResourceURL:            backendURLBase + "/writeResource.jsp?path=%s",
            pingURL:                     backendURLBase + "/ping.jsp",
-           texturesCatalogURLs:         [userResourcesURLBase + "textures/catalog.json"],
-           texturesResourcesURLBase:    userResourcesURLBase + "textures/",
-           userResourcesURLBase:        userResourcesURLBase,
-           writePreferencesURL:         backendURLBase + "/writeResource.jsp?path=userPr@eferences.json",
-           readPreferencesURL:          userResourcesURLBase + "userPreferences.json",
+           writeResourceURL:            backendURLBase + "/writeResource.jsp?path=%s",
+           readResourceURL:             backendURLBase + "/userResources/%s",
+           writePreferencesURL:         backendURLBase + "/writeResource.jsp?path=userPreferences.json",
+           readPreferencesURL:          backendURLBase + "/userResources/userPreferences.json",
            autoWriteDelay:              1000,
            autoWriteTrackedStateChange: true,
            writingObserver: {

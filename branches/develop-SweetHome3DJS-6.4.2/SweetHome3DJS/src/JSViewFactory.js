@@ -127,6 +127,9 @@ JSViewFactory.prototype.createFurnitureCatalogView = function(catalog, preferenc
   return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
 }
 
+// TODO Move FurnitureListPane in separated .js file (FurnitureTable.js ?)
+JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.ExpandedGroups";
+
 /**
  * @param {Home} home
  * @param {UserPreferences} preferences
@@ -153,7 +156,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
 
   var expandedRowsIndices = undefined;
   if (home.getVersion() >= 5000) {
-    var expandedRowsConfig = home.getProperty(SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY);
+    var expandedRowsConfig = home.getProperty(JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY);
     if (expandedRowsConfig != null) {
       expandedRowsIndices = [];
       var expandedRowsConfigEntries = expandedRowsConfig.split(",");
@@ -181,7 +184,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
 
     this.addHomeListeners();
   }
-
+  
   FurnitureListPane.prototype.addHomeListeners = function() {
     var pane = this;
     var treeTable = this.treeTable;
@@ -196,10 +199,9 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
     var refreshModel = function() {
       treeTable.setModel(pane.createTableModel());
     };
-    home.addPropertyChangeListener(SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_SORTED_PROPERTY, refreshModel);
-    home.addPropertyChangeListener(SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_DESCENDING_SORTED, refreshModel);
-
-    home.addPropertyChangeListener(SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_VISIBLE_PROPERTIES, refreshModel);
+    home.addPropertyChangeListener("FURNITURE_SORTED_PROPERTY", refreshModel);
+    home.addPropertyChangeListener("FURNITURE_DESCENDING_SORTED", refreshModel);
+    home.addPropertyChangeListener("FURNITURE_VISIBLE_PROPERTIES", refreshModel);
 
     var refreshData = function() {
       pane.refreshData();
@@ -229,7 +231,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
           }
         }
       } else {
-        piece.removePropertyChangeListener(changeListener);
+        piece.removePropertyChangeListener(refreshData);
         if (piece instanceof HomeFurnitureGroup) {
           var pieceFurniture = piece.getAllFurniture();
           for (var j = 0; j < pieceFurniture.length; j++) {
@@ -638,8 +640,8 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
    */
   FurnitureListPane.prototype.storeExpandedRows = function(expandedRowsIndices) {
     var propertyValue = expandedRowsIndices.join(',');
-    if (home.getProperty(SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY) != null || propertyValue.length > 0) {
-      controller.setHomeProperty(SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY, propertyValue);
+    if (home.getProperty(JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY) != null || propertyValue.length > 0) {
+      controller.setHomeProperty(JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY, propertyValue);
     }
   }
 

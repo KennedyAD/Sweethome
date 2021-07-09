@@ -24,22 +24,6 @@
 // Requires HomePane.js
 // Requires JSViewFactory.js
 
-SweetHome3DJSApplication.HOME_FIELDS = {
-  FURNITURE_SORTED_PROPERTY: 'FURNITURE_SORTED_PROPERTY',
-  FURNITURE_DESCENDING_SORTED: 'FURNITURE_DESCENDING_SORTED',
-  FURNITURE_VISIBLE_PROPERTIES: 'FURNITURE_VISIBLE_PROPERTIES'
-};
-
-SweetHome3DJSApplication.HOME_PROPERTIES = {
-  EXPANDED_ROWS_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.ExpandedGroups",
-  MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.MainPaneDividerLocation",
-  CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.CatalogPaneDividerLocation",
-  PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.PlanPaneDividerLocation",
-  PLAN_VIEWPORT_X_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.PlanViewportX",
-  PLAN_VIEWPORT_Y_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.PlanViewportY",
-  FURNITURE_VIEWPORT_Y_VISUAL_PROPERTY: "com.eteks.sweethome3d.SweetHome3D.FurnitureViewportY",
-};
-
 /**
  * A home recorder that is able to save the application homes incrementally by sending undoable edits 
  * to the SH3D server.
@@ -48,6 +32,7 @@ SweetHome3DJSApplication.HOME_PROPERTIES = {
  *          writeHomeEditsURL: string,
  *          closeHomeURL: string,
  *          writeResourceURL: string,
+ *          readResourceURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
  *          trackedHomeProperties: string[],
@@ -61,6 +46,7 @@ SweetHome3DJSApplication.HOME_PROPERTIES = {
  * @constructor
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
+ * @author Louis Grignon
  */
 function IncrementalHomeRecorder(application, configuration) {
   HomeRecorder.call(this);
@@ -84,16 +70,16 @@ IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
  * The home properties that are tracked by default by incremental recorders.
  */
 IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
-  SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY,
-  SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_X_VISUAL_PROPERTY,
-  SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_Y_VISUAL_PROPERTY,
-  SweetHome3DJSApplication.HOME_PROPERTIES.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-  SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+  JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY,
+  HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
+  HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
+  HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 
+  HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
   PlanController.SCALE_VISUAL_PROPERTY,
-  SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_SORTED_PROPERTY,
-  SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_DESCENDING_SORTED,
   // supported built-in properties
-  'CAMERA', 'SELECTED_LEVEL'];
+  "CAMERA", "SELECTED_LEVEL", 
+  "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED" /*, "FURNITURE_VISIBLE_PROPERTIES" */
+  ];
 
 /**
  * Gets the home properties that are tracked and potentially written by this recorder.
@@ -179,6 +165,9 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
       && this.configuration.readHomeURL !== undefined) {
     // Replace % sequence by %% except %s before formating readHomeURL with home name 
     var readHomeUrl = CoreTools.format(this.configuration.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
+    if (readHomeUrl.indexOf("?") > 0) {
+      readHomeUrl += "&requestId=" + UUID.randomUUID();
+    }
     homeName = readHomeUrl;
   }
   HomeRecorder.prototype.readHome.call(this, homeName, observer);
@@ -322,64 +311,40 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
 }
 
 /**
- * Saves blob in currentObject, recursively. Only supports blobs from BlobURLContent for now: replaces blob:... url
- * with url of saved resource
- * @param {string} updateId current update ID
- * @param {Object} currentObject current object in which blobs should be saved
+ * Saves recursively blob in savedObject and its dependent objects. 
+ * @param {string, string} savedObject current object in which blobs should be saved
  * @param {function} serverErrorHandler error handler
  * @private
  */
-IncrementalHomeRecorder.prototype.saveBlobs = function(updateId, currentObject, serverErrorHandler) {
-  if (!currentObject) {
-    return;
-  }
-
-  if (currentObject.blob instanceof Blob) {
-    // BlobURLContent case
-    var blob = currentObject.blob;
-    var extension = 'dat';
-    if (blob.type == 'image/png') {
-      extension = 'png';
-    } else if (blob.type == 'image/jpeg') {
-      extension = 'jpg';
-    }
-
-    if (this.lastSavedBlobIndex == null) {
-      this.lastSavedBlobIndex = 0;
-    }
-
-    var path = 'homeImage_' + updateId + '_' + (this.lastSavedBlobIndex++) + '.' + extension;
-
-    var userResourcesURLBase = this.application.params.userResourcesURLBase;
-    var writeResourceURL = this.application.params.writeResourceURL;
-    currentObject.url = new URLContent(userResourcesURLBase + path).getURL();
-
-    console.info('send ' + blob.size + ' bytes to ' + currentObject.url);
-    var uploadUrl = CoreTools.format(writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
-    var request = new XMLHttpRequest();
-    request.open("POST", uploadUrl);
-    request.onload = function() {
-      console.info("image saved");
-    };
-    request.onerror = serverErrorHandler;
-    request.ontimeout = serverErrorHandler;
-    request.send(blob);
-
-    delete currentObject.blob;
-    return;
-  }
-
-  var propertyNames = Object.getOwnPropertyNames(currentObject);
-  for (var j = 0; j < propertyNames.length; j++) {
-    var propertyName = propertyNames[j];
-    if (propertyName != '_type') {
-      var propertyValue = currentObject[propertyName];
-      if (typeof propertyValue == 'object') {
-        this.saveBlobs(updateId, propertyValue, serverErrorHandler);
+IncrementalHomeRecorder.prototype.saveBlobs = function(savedObject, serverErrorHandler) {
+  if (savedObject) {
+    if (savedObject.blob instanceof Blob
+        && savedObject.resourceFileName) {
+      var writeResourceURL = this.application.params.writeResourceURL;
+      var uploadUrl = CoreTools.format(writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(savedObject.resourceFileName));
+      var request = new XMLHttpRequest();
+      request.open("POST", uploadUrl);
+      request.addEventListener("error", serverErrorHandler);
+      request.addEventListener("timeout", serverErrorHandler);
+      request.send(savedObject.blob);
+  
+      delete savedObject.blob;
+      delete savedObject.resourceFileName;
+    } else {
+      // Save recursively other map objects depending on savedObject
+      var propertyNames = Object.getOwnPropertyNames(savedObject);
+      for (var j = 0; j < propertyNames.length; j++) {
+        var propertyName = propertyNames[j];
+        if (propertyName != "_type") {
+          var propertyValue = savedObject[propertyName];
+          if (typeof propertyValue == "object") {
+            this.saveBlobs(propertyValue, serverErrorHandler);
+          }
+        }
       }
     }
   }
-};
+}
 
 /** 
  * Sends to the server all the currently waiting edits for the given home.  
@@ -400,16 +365,15 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
         recorder.scheduleWrite(home, 10000);
       };
 
-    // 1. save blob if any
-    if (this.application.params.writeResourceURL) {
-
+    // 1. Save blobs if any
+    if (this.application.params.writeResourceURL 
+        && this.application.params.readResourceURL) {
       for (var i = 0; i < update.edits.length; i++) {
-        var edit = update.edits[i];
-        this.saveBlobs(update.id, edit, serverErrorHandler);
+        this.saveBlobs(update.edits[i], serverErrorHandler);
       }
     }
 
-    // 2. send edit
+    // 2. Send edit
     request = new XMLHttpRequest();
     request.open('POST', this.configuration['writeHomeEditsURL'], true);
     request.withCredentials = true;
@@ -470,16 +434,16 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
       var property = trackedHomeProperties[i];
       if (this.homeData[home.editionId].trackedStateChanges[property]) {
         switch (property) {
-          case 'CAMERA':
+          case "CAMERA":
             trackedStateChangeUndoableEdit.camera = home.getCamera();
             break;
-          case 'SELECTED_LEVEL':
+          case "SELECTED_LEVEL":
             trackedStateChangeUndoableEdit.selectedLevel = home.getSelectedLevel();
             break;
-          case SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_SORTED_PROPERTY:
+          case "FURNITURE_SORTED_PROPERTY":
             trackedStateChangeUndoableEdit.furnitureSortedProperty = home.getFurnitureSortedProperty();
             break;
-          case SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_DESCENDING_SORTED:
+          case "FURNITURE_DESCENDING_SORTED":
             trackedStateChangeUndoableEdit.furnitureDescendingSorted = home.isFurnitureDescendingSorted();
             break;
           default:
@@ -658,6 +622,28 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
   } else if (origin instanceof Big) {
     return {value: origin.toString(), 
             _type: "java.math.BigDecimal"};
+  } else if (origin instanceof BlobURLContent) {
+    if (origin.getSavedContent() != null) {
+      return this.substituteIdentifiableObjects(home, origin.getSavedContent(), newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+    } else {
+      // Prepare blob and resource file name used in saveBlobs 
+      var blob = origin.getBlob();
+      var extension = "dat";
+      if (blob.type == "image/png") {
+        extension = "png";
+      } else if (blob.type == "image/jpeg") {
+        extension = "jpg";
+      }
+      var resourceFileName = UUID.randomUUID() + '.' + extension;
+      var serverContent = new URLContent(
+          CoreTools.format(this.application.params.readResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(resourceFileName)));
+      origin.setSavedContent(serverContent);
+
+      var destination = this.substituteIdentifiableObjects(home, origin.getSavedContent(), newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+      destination.resourceFileName = resourceFileName;
+      destination.blob = blob;
+      return destination;
+    }
   } else if (origin == null || origin !== Object(origin) 
             || preservedTypes.some(function(preservedType) { return origin instanceof preservedType; })) {
     return origin;
@@ -692,9 +678,6 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
         }
       }
     }
-    if (origin instanceof BlobURLContent) {
-      destination.blob = origin.blob;
-    }
 
     if (origin.id !== undefined) {
       return origin.id;
@@ -713,11 +696,22 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
  *          texturesResourcesURLBase: string,
  *          readHomeURL: string,
  *          writeHomeEditsURL: string,
+ *          closeHomeURL: string,
  *          writeResourceURL: string,
- *          readPreferencesURL: string,
+ *          readResourceURL: string,
  *          writePreferencesURL: string,
- *          closeHomeURL: string}} [params] the URLs of resources and services required on server
- *                                                  (if undefined, will use local files for testing)
+ *          readPreferencesURL: string,
+ *          pingURL: string,
+ *          autoWriteDelay: number,
+ *          trackedHomeProperties: string[],
+ *          autoWriteTrackedStateChange: boolean,
+ *          writingObserver: {writeStarted: Function, 
+ *                            writeSucceeded: Function, 
+ *                            writeFailed: Function, 
+ *                            connectionFound: Function, 
+ *                            connectionLost: Function}}  [params] 
+ *              the URLs of resources and services required on server
+ *              (if undefined, will use local files for testing)
  * @constructor
  * @author Emmanuel Puybaret
  * @author Renaud Pawlak
@@ -765,15 +759,12 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
       this.preferences = new RecordedUserPreferences(
           this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
           this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase,
-          this.params.userResourcesURLBase, this.params.writeResourceURL,
-          this.params.writePreferencesURL, this.params.readPreferencesURL
-      );
+          this.params.writePreferencesURL, this.params.readPreferencesURL,
+          this.params.writeResourceURL, this.params.readResourceURL);
     } else {
       this.preferences = new DefaultUserPreferences(
         this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
-        this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase,
-        this.params.userResourcesURLBase, this.params.writeResourceURL
-      );
+        this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase);
     }
     this.preferences.setFurnitureViewedFromTop(true);
   }
