@@ -1605,3 +1605,145 @@ input, textarea, keygen, select, button {
   position: absolute;
   right: 0;
 }
+
+/**********************************/
+/** TREE TABLE     **/
+/**********************************/
+
+.tree-table {
+  font-size: 0.8em;
+  border-collapse: collapse;
+  font-family: Arial;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.tree-table [cell] {
+  padding: 0.2em;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.tree-table [cell] input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.tree-table [header] {
+  display: inline-flex;
+  flex-direction: row;
+  background-color: #444444;
+  height: 1.8rem;
+  font-size: .9rem;
+  line-height: 1.4rem;
+}
+
+.tree-table [header] [cell] {
+  color: white;
+  white-space: nowrap;
+  padding: 0.2em 15px 0.2em 0.2em;
+  text-align: left;
+}
+
+.tree-table [body] {
+  display: inline-flex;
+  flex-direction: column;
+  height: calc(100% - 1.8rem);
+  overflow-y: auto;
+}
+
+.tree-table [body] [row] {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+}
+
+.tree-table [header] [cell]:hover,
+.tree-table [header] [cell].sort {
+  cursor: pointer;
+  background-color: #999999;
+}
+
+.tree-table [header] [cell].sort:after,
+.tree-table [header] [cell]:hover:after {
+  content: '';
+  background-image: url('resources/ascending.png');
+  position: absolute;
+  right: 3px;
+  top: calc(50% - 4.5px);
+  width: 9px;
+  height: 9px;
+  display: block;
+}
+
+.tree-table [header] [cell].sort:not(.descending):hover:after,
+.tree-table [header] [cell].sort.descending:after {
+  background-image: url('resources/descending.png');
+}
+
+.tree-table .group [cell].main:before {
+  content: '';
+  background-image: url('resources/descending.png');
+  position: absolute;
+  left: 1px;
+  top: calc(50% - 4.5px);
+  width: 9px;
+  height: 9px;
+  display: block;
+}
+
+.tree-table .group.collapsed [cell].main:before {
+  transform: rotate(-90deg);
+}
+
+.tree-table [cell].number {
+  text-align: right;
+}
+
+.tree-table [row]:hover,
+.tree-table [row].selected {
+  background-color: #EEEEEE;
+}
+
+#furniture-view {
+  overflow: hidden;
+}
+
+#furniture-view > .tree-table {
+  width: 100%;
+  display: block;
+}
+
+#furniture-view [cell].name {
+  white-space: nowrap;
+}
+
+#furniture-view [cell].name [icon] {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.4em;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+}
+
+#furniture-view [cell].color,
+#furniture-view [cell].boolean {
+  text-align: center;
+}
+
+#furniture-view [cell].color div,
+#furniture-view [cell].texture div {
+  width: 1.2em;
+  height: 1.2em;
+  border: solid 1px black;
+  margin: auto;
+}

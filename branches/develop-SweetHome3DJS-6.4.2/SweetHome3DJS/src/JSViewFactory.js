@@ -127,8 +127,525 @@ JSViewFactory.prototype.createFurnitureCatalogView = function(catalog, preferenc
   return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
 }
 
-JSViewFactory.prototype.createFurnitureView = function(home, preferences, furnitureController) {
-  return null;
+/**
+ * @param {Home} home
+ * @param {UserPreferences} preferences
+ * @param {FurnitureController} controller
+ * @return {FurnitureListPane}
+ */
+JSViewFactory.prototype.createFurnitureView = function(home, preferences, controller) {
+  var viewFactory = this;
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   */
+  var isGroup = function(pieceOfFurniture) {
+    return pieceOfFurniture instanceof HomeFurnitureGroup;
+  }
+
+  /**
+   * @param {Big} bigNumber
+   * @return {number}
+   */
+  var bigToNumber = function(bigNumber) {
+    return bigNumber == null ? null : parseFloat(bigNumber.valueOf());
+  }
+
+  var expandedRowsIndices = undefined;
+  if (home.getVersion() >= 5000) {
+    var expandedRowsConfig = home.getProperty(SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY);
+    if (expandedRowsConfig != null) {
+      expandedRowsIndices = [];
+      var expandedRowsConfigEntries = expandedRowsConfig.split(",");
+      for (var i = 0; i < expandedRowsConfigEntries.length; i++) {
+        var rowIndex = parseInt(expandedRowsConfigEntries[i]);
+        if (!isNaN(rowIndex)) {
+          expandedRowsIndices.push(rowIndex);
+        }
+      }
+    }
+  }
+
+  function FurnitureListPane() {
+    this.preferences = preferences;
+    this.controller = controller;
+    this.viewFactory = viewFactory;
+    this.rootElement = document.getElementById('furniture-view');
+    this.defaultDecimalFormat = new DecimalFormat();
+    this.integerFormat = new IntegerFormat();
+
+    var pane = this;
+
+    var i = 0;
+    this.treeTable = new JSTreeTable(this.viewFactory, this.preferences, this.rootElement, this.createTableModel());
+
+    this.addHomeListeners();
+  }
+
+  FurnitureListPane.prototype.addHomeListeners = function() {
+    var pane = this;
+    var treeTable = this.treeTable;
+
+    home.addSelectionListener({
+      selectionChanged: function (event) {
+        console.log("selection changed", event);
+        treeTable.setSelectedRowsByValue(home.getSelectedItems())
+      }
+    });
+
+    var refreshModel = function() {
+      treeTable.setModel(pane.createTableModel());
+    };
+    home.addPropertyChangeListener(SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_SORTED_PROPERTY, refreshModel);
+    home.addPropertyChangeListener(SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_DESCENDING_SORTED, refreshModel);
+
+    home.addPropertyChangeListener(SweetHome3DJSApplication.HOME_FIELDS.FURNITURE_VISIBLE_PROPERTIES, refreshModel);
+
+    var refreshData = function() {
+      pane.refreshData();
+    };
+    var furniture = home.getFurniture();
+    for (var i = 0; i < furniture.length; i++) {
+      var piece = furniture[i];
+      piece.addPropertyChangeListener(refreshData);
+      if (piece instanceof HomeFurnitureGroup) {
+        var pieceFurniture = piece.getAllFurniture();
+        for (var j = 0; j < pieceFurniture.length; j++) {
+          var childPiece = pieceFurniture[j];
+          childPiece.addPropertyChangeListener(refreshData);
+        }
+      }
+    }
+
+    home.addFurnitureListener(function(event) {
+      var piece = event.getItem();
+      if (event.getType() == CollectionEvent.Type.ADD) {
+        piece.addPropertyChangeListener(refreshData);
+        if (piece instanceof HomeFurnitureGroup) {
+          var pieceFurniture = piece.getAllFurniture();
+          for (var j = 0; j < pieceFurniture.length; j++) {
+            var childPiece = pieceFurniture[j];
+            childPiece.addPropertyChangeListener(refreshData);
+          }
+        }
+      } else {
+        piece.removePropertyChangeListener(changeListener);
+        if (piece instanceof HomeFurnitureGroup) {
+          var pieceFurniture = piece.getAllFurniture();
+          for (var j = 0; j < pieceFurniture.length; j++) {
+            var childPiece = pieceFurniture[j];
+            childPiece.removePropertyChangeListener(refreshData);
+          }
+        }
+      }
+    });
+
+    var levels = home.getLevels();
+    for (var i = 0; i < levels.length; i++) {
+      var level = levels[i];
+      level.addPropertyChangeListener(refreshData);
+    }
+    home.addLevelsListener(function(event) {
+      if (event.getType() == CollectionEvent.Type.ADD) {
+        event.getItem().addPropertyChangeListener(refreshData);
+      } else {
+        event.getItem().removePropertyChangeListener(refreshData);
+      }
+    });
+  };
+
+  /**
+   * @return {TreeTableModel}
+   * @private
+   */
+  FurnitureListPane.prototype.createTableModel = function() {
+    var columns = Object.values({
+      'CATALOG_ID': {
+        name: 'CATALOG_ID', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'catalogIdColumn'), orderIndex: i++,
+        defaultWidth: '4rem'
+      },
+      'NAME': {
+        name: 'NAME', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'nameColumn'), orderIndex: i++,
+        defaultWidth: '14rem'
+      },
+      'WIDTH': {
+        name: 'WIDTH', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'widthColumn'), orderIndex: i++,
+      },
+      'DEPTH': { name: 'DEPTH', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'depthColumn'), orderIndex: i++ },
+      'HEIGHT': { name: 'HEIGHT', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'heightColumn'), orderIndex: i++ },
+      'MOVABLE': { name: 'MOVABLE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'movableColumn'), orderIndex: i++ },
+      'DOOR_OR_WINDOW': { name: 'DOOR_OR_WINDOW', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'doorOrWindowColumn'), orderIndex: i++ },
+      'COLOR': { name: 'COLOR', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'colorColumn'), orderIndex: i++ },
+      'TEXTURE': { name: 'TEXTURE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'textureColumn'), orderIndex: i++ },
+      'VISIBLE': { name: 'VISIBLE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'visibleColumn'), orderIndex: i++ },
+      'X': { name: 'X', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'xColumn'), orderIndex: i++ },
+      'Y': { name: 'Y', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'yColumn'), orderIndex: i++ },
+      'ELEVATION': { name: 'ELEVATION', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'elevationColumn'), orderIndex: i++ },
+      'ANGLE': { name: 'ANGLE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'angleColumn'), orderIndex: i++ },
+      'MODEL_SIZE': { name: 'MODEL_SIZE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'modelSizeColumn'), orderIndex: i++ },
+      'CREATOR': { name: 'CREATOR', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'creatorColumn'), orderIndex: i++ },
+      'PRICE': { name: 'PRICE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'priceColumn'), orderIndex: i++ },
+      'VALUE_ADDED_TAX': { name: 'VALUE_ADDED_TAX', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'valueAddedTaxColumn'), orderIndex: i++ },
+      'VALUE_ADDED_TAX_PERCENTAGE': { name: 'VALUE_ADDED_TAX_PERCENTAGE', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'valueAddedTaxPercentageColumn'), orderIndex: i++ },
+      'PRICE_VALUE_ADDED_TAX_INCLUDED': { name: 'PRICE_VALUE_ADDED_TAX_INCLUDED', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'priceValueAddedTaxIncludedColumn'), orderIndex: i++ },
+      'LEVEL': { name: 'LEVEL', label: ResourceAction.getLocalizedLabelText(preferences, 'FurnitureTable', 'levelColumn'), orderIndex: i++ },
+    });
+    var visibleColumns = [];
+    var visibleProperties = home.getFurnitureVisibleProperties();
+    for (var i = 0; i < columns.length; i++) {
+      if (visibleProperties.indexOf(columns[i].name) > -1) {
+        visibleColumns.push(columns[i]);
+      }
+    }
+
+    return {
+      columns: visibleColumns,
+      renderCell: function(value, columnName, cell) {
+        return pane.renderCell(value, columnName, cell);
+      },
+      getValueComparator: function(sortConfig) {
+        var furnitureComparator = HomePieceOfFurniture.getFurnitureComparator(sortConfig.columnName);
+        var comparator;
+        if (furnitureComparator != null) {
+          comparator = function(left, right) {
+            return furnitureComparator.compare(left, right);
+          };
+        } else {
+          comparator = function() { return 0; };
+        }
+        if (sortConfig.direction == 'desc') {
+          var ascComparator = comparator;
+          comparator = function(left, right) {
+            return ascComparator(right, left);
+          };
+        }
+        return comparator;
+      },
+      onSelectionChanged: function(selectedValues) {
+        home.setSelectedItems(selectedValues);
+      },
+      onRowDoubleClicked: function(value) {
+        controller.modifySelectedFurniture(value);
+      },
+      onExpandedRowsChanged: function(expandedRowsValues, expandedRowsIndices) {
+        pane.storeExpandedRows(expandedRowsIndices);
+      },
+      onSortChanged: function(newSort) {
+        controller.sortFurniture(newSort.columnName);
+      },
+      initialState: {
+        visibleColumnNames: home.getFurnitureVisibleProperties(),
+        sort: {
+          columnName: home.getFurnitureSortedProperty(),
+          direction: home.isFurnitureDescendingSorted() ? 'desc' : 'asc'
+        },
+        expandedRowsIndices: expandedRowsIndices
+      }
+    };
+  };
+
+  FurnitureListPane.prototype.getHTMLElement = function() {
+    return this.rootElement;
+  };
+
+  /**
+   * Refresh data list and updates UI
+   */
+  FurnitureListPane.prototype.refreshData = function() {
+    var treeTable = this.treeTable;
+    var dataList = [];
+
+    /**
+     * @param {HomePieceOfFurniture[]} furnitureList
+     */
+    var addToDataList = function(furnitureList, dataList) {
+      for (var i = 0; i < furnitureList.length; i++) {
+        var pieceOfFurniture = furnitureList[i];
+        var dataItem = { value: pieceOfFurniture };
+        if (isGroup(pieceOfFurniture)) {
+          dataItem.children = [];
+          addToDataList(pieceOfFurniture.getFurniture(), dataItem.children);
+        }
+        dataList.push(dataItem);
+      }
+    };
+    addToDataList(home.getFurniture(), dataList);
+
+    treeTable.setData(dataList);
+  };
+
+  /**
+   * Returns false if furniture is nested in a group
+   *
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @return {boolean}
+   * @private
+   */
+  FurnitureListPane.prototype.isRootPieceOfFurniture = function(pieceOfFurniture) {
+    var dataList = this.treeTable.getData();
+    for (var i = 0; i < dataList.length; i++) {
+      if (dataList[i].value == pieceOfFurniture) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  /**
+   * @param {number} value
+   * @param {HTMLTableCellElement} cell
+   * @param {Format} [format] default to
+   * @private
+   */
+  FurnitureListPane.prototype.renderNumberCellValue = function(value, cell, format) {
+    if (!format) {
+      format = this.defaultDecimalFormat;
+    }
+
+    var text = '';
+    if (value != null) {
+      text = format.format(value);
+    }
+
+    cell.innerHTML = text;
+    cell.classList.add('number');
+  };
+
+  /**
+   * @param {number} value
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderSizeCellValue = function(value, cell) {
+    this.renderNumberCellValue(value, cell, preferences.getLengthUnit().getFormat());
+  };
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderNameCell = function(pieceOfFurniture, cell) {
+    cell.classList.add('main', 'name');
+
+    var iconElement = document.createElement('span');
+    iconElement.setAttribute('icon', true);
+    if (isGroup(pieceOfFurniture)) {
+      iconElement.style.backgroundImage = "url('lib/resources/groupIcon.png')";
+    } else {
+      TextureManager.getInstance().loadTexture(pieceOfFurniture.getIcon(), 0, false,
+        {
+          textureUpdated : function(image) {
+            iconElement.style.backgroundImage = "url('" + image.src + "')";
+          },
+          textureError : function(error) {
+            return this.textureUpdated(TextureManager.getInstance().getErrorImage());
+          }
+        });
+    }
+    cell.appendChild(iconElement);
+
+    var nameElement = document.createElement('span');
+    nameElement.textContent = pieceOfFurniture.getName();
+    cell.appendChild(nameElement);
+  }
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderColorCell = function(pieceOfFurniture, cell) {
+    cell.classList.add('color');
+    if (pieceOfFurniture.getColor() != null) {
+      var colorSquare = document.createElement('div');
+      colorSquare.style.backgroundColor = ColorTools.integerToHexadecimalString(pieceOfFurniture.getColor());
+      cell.appendChild(colorSquare);
+    } else {
+      cell.textContent = '-';
+    }
+  }
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderTextureCell = function(pieceOfFurniture, cell) {
+    cell.classList.add('texture');
+    if (pieceOfFurniture.getTexture() != null) {
+
+      var overviewSquare = document.createElement('div');
+      TextureManager.getInstance().loadTexture(pieceOfFurniture.getTexture().getImage(), 0, false,
+        {
+          textureUpdated : function(image) {
+            overviewSquare.style.backgroundImage = "url('" + image.src + "')";
+          },
+          textureError : function(error) {
+            return this.textureUpdated(TextureManager.getInstance().getErrorImage());
+          }
+        });
+
+      cell.appendChild(overviewSquare);
+    }
+  }
+
+  /**
+   * @param {boolean} value
+   * @param {HTMLTableCellElement} cell
+   * @param {boolean} [editEnabled] default to false
+   * @param {function(checkedState: boolean)} [onStateChanged]
+   * @private
+   */
+  FurnitureListPane.prototype.renderBooleanCell = function(value, cell, editEnabled, onStateChanged) {
+    cell.classList.add('boolean');
+    var checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.disabled = editEnabled !== true;
+    checkbox.checked = value === true;
+    if (typeof onStateChanged == 'function') {
+      checkbox.addEventListener('click', function() {
+        var checked = checkbox.checked;
+        onStateChanged(checked);
+      }, true);
+    }
+
+    cell.appendChild(checkbox);
+  }
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @param {Big} value
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderPriceCellValue = function(pieceOfFurniture, value, cell) {
+    var currency = pieceOfFurniture.getCurrency() == null ? this.preferences.getCurrency() : pieceOfFurniture.getCurrency();
+    if (currency == null) {
+      currency = 'EUR';
+    }
+    var priceFormat = new Intl.NumberFormat(this.preferences.getLanguage(), { style: 'currency', currency: currency });
+    this.renderNumberCellValue(bigToNumber(value), cell, priceFormat);
+  }
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderCreatorCell = function(pieceOfFurniture, cell) {
+    var creator = pieceOfFurniture.getCreator();
+    if (creator != null) {
+      var texture = pieceOfFurniture.getTexture();
+      if (texture != null) {
+        var textureCreator = texture.getCreator();
+        if (textureCreator != null && creator != textureCreator) {
+          creator += ", " + textureCreator;
+        }
+      } else {
+        var modelCreator = creator;
+        var materials = pieceOfFurniture.getModelMaterials();
+        if (materials != null) {
+          for (var i = 0; i < materials.length; i++) {
+            var material = materials[i];
+            if (material != null) {
+              var materialTexture = material.getTexture();
+              if (materialTexture != null) {
+                var textureCreator = materialTexture.getCreator();
+                if (textureCreator != null
+                  && modelCreator != textureCreator
+                  && creator.indexOf(", " + textureCreator) == -1) {
+                  creator += ", " + textureCreator;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * @param {HomePieceOfFurniture} pieceOfFurniture
+   * @param {string} columnName
+   * @param {HTMLTableCellElement} cell
+   * @private
+   */
+  FurnitureListPane.prototype.renderCell = function(pieceOfFurniture, columnName, cell) {
+    var pane = this;
+    var tempValue;
+
+    switch (columnName) {
+      case 'CATALOG_ID':
+        cell.textContent = pieceOfFurniture.getCatalogId();
+        break;
+      case 'NAME':
+        return this.renderNameCell(pieceOfFurniture, cell);
+      case 'CREATOR':
+        return this.renderCreatorCell(pieceOfFurniture, cell);
+      case 'WIDTH':
+        return this.renderSizeCellValue(pieceOfFurniture.getWidth(), cell);
+      case 'DEPTH':
+        return this.renderSizeCellValue(pieceOfFurniture.getDepth(), cell);
+      case 'HEIGHT':
+        return this.renderSizeCellValue(pieceOfFurniture.getHeight(), cell);
+      case 'X':
+        return this.renderSizeCellValue(pieceOfFurniture.getX(), cell);
+      case 'Y':
+        return this.renderSizeCellValue(pieceOfFurniture.getY(), cell);
+      case 'ELEVATION':
+        return this.renderSizeCellValue(pieceOfFurniture.getElevation(), cell);
+      case 'ANGLE':
+        var value = Math.round(Math.toDegrees(pieceOfFurniture.getAngle()) + 360) % 360;
+        return this.renderNumberCellValue(value, cell, this.integerFormat);
+      case 'LEVEL':
+        cell.textContent = pieceOfFurniture != null && pieceOfFurniture.getLevel() != null ? pieceOfFurniture.getLevel().getName() : '';
+        break;
+      case 'MODEL_SIZE':
+        var value = pieceOfFurniture != null && pieceOfFurniture.getModelSize() != null && pieceOfFurniture.getModelSize() > 0
+          ? Math.max(1, Math.round(pieceOfFurniture.getModelSize() / 1000))
+          : null;
+        return this.renderNumberCellValue(value, cell, this.integerFormat);
+      case 'COLOR':
+        return this.renderColorCell(pieceOfFurniture, cell);
+      case 'TEXTURE':
+        return this.renderTextureCell(pieceOfFurniture, cell);
+      case 'MOVABLE':
+        return this.renderBooleanCell(pieceOfFurniture.isMovable(), cell);
+      case 'DOOR_OR_WINDOW':
+        return this.renderBooleanCell(pieceOfFurniture.isDoorOrWindow(), cell);
+      case 'VISIBLE':
+        return this.renderBooleanCell(pieceOfFurniture.isVisible(), cell, this.isRootPieceOfFurniture(pieceOfFurniture), function(checked) {
+          controller.toggleSelectedFurnitureVisibility();
+        });
+      case 'PRICE':
+        return this.renderPriceCellValue(pieceOfFurniture, pieceOfFurniture.getPrice(), cell);
+      case 'VALUE_ADDED_TAX_PERCENTAGE':
+        return this.renderNumberCellValue(bigToNumber(pieceOfFurniture.getValueAddedTaxPercentage()) * 100, cell);
+      case 'VALUE_ADDED_TAX':
+        return this.renderPriceCellValue(pieceOfFurniture, pieceOfFurniture.getValueAddedTax(), cell);
+      case 'PRICE_VALUE_ADDED_TAX_INCLUDED':
+        return this.renderPriceCellValue(pieceOfFurniture, pieceOfFurniture.getPriceValueAddedTaxIncluded(), cell);
+      default:
+        cell.textContent = '-';
+        break;
+    }
+  };
+
+  /**
+   * @param {number[]} expandedRowsIndices index based on filtered and sorted data list
+   * @private
+   */
+  FurnitureListPane.prototype.storeExpandedRows = function(expandedRowsIndices) {
+    var propertyValue = expandedRowsIndices.join(',');
+    if (home.getProperty(SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY) != null || propertyValue.length > 0) {
+      controller.setHomeProperty(SweetHome3DJSApplication.HOME_PROPERTIES.EXPANDED_ROWS_VISUAL_PROPERTY, propertyValue);
+    }
+  }
+
+  var pane = new FurnitureListPane();
+  pane.refreshData();
+  return pane;
 }
 
 JSViewFactory.prototype.createPlanView = function(home, preferences, planController) {
@@ -2254,13 +2771,15 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
    * @private
    */
   JSHomeFurnitureDialog.prototype.updatePaintRadioButtons = function() {
+    var dialog = this;
     var controller = this.controller;
+    var colorAndTextureRadioButtons = dialog.paintPanel.colorAndTextureRadioButtons;
     if (controller.getPaint() == null) {
-      for (var i = 0; i < dialog.colorAndTextureRadioButtons.length; i++) {
-        this.paintPanel.colorAndTextureRadioButtons[i].checked = false;
+      for (var i = 0; i < colorAndTextureRadioButtons.length; i++) {
+        colorAndTextureRadioButtons[i].checked = false;
       }
     } else {
-      var selectedRadio = this.paintPanel.colorAndTextureRadioButtons[controller.getPaint()];
+      var selectedRadio = colorAndTextureRadioButtons[controller.getPaint()];
       if (selectedRadio) {
         selectedRadio.checked = true;
       }
