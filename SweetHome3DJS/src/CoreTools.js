@@ -117,12 +117,11 @@ CoreTools.capitalize = function(string) {
  *
  * @param baseURL the base URL of the localized resource to be loaded
  * @param language the language to be loaded (Java conventions)
- * @param {boolean} noCache force refresh content
+ * @param {boolean} [noCache] force refresh content
  * @returns an array of bundle objects, starting with the most specific localization to the default
  */
 CoreTools.loadResourceBundles = function(baseURL, language, noCache) {
-
-  var queryString = noCache ? '?ts=' + Date.now() : '';
+  var queryString = noCache ? "?requestId=" + UUID.randomUUID() : "";
 
   var resourceBundles = [];
   if (language) {
@@ -592,10 +591,10 @@ ImageTools.doesCanvasHaveAlpha = function(canvas, context) {
  * @param {HTMLImageElement} image
  * @param {number} targetWidth
  * @param {number} targetHeight
- * @param {function(HTMLImageElement)} onSuccess called when resize succeeded, with resized image as a parameter
+ * @param {function(HTMLImageElement)} onsuccess called when resize succeeded, with resized image as a parameter
  * @param {string} [imageType] target image mime type, defaults to image/png
  */
-ImageTools.resize = function(image, targetWidth, targetHeight, onSuccess, imageType) {
+ImageTools.resize = function(image, targetWidth, targetHeight, onsuccess, imageType) {
   var canvas = document.createElement('canvas');
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -604,7 +603,7 @@ ImageTools.resize = function(image, targetWidth, targetHeight, onSuccess, imageT
 
   var resizedImage = new Image();
   resizedImage.onload = function () {
-    onSuccess(resizedImage);
-  };
+      onsuccess(resizedImage);
+    };
   resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
 }

@@ -300,16 +300,16 @@ function HomePane(containerId, home, preferences, controller) {
     });
 
   // Restore viewport position if it exists
-  var viewportX = home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
-  var viewportY = home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+  var viewportX = home.getNumericProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+  var viewportY = home.getNumericProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
   if (viewportX != null && viewportY != null) {
     planComponent.scrollPane.scrollLeft = viewportX | 0;
     planComponent.scrollPane.scrollTop = viewportY | 0;
   }
 
   planComponent.scrollPane.addEventListener("scroll", function(ev) {
-      controller.setHomeProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
-      controller.setHomeProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
+      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
+      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
     });
 
   // Create level selector
@@ -352,6 +352,12 @@ function HomePane(containerId, home, preferences, controller) {
 HomePane["__class"] = "HomePane";
 HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "com.eteks.sweethome3d.viewcontroller.View"];
 
+HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.MainPaneDividerLocation";
+HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.CatalogPaneDividerLocation";
+HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.PlanPaneDividerLocation";
+HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.PlanViewportX";
+HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.PlanViewportY";
+HomePane.FURNITURE_VIEWPORT_Y_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.FurnitureViewportY";
 HomePane.DETACHED_VIEW_VISUAL_PROPERTY = ".detachedView";
 HomePane.DETACHED_VIEW_DIVIDER_LOCATION_VISUAL_PROPERTY = ".detachedViewDividerLocation";
 HomePane.DETACHED_VIEW_X_VISUAL_PROPERTY = ".detachedViewX";
@@ -1553,12 +1559,12 @@ HomePane.prototype.initSplitters = function() {
       furnitureSplitter, 
       [document.getElementById("furnitures-panel")],
       [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()],
-      home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+      home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
       function(splitterPosition) {
         // refresh 2D/3D plan views on resize
         planView.revalidate();
         home3DView.canvas3D.updateViewportSize();
-        saveSplitterPositionOnceSettledFunction(SweetHome3DJSApplication.HOME_PROPERTIES.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+        saveSplitterPositionOnceSettledFunction(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
       }
     );
   }
@@ -1569,12 +1575,12 @@ HomePane.prototype.initSplitters = function() {
       planPanesSplitter, 
       [planView.getHTMLElement()], 
       [home3DView.getHTMLElement()],
-      home.getNumericProperty(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+      home.getNumericProperty(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
       function(splitterPosition) {
         // refresh 2D/3D plan views on resize
         planView.revalidate();
         home3DView.canvas3D.updateViewportSize();
-        saveSplitterPositionOnceSettledFunction(SweetHome3DJSApplication.HOME_PROPERTIES.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+        saveSplitterPositionOnceSettledFunction(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
       }
     );
   }

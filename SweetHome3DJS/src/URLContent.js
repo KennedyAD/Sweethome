@@ -136,6 +136,7 @@ URLContent.prototype.hashCode = function() {
     }, 0);
 }
 
+
 /**
  * An URL content read from a home stream.
  * @param {string} url  the URL from which this content will be read
@@ -152,6 +153,7 @@ HomeURLContent.prototype.constructor = HomeURLContent;
 HomeURLContent["__class"] = "com.eteks.sweethome3d.io.HomeURLContent";
 HomeURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
+
 /**
  * Content read from a URL with no dependency on other content when this URL is a JAR entry.
  * @constructor
@@ -167,22 +169,20 @@ SimpleURLContent.prototype.constructor = SimpleURLContent;
 SimpleURLContent["__class"] = "com.eteks.sweethome3d.tools.SimpleURLContent";
 SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
+
 /**
  * Content read from a URL to a JS Blob
  * @constructor
- * 
  * @param {Blob} blob
- * 
  * @author Louis Grignon
+ * @author Emmanuel Puybaret
  */
 function BlobURLContent(blob) {
   var url = URL.createObjectURL(blob);
   URLContent.call(this, url);
-
-  /**
-   * @private
-   */
+  /** @private */
   this.blob = blob;
+  this.savedContent = null;
 }
 BlobURLContent.prototype = Object.create(URLContent.prototype);
 BlobURLContent.prototype.constructor = BlobURLContent;
@@ -198,22 +198,38 @@ BlobURLContent.prototype.getBlob = function() {
 }
 
 /**
- * Load a BlobURLContent from a JS image
- * 
+ * Returns the content saved on server.
+ * @return {URLContent} content on server or <code>null</code> if not saved on server yet 
+ */
+BlobURLContent.prototype.getSavedContent = function() {
+  return this.savedContent;
+}
+
+/**
+ * Sets the content saved on server.
+ * @param {URLContent} savedContent content on server 
+ */
+BlobURLContent.prototype.setSavedContent = function(savedContent) {
+  this.savedContent = savedContent;
+}
+
+/**
+ * Loads a BlobURLContent from a JS image
  * @param {HTMLImageElement} image the image to be used as content source
  * @param {string} imageType resulting image blob mime type
- * @param {function(BlobURLContent)} onContentReadyCallback called when content is ready, with content instance as only parameter
+ * @param {function(BlobURLContent)} oncontentready callback called when content is ready, with content instance as only parameter
  */
-BlobURLContent.fromImage = function(image, imageType, onContentReadyCallback) {
+BlobURLContent.fromImage = function(image, imageType, oncontentready) {
   var canvas = document.createElement("canvas");
-  var ctx = canvas.getContext("2d");
+  var context = canvas.getContext("2d");
   canvas.width = image.width;
   canvas.height = image.height;
-  ctx.drawImage(image, 0, 0, image.width, image.height);
+  context.drawImage(image, 0, 0, image.width, image.height);
   canvas.toBlob(function (blob) {
-    onContentReadyCallback(new BlobURLContent(blob));
-  }, imageType, 1);
+      oncontentready(new BlobURLContent(blob));
+    }, imageType, 1);
 }
+
 
 /**
  * ZIP reading utilities.

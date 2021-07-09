@@ -61,7 +61,7 @@ body {
 
 #home-plan::selection { background: #0042E0; }
 
-#home-pane-toolbar, #furniture-catalog, #home-plan, #home-3D-view {
+#home-pane-toolbar, #furnitures-panel, #home-plan, #home-3D-view {
   position: absolute;
 }
 
@@ -74,11 +74,27 @@ body {
   white-space: nowrap;
 }
 
-#furniture-catalog {
+#furnitures-panel {
   top: 30px;
   width: 296px;
   height: calc(100% - 30px);
-  overflow-y: scroll; 
+}
+
+#furniture-catalog {
+  height: 70%;
+  width: 100%;
+  overflow-y: scroll;
+}
+
+#furniture-view {
+  width: 100%;
+  height: 30%;
+  box-sizing: border-box;
+  overflow-y: scroll;
+}
+
+#furniture-view .tree-table {
+  width: 100%;
 }
 
 .pane-splitter.vertical::after {
@@ -121,12 +137,17 @@ body {
 
 @media (orientation: portrait) {
 
-  #furniture-catalog {
+  #furnitures-panel {
     width: 160px;
+    height: 100%;
   }
 
   #furniture-plan-splitter {
     left: 160px;
+  }
+
+  #furniture-view {
+    display: none;
   }
 
   #plan-panes-splitter {
@@ -146,9 +167,9 @@ body {
 }
 
 /*
- * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
+ * Touch devices common CSS - ignored by IE
  */
-@media (hover: none), (pointer: coarse) {
+@media (hover: none) {
 
   .pane-splitter {
     display: none;
@@ -230,7 +251,7 @@ body {
 
     /* End of horizontal layout */
 
-    #furniture-catalog {
+    #furnitures-panel {
       top: calc(100% - 40px - 80px);
       left: 0px;
       width: calc(100% - 2px);
@@ -239,6 +260,13 @@ body {
       overflow-y: hidden; 
     }
 
+    #furniture-catalog {
+      height: 100%;
+    }
+
+    #furniture-view {
+      display: none;
+    }
   }
 
   @media (orientation: landscape) {
@@ -252,13 +280,20 @@ body {
       top: 0%;
     }
 
-    #furniture-catalog {
+    #furnitures-panel {
       top: 0%;
       left: 0%;
       width: 150px;
       height: calc(100% - 40px - 2px);
       overflow-x: hidden; 
       overflow-y: scroll; 
+    }
+    #furniture-catalog {
+      height: 100%;
+    }
+
+    #furniture-view {
+      display: none;
     }
 
     #home-plan {
@@ -284,9 +319,10 @@ body {
 }
 
 /*
- * Touch devices common CSS - ignored by IE
+ * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
  */
-@media (hover: none) {
+@media (hover: none), (pointer: coarse) {
+
   
   .pane-splitter {
     display: none;
@@ -313,6 +349,14 @@ body {
     height: calc(100% - 2px);
   }
 
+  #furniture-catalog {
+    height: 100%;
+  }
+
+  #furniture-view {
+    display: none;
+  }
+
   @media (orientation: portrait) {
 
     #home-3D-view {
@@ -368,7 +412,7 @@ body {
 
     /* End of horizontal layout */
 
-    #furniture-catalog {
+    #furnitures-panel {
       top: calc(100% - 40px - 80px);
       left: 0px;
       width: calc(100% - 2px);
@@ -376,12 +420,11 @@ body {
       overflow-x: scroll; 
       overflow-y: hidden; 
     }
-
   }
 
   @media (orientation: landscape) {
 
-    #furniture-catalog {
+    #furnitures-panel {
       top: 0%;
       left: 0%;
       width: 150px;
@@ -427,26 +470,1093 @@ body {
 
 <div id="home-pane">
 
-  <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabIndex="1"></canvas>
+  <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas>
   <div id="plan-panes-splitter" class="pane-splitter"></div>
-  <div id="home-plan" style="background-color: #FFFFFF; color: #000000" tabIndex="2" ></div>
+  <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ><select id="level-selector"></select></div>
 
   <div id="home-pane-toolbar"></div>
 
   <div id="furniture-plan-splitter" class="pane-splitter"></div>
-  <div id="furniture-catalog"></div>
+  <div id="furnitures-panel">
+    <div id="furniture-catalog">
+    </div>
+    <div id="furniture-view"></div>
+  </div>
 
+</div>
+
+
+<div id="home-furniture-dialog-template" class="dialog-template">
+
+  <div class="home-furniture-dialog">
+    <h3 class="card" data-name="name-and-price-title"></h3>
+    <div data-name="name-and-price-panel" class="card">
+      <div class="label-cell">
+        <div data-name="name-label">${HomeFurniturePanel.nameLabel.text}</div>
+      </div>
+      <div>
+        <input name="name-input" size="50" type="text" />
+
+        <label>
+          <input name="name-visible-checkbox" type="checkbox" />
+          <span>${HomeFurniturePanel.nameVisibleCheckBox.text}</span>
+        </label>
+      </div>
+
+      <div class="label-cell">
+        <div data-name="price-label">${HomeFurniturePanel.priceLabel.text}</div>
+      </div>
+      <div>
+        <span data-name="price-input"></span>
+
+        <span>${HomeFurniturePanel.valueAddedTaxPercentageLabel.text}</span>
+        <span data-name="value-added-tax-percentage-input"></span>
+      </div>
+    </div>
+    <br />
+
+
+    <div class="columns-3">
+      <div class="column1">
+        <h3 class="card">${HomeFurniturePanel.locationPanel.title}</h3>
+        <div data-name="location-panel" class="card">
+          <div data-name="x-label" class="label-cell"></div>
+          <div>
+            <span data-name="x-input" />
+          </div>
+
+          <div data-name="y-label" class="label-cell"></div>
+          <div>
+            <span data-name="y-input" />
+          </div>
+
+          <div data-name="elevation-label" class="label-cell"></div>
+          <div>
+            <span data-name="elevation-input" />
+          </div>
+
+          <label title="${HomeFurniturePanel.mirroredModelCheckBox.tooltip}" class="whole-line">
+            <input name="mirrored-model-checkbox" type="checkbox" />
+            <span>${HomeFurniturePanel.mirroredModelCheckBox.text}</span>
+          </label>
+
+          <label title="${HomeFurniturePanel.basePlanItemCheckBox.tooltip}" class="whole-line">
+            <input name="base-plan-item-checkbox" type="checkbox" />
+            <span>${HomeFurniturePanel.basePlanItemCheckBox.text}</span>
+          </label>
+        </div>
+
+        <br />
+
+        <h3 class="card">${HomeFurniturePanel.colorAndTexturePanel.title}</h3>
+        <div data-name="paint-panel" class="card">
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="default">
+              ${HomeFurniturePanel.defaultColorAndTextureRadioButton.text}
+            </label>
+          </div>
+          <div></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="color">
+              ${HomeFurniturePanel.colorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="texture">
+              ${HomeFurniturePanel.textureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="texture-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="MODEL_MATERIALS">
+              ${HomeFurniturePanel.modelMaterialsRadioButton.text}
+            </label>
+          </div>
+          <div data-name="material-selector-button"></div>
+        </div>
+      </div>
+      <div class="column2">
+        <h3 class="card">${HomeFurniturePanel.orientationPanel.title}</h3>
+        <div data-name="orientation-panel" class="card">
+
+          <div class="whole-line" data-name="vertical-rotation-label">${HomeFurniturePanel.verticalRotationLabel.text}</div>
+
+          <div class="label-cell" data-name="angle-label">${HomeFurniturePanel.angleLabel.text}</div>
+          <div>
+            <span data-name="angle-input"></span>
+          </div>
+
+          <div class="whole-line"  data-name="horizontal-rotation-label">${HomeFurniturePanel.horizontalRotationLabel.text}</div>
+
+          <label class="label-cell">
+            <input type="radio" name="horizontal-rotation-radio" value="PITCH" />
+            ${HomeFurniturePanel.pitchRadioButton.text}
+          </label>
+          <div>
+            <span data-name="pitch-input"></span>
+          </div>
+
+          <label class="label-cell">
+            <input type="radio" name="horizontal-rotation-radio" value="ROLL" />
+            ${HomeFurniturePanel.rollRadioButton.text}
+          </label>
+          <div>
+            <span data-name="roll-input"></span>
+          </div>
+
+          <div class="whole-line" data-name="furniture-orientation-image">
+            <img src="lib/resources/furnitureOrientation.png" />
+          </div>
+        </div>
+      </div>
+      <div class="column3">
+        <h3 class="card">${HomeFurniturePanel.sizePanel.title}</h3>
+        <div data-name="size-panel" class="card">
+          <div data-name="width-label" class="label-cell"></div>
+          <div>
+            <span data-name="width-input"></span>
+          </div>
+          <div data-name="depth-label" class="label-cell"></div>
+          <div>
+            <span data-name="depth-input"></span>
+          </div>
+          <div data-name="height-label" class="label-cell"></div>
+          <div>
+            <span data-name="height-input"></span>
+          </div>
+
+          <label class="whole-line">
+            <input name="keep-proportions-checkbox" type="checkbox" />
+            <span>${ImportedFurnitureWizardStepsPanel.keepProportionsCheckBox.text}</span>
+          </label>
+
+        </div>
+        <br />
+
+        <h3 class="card">${HomeFurniturePanel.shininessPanel.title}</h3>
+        <div data-name="shininess-panel" class="card">
+
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="DEFAULT" />
+              <span>${HomeFurniturePanel.defaultShininessRadioButton.text}</span>
+            </label>
+          </div>
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="MATT" />
+              <span>${HomeFurniturePanel.mattRadioButton.text}</span>
+            </label>
+          </div>
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="SHINY" />
+              <span>${HomeFurniturePanel.shinyRadioButton.text}</span>
+            </label>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <div class="card">
+      <label>
+        <input name="visible-checkbox" type="checkbox" />
+        <span>${HomeFurniturePanel.visibleCheckBox.text}</span>
+      </label>
+    </div>
+
+  </div>
+</div>
+
+
+<div id="observer-camera-dialog-template" class="dialog-template">
+
+  <div class="observer-camera-dialog">
+
+    <div class="columns">
+      <div>
+        <h3 class="card">${ObserverCameraPanel.locationPanel.title}</h3>
+        <div data-name="location-panel" class="card label-input-grid">
+          <div data-name="x-label" class="label-cell"></div>
+          <div>
+            <span data-name="x-input" />
+          </div>
+
+          <div data-name="y-label" class="label-cell"></div>
+          <div>
+            <span data-name="y-input" />
+          </div>
+
+          <div data-name="elevation-label" class="label-cell"></div>
+          <div>
+            <span data-name="elevation-input" />
+          </div>
+        </div>
+
+      </div>
+
+      <div>
+        <h3 class="card">${ObserverCameraPanel.anglesPanel.title}</h3>
+        <div data-name="angles-panel" class="card label-input-grid">
+
+          <div class="label-cell">${ObserverCameraPanel.yawLabel.text}</div>
+          <div>
+            <span data-name="yaw-input"></span>
+          </div>
+
+          <div class="label-cell">${ObserverCameraPanel.pitchLabel.text}</div>
+          <div>
+            <span data-name="pitch-input"></span>
+          </div>
+
+          <div class="label-cell">${ObserverCameraPanel.fieldOfViewLabel.text}</div>
+          <div>
+            <span data-name="field-of-view-input"></span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <br />
+    <label>
+      <input type="checkbox" name="adjust-observer-camera-elevation-checkbox" />
+      ${ObserverCameraPanel.adjustObserverCameraElevationCheckBox.text}
+    </label>
+  </div>
+</div>
+
+<div id="home-3Dattributes-dialog-template" class="dialog-template">
+
+  <div class="home-3Dattributes-dialog">
+
+    <div class="columns">
+
+      <div class="column1">
+        <h3 class="card">${Home3DAttributesPanel.groundPanel.title}</h3>
+        <div class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="ground-color-and-texture-choice" value="COLORED">
+              ${Home3DAttributesPanel.groundColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ground-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="ground-color-and-texture-choice" value="TEXTURED">
+              ${Home3DAttributesPanel.groundTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ground-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="background-image-visible-on-ground-3D-checkbox" />
+              ${Home3DAttributesPanel.backgroundImageVisibleOnGround3DCheckBox.text}
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="column2">
+        <h3 class="card">${Home3DAttributesPanel.skyPanel.title}</h3>
+        <div class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="sky-color-and-texture-choice" value="COLORED">
+              ${Home3DAttributesPanel.skyColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="sky-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="sky-color-and-texture-choice" value="TEXTURED">
+              ${Home3DAttributesPanel.skyTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="sky-texture-selector-button"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <br />
+
+    <h3 class="card">${Home3DAttributesPanel.renderingPanel.title}</h3>
+    <div class="card label-input-grid">
+      <div>
+        ${Home3DAttributesPanel.brightnessLabel.text}
+      </div>
+      <div>
+        <input type="range" name="brightness-slider" min="0" max="255" list="home-3Dattributes-brightness-list" />
+        <datalist id="home-3Dattributes-brightness-list"></datalist>
+        <div class="slider-labels">
+          <div>${Home3DAttributesPanel.darkLabel.text}</div>
+          <div>${Home3DAttributesPanel.brightLabel.text}</div>
+        </div>
+      </div>
+
+      <div>
+        ${Home3DAttributesPanel.wallsTransparencyLabel.text}
+      </div>
+      <div>
+        <input type="range" name="walls-transparency-slider" min="0" max="255" list="home-3Dattributes-walls-transparency-list" />
+        <datalist id="home-3Dattributes-walls-transparency-list"></datalist>
+        <div class="slider-labels">
+          <div>${Home3DAttributesPanel.opaqueLabel.text}</div>
+          <div>${Home3DAttributesPanel.invisibleLabel.text}</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="compass-dialog-template" class="dialog-template">
+  <div class="compass-dialog">
+
+    <h3 class="card">${CompassPanel.compassRosePanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-label" class="label-cell"></span>
+      <span data-name="x-input"></span>
+
+      <label class="label-and-input">
+        <input name="visible-checkbox" type="checkbox" />
+        <span>${CompassPanel.visibleCheckBox.text}</span>
+      </label>
+
+      <span data-name="y-label" class="label-cell"></span>
+      <span data-name="y-input"></span>
+
+      <span data-name="diameter-label" class="label-cell"></span>
+      <span data-name="diameter-input"></span>
+    </div>
+    <br />
+
+    <h3 class="card">${CompassPanel.geographicLocationPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span class="label-cell">${CompassPanel.latitudeLabel.text}</span>
+      <span data-name="latitude-input"></span>
+
+      <span class="label-cell">${CompassPanel.northDirectionLabel.text}</span>
+      <span>
+        <span data-name="north-direction-input"></span>
+        <canvas data-name="compass-overview">
+        </canvas>
+      </span>
+
+      <span class="label-cell">${CompassPanel.longitudeLabel.text}</span>
+      <span data-name="longitude-input"></span>
+    </div>
+
+  </div>
+</div>
+<div id="level-dialog-template" class="dialog-template">
+
+  <div class="level-dialog">
+
+    <div class="label-input-grid">
+      <span></span>
+      <label>
+        <input name="visible-checkbox" type="checkbox" />
+        <span>${LevelPanel.viewableCheckBox.text}</span>
+      </label>
+
+      <span class="label-cell">${LevelPanel.nameLabel.text}</span>
+      <span><input name="name-input" type="text" /></span>
+
+      <span data-name="elevation-label" class="label-cell"></span>
+      <span>
+        <span data-name="elevation-input"></span>
+      </span>
+
+      <span data-name="floor-thickness-label" class="label-cell"></span>
+      <span>
+        <span data-name="floor-thickness-input"></span>
+      </span>
+
+      <span data-name="height-label" class="label-cell"></span>
+      <span>
+        <span data-name="height-input"></span>
+      </span>
+
+    </div>
+
+    <hr />
+    <div>${LevelPanel.levelsSummaryLabel.text}</div>
+    <br/>
+    <div class="levels-summary">
+      <table data-name="levels-table">
+        <thead>
+          <tr>
+            <th>${LevelPanel.nameColumn}</th>
+            <th>${LevelPanel.elevationColumn}</th>
+            <th>${LevelPanel.floorThicknessColumn}</th>
+            <th>${LevelPanel.heightColumn}</th>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+      </table>
+      <div class="levels-elevation-index-buttons">
+        <button name="increase-elevation-index-button"></button>
+        <br/>
+        <button name="decrease-elevation-index-button"></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="wall-dialog-template" class="dialog-template">
+  
+  <div class="wall-dialog">
+
+    <h3 class="card">${WallPanel.startPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-start-label"></span>
+      <span data-name="x-start-input"></span>
+      <span data-name="y-start-label"></span>
+      <span data-name="y-start-input"></span>
+    </div>
+
+    <br />
+    <h3 class="card">${WallPanel.endPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-end-label"></span>
+      <span data-name="x-end-input"></span>
+      <span data-name="y-end-label"></span>
+      <span data-name="y-end-input"></span>
+      <span class="whole-line">
+        <span data-name="distance-to-end-point-label"></span>
+        <span data-name="distance-to-end-point-input"></span>
+      </span>
+    </div>
+
+    <br />
+    <div class="columns-2">
+
+      <div class="column1">
+        <h3 class="card">${WallPanel.leftSidePanel.title}</h3>
+        <div class="color-and-texture-panel card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="left-side-color-and-texture-choice" value="COLORED">
+              ${WallPanel.leftSideColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="left-side-color-selector-button"></div>
+          
+          <div>
+            <label>
+              <input type="radio" name="left-side-color-and-texture-choice" value="TEXTURED">
+              ${WallPanel.leftSideTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="left-side-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <label>
+            <input type="radio" name="left-side-shininess-choice" value="0">
+            ${WallPanel.leftSideMattRadioButton.text}
+          </label>
+          <label>
+            <input type="radio" name="left-side-shininess-choice" value="0.25">
+            ${WallPanel.leftSideShinyRadioButton.text}
+          </label>
+
+          <div class="whole-line" style="text-align: center">
+            <button name="left-side-modify-baseboard-button"></button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="column2">
+        <h3 class="card">${WallPanel.rightSidePanel.title}</h3>
+        <div class="color-and-texture-panel card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="right-side-color-and-texture-choice" value="COLORED">
+              ${WallPanel.rightSideColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="right-side-color-selector-button"></div>
+          
+          <div>
+            <label>
+              <input type="radio" name="right-side-color-and-texture-choice" value="TEXTURED">
+              ${WallPanel.rightSideTextureRadioButton.text}
+            </label>
+          </div>         
+          <div data-name="right-side-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <label>
+            <input type="radio" name="right-side-shininess-choice" value="0">
+            ${WallPanel.rightSideMattRadioButton.text}
+          </label>
+          <label>
+            <input type="radio" name="right-side-shininess-choice" value="0.25">
+            ${WallPanel.rightSideShinyRadioButton.text}
+          </label>
+
+          <div class="whole-line" style="text-align: center">
+            <button name="right-side-modify-baseboard-button"></button>
+          </div>
+        </div>
+      </div>
+ 
+    </div>
+
+    <br />
+    <h3 class="card">${WallPanel.topPanel.title}</h3>
+    <div class="card label-input-grid">
+      <span>${WallPanel.patternLabel.text}</span>
+      <div data-name="pattern-select"></div>
+
+      <span>${WallPanel.topColorLabel.text}</span>
+      <span>
+        <label>
+          <input type="radio" name="top-color-choice" value="DEFAULT">
+          ${WallPanel.topDefaultColorRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="top-color-choice" value="COLORED">
+          ${WallPanel.topColorRadioButton.text}
+          <span data-name="top-color-selector-button"></span>
+        </label>
+      </span>
+    </div>
+
+    <br />
+    <h3 class="card">${WallPanel.heightPanel.title}</h3>
+    <div class="card">
+
+      <div class="columns-2">
+
+        <div class="column1">
+
+          <div>
+            <label>
+              <input type="radio" name="wall-shape-choice" value="RECTANGULAR_WALL">
+              ${WallPanel.rectangularWallRadioButton.text}
+            </label>
+          </div>
+          <br />
+
+          <div class="label-input-grid">
+            <span data-name="rectangular-wall-height-label" class="label-cell"></span>
+            <span data-name="rectangular-wall-height-input"></span>
+          </div>
+        </div>
+
+        <div class="column2">
+
+          <div>
+            <label class="label-and-input">
+              <input type="radio" name="wall-shape-choice" value="SLOPING_WALL">
+              ${WallPanel.slopingWallRadioButton.text}
+            </label>
+          </div>
+          <br />
+
+          <div class="label-input-grid">
+            <span class="label-cell">${WallPanel.slopingWallHeightAtStartLabel.text}</span>
+            <span data-name="sloping-wall-height-at-start-input"></span>
+
+            <span class="label-cell">${WallPanel.slopingWallHeightAtEndLabel.text}</span>
+            <span data-name="sloping-wall-height-at-end-input"></span>
+          </div>
+        </div>
+      </div>
+
+      <br />
+      <div class="label-input-grid double">
+        <span data-name="thickness-label" class="label-cell"></span>
+        <span data-name="thickness-input"></span>
+        <span data-name="arc-extent-label" class="label-cell"></span>
+        <span data-name="arc-extent-input"></span>
+      </div>
+
+    </div>
+    
+    <br/>
+    
+    <div data-name="wall-orientation-label" class="card">
+    </div>
+  </div>
+</div>
+
+<div id="room-dialog-template" class="dialog-template">
+  
+  <div class="room-dialog">
+    <h3 class=card>${RoomPanel.nameAndAreaPanel.title}</h3>
+    <div data-name="name-and-area-panel" class=card>
+      <span>
+        ${RoomPanel.nameLabel.text}
+        <input name="name-input" type="text" />
+      </span>
+
+      <label>
+        <input name="area-visible-checkbox" type="checkbox"  />
+        ${RoomPanel.areaVisibleCheckBox.text}
+      </label>
+    </div>
+
+    <div class="columns">
+    
+      <div>
+        <h3 class=card>${RoomPanel.floorPanel.title}</h3>
+        <div data-name="floor-panel" class=card>
+
+          <div class="whole-line">
+            <label>
+              <input name="floor-visible-checkbox" type="checkbox"  />
+              ${RoomPanel.floorVisibleCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="floor-color-and-texture-choice" value="COLORED">
+              ${RoomPanel.floorColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="floor-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="floor-color-and-texture-choice" value="TEXTURED">
+              ${RoomPanel.floorTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="floor-texture-selector-button"></div>
+    
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="floor-shininess-choice" value="0">
+              ${RoomPanel.floorMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="floor-shininess-choice" value="0.25">
+              ${RoomPanel.floorShinyRadioButton.text}
+            </label>
+          </div>
+          
+        </div>
+
+      </div>
+
+      <div>
+        <h3 class=card>${RoomPanel.ceilingPanel.title}</h3>
+        <div data-name="ceiling-panel" class=card>
+
+          <div class="whole-line">
+            <label>
+              <input name="ceiling-visible-checkbox" type="checkbox"  />
+              ${RoomPanel.ceilingVisibleCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="ceiling-color-and-texture-choice" value="COLORED">
+              ${RoomPanel.ceilingColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ceiling-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="ceiling-color-and-texture-choice" value="TEXTURED">
+              ${RoomPanel.ceilingTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ceiling-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="ceiling-shininess-choice" value="0">
+              ${RoomPanel.ceilingMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="ceiling-shininess-choice" value="0.25">
+              ${RoomPanel.ceilingShinyRadioButton.text}
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <h3 class="card">${RoomPanel.wallSidesPanel.title}</h3>
+        <div data-name="wall-sides-panel" class="card">
+
+          <div class="whole-line">
+            <label title="${RoomPanel.splitSurroundingWallsCheckBox.tooltip}">
+              <input name="split-surrounding-walls-checkbox" type="checkbox"  />
+              ${RoomPanel.splitSurroundingWallsCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="wall-sides-color-and-texture-choice" value="COLORED">
+              ${RoomPanel.wallSidesColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="wall-sides-color-selector-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">
+              ${RoomPanel.wallSidesTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="wall-sides-texture-selector-button"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="wall-sides-shininess-choice" value="0">
+              ${RoomPanel.wallSidesMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="wall-sides-shininess-choice" value="0.25">
+              ${RoomPanel.wallSidesShinyRadioButton.text}
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+          <h3 class="card">${RoomPanel.wallSidesBaseboardPanel.title}</h3>
+          <div data-name="wall-sides-baseboard-panel" class="card">
+
+          </div>
+      </div>
+
+    </div>
+    
+  </div>
+</div>
+
+<div id="user-preferences-dialog-template" class="dialog-template">
+  
+  <div class="user-preferences-dialog">
+    <div>${UserPreferencesPanel.languageLabel.text}</div>
+    <div>
+      <select name="language-select"></select>
+    </div>
+
+    <div>${UserPreferencesPanel.unitLabel.text}</div>
+    <div>
+      <select name="unit-select"></select>
+    </div>
+    
+    <div>${UserPreferencesPanel.currencyLabel.text}</div>
+    <div>
+      <select name="currency-select"></select>
+      
+      <label>
+        <input name="value-added-tax-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.valueAddedTaxCheckBox.text}
+      </label>
+    </div>
+    
+    <div>${UserPreferencesPanel.furnitureCatalogViewLabel.text}</div>
+    <div>
+      <label>
+        <input name="furniture-catalog-view-radio" value="tree" type="radio"  />
+        ${UserPreferencesPanel.treeRadioButton.text}
+      </label>
+      <label>
+        <input name="furniture-catalog-view-radio" value="list" type="radio"  />
+        ${UserPreferencesPanel.listRadioButton.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.navigationPanelLabel.text}</div>
+    <div>
+      <label>
+        <input name="navigation-panel-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.navigationPanelCheckBox.text}
+      </label>
+    </div>
+    
+    <div>${UserPreferencesPanel.aerialViewCenteredOnSelectionLabel.text}</div>
+    <div>
+      <label>
+        <input name="aerial-view-centered-on-selection-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.aerialViewCenteredOnSelectionCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.observerCameraSelectedAtChangeLabel.text}</div>
+    <div>
+      <label>
+        <input name="observer-camera-selected-at-change-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.observerCameraSelectedAtChangeCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.magnetismLabel.text}</div>
+    <div>
+      <label>
+        <input name="magnetism-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.magnetismCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.rulersLabel.text}</div>
+    <div>
+      <label>
+        <input name="rulers-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.rulersCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.gridLabel.text}</div>
+    <div>
+      <label>
+        <input name="grid-checkbox" type="checkbox"  />
+        ${UserPreferencesPanel.gridCheckBox.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.defaultFontNameLabel.text}</div>
+    <div>
+      <select name="default-font-name-select">
+      </select>
+    </div>
+
+    <div>${UserPreferencesPanel.furnitureIconLabel.text}</div>
+    <div>
+      <label>
+        <input name="furniture-icon-radio" value="catalog" type="radio"  />
+        ${UserPreferencesPanel.catalogIconRadioButton.text}
+      </label>
+      <br />
+      <label>
+        <input name="furniture-icon-radio" value="topView" type="radio"  />
+        ${UserPreferencesPanel.topViewRadioButton.text}
+      </label>
+      ${UserPreferencesPanel.iconSizeLabel.text}
+      <select name="icon-size-select"></select>
+    </div>
+
+    <div>${UserPreferencesPanel.roomRenderingLabel.text}</div>
+    <div>
+      <label>
+        <input name="room-rendering-radio" value="monochrome" type="radio"  />
+        ${UserPreferencesPanel.monochromeRadioButton.text}
+      </label>
+      <label>
+        <input name="room-rendering-radio" value="floorColorOrTexture" type="radio"  />
+        ${UserPreferencesPanel.floorColorOrTextureRadioButton.text}
+      </label>
+    </div>
+
+    <div>${UserPreferencesPanel.newWallPatternLabel.text}</div>
+    <div data-name="new-wall-pattern-select"></div>
+
+    <div>${UserPreferencesPanel.newWallThicknessLabel.text}</div>
+    <div>
+      <span data-name="new-wall-thickness-input"></span>
+    </div>
+    <div>${UserPreferencesPanel.newWallHeightLabel.text}</div>
+    <div>
+      <span data-name="new-wall-height-input"></span>
+    </div>
+    <div>${UserPreferencesPanel.newFloorThicknessLabel.text}</div>
+    <div>
+      <span data-name="new-floor-thickness-input"></span>
+    </div>
+
+  </div>
+</div>
+
+<div id="polyline-dialog-template" class="dialog-template">
+  
+  <div class="polyline-dialog">
+
+    <div data-name="thickness-label">
+    </div>
+    <div>
+      <span data-name="thickness-input"></span>
+    </div>
+
+    <div>
+      ${PolylinePanel.arrowsStyleLabel.text}
+    </div>
+    <div data-name="arrows-style-select"></div>
+
+    <div>
+      ${PolylinePanel.joinStyleLabel.text}
+    </div>
+    <div data-name="join-style-select"></div>
+
+    <div>
+      ${PolylinePanel.dashStyleLabel.text}
+    </div>
+    <div data-name="dash-style-select"></div>
+
+    <div>
+      ${PolylinePanel.dashOffsetLabel.text}
+    </div>
+    <div>
+      <span data-name="dash-offset-input"></span>
+    </div>
+
+    <div>
+      ${PolylinePanel.colorLabel.text}
+    </div>
+    <div data-name="color-selector-button"></div>
+    
+    <div>
+      <label>
+        <input name="visible-in-3D-checkbox" type="checkbox"  />
+        ${PolylinePanel.visibleIn3DViewCheckBox.text}
+      </label>
+    </div>
+
+  </div>
+</div>
+
+<div id="label-dialog-template" class="dialog-template">
+  
+  <div class="label-dialog">
+
+    <h3 class=card>${LabelPanel.textAndStylePanel.title}</h3>
+    <div data-name="text-and-style-panel" class=card>
+      <div>
+        ${LabelPanel.textLabel.text}
+      </div>
+      <div>
+        <textarea name="text" rows="4"></textarea>
+      </div>
+
+      <div>
+        ${LabelPanel.alignmentLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="label-alignment-radio" value="LEFT" />
+          ${LabelPanel.leftAlignmentRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-alignment-radio" value="CENTER" />
+          ${LabelPanel.centerAlignmentRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-alignment-radio" value="RIGHT" />
+          ${LabelPanel.rightAlignmentRadioButton.text}
+        </label>
+      </div>
+
+      <div>
+        ${LabelPanel.fontNameLabel.text}
+      </div>
+      <div>
+        <select name="font-select">
+        </select>
+      </div>
+
+      <div data-name="text-size-label">
+      </div>
+      <div data-name="text-size-input-container">
+        <span data-name="text-size-input" />
+      </div>
+
+      <div data-name="color-label">
+        ${LabelPanel.colorLabel.text}
+      </div>
+      <div data-name="color-selector-button"></div>
+
+    </div>
+
+    <br />
+
+    <h3 class=card>${LabelPanel.rendering3DPanel.title}</h3>
+    <div data-name="rendering-3D-panel" class=card>
+      <div>
+        <label>
+          <input name="visible-in-3D-checkbox" type="checkbox"  />
+          ${LabelPanel.visibleIn3DViewCheckBox.text}
+        </label>
+      </div>
+
+      <div>
+        ${LabelPanel.pitchLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="label-pitch-radio" value="0" />
+          ${LabelPanel.pitch0DegreeRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-pitch-radio" value="90" />
+          ${LabelPanel.pitch90DegreeRadioButton.text}
+        </label>
+      </div>
+
+      <div data-name="elevation-label">
+      </div>
+      <div>
+        <span data-name="elevation-input" />
+      </div>
+      
+    </div>
+
+  </div>
 </div>
 
 <script type="text/javascript">
 var homeName = '<%= homeName == null ? "HomeTest" : homeName %>';
 var urlBase = '<%= new java.net.URL(request.getScheme(), request.getServerName(), request.getServerPort(), request.getContextPath()).toString() %>';
 var application = new SweetHome3DJSApplication(
-    {readHomeURL:       urlBase + "/readHome.jsp?home=%s",
-     writeHomeEditsURL: urlBase + "/writeHomeEdits.jsp",
-     closeHomeURL:      urlBase + "/closeHome.jsp?home=%s",
-     pingURL:           urlBase + "/ping.jsp",
-     autoWriteDelay:    1000,
+    {readHomeURL:         urlBase + "/readHome.jsp?home=%s",
+     writeHomeEditsURL:   urlBase + "/writeHomeEdits.jsp",
+     closeHomeURL:        urlBase + "/closeHome.jsp?home=%s",
+     pingURL:             urlBase + "/ping.jsp",
+     writeResourceURL:    urlBase + "/writeResource.jsp?path=%s",
+     readResourceURL:     urlBase + "/userResources/%s",
+     writePreferencesURL: urlBase + "/writeResource.jsp?path=userPreferences.json",
+     readPreferencesURL:  urlBase + "/userResources/userPreferences.json",
+     autoWriteDelay:      1000,
      autoWriteTrackedStateChange: true,
      writingObserver:   {
          writeStarted: function(update) {

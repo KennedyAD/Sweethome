@@ -74,20 +74,20 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
       if (valueToSearch == null || valueToSearch === "") {
         return true;
       }
-      var pieceDescriptor = CoreTools.removeAccents(piece.name + "-" + piece.getCreator() + piece.getTags().join("-"));
+      var pieceDescriptor = CoreTools.removeAccents(piece.getName() + "-" + piece.getCreator() + piece.getTags().join("-"));
       return RegExp(".*" + valueToSearch + ".*", "i").test(pieceDescriptor);
     });
   }
   categorySelector.id = "furniture-category-select";
-  var categoryOption = document.createElement("option");
+  var noCategoryOption = document.createElement("option");
   var noCategory = preferences.getLocalizedString("FurnitureCatalogListPanel", "categoryFilterComboBox.noCategory");
-  categoryOption.value = noCategory;
-  categoryOption.text = noCategory;
-  categorySelector.appendChild(categoryOption);
+  noCategoryOption.value = 
+  noCategoryOption.text = noCategory;
+  categorySelector.appendChild(noCategoryOption);
   for (var i = 0; i < catalog.getCategories().length; i++) {
-    categoryOption = document.createElement("option");
-    categoryOption.value = catalog.getCategories()[i].name;
-    categoryOption.text = catalog.getCategories()[i].name;
+    var categoryOption = document.createElement("option");
+    categoryOption.value = 
+    categoryOption.text = catalog.getCategories()[i].getName();
     categorySelector.appendChild(categoryOption);    
   }
   categorySelector.addEventListener("input", filterChangeHandler);
@@ -100,61 +100,35 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   searchInput.addEventListener("input", filterChangeHandler);
   searchInput.addEventListener("mousemove", function(event) { furnitureCatalogListPanel.hideTooltip(); event.stopPropagation(); });
   this.getHTMLElement().addEventListener("click", function(event) {
-    var bounds = searchInput.getBoundingClientRect();
-    if (! (event.clientX >= bounds.left && event.clientX <= bounds.right && event.clientY >= bounds.top && event.clientY <= bounds.bottom)) {
+      var bounds = searchInput.getBoundingClientRect();
+      if (!(event.clientX >= bounds.left && event.clientX <= bounds.right 
+            && event.clientY >= bounds.top && event.clientY <= bounds.bottom)) {
         furnitureCatalogListPanel.searchInput.blur();
       }
-  });
+    });
   searchInput.addEventListener("focusin", function(event) {
-    if (!searchInput.classList.contains("expanded")) {
-      searchInput.classList.add("expanded");
-       setTimeout(function() { 
-        if (document.body.scrollTop == 0) {
-          // Device did not scroll automatically, so we have to force it to show the search field
-          window.scrollTo(0, furnitureCatalogListPanel.container.getBoundingClientRect().top); 
-          //var delta = window.innerHeight - document.body.getBoundingClientRect();
-          //window.scrollBy(0, -delta);
-        }
-      }, 100);
-    }
-  });
+      if (!searchInput.classList.contains("expanded")) {
+        searchInput.classList.add("expanded");
+         setTimeout(function() { 
+              if (document.body.scrollTop == 0) {
+                // Device did not scroll automatically, so we have to force it to show the search field
+                window.scrollTo(0, furnitureCatalogListPanel.container.getBoundingClientRect().top); 
+                //var delta = window.innerHeight - document.body.getBoundingClientRect();
+                //window.scrollBy(0, -delta);
+              }
+            }, 100);
+      }
+    });
   searchInput.addEventListener("focusout", function(event) {
-    if (searchInput.classList.contains("expanded")) {
-      searchInput.classList.remove("expanded");
-    }
-  });
+      if (searchInput.classList.contains("expanded")) {
+        searchInput.classList.remove("expanded");
+      }
+    });
   filteringDiv.appendChild(searchInput);
 
   // Create catalog
-  for (var i = 0; i < catalog.getCategoriesCount() ; i++) {
-    var category = catalog.getCategories()[i];
-    var categoryLabel = document.createElement("div");
-    categoryLabel.className = "furniture-category-label";
-    categoryLabel.innerHTML = category.name;
-    categoryLabel.category = category;
-    this.container.appendChild(categoryLabel);
-
-    for (var j = 0; j < category.getFurnitureCount(); j++) {
-      var piece = category.getFurniture()[j];
-      var pieceContainer = document.createElement("div");
-      pieceContainer.pieceOfFurniture = piece;
-      pieceContainer.className = "furniture";
-      pieceContainer.innerHTML = '<div class="furniture-label">' + piece.name + '</div>';
-      this.container.appendChild(pieceContainer);
-      this.createPieceOfFurniturePanel(pieceContainer, piece);
-      // Memorize piece & category for filtering
-      pieceContainer.category = category;
-      pieceContainer.piece = piece;
-    }
-
-    if (i < catalog.getCategoriesCount() - 1) {
-      var categorySeparator = document.createElement("div");
-      categorySeparator.className = "furniture-category-separator";
-      categorySeparator.category = category;
-      this.container.appendChild(categorySeparator);
-    }
-  }
-
+  this.resetFurnitureCatalog(catalog);
+  
   // Tooltip management
   var currentFurnitureContainer;
   document.addEventListener("mousemove", function(ev) {
@@ -167,11 +141,11 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
           clearTimeout(furnitureCatalogListPanel.showTooltipTimeOut);
         }
         furnitureCatalogListPanel.showTooltipTimeOut = setTimeout(function() {
-          if (furnitureCatalogListPanel.currentFurnitureContainer !== undefined) {
-            currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
-            furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
-          }
-        }, 1000);
+            if (furnitureCatalogListPanel.currentFurnitureContainer !== undefined) {
+              currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
+              furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
+            }
+          }, 1000);
       } else {
         if (currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
           currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer;
@@ -181,8 +155,8 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
           clearTimeout(furnitureCatalogListPanel.hideTooltipTimeOut);
         }
         furnitureCatalogListPanel.hideTooltipTimeOut = setTimeout(function() { 
-          furnitureCatalogListPanel.hideTooltip(); 
-        }, 3000);
+            furnitureCatalogListPanel.hideTooltip(); 
+          }, 3000);
       }
     } else {
       furnitureCatalogListPanel.currentFurnitureContainer = undefined;
@@ -193,6 +167,58 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.container.addEventListener("mouseleave", function(ev) {
      furnitureCatalogListPanel.hideTooltip();
    });
+  
+  preferences.addPropertyChangeListener("LANGUAGE", function(ev) {
+      var searchInput = document.getElementById("furniture-search-field");
+      searchInput.placeholder = preferences.getLocalizedString("FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
+      var categorySelector = document.getElementById("furniture-category-select");
+      var noCategory = preferences.getLocalizedString("FurnitureCatalogListPanel", "categoryFilterComboBox.noCategory");
+      noCategoryOption.value = 
+      noCategoryOption.text = noCategory;
+    });
+  catalog.addFurnitureListener(function(ev) {
+      var category = ev.getItem().getCategory();
+      var categories = catalog.getCategories();
+      var children = categorySelector.childNodes;
+      if (categories.indexOf(category) === -1) {
+        for (var i = 0; i < children.length; i++) {
+          if (children[i].value == category.getName()) {
+            categorySelector.removeChild(children[i]);
+            break;
+          }
+        }
+      } else if (ev.getType() === CollectionEvent.Type.ADD) {
+        var insertIndex = children.length;
+        for (var i = 1; i < children.length; i++) { // Start at index 1 to keep noCategory option first
+          if (children[i].value == category.getName()) {
+            insertIndex = -1;
+            break;
+          } else if (children[i].value > category.getName()) {
+            insertIndex = i;
+            break;
+          }
+        }
+        if (insertIndex >= 0) {
+          categoryOption = document.createElement("option");
+          categoryOption.value = 
+            categoryOption.text = category.getName();
+          if (insertIndex === children.length) {
+            categorySelector.appendChild(categoryOption);
+          } else {
+            categorySelector.insertBefore(categoryOption, children[insertIndex]);    
+          }
+        }
+      }
+
+      if (!this.updater) {
+        var context = this;
+        this.updater = function() {
+            furnitureCatalogListPanel.resetFurnitureCatalog(catalog);
+            delete context.updater;
+          };
+        setTimeout(this.updater, 0);
+      }
+    });
 }
 
 /**
@@ -241,7 +267,53 @@ FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, piec
       });
     }
   }
+}
 
+/**
+ * @private
+ */
+FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
+  var children = this.container.getElementsByClassName("furniture-category-label");
+  for (var i = children.length - 1; i >= 0; i--) {
+    this.container.removeChild(children[i]);
+  }
+  children = this.container.getElementsByClassName("furniture");
+  for (var i = children.length - 1; i >= 0; i--) {
+    this.container.removeChild(children[i]);
+  }
+  children = this.container.getElementsByClassName("furniture-category-separator");
+  for (var i = children.length - 1; i >= 0; i--) {
+    this.container.removeChild(children[i]);
+  }
+  
+  for (var i = 0; i < catalog.getCategoriesCount() ; i++) {
+    var category = catalog.getCategories()[i];
+    var categoryLabel = document.createElement("div");
+    categoryLabel.className = "furniture-category-label";
+    categoryLabel.innerHTML = category.getName();
+    categoryLabel.category = category;
+    this.container.appendChild(categoryLabel);
+  
+    for (var j = 0; j < category.getFurnitureCount(); j++) {
+      var piece = category.getFurniture()[j];
+      var pieceContainer = document.createElement("div");
+      pieceContainer.pieceOfFurniture = piece;
+      pieceContainer.className = "furniture";
+      pieceContainer.innerHTML = '<div class="furniture-label">' + piece.getName() + '</div>';
+      this.container.appendChild(pieceContainer);
+      this.createPieceOfFurniturePanel(pieceContainer, piece);
+      // Memorize piece & category for filtering
+      pieceContainer.category = category;
+      pieceContainer.piece = piece;
+    }
+  
+    if (i < catalog.getCategoriesCount() - 1) {
+      var categorySeparator = document.createElement("div");
+      categorySeparator.className = "furniture-category-separator";
+      categorySeparator.category = category;
+      this.container.appendChild(categorySeparator);
+    }
+  }
 }
 
 /**
