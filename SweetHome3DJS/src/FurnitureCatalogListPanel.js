@@ -68,16 +68,15 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   var searchInput = document.createElement("input");
   this.searchInput = searchInput;
   var filterChangeHandler = function() {
-    console.info("change ", categorySelector.value, searchInput.value);
-	var valueToSearch = CoreTools.removeAccents(searchInput.value);
-    furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
-      if (valueToSearch == null || valueToSearch === "") {
-        return true;
-      }
-      var pieceDescriptor = CoreTools.removeAccents(piece.getName() + "-" + piece.getCreator() + piece.getTags().join("-"));
-      return RegExp(".*" + valueToSearch + ".*", "i").test(pieceDescriptor);
-    });
-  }
+      var valueToSearch = CoreTools.removeAccents(searchInput.value);
+      furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
+          if (valueToSearch == null || valueToSearch === "") {
+            return true;
+          }
+          var pieceDescriptor = CoreTools.removeAccents(piece.getName() + "|" + piece.getCreator() + "|" + piece.getTags().join("|"));
+          return RegExp(valueToSearch, "i").test(pieceDescriptor);
+        });
+    };
   categorySelector.id = "furniture-category-select";
   var noCategoryOption = document.createElement("option");
   var noCategory = preferences.getLocalizedString("FurnitureCatalogListPanel", "categoryFilterComboBox.noCategory");
@@ -92,7 +91,6 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   }
   categorySelector.addEventListener("input", filterChangeHandler);
   categorySelector.addEventListener("mousemove", function(event) { furnitureCatalogListPanel.hideTooltip(); event.stopPropagation(); });
-  console.info("adding selector", categorySelector);
   filteringDiv.appendChild(categorySelector);
   searchInput.setAttribute('type', 'text'); 
   searchInput.id = "furniture-search-field";
@@ -240,7 +238,8 @@ FurnitureCatalogListPanel.prototype.findCategoryElements = function(category) {
 FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, pieceFilter) {
   // First hide all elements (save display value for further restoring)
   for (var i = 0; i < this.container.childNodes.length; i++) {
-    if (this.container.childNodes[i].id !== "furniture-filter") {
+    if (this.container.childNodes[i] instanceof HTMLElement
+        && this.container.childNodes[i].id !== "furniture-filter") {
       if (this.container.childNodes[i]._displayBackup === undefined) {
         this.container.childNodes[i]._displayBackup = this.container.childNodes[i].style.display;
       }
@@ -248,23 +247,25 @@ FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, piec
     }
   }
 
-  // Unhide all elements that are not filtered out
+  // Show all elements that are not filtered out
   var categories = categoryIndex == null || categoryIndex === 0
-    ? this.catalog.getCategories()
-    : [this.catalog.getCategories()[categoryIndex - 1]];
+      ? this.catalog.getCategories()
+      : [this.catalog.getCategories()[categoryIndex - 1]];
   for (var i = 0; i < categories.length ; i++) {
     var category = categories[i];
-    var furniture = pieceFilter == null?category.getFurniture():category.getFurniture().filter(pieceFilter);
+    var furniture = pieceFilter == null
+        ? category.getFurniture()
+        : category.getFurniture().filter(pieceFilter);
     if (furniture != null && furniture.length > 0) {
       var elements = this.findCategoryElements(category);
       elements.forEach(function(element) {
-        if (element.classList.contains("furniture-category-label") || element.classList.contains("furniture-category-separator")) {
-          element.style.display = element._displayBackup;
-        }
-        if (element.piece && furniture.indexOf(element.piece) !== -1) {
-          element.style.display = element._displayBackup;
-        }
-      });
+          if (element.classList.contains("furniture-category-label") || element.classList.contains("furniture-category-separator")) {
+            element.style.display = element._displayBackup;
+          }
+          if (element.piece && furniture.indexOf(element.piece) !== -1) {
+            element.style.display = element._displayBackup;
+          }
+        });
     }
   }
 }
@@ -380,7 +381,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
         pieceContainer.appendChild(image);
       },
       textureError:  function(error) {
-        console.error("image cannot be loaded", error);
+        console.error("Image cannot be loaded", error);
       }
     });
 }

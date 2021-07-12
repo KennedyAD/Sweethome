@@ -30,7 +30,7 @@ var CoreTools = {};
 /**
  * Loads a JSON resource from a url (synchronous).
  * @param url {string}  the url of the JSON resource to be loaded
- * @returns an object that corresponds to the loaded JSON
+ * @return an object that corresponds to the loaded JSON
  */
 CoreTools.loadJSON = function(url) {
   try {
@@ -53,7 +53,7 @@ CoreTools.loadJSON = function(url) {
  * Formats a string with the given <code>args</code>.
  * @param {string} formatString a string containing optional place holders (%s, %d)
  * @param {Object[]|...Object} args an array of arguments to be applied to formatString
- * @returns the formatted string
+ * @return the formatted string
  */
 CoreTools.format = function(formatString, args) {
   if (args === undefined || args.length === 0) {
@@ -94,17 +94,19 @@ CoreTools.format = function(formatString, args) {
  * Returns the given <code>string</code> without accents. For example, <code>éèâ</code> 
  * returns <code>eea</code>.
  * @param {string} a string containing accents
- * @returns the string with all the accentuated characters substituted with the corresponding 
- * un-accentuated characters  
+ * @return the string with all the accentuated characters substituted with the corresponding 
+ *          un-accentuated characters  
  */
 CoreTools.removeAccents = function(string) {
-  // TODO: support for IE (normalize)
-  return string == null ? string : string.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return string != null
+      ? (typeof string.normalize == "function" // Not available under IE 11 and Safari 8/9
+            ? string.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            : string.replace(/[áàâä]/g, "a").replace(/[éèêë]/g, "e").replace(/[íìîï]/g, "i").replace(/[óòôö]/g, "o").replace(/[úùûü]/g, "u"))
+      : string;
 }
 
 /**
  * Returns the capitalized string of the given string (first letter upper case).
- * 
  * @param {string} string input string
  * @return input string with first letter upper case
  */
@@ -113,12 +115,11 @@ CoreTools.capitalize = function(string) {
 }
 
 /**
- * Loads resource bundles for a given base URL and a given language.
- *
+ * Returns resource bundles loaded from a given base URL and a given language.
  * @param baseURL the base URL of the localized resource to be loaded
  * @param language the language to be loaded (Java conventions)
  * @param {boolean} [noCache] force refresh content
- * @returns an array of bundle objects, starting with the most specific localization to the default
+ * @return an array of bundle objects, starting with the most specific localization to the default
  */
 CoreTools.loadResourceBundles = function(baseURL, language, noCache) {
   var queryString = noCache ? "?requestId=" + UUID.randomUUID() : "";
@@ -136,13 +137,11 @@ CoreTools.loadResourceBundles = function(baseURL, language, noCache) {
 }
 
 /**
- * Gets a string from an array of resource bundles, starting with the first bundle. 
- * It returns the value associated with the given key, in the first bundle where it is found. 
- *
+ * Returns the string associated with the given key from an array of resource bundles, starting with the first bundle. 
  * @param resourceBundles {Object[]} an array of bundle objects to look up the key into.
  * @param key {string} the key to lookup
  * @param parameters {...*} parameters for the formatting of the key
- * @returns the value associated with the key (in the first bundle object that contains it)
+ * @return the value associated with the key (in the first bundle object that contains it)
  */
 CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
   for (var i = 0; i < resourceBundles.length; i++) {
@@ -154,10 +153,9 @@ CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
 }
 
 /**
- * Gets all the keys from an array of resource bundles. 
- *
+ * Returns all the keys from an array of resource bundles. 
  * @param resourceBundles {Object[]} an array of bundle objects to look up the keys into.
- * @returns the list of keys found in the bundle
+ * @return the list of keys found in the bundle
  */
 CoreTools.getKeys = function(resourceBundles) {
   var keys = {};
@@ -170,10 +168,10 @@ CoreTools.getKeys = function(resourceBundles) {
 }
 
 /**
- * Gets an object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
+ * Returns the object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
  * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)
- * @returns {*} the value associated to the key (null if not found)
+ * @return {*} the value associated to the key (null if not found)
  */
 CoreTools.getFromMap = function(map, key) {
   if (typeof key === 'string') {
@@ -232,11 +230,11 @@ CoreTools.putToMap = function(map, key, value) {
 }
 
 /**
- * Removes an object from a map object. When the given key is a string, the map object directly holds the 
+ * Removes an object from a map object and returns it. When the given key is a string, the map object directly holds the 
  * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
  * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)
- * @returns the removed value or <code>null</code> if not found
+ * @return the removed value or <code>null</code> if not found
  */
 CoreTools.removeFromMap = function(map, key) {
   if (typeof key === 'string') {
@@ -264,7 +262,7 @@ CoreTools.removeFromMap = function(map, key) {
 /**
  * Returns all the values put in a map object, as an array.
  * @param map {Object} the map containing the values
- * @returns {Array} the values (no specific order)
+ * @return {Array} the values (no specific order)
  */
 CoreTools.valuesFromMap = function(map) {
   var values = [];
@@ -297,11 +295,11 @@ CoreTools.sortArray = function(array, comparator) {
 }
 
 /**
- * This utility function merges all the source object properties into the destination object.
+ * Returns a map containing all the source object properties merged into the destination object.
  * It has to be used in replacement of Object.assign that is not supported in IE.
  * @param {Object} destination
  * @param {Object} source
- * @returns {Object} the destination object
+ * @return {Object} the destination object
  */
 CoreTools.merge = function(destination, source) {
   for (var key in source) {
@@ -310,10 +308,10 @@ CoreTools.merge = function(destination, source) {
 }
 
 /**
- * This utility function returns the intersection between two arrays.
+ * Returns the intersection between two arrays.
  * @param {any[]} array1
  * @param {any[]} array2
- * @returns {any[]} an array container elements being both in array1 and array2
+ * @return {any[]} an array container elements being both in array1 and array2
  */
 CoreTools.intersection = function(array1, array2) {
   return array1.filter(function(n) {
@@ -322,28 +320,27 @@ CoreTools.intersection = function(array1, array2) {
 }
 
 /**
- * Debounces the given function for the given milliseconds. 
- * This means that the resulting function will trigger actionFunction after the given wait, 
+ * Triggers <code>actionFunction</code> after the given wait, 
  * and start over the timer if called again before timeout is reached.
- * 
  * @param {function} actionFunction function to be called after wait
  * @param {number} waitMillis wait time in milliseconds
  */
 CoreTools.debounce = function(actionFunction, waitMillis) {
 	var timeout;
 	return function() {
-		var context = this, args = arguments;
-		var later = function() {
-			timeout = null;
-			actionFunction.apply(context, args);
-		};
-		clearTimeout(timeout);
-		timeout = setTimeout(later, waitMillis);
-	};
+  		var context = this;
+  		var args = arguments;
+  		var later = function() {
+    			timeout = null;
+    			actionFunction.apply(context, args);
+    		};
+  		clearTimeout(timeout);
+  		timeout = setTimeout(later, waitMillis);
+  	};
 };
 
 /**
- * Creates an array and initialize <size> items to initialValue
+ * Returns an array of the given size initialized with <code>initialValue</code>.
  * @param {number} size
  * @param {any} initialValue
  * @return {any[]}
@@ -362,13 +359,9 @@ CoreTools.newArray = function(size, initialValue) {
  * @param {function(string[])} onFontsListAvailable called back when list is available
  */
 CoreTools.loadAvailableFontNames = function(onFontsListAvailable) {
-  var windowsFonts = [
-    'Arial', 'Arial Black', 'Bahnschrift', 'Calibri', 'Cambria', 'Cambria Math', 'Candara', 'Comic Sans MS', 'Consolas', 'Constantia', 'Corbel', 'Courier New', 'Ebrima', 'Franklin Gothic Medium', 'Gabriola', 'Gadugi', 'Georgia', 'HoloLens MDL2 Assets', 'Impact', 'Ink Free', 'Javanese Text', 'Leelawadee UI', 'Lucida Console', 'Lucida Sans Unicode', 'Malgun Gothic', 'Marlett', 'Microsoft Himalaya', 'Microsoft JhengHei', 'Microsoft New Tai Lue', 'Microsoft PhagsPa', 'Microsoft Sans Serif', 'Microsoft Tai Le', 'Microsoft YaHei', 'Microsoft Yi Baiti', 'MingLiU-ExtB', 'Mongolian Baiti', 'MS Gothic', 'MV Boli', 'Myanmar Text', 'Nirmala UI', 'Palatino Linotype', 'Segoe MDL2 Assets', 'Segoe Print', 'Segoe Script', 'Segoe UI', 'Segoe UI Historic', 'Segoe UI Emoji', 'Segoe UI Symbol', 'SimSun', 'Sitka', 'Sylfaen', 'Symbol', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana', 'Webdings', 'Wingdings', 'Yu Gothic'
-  ];
-  var macosFonts = [
-    'American Typewriter', 'Andale Mono', 'Arial', 'Arial Black', 'Arial Narrow', 'Arial Rounded MT Bold', 'Arial Unicode MS', 'Avenir', 'Avenir Next', 'Avenir Next Condensed', 'Baskerville', 'Big Caslon', 'Bodoni 72', 'Bodoni 72 Oldstyle', 'Bodoni 72 Smallcaps', 'Bradley Hand', 'Brush Script MT', 'Chalkboard', 'Chalkboard SE', 'Chalkduster', 'Charter', 'Cochin', 'Comic Sans MS', 'Copperplate', 'Courier', 'Courier New', 'Didot', 'DIN Alternate', 'DIN Condensed', 'Futura', 'Geneva', 'Georgia', 'Gill Sans', 'Helvetica', 'Helvetica Neue', 'Herculanum', 'Hoefler Text', 'Impact', 'Lucida Grande', 'Luminari', 'Marker Felt', 'Menlo', 'Microsoft Sans Serif', 'Monaco', 'Noteworthy', 'Optima', 'Palatino', 'Papyrus', 'Phosphate', 'Rockwell', 'Savoye LET', 'SignPainter', 'Skia', 'Snell Roundhand', 'Tahoma', 'Times', 'Times New Roman', 'Trattatello', 'Trebuchet MS', 'Verdana', 'Zapfino'
-  ];
   if (document.fonts) {
+    var windowsFonts = ["Arial", "Arial Black", "Bahnschrift", "Calibri", "Cambria", "Cambria Math", "Candara", "Comic Sans MS", "Consolas", "Constantia", "Corbel", "Courier New", "Ebrima", "Franklin Gothic Medium", "Gabriola", "Gadugi", "Georgia", "HoloLens MDL2 Assets", "Impact", "Ink Free", "Javanese Text", "Leelawadee UI", "Lucida Console", "Lucida Sans Unicode", "Malgun Gothic", "Marlett", "Microsoft Himalaya", "Microsoft JhengHei", "Microsoft New Tai Lue", "Microsoft PhagsPa", "Microsoft Sans Serif", "Microsoft Tai Le", "Microsoft YaHei", "Microsoft Yi Baiti", "MingLiU-ExtB", "Mongolian Baiti", "MS Gothic", "MV Boli", "Myanmar Text", "Nirmala UI", "Palatino Linotype", "Segoe MDL2 Assets", "Segoe Print", "Segoe Script", "Segoe UI", "Segoe UI Historic", "Segoe UI Emoji", "Segoe UI Symbol", "SimSun", "Sitka", "Sylfaen", "Symbol", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana", "Webdings", "Wingdings", "Yu Gothic"];
+    var macosFonts = ["American Typewriter", "Andale Mono", "Arial", "Arial Black", "Arial Narrow", "Arial Rounded MT Bold", "Arial Unicode MS", "Avenir", "Avenir Next", "Avenir Next Condensed", "Baskerville", "Big Caslon", "Bodoni 72", "Bodoni 72 Oldstyle", "Bodoni 72 Smallcaps", "Bradley Hand", "Brush Script MT", "Chalkboard", "Chalkboard SE", "Chalkduster", "Charter", "Cochin", "Comic Sans MS", "Copperplate", "Courier", "Courier New", "Didot", "DIN Alternate", "DIN Condensed", "Futura", "Geneva", "Georgia", "Gill Sans", "Helvetica", "Helvetica Neue", "Herculanum", "Hoefler Text", "Impact", "Lucida Grande", "Luminari", "Marker Felt", "Menlo", "Microsoft Sans Serif", "Monaco", "Noteworthy", "Optima", "Palatino", "Papyrus", "Phosphate", "Rockwell", "Savoye LET", "SignPainter", "Skia", "Snell Roundhand", "Tahoma", "Times", "Times New Roman", "Trattatello", "Trebuchet MS", "Verdana", "Zapfino"];
     document.fonts.ready.then(function() {
         var availableFonts = [];
         var allTestedFonts = windowsFonts.concat(macosFonts);
@@ -381,7 +374,8 @@ CoreTools.loadAvailableFontNames = function(onFontsListAvailable) {
         onFontsListAvailable(availableFonts.sort());
       });
   } else {
-    onFontsListAvailable((OperatingSystem.isMacOSX() ? macosFonts : windowsFonts).sort());
+    var defaultFonts = ["Arial", "Verdana", "Helvetica", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"];
+    onFontsListAvailable(defaultFonts.sort());
   }
 }
 
@@ -470,7 +464,7 @@ var ColorTools = {};
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000.
  * Note that the alpha content is ignored.
  * @param {number} color
- * @returns {string} a CSS string
+ * @return {string} a CSS string
  */
 ColorTools.integerToHexadecimalString = function(color) {
   return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
@@ -479,7 +473,7 @@ ColorTools.integerToHexadecimalString = function(color) {
 /**
  * Returns an hexadecimal color string from a computed style (no alpha).
  * @param {string} a style containing a color as rgb(...) or rgba(...)
- * @returns {string} the color as a string or an empty string if the given style was not parseable
+ * @return {string} the color as a string or an empty string if the given style was not parseable
  */
 ColorTools.styleToHexadecimalString = function(style) {
   var prefix = "rgb(";
@@ -498,7 +492,7 @@ ColorTools.styleToHexadecimalString = function(style) {
 /**
  * Returns a color from a computed style (no alpha).
  * @param {string} style a style containing a color as rgb(...) or rgba(...)
- * @returns {number} the color as an integer or -1 if the given style was not parseable
+ * @return {number} the color as an integer or -1 if the given style was not parseable
  */
 ColorTools.styleToInteger = function(style) {
   var prefix = "rgb(";
@@ -527,7 +521,7 @@ ColorTools.isTransparent = function(style) {
 /**
  * Returns a color from a color string (no alpha).
  * @param {string} colorString color string under the format #RRGGBB
- * @returns {number} the color as an integer or -1 if the given string was not parseable
+ * @return {number} the color as an integer or -1 if the given string was not parseable
  */
 ColorTools.hexadecimalStringToInteger = function(colorString) {
   if (colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
@@ -541,7 +535,7 @@ ColorTools.hexadecimalStringToInteger = function(colorString) {
  * Returns an rgba style color from an hexadecimal color string (no alpha).
  * @param {string} colorString color string under the format #RRGGBB
  * @param {number} the alpha component (between 0 and 1)
- * @returns {string} the color as an rgba description
+ * @return {string} the color as an rgba description
  */
 ColorTools.toRGBAStyle = function(colorString, alpha) {
   var c = ColorTools.hexadecimalStringToInteger(colorString);
