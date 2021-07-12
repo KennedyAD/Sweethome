@@ -1,8 +1,7 @@
-
 /*
- * colorSelection.js
+ * textureSelection.js
  *
- * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2021 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +22,12 @@
 
 /**
  * The texture selector dialog class.
- *
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {TextureChoiceController} textureChoiceController texture choice controller
  * @param {{selectedTexture, applier: function(JSDialogView)}} [options]
- * > selectedTexture: selected texture
- * > applier: when dialog closes, takes dialog as parameter
- * 
+ *   > selectedTexture: selected texture
+ *   > applier: when dialog closes, takes dialog as parameter
  * @extends JSDialogView
  * @constructor
  */
@@ -46,7 +43,6 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
 
   /**
    * @param {CatalogTexture} catalogTexture 
-   * 
    * @return {HTMLElement}
    */
   function createTextureListItem(catalogTexture) {
@@ -154,7 +150,6 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
       preferences.getTexturesCatalog().addTexturesListener(this.texturesCatalogListener);
     },
     applier: function(dialog) {
-
       // force refresh model from inputs, even if 'change' event was not raised 
       this.onTextureTransformConfigurationChanged();
 
@@ -184,7 +179,6 @@ JSTextureSelectorDialog.ITEM_TEXTURE_PROPERTY = '_catalogTexture';
 
 /**
  * Returns the currently selected texture.
- *
  * @return {HomeTexture} currently selected texture
  */
 JSTextureSelectorDialog.prototype.getTexture = function() {
@@ -196,11 +190,10 @@ JSTextureSelectorDialog.prototype.getTexture = function() {
     this.selectedTextureModel.scale,
     true
   );
-};
+}
 
 /**
  * Applies given texture values to this dialog.
- *
  * @param {HomeTexture} texture 
  */
 JSTextureSelectorDialog.prototype.setTexture = function(texture) {
@@ -238,11 +231,10 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
   this.angleInput.value = Math.toDegrees(this.selectedTextureModel.angleInRadians);
   this.scaleInput.value = this.selectedTextureModel.scale * 100;
   this.onTextureTransformConfigurationChanged();
-};
+}
 
 /**
- * @param {CatalogTexture} catalogTexture the selected catalog texture 
- * 
+ * @param {CatalogTexture} catalogTexture the selected catalog texture.
  * @private
  */
 JSTextureSelectorDialog.prototype.onCatalogTextureSelected = function(catalogTexture) {
@@ -284,9 +276,7 @@ JSTextureSelectorDialog.prototype.onTextureTransformConfigurationChanged = funct
 
 /**
  * @param {CatalogTexture} catalogTexture 
- * 
  * @return {HTMLElement | null} null if no item found for given texture
- * 
  * @private
  */
 JSTextureSelectorDialog.prototype.getCatalogTextureItem = function(catalogTexture) {
@@ -305,9 +295,7 @@ JSTextureSelectorDialog.prototype.getCatalogTextureItem = function(catalogTextur
 
 /**
  * @param {HTMLElement} item 
- * 
  * @return {CatalogTexture} corresponding texture
- * 
  * @private
  */
 JSTextureSelectorDialog.prototype.getCatalogTextureFromItem = function(item) {
@@ -386,7 +374,6 @@ JSTextureSelectorDialog.prototype.confirmDeleteSelectedCatalogTexture = function
 
 /**
  * A component to select a texture through a dialog, after clicking a button.
- * 
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences user preferences
  * @param {TextureChoiceController} textureChoiceController texture choice controller
@@ -466,7 +453,7 @@ JSTextureSelectorButton.prototype.enable = function(enabled) {
     enabled = true;
   }
   this.button.disabled = !enabled;
-};
+}
 
 JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
   if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
@@ -489,4 +476,4 @@ JSTextureSelectorButton.prototype.confirmDeleteSelectedCatalogTexture = function
 JSTextureSelectorButton.prototype.dispose = function() {
   this.textureChoiceController.removePropertyChangeListener(this.textureChangeListener);
   JSComponentView.prototype.dispose.call(this);
-};
+}
