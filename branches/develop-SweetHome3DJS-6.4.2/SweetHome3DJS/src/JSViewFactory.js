@@ -134,10 +134,14 @@ JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D
  * @param {Home} home
  * @param {UserPreferences} preferences
  * @param {FurnitureController} controller
- * @return {FurnitureListPane}
+ * @return {FurnitureListPane | undefined} undefined if dom element #furniture-view is not found (feature is disabled)
  */
 JSViewFactory.prototype.createFurnitureView = function(home, preferences, controller) {
   var viewFactory = this;
+  var furnitureViewElement = document.getElementById('furniture-view');
+  if (furnitureViewElement == null) {
+    return undefined;
+  }
 
   /**
    * @param {HomePieceOfFurniture} pieceOfFurniture
@@ -173,7 +177,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
     this.preferences = preferences;
     this.controller = controller;
     this.viewFactory = viewFactory;
-    this.rootElement = document.getElementById('furniture-view');
+    this.rootElement = furnitureViewElement;
     this.defaultDecimalFormat = new DecimalFormat();
     this.integerFormat = new IntegerFormat();
 
@@ -191,7 +195,6 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
 
     home.addSelectionListener({
       selectionChanged: function (event) {
-        console.log("selection changed", event);
         treeTable.setSelectedRowsByValue(home.getSelectedItems())
       }
     });
@@ -220,6 +223,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
     }
 
     home.addFurnitureListener(function(event) {
+      refreshData();
       var piece = event.getItem();
       if (event.getType() == CollectionEvent.Type.ADD) {
         piece.addPropertyChangeListener(refreshData);

@@ -1199,7 +1199,8 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   // Catalog view context menu
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   var furnitures = furnitureCatalogView.getFurnituresHTMLElement();
-  var furnitureTableElement = this.controller.getFurnitureController().getView().getHTMLElement();
+  var furnitureTableView = this.controller.getFurnitureController().getView();
+  var furnitureTableElement = furnitureTableView == null ? null : furnitureTableView.getHTMLElement();
 
   this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitures, {
     build: function(builder) {
@@ -1208,7 +1209,7 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   });
 
   // Furniture view context menu
-  if (false && furnitureTableElement != null) {
+  if (furnitureTableElement != null) {
     new JSContextMenu(this.preferences, furnitureTableElement, {
       build: function(builder) {
         builder.addItem(homePane.getAction(ActionType.UNDO));
@@ -1233,11 +1234,79 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
         builder.addItem(homePane.getAction(ActionType.GROUP_FURNITURE));
         builder.addItem(homePane.getAction(ActionType.UNGROUP_FURNITURE));
 
-        // furnitureViewPopup.add(createAlignOrDistributeMenu(home, preferences, true));
+        builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), function(builder) {
+          /**
+           * @param {HomeView.ActionType} type
+           */
+          function addItem(type) {
+            var action = homePane.getAction(type);
+            if (action) {
+              builder.addItem(action);
+            }
+          }
+
+          addItem(ActionType.ALIGN_FURNITURE_ON_TOP);
+          addItem(ActionType.ALIGN_FURNITURE_ON_BOTTOM);
+          addItem(ActionType.ALIGN_FURNITURE_ON_LEFT);
+          addItem(ActionType.ALIGN_FURNITURE_ON_RIGHT);
+          addItem(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE);
+          addItem(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE);
+          addItem(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE);
+          addItem(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE);
+          addItem(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE);
+          addItem(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY);
+          addItem(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY);
+        });
 
         builder.addItem(homePane.getAction(ActionType.RESET_FURNITURE_ELEVATION));
 
         builder.addSeparator();
+
+        builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.SORT_HOME_FURNITURE_MENU), function(builder) {
+          /**
+           * @param {HomeView.ActionType} type
+           * @param {string} sortableProperty
+           */
+          function addItem(type, sortableProperty) {
+            var action = homePane.getAction(type);
+            if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+              builder.addRadioItem(action.getValue(AbstractAction.NAME), function () {
+                action.actionPerformed();
+              }, sortableProperty == home.getFurnitureSortedProperty());
+            }
+          }
+
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, 'CATALOG_ID');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, 'NAME');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, 'CREATOR');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, 'WIDTH');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, 'DEPTH');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, 'HEIGHT');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_X, 'X');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, 'Y');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, 'ELEVATION');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, 'ANGLE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, 'LEVEL');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, 'MODEL_SIZE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, 'COLOR');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, 'TEXTURE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, 'MOVABLE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, 'DOOR_OR_WINDOW');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, 'VISIBLE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, 'PRICE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, 'VALUE_ADDED_TAX_PERCENTAGE');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, 'VALUE_ADDED_TAX');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, 'PRICE_VALUE_ADDED_TAX_INCLUDED');
+
+          builder.addSeparator();
+
+          var descSortAction = homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
+          if (descSortAction && descSortAction.getValue(AbstractAction.NAME) && descSortAction.getValue(ResourceAction.VISIBLE)) {
+            builder.addCheckItem(descSortAction.getValue(AbstractAction.NAME), function () {
+              descSortAction.actionPerformed();
+            }, home.isFurnitureDescendingSorted());
+          }
+        });
 
         builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU), function(builder) {
           /**
@@ -1246,106 +1315,39 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
            */
           function addItem(type, sortableProperty) {
             var action = homePane.getAction(type);
-            if (action && action.getValue(AbstractAction.NAME)) {
+            if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
               builder.addCheckItem(action.getValue(AbstractAction.NAME), function(){
                 action.actionPerformed();
               }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
             }
           }
-          //action.getValue(ResourceAction.VISIBLE)
-          //home.getFurnitureVisibleProperties().contains(furnitureProperty)
 
           addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, 'CATALOG_ID');
           addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, 'NAME');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, 'CREATOR');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, 'WIDTH');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, 'DEPTH');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, 'HEIGHT');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_X, 'X');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, 'Y');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, 'ELEVATION');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, 'ANGLE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, 'LEVEL');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, 'MODEL_SIZE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, 'COLOR');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, 'TEXTURE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, 'MOVABLE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, 'DOOR_OR_WINDOW');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, 'VISIBLE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, 'PRICE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, 'VALUE_ADDED_TAX_PERCENTAGE');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, 'VALUE_ADDED_TAX');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, 'PRICE_VALUE_ADDED_TAX_INCLUDED');
         });
-
-        // // Map displayProperty furniture properties to displayProperty actions
-        // Map<HomePieceOfFurniture.SortableProperty, Action> displayPropertyActions =
-        //   new LinkedHashMap<HomePieceOfFurniture.SortableProperty, Action>();
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.CATALOG_ID);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_NAME,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.NAME);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_CREATOR,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.CREATOR);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_WIDTH,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.WIDTH);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_DEPTH,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.DEPTH);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.HEIGHT);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_X,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.X);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_Y,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.Y);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.ELEVATION);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_ANGLE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.ANGLE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_LEVEL,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.LEVEL);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.MODEL_SIZE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_COLOR,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.COLOR);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.TEXTURE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.MOVABLE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.DOOR_OR_WINDOW);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.VISIBLE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_PRICE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.PRICE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.VALUE_ADDED_TAX_PERCENTAGE);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.VALUE_ADDED_TAX);
-        // addActionToMap(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED,
-        //   displayPropertyActions, HomePieceOfFurniture.SortableProperty.PRICE_VALUE_ADDED_TAX_INCLUDED);
-        //
-        // // Add radio button menu items to sub menu
-        // for (Map.Entry<HomePieceOfFurniture.SortableProperty, Action> entry : displayPropertyActions.entrySet()) {
-        //   final HomePieceOfFurniture.SortableProperty furnitureProperty = entry.getKey();
-        //   final Action displayPropertyAction = entry.getValue();
-        //   final JCheckBoxMenuItem displayPropertyMenuItem = new JCheckBoxMenuItem();
-        //   // Use a special model for displayProperty check box menu item that is selected if
-        //   // home furniture visible properties contains furnitureProperty
-        //   displayPropertyMenuItem.setModel(new JToggleButton.ToggleButtonModel() {
-        //   @Override
-        //     public boolean isSelected() {
-        //       return home.getFurnitureVisibleProperties().contains(furnitureProperty);
-        //     }
-        //   });
-        //   displayPropertyMenuItem.setVisible(Boolean.TRUE.equals(displayPropertyAction.getValue(ResourceAction.VISIBLE)));
-        //   // Configure check box menu item action after setting its model to avoid losing its mnemonic
-        //   displayPropertyMenuItem.setAction(displayPropertyAction);
-        //   // Add listener on action visibility to update menu item and furniture property visibility
-        //   displayPropertyAction.addPropertyChangeListener(new PropertyChangeListener() {
-        //     public void propertyChange(PropertyChangeEvent ev) {
-        //       if (ResourceAction.VISIBLE.equals(ev.getPropertyName())) {
-        //         Boolean visible = (Boolean)ev.getNewValue();
-        //         displayPropertyMenuItem.setVisible(visible);
-        //         if (!visible
-        //           && home.getFurnitureVisibleProperties().contains(furnitureProperty)) {
-        //           displayPropertyAction.actionPerformed(null);
-        //         }
-        //       }
-        //     }
-        //   });
-        //   displayPropertyMenu.add(displayPropertyMenuItem);
-        // }
-        // return displayPropertyMenu;
-
-        // furnitureViewPopup.add(createFurnitureDisplayPropertyMenu(home, preferences));
-        builder.addSeparator();
-
-        builder.addItem(homePane.getAction(ActionType.EXPORT_TO_CSV));
-
 
       }
     });
+
   }
 
   // Plan view context menu
