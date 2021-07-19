@@ -749,7 +749,14 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
   // we temporarily use hidden visibility to get element's height
   this.getRootNode().style.visibility = 'hidden';
   this.getRootNode().classList.add('visible');
+
+  // adjust top/left and display
   var anchorX = event.clientX;
+  if (menuElement.clientWidth > window.innerWidth) {
+    anchorX = 0;
+  } else if (anchorX + menuElement.clientWidth > window.innerWidth) {
+    anchorX = window.innerWidth - menuElement.clientWidth;
+  }
   var anchorY = event.clientY;
   if (menuElement.clientHeight > window.innerHeight) {
     anchorY = 0;
@@ -849,8 +856,20 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
 
       var itemRect = itemElement.getBoundingClientRect();
       subMenuElement.style.position = 'fixed';
-      subMenuElement.style.left = itemRect.x + itemElement.clientWidth;
-      subMenuElement.style.top = itemRect.y;
+      var anchorX = itemRect.x + itemElement.clientWidth;
+      if (subMenuElement.clientWidth > window.innerWidth) {
+        anchorX = 0;
+      } else if (anchorX + subMenuElement.clientWidth > window.innerWidth) {
+        anchorX = window.innerWidth - subMenuElement.clientWidth;
+      }
+      var anchorY = itemRect.y;
+      if (subMenuElement.clientHeight > window.innerHeight) {
+        anchorY = 0;
+      } else if (anchorY + subMenuElement.clientHeight > window.innerHeight) {
+        anchorY = window.innerHeight - subMenuElement.clientHeight;
+      }
+      subMenuElement.style.left = anchorX;
+      subMenuElement.style.top = anchorY;
     });
 
     itemElement.appendChild(subMenuElement);
@@ -906,6 +925,16 @@ JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
  */
 JSContextMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
   this.addNewItem(label, undefined, onItemSelected, checked === true, 'checkbox');
+};
+
+/**
+ * Add a radio button item
+ * @param {string} label
+ * @param {function()} [onItemSelected]
+ * @param {boolean} [checked]
+ */
+JSContextMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, checked) {
+  this.addNewItem(label, undefined, onItemSelected, checked === true, 'radio');
 };
 
 /**
@@ -2067,7 +2096,7 @@ JSTreeTable.prototype.getColumnWidth = function(columnName) {
 JSTreeTable.prototype.getSortedVisibleColumns = function() {
   var columns = this.model.columns;
   columns = columns.sort(function(column1, column2) {
-    return column1.orderIndex < column2.orderIndex;
+    return column1.orderIndex < column2.orderIndex ? -1 : 1;
   });
   var visibleColumns = [];
   for (var i = 0; i < columns.length; i++) {
