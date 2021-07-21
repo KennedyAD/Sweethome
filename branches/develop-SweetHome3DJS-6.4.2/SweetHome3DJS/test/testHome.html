@@ -112,19 +112,32 @@ body {
   top: 30px;
   width: 296px;
   height: calc(100% - 30px);
+  overflow: hidden;
 }
 
 #furniture-catalog {
   height: 70%;
   width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
   overflow-y: scroll;
+
+}
+
+#furniture-splitter {
+  position: absolute;
+  top: 70%;
+  left: 0;
+  width: 100%;
 }
 
 #furniture-view {
+  position: absolute;
   width: 100%;
-  height: 30%;
+  height: calc(30% - 4px);
   box-sizing: border-box;
-  overflow-y: scroll;
+  z-index: 2;
 }
 
 #furniture-view .tree-table {
@@ -178,6 +191,10 @@ body {
 
   #furniture-plan-splitter {
     left: 160px;
+  }
+
+  #furniture-splitter {
+    display: none;
   }
 
   #furniture-view {
@@ -322,8 +339,13 @@ body {
       overflow-x: hidden; 
       overflow-y: scroll; 
     }
+
     #furniture-catalog {
       height: 100%;
+    }
+
+    #furniture-splitter {
+      display: none;
     }
 
     #furniture-view {
@@ -357,7 +379,6 @@ body {
  */
 @media (hover: none), (pointer: coarse) {
 
-  
   .pane-splitter {
     display: none;
   }
@@ -1745,8 +1766,8 @@ testHome();
 
   <div id="furniture-plan-splitter" class="pane-splitter"></div>
   <div id="furnitures-panel">
-    <div id="furniture-catalog">
-    </div>
+    <div id="furniture-catalog"></div>
+    <div id="furniture-splitter" class="pane-splitter"></div>
     <div id="furniture-view"></div>
   </div>
 

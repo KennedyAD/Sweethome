@@ -1733,6 +1733,31 @@ JSTreeTable.prototype.setModel = function(model) {
 JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
   this.selectedRowsValues = values;
   this.generateTableRows();
+
+  this.scrollToSelectedRowsIfNotVisible();
+}
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.scrollToSelectedRowsIfNotVisible = function() {
+  var body = this.bodyElement;
+  var selectedRows = body.querySelectorAll('.selected');
+
+  if (selectedRows.length > 0) {
+    // if one selected row is visible, let's not change scroll
+    for (var i = 0; i < selectedRows.length; i++) {
+      var selectedRow = selectedRows[i];
+      var rowYTop = selectedRow.offsetTop - body.offsetTop;
+      var rowYBottom = rowYTop + selectedRow.height;
+      if (rowYTop >= body.scrollTop && rowYTop <= (body.scrollTop + body.clientHeight)
+        || rowYBottom >= body.scrollTop && rowYBottom <= (body.scrollTop + body.clientHeight)) {
+        return;
+      }
+    }
+
+    body.scrollTop = selectedRows[0].offsetTop - body.offsetTop;
+  }
 }
 
 /**
@@ -1851,12 +1876,12 @@ JSTreeTable.prototype.generateTableRows = function() {
   var treeTable = this;
 
   var scrollTop = 0;
-  var body = this.tableElement.querySelector('[body]');
+  var body = this.bodyElement;
   if (body) {
     scrollTop = body.scrollTop;
     body.remove();
   }
-  body = document.createElement('div');
+  var body = this.bodyElement = document.createElement('div');
   body.setAttribute('body', 'true');
 
   var columns = this.getSortedVisibleColumns();

@@ -1642,6 +1642,7 @@ input, textarea, keygen, select, button {
   height: 1.8rem;
   font-size: .9rem;
   line-height: 1.4rem;
+  min-width: 100%;
 }
 
 .tree-table [header] [cell] {
@@ -1662,6 +1663,7 @@ input, textarea, keygen, select, button {
   display: flex;
   flex-direction: row;
   position: relative;
+  min-width: 100%;
 }
 
 .tree-table [header] [cell]:hover,
@@ -1708,11 +1710,12 @@ input, textarea, keygen, select, button {
 
 .tree-table [row]:hover,
 .tree-table [row].selected {
-  background-color: #EEEEEE;
+  background-color: #BBDDFF;
 }
 
 #furniture-view {
   overflow: hidden;
+  z-index: 2;
 }
 
 #furniture-view > .tree-table {

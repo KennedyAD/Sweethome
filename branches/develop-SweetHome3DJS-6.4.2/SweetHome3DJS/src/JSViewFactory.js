@@ -187,8 +187,19 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
     this.treeTable = new JSTreeTable(this.viewFactory, this.preferences, this.rootElement, this.createTableModel());
 
     this.addHomeListeners();
+    this.addPreferencesListeners();
   }
   
+  FurnitureListPane.prototype.addPreferencesListeners = function() {
+    var treeTable = this.treeTable;
+
+    this.preferences.addPropertyChangeListener(function(event) {
+      if (event.getPropertyName() == 'UNIT' || event.getPropertyName() == 'LANGUAGE') {
+        treeTable.setModel(pane.createTableModel());
+      }
+    });
+  }
+
   FurnitureListPane.prototype.addHomeListeners = function() {
     var pane = this;
     var treeTable = this.treeTable;
