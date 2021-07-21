@@ -1734,7 +1734,28 @@ JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
   this.selectedRowsValues = values;
   this.generateTableRows();
 
+  this.expandSelectedRows();
   this.scrollToSelectedRowsIfNotVisible();
+}
+
+/**
+ * @return {HTMLElement[]}
+ * @private
+ */
+JSTreeTable.prototype.getSelectedRows = function() {
+  return this.bodyElement.querySelectorAll('.selected');
+}
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.expandSelectedRows = function() {
+  var selectedRows = this.getSelectedRows();
+  for (var i = 0; i < selectedRows.length; i++) {
+    if (selectedRows[i]._model.parentGroup) {
+      this.onExpandOrCollapseRequested(selectedRows[i]._model.parentGroup, true);
+    }
+  }
 }
 
 /**
@@ -1742,7 +1763,7 @@ JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
  */
 JSTreeTable.prototype.scrollToSelectedRowsIfNotVisible = function() {
   var body = this.bodyElement;
-  var selectedRows = body.querySelectorAll('.selected');
+  var selectedRows = this.getSelectedRows();
 
   if (selectedRows.length > 0) {
     // if one selected row is visible, let's not change scroll
@@ -1901,7 +1922,7 @@ JSTreeTable.prototype.generateTableRows = function() {
    *
    * @return {Object[]} generated children items
    */
-  var sortDataTree = function(currentNodes, currentIndentation, parentSelected) {
+  var sortDataTree = function(currentNodes, currentIndentation, parentGroup) {
 
     // children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
     var hideChildren = currentIndentation > 0;
@@ -1914,11 +1935,12 @@ JSTreeTable.prototype.generateTableRows = function() {
       var currentNode = sortedCurrentNodes[i];
 
       var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
-      var selected = parentSelected || currentNodeSelected;
+      var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
       var sortedListItem = {
         value: currentNode.value,
         indentation: currentIndentation,
         group: false,
+        parentGroup: parentGroup,
         selected: selected,
         hidden: hideChildren,
         collapsed: undefined,
@@ -1933,7 +1955,7 @@ JSTreeTable.prototype.generateTableRows = function() {
         sortedListItem.group = true;
         sortedListItem.collapsed = true;
 
-        sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, selected);
+        sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
 
         sortedListItem.setCollapsed = (function(item) {
           return function(collapsed) {
