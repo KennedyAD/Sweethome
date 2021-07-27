@@ -15,7 +15,7 @@
 -->
 <project basedir="." default="viewerBuild" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.5.2"/>
+  <property name="version" value="6.6"/>
 
   <!-- The version of JSweet transpiler (use version 3.1.0 to compile with Java 11) -->
 	<!-- To compile with JSweet 3 / Java 11, comment the JSweet 2 specifics options in the Java task below -->
@@ -140,8 +140,10 @@
   	<copy todir="lib/resources/cursors">
       <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/swing/resources/cursors" />
     </copy>
-  	<copy todir="lib/resources/icons/tango">
-      <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/swing/resources/icons/tango"/>
+  	<copy todir="lib/resources/actions">
+      <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/swing/resources/actions">
+        <include name="*.svg" />
+      </fileset>
     </copy>
   	<copy todir="lib/resources">
   	  <fileset dir="../SweetHome3D/src/com/eteks/sweethome3d/swing/resources">

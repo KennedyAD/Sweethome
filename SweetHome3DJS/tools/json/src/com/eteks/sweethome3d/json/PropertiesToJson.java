@@ -189,7 +189,9 @@ public class PropertiesToJson {
       properties.put("minusSign", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getMinusSign());
     } else if ("package".equals(propertyFileBaseName)) {
       for (Iterator<Entry<Object, Object>> it = properties.entrySet().iterator(); it.hasNext(); ) {
-        String key = (String)it.next().getKey();
+        Entry<Object, Object> entry = it.next();
+        String key = (String)entry.getKey();
+        String value = (String)entry.getValue();
         int acceleratorKeyIndex = key.indexOf(".AcceleratorKey");
         if (acceleratorKeyIndex >= 0
             && !Arrays.asList("HomePane.UNDO", "HomePane.REDO", "HomePane.DELETE",
@@ -197,6 +199,9 @@ public class PropertiesToJson {
                 contains(key.substring(0, acceleratorKeyIndex))) {
           // Keep only accelerators that won't clash with browser ones
           it.remove();
+        } else if (value.indexOf("/actions/") != -1) {
+          // Prefer SVG icons for the web
+          entry.setValue(value.replace(".png", ".svg"));
         }
       }
     } else {
