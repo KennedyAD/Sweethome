@@ -117,7 +117,9 @@ JSColorSelector.prototype.initCustomColorEditor = function() {
     colorSelector.addAndSelectCustomColorTile(colorHex);
 
     colorSelector.customColorEditorInput.value = 'FFFFFF';
-    colorSelector.customColorEditorInput.dispatchEvent(new Event(changeColorEvent));
+    var event = document.createEvent( 'Event' );
+    event.initEvent(changeColorEvent, false, false);
+    colorSelector.customColorEditorInput.dispatchEvent(event);
   });
 };
   

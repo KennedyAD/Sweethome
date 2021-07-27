@@ -313,7 +313,7 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
   this.rootNode.classList.add('dialog-container', behavior.size);
   this.rootNode._dialogInstance = this;
 
-  document.body.append(this.rootNode);
+  document.body.appendChild(this.rootNode);
 
   if (title != null) {
     this.setTitle(title);
@@ -695,7 +695,7 @@ function JSContextMenu(preferences, sourceElements, behavior) {
   JSComponentView.call(this, undefined, preferences, '', behavior);
   this.getRootNode().classList.add('context-menu');
 
-  document.body.append(this.getRootNode());
+  document.body.appendChild(this.getRootNode());
 
   var contextMenu = this;
   this.registerEventListener(sourceElements, 'contextmenu', function(event) {
@@ -764,7 +764,7 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
     anchorY = window.innerHeight - menuElement.clientHeight;
   }
 
-  this.getRootNode().style.visibility = 'initial';
+  this.getRootNode().style.visibility = 'visible';
   this.getRootNode().style.left = anchorX + 'px';
   this.getRootNode().style.top = anchorY + 'px';
 
@@ -856,13 +856,13 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
 
       var itemRect = itemElement.getBoundingClientRect();
       subMenuElement.style.position = 'fixed';
-      var anchorX = itemRect.x + itemElement.clientWidth;
+      var anchorX = itemRect.left + itemElement.clientWidth;
       if (subMenuElement.clientWidth > window.innerWidth) {
         anchorX = 0;
       } else if (anchorX + subMenuElement.clientWidth > window.innerWidth) {
         anchorX = window.innerWidth - subMenuElement.clientWidth;
       }
-      var anchorY = itemRect.y;
+      var anchorY = itemRect.top;
       if (subMenuElement.clientHeight > window.innerHeight) {
         anchorY = 0;
       } else if (anchorY + subMenuElement.clientHeight > window.innerHeight) {
@@ -1416,10 +1416,8 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
  * @private
  */
 JSSpinner.prototype.raiseInputEvent = function() {
-  var event = new Event('input', {
-    bubbles: true,
-    cancelable: true,
-  });
+  var event = document.createEvent( 'Event' );
+  event.initEvent( 'input', true, true );
 
   this.textInput.dispatchEvent(event);
 };
@@ -1900,7 +1898,7 @@ JSTreeTable.prototype.generateTableRows = function() {
   var body = this.bodyElement;
   if (body) {
     scrollTop = body.scrollTop;
-    body.remove();
+    body.parentElement.removeChild(body);
   }
   var body = this.bodyElement = document.createElement('div');
   body.setAttribute('body', 'true');

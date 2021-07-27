@@ -571,7 +571,7 @@ input, textarea, keygen, select, button {
   border-left: 0.5em solid black;
   display: block;
   position: absolute;
-  right: -0.2em;
+  right: 0em;
   top: 0.5em;
 }
 
@@ -759,8 +759,7 @@ input, textarea, keygen, select, button {
 .dialog-body {
   flex-grow: 1;
   box-sizing: border-box;
-  padding: 2em;
-  padding-top: 1em;
+  padding: 20px 2em 60px 2em;
   overflow: auto;
   max-height: calc(100% /* max content height */ - 80px /* title and buttons */);
   background-color: #E9E9E9;
@@ -832,7 +831,7 @@ input, textarea, keygen, select, button {
 	  display: grid;
 	  row-gap: 1em;
 	  column-gap: 2em;
-      grid-template-columns: 1fr 1fr
+      grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -877,10 +876,13 @@ input, textarea, keygen, select, button {
   height: 40px;
   min-height: 40px;
   box-sizing: border-box;
-  position: relative;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background-color: #E9E9E9;
-	padding-top: 0.3em;
-	border-top: solid lightgrey 1px;  
+  padding-top: 0.3em;
+  border-top: solid lightgrey 1px;
 }
 
 .dialog-content .dialog-buttons button {
@@ -962,7 +964,9 @@ input, textarea, keygen, select, button {
 
 .imported-texture-wizard [attributesStep] [form] {
   display: grid;
+  display: -ms-grid;
   grid-template-columns: 4fr 2.5fr 3fr;
+  -ms-grid-columns: 1fr 1fr;
   grid-gap: 1em;
   margin: 1em;
 }
@@ -1029,7 +1033,10 @@ input, textarea, keygen, select, button {
 .home-furniture-dialog [data-name="size-panel"],
 .home-furniture-dialog [data-name="paint-panel"] {
   display: grid;
+  display: -ms-grid;
+  grid-auto-rows: auto;
   grid-template-columns: auto 1fr;
+  -ms-grid-columns: auto 1fr;
   row-gap: 1em;
   column-gap: 0.2em;
 }
@@ -1487,11 +1494,11 @@ input, textarea, keygen, select, button {
   width: 100%;
 }
 
-.texture-selector-dialog .selected-texture-config :nth-child(odd) {
+.texture-selector-dialog .selected-texture-config > :nth-child(odd) {
   text-align: right;
 }
 
-.texture-selector-dialog .selected-texture-config :nth-child(even) {
+.texture-selector-dialog .selected-texture-config > :nth-child(even) {
   text-align: left;
 }
 
@@ -1727,7 +1734,8 @@ input, textarea, keygen, select, button {
   white-space: nowrap;
 }
 
-#furniture-view [cell].name [icon] {
+#furniture-view [cell].name [icon],
+#furniture-view [cell].name [icon] img {
   display: inline-block;
   width: 1.2em;
   height: 1.2em;
@@ -1737,6 +1745,7 @@ input, textarea, keygen, select, button {
   background-repeat: no-repeat;
   vertical-align: middle;
 }
+
 
 #furniture-view [cell].color,
 #furniture-view [cell].boolean {
@@ -1749,4 +1758,84 @@ input, textarea, keygen, select, button {
   height: 1.2em;
   border: solid 1px black;
   margin: auto;
+}
+
+/**********************************/
+/** IE 11 fixes     **/
+/**********************************/
+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .context-menu .sub-menu > .items.visible {
+    position: static !important;
+  }
+  .context-menu .sub-menu:hover > .items {
+    display: block !important;
+    position: static !important;
+  }
+
+  .dialog-body .label-input-grid {
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -ms-flex-direction: row;
+    -webkit-flex-direction: row;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+  }
+
+  .dialog-body .label-input-grid > * {
+    width: 49%;
+    box-sizing: border-box;
+  }
+
+  .dialog-body .label-input-grid.double > * {
+    width: 24%;
+  }
+
+  .dialog-body .label-input-grid .label-and-input,
+  .dialog-body .label-input-grid .whole-line {
+    width: 100%;
+  }
+
+  .dialog-body .label-input-grid.double .label-and-input {
+    width: 49%;
+  }
+
+
+  .color-selector .picker, .color-selector .custom-colors {
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -ms-flex-direction: row;
+    -webkit-flex-direction: row;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+  }
+
+  .color-selector .picker > *, .color-selector .custom-colors > * {
+    width: 10%;
+    height: 2em;
+  }
+
+  .dialog-container.visible .dialog-content {
+    height: 80%;
+  }
+
+  .model-materials-selector-dialog  [name="shininess-slider"] {
+    width: 100% !important;
+  }
+}
+@media all and (-ms-high-contrast: none) and (min-width: 600px), (-ms-high-contrast: active) and (min-width: 600px) {
+  .dialog-body .columns-2 {
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -ms-flex-direction: row;
+    -webkit-flex-direction: row;
+  }
+
+  .dialog-body .columns-2 > * {
+    width: 49%;
+    box-sizing: border-box;
+  }
 }

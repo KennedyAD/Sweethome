@@ -591,6 +591,23 @@ if (!Object.values) {
   }
 }
 
+if (!Array.from) {
+  Array.from = function(otherIterable) {
+    var array = [];
+    for (var i = 0; i < otherIterable.length; i++) {
+      array.push(otherIterable[i]);
+    }
+    return array;
+  }
+}
+
+var _originalClassListAddFunction = DOMTokenList.prototype.add;
+DOMTokenList.prototype.add = function() {
+  for (var i = 0; i < arguments.length; i++) {
+    _originalClassListAddFunction.call(this, arguments[i]);
+  }
+};
+
 if (typeof Object.assign !== 'function') {
   // Must be writable: true, enumerable: false, configurable: true
   Object.defineProperty(Object, "assign", {
@@ -621,6 +638,12 @@ if (typeof Object.assign !== 'function') {
   });
 }
 
+if (!HTMLCanvasElement.prototype.toBlob && HTMLCanvasElement.prototype.msToBlob) {
+  HTMLCanvasElement.prototype.toBlob = function(callback) {
+    var blob = this.msToBlob();
+    callback(blob);
+  };
+}
 
 /**
  * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 

@@ -625,7 +625,9 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
     onColorSelected: function(selectedColor) {
       if (selectedColor != null) {
         colorRadio.checked = true;
-        colorRadio.dispatchEvent(new Event('input'))
+        var event = document.createEvent( 'Event' );
+        event.initEvent('input', false, false);
+        colorRadio.dispatchEvent(event)
       }
     }
   });
@@ -643,7 +645,9 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
       if (!textureRadio.checked) {
         textureRadio.checked = true;
       }
-      textureRadio.dispatchEvent(new Event('input'))
+      var event = document.createEvent( 'Event' );
+      event.initEvent('input', false, false);
+      textureRadio.dispatchEvent(event)
     }
   });
 
@@ -662,21 +666,21 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
     }
   };
 
-  this.registerEventListener(defaultRadio, 'input', function() {
+  this.registerEventListener(defaultRadio, 'change', function() {
     if (!this.disabled && this.checked) {
       modifySelectedMaterials(function(material) {
         return new HomeMaterial(material.getName(), null, null, material.getShininess());
       });
     }
   });
-  this.registerEventListener(invisibleRadio, 'input', function() {
+  this.registerEventListener(invisibleRadio, 'change', function() {
     if (!this.disabled && this.checked) {
       modifySelectedMaterials(function(material) {
         return new HomeMaterial(material.getName(), 0, null, material.getShininess());
       });
     }
   });
-  this.registerEventListener(colorRadio, 'input', function() {
+  this.registerEventListener(colorRadio, 'change', function() {
     if (!this.disabled && this.checked) {
       modifySelectedMaterials(function(material, index) {
         var defaultMaterial = dialog.materialsList.getDefaultMaterialAtIndex(index);
@@ -687,7 +691,7 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
       });
     }
   });
-  this.registerEventListener(textureRadio, 'input', function() {
+  this.registerEventListener(textureRadio, 'change', function() {
     if (!this.disabled && this.checked) {
       modifySelectedMaterials(function(material, index) {
         var defaultTexture = dialog.materialsList.getDefaultMaterialAtIndex(index).getTexture();

@@ -448,12 +448,17 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
     var iconElement = document.createElement('span');
     iconElement.setAttribute('icon', true);
     if (isGroup(pieceOfFurniture)) {
-      iconElement.style.backgroundImage = "url('lib/resources/groupIcon.png')";
+      iconElement.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/resources/groupIcon.png')";
     } else {
       TextureManager.getInstance().loadTexture(pieceOfFurniture.getIcon(), 0, false,
         {
           textureUpdated : function(image) {
-            iconElement.style.backgroundImage = "url('" + image.src + "')";
+            // var canvas = document.createElement('canvas');
+            // canvas.getContext('2d').drawImage(image, 0, 0);
+            // var textureUrl = URL.createObjectURL(canvas.msToBlob ? canvas.msToBlob() : canvas.toBlob());
+            // iconElement.style.backgroundImage = "url('" + textureUrl + "')";
+            // iconElement.style.backgroundImage = "url('" + image.src + "')";
+            iconElement.appendChild(image);
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
@@ -710,7 +715,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   function onImageLoadingError(error) {
     console.warn('error loading image: ' + error);
     alert(ResourceAction.getLocalizedLabelText(
-        dialog.preferences,
+        preferences,
         'BackgroundImageWizardStepsPanel',
         'imageChoiceError'));
   }
@@ -1080,8 +1085,8 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       if (component.isMovingOrigin) {
         var canvasRect = canvas.getBoundingClientRect();
         var pointerCoordinatesObject = event.touches && event.touches.length > 0 ? event.touches[0] : event;
-        var x = pointerCoordinatesObject.clientX - canvasRect.x;
-        var y = pointerCoordinatesObject.clientY - canvasRect.y;
+        var x = pointerCoordinatesObject.clientX - canvasRect.left;
+        var y = pointerCoordinatesObject.clientY - canvasRect.top;
         var actualX = (component.selectedImage.width / canvas.width) * x;
         var actualY = (component.selectedImage.height / canvas.height) * y;
         controller.setOrigin(actualX, actualY);
@@ -1349,7 +1354,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   function onImageLoadingError(error) {
     console.warn('error loading image: ' + error);
     alert(ResourceAction.getLocalizedLabelText(
-      dialog.preferences,
+      preferences,
       'ImportedTextureWizardStepsPanel',
       'imageChoiceErrorLabel.text'));
   }
@@ -1764,7 +1769,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 
             var selected = languageCode == controller.getLanguage();
             var languageOption = createOptionElement(languageCode, CoreTools.capitalize(languageDisplayName), selected);
-            dialog.languageSelect.append(languageOption);
+            dialog.languageSelect.appendChild(languageOption);
           }
         } else {
           disablePreferenceRow(dialog.languageSelect);
@@ -1774,35 +1779,35 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         dialog.unitSelect = dialog.getElement('unit-select');
         var unitEnabled = controller.isPropertyEditable('UNIT');
         if (unitEnabled) {
-          dialog.unitSelect.append(
+          dialog.unitSelect.appendChild(
             createOptionElement(
               'MILLIMETER', 
               preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.millimeter.text"),
               controller.getUnit() == LengthUnit.MILLIMETER
             )
           );
-          dialog.unitSelect.append(
+          dialog.unitSelect.appendChild(
             createOptionElement(
               'CENTIMETER', 
               preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.centimeter.text"),
               controller.getUnit() == LengthUnit.CENTIMETER
             )
           );
-          dialog.unitSelect.append(
+          dialog.unitSelect.appendChild(
             createOptionElement(
               'METER', 
               preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.meter.text"),
               controller.getUnit() == LengthUnit.METER
             )
           );
-          dialog.unitSelect.append(
+          dialog.unitSelect.appendChild(
             createOptionElement(
               'INCH', 
               preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.inch.text"),
               controller.getUnit() == LengthUnit.INCH
             )
           );
-          dialog.unitSelect.append(
+          dialog.unitSelect.appendChild(
             createOptionElement(
               'INCH_DECIMALS', 
               preferences.getLocalizedString('UserPreferencesPanel', "unitComboBox.inchDecimals.text"),
@@ -1810,7 +1815,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
             )
           );
 
-          dialog.registerEventListener(dialog.unitSelect, 'input', function() {
+          dialog.registerEventListener(dialog.unitSelect, 'change', function() {
             var selectedUnitOption = dialog.unitSelect.options[dialog.unitSelect.selectedIndex];
             controller.setUnit(selectedUnitOption == null ? null : LengthUnit[selectedUnitOption.value]);
           });
@@ -1833,7 +1838,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
             dialog.currencySelect.appendChild(createOptionElement(currency, currencyLabel, currency == controller.getCurrency()));
           }
 
-          this.registerEventListener(dialog.currencySelect, 'input', function() {
+          this.registerEventListener(dialog.currencySelect, 'change', function() {
             var selectedIndex = dialog.currencySelect.selectedIndex;
             var selectedCurrency = dialog.currencySelect.options[selectedIndex].value;
             controller.setCurrency(selectedCurrency ? selectedCurrency : null);
@@ -1848,7 +1853,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
           dialog.valueAddedTaxCheckBox.parentElement.style.display = vatEnabled ? 'initial' : 'none';
           dialog.valueAddedTaxCheckBox.disabled = controller.getCurrency() == null;
           dialog.valueAddedTaxCheckBox.checked = controller.isValueAddedTaxEnabled();
-          this.registerEventListener(dialog.valueAddedTaxCheckBox, 'input', function() {
+          this.registerEventListener(dialog.valueAddedTaxCheckBox, 'change', function() {
             controller.setValueAddedTaxEnabled(dialog.valueAddedTaxCheckBox.checked);
           });
           controller.addPropertyChangeListener('VALUE_ADDED_TAX_ENABLED', function() {
@@ -1948,7 +1953,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 
           controller.addPropertyChangeListener('DEFAULT_FONT_NAME', setDefaultFontFromController);
 
-          dialog.registerEventListener(dialog.defaultFontNameSelect, 'input', function() {
+          dialog.registerEventListener(dialog.defaultFontNameSelect, 'change', function() {
             var selectedValue = dialog.defaultFontNameSelect.querySelector('option:checked').value;
             controller.setDefaultFontName(selectedValue == DEFAULT_SYSTEM_FONT_NAME ? null : selectedValue);
           });
@@ -1967,7 +1972,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
           var iconSizes = [128, 256, 512 ,1024];
           for (var i = 0; i < iconSizes.length; i++) {
             var size = iconSizes[i];
-            dialog.iconSizeSelect.append(
+            dialog.iconSizeSelect.appendChild(
               createOptionElement(
                 size, 
                 size + '×' + size,
@@ -2155,7 +2160,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
           var visibleCheckboxDisplay = controller.isPropertyEditable('VIEWABLE') ? 'initial' : 'none';
           visibleCheckbox.parentElement.style.display = visibleCheckboxDisplay;
           visibleCheckbox.checked = controller.getViewable();
-          dialog.registerEventListener(visibleCheckbox, 'input', function() {
+          dialog.registerEventListener(visibleCheckbox, 'change', function() {
             controller.setViewable(visibleCheckbox.checked);
           });
           controller.addPropertyChangeListener('VIEWABLE', function() {
@@ -2369,7 +2374,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
             this.registerEventListener(
               visibleCheckBox,
-              'input',
+              'change',
               function() {
                 dialog.controller.setVisible(visibleCheckBox.checked);
               }
@@ -2459,7 +2464,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     // 4) add change listeners
     this.registerEventListener(
       [nameInput, nameVisibleCheckbox, priceInput, valueAddedTaxPercentageInput],
-      'input',
+      'change',
       function() {
         controller.setName(nameInput.value);
         controller.setNameVisible(nameVisibleCheckbox.checked);
@@ -2559,7 +2564,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     // 6) add change listeners
     this.registerEventListener(
       [xInput, yInput, elevationInput, mirroredModelCheckbox, basePlanItemCheckbox],
-      'input',
+      'change',
       function() {
         controller.setX(xInput.value != null && xInput.value != '' ? parseFloat(xInput.value) : null);
         controller.setY(yInput.value != null && yInput.value != '' ? parseFloat(yInput.value) : null);
@@ -2704,7 +2709,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
       }
     });
-    this.registerEventListener([horizontalRotationRadioRoll, horizontalRotationRadioPitch], 'input', function() {
+    this.registerEventListener([horizontalRotationRadioRoll, horizontalRotationRadioPitch], 'change', function() {
       if (horizontalRotationRadioRoll.checked) {
         controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.ROLL);
       } else {
@@ -2884,7 +2889,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     // 6) add change listeners
     this.registerEventListener(
       [widthInput, depthInput, heightInput, keepProportionsCheckbox],
-      'input',
+      'change',
       function() {
         controller.setWidth(widthInput.value != null && widthInput.value != '' ? parseFloat(widthInput.value) : null);
         controller.setDepth(depthInput.value != null && depthInput.value != '' ? parseFloat(depthInput.value) : null);
@@ -2956,7 +2961,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       // Create radio buttons bound to SHININESS controller properties
       this.registerEventListener(
         [defaultShininessRadioButton, mattRadioButton, shinyRadioButton],
-        'input',
+        'change',
         function() {
           var selectedRadio = dialog.findElement('[name="shininess-radio"]:checked');
           controller.setShininess(HomeFurnitureController.FurnitureShininess[selectedRadio.value]);
@@ -3096,6 +3101,45 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     });
   }
 
+  var editBaseboard = function(controller, dialogTitle) {
+
+    var view = controller.getView();
+
+    var dialog = new JSDialogView(viewFactory, preferences,
+      dialogTitle,
+      '<div data-name="content"></div>', {
+        size: 'small',
+        initializer: function (dialog) {
+          dialog.attachChildComponent('content', view);
+        },
+        applier: function() {
+          // do not remove - applier must be defined so OK button shows
+          console.info("baseboard modifications saved");
+        }
+      });
+
+
+    var visible = controller.getVisible();
+    var color = controller.getColor();
+    var texture = controller.getTextureController().getTexture();
+    var paint = controller.getPaint();
+    var thickness = controller.getThickness();
+    var height = controller.getHeight();
+
+    dialog.cancel = function() {
+      console.info("canceling baseboard modifications");
+      controller.setVisible(visible);
+      controller.setColor(color);
+      controller.getTextureController().setTexture(texture);
+      controller.setPaint(paint);
+      controller.setThickness(thickness);
+      controller.setHeight(height);
+      dialog.close();
+    }
+    dialog.displayView();
+
+  }
+
   function initLeftAndRightSidesPanels(dialog) {
 
     // Find which wall side is the closest to the pointer location
@@ -3218,10 +3262,10 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     controller.addPropertyChangeListener('RIGHT_SIDE_SHININESS', function() {
       updateRightSideShininess();
     });
-    dialog.registerEventListener([leftSideShininessRadioMatt, leftSideShininessRadioShiny], 'input', function() {
+    dialog.registerEventListener([leftSideShininessRadioMatt, leftSideShininessRadioShiny], 'change', function() {
       controller.setLeftSideShininess(parseFloat(this.value));
     });
-    dialog.registerEventListener([rightSideShininessRadioMatt, rightSideShininessRadioShiny], 'input', function() {
+    dialog.registerEventListener([rightSideShininessRadioMatt, rightSideShininessRadioShiny], 'change', function() {
       controller.setRightSideShininess(parseFloat(this.value));
     });
 
@@ -3232,6 +3276,19 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     var rightSideBaseboardButtonAction = new ResourceAction(preferences, 'WallPanel', "MODIFY_RIGHT_SIDE_BASEBOARD", true);
     leftSideBaseboardButton.textContent = leftSideBaseboardButtonAction.getValue(AbstractAction.NAME);
     rightSideBaseboardButton.textContent = rightSideBaseboardButtonAction.getValue(AbstractAction.NAME);
+
+    dialog.registerEventListener([leftSideBaseboardButton, rightSideBaseboardButton], 'click', function() {
+      var dialogTitle;
+      var baseboardController;
+      if (this == leftSideBaseboardButton) {
+        baseboardController = controller.getLeftSideBaseboardController();
+        dialogTitle = dialog.getLocalizedLabelText('WallPanel', 'leftSideBaseboardDialog.title');
+      } else {
+        baseboardController = controller.getRightSideBaseboardController();
+        dialogTitle = dialog.getLocalizedLabelText('WallPanel', 'rightSideBaseboardDialog.title');
+      }
+      editBaseboard(baseboardController, dialogTitle);
+    });
   }
 
   var initTopPanel = function(dialog) {
@@ -3299,7 +3356,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     var wallShapeRadioRectangular = dialog.findElement('[name="wall-shape-choice"][value="RECTANGULAR_WALL"]');
     var wallShapeRadioSloping = dialog.findElement('[name="wall-shape-choice"][value="SLOPING_WALL"]');
 
-    dialog.registerEventListener([wallShapeRadioRectangular, wallShapeRadioSloping], 'input', function() {
+    dialog.registerEventListener([wallShapeRadioRectangular, wallShapeRadioSloping], 'change', function() {
       controller.setShape(WallController.WallShape[this.value]);
     });
     var setWallShapeFromController = function() {
@@ -3460,7 +3517,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
     dialog.floorVisibleCheckBox = dialog.getElement('floor-visible-checkbox');
     dialog.floorVisibleCheckBox.checked = controller.getFloorVisible();
     dialog.floorVisibleCheckBox.parentElement.style.display = floorVisibleDisplay;
-    dialog.registerEventListener(dialog.floorVisibleCheckBox, 'input', function() {
+    dialog.registerEventListener(dialog.floorVisibleCheckBox, 'change', function() {
       controller.setFloorVisible(dialog.floorVisibleCheckBox.checked);
     });
     controller.addPropertyChangeListener('FLOOR_VISIBLE', function(event) {
@@ -3489,7 +3546,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
     dialog.attachChildComponent('floor-texture-selector-button', dialog.floorTextureSelector);
     dialog.floorTextureSelector.set(controller.getFloorTextureController().getTexture());
 
-    dialog.registerEventListener([floorColorCheckbox, floorTextureCheckbox], 'input', function() {
+    dialog.registerEventListener([floorColorCheckbox, floorTextureCheckbox], 'change', function() {
       var selectedPaint = RoomController.RoomPaint[this.value];
       controller.setFloorPaint(selectedPaint);
     });
@@ -3509,7 +3566,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
 
     // Shininess
     var shininessRadioButtons = dialog.findElements('[name="floor-shininess-choice"]');
-    dialog.registerEventListener(shininessRadioButtons, 'input', function() {
+    dialog.registerEventListener(shininessRadioButtons, 'change', function() {
       controller.setFloorShininess(parseFloat(this.value));
     });
 
@@ -3532,7 +3589,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
     dialog.ceilingVisibleCheckBox = dialog.getElement('ceiling-visible-checkbox');
     dialog.ceilingVisibleCheckBox.checked = controller.getCeilingVisible();
     dialog.ceilingVisibleCheckBox.parentElement.style.display = ceilingVisibleDisplay;
-    dialog.registerEventListener(dialog.ceilingVisibleCheckBox, 'input', function() {
+    dialog.registerEventListener(dialog.ceilingVisibleCheckBox, 'change', function() {
       controller.setCeilingVisible(dialog.ceilingVisibleCheckBox.checked);
     });
     controller.addPropertyChangeListener('CEILING_VISIBLE', function(event) {
@@ -3561,7 +3618,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
     dialog.attachChildComponent('ceiling-texture-selector-button', dialog.ceilingTextureSelector);
     dialog.ceilingTextureSelector.set(controller.getCeilingTextureController().getTexture());
 
-    dialog.registerEventListener([ceilingColorCheckbox, ceilingTextureCheckbox], 'input', function() {
+    dialog.registerEventListener([ceilingColorCheckbox, ceilingTextureCheckbox], 'change', function() {
       var selectedPaint = RoomController.RoomPaint[this.value];
       controller.setCeilingPaint(selectedPaint);
     });
@@ -3581,7 +3638,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
 
     // Shininess
     var shininessRadioButtons = dialog.findElements('[name="ceiling-shininess-choice"]');
-    dialog.registerEventListener(shininessRadioButtons, 'input', function() {
+    dialog.registerEventListener(shininessRadioButtons, 'change', function() {
       controller.setCeilingShininess(parseFloat(this.value));
     });
 
@@ -3617,7 +3674,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
     var splitSurroundingWallsDisplay = controller.isPropertyEditable('SPLIT_SURROUNDING_WALLS') ? 'initial' : 'none';
     dialog.splitSurroundingWallsCheckBox = dialog.getElement('split-surrounding-walls-checkbox');
     dialog.splitSurroundingWallsCheckBox.parentElement.style.display = splitSurroundingWallsDisplay;
-    dialog.registerEventListener(dialog.splitSurroundingWallsCheckBox, 'input', function() {
+    dialog.registerEventListener(dialog.splitSurroundingWallsCheckBox, 'change', function() {
       controller.setSplitSurroundingWalls(dialog.splitSurroundingWallsCheckBox.checked);
     });
     onSplitSurroundingWallsPropertyChanged();
@@ -3647,7 +3704,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
     dialog.attachChildComponent('wall-sides-texture-selector-button', dialog.wallSidesTextureSelector);
     dialog.wallSidesTextureSelector.set(controller.getWallSidesTextureController().getTexture());
 
-    dialog.registerEventListener([wallSidesColorCheckbox, wallSidesTextureCheckbox], 'input', function() {
+    dialog.registerEventListener([wallSidesColorCheckbox, wallSidesTextureCheckbox], 'change', function() {
       var selectedPaint = RoomController.RoomPaint[this.value];
       controller.setWallSidesPaint(selectedPaint);
     });
@@ -3667,7 +3724,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
 
     // Shininess
     var shininessRadioButtons = dialog.findElements('[name="wall-sides-shininess-choice"]');
-    dialog.registerEventListener(shininessRadioButtons, 'input', function() {
+    dialog.registerEventListener(shininessRadioButtons, 'change', function() {
       controller.setWallSidesShininess(parseFloat(this.value));
     });
 
@@ -3721,7 +3778,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
         dialog.areaVisibleCheckbox = dialog.getElement('area-visible-checkbox');
         dialog.areaVisibleCheckbox.checked = controller.getAreaVisible();
         dialog.areaVisibleCheckbox.parentElement.style.display = areaVisiblePanelDisplay;
-        dialog.registerEventListener(dialog.areaVisibleCheckbox, 'input', function() {
+        dialog.registerEventListener(dialog.areaVisibleCheckbox, 'change', function() {
           controller.setAreaVisible(dialog.areaVisibleCheckbox.checked);
         });
         controller.addPropertyChangeListener('AREA_VISIBLE', function(event) {
@@ -4033,7 +4090,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         dialog.visibleIn3DCheckbox = dialog.getElement('visible-in-3D-checkbox');        
         dialog.visibleIn3DCheckbox.checked = controller.isElevationEnabled() && controller.getElevation() != null;
 
-        dialog.registerEventListener(dialog.visibleIn3DCheckbox, 'input', function() {
+        dialog.registerEventListener(dialog.visibleIn3DCheckbox, 'change', function() {
           if (dialog.visibleIn3DCheckbox.checked) {
             controller.setElevation(0);
           } else {
@@ -4096,7 +4153,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         });
         controller.addPropertyChangeListener('FONT_NAME', setFontFromController);
 
-        dialog.registerEventListener(dialog.fontSelect, 'input', function() {
+        dialog.registerEventListener(dialog.fontSelect, 'change', function() {
           var selectedValue = dialog.fontSelect.querySelector('option:checked').value;
           controller.setFontName(selectedValue == DEFAULT_SYSTEM_FONT_NAME ? null : selectedValue);
         });
@@ -4290,7 +4347,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
 
     var visibleCheckBox = this.getElement('visible-checkbox');
     visibleCheckBox.checked = controller.isVisible();
-    this.registerEventListener(visibleCheckBox, 'input', function() {
+    this.registerEventListener(visibleCheckBox, 'change', function() {
       controller.setVisible(visibleCheckBox.checked);
     });
     controller.addPropertyChangeListener('VISIBLE', function(event) {
@@ -4412,7 +4469,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
             adjustObserverCameraElevationCheckBox.checked = controller.isElevationAdjusted();
             var adjustObserverCameraElevationCheckBoxDisplay = controller.isObserverCameraElevationAdjustedEditable() ? 'initial' : 'none';
             adjustObserverCameraElevationCheckBox.parentElement.style.display = adjustObserverCameraElevationCheckBoxDisplay;
-            dialog.registerEventListener(adjustObserverCameraElevationCheckBox, 'input', function() {
+            dialog.registerEventListener(adjustObserverCameraElevationCheckBox, 'change', function() {
               controller.setElevationAdjusted(adjustObserverCameraElevationCheckBox.checked);
             });
             controller.addPropertyChangeListener('OBSERVER_CAMERA_ELEVATION_ADJUSTED', function() {
@@ -4620,7 +4677,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     textureSelector.set(controller.getGroundTextureController().getTexture());
 
     var radioButtons = [paintRadioColor, paintRadioTexture];
-    dialog.registerEventListener(radioButtons, 'input', function() {
+    dialog.registerEventListener(radioButtons, 'change', function() {
       if (this.checked) {
         controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint[this.value]);
       }
@@ -4638,7 +4695,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
 
     var backgroundImageVisibleOnGround3DCheckBox = this.getElement('background-image-visible-on-ground-3D-checkbox');
     backgroundImageVisibleOnGround3DCheckBox.checked = controller.isBackgroundImageVisibleOnGround3D();
-    this.registerEventListener(backgroundImageVisibleOnGround3DCheckBox, 'input', function() {
+    this.registerEventListener(backgroundImageVisibleOnGround3DCheckBox, 'change', function() {
         controller.setBackgroundImageVisibleOnGround3D(backgroundImageVisibleOnGround3DCheckBox.checked);
     });
     controller.addPropertyChangeListener('BACKGROUND_IMAGE_VISIBLE_ON_GROUND_3D', function() {
@@ -4682,7 +4739,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     textureSelector.set(controller.getSkyTextureController().getTexture());
 
     var radioButtons = [paintRadioColor, paintRadioTexture];
-    dialog.registerEventListener(radioButtons, 'input', function() {
+    dialog.registerEventListener(radioButtons, 'change', function() {
       if (this.checked) {
         controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint[this.value]);
       }
@@ -4805,11 +4862,12 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
   {
     initializer: function(view) {
       view.getRootNode().dataset['name'] = 'baseboard-panel';
+      view.getRootNode().classList.add('label-input-grid');
 
       // visible
       view.visibleCheckBox = view.getElement('baseboard-visible-checkbox');
       view.visibleCheckBox.checked = controller.getVisible();
-      view.registerEventListener(view.visibleCheckBox, 'input', function() {
+      view.registerEventListener(view.visibleCheckBox, 'change', function() {
         controller.setVisible(view.visibleCheckBox.checked);
       });
 
@@ -4854,7 +4912,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       view.textureSelector.set(controller.getTextureController().getTexture());
 
       view.colorAndTextureRadioButtons = [paintRadioSameAsWall, paintRadioColor, paintRadioTexture];
-      view.registerEventListener(view.colorAndTextureRadioButtons, 'input', function() {
+      view.registerEventListener(view.colorAndTextureRadioButtons, 'change', function() {
         if (this.checked) {
           var selectedPaint = this.value == 'sameColorAsWall'
               ? BaseboardChoiceController.BaseboardPaint.DEFAULT
