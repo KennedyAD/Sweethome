@@ -10,7 +10,7 @@
 -->
 <project basedir="." default="furnitureLibraryEditorJarExecutable" name="FurnitureLibraryEditor">
   <!-- The current version of the Furniture Library Editor -->
-  <property name="version" value="1.27"/>
+  <property name="version" value="1.28"/>
 
   <!-- Java source and target compatiblity (Java 9 and higher doesn't support 1.5) -->
   <condition property="classSource" value="1.5" else="1.7">
