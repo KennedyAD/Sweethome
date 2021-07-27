@@ -70,15 +70,15 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '    <div class="selected-texture-overview">' + 
     '      <div></div>' + 
     '    </div>' + 
-    '    <div class="selected-texture-config">' + 
+    '    <div class="selected-texture-config label-input-grid">' +
     '      <div>${TextureChoiceComponent.xOffsetLabel.text}</div>' + 
-    '      <div><input type="number" name="selected-texture-offset-x" step="5" min="0" max="100" value="0" /></div>' + 
+    '      <div><span data-name="selected-texture-offset-x" /></div>' +
     '      <div>${TextureChoiceComponent.yOffsetLabel.text}</div>' + 
-    '      <div><input type="number" name="selected-texture-offset-y" step="5" min="0" max="100" value="0" /></div>' + 
+    '      <div><span data-name="selected-texture-offset-y" /></div>' +
     '      <div>${TextureChoiceComponent.angleLabel.text}</div>' + 
-    '      <div><input type="number" name="selected-texture-angle" step="15" min="0" max="360" value="0" /></div>' + 
+    '      <div><span data-name="selected-texture-angle" /></div>' +
     '      <div>${TextureChoiceComponent.scaleLabel.text}</div>' + 
-    '      <div><input type="number" name="selected-texture-scale" step="5" min="5" max="10000" value="100" /></div>' + 
+    '      <div><span data-name="selected-texture-scale" /></div>' +
     '    </div>' + 
     '    <hr />' +
     '    <div class="imported-textures-panel">' +
@@ -98,10 +98,32 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
       
       dialog.catalogList = dialog.getRootNode().querySelector('.texture-catalog-list');
       dialog.selectedTextureOverview = dialog.getRootNode().querySelector('.selected-texture-overview > div');
-      dialog.xOffsetInput = dialog.getElement('selected-texture-offset-x');
-      dialog.yOffsetInput = dialog.getElement('selected-texture-offset-y');
-      dialog.angleInput = dialog.getElement('selected-texture-angle');
-      dialog.scaleInput = dialog.getElement('selected-texture-scale');
+
+      dialog.xOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement('selected-texture-offset-x'), {
+        value: 0,
+        min: 0,
+        max: 100,
+        step: 5
+      });
+      dialog.yOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement('selected-texture-offset-y'), {
+        value: 0,
+        min: 0,
+        max: 100,
+        step: 5
+      });
+      dialog.angleInput = new JSSpinner(viewFactory, preferences, dialog.getElement('selected-texture-angle'), {
+        format: new IntegerFormat(),
+        min: 0,
+        max: 360,
+        step: 15,
+      })
+      dialog.scaleInput = new JSSpinner(viewFactory, preferences, dialog.getElement('selected-texture-scale'), {
+        value: 100,
+        min: 1,
+        max: 10000,
+        step: 5
+      });
+
       dialog.registerEventListener([dialog.xOffsetInput, dialog.yOffsetInput, dialog.angleInput, dialog.scaleInput], 'change', function() {
         dialog.onTextureTransformConfigurationChanged();
       });
