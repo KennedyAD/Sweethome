@@ -184,7 +184,6 @@
         <include name="THIRDPARTY-LICENSE-JAVA3D.TXT"/>
       	<include name="THIRDPARTY-LICENSE-JOGL.TXT"/>
         <include name="THIRDPARTY-LICENSE-BATIK.TXT"/>
-        <include name="THIRDPARTY-LICENSE-TANGO.TXT"/>
       </fileset>
     </jar>
  
