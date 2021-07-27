@@ -75,6 +75,8 @@
     <copy todir="build/classes">
       <fileset dir="../SweetHome3D/src">
         <include name="**/*_fr.properties"/>
+        <include name="com/eteks/sweethome3d/swing/resources/error.png"/>
+        <include name="com/eteks/sweethome3d/swing/resources/wait.png"/>
         <include name="com/eteks/sweethome3d/io/resources/patterns/**"/>
         <exclude name="com/eteks/sweethome3d/io/DefaultFurniture*.*"/>
         <exclude name="com/eteks/sweethome3d/io/Contributed*.*"/>
@@ -125,7 +127,8 @@
         <exclude name="com/eteks/sweethome3d/viewcontroller/resources/*Wizard*"/>
       </fileset>
       <fileset dir="build/classes">
-        <include name="com/eteks/sweethome3d/swing/resources/icons/tango/image-*.png"/>
+        <include name="com/eteks/sweethome3d/swing/resources/error.png"/>
+        <include name="com/eteks/sweethome3d/swing/resources/wait.png"/>
         <include name="com/eteks/sweethome3d/swing/FurnitureToolTip*"/>
       </fileset>
     </zip>
