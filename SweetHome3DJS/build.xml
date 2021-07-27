@@ -18,7 +18,8 @@
   <property name="version" value="6.5.2"/>
 
   <!-- The version of JSweet transpiler (use version 3.1.0 to compile with Java 11) -->
-  <property name="jsweet-version" value="3.2.0-SNAPSHOT"/>
+	<!-- To compile with JSweet 3 / Java 11, comment the JSweet 2 specifics options in the Java task below -->
+  <property name="jsweet-version" value="2.4.0-RC1"/>
   	
   <!-- Java to JavaScript and TypeScript transpilation with JSweet -->
   <target name="transpiledLibraries" 
@@ -62,8 +63,12 @@
       <!-- Transpilation target may contain almost all com.eteks.sweethome3d.viewcontroller classes or only the subset needed to run 
            Sweet Home 3D JS Viewer (in which case swingundo.js extracted from tools/JSweet/build/js/j4ts-swingundo-1.8.132-20170726/bundle.js isn't required) -->
     	
-      <sysproperty key="java.ext.dirs" value="../SweetHome3D/lib"/>
-
+      <!-- BEGIN JSweet 2 specifics: delete for JSweet 3+ -->
+      <arg value="--jdkHome" />
+      <arg value="${java.home}" />
+      <sysproperty key="java.ext.dirs" value="../SweetHome3D/lib"/> 
+    	<!-- END JSweet 2 specifics -->
+    	
       <sysproperty key="transpilationTarget" value="${buildType}"/> 
       <classpath>
         <pathelement location="tools/JSweet/lib/jsweet-transpiler-${jsweet-version}-jar-with-dependencies.jar"/>
