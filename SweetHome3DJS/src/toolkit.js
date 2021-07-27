@@ -1946,6 +1946,15 @@ JSTreeTable.prototype.generateTableRows = function() {
         collapsed: undefined,
         childrenItems: undefined,
         setCollapsed: function() {},
+        isInCollapsedGroup: function() {
+          var parent = this;
+          while ((parent = parent.parentGroup)) {
+            if (parent.collapsed === true) {
+              return true;
+            }
+          }
+          return false;
+        }
       };
       currentNodesItems.push(sortedListItem);
       sortedList.push(sortedListItem);
@@ -1980,7 +1989,9 @@ JSTreeTable.prototype.generateTableRows = function() {
       var item = sortedList[this.state.expandedRowsIndices[i]];
       if (item) {
         expandedRowsValues.push(item.value);
-        item.setCollapsed(false);
+        if (!item.isInCollapsedGroup()) {
+          item.setCollapsed(false);
+        }
       }
     }
     if (expandedRowsValues.length > 0) {
