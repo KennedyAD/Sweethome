@@ -144,7 +144,6 @@
       <fileset dir="../SweetHome3D">
         <include name="LICENSE.TXT"/>
         <include name="COPYING.TXT"/>
-        <include name="THIRDPARTY-LICENSE-TANGO.TXT"/>
       </fileset>
     </jar>
  
