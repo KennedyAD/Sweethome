@@ -568,6 +568,20 @@ KeyStroke.getKeyStrokeForEvent = function(ev, keyEventType) {
   return keyStroke;
 }
 
+if (!String.prototype.hexEncode) {
+  String.prototype.hexEncode = function(){
+    var hex, i;
+
+    var result = "";
+    for (i=0; i<this.length; i++) {
+      hex = this.charCodeAt(i).toString(16);
+      result += ("000"+hex).slice(-4);
+    }
+
+    return result
+  }
+}
+
 if (!String.prototype.endsWith) {
   String.prototype.endsWith = function(searchString, position) {
     var subjectString = this.toString();
@@ -714,7 +728,8 @@ function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decima
     } 
   }
 
-  formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
+  formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator);
+  formattedNumber = formattedNumber.replace(' ', '\u202f');
   if (options.negativePrefix !== undefined) {
     formattedNumber = formattedNumber.replace("-", options.negativePrefix);
   }

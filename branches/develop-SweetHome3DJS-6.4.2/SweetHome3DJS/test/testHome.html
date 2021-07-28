@@ -524,24 +524,27 @@ body {
 <body>
 
 <script type="text/javascript">
-function assertEquals(message, expected, actual) {
+function assertEquals(message, expected, actual, showAlert) {
   if (typeof expected === "number"
           && Math.abs(actual - expected) > 1E-5
       || typeof expected !== "number"
            && expected != actual) {
     var report = message + ": " + actual + " not equal to " + expected;
-    fail(report);
+    fail(report, showAlert);
   }
 }
 
-function assertTrue(message, condition) {
+function assertTrue(message, condition, showAlert) {
   if (!condition) {
-    fail(message);
+    fail(message, showAlert);
   }
 }
 
-function fail(message) {
-  alert(message);
+function fail(message, showAlert) {
+  if (showAlert === undefined) { showAlert = true; }
+  if (showAlert) {
+    alert(message);
+  }
   throw new Error(message);
 }
 
@@ -590,7 +593,7 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "102", LengthUnit.CENTIMETER.getFormat().format(102));
   assertEquals("Wrong conversion", "1,02", LengthUnit.METER.getFormat().format(102));
   // \u00a0 is a no-break space
-  assertEquals("Wrong conversion", "1\u00a0020", LengthUnit.MILLIMETER.getFormat().format(102));
+  assertEquals("Wrong conversion", "1\u202f020", LengthUnit.MILLIMETER.getFormat().format(102));
   
   assertEquals("Wrong conversion", "0'11\"",
       LengthUnit.INCH.getFormat().format(LengthUnit.inchToCentimeter(11)));
@@ -611,7 +614,12 @@ function testLengthUnit() {
   assertEquals("Wrong conversion", "102 cm", LengthUnit.CENTIMETER.getFormatWithUnit().format(102));
   assertEquals("Wrong conversion", "1,02 m", LengthUnit.METER.getFormatWithUnit().format(102));
   // \u00a0 is a no-break space
-  assertEquals("Wrong conversion", "1\u00a0020 mm", LengthUnit.MILLIMETER.getFormatWithUnit().format(102));
+  // As of Java 9 - standard grouping separator is \u202f
+  try {
+    assertEquals("Wrong conversion", "1\u00a0020 mm", LengthUnit.MILLIMETER.getFormatWithUnit().format(102), false);
+  } catch(e) {
+    assertEquals("Wrong conversion", "1\u202f020 mm", LengthUnit.MILLIMETER.getFormatWithUnit().format(102));
+  }
   assertEquals("Wrong conversion", "0'11\"",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11)));
   assertEquals("Wrong conversion", "1'11\"",
@@ -628,10 +636,23 @@ function testLengthUnit() {
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.9)));
   assertEquals("Wrong conversion", "0'0\"",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
-  assertEquals("Wrong conversion", "1\u00a0200'",
-      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1200)));
-  assertEquals("Wrong conversion", "1\u00a0000'6\"",
-      LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1000.5)));
+
+  // As of Java 9 - standard grouping separator is \u202f
+  try {
+    assertEquals("Wrong conversion", "1\u00a0200'",
+            LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1200)), false);
+  } catch(e) {
+    assertEquals("Wrong conversion", "1\u202f200'",
+            LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1200)));
+  }
+  try {
+    assertEquals("Wrong conversion", "1\u202f000'6\"",
+            LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1000.5)), false);
+  } catch(e) {
+    assertEquals("Wrong conversion", "1\u202f000'6\"",
+            LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.footToCentimeter(1000.5)));
+  }
+
 
   assertEquals("Wrong conversion", "11",
       LengthUnit.INCH_DECIMALS.getFormat().format(LengthUnit.inchToCentimeter(11)));
