@@ -324,9 +324,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
         var furnitureComparator = HomePieceOfFurniture.getFurnitureComparator(sortConfig.columnName);
         var comparator;
         if (furnitureComparator != null) {
-          comparator = function(left, right) {
-            return furnitureComparator.compare(left, right);
-          };
+          comparator = furnitureComparator;
         } else {
           comparator = function() { return 0; };
         }
@@ -453,12 +451,7 @@ JSViewFactory.prototype.createFurnitureView = function(home, preferences, contro
       TextureManager.getInstance().loadTexture(pieceOfFurniture.getIcon(), 0, false,
         {
           textureUpdated : function(image) {
-            // var canvas = document.createElement('canvas');
-            // canvas.getContext('2d').drawImage(image, 0, 0);
-            // var textureUrl = URL.createObjectURL(canvas.msToBlob ? canvas.msToBlob() : canvas.toBlob());
-            // iconElement.style.backgroundImage = "url('" + textureUrl + "')";
-            // iconElement.style.backgroundImage = "url('" + image.src + "')";
-            iconElement.appendChild(image);
+            iconElement.appendChild(image.cloneNode());
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
