@@ -1198,11 +1198,11 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   
   // Catalog view context menu
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
-  var furnitures = furnitureCatalogView.getFurnituresHTMLElement();
+  var furnitureElements = furnitureCatalogView.getFurnitureHTMLElements();
   var furnitureTableView = this.controller.getFurnitureController().getView();
   var furnitureTableElement = furnitureTableView == null ? null : furnitureTableView.getHTMLElement();
 
-  this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitures, {
+  this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitureElements, {
     build: function(builder) {
       builder.addItem(homePane.getAction(ActionType.ADD_HOME_FURNITURE));
     }
@@ -1549,8 +1549,8 @@ HomePane.prototype.initSplitters = function() {
   var home3DView = controller.getHomeController3D().getView();
   
   var furniturePlanSplitter = document.getElementById("furniture-plan-splitter");
-  var planPanesSplitter = document.getElementById("plan-panes-splitter");
-  var furnitureSplitter = document.getElementById("furniture-splitter");
+  var planPanesSplitter = document.getElementById("plan-3D-view-splitter");
+  var furnitureSplitter = document.getElementById("catalog-furniture-splitter");
 
   var saveSplitterPosition = function(splitterPositionPropertyName, splitterPosition) {
       controller.setHomeProperty(splitterPositionPropertyName, splitterPosition == null ? null : splitterPosition.toString());
@@ -1560,7 +1560,7 @@ HomePane.prototype.initSplitters = function() {
   if (furniturePlanSplitterVisible) {
     this.initSplitter(
       furniturePlanSplitter,
-      [document.getElementById("furnitures-panel")],
+      [document.getElementById("catalog-furniture-pane")],
       [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()],
       home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
       function(splitterPosition, lastPosition) {
