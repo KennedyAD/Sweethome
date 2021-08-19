@@ -38,9 +38,9 @@ FurnitureCatalogListPanel.prototype.getHTMLElement = function() {
 }
 
 /**
- * Returns the HTML elements of all furnitures in this list 
+ * Returns the HTML elements of all furniture in this list 
  */
-FurnitureCatalogListPanel.prototype.getFurnituresHTMLElement = function() {
+FurnitureCatalogListPanel.prototype.getFurnitureHTMLElements = function() {
   return this.getHTMLElement().querySelectorAll('.furniture');
 }
 

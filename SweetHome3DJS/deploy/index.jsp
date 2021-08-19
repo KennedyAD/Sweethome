@@ -61,7 +61,7 @@ body {
 
 #home-plan::selection { background: #0042E0; }
 
-#home-pane-toolbar, #furnitures-panel, #home-plan, #home-3D-view {
+#home-pane-toolbar, #catalog-furniture-pane, #home-plan, #home-3D-view {
   position: absolute;
 }
 
@@ -74,23 +74,34 @@ body {
   white-space: nowrap;
 }
 
-#furnitures-panel {
+#catalog-furniture-pane {
   top: 30px;
   width: 296px;
   height: calc(100% - 30px);
+  overflow: hidden;
 }
 
 #furniture-catalog {
+  position: absolute;
   height: 70%;
   width: 100%;
   overflow-y: scroll;
 }
 
-#furniture-view {
+#catalog-furniture-splitter {
+  position: absolute;
+  top: 70%;
+  left: 0;
   width: 100%;
-  height: 30%;
-  box-sizing: border-box;
-  overflow-y: scroll;
+}
+
+#furniture-view {
+  position: absolute;
+  top: calc(70% + 3px);
+  width: 100%;
+  height: calc(30% - 3px);
+  box-sizing: border-box; 
+  z-index: 2;
 }
 
 #furniture-view .tree-table {
@@ -110,9 +121,8 @@ body {
   height: calc(100% - 30px);
 }
 
-#plan-panes-splitter {
-  position: absolute;
-  
+#plan-3D-view-splitter {
+  position: absolute;  
   top: calc(30px + 50% - 15px - 2px);
   left: 300px;
   width: calc(100% - 300px);
@@ -137,7 +147,7 @@ body {
 
 @media (orientation: portrait) {
 
-  #furnitures-panel {
+  #catalog-furniture-pane {
     width: 160px;
     height: 100%;
   }
@@ -146,11 +156,7 @@ body {
     left: 160px;
   }
 
-  #furniture-view {
-    display: none;
-  }
-
-  #plan-panes-splitter {
+  #plan-3D-view-splitter {
     left: 160px;
     width: calc(100% - 160px);
   }
@@ -185,160 +191,6 @@ body {
     display: none;
   }
 
-
-  #home-pane-toolbar {
-    top: calc(100% - 40px);
-    height: 40px;
-  }
-
-  #home-pane-toolbar .toolbar-button {
-    margin-top: 0px;
-    height: calc(100% - 2px);
-  }
-
-  @media (orientation: portrait) {
-
-    #home-3D-view {
-      top: 0%;
-      left: 0%;
-      width: calc(100% - 2px);
-      height: calc(50% - 60px);
-      border: 1px solid gray; 
-    }
-
-    #home-plan {
-      top: calc(50% - 60px);
-      left: 0px;
-      width: calc(100% - 2px);
-      height: calc(50% - 59.5px);
-      z-index: 1;
-      border: 1px solid gray;
-    }
-
-    /* Funiture catalog horizontal layout */
-
-    .furniture-catalog {
-      overflow: scroll;
-      white-space: nowrap;
-    }
-
-    .furniture-category-label {
-      display: none;
-    }
-
-    .furniture {
-      margin-top: 0px;
-      margin-bottom: 0px;
-      white-space: normal;
-    }
-    
-    .furniture > .furniture-icon {
-      top: 3px;
-    }
-
-    .furniture > .furniture-label {
-      z-index: 2;
-      text-shadow: white 0px -2px;
-    }
-
-    .furniture-category-separator {
-      display: inline-block;
-      height: 80px;
-      padding-right: 10px;
-      margin-right: 10px;
-      border-right: dashed 1px rgba(0, 0, 0, 0.4);
-    }
-
-    /* End of horizontal layout */
-
-    #furnitures-panel {
-      top: calc(100% - 40px - 80px);
-      left: 0px;
-      width: calc(100% - 2px);
-      height: 78px;
-      overflow-x: scroll; 
-      overflow-y: hidden; 
-    }
-
-    #furniture-catalog {
-      height: 100%;
-    }
-
-    #furniture-view {
-      display: none;
-    }
-  }
-
-  @media (orientation: landscape) {
-
-    #plan-panes-splitter {
-      display: initial;
-      position: absolute;
-      width: 4px;
-      left: calc(50% + 73px);
-      height: calc(100% - 40px - 2px);
-      top: 0%;
-    }
-
-    #furnitures-panel {
-      top: 0%;
-      left: 0%;
-      width: 150px;
-      height: calc(100% - 40px - 2px);
-      overflow-x: hidden; 
-      overflow-y: scroll; 
-    }
-    #furniture-catalog {
-      height: 100%;
-    }
-
-    #furniture-view {
-      display: none;
-    }
-
-    #home-plan {
-      top: 0%;
-      left: 150px;
-      width: calc(50% - 75px - 2px);
-      height: calc(100% - 40px - 2px);
-      border: 1px solid gray;
-      z-index: 1;
-    }
-
-    #home-3D-view {
-      top: 0%;
-      left: calc(50% + 73px);
-      width: calc(50% - 75px - 2px /* splitter */ - 1px);
-      height: calc(100% - 40px - 2px);
-      border: 1px solid gray; 
-      border-left: 0px; 
-    }
-
-  }
-
-}
-
-/*
- * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
- */
-@media (hover: none), (pointer: coarse) {
-
-  
-  .pane-splitter {
-    display: none;
-  }
-
-  body {
-    margin: 5px;
-    height: calc(100% - 10px);
-  }
-
-  /* No scroll bars under Chrome */
-  ::-webkit-scrollbar {
-    display: none;
-  }
-
-
   #home-pane-toolbar {
     top: calc(100% - 40px);
     height: 40px;
@@ -351,6 +203,10 @@ body {
 
   #furniture-catalog {
     height: 100%;
+  }
+
+  #catalog-furniture-splitter {
+    display: none;
   }
 
   #furniture-view {
@@ -412,7 +268,7 @@ body {
 
     /* End of horizontal layout */
 
-    #furnitures-panel {
+    #catalog-furniture-pane {
       top: calc(100% - 40px - 80px);
       left: 0px;
       width: calc(100% - 2px);
@@ -424,7 +280,154 @@ body {
 
   @media (orientation: landscape) {
 
-    #furnitures-panel {
+    #plan-3D-view-splitter {
+      display: initial;
+      position: absolute;
+      width: 4px;
+      left: calc(50% + 73px);
+      height: calc(100% - 40px - 2px);
+      top: 0%;
+    }
+
+    #catalog-furniture-pane {
+      top: 0%;
+      left: 0%;
+      width: 150px;
+      height: calc(100% - 40px - 2px);
+      overflow-x: hidden; 
+      overflow-y: scroll; 
+    }
+
+    #home-plan {
+      top: 0%;
+      left: 150px;
+      width: calc(50% - 75px - 2px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray;
+      z-index: 1;
+    }
+
+    #home-3D-view {
+      top: 0%;
+      left: calc(50% + 73px);
+      width: calc(50% - 75px - 2px /* splitter */ - 1px);
+      height: calc(100% - 40px - 2px);
+      border: 1px solid gray; 
+      border-left: 0px; 
+    }
+  }
+}
+
+/*
+ * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
+ */
+@media (hover: none), (pointer: coarse) {
+
+  .pane-splitter {
+    display: none;
+  }
+
+  body {
+    margin: 5px;
+    height: calc(100% - 10px);
+  }
+
+  /* No scroll bars under Chrome */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+
+  #home-pane-toolbar {
+    top: calc(100% - 40px);
+    height: 40px;
+  }
+
+  #home-pane-toolbar .toolbar-button {
+    margin-top: 0px;
+    height: calc(100% - 2px);
+  }
+
+  #furniture-catalog {
+    height: 100%;
+  }
+
+  #catalog-furniture-splitter {
+    display: none;
+  }
+
+  #furniture-view {
+    display: none;
+  }
+
+  @media (orientation: portrait) {
+
+    #home-3D-view {
+      top: 0%;
+      left: 0%;
+      width: calc(100% - 2px);
+      height: calc(50% - 60px);
+      border: 1px solid gray; 
+    }
+
+    #home-plan {
+      top: calc(50% - 60px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: calc(50% - 59.5px);
+      z-index: 1;
+      border: 1px solid gray;
+    }
+
+    /* Funiture catalog horizontal layout */
+
+    .furniture-catalog {
+      overflow: scroll;
+      white-space: nowrap;
+    }
+
+    .furniture-category-label {
+      display: none;
+    }
+
+    .furniture {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      white-space: normal;
+    }
+    
+    .furniture > .furniture-icon {
+      top: 3px;
+    }
+
+    .furniture > .furniture-label {
+      z-index: 2;
+      text-shadow: white 0px -2px;
+    }
+
+    .furniture-category-separator {
+      display: inline-block;
+      height: 80px;
+      padding-right: 10px;
+      margin-right: 10px;
+      border-right: dashed 1px rgba(0, 0, 0, 0.4);
+    }
+
+    /* End of horizontal layout */
+
+    #catalog-furniture-pane {
+      top: calc(100% - 40px - 80px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: 78px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+  }
+
+  @media (orientation: landscape) {
+
+    #catalog-furniture-pane {
       top: 0%;
       left: 0%;
       width: 150px;
@@ -450,9 +453,7 @@ body {
       border: 1px solid gray; 
       border-left: 0px; 
     }
-
   }
-
 }
 
 /* Hide optional buttons when screen is too small */
@@ -461,7 +462,6 @@ body {
   #home-pane-toolbar .toolbar-optional  {
     display: none;
   }
-  
 }
 
 </style>
@@ -469,22 +469,22 @@ body {
 <body>
 
 <div id="home-pane">
-
-  <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas>
-  <div id="plan-panes-splitter" class="pane-splitter"></div>
-  <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ><select id="level-selector"></select></div>
-
   <div id="home-pane-toolbar"></div>
 
-  <div id="furniture-plan-splitter" class="pane-splitter"></div>
-  <div id="furnitures-panel">
-    <div id="furniture-catalog">
-    </div>
+  <div id="catalog-furniture-pane">
+    <div id="furniture-catalog"></div>
+    <div id="catalog-furniture-splitter" class="pane-splitter"></div>
     <div id="furniture-view"></div>
   </div>
-
+  
+  <div id="furniture-plan-splitter" class="pane-splitter"></div>
+  
+  <div>
+    <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ><select id="level-selector"></select></div>
+    <div id="plan-3D-view-splitter" class="pane-splitter"></div>
+    <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas>
+  </div>
 </div>
-
 
 <div id="home-furniture-dialog-template" class="dialog-template">
 
