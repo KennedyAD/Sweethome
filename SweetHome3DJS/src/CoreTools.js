@@ -27,26 +27,32 @@
  */
 var CoreTools = {};
 
+CoreTools.unavailableResources = [];
+
 /**
  * Loads a JSON resource from a url (synchronous).
  * @param url {string}  the url of the JSON resource to be loaded
  * @return an object that corresponds to the loaded JSON
  */
 CoreTools.loadJSON = function(url) {
-  try {
-    if (url.indexOf('/') !== 0 && url.indexOf('://') < 0) {
-      // Relative URLs based on scripts folder
-      url = ZIPTools.getScriptFolder() + url;
-    }
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, false);
-    // It is not allowed to change response type for a synchronous XHR
-    // xhr.responseType = 'json';
-    xhr.send();
-    return JSON.parse(xhr.responseText);
-  } catch (ex) {
-    return undefined;
+  if (url.indexOf('/') !== 0 && url.indexOf('://') < 0) {
+    // Relative URLs based on scripts folder
+    url = ZIPTools.getScriptFolder() + url;
   }
+  
+  if (CoreTools.unavailableResources.indexOf(url) < 0) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, false);
+      // It is not allowed to change response type for a synchronous XHR
+      // xhr.responseType = 'json';
+      xhr.send();
+      return JSON.parse(xhr.responseText);
+    } catch (ex) {
+      CoreTools.unavailableResources.push(url);
+    }
+  }
+  return undefined;
 }
 
 /**
