@@ -1566,7 +1566,7 @@ HomePane.prototype.initSplitters = function() {
       function(splitterPosition, lastPosition) {
           // Refresh 2D/3D plan views on resize
           planView.revalidate();
-          home3DView.canvas3D.updateViewportSize();
+          home3DView.revalidate();
           if (lastPosition) {
             saveSplitterPosition(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
           }
@@ -1583,7 +1583,7 @@ HomePane.prototype.initSplitters = function() {
       function(splitterPosition, lastPosition) {
         // Refresh 2D/3D plan views on resize
         planView.revalidate();
-        home3DView.canvas3D.updateViewportSize();
+        home3DView.revalidate();
         if (lastPosition) {
           saveSplitterPosition(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
         }
