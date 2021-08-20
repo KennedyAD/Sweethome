@@ -85,6 +85,7 @@ HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, co
     if (preferences !== null) {
       this.navigationPanelId = this.createNavigationPanel(this.home, preferences, controller);
       this.setNavigationPanelVisible(preferences.isNavigationPanelVisible());
+      this.revalidate();
       var component3D = this;
       preferences.addPropertyChangeListener("NAVIGATION_PANEL_VISIBLE",
           function(ev) {
@@ -125,6 +126,20 @@ HomeComponent3D.prototype.disposeGeometries = function() {
 } 
 
 /**
+ * Updates 3D component aspect and navigation panel after a resize. 
+ * @package
+ * @ignore
+ */
+HomeComponent3D.prototype.revalidate = function() {
+  var canvas = this.canvas3D.getHTMLElement();
+  var canvasBounds = canvas.getBoundingClientRect();
+  navigationPanelDiv = document.getElementById(this.navigationPanelId);
+  navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
+  navigationPanelDiv.style.top = (canvasBounds.top + window.pageYOffset) + "px";
+  this.canvas3D.updateViewportSize();
+}
+
+/**
  * Returns the id of a component displayed as navigation panel upon this 3D view.
  * @private
  */
@@ -141,28 +156,21 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
         + '     style="width: 56px; height:59px; margin:5px; user-drag: none; user-select: none; -moz-user-select: none; -webkit-user-drag: none; -webkit-user-select: none; -ms-user-select: none;"' 
         + '     usemap="#navigationPanelMap"/>'
         + '<map name="navigationPanelMap" id="navigationPanelMap">'
-        + '  <area shape="poly" coords="19,13,28,2,36,13,31,13,31,18,24,18,24,13" data-simulated-key="UP" />'
-        + '  <area shape="poly" coords="3,28,13,20,13,25,18,25,18,32,13,32,13,37" data-simulated-key="LEFT" />'
-        + '  <area shape="poly" coords="24,40,31,40,31,45,36,45,27,55,19,45,24,45" data-simulated-key="DOWN" />'
-        + '  <area shape="poly" coords="37,25,42,25,42,20,52,28,42,37,42,32,37,31" data-simulated-key="RIGHT" />'
-        + '  <area shape="poly" coords="20,28,28,19,35,28" data-simulated-key="PAGE_UP" />'
-        + '  <area shape="poly" coords="20,30,36,30,28,39" data-simulated-key="PAGE_DOWN" />'
+        + '  <area shape="poly" coords="28,4,33,8,33,19,22,19,22,8,29,4" data-simulated-key="UP" />'
+        + '  <area shape="poly" coords="4,28,8,23,19,23,19,34,8,34,4,29" data-simulated-key="LEFT" />'
+        + '  <area shape="poly" coords="28,54,33,50,33,39,22,39,22,50,29,54" data-simulated-key="DOWN" />'
+        + '  <area shape="poly" coords="51,28,47,23,36,23,36,34,47,34,51,29" data-simulated-key="RIGHT" />'
+        + '  <area shape="poly" coords="28,22,33,26,33,28,22,28,22,26,29,22" data-simulated-key="PAGE_UP" />'
+        + '  <area shape="poly" coords="28,36,33,32,33,30,22,30,22,32,29,36" data-simulated-key="PAGE_DOWN" />'
         + '</map>';
   }
   var component3D = this;
   if (innerHtml !== null) {
-    navigationPanelDiv = document.createElement("div")
+    navigationPanelDiv = document.createElement("div");
     navigationPanelDiv.setAttribute("id", "div" + Math.floor(Math.random() * 1E10));
     navigationPanelDiv.style.position = "absolute";
     var canvas = this.canvas3D.getHTMLElement();
-    this.windowSizeListener = function() {
-        var canvasBounds = canvas.getBoundingClientRect();
-        navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
-        navigationPanelDiv.style.top = (canvasBounds.top + window.pageYOffset) + "px";
-        component3D.canvas3D.updateViewportSize();
-      };
-    window.addEventListener("resize", this.windowSizeListener);
-    this.windowSizeListener();
+    window.addEventListener("resize", this.revalidate);
     // Search the first existing zIndex among parents
     var parentZIndex = 0;
     for (var element = this.canvas3D.getHTMLElement();  
