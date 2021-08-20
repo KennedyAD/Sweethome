@@ -113,6 +113,7 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
       });
       dialog.angleInput = new JSSpinner(viewFactory, preferences, dialog.getElement('selected-texture-angle'), {
         format: new IntegerFormat(),
+        value: 0,
         min: 0,
         max: 360,
         step: 15,
