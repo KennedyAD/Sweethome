@@ -170,7 +170,9 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     navigationPanelDiv.setAttribute("id", "div" + Math.floor(Math.random() * 1E10));
     navigationPanelDiv.style.position = "absolute";
     var canvas = this.canvas3D.getHTMLElement();
-    window.addEventListener("resize", this.revalidate);
+    window.addEventListener("resize", function(ev) {
+        component3D.revalidate();
+      });
     // Search the first existing zIndex among parents
     var parentZIndex = 0;
     for (var element = this.canvas3D.getHTMLElement();  
