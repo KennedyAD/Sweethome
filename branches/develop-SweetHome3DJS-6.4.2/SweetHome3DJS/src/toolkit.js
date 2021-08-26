@@ -96,7 +96,7 @@ JSComponentView.isElementContained = function(element, candidateParent) {
  * Substitutes all the place holders in the html with localized labels.
  */
 JSComponentView.substituteWithLocale = function(preferences, html) {
-  return html.replace(/\$\{([a-zA-Z0-9_.]+)\}/g, function(fullMatch, str) {
+  return html.replace(/\@\{([a-zA-Z0-9_.]+)\}/g, function(fullMatch, str) {
     var replacement = ResourceAction.getLocalizedLabelText(preferences, str.substring(0, str.indexOf('.')), str.substring(str.indexOf('.') + 1));
     return replacement || all;
   });
@@ -338,9 +338,9 @@ JSDialogView.prototype.appendButtons = function(buttonsPanel) {
 
   var html;
   if (this.applier) {
-    html = '<button class="dialog-ok-button">${OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">${OptionPane.cancelButton.textAndMnemonic}</button>';
+    html = '<button class="dialog-ok-button">@{OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">@{OptionPane.cancelButton.textAndMnemonic}</button>';
   } else {
-    html = '<button class="dialog-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>';
+    html = '<button class="dialog-cancel-button">@{InternalFrameTitlePane.closeButtonAccessibleName}</button>';
   }
   buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences, html);
 
@@ -561,8 +561,8 @@ JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
 
   buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
     '<div class="wizard-buttons">' +
-    '  <button class="wizard-cancel-button">${InternalFrameTitlePane.closeButtonAccessibleName}</button>' +
-    '  <button class="wizard-back-button">${WizardPane.backOptionButton.text}</button>' +
+    '  <button class="wizard-cancel-button">@{InternalFrameTitlePane.closeButtonAccessibleName}</button>' +
+    '  <button class="wizard-back-button">@{WizardPane.backOptionButton.text}</button>' +
     '  <button class="wizard-next-button"></button>' +
     '</div>'
   );

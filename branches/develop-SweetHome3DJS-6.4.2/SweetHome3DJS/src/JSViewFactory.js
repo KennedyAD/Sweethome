@@ -682,7 +682,7 @@ JSViewFactory.prototype.createHomeView = function(home, preferences, homeControl
  */
 JSViewFactory.prototype.createWizardView = function(preferences, controller) {
   return new JSWizardDialog(this, controller, preferences, 
-    controller.getTitle() || '${WizardPane.wizard.title}', 
+    controller.getTitle() || '@{WizardPane.wizard.title}', 
     {
       size: 'medium',
       initializer: function(dialog) {
@@ -719,7 +719,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       viewFactory,
       preferences,
       '<div choiceStep>' +
-      '  <div description>${BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>' +
+      '  <div description>@{BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>' +
       '  <div class="buttons">' +
       '    <button selectImage></button>' +
       '    <input type="file" accept="image/*" style="display: none" /> ' +
@@ -729,7 +729,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       '  </div>' +
       '</div>' +
       '<div scaleStep>' +
-      '  <div>${BackgroundImageWizardStepsPanel.scaleLabel.text}</div>' +
+      '  <div>@{BackgroundImageWizardStepsPanel.scaleLabel.text}</div>' +
       '  <br />' +
       '  <div>' +
       '    <span data-name="scale-distance-label"></span>' +
@@ -748,7 +748,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       '  </div>' +
       '</div>' +
       '<div originStep>' +
-      '  <div>${BackgroundImageWizardStepsPanel.originLabel.text}</div>' +
+      '  <div>@{BackgroundImageWizardStepsPanel.originLabel.text}</div>' +
       '  <br />' +
       '  <div>' +
         '    <span data-name="x-origin-label"></span>' +
@@ -1248,13 +1248,13 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         viewFactory,
         controller,
         preferences,
-        '${BackgroundImageWizardStepsPanel.reduceImageSize.title}',
+        '@{BackgroundImageWizardStepsPanel.reduceImageSize.title}',
         stepsView.getLocalizedLabelText(
             'BackgroundImageWizardStepsPanel', 'reduceImageSize.message', [image.width, image.height, reducedWidth, reducedHeight]
         ),
-        '${BackgroundImageWizardStepsPanel.reduceImageSize.cancel}',
-        '${BackgroundImageWizardStepsPanel.reduceImageSize.keepUnchanged}',
-        '${BackgroundImageWizardStepsPanel.reduceImageSize.reduceSize}',
+        '@{BackgroundImageWizardStepsPanel.reduceImageSize.cancel}',
+        '@{BackgroundImageWizardStepsPanel.reduceImageSize.keepUnchanged}',
+        '@{BackgroundImageWizardStepsPanel.reduceImageSize.reduceSize}',
         function onResizeRequested() {
           ImageTools.resize(image, reducedWidth, reducedHeight, callback, imageType);
         },
@@ -1374,10 +1374,10 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this,
     preferences, 
     '<div imageStep>' + 
-    '  <div description>${ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
+    '  <div description>@{ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
     '  <div class="buttons">' +
-    '    <button changeImage>${ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>' +
-    '    <button onclick="window.open(\'http://www.sweethome3d.com/fr/importTextures.jsp\', \'_blank\')">${ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
+    '    <button changeImage>@{ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>' +
+    '    <button onclick="window.open(\'http://www.sweethome3d.com/fr/importTextures.jsp\', \'_blank\')">@{ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
     '    <input type="file" accept="image/*" style="display: none" /> ' +
     '  </div>' +
     '  <div preview>' +
@@ -1389,15 +1389,15 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     '    <div preview> ' +
     '      <img /> ' +
     '    </div> ' +
-    '    <div>${ImportedTextureWizardStepsPanel.nameLabel.text}</div> ' +
+    '    <div>@{ImportedTextureWizardStepsPanel.nameLabel.text}</div> ' +
     '    <div>' +
     '      <input type="text" name="name" />' +
     '    </div> ' +
-    '    <div>${ImportedTextureWizardStepsPanel.categoryLabel.text}</div> ' +
+    '    <div>@{ImportedTextureWizardStepsPanel.categoryLabel.text}</div> ' +
     '    <div>' +
     '      <select name="category"></select>' +
     '    </div> ' +
-    '    <div>${ImportedTextureWizardStepsPanel.creatorLabel.text}</div> ' +
+    '    <div>@{ImportedTextureWizardStepsPanel.creatorLabel.text}</div> ' +
     '    <div>' +
     '      <input type="text" name="creator" />' +
     '    </div> ' +
@@ -1634,13 +1634,13 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         viewFactory,
         controller,
         preferences,
-      '${ImportedTextureWizardStepsPanel.reduceImageSize.title}',
+      '@{ImportedTextureWizardStepsPanel.reduceImageSize.title}',
       stepsView.getLocalizedLabelText(
         'ImportedTextureWizardStepsPanel', 'reduceImageSize.message', [image.width, image.height, reducedWidth, reducedHeight]
       ),
-      '${ImportedTextureWizardStepsPanel.reduceImageSize.cancel}',
-      '${ImportedTextureWizardStepsPanel.reduceImageSize.keepUnchanged}',
-      '${ImportedTextureWizardStepsPanel.reduceImageSize.reduceSize}',
+      '@{ImportedTextureWizardStepsPanel.reduceImageSize.cancel}',
+      '@{ImportedTextureWizardStepsPanel.reduceImageSize.keepUnchanged}',
+      '@{ImportedTextureWizardStepsPanel.reduceImageSize.reduceSize}',
       function onResizeRequested() {
         ImageTools.resize(image, reducedWidth, reducedHeight, callback, imageType);
       },
@@ -1742,7 +1742,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   }
 
   return new JSDialogView(viewFactory, preferences, 
-    '${UserPreferencesPanel.preferences.title}', 
+    '@{UserPreferencesPanel.preferences.title}', 
     document.getElementById("user-preferences-dialog-template"), {
       initializer: function(dialog) {
 
@@ -2143,7 +2143,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
   var viewFactory = this;
 
   return new JSDialogView(viewFactory, preferences,
-      '${LevelPanel.level.title}',
+      '@{LevelPanel.level.title}',
       document.getElementById("level-dialog-template"), {
         size: 'small',
         initializer: function (dialog) {
@@ -2345,7 +2345,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       this, 
       viewFactory, 
       preferences, 
-      '${HomeFurniturePanel.homeFurniture.title}', 
+      '@{HomeFurniturePanel.homeFurniture.title}', 
       document.getElementById("home-furniture-dialog-template"),
       {
         initializer: function(dialog) {
@@ -3464,7 +3464,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
   }
 
   return new JSDialogView(viewFactory, preferences,
-    '${WallPanel.wall.title}', 
+    '@{WallPanel.wall.title}', 
     document.getElementById("wall-dialog-template"), {
       initializer: function(dialog) {
 
@@ -3751,7 +3751,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   }
 
   return new JSDialogView(viewFactory, preferences, 
-    '${RoomPanel.room.title}', 
+    '@{RoomPanel.room.title}', 
     document.getElementById("room-dialog-template"), {
       initializer: function(dialog) {
         var behavior = this;
@@ -4043,7 +4043,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
   }
 
   return new JSDialogView(viewFactory, preferences, 
-    '${PolylinePanel.polyline.title}', 
+    '@{PolylinePanel.polyline.title}', 
     document.getElementById("polyline-dialog-template"), {
       size: 'small',
       initializer: function(dialog) {
@@ -4106,7 +4106,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
   var viewFactory = this;
 
   return new JSDialogView(viewFactory, preferences, 
-    '${LabelPanel.labelModification.title}', 
+    '@{LabelPanel.labelModification.title}', 
     document.getElementById("label-dialog-template"), {
       initializer: function(dialog) {
 
@@ -4251,7 +4251,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
         this,
         viewFactory,
         preferences,
-        '${CompassPanel.compass.title}',
+        '@{CompassPanel.compass.title}',
         document.getElementById("compass-dialog-template"),
         {
           size: 'medium',
@@ -4451,7 +4451,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
         this,
         viewFactory,
         preferences,
-        '${ObserverCameraPanel.observerCamera.title}',
+        '@{ObserverCameraPanel.observerCamera.title}',
         document.getElementById("observer-camera-dialog-template"),
         {
           initializer: function (dialog) {
@@ -4615,7 +4615,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
         this,
         viewFactory,
         preferences,
-        '${Home3DAttributesPanel.home3DAttributes.title}',
+        '@{Home3DAttributesPanel.home3DAttributes.title}',
         document.getElementById("home-3Dattributes-dialog-template"),
         {
           size: 'small',
@@ -4818,20 +4818,20 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       '  <div class="whole-line">' +
       '    <label>' +
       '      <input name="baseboard-visible-checkbox" type="checkbox"/>' +
-      '      ${BaseboardChoiceComponent.visibleCheckBox.text}' +
+      '      @{BaseboardChoiceComponent.visibleCheckBox.text}' +
       '    </label>' +
       '  </div>' +
       '' +
       '  <div class="whole-line">' +
       '    <label>' +
       '      <input type="radio" name="baseboard-color-and-texture-choice" value="sameColorAsWall"/>' +
-      '      ${BaseboardChoiceComponent.sameColorAsWallRadioButton.text}' +
+      '      @{BaseboardChoiceComponent.sameColorAsWallRadioButton.text}' +
       '    </label>' +
       '  </div>' +
       '  <div>' +
       '    <label>' +
       '      <input type="radio" name="baseboard-color-and-texture-choice" value="COLORED">' +
-      '        ${BaseboardChoiceComponent.colorRadioButton.text}' +
+      '        @{BaseboardChoiceComponent.colorRadioButton.text}' +
       '    </label>' +
       '  </div>' +
       '  <div data-name="baseboard-color-selector-button"></div>' +
@@ -4839,7 +4839,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       '  <div>' +
       '    <label>' +
       '      <input type="radio" name="baseboard-color-and-texture-choice" value="TEXTURED">' +
-      '        ${BaseboardChoiceComponent.textureRadioButton.text}' +
+      '        @{BaseboardChoiceComponent.textureRadioButton.text}' +
       '    </label>' +
       '  </div>' +
       '  <div data-name="baseboard-texture-selector-button"></div>' +

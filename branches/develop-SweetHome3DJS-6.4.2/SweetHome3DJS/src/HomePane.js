@@ -2403,8 +2403,8 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
         this,
         viewFactory,
         pane.preferences,
-        '${HomePane.showDeletedCamerasDialog.title}',
-        '<div>${HomePane.confirmDeleteCameras.message}</div>',
+        '@{HomePane.showDeletedCamerasDialog.title}',
+        '<div>@{HomePane.confirmDeleteCameras.message}</div>',
         {
           initializer: function(dialog) {},
           applier: function(dialog) {
@@ -2418,8 +2418,8 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
 
   JSConfirmDeleteCamerasDialog.prototype.appendButtons = function(buttonsPanel) {
     buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
-        '<button class="dialog-cancel-button">${HomePane.confirmDeleteCameras.cancel}</button>' +
-        '<button class="dialog-ok-button">${HomePane.confirmDeleteCameras.delete}</button>'
+        '<button class="dialog-cancel-button">@{HomePane.confirmDeleteCameras.cancel}</button>' +
+        '<button class="dialog-ok-button">@{HomePane.confirmDeleteCameras.delete}</button>'
     );
 
     var confirmDialog = this;
@@ -2433,7 +2433,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
     });
   };
 
-  var html = '<div>${HomePane.showDeletedCamerasDialog.message}</div><br />';
+  var html = '<div>@{HomePane.showDeletedCamerasDialog.message}</div><br />';
   for (var i = 0; i < storedCameras.length; i++) {
     html += '<div><label><input type="checkbox" value="' + i + '" />' + storedCameras[i].getName() + '</label></div>';
   }
@@ -2443,7 +2443,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
       this,
       viewFactory,
       pane.preferences,
-      '${HomePane.showDeletedCamerasDialog.title}',
+      '@{HomePane.showDeletedCamerasDialog.title}',
       html,
       {
         initializer: function(dialog) {},
