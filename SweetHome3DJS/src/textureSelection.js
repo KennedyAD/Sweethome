@@ -71,26 +71,26 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '      <div></div>' + 
     '    </div>' + 
     '    <div class="selected-texture-config label-input-grid">' +
-    '      <div>${TextureChoiceComponent.xOffsetLabel.text}</div>' + 
+    '      <div>@{TextureChoiceComponent.xOffsetLabel.text}</div>' + 
     '      <div><span data-name="selected-texture-offset-x" /></div>' +
-    '      <div>${TextureChoiceComponent.yOffsetLabel.text}</div>' + 
+    '      <div>@{TextureChoiceComponent.yOffsetLabel.text}</div>' + 
     '      <div><span data-name="selected-texture-offset-y" /></div>' +
-    '      <div>${TextureChoiceComponent.angleLabel.text}</div>' + 
+    '      <div>@{TextureChoiceComponent.angleLabel.text}</div>' + 
     '      <div><span data-name="selected-texture-angle" /></div>' +
-    '      <div>${TextureChoiceComponent.scaleLabel.text}</div>' + 
+    '      <div>@{TextureChoiceComponent.scaleLabel.text}</div>' + 
     '      <div><span data-name="selected-texture-scale" /></div>' +
     '    </div>' + 
     '    <hr />' +
     '    <div class="imported-textures-panel">' +
-    '      <div><button import>${TextureChoiceComponent.importTextureButton.text}</button></div>' +  
-    '      <div><button disabled modify>${TextureChoiceComponent.modifyTextureButton.text}</button></div>' +
-    '      <div><button disabled delete>${TextureChoiceComponent.deleteTextureButton.text}</button></div>' +  
+    '      <div><button import>@{TextureChoiceComponent.importTextureButton.text}</button></div>' +  
+    '      <div><button disabled modify>@{TextureChoiceComponent.modifyTextureButton.text}</button></div>' +
+    '      <div><button disabled delete>@{TextureChoiceComponent.deleteTextureButton.text}</button></div>' +  
     '    </div>' +  
     '  </div>' + 
     '</div>' +
     '<div class="recent-textures"></div>';
 
-  JSDialogView.call(this, viewFactory, preferences, '${HomeFurnitureController.textureTitle}', html, {
+  JSDialogView.call(this, viewFactory, preferences, '@{HomeFurnitureController.textureTitle}', html, {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('texture-selector-dialog');
       

@@ -44,35 +44,35 @@ function JSModelMaterialsSelectorDialog(viewFactory, preferences, controller, op
   var html = 
     '<div class="columns-2">' +
     '  <div class="column1" data-name="preview-panel">' +
-    '    <span>${ModelMaterialsComponent.previewLabel.text}</span><br/>' +
+    '    <span>@{ModelMaterialsComponent.previewLabel.text}</span><br/>' +
     '    <canvas id="model-preview-canvas"></canvas>' +
     '  </div>' + 
     '  <div class="column2" data-name="edit-panel">' +
     '    <div>' +
-    '      <span>${ModelMaterialsComponent.materialsLabel.text}</span><br/>' +
+    '      <span>@{ModelMaterialsComponent.materialsLabel.text}</span><br/>' +
     '      <div data-name="materials-list">' +
     '      </div>' +
     '    </div>' +
     '    <div class="color-texture-shininess-panel">' +
-    '      <span>${ModelMaterialsComponent.colorAndTextureLabel.text}</span><br/>' +
+    '      <span>@{ModelMaterialsComponent.colorAndTextureLabel.text}</span><br/>' +
     '      <div class="label-input-grid">' +
-    '        <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="DEFAULT">${ModelMaterialsComponent.defaultColorAndTextureRadioButton.text}</label>' +
-    '        <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="INVISIBLE">${ModelMaterialsComponent.invisibleRadioButton.text}</label>' +
-    '        <label><input type="radio" name="color-and-texture-checkbox" value="COLOR">${ModelMaterialsComponent.colorRadioButton.text}</label>' +
+    '        <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="DEFAULT">@{ModelMaterialsComponent.defaultColorAndTextureRadioButton.text}</label>' +
+    '        <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="INVISIBLE">@{ModelMaterialsComponent.invisibleRadioButton.text}</label>' +
+    '        <label><input type="radio" name="color-and-texture-checkbox" value="COLOR">@{ModelMaterialsComponent.colorRadioButton.text}</label>' +
     '        <span data-name="color-selector-button"></span>' +
-    '        <label><input type="radio" name="color-and-texture-checkbox" value="TEXTURE">${ModelMaterialsComponent.textureRadioButton.text}</label>' +
+    '        <label><input type="radio" name="color-and-texture-checkbox" value="TEXTURE">@{ModelMaterialsComponent.textureRadioButton.text}</label>' +
     '        <span data-name="texture-selector-button"></span>' +
     '      </div>' +
     '      <br />' +
-    '      <span>${ModelMaterialsComponent.shininessLabel.text}</span><br/>' +
+    '      <span>@{ModelMaterialsComponent.shininessLabel.text}</span><br/>' +
     '      <input type="range" name="shininess-slider" min="0" max="128" list="model-materials-shininess-list" /> ' +
     '      <datalist id="model-materials-shininess-list"></datalist> ' +
-    '      <div class="slider-labels"><div>${ModelMaterialsComponent.mattLabel.text}</div><div>${ModelMaterialsComponent.shinyLabel.text}</div></div>' +
+    '      <div class="slider-labels"><div>@{ModelMaterialsComponent.mattLabel.text}</div><div>@{ModelMaterialsComponent.shinyLabel.text}</div></div>' +
     '    </div>' +
     '  </div>' +
     '</div>';
 
-  JSDialogView.call(this, viewFactory, preferences, '${HomeFurnitureController.modelMaterialsTitle}', html, {
+  JSDialogView.call(this, viewFactory, preferences, '@{HomeFurnitureController.modelMaterialsTitle}', html, {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('model-materials-selector-dialog');
 

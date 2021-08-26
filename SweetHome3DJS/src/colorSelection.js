@@ -213,7 +213,7 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
     '<div>' + 
     '  <div data-name="color-selector"></div>' + 
     '</div>'
-  JSDialogView.call(this, viewFactory, preferences, '${HomeFurniturePanel.colorDialog.title}', html, {
+  JSDialogView.call(this, viewFactory, preferences, '@{HomeFurniturePanel.colorDialog.title}', html, {
     initializer: function(dialog) {
       dialog.getRootNode().classList.add('color-selector-dialog');
       dialog.getRootNode().classList.add('small');
