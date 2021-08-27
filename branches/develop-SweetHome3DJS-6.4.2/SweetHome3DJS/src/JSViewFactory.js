@@ -1742,7 +1742,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   }
 
   return new JSDialogView(viewFactory, preferences, 
-    '@{UserPreferencesPanel.preferences.title}', 
+    "@{UserPreferencesPanel.preferences.title}", 
     document.getElementById("user-preferences-dialog-template"), {
       initializer: function(dialog) {
 
@@ -1756,12 +1756,34 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
             var languageDisplayName = languageCode;
             try {
               languageDisplayName = new Intl.DisplayNames([languageCode, 'en'], { type: 'language' }).of(languageCode);
-            } catch (e) {
-              console.warn('cannot find ' + languageCode + ' display name - ' + e); 
+              languageDisplayName = languageDisplayName.charAt(0).toUpperCase() + languageDisplayName.slice(1);
+            } catch (ex) {
+              languageDisplayName = {"bg": "Български",
+                                     "cs": "Čeština",
+                                     "de": "Deutsch",
+                                     "el": "Ελληνικά",
+                                     "en": "English",
+                                     "es": "Español",
+                                     "fr": "Français",
+                                     "it": "Italiano",
+                                     "ja": "日本語",
+                                     "hu": "Magyar",
+                                     "nl": "Nederlands",
+                                     "pl": "Polski",
+                                     "pt": "Português",
+                                     "ru": "Русский",
+                                     "sv": "Svenska",
+                                     "vi": "Tiếng Việt",
+                                     "zh-CN": "中文（中国）",
+                                     "zh-TW": "中文（台灣）"} [languageCode];
+              if (languageDisplayName === undefined) {
+                languageDisplayName = languageCode;
+                console.log("Unknown display name for " + languageCode);
+              }
             }
 
             var selected = languageCode == controller.getLanguage();
-            var languageOption = createOptionElement(languageCode, CoreTools.capitalize(languageDisplayName), selected);
+            var languageOption = createOptionElement(languageCode, languageDisplayName, selected);
             dialog.languageSelect.appendChild(languageOption);
           }
         } else {
@@ -1860,7 +1882,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         /** FURNITURE CATALOG VIEW */
         dialog.furnitureCatalogViewTreeRadio = dialog.findElement('[name="furniture-catalog-view-radio"][value="tree"]');
         var furnitureCatalogViewEnabled = controller.isPropertyEditable('FURNITURE_CATALOG_VIEWED_IN_TREE');
-        if (furnitureCatalogViewEnabled) {
+        if (furnitureCatalogViewEnabled && false) {
           var selectedFurnitureCatalogView = controller.isFurnitureCatalogViewedInTree() ? 'tree' : 'list';
           dialog.findElement('[name="furniture-catalog-view-radio"][value="' + selectedFurnitureCatalogView + '"]').checked = true;
         } else {
@@ -1906,7 +1928,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         /** RULERS */
         var rulersEnabled = controller.isPropertyEditable('RULERS_VISIBLE');
         dialog.rulersCheckbox = dialog.getElement('rulers-checkbox');
-        if (rulersEnabled) {
+        if (rulersEnabled && false) {
           dialog.rulersCheckbox.checked = controller.isRulersVisible();
         } else {
           disablePreferenceRow(dialog.rulersCheckbox);

@@ -112,15 +112,6 @@ CoreTools.removeAccents = function(string) {
 }
 
 /**
- * Returns the capitalized string of the given string (first letter upper case).
- * @param {string} string input string
- * @return input string with first letter upper case
- */
-CoreTools.capitalize = function(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-/**
  * Returns resource bundles loaded from a given base URL and a given language.
  * @param baseURL the base URL of the localized resource to be loaded
  * @param language the language to be loaded (Java conventions)
