@@ -51,11 +51,11 @@ function JSComponentView(viewFactory, preferences, template, behavior) {
   if (template instanceof HTMLElement && behavior.useElementAsRootNode === true) {
     this.rootNode = template;
   } else {
-    var html = '';
+    var html = "";
     if (template != null) {
-      html = typeof template == 'string' ? template : template.innerHTML;
+      html = typeof template == "string" ? template : template.innerHTML;
     }
-    this.rootNode = document.createElement('div');
+    this.rootNode = document.createElement("div");
     this.rootNode.innerHTML = this.buildHtmlFromTemplate(html);
   }
 
@@ -153,11 +153,12 @@ JSComponentView.prototype.registerEventListener = function(elements, eventName, 
     var element = elements[j];
     element.addEventListener(eventName, listener, true);
   }
-  this.listeners.push({
-    listener: listener,
-    eventName: eventName,
-    elements: elements
-  });
+  this.listeners.push(
+      {
+        listener: listener,
+        eventName: eventName,
+        elements: elements
+      });
 }
 
 /**
@@ -178,13 +179,13 @@ JSComponentView.prototype.unregisterEventListeners = function() {
 
 /**
  * Returns the named element that corresponds to the given name within this component.
- * A named element shall define the 'name' attribute (for instance an input), or
- * a 'data-name' attribute if the name attribue is not supported.
+ * A named element shall define the "name" attribute (for instance an input), or
+ * a "data-name" attribute if the name attribue is not supported.
  */
 JSComponentView.prototype.getElement = function(name) {
-  var element = this.rootNode.querySelector('[name="' + name + '"]');
+  var element = this.rootNode.querySelector("[name='" + name + "']");
   if (element == null) {
-    element = this.rootNode.querySelector('[data-name="' + name + '"]');
+    element = this.rootNode.querySelector("[data-name='" + name + "']");
   }
   return element;
 }
@@ -222,7 +223,7 @@ JSComponentView.prototype.initialize = function() {
  */
 JSComponentView.prototype.dispose = function() {
   this.unregisterEventListeners();
-  if (typeof this.disposer == 'function') {
+  if (typeof this.disposer == "function") {
     this.disposer(this);
   }
 };
@@ -274,7 +275,7 @@ JSComponentView.prototype.getLengthInputStepSize = function() {
  * @return {HTMLOptionElement}
  */
 JSComponentView.createOptionElement = function(value, text, selected) {
-  var option = document.createElement('option');
+  var option = document.createElement("option");
   option.value = value;
   option.textContent = text;
   if (selected !== undefined) {
@@ -294,7 +295,7 @@ JSComponentView.createOptionElement = function(value, text, selected) {
  * @param {string} title the dialog's title (may contain HTML)
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
- * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView), size?: 'small'|'medium'|'default'}} [behavior]
+ * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView), size?: "small"|"medium"|"default"}} [behavior]
  * - initializer: an optional initialization function
  * - applier: an optional dialog application function
  * - disposer: an optional dialog function to release associated resources, listeners, ...
@@ -310,7 +311,7 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
 
   JSComponentView.call(this, viewFactory, preferences, template, behavior);
 
-  this.rootNode.classList.add('dialog-container', behavior.size);
+  this.rootNode.classList.add("dialog-container", behavior.size);
   this.rootNode._dialogInstance = this;
 
   document.body.appendChild(this.rootNode);
@@ -319,11 +320,11 @@ function JSDialogView(viewFactory, preferences, title, template, behavior) {
     this.setTitle(title);
   }
 
-  this.getCloseButton().addEventListener('click', function() {
+  this.getCloseButton().addEventListener("click", function() {
     dialog.cancel();
   });
 
-  this.buttonsPanel = this.findElement('.dialog-buttons');
+  this.buttonsPanel = this.findElement(".dialog-buttons");
   this.appendButtons(this.buttonsPanel);
 }
 JSDialogView.prototype = Object.create(JSComponentView.prototype);
@@ -346,17 +347,17 @@ JSDialogView.prototype.appendButtons = function(buttonsPanel) {
 
   var dialog = this;
 
-  var cancelButton = this.findElement('.dialog-cancel-button');
+  var cancelButton = this.findElement(".dialog-cancel-button");
   if (cancelButton) {
-    this.registerEventListener(cancelButton, 'click', function() {
-      dialog.cancel();
-    });
+    this.registerEventListener(cancelButton, "click", function(ev) {
+        dialog.cancel();
+      });
   }
-  var okButton = this.findElement('.dialog-ok-button');
+  var okButton = this.findElement(".dialog-ok-button");
   if (okButton) {
-    this.registerEventListener(okButton, 'click', function() {
-      dialog.validate();
-    });
+    this.registerEventListener(okButton, "click", function(ev) {
+        dialog.validate();
+      });
   }
 };
 
@@ -377,7 +378,7 @@ JSDialogView.closeTopMostDialogIfAny = function() {
  * @static
  */
 JSDialogView.getTopMostDialog = function() {
-  var visibleDialogElements = document.querySelectorAll('.dialog-container.visible');
+  var visibleDialogElements = document.querySelectorAll(".dialog-container.visible");
   if (visibleDialogElements.length > 0) {
     /** @type JSDialogView */
     var topMostDialog = null;
@@ -410,14 +411,14 @@ JSDialogView.prototype.buildHtmlFromTemplate = function(templateHtml) {
  * Returns the input that corresponds to the given name within this dialog.
  */
 JSDialogView.prototype.getInput = function(name) {
-  return this.rootNode.querySelector('[name="' + name + '"]');
+  return this.rootNode.querySelector("[name='" + name + "']");
 }
 
 /**
  * Returns the close button of this dialog.
  */
 JSDialogView.prototype.getCloseButton = function() {
-  return this.rootNode.querySelector('.dialog-close-button');
+  return this.rootNode.querySelector(".dialog-close-button");
 }
 
 /**
@@ -451,16 +452,16 @@ JSDialogView.prototype.cancel = function() {
  * Closes the dialog and discard the associated DOM.
  */
 JSDialogView.prototype.close = function() {
-  this.rootNode.classList.add('closing');
+  this.rootNode.classList.add("closing");
   var dialog = this;
   // Let 500ms before releasing the dialog so that the closing animation can apply
   setTimeout(function() {
-    dialog.rootNode.classList.remove('visible');
-    dialog.dispose();
-    if (dialog.rootNode && document.body.contains(dialog.rootNode)) {
-      document.body.removeChild(dialog.rootNode);
-    }
-  }, 500);
+      dialog.rootNode.classList.remove("visible");
+      dialog.dispose();
+      if (dialog.rootNode && document.body.contains(dialog.rootNode)) {
+        document.body.removeChild(dialog.rootNode);
+      }
+    }, 500);
 }
 
 /**
@@ -475,15 +476,15 @@ JSDialogView.prototype.dispose = function() {
  * @param {string} title
  */
 JSDialogView.prototype.setTitle = function(title) {
-  var titleElement = this.findElement('.dialog-top .title');
-  titleElement.textContent = JSComponentView.substituteWithLocale(this.preferences, title || '');
+  var titleElement = this.findElement(".dialog-top .title");
+  titleElement.textContent = JSComponentView.substituteWithLocale(this.preferences, title || "");
 };
 
 /**
  * @return {boolean} true if this dialog is currently shown, false otherwise
  */
 JSDialogView.prototype.isDisplayed = function() {
-  return this.getRootNode().classList.contains('visible');
+  return this.getRootNode().classList.contains("visible");
 }
 
 /**
@@ -492,11 +493,11 @@ JSDialogView.prototype.isDisplayed = function() {
 JSDialogView.prototype.displayView = function(parentView) {
   var dialog = this;
 
-  this.getRootNode().style.display = 'block';
+  this.getRootNode().style.display = "block";
 
   // force browser to refresh before adding visible class to allow transition on width and height
   setTimeout(function() {
-    dialog.rootNode.classList.add('visible');
+    dialog.rootNode.classList.add("visible");
     dialog.displayIndex = JSDialogView.shownDialogsCounter++;
   }, 100);
 }
@@ -507,8 +508,7 @@ JSDialogView.shownDialogsCounter = 0;
 /*****************************************/
 
 /**
- * A class to create dialogs.
- *
+ * A class to create wizard dialogs.
  * @param {UserPreferences} preferences the current user preferences
  * @param {WizardController} controller wizard's controller
  * @param {string} title the dialog's title (may contain HTML)
@@ -524,30 +524,26 @@ JSDialogView.shownDialogsCounter = 0;
 function JSWizardDialog(viewFactory, controller, preferences, title, behavior) {
   this.controller = controller;
 
-  JSDialogView.call(
-    this,
-    viewFactory,
-    preferences,
-    title,
+  JSDialogView.call(this, viewFactory, preferences, title,
     '<div class="wizard">' +
     '  <div stepIcon></div>' +
     '  <div stepView></div>' +
     '</div>',
     behavior);
 
-  this.stepIconPanel = this.findElement('[stepIcon]');
-  this.stepViewPanel = this.findElement('[stepView]');
+  this.stepIconPanel = this.findElement("[stepIcon]");
+  this.stepViewPanel = this.findElement("[stepView]");
 
   var dialog = this;
   this.updateStepView();
-  this.controller.addPropertyChangeListener('STEP_VIEW', function() {
-    dialog.updateStepView();
-  });
+  this.controller.addPropertyChangeListener("STEP_VIEW", function(ev) {
+      dialog.updateStepView();
+    });
 
   this.updateStepIcon();
-  this.controller.addPropertyChangeListener('STEP_ICON', function() {
-    dialog.updateStepIcon();
-  });
+  this.controller.addPropertyChangeListener("STEP_ICON", function(ev) {
+      dialog.updateStepIcon();
+    });
 }
 JSWizardDialog.prototype = Object.create(JSDialogView.prototype);
 JSWizardDialog.prototype.constructor = JSWizardDialog;
@@ -567,44 +563,44 @@ JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
     '</div>'
   );
 
-  this.cancelButton = this.findElement('.wizard-cancel-button');
-  this.backButton = this.findElement('.wizard-back-button');
-  this.nextButton = this.findElement('.wizard-next-button');
+  this.cancelButton = this.findElement(".wizard-cancel-button");
+  this.backButton = this.findElement(".wizard-back-button");
+  this.nextButton = this.findElement(".wizard-next-button");
 
   var dialog = this;
   var controller = this.controller;
-  this.registerEventListener(this.cancelButton, 'click', function() {
-    dialog.cancel();
-  });
+  this.registerEventListener(this.cancelButton, "click", function(ev) {
+      dialog.cancel();
+    });
 
   this.backButton.disabled = !controller.isBackStepEnabled();
-  controller.addPropertyChangeListener('BACK_STEP_ENABLED', function(event) {
-    dialog.backButton.disabled = !controller.isBackStepEnabled();
-  });
+  controller.addPropertyChangeListener("BACK_STEP_ENABLED", function(ev) {
+      dialog.backButton.disabled = !controller.isBackStepEnabled();
+    });
 
   this.nextButton.disabled = !controller.isNextStepEnabled();
-  controller.addPropertyChangeListener('NEXT_STEP_ENABLED', function(event) {
-    dialog.nextButton.disabled = !controller.isNextStepEnabled();
-  });
+  controller.addPropertyChangeListener("NEXT_STEP_ENABLED", function(ev) {
+      dialog.nextButton.disabled = !controller.isNextStepEnabled();
+    });
 
   this.updateNextButtonText();
-  controller.addPropertyChangeListener('LAST_STEP', function(event) {
-    dialog.updateNextButtonText();
-  });
+  controller.addPropertyChangeListener("LAST_STEP", function(ev) {
+      dialog.updateNextButtonText();
+    });
 
-  this.registerEventListener(this.backButton, 'click', function() {
-    controller.goBackToPreviousStep();
-  });
-  this.registerEventListener(this.nextButton, 'click', function() {
-    if (controller.isLastStep()) {
-      controller.finish();
-      if (dialog != null) {
-        dialog.validate();
+  this.registerEventListener(this.backButton, "click", function(ev) {
+      controller.goBackToPreviousStep();
+    });
+  this.registerEventListener(this.nextButton, "click", function(ev) {
+      if (controller.isLastStep()) {
+        controller.finish();
+        if (dialog != null) {
+          dialog.validate();
+        }
+      } else {
+        controller.goToNextStep();
       }
-    } else {
-      controller.goToNextStep();
-    }
-  });
+    });
 };
 
 /**
@@ -613,7 +609,7 @@ JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
  */
 JSWizardDialog.prototype.updateNextButtonText = function() {
   this.nextButton.innerText = this.getLocalizedLabelText(
-    'WizardPane',
+    "WizardPane",
     this.controller.isLastStep()
       ? "finishOptionButton.text"
       : "nextOptionButton.text"
@@ -626,7 +622,7 @@ JSWizardDialog.prototype.updateNextButtonText = function() {
  */
 JSWizardDialog.prototype.updateStepView = function() {
   var stepView = this.controller.getStepView();
-  this.stepViewPanel.innerHTML = '';
+  this.stepViewPanel.innerHTML = "";
   this.stepViewPanel.appendChild(stepView.getRootNode());
 }
 
@@ -635,16 +631,16 @@ JSWizardDialog.prototype.updateStepView = function() {
  * @private
  */
 JSWizardDialog.prototype.updateStepIcon = function() {
-  this.stepIconPanel.innerHTML = '';
+  this.stepIconPanel.innerHTML = "";
   // Add new icon
   var stepIcon = this.controller.getStepIcon();
   if (stepIcon != null) {
-    var backgroundColor1 = 'rgb(163, 168, 226)';
-    var backgroundColor2 = 'rgb(80, 86, 158)';
+    var backgroundColor1 = "rgb(163, 168, 226)";
+    var backgroundColor2 = "rgb(80, 86, 158)";
     try {
       // Read gradient colors used to paint icon background
       var stepIconBackgroundColors = this.getLocalizedLabelText(
-        'WizardPane', 'stepIconBackgroundColors').trim().split(" ");
+        "WizardPane", "stepIconBackgroundColors").trim().split(" ");
       backgroundColor1 = parseInt(stepIconBackgroundColors[0]) || backgroundColor1;
       if (stepIconBackgroundColors.length == 1) {
         backgroundColor2 = backgroundColor1;
@@ -657,7 +653,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
 
     var gradientColor1 = backgroundColor1;
     var gradientColor2 = backgroundColor2;
-    var cssBackground = 'linear-gradient(180deg, ' + gradientColor1 + ' 0%, ' + gradientColor2 + ' 100%)';
+    var cssBackground = "linear-gradient(180deg, " + gradientColor1 + " 0%, " + gradientColor2 + " 100%)";
     this.stepIconPanel.innerHTML = '<img src="lib/' + stepIcon + '" style="background: ' + cssBackground + '; border: solid 1px #333333;" />';
   }
 }
@@ -668,22 +664,19 @@ JSWizardDialog.prototype.updateStepIcon = function() {
 
 /**
  * A class to create a context menu.
- *
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
- * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. Cannot be null for now
- * for the root node)
+ * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. 
+ *        Cannot be null for now for the root node
  * @param {{build: function(JSContextMenu.Builder, HTMLElement)}} behavior
- * > build: called with a builder, and optionnally with source element (which was right clicked, to show this menu)
- *
+ *   > build: called with a builder, and optionnally with source element (which was right clicked, to show this menu)
  * @constructor
- *
  * @author Louis Grignon
  * @author Renaud Pawlak
  */
 function JSContextMenu(preferences, sourceElements, behavior) {
   if (sourceElements == null || sourceElements.length === 0) {
-    throw new Error('cannot register a context menu on an empty list of elements');
+    throw new Error("Cannot register a context menu on an empty list of elements");
   }
   this.sourceElements = sourceElements;
   if (!Array.isArray(sourceElements)) {
@@ -692,33 +685,30 @@ function JSContextMenu(preferences, sourceElements, behavior) {
 
   this.build = behavior.build;
 
-  JSComponentView.call(this, undefined, preferences, '', behavior);
-  this.getRootNode().classList.add('context-menu');
+  JSComponentView.call(this, undefined, preferences, "", behavior);
+  this.getRootNode().classList.add("context-menu");
 
   document.body.appendChild(this.getRootNode());
 
   var contextMenu = this;
-  this.registerEventListener(sourceElements, 'contextmenu', function(event) {
-    event.preventDefault();
-
-    if (JSContextMenu.current != null) {
-      JSContextMenu.current.close();
-    }
-
-    contextMenu.showForSourceElement(this, event);
-  });
+  this.registerEventListener(sourceElements, "contextmenu", function(ev) {
+      ev.preventDefault();
+      if (JSContextMenu.current != null) {
+        JSContextMenu.current.close();
+      }
+      contextMenu.showForSourceElement(this, ev);
+    });
 
 }
 JSContextMenu.prototype = Object.create(JSComponentView.prototype);
 JSContextMenu.prototype.constructor = JSContextMenu;
 
 /**
- * close currently displayed context menu if any
+ * Closes currently displayed context menu if any.
  * @static
  */
 JSContextMenu.closeCurrentIfAny = function() {
   if (JSContextMenu.current != null) {
-    console.debug('closing context menu');
     JSContextMenu.current.close();
     return true;
   }
@@ -727,11 +717,10 @@ JSContextMenu.closeCurrentIfAny = function() {
 
 /**
  * @param {HTMLElement} sourceElement
- * @param {Event} event
- *
+ * @param {Event} ev
  * @private
  */
-JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
+JSContextMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   this.listenerUnregisterCallbacks = [];
 
   var builder = new JSContextMenu.Builder();
@@ -747,26 +736,26 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
   this.getRootNode().appendChild(menuElement);
 
   // we temporarily use hidden visibility to get element's height
-  this.getRootNode().style.visibility = 'hidden';
-  this.getRootNode().classList.add('visible');
+  this.getRootNode().style.visibility = "hidden";
+  this.getRootNode().classList.add("visible");
 
   // adjust top/left and display
-  var anchorX = event.clientX;
+  var anchorX = ev.clientX;
   if (menuElement.clientWidth > window.innerWidth) {
     anchorX = 0;
   } else if (anchorX + menuElement.clientWidth > window.innerWidth) {
     anchorX = window.innerWidth - menuElement.clientWidth;
   }
-  var anchorY = event.clientY;
+  var anchorY = ev.clientY;
   if (menuElement.clientHeight > window.innerHeight) {
     anchorY = 0;
   } else if (anchorY + menuElement.clientHeight > window.innerHeight) {
     anchorY = window.innerHeight - menuElement.clientHeight;
   }
 
-  this.getRootNode().style.visibility = 'visible';
-  this.getRootNode().style.left = anchorX + 'px';
-  this.getRootNode().style.top = anchorY + 'px';
+  this.getRootNode().style.visibility = "visible";
+  this.getRootNode().style.left = anchorX + "px";
+  this.getRootNode().style.top = anchorY + "px";
 
   JSContextMenu.current = this;
 };
@@ -778,28 +767,28 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, event) {
  */
 JSContextMenu.prototype.createMenuElement = function(items) {
 
-  var menuElement = document.createElement('ul');
-  menuElement.classList.add('items');
+  var menuElement = document.createElement("ul");
+  menuElement.classList.add("items");
 
-  var backElement = document.createElement('li');
-  backElement.classList.add('item', 'back');
-  backElement.textContent = 'X';
-  this.registerEventListener(backElement, 'click', function() {
-    var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != 'li';
-    if (isRootMenu) {
-      JSContextMenu.closeCurrentIfAny();
-    } else {
-      menuElement.classList.remove('visible');
-    }
-  });
+  var backElement = document.createElement("li");
+  backElement.classList.add("item", "back");
+  backElement.textContent = "X";
+  this.registerEventListener(backElement, "click", function(ev) {
+      var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != "li";
+      if (isRootMenu) {
+        JSContextMenu.closeCurrentIfAny();
+      } else {
+        menuElement.classList.remove("visible");
+      }
+    });
   menuElement.appendChild(backElement);
 
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
 
-    var itemElement = document.createElement('li');
+    var itemElement = document.createElement("li");
     if (item == CONTEXT_MENU_SEPARATOR_ITEM) {
-      itemElement.classList.add('separator');
+      itemElement.classList.add("separator");
     } else {
       this.initMenuItemElement(itemElement, item);
     }
@@ -823,68 +812,65 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
 
   if (item.mode !== undefined) {
     // Toggle action case
-    var toggle = document.createElement('input');
+    var toggle = document.createElement("input");
     toggle.type = item.mode;
     if (item.selected === true) {
-      toggle.checked = 'checked';
+      toggle.checked = "checked";
     }
     itemElement.appendChild(toggle);
   }
 
-  var itemIconElement = document.createElement('img');
+  var itemIconElement = document.createElement("img");
   if (item.iconPath != null && item.selected === undefined) {
     // Icons are not shown for toggle actions
     itemIconElement.src = item.iconPath;
-    itemIconElement.classList.add('visible');
+    itemIconElement.classList.add("visible");
   }
 
-  var itemLabelElement = document.createElement('span');
+  var itemLabelElement = document.createElement("span");
   itemLabelElement.textContent = JSComponentView.substituteWithLocale(this.preferences, item.label);
 
-  itemElement.classList.add('item');
-  itemElement.dataset['uid'] = item.uid;
+  itemElement.classList.add("item");
+  itemElement.dataset["uid"] = item.uid;
   itemElement.appendChild(itemIconElement);
   itemElement.appendChild(itemLabelElement);
   if (Array.isArray(item.subItems)) {
-    itemElement.classList.add('sub-menu');
+    itemElement.classList.add("sub-menu");
 
     var subMenuElement = this.createMenuElement(item.subItems);
-    this.registerEventListener(itemElement, 'click', function() {
-      subMenuElement.classList.add('visible');
-    });
-    this.registerEventListener(itemElement, 'mouseover', function() {
-
-      var itemRect = itemElement.getBoundingClientRect();
-      subMenuElement.style.position = 'fixed';
-      var anchorX = itemRect.left + itemElement.clientWidth;
-      if (subMenuElement.clientWidth > window.innerWidth) {
-        anchorX = 0;
-      } else if (anchorX + subMenuElement.clientWidth > window.innerWidth) {
-        anchorX = window.innerWidth - subMenuElement.clientWidth;
-      }
-      var anchorY = itemRect.top;
-      if (subMenuElement.clientHeight > window.innerHeight) {
-        anchorY = 0;
-      } else if (anchorY + subMenuElement.clientHeight > window.innerHeight) {
-        anchorY = window.innerHeight - subMenuElement.clientHeight;
-      }
-      subMenuElement.style.left = anchorX;
-      subMenuElement.style.top = anchorY;
-    });
+    this.registerEventListener(itemElement, "click", function(ev) {
+        subMenuElement.classList.add("visible");
+      });
+    this.registerEventListener(itemElement, "mouseover", function(ev) {
+        var itemRect = itemElement.getBoundingClientRect();
+        subMenuElement.style.position = "fixed";
+        var anchorX = itemRect.left + itemElement.clientWidth;
+        if (subMenuElement.clientWidth > window.innerWidth) {
+          anchorX = 0;
+        } else if (anchorX + subMenuElement.clientWidth > window.innerWidth) {
+          anchorX = window.innerWidth - subMenuElement.clientWidth;
+        }
+        var anchorY = itemRect.top;
+        if (subMenuElement.clientHeight > window.innerHeight) {
+          anchorY = 0;
+        } else if (anchorY + subMenuElement.clientHeight > window.innerHeight) {
+          anchorY = window.innerHeight - subMenuElement.clientHeight;
+        }
+        subMenuElement.style.left = anchorX;
+        subMenuElement.style.top = anchorY;
+      });
 
     itemElement.appendChild(subMenuElement);
   }
 
-  if (typeof item.onItemSelected == 'function') {
-
+  if (typeof item.onItemSelected == "function") {
     var listener = function() {
-      console.debug('context menu item selected - closing context menu', item);
-      item.onItemSelected();
-      contextMenu.close();
-    };
-    itemElement.addEventListener('click', listener);
+        item.onItemSelected();
+        contextMenu.close();
+      };
+    itemElement.addEventListener("click", listener);
     this.listenerUnregisterCallbacks.push(function() {
-      itemElement.removeEventListener('click', listener);
+      itemElement.removeEventListener("click", listener);
     });
   }
 };
@@ -893,7 +879,7 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
  * Closes the context menu.
  */
 JSContextMenu.prototype.close = function() {
-  this.getRootNode().classList.remove('visible');
+  this.getRootNode().classList.remove("visible");
   JSContextMenu.current = null;
 
   if (this.listenerUnregisterCallbacks) {
@@ -903,7 +889,7 @@ JSContextMenu.prototype.close = function() {
   }
 
   this.listenerUnregisterCallbacks = null;
-  this.getRootNode().innerHTML = '';
+  this.getRootNode().innerHTML = "";
 };
 
 /**
@@ -924,7 +910,7 @@ JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
  * @param {boolean} [checked]
  */
 JSContextMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
-  this.addNewItem(label, undefined, onItemSelected, checked === true, 'checkbox');
+  this.addNewItem(label, undefined, onItemSelected, checked === true, "checkbox");
 };
 
 /**
@@ -934,14 +920,14 @@ JSContextMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, c
  * @param {boolean} [checked]
  */
 JSContextMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, checked) {
-  this.addNewItem(label, undefined, onItemSelected, checked === true, 'radio');
+  this.addNewItem(label, undefined, onItemSelected, checked === true, "radio");
 };
 
 /**
  * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback.
  * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
- * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', 'myitem', function() { console.log('my item clicked') })
- * 3) builder.addItem('myitem', function() { console.log('my item clicked') })
+ * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', "myitem", function() { console.log('my item clicked') })
+ * 3) builder.addItem("myitem", function() { console.log('my item clicked') })
  *
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} [onItemSelectedCallbackOrLabel]
@@ -971,7 +957,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
 
     var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
     if (libIconPath != null) {
-      iconPath = 'lib/' + libIconPath;
+      iconPath = "lib/" + libIconPath;
     }
 
     if (action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP)) {
@@ -981,7 +967,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     onItemSelected = function() {
       action.actionPerformed();
     };
-  } else if (typeof onItemSelectedCallback == 'function') {
+  } else if (typeof onItemSelectedCallback == "function") {
     iconPath = actionOrIconPathOrLabel;
     label = onItemSelectedCallbackOrLabel;
     onItemSelected = onItemSelectedCallback;
@@ -990,7 +976,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
     onItemSelected = onItemSelectedCallbackOrLabel;
   }
 
-  this.addNewItem(label, iconPath, onItemSelected, selected, selected !== undefined ? 'radio' : undefined);
+  this.addNewItem(label, iconPath, onItemSelected, selected, selected !== undefined ? "radio" : undefined);
 
   return this;
 }
@@ -1001,7 +987,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
  * @param {string | undefined} [iconPath]
  * @param {function() | undefined} [onItemSelected]
  * @param {boolean | undefined} [selected]
- * @param {'radio' | 'checkbox' | undefined} [mode]
+ * @param {"radio" | "checkbox" | undefined} [mode]
  */
 JSContextMenu.Builder.prototype.addNewItem = function(
   label, iconPath, onItemSelected, selected, mode
@@ -1018,8 +1004,8 @@ JSContextMenu.Builder.prototype.addNewItem = function(
 
 /**
  * Adds a sub menu to this menu, with an optional icon.
- * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', 'myitem', function(builder) { builder.addItem(...) })`
- * 2) `builder.addSubMenu('myitem', function(builder) { builder.addItem(...) })`
+ * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', "myitem", function(builder) { builder.addItem(...) })`
+ * 2) `builder.addSubMenu("myitem", function(builder) { builder.addItem(...) })`
  *
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} labelOrbuildSubMenuCallback
@@ -1044,10 +1030,10 @@ JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, l
 
     var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
     if (libIconPath != null) {
-      iconPath = 'lib/' + libIconPath;
+      iconPath = "lib/" + libIconPath;
     }
     buildSubMenuCallback = labelOrbuildSubMenuCallback;
-  } else if (typeof buildSubMenuCallback == 'function') {
+  } else if (typeof buildSubMenuCallback == "function") {
     label = labelOrbuildSubMenuCallback;
     iconPath = actionOrIconPathOrLabel;
   } else {
@@ -1088,22 +1074,21 @@ JSContextMenu.Builder.prototype.addSeparator = function() {
 // Global initializations of the toolkit
 
 if (!JSContextMenu.globalCloserRegistered) {
-  document.addEventListener('click', function(event) {
+  document.addEventListener("click", function(ev) {
     if (JSContextMenu.current != null
-      && !JSComponentView.isElementContained(event.target, JSContextMenu.current.getRootNode())) {
-      // clicked outside menu
+      && !JSComponentView.isElementContained(ev.target, JSContextMenu.current.getRootNode())) {
+      // Clicked outside menu
       if (JSContextMenu.closeCurrentIfAny()) {
-        console.info("stop propagation of event");
-        event.stopPropagation();
-        event.preventDefault();
+        ev.stopPropagation();
+        ev.preventDefault();
       }
     }
   });
   JSContextMenu.globalCloserRegistered = true;
 }
 
-document.addEventListener('keyup', function(event) {
-  if (event.key == 'Escape' || event.keyCode == 27) {
+document.addEventListener("keyup", function(ev) {
+  if (ev.key == "Escape" || ev.keyCode == 27) {
     JSDialogView.closeTopMostDialogIfAny();
     JSContextMenu.closeCurrentIfAny();
   }
@@ -1131,22 +1116,29 @@ document.addEventListener('keyup', function(event) {
  *
  */
 function JSSpinner(viewFactory, preferences, input, options) {
-  if (input.tagName.toUpperCase() != 'SPAN') {
-    throw new Error('JSSpinner: please provide a span for the spinner to work - ' + input + ' is not a span');
+  if (input.tagName.toUpperCase() != "SPAN") {
+    throw new Error("JSSpinner: please provide a span for the spinner to work - " + input + " is not a span");
   }
 
   var rootElement = input;
-  if (!options) { options = {}; }
-  if (isNaN(parseFloat(options.step))) { options.step = 1; }
-  if (typeof options.nullable != 'boolean') { options.nullable = true; }
-  if (!(options.format instanceof Format)) { options.format = new DecimalFormat(); }
-
-  function checkMinMax(min, max) {
-    if (min != null && max != null && min >= max) {
-      throw new Error('JSSpinner: min is not below max - min=' + min + ' max=' + max);
-    }
+  if (!options) { 
+    options = {}; 
+  }
+  if (isNaN(parseFloat(options.step))) { 
+    options.step = 1; 
+  }
+  if (typeof options.nullable != "boolean") { 
+    options.nullable = false; 
+  }
+  if (!(options.format instanceof Format)) { 
+    options.format = new DecimalFormat(); 
   }
 
+  var checkMinMax = function(min, max) {
+      if (min != null && max != null && min >= max) {
+        throw new Error("JSSpinner: min is not below max - min=" + min + " max=" + max);
+      }
+    };
   checkMinMax(options.min, options.max);
 
   /** @var {JSSpinner} */
@@ -1156,93 +1148,93 @@ function JSSpinner(viewFactory, preferences, input, options) {
     initializer: function(component) {
       component.options = options;
 
-      rootElement.classList.add('spinner');
+      rootElement.classList.add("spinner");
 
-      component.textInput = document.createElement('input');
-      component.textInput.type = 'text';
+      component.textInput = document.createElement("input");
+      component.textInput.type = "text";
       rootElement.appendChild(component.textInput);
 
-      component.incrementButton = document.createElement('button');
-      component.incrementButton.setAttribute('increment', '');
-      component.incrementButton.textContent = '+';
+      component.incrementButton = document.createElement("button");
+      component.incrementButton.setAttribute("increment", "");
+      component.incrementButton.textContent = "+";
       component.incrementButton.tabIndex = -1;
       rootElement.appendChild(component.incrementButton);
 
-      component.decrementButton = document.createElement('button');
-      component.decrementButton.setAttribute('decrement', '');
-      component.decrementButton.textContent = '-';
+      component.decrementButton = document.createElement("button");
+      component.decrementButton.setAttribute("decrement", "");
+      component.decrementButton.textContent = "-";
       component.decrementButton.tabIndex = -1;
       rootElement.appendChild(component.decrementButton);
 
-      component.registerEventListener(component.textInput, 'focus', function(event) {
-        component.refreshUI();
-      });
-      component.registerEventListener(component.textInput, 'focusout', function(event) {
-        component.refreshUI();
-      });
+      component.registerEventListener(component.textInput, "focus", function(ev) {
+          component.refreshUI();
+        });
+      component.registerEventListener(component.textInput, "focusout", function(ev) {
+          component.refreshUI();
+        });
 
-      component.registerEventListener(component.textInput, 'input', function(event) {
-        var actualValue = component.parseFloatValueFromInput();
-
-        component.textInput.style.color = null;
-        if (actualValue == null || (options.min != null && actualValue < options.min) || (options.max != null && actualValue > options.max)) {
-          component.textInput.style.color = 'red';
-        }
-
-        component.__value = actualValue;
-      });
-
-      component.registerEventListener(component.textInput, 'blur', function(event) {
-        var actualValue = component.parseFloatValueFromInput();
-        if (actualValue == null && !options.nullable) {
-          var restoredValue = component.__value;
-          if (restoredValue == null) {
-            restoredValue = component.getDefaultValue();
+      component.registerEventListener(component.textInput, "input", function(ev) {
+          var actualValue = component.parseFloatValueFromInput();
+  
+          component.textInput.style.color = null;
+          if (actualValue == null || (options.min != null && actualValue < options.min) || (options.max != null && actualValue > options.max)) {
+            component.textInput.style.color = "red";
           }
-          actualValue = restoredValue;
-        }
-        component.value = actualValue;
-        component.textInput.style.color = null;
-      });
+  
+          component.__value = actualValue;
+        });
+
+      component.registerEventListener(component.textInput, "blur", function(ev) {
+          var actualValue = component.parseFloatValueFromInput();
+          if (actualValue == null && !options.nullable) {
+            var restoredValue = component.__value;
+            if (restoredValue == null) {
+              restoredValue = component.getDefaultValue();
+            }
+            actualValue = restoredValue;
+          }
+          component.value = actualValue;
+          component.textInput.style.color = null;
+        });
 
       component.configureIncrementDecrement();
 
-      Object.defineProperty(this, 'value', {
+      Object.defineProperty(this, "value", {
         get: function() { return component.get(); },
         set: function(value) { component.set(value); }
       });
-      Object.defineProperty(this, 'width', {
+      Object.defineProperty(this, "width", {
         get: function() { return rootElement.style.width; },
         set: function(value) { rootElement.style.width = value; }
       });
-      Object.defineProperty(this, 'parentElement', {
+      Object.defineProperty(this, "parentElement", {
         get: function() { return rootElement.parentElement; }
       });
-      Object.defineProperty(this, 'previousElementSibling', {
+      Object.defineProperty(this, "previousElementSibling", {
         get: function() { return rootElement.previousElementSibling; }
       });
-      Object.defineProperty(this, 'style', {
+      Object.defineProperty(this, "style", {
         get: function() { return rootElement.style; }
       });
-      Object.defineProperty(this, 'min', {
+      Object.defineProperty(this, "min", {
         get: function() { return options.min; },
         set: function(min) {
           checkMinMax(min, options.max);
           options.min = min;
         },
       });
-      Object.defineProperty(this, 'max', {
+      Object.defineProperty(this, "max", {
         get: function() { return options.max; },
         set: function(max) {
           checkMinMax(options.min, max);
           options.max = max;
         },
       });
-      Object.defineProperty(this, 'step', {
+      Object.defineProperty(this, "step", {
         get: function() { return options.step; },
         set: function(step) { options.step = step; },
       });
-      Object.defineProperty(this, 'format', {
+      Object.defineProperty(this, "format", {
         get: function() { return options.format; },
         set: function(format) {
           options.format = format;
@@ -1260,8 +1252,8 @@ function JSSpinner(viewFactory, preferences, input, options) {
       if (value instanceof Big) {
         value = parseFloat(value);
       }
-      if (value != null && typeof value != 'number') {
-        throw new Error('JSSpinner: expected values of type number');
+      if (value != null && typeof value != "number") {
+        throw new Error("JSSpinner: Expected values of type number");
       }
       if (value == null && !options.nullable) {
         value = component.getDefaultValue();
@@ -1381,45 +1373,44 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
   var component = this;
   var options = this.options;
 
-  this.registerEventListener(component.textInput, 'keydown', function(event) {
-    var keyStroke = KeyStroke.getKeyStrokeForEvent(event, "keydown");
-    if (keyStroke.endsWith(" UP")) {
-      event.stopImmediatePropagation();
-      component.incrementButton.click();
-    } else if (keyStroke.endsWith(" DOWN")) {
-      event.stopImmediatePropagation();
-      component.decrementButton.click();
-    }
-  });
+  this.registerEventListener(component.textInput, "keydown", function(ev) {
+      var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, "keydown");
+      if (keyStroke.endsWith(" UP")) {
+        ev.stopImmediatePropagation();
+        component.incrementButton.click();
+      } else if (keyStroke.endsWith(" DOWN")) {
+        ev.stopImmediatePropagation();
+        component.decrementButton.click();
+      }
+    });
 
-  this.registerEventListener(component.incrementButton, 'click', function(event) {
-    var previousValue = parseFloat(component.value);
-    if (previousValue == null || isNaN(previousValue)) {
-      previousValue = component.getDefaultValue();
-    }
-    component.value = previousValue + options.step;
-    component.raiseInputEvent();
-  });
+  this.registerEventListener(component.incrementButton, "click", function(ev) {
+      var previousValue = parseFloat(component.value);
+      if (previousValue == null || isNaN(previousValue)) {
+        previousValue = component.getDefaultValue();
+      }
+      component.value = previousValue + options.step;
+      component.raiseInputEvent();
+    });
 
-  this.registerEventListener(component.decrementButton, 'click', function(event) {
-    var previousValue = parseFloat(component.value);
-    if (previousValue == null || isNaN(previousValue)) {
-      previousValue = component.getDefaultValue();
-    }
-    component.value = previousValue - options.step;
-    component.raiseInputEvent();
-  });
+  this.registerEventListener(component.decrementButton, "click", function(ev) {
+      var previousValue = parseFloat(component.value);
+      if (previousValue == null || isNaN(previousValue)) {
+        previousValue = component.getDefaultValue();
+      }
+      component.value = previousValue - options.step;
+      component.raiseInputEvent();
+    });
 };
 
 /**
- * Raises an 'input' event on behalf of underlying text input
+ * Raises an "input" event on behalf of underlying text input
  * @private
  */
 JSSpinner.prototype.raiseInputEvent = function() {
-  var event = document.createEvent( 'Event' );
-  event.initEvent( 'input', true, true );
-
-  this.textInput.dispatchEvent(event);
+  var ev = document.createEvent("Event");
+  ev.initEvent("input", true, true );
+  this.textInput.dispatchEvent(ev);
 };
 
 /**
@@ -1427,7 +1418,7 @@ JSSpinner.prototype.raiseInputEvent = function() {
  * @param {boolean} [enabled] defaults to true
  */
 JSSpinner.prototype.enable = function(enabled) {
-  if (typeof enabled == 'undefined') {
+  if (enabled === undefined) {
     enabled = true;
   }
   this.textInput.disabled = !enabled;
@@ -1458,14 +1449,18 @@ JSSpinner.prototype.enable = function(enabled) {
 function JSComboBox(viewFactory, preferences, container, options) {
   var rootElement = container;
 
-  if (!options) { options = {}; }
-  if (typeof options.nullable != 'boolean') { options.nullable = true; }
-  if (!Array.isArray(options.availableValues) || options.availableValues.length <= 0) {
-    throw new Error('JSComboBox: no available values provided');
+  if (!options) { 
+    options = {}; 
   }
-  if (typeof options.render != 'function') {
+  if (typeof options.nullable != "boolean") { 
+    options.nullable = false; 
+  }
+  if (!Array.isArray(options.availableValues) || options.availableValues.length <= 0) {
+    throw new Error("JSComboBox: No available values provided");
+  }
+  if (typeof options.render != "function") {
     options.render = function(value, element) {
-      element.textContent = value == null ? '' : value.toString();
+      element.textContent = value == null ? "" : value.toString();
     };
   }
   if (options.value == null && !options.nullable) {
@@ -1478,25 +1473,25 @@ function JSComboBox(viewFactory, preferences, container, options) {
     initializer: function(component) {
       component.options = options;
 
-      Object.defineProperty(this, 'availableValues', {
+      Object.defineProperty(this, "availableValues", {
         get: function() { return options.availableValues; }
       });
 
-      rootElement.classList.add('combo-box');
+      rootElement.classList.add("combo-box");
 
-      component.button = document.createElement('button');
+      component.button = document.createElement("button");
       rootElement.appendChild(component.button);
 
-      component.overview = document.createElement('div');
-      component.overview.classList.add('overview');
+      component.overview = document.createElement("div");
+      component.overview.classList.add("overview");
       component.button.appendChild(component.overview);
 
       component.initSelectionPanel();
 
-      component.registerEventListener(component.button, 'click', function(event) {
-        event.stopImmediatePropagation();
-        component.openSelectionPanel(event.pageX, event.pageY);
-      });
+      component.registerEventListener(component.button, "click", function(ev) {
+          ev.stopImmediatePropagation();
+          component.openSelectionPanel(ev.pageX, ev.pageY);
+        });
 
       var initialValue = options.value;
       component.set(initialValue);
@@ -1537,12 +1532,12 @@ JSComboBox.prototype.constructor = JSComboBox;
 JSComboBox.prototype.initSelectionPanel = function() {
   var component = this;
 
-  var selectionPanel = document.createElement('div');
-  selectionPanel.classList.add('selection-panel');
+  var selectionPanel = document.createElement("div");
+  selectionPanel.classList.add("selection-panel");
 
   var availableValues = component.availableValues;
   for (var i = 0; i < availableValues.length; i++) {
-    var currentItemElement = document.createElement('div');
+    var currentItemElement = document.createElement("div");
     currentItemElement.value = availableValues[i];
     component.options.render(currentItemElement.value, currentItemElement);
     selectionPanel.appendChild(currentItemElement);
@@ -1551,13 +1546,13 @@ JSComboBox.prototype.initSelectionPanel = function() {
   this.getRootNode().appendChild(selectionPanel);
   this.selectionPanel = selectionPanel;
 
-  this.registerEventListener(selectionPanel.children, 'click', function(event) {
-    component.value = this.value;
-    component.refreshUI();
-    if (typeof component.options.onSelectionChanged == 'function') {
-      component.options.onSelectionChanged(component.value);
-    }
-  });
+  this.registerEventListener(selectionPanel.children, "click", function(ev) {
+      component.value = this.value;
+      component.refreshUI();
+      if (typeof component.options.onSelectionChanged == "function") {
+        component.options.onSelectionChanged(component.value);
+      }
+    });
 }
 
 /**
@@ -1565,7 +1560,9 @@ JSComboBox.prototype.initSelectionPanel = function() {
  * @param {boolean} [enabled] true if should enable this combo box - defaults to true
  */
 JSComboBox.prototype.enable = function(enabled) {
-  if (typeof enabled == 'undefined') { enabled = true; }
+  if (enabled === undefined) { 
+    enabled = true; 
+  }
   this.button.disabled = !enabled;
 };
 
@@ -1581,23 +1578,23 @@ JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
   var selectionPanel = this.selectionPanel;
 
   var closeSelectorPanel = function() {
-    document.removeEventListener('click', closeSelectorPanel);
+    document.removeEventListener("click", closeSelectorPanel);
     selectionPanel.style.opacity = 0;
-    selectionPanel.style.display = 'none';
+    selectionPanel.style.display = "none";
   }
 
-  selectionPanel.style.display = 'block';
+  selectionPanel.style.display = "block";
   selectionPanel.style.opacity = 1;
   selectionPanel.style.left = pageX + selectionPanel.clientWidth > window.width ? window.width - selectionPanel.clientWidth : pageX;
   selectionPanel.style.top = pageY + selectionPanel.clientHeight > window.innerHeight ? window.innerHeight - selectionPanel.clientHeight : pageY;
-  document.addEventListener('click', closeSelectorPanel);
+  document.addEventListener("click", closeSelectorPanel);
 };
 
 /**
  * Refreshes UI, i.e. overview of selected value
  */
 JSComboBox.prototype.refreshUI = function() {
-  this.overview.innerHTML = '';
+  this.overview.innerHTML = "";
   this.options.render(this.get(), this.overview);
 };
 
@@ -1621,7 +1618,7 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
  *   visibleColumnNames?: string[],
  *   expandedRowsIndices?: number[],
  *   expandedRowsValues?: any[],
- *   sort?: { columnName: string, direction: 'asc' | 'desc' }
+ *   sort?: { columnName: string, direction: "asc" | "desc" }
  * }} TreeTableState
  * @property TreeTableState.expandedRowsIndices index in filtered and sorted rows, expandedRowsValues can also be used but not both (expandedRowsValues will be preferred)
  * @property TreeTableState.expandedRowsValues expanded rows listed by their values. It takes precedence over expandedRowsIndices but achieves the same goal
@@ -1635,11 +1632,11 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
  *       defaultWidth?: string
  *   }[],
  *   renderCell: function(value: any, columnName: string, cell: HTMLElement): void,
- *   getValueComparator: function(sortConfig?: { columnName: string, direction: 'asc' | 'desc' }): function(value1: any, value2: any),
+ *   getValueComparator: function(sortConfig?: { columnName: string, direction: "asc" | "desc" }): function(value1: any, value2: any),
  *   onSelectionChanged: function(values: any[]): void,
  *   onRowDoubleClicked: function(value: any): void,
  *   onExpandedRowsChanged: function(expandedRowsValues: any[], expandedRowsIndices: number[]): void,
- *   onSortChanged: function(sort: { columnName: string, direction: 'asc' | 'desc' }): void,
+ *   onSortChanged: function(sort: { columnName: string, direction: "asc" | "desc" }): void,
  *   initialState?: TreeTableState
  * }} TreeTableModel
  * @property TreeTableModel.renderCell render cell to given html element for given value, column name
@@ -1673,8 +1670,8 @@ function JSTreeTable(viewFactory, preferences, container, model, data) {
     useElementAsRootNode: true,
     initializer: function(table) {
 
-      table.tableElement = document.createElement('div');
-      table.tableElement.classList.add('tree-table');
+      table.tableElement = document.createElement("div");
+      table.tableElement.classList.add("tree-table");
       rootElement.appendChild(table.tableElement);
 
       table.setModel(model);
@@ -1741,7 +1738,7 @@ JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
  * @private
  */
 JSTreeTable.prototype.getSelectedRows = function() {
-  return this.bodyElement.querySelectorAll('.selected');
+  return this.bodyElement.querySelectorAll(".selected");
 }
 
 /**
@@ -1751,7 +1748,7 @@ JSTreeTable.prototype.expandSelectedRows = function() {
   var selectedRows = this.getSelectedRows();
   for (var i = 0; i < selectedRows.length; i++) {
     if (selectedRows[i]._model.parentGroup) {
-      this.onExpandOrCollapseRequested(selectedRows[i]._model.parentGroup, true);
+      this.expandOrCollapseRow(selectedRows[i]._model.parentGroup, true);
     }
   }
 }
@@ -1849,39 +1846,37 @@ JSTreeTable.prototype.getValueComparator = function() {
 JSTreeTable.prototype.generateTableHeaders = function() {
   var treeTable = this;
 
-  var head = this.tableElement.querySelector('[header]');
+  var head = this.tableElement.querySelector("[header]");
   if (!head) {
-    head = document.createElement('div');
-    head.setAttribute('header', 'true');
+    head = document.createElement("div");
+    head.setAttribute("header", "true");
     this.tableElement.appendChild(head);
-    this.tableElement.appendChild(document.createElement('br'));
+    this.tableElement.appendChild(document.createElement("br"));
   }
   head.innerHTML = "";
 
   var columns = this.getSortedVisibleColumns();
   for (var i = 0; i < columns.length; i++) {
     var column = columns[i];
-    var headCell = document.createElement('div');
+    var headCell = document.createElement("div");
     head.appendChild(headCell);
-    headCell.setAttribute('cell', 'true');
+    headCell.setAttribute("cell", "true");
     headCell.textContent = column.label;
-    headCell.dataset['name'] = column.name;
+    headCell.dataset["name"] = column.name;
     if (this.state.sort && this.state.sort.columnName == column.name) {
-      headCell.classList.add('sort');
-      if (this.state.sort.direction == 'desc') {
-        headCell.classList.add('descending');
+      headCell.classList.add("sort");
+      if (this.state.sort.direction == "desc") {
+        headCell.classList.add("descending");
       }
     }
 
     headCell.style.width = treeTable.getColumnWidth(column.name);
   }
-  this.registerEventListener(head.children, 'click', function(event) {
-    var columnName = this.dataset['name'];
-
-    var descending = this.classList.contains('sort') && !this.classList.contains('descending');
-
-    treeTable.onSortRequested(columnName, descending);
-  });
+  this.registerEventListener(head.children, "click", function(ev) {
+      var columnName = this.dataset["name"];
+      var descending = this.classList.contains("sort") && !this.classList.contains("descending");
+      treeTable.sortTable(columnName, descending);
+    });
 };
 
 /**
@@ -1900,8 +1895,8 @@ JSTreeTable.prototype.generateTableRows = function() {
     scrollTop = body.scrollTop;
     body.parentElement.removeChild(body);
   }
-  var body = this.bodyElement = document.createElement('div');
-  body.setAttribute('body', 'true');
+  var body = this.bodyElement = document.createElement("div");
+  body.setAttribute("body", "true");
 
   var columns = this.getSortedVisibleColumns();
   var columnNames = [];
@@ -2025,18 +2020,18 @@ JSTreeTable.prototype.generateTableRows = function() {
  */
 JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowModel) {
   var treeTable = this;
-  var row = document.createElement('div');
-  row.setAttribute('row', 'true');
+  var row = document.createElement("div");
+  row.setAttribute("row", "true");
 
   var mainCell = null;
   for (var j = 0; j < columnNames.length; j++) {
     var columnName = columnNames[j];
-    var cell = document.createElement('div');
-    cell.setAttribute('cell', 'true');
+    var cell = document.createElement("div");
+    cell.setAttribute("cell", "true");
     treeTable.model.renderCell(rowModel.value, columnName, cell);
     cell.style.width = treeTable.getColumnWidth(columnName);
 
-    if (mainCell == null || cell.classList.contains('main')) {
+    if (mainCell == null || cell.classList.contains("main")) {
       mainCell = cell;
     }
 
@@ -2044,56 +2039,55 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
   }
 
   if (mainCell != null) {
-    mainCell.classList.add('main');
-    mainCell.style.paddingLeft = (15 + rowModel.indentation * 10) + 'px';
+    mainCell.classList.add("main");
+    mainCell.style.paddingLeft = (15 + rowModel.indentation * 10) + "px";
     if (rowModel.group) {
-      treeTable.registerEventListener(mainCell, 'click', function (event) {
-        event.stopImmediatePropagation();
+      treeTable.registerEventListener(mainCell, "click", function(ev) {
+          ev.stopImmediatePropagation();
+          treeTable.expandOrCollapseRow(rowModel, mainCell.parentElement.classList.contains("collapsed"));
+          return false;
+        });
 
-        treeTable.onExpandOrCollapseRequested(rowModel, mainCell.parentElement.classList.contains('collapsed'));
-        return false;
-      });
-
-      row.classList.add('group');
+      row.classList.add("group");
       if (rowModel.collapsed) {
-        row.classList.add('collapsed');
+        row.classList.add("collapsed");
       }
     }
   }
   if (rowModel.hidden) {
-    row.style.display = 'none';
+    row.style.display = "none";
   }
   if (rowModel.selected) {
-    row.classList.add('selected');
+    row.classList.add("selected");
   }
   row._model = rowModel;
 
-  treeTable.registerEventListener(row, 'click', function(event) {
-    var row = this;
-    var rowValue = row._model.value;
-
-    row.classList.add('selected');
-    var child = row;
-    while ((child = child.nextSibling) && child._model.indentation > row._model.indentation) {
-      child.classList.add('selected');
-    }
-
-    if (event.shiftKey) {
-      treeTable.selectedRowsValues.push(rowValue);
-    } else {
-      treeTable.selectedRowsValues = [rowValue];
-    }
-    if (typeof treeTable.model.onSelectionChanged == 'function') {
-      treeTable.model.onSelectionChanged(treeTable.selectedRowsValues);
-    }
-  });
-  treeTable.registerEventListener(row, 'dblclick', function(event) {
-    if (typeof treeTable.model.onRowDoubleClicked == 'function') {
+  treeTable.registerEventListener(row, "click", function(ev) {
       var row = this;
       var rowValue = row._model.value;
-      treeTable.model.onRowDoubleClicked(rowValue);
-    }
-  });
+  
+      row.classList.add("selected");
+      var child = row;
+      while ((child = child.nextSibling) && child._model.indentation > row._model.indentation) {
+        child.classList.add("selected");
+      }
+  
+      if (ev.shiftKey) {
+        treeTable.selectedRowsValues.push(rowValue);
+      } else {
+        treeTable.selectedRowsValues = [rowValue];
+      }
+      if (typeof treeTable.model.onSelectionChanged == "function") {
+        treeTable.model.onSelectionChanged(treeTable.selectedRowsValues);
+      }
+    });
+  treeTable.registerEventListener(row, "dblclick", function(ev) {
+      if (typeof treeTable.model.onRowDoubleClicked == "function") {
+        var row = this;
+        var rowValue = row._model.value;
+        treeTable.model.onRowDoubleClicked(rowValue);
+      }
+    });
 
   return row;
 }
@@ -2103,7 +2097,7 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
  * @param {boolean} expand true if expanded, false if collapsed
  * @private
  */
-JSTreeTable.prototype.onExpandOrCollapseRequested = function(rowModel, expand) {
+JSTreeTable.prototype.expandOrCollapseRow = function(rowModel, expand) {
   var treeTable = this;
 
   // TODO LOUIS test on touch device
@@ -2127,12 +2121,12 @@ JSTreeTable.prototype.onExpandOrCollapseRequested = function(rowModel, expand) {
  * @param {boolean} descending
  * @private
  */
-JSTreeTable.prototype.onSortRequested = function(columnName, descending) {
+JSTreeTable.prototype.sortTable = function(columnName, descending) {
   if (!this.state.sort) {
     this.state.sort = {};
   }
   this.state.sort.columnName = columnName;
-  this.state.sort.direction = descending ? 'desc' : 'asc';
+  this.state.sort.direction = descending ? "desc" : "asc";
 
   this.fireSortChanged(this.state.sort);
 }
@@ -2174,7 +2168,7 @@ JSTreeTable.prototype.getColumnsWidthByName = function() {
   var widths = {};
   for (var i = 0; i < columns.length; i++) {
     var column = columns[i];
-    var width = column.defaultWidth ? column.defaultWidth : '6rem';
+    var width = column.defaultWidth ? column.defaultWidth : "6rem";
     widths[column.name] = width;
   }
   return widths;

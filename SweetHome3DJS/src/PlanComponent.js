@@ -74,9 +74,9 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.scrollPane.style.position = "absolute";
     this.scrollPane.style.left = "0px";
     this.scrollPane.style.top = "0px";
-    this.scrollPane.onscroll = function() {
+    this.scrollPane.addEventListener("scroll", function(ev) {
         plan.repaint();
-      };
+      });
   }
 
   window.addEventListener("resize", function() {

@@ -42,12 +42,12 @@ function JSColorSelector(viewFactory, preferences, targetNode) {
 
   JSComponentView.call(this, viewFactory, preferences, html, {
     initializer: function(component) {
-      component.getRootNode().classList.add('color-selector');
-      component.pickerElement = component.getRootNode().querySelector('.picker');
-      component.customColorsContainerElement = component.getRootNode().querySelector('.custom-colors');
-      component.customColorEditorInput = component.getRootNode().querySelector('.custom-color-editor input');
-      component.customColorEditorOverview = component.getRootNode().querySelector('.custom-color-editor .overview');
-      component.customColorEditorAddButton = component.getRootNode().querySelector('.custom-color-editor button');
+      component.getRootNode().classList.add("color-selector");
+      component.pickerElement = component.getRootNode().querySelector(".picker");
+      component.customColorsContainerElement = component.getRootNode().querySelector(".custom-colors");
+      component.customColorEditorInput = component.getRootNode().querySelector(".custom-color-editor input");
+      component.customColorEditorOverview = component.getRootNode().querySelector(".custom-color-editor .overview");
+      component.customColorEditorAddButton = component.getRootNode().querySelector(".custom-color-editor button");
 
       component.createPickerColorTiles();
       component.initCustomColorEditor();
@@ -59,11 +59,11 @@ function JSColorSelector(viewFactory, preferences, targetNode) {
       if (color == null) {
         return;
       }
-      var matchingTile = component.getRootNode().querySelector('[data-color="' + color + '"]');
+      var matchingTile = component.getRootNode().querySelector("[data-color='" + color + "']");
       if (matchingTile == null) {
         component.addAndSelectCustomColorTile(ColorTools.integerToHexadecimalString(color));
       } else {
-        component.onColorTileClicked(matchingTile);
+        component.selectColorTile(matchingTile);
       }
     }
   });
@@ -94,32 +94,30 @@ JSColorSelector.prototype.createPickerColorTiles = function() {
   }
   
   var colorSelector = this;
-  this.registerEventListener(
-    this.colorTileElements, 
-    'click',
-    function() { colorSelector.onColorTileClicked(this); });
+  this.registerEventListener(this.colorTileElements, "click", function(ev) { 
+      colorSelector.selectColorTile(this); 
+    });
 };
 
 JSColorSelector.prototype.initCustomColorEditor = function() {
   var colorSelector = this;
-  var changeColorEvent = 'keyup';
-  this.registerEventListener(this.customColorEditorInput, changeColorEvent, function() {
-    var colorHex = '#' + colorSelector.customColorEditorInput.value;
-    if (colorHex.match(/#[0-9a-fA-F]{3,6}/)) {
-      colorSelector.customColorEditorOverview.style.backgroundColor = colorHex;
-      colorSelector.customColorEditorAddButton.disabled = false;
-    } else {
-      colorSelector.customColorEditorAddButton.disabled = true;
-    }
-  });
-  this.registerEventListener(this.customColorEditorAddButton, 'click', function() {
-    var colorHex = '#' + colorSelector.customColorEditorInput.value;
-    colorSelector.addAndSelectCustomColorTile(colorHex);
-
-    colorSelector.customColorEditorInput.value = 'FFFFFF';
-    var event = document.createEvent( 'Event' );
-    event.initEvent(changeColorEvent, false, false);
-    colorSelector.customColorEditorInput.dispatchEvent(event);
+  var changeColorEvent = "keyup";
+  this.registerEventListener(this.customColorEditorInput, changeColorEvent, function(ev) {
+      var colorHex = '#' + colorSelector.customColorEditorInput.value;
+      if (colorHex.match(/#[0-9a-fA-F]{3,6}/)) {
+        colorSelector.customColorEditorOverview.style.backgroundColor = colorHex;
+        colorSelector.customColorEditorAddButton.disabled = false;
+      } else {
+        colorSelector.customColorEditorAddButton.disabled = true;
+      }
+    });
+  this.registerEventListener(this.customColorEditorAddButton, "click", function(ev) {
+      var colorHex = '#' + colorSelector.customColorEditorInput.value;
+      colorSelector.addAndSelectCustomColorTile(colorHex);
+      colorSelector.customColorEditorInput.value = "FFFFFF";
+      var event = document.createEvent("Event");
+      event.initEvent(changeColorEvent, false, false);
+      colorSelector.customColorEditorInput.dispatchEvent(event);
   });
 };
   
@@ -127,13 +125,13 @@ JSColorSelector.prototype.initCustomColorEditor = function() {
  * @param {HTMLElement} tileElement
  * @private
  */
-JSColorSelector.prototype.onColorTileClicked = function(tileElement) {
+JSColorSelector.prototype.selectColorTile = function(tileElement) {
   for (var i = 0; i < this.colorTileElements.length; i++) {
     var currentTileElement = this.colorTileElements[i];
     if (currentTileElement == tileElement) {
-      currentTileElement.classList.add('selected');
+      currentTileElement.classList.add("selected");
     } else {
-      currentTileElement.classList.remove('selected');
+      currentTileElement.classList.remove("selected");
     }
   }
   this.selectedColor = this.getTileColor(tileElement);
@@ -146,7 +144,7 @@ JSColorSelector.prototype.onColorTileClicked = function(tileElement) {
  * @private
  */
 JSColorSelector.prototype.getTileColor = function(tileElement) {
-  return 0xFF000000 | parseInt(tileElement.dataset['color']);
+  return 0xFF000000 | parseInt(tileElement.dataset["color"]);
 };
 
 /**
@@ -156,8 +154,8 @@ JSColorSelector.prototype.getTileColor = function(tileElement) {
  * @private
  */
 JSColorSelector.prototype.createColorTile = function(colorHex) {
-  var tileElement = document.createElement('div');
-  tileElement.dataset['color'] = ColorTools.hexadecimalStringToInteger(colorHex);
+  var tileElement = document.createElement("div");
+  tileElement.dataset["color"] = ColorTools.hexadecimalStringToInteger(colorHex);
   tileElement.style.backgroundColor = colorHex;
   this.colorTileElements.push(tileElement);
   return tileElement;
@@ -181,10 +179,10 @@ JSColorSelector.prototype.addAndSelectCustomColorTile = function(colorHex) {
     this.preferences.setRecentColors(recentColors);
   }
 
-  this.registerEventListener(tileElement, 'click', function() { 
-    colorSelector.onColorTileClicked(this); 
-  });
-  this.onColorTileClicked(tileElement);
+  this.registerEventListener(tileElement, "click", function(ev) { 
+      colorSelector.selectColorTile(this); 
+    });
+  this.selectColorTile(tileElement);
 
   return tileElement;
 };
@@ -205,7 +203,7 @@ JSColorSelector.prototype.dispose = function() {
  */
 function JSColorSelectorDialog(viewFactory, preferences, options) {
   var applier = function() {};
-  if (typeof options == 'object' && typeof options.applier == 'function') {
+  if (typeof options == "object" && typeof options.applier == "function") {
     applier = options.applier;
   }
 
@@ -213,22 +211,22 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
     '<div>' + 
     '  <div data-name="color-selector"></div>' + 
     '</div>'
-  JSDialogView.call(this, viewFactory, preferences, '@{HomeFurniturePanel.colorDialog.title}', html, {
-    initializer: function(dialog) {
-      dialog.getRootNode().classList.add('color-selector-dialog');
-      dialog.getRootNode().classList.add('small');
-
-      dialog.colorSelector = new JSColorSelector(viewFactory, preferences, dialog.getElement('color-selector'));
-      if (options.selectedColor != null) { 
-        dialog.colorSelector.set(options.selectedColor);
-      }
-      dialog.registerEventListener(
-        dialog.colorSelector.colorTileElements, 
-        'dblclick',
-        function() { dialog.validate(); });
-    },
-    applier: applier
-  });
+  JSDialogView.call(this, viewFactory, preferences, "@{HomeFurniturePanel.colorDialog.title}", html, 
+      {
+        initializer: function(dialog) {
+          dialog.getRootNode().classList.add("color-selector-dialog");
+          dialog.getRootNode().classList.add("small");
+    
+          dialog.colorSelector = new JSColorSelector(viewFactory, preferences, dialog.getElement("color-selector"));
+          if (options.selectedColor != null) { 
+            dialog.colorSelector.set(options.selectedColor);
+          }
+          dialog.registerEventListener(dialog.colorSelector.colorTileElements, "dblclick", function(ev) { 
+              dialog.validate(); 
+            });
+        },
+        applier: applier
+      });
 }
 
 JSColorSelectorDialog.prototype = Object.create(JSDialogView.prototype);
@@ -254,25 +252,24 @@ JSColorSelectorDialog.prototype.dispose = function() {
  * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences
  * @param {HTMLElement} [targetNode]
- * @param {{ onColorSelected: function(number) }} [options]
- * > onColorSelected: called with selected color, as ARGB int, when a color is selected
+ * @param {{ colorSelected: function(number) }} [options]
+ * > colorSelected: called with selected color, as ARGB int, when a color is selected
  * @constructor
  */
 function JSColorSelectorButton(viewFactory, preferences, targetNode, options) {
   this.options = options || {};
 
-  JSComponentView.call(this, viewFactory, preferences, document.createElement('span'), {
+  JSComponentView.call(this, viewFactory, preferences, document.createElement("span"), {
     useElementAsRootNode: true,
     initializer: function(component) {
       component.getRootNode().innerHTML = '<button class="color-button"><div class="color-overview" /></button>';
-      component.button = component.getRootNode().querySelector('.color-button');
+      component.button = component.getRootNode().querySelector(".color-button");
       
-      component.registerEventListener(
-        component.button,
-        'click',
-        function() { component.openColorSelectorDialog(); });
+      component.registerEventListener(component.button, "click", function(ev) { 
+          component.openColorSelectorDialog();
+        });
       
-      component.colorOverview = component.getRootNode().querySelector('.color-overview');
+      component.colorOverview = component.getRootNode().querySelector(".color-overview");
     },
     getter: function(component) {
       return component.selectedColor;
@@ -295,7 +292,7 @@ JSColorSelectorButton.prototype.constructor = JSColorSelectorButton;
  * @param {boolean} [enabled] defaults to true 
  */
 JSColorSelectorButton.prototype.enable = function(enabled) {
-  if (typeof enabled == 'undefined') {
+  if (enabled === undefined) {
     enabled = true;
   }
   this.button.disabled = !enabled;
@@ -308,8 +305,8 @@ JSColorSelectorButton.prototype.openColorSelectorDialog = function() {
     selectedColor: this.selectedColor,
     applier: function() {
       colorSelectorButton.set(dialog.getSelectedColor());
-      if (typeof colorSelectorButton.options.onColorSelected == 'function') {
-        colorSelectorButton.options.onColorSelected(dialog.getSelectedColor());
+      if (typeof colorSelectorButton.options.colorSelected == "function") {
+        colorSelectorButton.options.colorSelected(dialog.getSelectedColor());
       }
     }
   });

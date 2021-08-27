@@ -593,8 +593,8 @@ ImageTools.resize = function(image, targetWidth, targetHeight, onsuccess, imageT
   canvasContext.drawImage(image, 0, 0, targetWidth, targetHeight);
 
   var resizedImage = new Image();
-  resizedImage.onload = function () {
+  resizedImage.addEventListener("load", function () {
       onsuccess(resizedImage);
-    };
+    });
   resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
 }
