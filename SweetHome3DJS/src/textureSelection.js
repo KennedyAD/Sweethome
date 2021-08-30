@@ -193,7 +193,6 @@ function JSTextureSelectorDialog(preferences, textureChoiceController, options) 
         }
       });
 }
-
 JSTextureSelectorDialog.prototype = Object.create(JSDialogView.prototype);
 JSTextureSelectorDialog.prototype.constructor = JSTextureSelectorDialog;
 
@@ -225,35 +224,32 @@ JSTextureSelectorDialog.prototype.setTexture = function(texture) {
     return;
   }
 
-  // resolve texture from url
-  var textureUrl = texture.getImage().getURL();
-  var textureCategories = this.preferences.getTexturesCatalog().getCategories();
-  resolveTextureLoop:
-  for (var i = 0; i < textureCategories.length; i++) {
-    var textureCategory = textureCategories[i];
-    for (var j = 0; j < textureCategory.getTextures().length; j++) {
-      var catalogTexture = textureCategory.getTextures()[j];
-      if (catalogTexture.getImage().getURL() == textureUrl
-          || textureUrl.endsWith(catalogTexture.getImage().getURL())) {
-        this.selectedTextureModel.catalogTexture = catalogTexture;
-        break resolveTextureLoop;
-      }
-    }
-  }
-  if (this.selectedTextureModel.catalogTexture == null) {
-    return;
-  }
-
   this.selectedTextureModel.xOffset = texture.getXOffset();
   this.selectedTextureModel.yOffset = texture.getYOffset();
   this.selectedTextureModel.angleInRadians = texture.getAngle();
   this.selectedTextureModel.scale = texture.getScale();
-
-  this.selectCatalogTexture(this.selectedTextureModel.catalogTexture);
+  
   this.xOffsetInput.value = this.selectedTextureModel.xOffset * 100;
   this.yOffsetInput.value = this.selectedTextureModel.yOffset * 100;
   this.angleInput.value = Math.toDegrees(this.selectedTextureModel.angleInRadians);
   this.scaleInput.value = this.selectedTextureModel.scale * 100;
+
+  // Resolve texture from URL
+  var textureUrl = texture.getImage().getURL();
+  var textureCategories = this.preferences.getTexturesCatalog().getCategories();
+  var catalogTexture = null;
+  for (var i = 0; i < textureCategories.length && catalogTexture === null; i++) {
+    var categoryTextures = textureCategories[i].getTextures();
+    for (var j = 0; j < categoryTextures.length; j++) {
+      if (textureUrl == categoryTextures[j].getImage().getURL()) {
+        catalogTexture = categoryTextures[j];
+        break;
+      }
+    }
+  }
+  if (catalogTexture !== null) {
+    this.selectCatalogTexture(catalogTexture);
+  }
   this.updateTextureTransform();
 }
 
@@ -283,7 +279,6 @@ JSTextureSelectorDialog.prototype.updateTextureTransform = function() {
   this.selectedTextureModel.yOffset = this.yOffsetInput.value / 100;
   this.selectedTextureModel.angleInRadians = Math.toRadians(this.angleInput.value);
   this.selectedTextureModel.scale = this.scaleInput.value / 100;
-
   this.selectedTextureOverview.style.transform = 
       "translate(" + this.xOffsetInput.value + "%, " + this.yOffsetInput.value + "%) " +
       "rotate(" + this.angleInput.value + "deg) " +
@@ -358,7 +353,7 @@ JSTextureSelectorDialog.prototype.initRecentTextures = function() {
   }
 
   var dialog = this;
-  this.registerEventListener(Array.from(this.recentTexturesPanel.childNodes), "click", function(ev) {
+  this.registerEventListener(this.recentTexturesPanel.childNodes, "click", function(ev) {
       dialog.selectCatalogTexture(dialog.getCatalogTextureFromItem(this));
     });
 }

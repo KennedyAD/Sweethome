@@ -125,7 +125,11 @@ JSComponentView.prototype.registerEventListener = function(elements, eventName, 
     return;
   }
   if (elements instanceof NodeList || elements instanceof HTMLCollection) {
-    elements = Array.from(elements);
+    var array = new Array(elements.length);
+    for (var i = 0; i < elements.length; i++) {
+      array[i] = elements[i];
+    }
+    elements = array;
   }
   if (!Array.isArray(elements)) {
     elements = [elements];
@@ -291,7 +295,10 @@ function JSDialogView(preferences, title, template, behavior) {
 
   JSComponentView.call(this, preferences, template, behavior);
 
-  this.rootNode.classList.add("dialog-container", behavior.size);
+  this.rootNode.classList.add("dialog-container");
+  if (behavior.size) {
+    this.rootNode.classList.add(behavior.size);
+  }
   this.rootNode._dialogInstance = this;
 
   document.body.appendChild(this.rootNode);
@@ -301,8 +308,8 @@ function JSDialogView(preferences, title, template, behavior) {
   }
 
   this.getCloseButton().addEventListener("click", function() {
-    dialog.cancel();
-  });
+      dialog.cancel();
+    });
 
   this.buttonsPanel = this.findElement(".dialog-buttons");
   this.appendButtons(this.buttonsPanel);
@@ -311,7 +318,7 @@ JSDialogView.prototype = Object.create(JSComponentView.prototype);
 JSDialogView.prototype.constructor = JSDialogView;
 
 /**
- * Append dialog buttons to given panel
+ * Appends dialog buttons to given panel.
  * @param {HTMLElement} buttonsPanel Dialog buttons panel
  * @protected
  */
@@ -342,7 +349,7 @@ JSDialogView.prototype.appendButtons = function(buttonsPanel) {
 };
 
 /**
- * close currently displayed topmost dialog if any
+ * Closes currently displayed topmost dialog if any.
  * @static
  */
 JSDialogView.closeTopMostDialogIfAny = function() {
@@ -353,14 +360,13 @@ JSDialogView.closeTopMostDialogIfAny = function() {
 }
 
 /**
- * gets currently displayed topmost dialog if any
- * @return currently displayed topmost dialog if any, otherwise null
+ * Returns the currently displayed topmost dialog if any.
+ * @return {JSDialogView} currently displayed topmost dialog if any, otherwise null
  * @static
  */
 JSDialogView.getTopMostDialog = function() {
   var visibleDialogElements = document.querySelectorAll(".dialog-container.visible");
   if (visibleDialogElements.length > 0) {
-    /** @type JSDialogView */
     var topMostDialog = null;
     for (var i = 0; i < visibleDialogElements.length; i++) {
       var visibleDialog = visibleDialogElements[i]._dialogInstance;
@@ -1111,136 +1117,134 @@ function JSSpinner(preferences, input, options) {
 
   /** @var {JSSpinner} */
   var component = this;
-  JSComponentView.call(this, preferences, rootElement, {
-    useElementAsRootNode: true,
-    initializer: function(component) {
-      component.options = options;
-
-      rootElement.classList.add("spinner");
-
-      component.textInput = document.createElement("input");
-      component.textInput.type = "text";
-      rootElement.appendChild(component.textInput);
-
-      component.incrementButton = document.createElement("button");
-      component.incrementButton.setAttribute("increment", "");
-      component.incrementButton.textContent = "+";
-      component.incrementButton.tabIndex = -1;
-      rootElement.appendChild(component.incrementButton);
-
-      component.decrementButton = document.createElement("button");
-      component.decrementButton.setAttribute("decrement", "");
-      component.decrementButton.textContent = "-";
-      component.decrementButton.tabIndex = -1;
-      rootElement.appendChild(component.decrementButton);
-
-      component.registerEventListener(component.textInput, "focus", function(ev) {
-          component.refreshUI();
-        });
-      component.registerEventListener(component.textInput, "focusout", function(ev) {
-          component.refreshUI();
-        });
-
-      component.registerEventListener(component.textInput, "input", function(ev) {
-          var actualValue = component.parseFloatValueFromInput();
-  
-          component.textInput.style.color = null;
-          if (actualValue == null || (options.min != null && actualValue < options.min) || (options.max != null && actualValue > options.max)) {
-            component.textInput.style.color = "red";
+  JSComponentView.call(this, preferences, rootElement, 
+      {
+        useElementAsRootNode: true,
+        initializer: function(component) {
+          component.options = options;
+    
+          rootElement.classList.add("spinner");
+    
+          component.textInput = document.createElement("input");
+          component.textInput.type = "text";
+          rootElement.appendChild(component.textInput);
+    
+          component.incrementButton = document.createElement("button");
+          component.incrementButton.setAttribute("increment", "");
+          component.incrementButton.textContent = "+";
+          component.incrementButton.tabIndex = -1;
+          rootElement.appendChild(component.incrementButton);
+    
+          component.decrementButton = document.createElement("button");
+          component.decrementButton.setAttribute("decrement", "");
+          component.decrementButton.textContent = "-";
+          component.decrementButton.tabIndex = -1;
+          rootElement.appendChild(component.decrementButton);
+    
+          component.registerEventListener(component.textInput, "focus", function(ev) {
+              component.refreshUI();
+            });
+          component.registerEventListener(component.textInput, "focusout", function(ev) {
+              component.refreshUI();
+            });
+    
+          component.registerEventListener(component.textInput, "input", function(ev) {
+              var actualValue = component.parseFloatValueFromInput();
+              component.textInput.style.color = null;
+              if (actualValue == null || (options.min != null && actualValue < options.min) || (options.max != null && actualValue > options.max)) {
+                component.textInput.style.color = "red";
+              }
+              component._value = actualValue;
+            });
+    
+          component.registerEventListener(component.textInput, "blur", function(ev) {
+              var actualValue = component.parseFloatValueFromInput();
+              if (actualValue == null && !options.nullable) {
+                var restoredValue = component._value;
+                if (restoredValue == null) {
+                  restoredValue = component.getDefaultValue();
+                }
+                actualValue = restoredValue;
+              }
+              component.value = actualValue;
+              component.textInput.style.color = null;
+            });
+    
+          component.configureIncrementDecrement();
+    
+          Object.defineProperty(this, "value", {
+            get: function() { return component.get(); },
+            set: function(value) { component.set(value); }
+          });
+          Object.defineProperty(this, "width", {
+            get: function() { return rootElement.style.width; },
+            set: function(value) { rootElement.style.width = value; }
+          });
+          Object.defineProperty(this, "parentElement", {
+            get: function() { return rootElement.parentElement; }
+          });
+          Object.defineProperty(this, "previousElementSibling", {
+            get: function() { return rootElement.previousElementSibling; }
+          });
+          Object.defineProperty(this, "style", {
+            get: function() { return rootElement.style; }
+          });
+          Object.defineProperty(this, "min", {
+            get: function() { return options.min; },
+            set: function(min) {
+              checkMinMax(min, options.max);
+              options.min = min;
+            },
+          });
+          Object.defineProperty(this, "max", {
+            get: function() { return options.max; },
+            set: function(max) {
+              checkMinMax(options.min, max);
+              options.max = max;
+            },
+          });
+          Object.defineProperty(this, "step", {
+            get: function() { return options.step; },
+            set: function(step) { options.step = step; },
+          });
+          Object.defineProperty(this, "format", {
+            get: function() { return options.format; },
+            set: function(format) {
+              options.format = format;
+              component.refreshUI();
+            },
+          });
+    
+          var initialValue = options.value;
+          component.value = initialValue;
+        },
+        getter: function(component) {
+          return component._value;
+        },
+        setter: function(component, value) {
+          if (value instanceof Big) {
+            value = parseFloat(value);
           }
-  
-          component.__value = actualValue;
-        });
-
-      component.registerEventListener(component.textInput, "blur", function(ev) {
-          var actualValue = component.parseFloatValueFromInput();
-          if (actualValue == null && !options.nullable) {
-            var restoredValue = component.__value;
-            if (restoredValue == null) {
-              restoredValue = component.getDefaultValue();
-            }
-            actualValue = restoredValue;
+          if (value != null && typeof value != "number") {
+            throw new Error("JSSpinner: Expected values of type number");
           }
-          component.value = actualValue;
-          component.textInput.style.color = null;
-        });
-
-      component.configureIncrementDecrement();
-
-      Object.defineProperty(this, "value", {
-        get: function() { return component.get(); },
-        set: function(value) { component.set(value); }
-      });
-      Object.defineProperty(this, "width", {
-        get: function() { return rootElement.style.width; },
-        set: function(value) { rootElement.style.width = value; }
-      });
-      Object.defineProperty(this, "parentElement", {
-        get: function() { return rootElement.parentElement; }
-      });
-      Object.defineProperty(this, "previousElementSibling", {
-        get: function() { return rootElement.previousElementSibling; }
-      });
-      Object.defineProperty(this, "style", {
-        get: function() { return rootElement.style; }
-      });
-      Object.defineProperty(this, "min", {
-        get: function() { return options.min; },
-        set: function(min) {
-          checkMinMax(min, options.max);
-          options.min = min;
+          if (value == null && !options.nullable) {
+            value = component.getDefaultValue();
+          }
+          if (value != null && options.min != null && value < options.min) {
+            value = options.min;
+          }
+          if (value != null && options.max != null && value > options.max) {
+            value = options.max;
+          }
+    
+          if (value != component.value) {
+            component._value = value;
+            component.refreshUI();
+          }
         },
       });
-      Object.defineProperty(this, "max", {
-        get: function() { return options.max; },
-        set: function(max) {
-          checkMinMax(options.min, max);
-          options.max = max;
-        },
-      });
-      Object.defineProperty(this, "step", {
-        get: function() { return options.step; },
-        set: function(step) { options.step = step; },
-      });
-      Object.defineProperty(this, "format", {
-        get: function() { return options.format; },
-        set: function(format) {
-          options.format = format;
-          component.refreshUI();
-        },
-      });
-
-      var initialValue = options.value;
-      component.value = initialValue;
-    },
-    getter: function(component) {
-      return component.__value;
-    },
-    setter: function(component, value) {
-      if (value instanceof Big) {
-        value = parseFloat(value);
-      }
-      if (value != null && typeof value != "number") {
-        throw new Error("JSSpinner: Expected values of type number");
-      }
-      if (value == null && !options.nullable) {
-        value = component.getDefaultValue();
-      }
-      if (value != null && options.min != null && value < options.min) {
-        value = options.min;
-      }
-      if (value != null && options.max != null && value > options.max) {
-        value = options.max;
-      }
-
-      if (value != component.value) {
-        component.__value = value;
-        component.refreshUI();
-      }
-    },
-  });
-};
-
+}
 JSSpinner.prototype = Object.create(JSComponentView.prototype);
 JSSpinner.prototype.constructor = JSSpinner;
 
@@ -1249,29 +1253,26 @@ JSSpinner.prototype.constructor = JSSpinner;
  */
 JSSpinner.prototype.getInputElement = function() {
   return this.textInput;
-};
+}
 
 JSSpinner.prototype.addEventListener = function() {
   return this.textInput.addEventListener.apply(this.textInput, arguments);
-};
+}
 
 JSSpinner.prototype.removeEventListener = function() {
   return this.textInput.removeEventListener.apply(this.textInput, arguments);
-};
+}
 
 /**
- * Refreshes UI for current state / options. For instance, if format has changed, displayed text is updated
- *
+ * Refreshes UI for current state / options. For instance, if format has changed, displayed text is updated.
  * @private
  */
 JSSpinner.prototype.refreshUI = function() {
   this.textInput.value = this.formatValueForUI(this.value);
-};
+}
 
 /**
- *
  * @return {number}
- *
  * @private
  */
 JSSpinner.prototype.parseFloatValueFromInput = function() {
@@ -1283,12 +1284,10 @@ JSSpinner.prototype.parseFloatValueFromInput = function() {
     }
   }
   return this.options.format.parse(this.textInput.value, new ParsePosition(0));
-};
+}
 
 /**
- *
  * @return {number}
- *
  * @private
  */
 JSSpinner.prototype.getDefaultValue = function() {
@@ -1305,7 +1304,6 @@ JSSpinner.prototype.getDefaultValue = function() {
 /**
  * @param {number} value
  * @return {string}
- *
  * @private
  */
 JSSpinner.prototype.formatValueForUI = function(value) {
@@ -1343,10 +1341,10 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
 
   this.registerEventListener(component.textInput, "keydown", function(ev) {
       var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, "keydown");
-      if (keyStroke.endsWith(" UP")) {
+      if (keyStroke.lastIndexOf(" UP") > 0) {
         ev.stopImmediatePropagation();
         component.incrementButton.click();
-      } else if (keyStroke.endsWith(" DOWN")) {
+      } else if (keyStroke.lastIndexOf(" DOWN") > 0) {
         ev.stopImmediatePropagation();
         component.decrementButton.click();
       }
@@ -1783,9 +1781,9 @@ JSTreeTable.prototype.fireSortChanged = function() {
  */
 JSTreeTable.prototype.updateState = function(stateProperties) {
   if (stateProperties) {
-    Object.assign(this.state, stateProperties);
+    CoreTools.merge(this.state, stateProperties);
   }
-};
+}
 
 /**
  * @return {function(value1: any, value2: any)}
@@ -1793,7 +1791,7 @@ JSTreeTable.prototype.updateState = function(stateProperties) {
  */
 JSTreeTable.prototype.getValueComparator = function() {
   return this.model.getValueComparator(this.state.sort);
-};
+}
 
 /**
  * @private
@@ -1832,7 +1830,7 @@ JSTreeTable.prototype.generateTableHeaders = function() {
       var descending = this.classList.contains("sort") && !this.classList.contains("descending");
       treeTable.sortTable(columnName, descending);
     });
-};
+}
 
 /**
  * @private

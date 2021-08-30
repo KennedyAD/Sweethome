@@ -225,11 +225,14 @@ BlobURLContent.fromImage = function(image, imageType, oncontentready) {
   canvas.width = image.width;
   canvas.height = image.height;
   context.drawImage(image, 0, 0, image.width, image.height);
-  canvas.toBlob(function (blob) {
-      oncontentready(new BlobURLContent(blob));
-    }, imageType, 1);
+  if (canvas.msToBlob) {
+    oncontentready(new BlobURLContent(canvas.msToBlob()));
+  } else {
+    canvas.toBlob(function (blob) {
+        oncontentready(new BlobURLContent(blob));
+      }, imageType, 1);
+  }
 }
-
 
 /**
  * ZIP reading utilities.
