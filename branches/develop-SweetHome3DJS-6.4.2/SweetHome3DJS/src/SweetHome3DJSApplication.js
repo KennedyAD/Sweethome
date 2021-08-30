@@ -70,7 +70,7 @@ IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
  * The home properties that are tracked by default by incremental recorders.
  */
 IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
-  JSViewFactory.EXPANDED_ROWS_VISUAL_PROPERTY,
+  FurnitureTablePanel.EXPANDED_ROWS_VISUAL_PROPERTY,
   HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
   HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
   HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 

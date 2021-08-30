@@ -594,17 +594,6 @@ if (!String.prototype.endsWith) {
   };
 }
 
-if (!Object.values) {
-  Object.values = function(object) {
-    var keys = Object.keys(object);
-    var values = [];
-    for (var i = 0; i < keys.length; i++) {
-      values.push(object[keys[i]]);
-    }
-    return values;
-  }
-}
-
 if (!Array.from) {
   Array.from = function(otherIterable) {
     var array = [];
@@ -789,11 +778,9 @@ function parseLocalizedNumber(string, parsePosition, options) {
 }
 
 /**
- * A Format for numbers.
+ * A format for numbers.
  * Inspired by java.text.DecimalFormat
- *
  * @param {string} [pattern] partial support of pattern defined here https://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html
- *
  * @constructor
  * @extends Format
  * @author Louis Grignon
@@ -906,16 +893,14 @@ DecimalFormat.prototype.checkLocaleChange = function() {
 }
 
 /**
- * A Format for integers numbers.
+ * A format for integers numbers.
  * Inspired by java.text.DecimalFormat & java.text.NumberFormat.getIntegerInstance()
- *
  * @constructor
  * @extends DecimalFormat
  * @author Louis Grignon
  */
 function IntegerFormat() {
   DecimalFormat.call(this);
-
   this.maximumFractionDigits = 0;
 }
 IntegerFormat.prototype = Object.create(DecimalFormat.prototype);

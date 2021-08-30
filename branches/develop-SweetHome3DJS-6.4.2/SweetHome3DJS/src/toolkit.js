@@ -20,14 +20,8 @@
 
 // Requires UserPreferences.js
 
-/*****************************************/
-/* JSComponentView                       */
-/*****************************************/
-
 /**
  * The root class for component views.
- *
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
@@ -42,10 +36,7 @@
  * @constructor
  * @author Renaud Pawlak
  */
-function JSComponentView(viewFactory, preferences, template, behavior) {
-
-  this.viewFactory = viewFactory;
-
+function JSComponentView(preferences, template, behavior) {
   this.preferences = preferences;
 
   if (template instanceof HTMLElement && behavior.useElementAsRootNode === true) {
@@ -114,13 +105,6 @@ JSComponentView.prototype.getRootNode = function() {
 }
 
 /**
- * Returns the view factory.
- */
-JSComponentView.prototype.getViewFactory = function() {
-  return this.viewFactory;
-}
-
-/**
  * Attaches the given component to a child DOM element, becoming a child component.
  *
  * @param {string} name the component's name, which matches child DOM element name (as defined in {@link JSComponentView#getElement})
@@ -131,7 +115,7 @@ JSComponentView.prototype.attachChildComponent = function(name, component) {
 }
 
 /**
- * Registers given listener on given elements(s) and removes them when this component is disposed
+ * Registers given listener on given elements(s) and removes them when this component is disposed.
  * @param {(HTMLElement[]|HTMLElement)} elements
  * @param {string} eventName
  * @param {function} listener
@@ -284,13 +268,9 @@ JSComponentView.createOptionElement = function(value, text, selected) {
   return option;
 }
 
-/*****************************************/
-/* JSDialogView                          */
-/*****************************************/
 
 /**
  * A class to create dialogs.
- *
  * @param preferences      the current user preferences
  * @param {string} title the dialog's title (may contain HTML)
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
@@ -303,13 +283,13 @@ JSComponentView.createOptionElement = function(value, text, selected) {
  * @constructor
  * @author Renaud Pawlak
  */
-function JSDialogView(viewFactory, preferences, title, template, behavior) {
+function JSDialogView(preferences, title, template, behavior) {
   var dialog = this;
   if (behavior != null) {
     this.applier = behavior.applier;
   }
 
-  JSComponentView.call(this, viewFactory, preferences, template, behavior);
+  JSComponentView.call(this, preferences, template, behavior);
 
   this.rootNode.classList.add("dialog-container", behavior.size);
   this.rootNode._dialogInstance = this;
@@ -495,7 +475,7 @@ JSDialogView.prototype.displayView = function(parentView) {
 
   this.getRootNode().style.display = "block";
 
-  // force browser to refresh before adding visible class to allow transition on width and height
+  // Force browser to refresh before adding visible class to allow transition on width and height
   setTimeout(function() {
     dialog.rootNode.classList.add("visible");
     dialog.displayIndex = JSDialogView.shownDialogsCounter++;
@@ -503,9 +483,6 @@ JSDialogView.prototype.displayView = function(parentView) {
 }
 JSDialogView.shownDialogsCounter = 0;
 
-/*****************************************/
-/* JSWizardDialog                        */
-/*****************************************/
 
 /**
  * A class to create wizard dialogs.
@@ -521,10 +498,10 @@ JSDialogView.shownDialogsCounter = 0;
  * @constructor
  * @author Louis Grignon
  */
-function JSWizardDialog(viewFactory, controller, preferences, title, behavior) {
+function JSWizardDialog(controller, preferences, title, behavior) {
   this.controller = controller;
 
-  JSDialogView.call(this, viewFactory, preferences, title,
+  JSDialogView.call(this, preferences, title,
     '<div class="wizard">' +
     '  <div stepIcon></div>' +
     '  <div stepView></div>' +
@@ -647,8 +624,8 @@ JSWizardDialog.prototype.updateStepIcon = function() {
       } else if (stepIconBackgroundColors.length == 2) {
         backgroundColor2 = parseInt(stepIconBackgroundColors[1]) || backgroundColor2;
       }
-    } catch (e) {
-      // do not change if exception
+    } catch (ex) {
+      // Do not change if exception
     }
 
     var gradientColor1 = backgroundColor1;
@@ -658,13 +635,9 @@ JSWizardDialog.prototype.updateStepIcon = function() {
   }
 }
 
-/*****************************************/
-/* JSContextMenu                         */
-/*****************************************/
 
 /**
  * A class to create a context menu.
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. 
  *        Cannot be null for now for the root node
@@ -685,7 +658,7 @@ function JSContextMenu(preferences, sourceElements, behavior) {
 
   this.build = behavior.build;
 
-  JSComponentView.call(this, undefined, preferences, "", behavior);
+  JSComponentView.call(this, preferences, "", behavior);
   this.getRootNode().classList.add("context-menu");
 
   document.body.appendChild(this.getRootNode());
@@ -735,11 +708,11 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, ev) {
 
   this.getRootNode().appendChild(menuElement);
 
-  // we temporarily use hidden visibility to get element's height
+  // Temporarily use hidden visibility to get element's height
   this.getRootNode().style.visibility = "hidden";
   this.getRootNode().classList.add("visible");
 
-  // adjust top/left and display
+  // Adjust top/left and display
   var anchorX = ev.clientX;
   if (menuElement.clientWidth > window.innerWidth) {
     anchorX = 0;
@@ -948,7 +921,7 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
-    // do no show item if action is disabled
+    // Do no show item if action is disabled
     if (!action.isEnabled() || action.getValue(ResourceAction.VISIBLE) === false) {
       return this;
     }
@@ -1021,7 +994,7 @@ JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, l
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
 
-    // do no show item if action is disabled
+    // Do no show item if action is disabled
     if (!action.isEnabled()) {
       return this;
     }
@@ -1072,7 +1045,6 @@ JSContextMenu.Builder.prototype.addSeparator = function() {
 }
 
 // Global initializations of the toolkit
-
 if (!JSContextMenu.globalCloserRegistered) {
   document.addEventListener("click", function(ev) {
     if (JSContextMenu.current != null
@@ -1094,13 +1066,9 @@ document.addEventListener("keyup", function(ev) {
   }
 });
 
-/*****************************************/
-/* JSSpinner                          */
-/*****************************************/
+
 /**
  * The root class for component views.
- *
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} input input of type text on which install the spinner
  * @param {{format?: Format, nullable?: boolean, value?: number, min?: number, max?: number, step?: number}} [options]
@@ -1115,7 +1083,7 @@ document.addEventListener("keyup", function(ev) {
  * @author Louis Grignon
  *
  */
-function JSSpinner(viewFactory, preferences, input, options) {
+function JSSpinner(preferences, input, options) {
   if (input.tagName.toUpperCase() != "SPAN") {
     throw new Error("JSSpinner: please provide a span for the spinner to work - " + input + " is not a span");
   }
@@ -1143,7 +1111,7 @@ function JSSpinner(viewFactory, preferences, input, options) {
 
   /** @var {JSSpinner} */
   var component = this;
-  JSComponentView.call(this, viewFactory, preferences, rootElement, {
+  JSComponentView.call(this, preferences, rootElement, {
     useElementAsRootNode: true,
     initializer: function(component) {
       component.options = options;
@@ -1349,7 +1317,7 @@ JSSpinner.prototype.formatValueForUI = function(value) {
     return this.options.format.format(value);
   }
   if (this.focusedFormatCache == null || this.lastFormat !== this.options.format) {
-    // format has been changed, let's compute focused format
+    // Format changed, compute focused format
     this.lastFormat = this.options.format;
     this.focusedFormatCache = this.lastFormat.clone();
     this.focusedFormatCache.setGroupingUsed(false);
@@ -1426,27 +1394,23 @@ JSSpinner.prototype.enable = function(enabled) {
   this.decrementButton.disabled = !enabled;
 };
 
-/*****************************************/
-/* JSComboBox                          */
-/*****************************************/
+
 /**
- * A free combo box component, which allows any type of content (e.g. images)
- *
- * @param {JSViewFactory} viewFactory the view factory
+ * A combo box component which allows any type of content (e.g. images).
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} container html element on which install this component
- * @param {{nullable?: boolean, value?: any, availableValues: (any)[], render?: function(value: any, element: HTMLElement), onSelectionChanged: function(newValue: any)}} [options]
+ * @param {{nullable?: boolean, value?: any, availableValues: (any)[], render?: function(value: any, element: HTMLElement), selectionChanged: function(newValue: any)}} [options]
  * - nullable: false if null/undefined is not allowed - default true
  * - value: initial value - default undefined if nullable or first available value,
  * - availableValues: available values in this combo,
  * - render: a function which builds displayed element for a given value - defaults to setting textContent to value.toString()
- * - onSelectionChanged: called with new value when selected by user
+ * - selectionChanged: called with new value when selected by user
  * @constructor
  * @extends JSComponentView
  * @author Louis Grignon
  *
  */
-function JSComboBox(viewFactory, preferences, container, options) {
+function JSComboBox(preferences, container, options) {
   var rootElement = container;
 
   if (!options) { 
@@ -1468,7 +1432,7 @@ function JSComboBox(viewFactory, preferences, container, options) {
   }
 
   var component = this;
-  JSComponentView.call(this, viewFactory, preferences, rootElement, {
+  JSComponentView.call(this, preferences, rootElement, {
     useElementAsRootNode: true,
     initializer: function(component) {
       component.options = options;
@@ -1549,8 +1513,8 @@ JSComboBox.prototype.initSelectionPanel = function() {
   this.registerEventListener(selectionPanel.children, "click", function(ev) {
       component.value = this.value;
       component.refreshUI();
-      if (typeof component.options.onSelectionChanged == "function") {
-        component.options.onSelectionChanged(component.value);
+      if (typeof component.options.selectionChanged == "function") {
+        component.options.selectionChanged(component.value);
       }
     });
 }
@@ -1610,10 +1574,7 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
 };
 
 
-/*****************************************/
-/* JSTreeTable                           */
-/*****************************************/
-/**
+/*
  * @typedef {{
  *   visibleColumnNames?: string[],
  *   expandedRowsIndices?: number[],
@@ -1623,7 +1584,7 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
  * @property TreeTableState.expandedRowsIndices index in filtered and sorted rows, expandedRowsValues can also be used but not both (expandedRowsValues will be preferred)
  * @property TreeTableState.expandedRowsValues expanded rows listed by their values. It takes precedence over expandedRowsIndices but achieves the same goal
  */
-/**
+/*
  * @typedef {{
  *   columns: {
  *       name: string,
@@ -1633,68 +1594,61 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
  *   }[],
  *   renderCell: function(value: any, columnName: string, cell: HTMLElement): void,
  *   getValueComparator: function(sortConfig?: { columnName: string, direction: "asc" | "desc" }): function(value1: any, value2: any),
- *   onSelectionChanged: function(values: any[]): void,
- *   onRowDoubleClicked: function(value: any): void,
- *   onExpandedRowsChanged: function(expandedRowsValues: any[], expandedRowsIndices: number[]): void,
- *   onSortChanged: function(sort: { columnName: string, direction: "asc" | "desc" }): void,
+ *   selectionChanged: function(values: any[]): void,
+ *   rowDoubleClicked: function(value: any): void,
+ *   expandedRowsChanged: function(expandedRowsValues: any[], expandedRowsIndices: number[]): void,
+ *   sortChanged: function(sort: { columnName: string, direction: "asc" | "desc" }): void,
  *   initialState?: TreeTableState
  * }} TreeTableModel
  * @property TreeTableModel.renderCell render cell to given html element for given value, column name
- * @property TreeTableModel.onSelectionChanged called when a row selection changes, passing updated selected values
- * @property TreeTableModel.onRowDoubleClicked called when a row is double clicked, passing row's value
+ * @property TreeTableModel.selectionChanged called when a row selection changes, passing updated selected values
+ * @property TreeTableModel.rowDoubleClicked called when a row is double clicked, passing row's value
  */
+
 /**
- * A flexible tree table which allows grouping (tree aspect), sorting, some inline edition, single/multi selection, contextual menu, copy/paste
- *
- * @param {JSViewFactory} viewFactory the view factory
+ * A flexible tree table which allows grouping (tree aspect), sorting, some inline edition, single/multi selection, contextual menu, copy/paste.
+ * @param {HTMLElement} container html element on which this component is installed
  * @param {UserPreferences} preferences the current user preferences
- * @param {HTMLElement} container html element on which install this component
  * @param {TreeTableModel} model table's configuration
  * @param {{ value: any, children: {value, children}[] }[]} [data] data source for this tree table - defaults to empty data
  * @constructor
  * @extends JSComponentView
  * @author Louis Grignon
- *
  */
 // TODO LOUIS contextual menu
-function JSTreeTable(viewFactory, preferences, container, model, data) {
-
+function JSTreeTable(container, preferences, model, data) {
   /**
    * @type {TreeTableState}
    */
   this.state = {};
   this.selectedRowsValues = [];
-
-  var rootElement = container;
-  JSComponentView.call(this, viewFactory, preferences, rootElement, {
-    useElementAsRootNode: true,
-    initializer: function(table) {
-
-      table.tableElement = document.createElement("div");
-      table.tableElement.classList.add("tree-table");
-      rootElement.appendChild(table.tableElement);
-
-      table.setModel(model);
-      table.setData(data ? data : []);
-    }
-  });
+  JSComponentView.call(this, preferences, container, 
+      {
+        useElementAsRootNode: true,
+        initializer: function(table) {
+          table.tableElement = document.createElement("div");
+          table.tableElement.classList.add("tree-table");
+          container.appendChild(table.tableElement);
+          table.setModel(model);
+          table.setData(data ? data : []);
+        }
+      });
 }
-
 JSTreeTable.prototype = Object.create(JSComponentView.prototype);
 JSTreeTable.prototype.constructor = JSTreeTable;
 
 /**
  * Sets data and refreshes rows in UI
- * @param {{ value: any, children: {value, children}[] }[]} dataList
+ * @param {{ value: any, children: {value, children}[] }[]} data
  */
-JSTreeTable.prototype.setData = function(dataList) {
-  this.data = dataList;
+JSTreeTable.prototype.setData = function(data) {
+  this.data = data;
 
   var expandedRowsValues = this.getExpandedRowsValues();
   if (expandedRowsValues != null) {
     this.updateState({
-      expandedRowsValues: expandedRowsValues
-    });
+        expandedRowsValues: expandedRowsValues
+      });
   }
   this.generateTableRows();
 
@@ -1728,7 +1682,6 @@ JSTreeTable.prototype.setModel = function(model) {
 JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
   this.selectedRowsValues = values;
   this.generateTableRows();
-
   this.expandSelectedRows();
   this.scrollToSelectedRowsIfNotVisible();
 }
@@ -1761,7 +1714,7 @@ JSTreeTable.prototype.scrollToSelectedRowsIfNotVisible = function() {
   var selectedRows = this.getSelectedRows();
 
   if (selectedRows.length > 0) {
-    // if one selected row is visible, let's not change scroll
+    // If one selected row is visible, do not change scroll
     for (var i = 0; i < selectedRows.length; i++) {
       var selectedRow = selectedRows[i];
       var rowYTop = selectedRow.offsetTop - body.offsetTop;
@@ -1793,7 +1746,7 @@ JSTreeTable.prototype.getExpandedRowsValues = function() {
 JSTreeTable.prototype.fireExpandedRowsChanged = function() {
   if (this.state.expandedRowsValues != null) {
     this.refreshExpandedRowsIndices();
-    this.model.onExpandedRowsChanged(this.state.expandedRowsValues, this.state.expandedRowsIndices);
+    this.model.expandedRowsChanged(this.state.expandedRowsValues, this.state.expandedRowsIndices);
   }
 }
 
@@ -1802,7 +1755,9 @@ JSTreeTable.prototype.fireExpandedRowsChanged = function() {
  * @private
  */
 JSTreeTable.prototype.refreshExpandedRowsIndices = function() {
-  if (this.state.expandedRowsValues != null && this.data != null && this.data.sortedList != null) {
+  if (this.state.expandedRowsValues != null 
+      && this.data != null 
+      && this.data.sortedList != null) {
     this.state.expandedRowsIndices = [];
     for (var i = 0; i < this.data.sortedList.length; i++) {
       var value = this.data.sortedList[i].value;
@@ -1818,7 +1773,7 @@ JSTreeTable.prototype.refreshExpandedRowsIndices = function() {
  */
 JSTreeTable.prototype.fireSortChanged = function() {
   if (this.state.sort != null) {
-    this.model.onSortChanged(this.state.sort);
+    this.model.sortChanged(this.state.sort);
   }
 }
 
@@ -1906,75 +1861,72 @@ JSTreeTable.prototype.generateTableRows = function() {
 
   var comparator = this.getValueComparator();
 
-  // generate simplified table model: a sorted list of items
+  // Generate simplified table model: a sorted list of items
   var sortedList = this.data.sortedList = [];
 
   /**
    * @param {{value: any, children: any[]}[]} currentNodes
    * @param {number} currentIndentation
-   *
    * @return {Object[]} generated children items
    */
   var sortDataTree = function(currentNodes, currentIndentation, parentGroup) {
-
-    // children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
-    var hideChildren = currentIndentation > 0;
-
-    var sortedCurrentNodes = currentNodes.sort(function(leftNode, rightNode) {
-      return comparator(leftNode.value, rightNode.value);
-    });
-    var currentNodesItems = [];
-    for (var i = 0; i < sortedCurrentNodes.length; i++) {
-      var currentNode = sortedCurrentNodes[i];
-
-      var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
-      var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
-      var sortedListItem = {
-        value: currentNode.value,
-        indentation: currentIndentation,
-        group: false,
-        parentGroup: parentGroup,
-        selected: selected,
-        hidden: hideChildren,
-        collapsed: undefined,
-        childrenItems: undefined,
-        setCollapsed: function() {},
-        isInCollapsedGroup: function() {
-          var parent = this;
-          while ((parent = parent.parentGroup)) {
-            if (parent.collapsed === true) {
-              return true;
+      // Children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
+      var hideChildren = currentIndentation > 0;
+  
+      var sortedCurrentNodes = comparator != null
+          ? currentNodes.sort(function(leftNode, rightNode) {
+                return comparator(leftNode.value, rightNode.value);
+              })
+          : currentNodes;
+      var currentNodesItems = [];
+      for (var i = 0; i < sortedCurrentNodes.length; i++) {
+        var currentNode = sortedCurrentNodes[i];
+        var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
+        var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
+        var sortedListItem = {
+          value: currentNode.value,
+          indentation: currentIndentation,
+          group: false,
+          parentGroup: parentGroup,
+          selected: selected,
+          hidden: hideChildren,
+          collapsed: undefined,
+          childrenItems: undefined,
+          setCollapsed: function() {},
+          isInCollapsedGroup: function() {
+            var parent = this;
+            while ((parent = parent.parentGroup)) {
+              if (parent.collapsed === true) {
+                return true;
+              }
             }
+            return false;
           }
-          return false;
+        };
+        currentNodesItems.push(sortedListItem);
+        sortedList.push(sortedListItem);
+  
+        // Create node's children items
+        if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
+          sortedListItem.group = true;
+          sortedListItem.collapsed = true;
+          sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
+          sortedListItem.setCollapsed = (function(item) {
+              return function(collapsed) {
+                item.collapsed = collapsed;
+                for (var i = 0; i < item.childrenItems.length; i++) {
+                  item.childrenItems[i].hidden = collapsed;
+                }
+              }
+            })(sortedListItem);
         }
-      };
-      currentNodesItems.push(sortedListItem);
-      sortedList.push(sortedListItem);
-
-      // create node's children items
-      if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
-        sortedListItem.group = true;
-        sortedListItem.collapsed = true;
-
-        sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
-
-        sortedListItem.setCollapsed = (function(item) {
-          return function(collapsed) {
-            item.collapsed = collapsed;
-            for (var i = 0; i < item.childrenItems.length; i++) {
-              item.childrenItems[i].hidden = collapsed;
-            }
-          }
-        })(sortedListItem);
       }
-    }
+  
+      return currentNodesItems;
+    };
+  sortDataTree(this.data.slice(0), 0);
 
-    return currentNodesItems;
-  };
-  sortDataTree(this.data, 0);
-
-  // synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
+  // Synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
   this.refreshExpandedRowsIndices();
   if (this.state.expandedRowsIndices && this.state.expandedRowsIndices.length > 0) {
     var expandedRowsValues = [];
@@ -1992,7 +1944,7 @@ JSTreeTable.prototype.generateTableRows = function() {
     }
   }
 
-  // generate DOM for items
+  // Generate DOM for items
   for (var i = 0; i < sortedList.length; i++) {
     var row = this.generateRowElement(columnNames, i, sortedList[i]);
     body.appendChild(row);
@@ -2077,15 +2029,15 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
       } else {
         treeTable.selectedRowsValues = [rowValue];
       }
-      if (typeof treeTable.model.onSelectionChanged == "function") {
-        treeTable.model.onSelectionChanged(treeTable.selectedRowsValues);
+      if (typeof treeTable.model.selectionChanged == "function") {
+        treeTable.model.selectionChanged(treeTable.selectedRowsValues);
       }
     });
   treeTable.registerEventListener(row, "dblclick", function(ev) {
-      if (typeof treeTable.model.onRowDoubleClicked == "function") {
+      if (typeof treeTable.model.rowDoubleClicked == "function") {
         var row = this;
         var rowValue = row._model.value;
-        treeTable.model.onRowDoubleClicked(rowValue);
+        treeTable.model.rowDoubleClicked(rowValue);
       }
     });
 

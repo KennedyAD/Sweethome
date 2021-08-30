@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-
 /**
  * Creates an action which is available in web only.
  * @param {UserPreferences} preferences   user preferences used to retrieve localized description of the action
@@ -336,7 +335,7 @@ function HomePane(containerId, home, preferences, controller) {
     };
   updateLevels();
   if (homePane.levelSelector) {
-    homePane.levelSelector.addEventListener('change', function(ev) {
+    homePane.levelSelector.addEventListener("change", function(ev) {
         home.setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
         updateLevels();
       });
@@ -348,7 +347,6 @@ function HomePane(containerId, home, preferences, controller) {
       updateLevels();
     }); 
 }
-
 HomePane["__class"] = "HomePane";
 HomePane["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.HomeView", "com.eteks.sweethome3d.viewcontroller.View"];
 
@@ -411,7 +409,7 @@ HomePane.prototype.getActionMap = function() {
  * @private
  */
 HomePane.prototype.getAction = function(actionType) {
-  if (typeof actionType === 'string') {
+  if (typeof actionType === "string") {
     return this.actionMap[actionType];
   } else {
     return this.actionMap[HomeView.ActionType[actionType]];
@@ -659,28 +657,32 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
   
   var showPlanContextMenuActionId = HomePane.WebActionType.SHOW_PLAN_CONTEXT_MENU;
   var showPlanContextMenuActionName = HomePane.WebActionType[showPlanContextMenuActionId];
-  var showPlanContextMenuAction = new WebAction(preferences, showPlanContextMenuActionId, showPlanContextMenuActionName, function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    var planElement = controller.getPlanController().getView().getHTMLElement();
-    var contextMenuEvent = new Event('contextmenu');
-    contextMenuEvent.clientX = planElement.offsetLeft + planElement.clientWidth / 2;
-    contextMenuEvent.clientY = planElement.offsetTop + planElement.clientHeight / 2;
-    planElement.dispatchEvent(contextMenuEvent);
-    return showPlanContextMenuAction;
-  }, {
-    toolbarIcon: 'menu.png'
-  });
+  var showPlanContextMenuAction = new WebAction(preferences, showPlanContextMenuActionId, showPlanContextMenuActionName, 
+      function(ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
+        var planElement = controller.getPlanController().getView().getHTMLElement();
+        var contextMenuEvent = new Event("contextmenu");
+        contextMenuEvent.clientX = planElement.offsetLeft + planElement.clientWidth / 2;
+        contextMenuEvent.clientY = planElement.offsetTop + planElement.clientHeight / 2;
+        planElement.dispatchEvent(contextMenuEvent);
+        return showPlanContextMenuAction;
+      }, 
+      {
+        toolbarIcon: "menu.png"
+      });
   this.getActionMap()[showPlanContextMenuActionName] = showPlanContextMenuAction;
 
   var preferencesDialogActionId = HomePane.WebActionType.PREFERENCES_DIALOG;
   var preferencesDialogActionName = HomePane.WebActionType[preferencesDialogActionId];
-  var preferencesDialogAction = new WebAction(preferences, preferencesDialogActionId, preferencesDialogActionName, function(event) {
-    controller.editPreferences();
-    return preferencesDialogAction;
-  }, {
-    toolbarIcon: 'preferences.png'
-  });
+  var preferencesDialogAction = new WebAction(preferences, preferencesDialogActionId, preferencesDialogActionName, 
+      function(ev) {
+        controller.editPreferences();
+        return preferencesDialogAction;
+    }, 
+    {
+      toolbarIcon: "preferences.png"
+    });
   this.getActionMap()[preferencesDialogActionName] = preferencesDialogAction;
 }
   
@@ -1203,10 +1205,10 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   var furnitureTableElement = furnitureTableView == null ? null : furnitureTableView.getHTMLElement();
 
   this.furnitureCatalogContextMenu = new JSContextMenu(this.preferences, furnitureElements, {
-    build: function(builder) {
-      builder.addItem(homePane.getAction(ActionType.ADD_HOME_FURNITURE));
-    }
-  });
+      build: function(builder) {
+        builder.addItem(homePane.getAction(ActionType.ADD_HOME_FURNITURE));
+      }
+    });
 
   // Furniture view context menu
   if (furnitureTableElement != null) {
@@ -1276,27 +1278,27 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
             }
           }
 
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, 'CATALOG_ID');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, 'NAME');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, 'CREATOR');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, 'WIDTH');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, 'DEPTH');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, 'HEIGHT');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_X, 'X');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, 'Y');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, 'ELEVATION');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, 'ANGLE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, 'LEVEL');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, 'MODEL_SIZE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, 'COLOR');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, 'TEXTURE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, 'MOVABLE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, 'DOOR_OR_WINDOW');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, 'VISIBLE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, 'PRICE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, 'VALUE_ADDED_TAX_PERCENTAGE');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, 'VALUE_ADDED_TAX');
-          addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, 'PRICE_VALUE_ADDED_TAX_INCLUDED');
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, "CREATOR");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, "WIDTH");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, "DEPTH");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, "HEIGHT");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_X, "X");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, "Y");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, "ELEVATION");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, "ANGLE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, "LEVEL");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, "MODEL_SIZE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, "COLOR");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, "TEXTURE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, "MOVABLE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, "DOOR_OR_WINDOW");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, "VISIBLE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, "PRICE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
+          addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
 
           builder.addSeparator();
 
@@ -1322,27 +1324,27 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
             }
           }
 
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, 'CATALOG_ID');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, 'NAME');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, 'CREATOR');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, 'WIDTH');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, 'DEPTH');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, 'HEIGHT');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_X, 'X');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, 'Y');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, 'ELEVATION');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, 'ANGLE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, 'LEVEL');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, 'MODEL_SIZE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, 'COLOR');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, 'TEXTURE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, 'MOVABLE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, 'DOOR_OR_WINDOW');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, 'VISIBLE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, 'PRICE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, 'VALUE_ADDED_TAX_PERCENTAGE');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, 'VALUE_ADDED_TAX');
-          addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, 'PRICE_VALUE_ADDED_TAX_INCLUDED');
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, "CREATOR");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, "WIDTH");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, "DEPTH");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, "HEIGHT");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_X, "X");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, "Y");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, "ELEVATION");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, "ANGLE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, "LEVEL");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, "MODEL_SIZE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, "COLOR");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, "TEXTURE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, "MOVABLE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, "DOOR_OR_WINDOW");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, "VISIBLE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, "PRICE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
+          addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
         });
 
       }
@@ -1356,7 +1358,6 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
 
   this.planContextMenu = new JSContextMenu(this.preferences, planElement, {
     build: function(builder) {
-
       builder.addItem(homePane.getAction(ActionType.UNDO));
 
       builder.addSeparator();
@@ -1415,7 +1416,6 @@ HomePane.prototype.createContextMenus = function(home, preferences) {
   var home3DView = this.controller.getHomeController3D().getView();
   this.home3DMenu = new JSContextMenu(this.preferences, home3DView.getHTMLElement(), {
     build: function(builder) {
-
       builder.addItem(homePane.getAction(ActionType.STORE_POINT_OF_VIEW));
 
       var storedCameras = home.getStoredCameras();
@@ -1466,7 +1466,7 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
   var positionStyleProperty = horizontal ? "top" : "left";
   var dimensionStyleProperty = horizontal ? "height" : "width";
   var dimensionProperty = horizontal ? "clientHeight" : "clientWidth";
-  var pointerPositionProperty = horizontal ? 'clientY' : 'clientX';
+  var pointerPositionProperty = horizontal ? "clientY" : "clientX";
   var offsetParent = firstGroupElements[0].offsetParent;
   var offsetProperty = horizontal ? "offsetTop" : "offsetLeft";
   var offsetTopFirst = offsetParent == document.body ? firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] : 0;
@@ -1487,14 +1487,14 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
         }
         // Elements in first groups grow or shrink
         for (var i = 0; i < firstGroupElements.length; i++) {
-          firstGroupElements[i].style[dimensionStyleProperty] = (relativePosition - offsetTopFirst) + 'px';
+          firstGroupElements[i].style[dimensionStyleProperty] = (relativePosition - offsetTopFirst) + "px";
         }
         // Splitter moves to new mouse position
-        splitterElement.style[positionStyleProperty] = relativePosition + 'px';
+        splitterElement.style[positionStyleProperty] = relativePosition + "px";
         // Elements in second groups move & grow / shrink
         for (var i = 0; i < secondGroupElements.length; i++) {
-          secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitterElement[dimensionProperty]) + 'px';
-          secondGroupElements[i].style[dimensionStyleProperty] = 'calc(100% - ' + relativePosition + 'px)';
+          secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitterElement[dimensionProperty]) + "px";
+          secondGroupElements[i].style[dimensionStyleProperty] = "calc(100% - " + relativePosition + "px)";
         }
       },
       mouseMoved: function(ev) {
@@ -1506,19 +1506,19 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
       },
       mousePressed: function(ev) {
         ev.stopImmediatePropagation();
-        splitterElement.classList.add('moving');
-        window.addEventListener('mousemove', mouseListener.mouseMoved, true);
-        window.addEventListener('touchmove', mouseListener.mouseMoved, true);
-        window.addEventListener('mouseup', mouseListener.mouseReleased, true);
-        window.addEventListener('touchend', mouseListener.mouseReleased, true);
+        splitterElement.classList.add("moving");
+        window.addEventListener("mousemove", mouseListener.mouseMoved, true);
+        window.addEventListener("touchmove", mouseListener.mouseMoved, true);
+        window.addEventListener("mouseup", mouseListener.mouseReleased, true);
+        window.addEventListener("touchend", mouseListener.mouseReleased, true);
       },
       mouseReleased: function(ev) {
         ev.stopImmediatePropagation();
-        splitterElement.classList.remove('moving');
-        window.removeEventListener('mousemove', mouseListener.mouseMoved, true);
-        window.removeEventListener('touchmove', mouseListener.mouseMoved, true);
-        window.removeEventListener('mouseup', mouseListener.mouseReleased, true);
-        window.removeEventListener('touchend', mouseListener.mouseReleased, true);
+        splitterElement.classList.remove("moving");
+        window.removeEventListener("mousemove", mouseListener.mouseMoved, true);
+        window.removeEventListener("touchmove", mouseListener.mouseMoved, true);
+        window.removeEventListener("mouseup", mouseListener.mouseReleased, true);
+        window.removeEventListener("touchend", mouseListener.mouseReleased, true);
         if (onresize !== undefined) {
           onresize(mouseListener.getSplitterPosition(ev), true);
         }
@@ -1531,8 +1531,8 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
       onresize(initialSplitterPosition, false);
     }
   }
-  splitterElement.addEventListener('mousedown', mouseListener.mousePressed, true);
-  splitterElement.addEventListener('touchstart', mouseListener.mousePressed, true);
+  splitterElement.addEventListener("mousedown", mouseListener.mousePressed, true);
+  splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
 }
 
 /**
@@ -1914,7 +1914,7 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
                   homePane.controller.getPlanController().stopDraggedItems();
                 }
                 var component = mouseListener.previousView;
-                if (view && typeof view.setCursor === 'function') {
+                if (view && typeof view.setCursor === "function") {
                   view.setCursor(mouseListener.previousCursor);
                 }
                 mouseListener.previousCursor = null;
@@ -2384,7 +2384,7 @@ HomePane.prototype.confirmDeleteCatalogSelection = function() {
  * @ignore
  */
 HomePane.prototype.showStoreCameraDialog = function(cameraName) {
-  return prompt(this.preferences.getLocalizedString('HomePane', 'showStoreCameraDialog.message'), cameraName);
+  return prompt(this.preferences.getLocalizedString("HomePane", "showStoreCameraDialog.message"), cameraName);
 }
 
 /**
@@ -2394,21 +2394,16 @@ HomePane.prototype.showStoreCameraDialog = function(cameraName) {
  */
 HomePane.prototype.showDeletedCamerasDialog = function(callback) {
   var pane = this;
-  var viewFactory = this.controller.viewFactory;
   var storedCameras = this.home.getStoredCameras();
 
-  // 1. confirm dialog
+  // 1. Confirm dialog
   function JSConfirmDeleteCamerasDialog() {
-    JSDialogView.call(
-        this,
-        viewFactory,
-        pane.preferences,
-        '@{HomePane.showDeletedCamerasDialog.title}',
-        '<div>@{HomePane.confirmDeleteCameras.message}</div>',
+    JSDialogView.call(this, pane.preferences,
+        "@{HomePane.showDeletedCamerasDialog.title}",
+        "<div>@{HomePane.confirmDeleteCameras.message}</div>",
         {
           initializer: function(dialog) {},
           applier: function(dialog) {
-            console.log('confirmed delete cameras', dialog.selectedCameras);
             callback(dialog.selectedCameras);
           },
         });
@@ -2417,39 +2412,35 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
   JSConfirmDeleteCamerasDialog.prototype.constructor = JSConfirmDeleteCamerasDialog;
 
   JSConfirmDeleteCamerasDialog.prototype.appendButtons = function(buttonsPanel) {
-    buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
-        '<button class="dialog-cancel-button">@{HomePane.confirmDeleteCameras.cancel}</button>' +
-        '<button class="dialog-ok-button">@{HomePane.confirmDeleteCameras.delete}</button>'
-    );
+      buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
+          "<button class='dialog-cancel-button'>@{HomePane.confirmDeleteCameras.cancel}</button>" +
+          "<button class='dialog-ok-button'>@{HomePane.confirmDeleteCameras.delete}</button>");
+  
+      var confirmDialog = this;
+      var cancelButton = this.findElement(".dialog-cancel-button");
+      this.registerEventListener(cancelButton, "click", function() {
+          confirmDialog.cancel();
+        });
+      var okButtons = this.findElements(".dialog-ok-button");
+      this.registerEventListener(okButtons, "click", function() {
+          confirmDialog.validate();
+        });
+    };
 
-    var confirmDialog = this;
-    var cancelButton = this.findElement('.dialog-cancel-button');
-    this.registerEventListener(cancelButton, 'click', function() {
-      confirmDialog.cancel();
-    });
-    var okButtons = this.findElements('.dialog-ok-button');
-    this.registerEventListener(okButtons, 'click', function() {
-      confirmDialog.validate();
-    });
-  };
-
-  var html = '<div>@{HomePane.showDeletedCamerasDialog.message}</div><br />';
+  var html = "<div>@{HomePane.showDeletedCamerasDialog.message}</div><br />";
   for (var i = 0; i < storedCameras.length; i++) {
-    html += '<div><label><input type="checkbox" value="' + i + '" />' + storedCameras[i].getName() + '</label></div>';
+    html += "<div><label><input type='checkbox' value='" + i + "' />" + storedCameras[i].getName() + "</label></div>";
   }
 
   function JSDeleteCamerasDialog() {
-    JSDialogView.call(
-      this,
-      viewFactory,
-      pane.preferences,
-      '@{HomePane.showDeletedCamerasDialog.title}',
+    JSDialogView.call(this, pane.preferences,
+      "@{HomePane.showDeletedCamerasDialog.title}",
       html,
       {
         initializer: function(dialog) {},
         applier: function(dialog) {
 
-          var checkboxes = dialog.findElements('input[type="checkbox"]:checked');
+          var checkboxes = dialog.findElements("input[type='checkbox']:checked");
           var selectedCameras = [];
           for (var i = 0; i < checkboxes.length; i++) {
             var cameraIndex = parseInt(checkboxes[i].value);
