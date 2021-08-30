@@ -1752,12 +1752,20 @@ input, textarea, keygen, select, button {
   text-align: center;
 }
 
-#furniture-view [cell].color div,
-#furniture-view [cell].texture div {
+#furniture-view [cell].color div {
   width: 1.2em;
   height: 1.2em;
   border: solid 1px black;
   margin: auto;
+}
+
+#furniture-view [cell].texture div {
+  width: 1.2em;
+  height: 1.2em;
+  margin: auto;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /**********************************/
