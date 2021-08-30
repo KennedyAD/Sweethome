@@ -218,6 +218,7 @@
         <file name="DAELoader.js"/>
         <file name="Max3DSLoader.js"/>
         <file name="ModelManager.js"/>
+        <file name="ModelPreviewComponent.js" />
         <file name="ShapeTools.js"/>
         <file name="HomeComponent3D.js"/>
         <file name="Object3DBranch.js"/>
@@ -235,6 +236,7 @@
         <file name="HomePane.js"/>
         <file name="DefaultFurnitureCatalog.js"/>
         <file name="FurnitureCatalogListPanel.js"/>
+      	<file name="FurnitureTablePanel.js"/>
         <file name="toolkit.js"/>
         <file name="colorSelection.js"/>
         <file name="textureSelection.js"/>
