@@ -22,7 +22,6 @@
 
 /**
  * The texture selector dialog class.
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences the current user preferences
  * @param {TextureChoiceController} textureChoiceController texture choice controller
  * @param {{selectedTexture, applier: function(JSDialogView)}} [options]
@@ -31,7 +30,7 @@
  * @extends JSDialogView
  * @constructor
  */
-function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceController, options) {
+function JSTextureSelectorDialog(preferences, textureChoiceController, options) {
   this.textureChoiceController = textureChoiceController;
   this.selectedTextureModel = {
       catalogTexture: null,
@@ -89,7 +88,7 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
     '</div>' +
     '<div class="recent-textures"></div>';
 
-  JSDialogView.call(this, viewFactory, preferences, "@{HomeFurnitureController.textureTitle}", html, 
+  JSDialogView.call(this, preferences, "@{HomeFurnitureController.textureTitle}", html, 
       {
         initializer: function(dialog) {
           dialog.getRootNode().classList.add("texture-selector-dialog");
@@ -99,21 +98,21 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
           dialog.catalogList = dialog.getRootNode().querySelector(".texture-catalog-list");
           dialog.selectedTextureOverview = dialog.getRootNode().querySelector(".selected-texture-overview > div");
     
-          dialog.xOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement("selected-texture-offset-x"), 
+          dialog.xOffsetInput = new JSSpinner(preferences, dialog.getElement("selected-texture-offset-x"), 
               {
                 value: 0,
                 min: 0,
                 max: 100,
                 step: 5
               });
-          dialog.yOffsetInput = new JSSpinner(viewFactory, preferences, dialog.getElement("selected-texture-offset-y"), 
+          dialog.yOffsetInput = new JSSpinner(preferences, dialog.getElement("selected-texture-offset-y"), 
               {
                 value: 0,
                 min: 0,
                 max: 100,
                 step: 5
               });
-          dialog.angleInput = new JSSpinner(viewFactory, preferences, dialog.getElement("selected-texture-angle"), 
+          dialog.angleInput = new JSSpinner(preferences, dialog.getElement("selected-texture-angle"), 
               {
                 format: new IntegerFormat(),
                 value: 0,
@@ -121,7 +120,7 @@ function JSTextureSelectorDialog(viewFactory, preferences, textureChoiceControll
                 max: 360,
                 step: 15
               });
-          dialog.scaleInput = new JSSpinner(viewFactory, preferences, dialog.getElement("selected-texture-scale"), 
+          dialog.scaleInput = new JSSpinner(preferences, dialog.getElement("selected-texture-scale"), 
               { 
                 value: 100,
                 min: 1,
@@ -397,7 +396,6 @@ JSTextureSelectorDialog.prototype.confirmDeleteSelectedCatalogTexture = function
 
 /**
  * A component to select a texture through a dialog, after clicking a button.
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences user preferences
  * @param {TextureChoiceController} textureChoiceController texture choice controller
  * @param {HTMLElement} targetNode target node on which attach this component 
@@ -405,7 +403,7 @@ JSTextureSelectorDialog.prototype.confirmDeleteSelectedCatalogTexture = function
  * > onTextureSelected: called with selected texture, when selection changed
  * @constructor
  */
-function JSTextureSelectorButton(viewFactory, preferences, textureChoiceController, targetNode, options) {
+function JSTextureSelectorButton(preferences, textureChoiceController, targetNode, options) {
   this.textureChoiceController = textureChoiceController;
 
   /** @field @type function(HomeTexture) */
@@ -414,7 +412,7 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
     this.onTextureSelected = options.onTextureSelected;
   }
 
-  JSComponentView.call(this, viewFactory, preferences, document.createElement("span"), 
+  JSComponentView.call(this, preferences, document.createElement("span"), 
       {
         useElementAsRootNode: true,
         initializer: function(component) {
@@ -463,7 +461,6 @@ function JSTextureSelectorButton(viewFactory, preferences, textureChoiceControll
     targetNode.appendChild(this.getRootNode());
   }
 }
-
 JSTextureSelectorButton.prototype = Object.create(JSComponentView.prototype);
 JSTextureSelectorButton.prototype.constructor = JSTextureSelectorButton;
 
@@ -483,7 +480,7 @@ JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
     return;
   }
 
-  this.currentDialog = new JSTextureSelectorDialog(this.viewFactory, this.preferences, this.textureChoiceController);
+  this.currentDialog = new JSTextureSelectorDialog(this.preferences, this.textureChoiceController);
   if (this.get() != null) {
     this.currentDialog.setTexture(this.get());
   }

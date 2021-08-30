@@ -22,14 +22,12 @@
 
 /**
  * A component to select a color.
- * 
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences user preferences
  * @param {HTMLElement} targetNode target node on which attach this component 
- * 
  * @constructor
+ * @author Louis Grignon
  */
-function JSColorSelector(viewFactory, preferences, targetNode) {
+function JSColorSelector(preferences, targetNode) {
   var html = 
     '<div class="picker"></div>' +
     '<hr />' +
@@ -40,38 +38,38 @@ function JSColorSelector(viewFactory, preferences, targetNode) {
     '</div>' +
     '<div class="custom-colors"></div>';
 
-  JSComponentView.call(this, viewFactory, preferences, html, {
-    initializer: function(component) {
-      component.getRootNode().classList.add("color-selector");
-      component.pickerElement = component.getRootNode().querySelector(".picker");
-      component.customColorsContainerElement = component.getRootNode().querySelector(".custom-colors");
-      component.customColorEditorInput = component.getRootNode().querySelector(".custom-color-editor input");
-      component.customColorEditorOverview = component.getRootNode().querySelector(".custom-color-editor .overview");
-      component.customColorEditorAddButton = component.getRootNode().querySelector(".custom-color-editor button");
-
-      component.createPickerColorTiles();
-      component.initCustomColorEditor();
-    },
-    getter: function(component) {
-      return component.selectedColor;
-    },
-    setter: function(component, color) {
-      if (color == null) {
-        return;
-      }
-      var matchingTile = component.getRootNode().querySelector("[data-color='" + color + "']");
-      if (matchingTile == null) {
-        component.addAndSelectCustomColorTile(ColorTools.integerToHexadecimalString(color));
-      } else {
-        component.selectColorTile(matchingTile);
-      }
-    }
-  });
+  JSComponentView.call(this, preferences, html, 
+      {
+        initializer: function(component) {
+          component.getRootNode().classList.add("color-selector");
+          component.pickerElement = component.getRootNode().querySelector(".picker");
+          component.customColorsContainerElement = component.getRootNode().querySelector(".custom-colors");
+          component.customColorEditorInput = component.getRootNode().querySelector(".custom-color-editor input");
+          component.customColorEditorOverview = component.getRootNode().querySelector(".custom-color-editor .overview");
+          component.customColorEditorAddButton = component.getRootNode().querySelector(".custom-color-editor button");
+    
+          component.createPickerColorTiles();
+          component.initCustomColorEditor();
+        },
+        getter: function(component) {
+          return component.selectedColor;
+        },
+        setter: function(component, color) {
+          if (color == null) {
+            return;
+          }
+          var matchingTile = component.getRootNode().querySelector("[data-color='" + color + "']");
+          if (matchingTile == null) {
+            component.addAndSelectCustomColorTile(ColorTools.integerToHexadecimalString(color));
+          } else {
+            component.selectColorTile(matchingTile);
+          }
+        }
+      });
   if (targetNode != null) {
     targetNode.appendChild(this.getRootNode());
   }
 }
-
 JSColorSelector.prototype = Object.create(JSComponentView.prototype);
 JSColorSelector.prototype.constructor = JSColorSelector;
 
@@ -192,16 +190,14 @@ JSColorSelector.prototype.dispose = function() {
 };
 
 /**
- * The color selector dialog class.
- *
- * @param {JSViewFactory} viewFactory the view factory
+ * Color selector dialog class.
  * @param preferences      the current user preferences
  * @param {{selectedColor: number, applier: function(JSDialogView)}} [options]
  * > selectedColor: selected color as ARGB int
  * > applier: apply color change, color as a ARGB int
  * @constructor
  */
-function JSColorSelectorDialog(viewFactory, preferences, options) {
+function JSColorSelectorDialog(preferences, options) {
   var applier = function() {};
   if (typeof options == "object" && typeof options.applier == "function") {
     applier = options.applier;
@@ -211,13 +207,13 @@ function JSColorSelectorDialog(viewFactory, preferences, options) {
     '<div>' + 
     '  <div data-name="color-selector"></div>' + 
     '</div>'
-  JSDialogView.call(this, viewFactory, preferences, "@{HomeFurniturePanel.colorDialog.title}", html, 
+  JSDialogView.call(this, preferences, "@{HomeFurniturePanel.colorDialog.title}", html, 
       {
         initializer: function(dialog) {
           dialog.getRootNode().classList.add("color-selector-dialog");
           dialog.getRootNode().classList.add("small");
     
-          dialog.colorSelector = new JSColorSelector(viewFactory, preferences, dialog.getElement("color-selector"));
+          dialog.colorSelector = new JSColorSelector(preferences, dialog.getElement("color-selector"));
           if (options.selectedColor != null) { 
             dialog.colorSelector.set(options.selectedColor);
           }
@@ -248,18 +244,16 @@ JSColorSelectorDialog.prototype.dispose = function() {
 
 /**
  * A component to select a color through a dialog, after clicking a button.
- * 
- * @param {JSViewFactory} viewFactory the view factory
  * @param {UserPreferences} preferences
  * @param {HTMLElement} [targetNode]
  * @param {{ colorSelected: function(number) }} [options]
  * > colorSelected: called with selected color, as ARGB int, when a color is selected
  * @constructor
  */
-function JSColorSelectorButton(viewFactory, preferences, targetNode, options) {
+function JSColorSelectorButton(preferences, targetNode, options) {
   this.options = options || {};
 
-  JSComponentView.call(this, viewFactory, preferences, document.createElement("span"), {
+  JSComponentView.call(this, preferences, document.createElement("span"), {
     useElementAsRootNode: true,
     initializer: function(component) {
       component.getRootNode().innerHTML = '<button class="color-button"><div class="color-overview" /></button>';
@@ -283,7 +277,6 @@ function JSColorSelectorButton(viewFactory, preferences, targetNode, options) {
     targetNode.appendChild(this.getRootNode());
   }
 }
-
 JSColorSelectorButton.prototype = Object.create(JSComponentView.prototype);
 JSColorSelectorButton.prototype.constructor = JSColorSelectorButton;
 
@@ -301,15 +294,16 @@ JSColorSelectorButton.prototype.enable = function(enabled) {
 JSColorSelectorButton.prototype.openColorSelectorDialog = function() {
   var colorSelectorButton = this;
   
-  var dialog = new JSColorSelectorDialog(this.viewFactory, this.preferences, { 
-    selectedColor: this.selectedColor,
-    applier: function() {
-      colorSelectorButton.set(dialog.getSelectedColor());
-      if (typeof colorSelectorButton.options.colorSelected == "function") {
-        colorSelectorButton.options.colorSelected(dialog.getSelectedColor());
-      }
-    }
-  });
+  var dialog = new JSColorSelectorDialog(this.preferences, 
+      { 
+        selectedColor: this.selectedColor,
+        applier: function() {
+          colorSelectorButton.set(dialog.getSelectedColor());
+          if (typeof colorSelectorButton.options.colorSelected == "function") {
+            colorSelectorButton.options.colorSelected(dialog.getSelectedColor());
+          }
+        }
+      });
   dialog.displayView();
 };
 
