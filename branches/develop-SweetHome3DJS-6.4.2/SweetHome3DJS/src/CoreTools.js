@@ -287,7 +287,7 @@ CoreTools.sortArray = function(array, comparator) {
         return comparator.compare(e1,e2);
       });
   } else {
-   array.sort(comparator);  
+    array.sort(comparator);  
   }
 }
 
@@ -335,20 +335,6 @@ CoreTools.debounce = function(actionFunction, waitMillis) {
   		timeout = setTimeout(later, waitMillis);
   	};
 };
-
-/**
- * Returns an array of the given size initialized with <code>initialValue</code>.
- * @param {number} size
- * @param {any} initialValue
- * @return {any[]}
- */
-CoreTools.newArray = function(size, initialValue) {
-  var array = [];
-  for (var i = 0; i < size; i++) {
-    array.push(initialValue);
-  }
-  return array;
-}
 
 /**
  * Provides a list of available font names (asynchronously, see callback parameter).
@@ -449,6 +435,7 @@ OperatingSystem.isInternetExplorer = function() {
   return document.documentMode;
 }
 
+
 /**
  * Utilities for colors.
  * @class
@@ -538,6 +525,7 @@ ColorTools.toRGBAStyle = function(colorString, alpha) {
   var c = ColorTools.hexadecimalStringToInteger(colorString);
   return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
+
 
 /**
  * Utilities for images.

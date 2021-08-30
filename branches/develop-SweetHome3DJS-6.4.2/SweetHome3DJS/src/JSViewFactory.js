@@ -3432,7 +3432,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
                   ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() 
                   : controller.getDashPattern();
       
-              dashPattern = Array.from(dashPattern);
+              dashPattern = dashPattern.slice(0);
       
               // apply 10 factor to enhance rendering
               for (var i = 0; i < dashPattern.length; i++) {
