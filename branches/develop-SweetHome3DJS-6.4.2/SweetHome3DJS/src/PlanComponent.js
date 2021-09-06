@@ -48,16 +48,16 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   } else {
     this.canvas = document.createElement("canvas");
     this.canvas.setAttribute("id", containerOrCanvasId + ".canvas");
-    this.canvas.style.width = "100%"; //computedStyle.width;
-    this.canvas.style.height = "100%"; //computedStyle.height;
-    // TODO: loop over all the properties and inject them?
+    this.canvas.style.width = "100%"; // computedStyle.width;
+    this.canvas.style.height = "100%"; // computedStyle.height;
+    // TODO Loop over all the properties and inject them?
     this.canvas.style.backgroundColor = computedStyle.backgroundColor;
     this.canvas.style.color = computedStyle.color;
     this.canvas.style.font = computedStyle.font;
     this.scrollPane = document.createElement("div");
     this.scrollPane.setAttribute("id", containerOrCanvasId + ".scrollPane");
-    this.scrollPane.style.width = "100%"; //computedStyle.width;
-    this.scrollPane.style.height = "100%"; //computedStyle.height;
+    this.scrollPane.style.width = "100%"; // computedStyle.width;
+    this.scrollPane.style.height = "100%"; // computedStyle.height;
     if (this.container.style.overflow) {
       this.scrollPane.style.overflow = this.container.style.overflow;
     } else {
@@ -169,7 +169,7 @@ PlanComponent.initStatics = function() {
   PlanComponent.ERROR_TEXTURE_IMAGE = null;
   PlanComponent.WAIT_TEXTURE_IMAGE = null;
   
-  // TODO: generic resolution support (see https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
+  // TODO Generic resolution support (see https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
   PlanComponent.HIDPI_SCALE_FACTOR = 2;
 
   PlanComponent.POINT_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
@@ -403,7 +403,7 @@ PlanComponent.initStatics = function() {
   PlanComponent.LONG_TOUCH_DELAY = 200; // ms
   PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
   PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
-  PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS = 500; // ms
+  PlanComponent.DOUBLE_TOUCH_DELAY = 500; // ms
 }
 
 PlanComponent.initStatics();
@@ -997,6 +997,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
   var mouseListener = {
       initialPointerLocation: null,
       lastPointerLocation: null,
+      touchEventType : false,
       pointerTouches : {},
       lastEventType : null,
       lastTargetTouches : [],
@@ -1009,7 +1010,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       longTouchWhenDragged: false,
       actionStartedInPlanComponent: false,
       mousePressed: function(ev) {
-        if (plan.isEnabled() && ev.button === 0) {
+        if (!mouseListener.touchEventType 
+            && plan.isEnabled() && ev.button === 0) {
           mouseListener.updateCoordinates(ev, "mousePressed");
           mouseListener.autoScroll = null;
           mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
@@ -1046,63 +1048,62 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         mouseListener.mousePressed(ev);
       },
       windowMouseMoved: function(ev) {
-        mouseListener.updateCoordinates(ev, "mouseMoved");
-        // Handle autoscroll
-        if (mouseListener.lastPointerLocation != null) {
-          if (mouseListener.autoScroll == null 
-              && !mouseListener.isInCanvas(ev)) {
-            mouseListener.autoScroll = setInterval(function() {
-                if (mouseListener.actionStartedInPlanComponent) {
-                  window.dispatchEvent(ev);
-                } else {
-                  clearInterval(mouseListener.autoScroll);
-                  mouseListener.autoScroll = null;
-                }
-              }, 10);
+        if (!mouseListener.touchEventType) {
+          mouseListener.updateCoordinates(ev, "mouseMoved");
+          // Handle autoscroll
+          if (mouseListener.lastPointerLocation != null) {
+            if (mouseListener.autoScroll == null 
+                && !mouseListener.isInCanvas(ev)) {
+              mouseListener.autoScroll = setInterval(function() {
+                  if (mouseListener.actionStartedInPlanComponent) {
+                    window.dispatchEvent(ev);
+                  } else {
+                    clearInterval(mouseListener.autoScroll);
+                    mouseListener.autoScroll = null;
+                  }
+                }, 10);
+            }
+            if (mouseListener.autoScroll != null 
+                && mouseListener.isInCanvas(ev)) {
+              clearInterval(mouseListener.autoScroll);
+              mouseListener.autoScroll = null;
+            }
+            mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
           }
-          if (mouseListener.autoScroll != null 
-              && mouseListener.isInCanvas(ev)) {
-            clearInterval(mouseListener.autoScroll);
-            mouseListener.autoScroll = null;
+          
+          if (mouseListener.initialPointerLocation != null 
+              && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
+                  && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+            mouseListener.initialPointerLocation = null;
           }
-          mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-        }
-        
-        if (mouseListener.initialPointerLocation != null 
-            && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
-                && mouseListener.initialPointerLocation[1] === ev.canvasY)
-            && (mouseListener.firstTouchStartedTimeStamp === 0 
-                || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS)) {
-          mouseListener.initialPointerLocation = null;
-        }
-        if (mouseListener.initialPointerLocation == null
-            && (ev.buttons === 0 && mouseListener.isInCanvas(ev) 
-                || mouseListener.actionStartedInPlanComponent)) {
-          if (plan.isEnabled()) { 
-            controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+          if (mouseListener.initialPointerLocation == null
+              && (ev.buttons === 0 && mouseListener.isInCanvas(ev) 
+                  || mouseListener.actionStartedInPlanComponent)) {
+            if (plan.isEnabled()) { 
+              controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+            }
           }
         }
       }, 
       windowMouseReleased: function(ev) {
-        if (mouseListener.lastPointerLocation != null) {
-          // Stop autoscroll
-          if (mouseListener.autoScroll != null) {
-            clearInterval(mouseListener.autoScroll);
-            mouseListener.autoScroll = null;
-          }
-          
-          if (mouseListener.actionStartedInPlanComponent 
-              && plan.isEnabled() && ev.button === 0) {
-            mouseListener.updateCoordinates(ev, "mouseReleased");
-            controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
-          }
-          if (mouseListener.firstTouchStartedTimeStamp === 0 
-              || ev.timeStamp - mouseListener.firstTouchStartedTimeStamp > PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS) {
+        if (!mouseListener.touchEventType) {
+          if (mouseListener.lastPointerLocation != null) {
+            // Stop autoscroll
+            if (mouseListener.autoScroll != null) {
+              clearInterval(mouseListener.autoScroll);
+              mouseListener.autoScroll = null;
+            }
+            
+            if (mouseListener.actionStartedInPlanComponent 
+                && plan.isEnabled() && ev.button === 0) {
+              mouseListener.updateCoordinates(ev, "mouseReleased");
+              controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+            }
             mouseListener.initialPointerLocation = null;
+            mouseListener.lastPointerLocation = null;
+            mouseListener.actionStartedInPlanComponent = false;
           }
-          mouseListener.lastPointerLocation = null;
-          mouseListener.actionStartedInPlanComponent = false;
-        }
+        } 
       },
       pointerPressed : function(ev) {
         if (ev.pointerType == "mouse") {
@@ -1140,9 +1141,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         ev.preventDefault();
       },
       touchStarted: function(ev) {
-        // WARNING: prevent default prevents the focusout event to occur, which is problematic to blur the search field when needed.
-        // Commenting it does not have impacts on iPhone but we should also check other platforms.
-        //ev.preventDefault();
+        // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
+        // but track touch event types to avoid them to be managed also for mousedown and dblclick events
+        mouseListener.touchEventType = ev.pointerType === undefined;
         if (plan.isEnabled()) {
           mouseListener.updateCoordinates(ev, "touchStarted");
           mouseListener.autoScroll = null;
@@ -1155,9 +1156,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           if (ev.targetTouches.length === 1) {
             var clickCount = 1;
             if (mouseListener.initialPointerLocation != null
-              && mouseListener.distance(ev.canvasX, ev.canvasY,
-                mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 10 // 10 looks like a good threshold for double click on iPhone (not tested elsewhere)
-                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_THRESHOLD_MILLIS) { 
+                && mouseListener.distance(ev.canvasX, ev.canvasY,
+                	mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
+                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_DELAY) { 
                   clickCount = 2;
                   mouseListener.firstTouchStartedTimeStamp = 0;
                   mouseListener.initialPointerLocation = null;
@@ -1206,7 +1207,6 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             
             if (ev.targetTouches.length === 2) {
               mouseListener.actionStartedInPlanComponent = true;
-
               mouseListener.initialPointerLocation = null;
               mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
                   ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
@@ -1351,6 +1351,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           plan.lastTouchX = undefined;
           plan.lastTouchY = undefined;
         }
+        // Reset mouseListener.touchEventType in windowMouseReleased call
       },
       copyPointerToTargetTouches : function(ev, touchEnded) {
         // Copy the IE and Edge pointer location to ev.targetTouches or ev.changedTouches
