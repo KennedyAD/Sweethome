@@ -41,7 +41,7 @@ function FurnitureTablePanel(containerId, home, preferences, controller) {
   this.treeTable = new JSTreeTable(this.container, this.preferences, this.createTableModel(home));
   this.addHomeListeners(home);
   this.addUserPreferencesListeners(home);
-  this.refreshData(home);
+  this.updateData(home);
 }
 
 FurnitureTablePanel.EXPANDED_ROWS_VISUAL_PROPERTY = "com.eteks.sweethome3d.SweetHome3D.ExpandedGroups";
@@ -67,45 +67,45 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
       }
     });
 
-  var refreshModel = function() {
+  var updateModel = function() {
       treeTable.setModel(panel.createTableModel(home));
     };
-  home.addPropertyChangeListener("FURNITURE_SORTED_PROPERTY", refreshModel);
-  home.addPropertyChangeListener("FURNITURE_DESCENDING_SORTED", refreshModel);
-  home.addPropertyChangeListener("FURNITURE_VISIBLE_PROPERTIES", refreshModel);
+  home.addPropertyChangeListener("FURNITURE_SORTED_PROPERTY", updateModel);
+  home.addPropertyChangeListener("FURNITURE_DESCENDING_SORTED", updateModel);
+  home.addPropertyChangeListener("FURNITURE_VISIBLE_PROPERTIES", updateModel);
 
-  var refreshData = function() {
-      panel.refreshData(home);
+  var updateData = function() {
+      panel.updateData(home);
     };
   var furniture = home.getFurniture();
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture[i];
-    piece.addPropertyChangeListener(refreshData);
+    piece.addPropertyChangeListener(updateData);
     if (piece instanceof HomeFurnitureGroup) {
       var groupFurniture = piece.getAllFurniture();
       for (var j = 0; j < groupFurniture.length; j++) {
-        groupFurniture[j].addPropertyChangeListener(refreshData);
+        groupFurniture[j].addPropertyChangeListener(updateData);
       }
     }
   }
 
   home.addFurnitureListener(function(ev) {
-      refreshData(home);
+      updateData(home);
       var piece = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        piece.addPropertyChangeListener(refreshData);
+        piece.addPropertyChangeListener(updateData);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].addPropertyChangeListener(refreshData);
+            groupFurniture[j].addPropertyChangeListener(updateData);
           }
         }
       } else {
-        piece.removePropertyChangeListener(refreshData);
+        piece.removePropertyChangeListener(updateData);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].removePropertyChangeListener(refreshData);
+            groupFurniture[j].removePropertyChangeListener(updateData);
           }
         }
       }
@@ -113,13 +113,13 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
 
   var levels = home.getLevels();
   for (var i = 0; i < levels.length; i++) {
-    levels[i].addPropertyChangeListener(refreshData);
+    levels[i].addPropertyChangeListener(updateData);
   }
   home.addLevelsListener(function(ev) {
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        ev.getItem().addPropertyChangeListener(refreshData);
+        ev.getItem().addPropertyChangeListener(updateData);
       } else {
-        ev.getItem().removePropertyChangeListener(refreshData);
+        ev.getItem().removePropertyChangeListener(updateData);
       }
     });
 }
@@ -331,7 +331,7 @@ FurnitureTablePanel.prototype.createTableModel = function(home) {
  * @param {Home} home
  * @private
  */
-FurnitureTablePanel.prototype.refreshData = function(home) {
+FurnitureTablePanel.prototype.updateData = function(home) {
   var dataList = [];
   var addToDataList = function(furnitureList, dataList) {
       for (var i = 0; i < furnitureList.length; i++) {
@@ -445,18 +445,18 @@ FurnitureTablePanel.prototype.renderColorCell = function(piece, cell) {
 FurnitureTablePanel.prototype.renderTextureCell = function(piece, cell) {
   cell.classList.add("texture");
   if (piece.getTexture() != null) {
-    var overviewSquare = document.createElement("div");
+    var previewSquare = document.createElement("div");
     TextureManager.getInstance().loadTexture(piece.getTexture().getImage(), 0, false,
         {
           textureUpdated : function(image) {
-            overviewSquare.style.backgroundImage = "url('" + image.src + "')";
+            previewSquare.style.backgroundImage = "url('" + image.src + "')";
           },
           textureError : function(error) {
             return this.textureUpdated(TextureManager.getInstance().getErrorImage());
           }
         });
 
-    cell.appendChild(overviewSquare);
+    cell.appendChild(previewSquare);
   }
 }
 
@@ -475,8 +475,7 @@ FurnitureTablePanel.prototype.renderBooleanCell = function(value, cell, editEnab
   checkbox.checked = value === true;
   if (stateChanged !== undefined) {
     checkbox.addEventListener("click", function(ev) {
-          var checked = checkbox.checked;
-          stateChanged(checked);
+          stateChanged(checkbox.checked);
         }, 
         true);
   }

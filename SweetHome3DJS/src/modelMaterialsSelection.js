@@ -21,14 +21,74 @@
 // Requires toolkit.js
 
 /**
+ * Component giving access to materials editor. When the user clicks
+ * on this button a dialog appears to let him choose materials.
+ * @param {UserPreferences} preferences user preferences
+ * @param {ModelMaterialsController} controller modelMaterials choice controller
+ * @param {HTMLElement} targetNode target node on which attach this component 
+ * @constructor
+ * @author Emmanuel Puybaret
+ * @author Louis Grignon
+ */
+function JSModelMaterialsSelectorButton(preferences, controller, targetNode) {
+  this.controller = controller;
+
+  JSComponentView.call(this, preferences, document.createElement("span"), 
+      {
+        useElementAsRootNode: true,
+      });
+  if (targetNode != null) {
+    targetNode.appendChild(this.getRootNode());
+  }
+
+  this.getRootNode().innerHTML = '<button class="model-materials-button">' + this.getLocalizedLabelText('ModelMaterialsComponent', "modifyButton.text") + '</button>';
+  this.button = this.getRootNode().querySelector(".model-materials-button");
+  this.button.disabled = true;
+
+  var component = this;
+  this.registerEventListener(this.button, "click", function(ev) { 
+      component.openModelMaterialsSelectorDialog(); 
+    });
+}
+JSModelMaterialsSelectorButton.prototype = Object.create(JSComponentView.prototype);
+JSModelMaterialsSelectorButton.prototype.constructor = JSModelMaterialsSelectorButton;
+
+/**
+ * Enables or disables this component.
+ * @param {boolean} [enabled] defaults to true 
+ */
+JSModelMaterialsSelectorButton.prototype.enable = function(enabled) {
+  if (enabled === undefined) {
+    enabled = true;
+  }
+  this.button.disabled = !enabled;
+}
+
+/**
+ * @private
+ */
+JSModelMaterialsSelectorButton.prototype.openModelMaterialsSelectorDialog = function() {
+  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
+    return;
+  }
+
+  this.currentDialog = new JSModelMaterialsSelectorDialog(this.preferences, this.controller);
+  this.currentDialog.displayView();
+}
+
+JSModelMaterialsSelectorButton.prototype.dispose = function() {
+  JSComponentView.prototype.dispose.call(this);
+}
+
+/**
  * The modelMaterials selector dialog class.
  * @param {UserPreferences} preferences the current user preferences
  * @param {ModelMaterialsController} controller modelMaterials choice controller
  * @param {{applier: function(JSDialogView)}} [options]
  * > applier: when dialog closes, takes dialog as parameter
- * 
  * @extends JSDialogView
  * @constructor
+ * @private
  */
 function JSModelMaterialsSelectorDialog(preferences, controller, options) {
   this.controller = controller;
@@ -71,110 +131,113 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
 
   JSDialogView.call(this, preferences, "@{HomeFurnitureController.modelMaterialsTitle}", html, 
       {
-        initializer: function(dialog) {
-          dialog.getRootNode().classList.add("model-materials-selector-dialog");
-    
-          dialog.initMaterialsList();
-          dialog.initPreviewPanel();
-          dialog.initColorAndTexturePanel();
-          dialog.initShininessPanel();
-    
-          if (dialog.materialsList.size() > 0) {
-            dialog.materialsList.selectAtIndex(0);
-          } else {
-            // Add a listener that will select first row as soon as the list contains some data
-            var selectFirstMaterialOnContentAvailable = function() {
-                if (dialog.materialsList.size() > 0) {
-                  dialog.materialsList.selectAtIndex(0);
-                  dialog.materialsList.removeContentsListener(selectFirstMaterialOnContentAvailable);
-                }
-              };
-            dialog.materialsList.addContentsListener(selectFirstMaterialOnContentAvailable);
-          }
-    
-          dialog.enableComponents();
-    
-          dialog.selectedMaterialBlinker = {
-            active: false,
-            /**
-             * 0 or 1 depending on blink phase
-             * @var {0|1}
-             */
-            blinkState: 0,
-            start: function() {
-              var blinker = this;
-              var materialsList = dialog.materialsList;
-              blinker.blinkState = 0;
-              blinker.active = 1;
-    
-              var toggleBlinkingState = function() {
-                  if (materialsList.size() > 1) {
-                    var materials = materialsList.getMaterials();
-                    if (materials == null) {
-                      materials = dialog.newArray(materialsList.size());
-                    } else {
-                      materials = materials.slice(0);
-                    }
-      
-                    if (blinker.blinkState > 0) {
-                      var selectedIndices = materialsList.getSelectedIndices();
-                      for (var i = 0; i < selectedIndices.length; i++) {
-                        var index = selectedIndices[i];
-                        var defaultMaterial = materialsList.getDefaultMaterialAtIndex(index);
-                        var selectedMaterial = materials [index] != null
-                            ? materials [index]
-                            : defaultMaterial;
-                        var blinkColor = 0xFF2244FF;
-                        if (selectedMaterial.getTexture() == null) {
-                          var selectedColor = selectedMaterial.getColor();
-                          if (selectedColor == null) {
-                            selectedColor = defaultMaterial.getColor();
-                          }
-                          var red   = (selectedColor >> 16) & 0xFF;
-                          var green = (selectedColor >> 8) & 0xFF;
-                          var blue  = selectedColor & 0xFF;
-                          if (Math.max(red, Math.max(green, blue)) > 0x77) {
-                            // Display a darker color for a bright color
-                            blinkColor = 0xFF000000 | ((0x00FFFFFF & selectedColor) / 2);
-                          } else if ((red + green + blue) / 3 > 0x0F) {
-                            // Display a brighter color for a dark color
-                            blinkColor = 0xFF000000 | (Math.max(2 * (0x00FFFFFF & selectedColor), 0x00FFFFFF));
-                          }
-                        }
-                        materials [index] = new HomeMaterial(
-                            selectedMaterial.getName(), blinkColor, null, selectedMaterial.getShininess()
-                        );
-                        dialog.previewComponent.setModelMaterials(materials);
-                      }
-                    } else {
-                      dialog.previewComponent.setModelMaterials(materials);
-                    }
-                  }
-      
-                  if (blinker.active) {
-                    blinker.blinkState = (++blinker.blinkState) % 2;
-                    setTimeout(toggleBlinkingState, blinker.blinkState == 0 ? 100 : 1000);
-                  }
-                };
-              setTimeout(toggleBlinkingState, 100);
-            },
-            stop: function() {
-              this.active = false;
-            }
-          };
-    
-          dialog.selectedMaterialBlinker.start();
-        },
         applier: function(dialog) {
-          dialog.selectedMaterialBlinker.stop();
           controller.setMaterials(dialog.materialsList.getMaterials());
           applier(dialog);
         },
         disposer: function(dialog) {
+          dialog.selectedMaterialBlinker.stop();
           dialog.colorAndTexturePanel.colorSelector.dispose();
           dialog.colorAndTexturePanel.textureSelector.dispose();
         }
       });
+
+  this.getRootNode().classList.add("model-materials-selector-dialog");
+  
+  this.initMaterialsList();
+  this.initPreviewPanel();
+  this.initColorAndTexturePanel();
+  this.initShininessPanel();
+
+  var dialog = this;
+  if (this.materialsList.size() > 0) {
+    this.materialsList.selectAtIndex(0);
+  } else {
+    // Add a listener that will select first row as soon as the list contains some data
+    var selectFirstMaterialOnContentAvailable = function() {
+        if (dialog.materialsList.size() > 0) {
+          dialog.materialsList.selectAtIndex(0);
+          dialog.materialsList.removeContentsListener(selectFirstMaterialOnContentAvailable);
+        }
+      };
+    this.materialsList.addContentsListener(selectFirstMaterialOnContentAvailable);
+  }
+
+  this.enableComponents();
+
+  var selectedMaterialBlinker = {
+      delay: 500,
+      animationTask: null,
+      start: function() {
+        var materialsList = dialog.materialsList;
+        var toggleBlinkingState = function() {
+            if (materialsList.size() > 1) {
+              var materials = materialsList.getMaterials();
+              if (selectedMaterialBlinker.delay !== 100) {
+                selectedMaterialBlinker.delay = 100;
+                if (materials == null) {
+                  materials = dialog.newArray(materialsList.size());
+                } else {
+                  materials = materials.slice(0);
+                }
+                var selectedIndices = materialsList.getSelectedIndices();
+                for (var i = 0; i < selectedIndices.length; i++) {
+                  var index = selectedIndices[i];
+                  var defaultMaterial = materialsList.getDefaultMaterialAtIndex(index);
+                  var selectedMaterial = materials [index] != null
+                      ? materials [index]
+                      : defaultMaterial;
+                  var blinkColor = 0xFF2244FF;
+                  if (selectedMaterial.getTexture() == null) {
+                    var selectedColor = selectedMaterial.getColor();
+                    if (selectedColor == null) {
+                      selectedColor = defaultMaterial.getColor();
+                    }
+                    selectedColor &= 0x00FFFFFF;
+                    var red   = (selectedColor >> 16) & 0xFF;
+                    var green = (selectedColor >> 8) & 0xFF;
+                    var blue  = selectedColor & 0xFF;
+                    if (Math.max(red, Math.max(green, blue)) > 0x77) {
+                      // Display a darker color for a bright color
+                      blinkColor = 0xFF000000 | (red / 2 << 16) | (green / 2 << 8) |  (blue / 2);
+                    } else if ((red + green + blue) / 3 > 0x0F) {
+                      // Display a brighter color for a dark color
+                      blinkColor = 0xFF000000 
+                          | (Math.min(red * 2, 0xFF) << 16) 
+                          | (Math.min(green * 2, 0xFF) << 8) 
+                          | Math.min(blue * 2, 0xFF);
+                    }
+                  }
+                  materials [index] = new HomeMaterial(
+                      selectedMaterial.getName(), blinkColor, null, selectedMaterial.getShininess());
+                }
+              } else {
+                selectedMaterialBlinker.delay = 1000;
+              }
+              dialog.previewComponent.setModelMaterials(materials);
+            }
+  
+            selectedMaterialBlinker.animationTask = setTimeout(toggleBlinkingState, 
+                selectedMaterialBlinker.delay);
+          };
+          
+        selectedMaterialBlinker.animationTask = setTimeout(toggleBlinkingState, selectedMaterialBlinker.delay);
+      },
+      stop: function() {
+        clearTimeout(selectedMaterialBlinker.animationTask);
+      },
+      restart: function() {
+        selectedMaterialBlinker.stop();
+        selectedMaterialBlinker.delay = 101;
+        selectedMaterialBlinker.start();
+      }
+    };
+
+  selectedMaterialBlinker.start();
+  this.materialsList.addSelectionListener(function(ev) {
+      selectedMaterialBlinker.restart();
+    });
+  this.selectedMaterialBlinker = selectedMaterialBlinker; 
 }
 JSModelMaterialsSelectorDialog.prototype = Object.create(JSDialogView.prototype);
 JSModelMaterialsSelectorDialog.prototype.constructor = JSModelMaterialsSelectorDialog;
@@ -206,45 +269,43 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
   if (materials != null) {
     materials = materials.slice(0);
   }
-  ModelManager.getInstance().loadModel(controller.getModel(), true, {
-    modelUpdated : function(modelRoot) {
-      defaultMaterials = ModelManager.getInstance().getMaterials(modelRoot, controller.getModelCreator());
-      if (materials != null) {
-        // Keep only materials that are defined in default materials set
-        // (the list can be different if the model loader interprets differently a 3D model file
-        // or if materials come from a paste style action)
-        var updatedMaterials = dialog.newArray(defaultMaterials.length);
-        var foundInDefaultMaterials = false;
-        for (var i = 0; i < defaultMaterials.length; i++) {
-          var materialName = defaultMaterials [i].getName();
-          for (var j = 0; j < materials.length; j++) {
-            if (materials [j] != null && materials [j].getName() == materialName) {
-              updatedMaterials [i] = materials [j];
-              foundInDefaultMaterials = true;
-              break;
+  ModelManager.getInstance().loadModel(controller.getModel(), true, 
+      {
+        modelUpdated : function(modelRoot) {
+          defaultMaterials = ModelManager.getInstance().getMaterials(modelRoot, controller.getModelCreator());
+          if (materials != null) {
+            // Keep only materials that are defined in default materials set
+            // (the list can be different if the model loader interprets differently a 3D model file
+            // or if materials come from a paste style action)
+            var updatedMaterials = dialog.newArray(defaultMaterials.length);
+            var foundInDefaultMaterials = false;
+            for (var i = 0; i < defaultMaterials.length; i++) {
+              var materialName = defaultMaterials [i].getName();
+              for (var j = 0; j < materials.length; j++) {
+                if (materials [j] != null && materials [j].getName() == materialName) {
+                  updatedMaterials [i] = materials [j];
+                  foundInDefaultMaterials = true;
+                  break;
+                }
+              }
+            }
+            if (foundInDefaultMaterials) {
+              materials = updatedMaterials;
+            } else {
+              materials = null;
             }
           }
         }
-        if (foundInDefaultMaterials) {
-          materials = updatedMaterials;
-        } else {
-          materials = null;
-        }
-      }
-    }
-  });
+      });
 
   var materialsList = 
   this.materialsList = {
-      /**
-       * @var {HTMLDivElement}
-       */
       element: materialsListElement,
       materials: materials,
       defaultMaterials: defaultMaterials,
       contentsListeners: [],
       selectionListeners: [],
-        /**
+      /**
        * @return {number}
        */
       size: function() {
@@ -420,7 +481,7 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
               var item = this;
               selectItem(item);
     
-              if (colorSelector.get() != null) {
+              if (colorSelector.getColor() != null) {
                 colorSelector.openColorSelectorDialog();
               } else if (controller.getTextureController().getTexture() != null
                   && textureSelector != null) {
@@ -495,37 +556,37 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
         // Display default color or texture in buttons
         texture = defaultMaterial.getTexture();
         if (texture != null) {
-          colorAndTexturePanel.colorSelector.set(null);
+          colorAndTexturePanel.colorSelector.setColor(null);
           controller.getTextureController().setTexture(texture);
         } else {
           color = defaultMaterial.getColor();
           if (color != null) {
             controller.getTextureController().setTexture(null);
-            colorAndTexturePanel.colorSelector.set(color);
+            colorAndTexturePanel.colorSelector.setColor(color);
           }
         }
       } else if (texture != null) {
         colorAndTexturePanel.textureRadio.checked = true;
-        colorAndTexturePanel.colorSelector.set(null);
+        colorAndTexturePanel.colorSelector.setColor(null);
         controller.getTextureController().setTexture(texture);
       } else if ((color & 0xFF000000) == 0) {
         colorAndTexturePanel.invisibleRadio.checked = true;
         // Display default color or texture in buttons
         texture = defaultMaterial.getTexture();
         if (texture != null) {
-          colorAndTexturePanel.colorSelector.set(null);
+          colorAndTexturePanel.colorSelector.setColor(null);
           controller.getTextureController().setTexture(texture);
         } else {
           color = defaultMaterial.getColor();
           if (color != null) {
             controller.getTextureController().setTexture(null);
-            colorAndTexturePanel.colorSelector.set(color);
+            colorAndTexturePanel.colorSelector.setColor(color);
           }
         }
       } else {
         colorAndTexturePanel.colorRadio.checked = true;
         controller.getTextureController().setTexture(null);
-        colorAndTexturePanel.colorSelector.set(color);
+        colorAndTexturePanel.colorSelector.setColor(color);
       }
 
       if (shininess != null) {
@@ -567,7 +628,7 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
           previewPanel.style.visibility = "hidden";
         }
       });
-};
+}
 
 
 /**
@@ -583,87 +644,97 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
   var colorRadio = this.findElement("[name='color-and-texture-checkbox'][value='COLOR']");
   var textureRadio = this.findElement("[name='color-and-texture-checkbox'][value='TEXTURE']");
 
-  var colorSelector = new JSColorSelectorButton(preferences, null, 
-      {
-        colorSelected: function(selectedColor) {
-          if (selectedColor != null) {
-            colorRadio.checked = true;
-            var ev = document.createEvent("Event");
-            ev.initEvent("input", false, false);
-            colorRadio.dispatchEvent(ev);
-          }
-        }
-      });
-  this.attachChildComponent("color-selector-button", colorSelector)
-
-  var textureSelector = controller.getTextureController().getView();
-  textureSelector.onTextureSelected = function(texture) {
-    if (texture != null) {
-      textureRadio.checked = true;
-    }
-  };
-  this.attachChildComponent("texture-selector-button", textureSelector);
-  controller.getTextureController().addPropertyChangeListener("TEXTURE", function(ev) {
-      if (ev.getNewValue() != null) {
-        if (!textureRadio.checked) {
-          textureRadio.checked = true;
-        }
-        var ev = document.createEvent("Event");
-        ev.initEvent("input", false, false);
-        textureRadio.dispatchEvent(ev);
-      }
-    });
-
   /**
-   * @param {function(HomeMaterial, index): HomeMaterial} modifyMaterialCallback
+   * @param {function(HomeMaterial, index): HomeMaterial} materialCreator
    */
-  var modifySelectedMaterials = function(modifyMaterialCallback) {
+  var modifySelectedMaterials = function(materialCreator) {
       var selectedIndices = dialog.materialsList.getSelectedIndices();
       for (var i = 0; i < selectedIndices.length; i++) {
         var index = selectedIndices[i];
         var material = dialog.materialsList.getMaterialAtIndex(index);
         dialog.materialsList.setMaterialAt(
-            modifyMaterialCallback(material, index),
+            materialCreator(material, index),
             index);
       }
     };
+  
+  // Listen to click events on radio buttons rather than change events 
+  // to avoid firing events when checked state is set internaly 
+  this.registerEventListener(defaultRadio, "click", function(ev) {
+      if (!this.disabled && this.checked) {
+        modifySelectedMaterials(function(material) {
+            return new HomeMaterial(material.getName(), null, null, material.getShininess());
+          });
+      }
+    });
+  
+  this.registerEventListener(invisibleRadio, "click", function(ev) {
+      if (!this.disabled && this.checked) {
+        modifySelectedMaterials(function(material) {
+            return new HomeMaterial(material.getName(), 0, null, material.getShininess());
+          });
+      }
+    });
 
-  this.registerEventListener(defaultRadio, "change", function(ev) {
-      if (!this.disabled && this.checked) {
-        modifySelectedMaterials(function(material) {
-          return new HomeMaterial(material.getName(), null, null, material.getShininess());
-        });
-      }
-    });
-  this.registerEventListener(invisibleRadio, "change", function(ev) {
-      if (!this.disabled && this.checked) {
-        modifySelectedMaterials(function(material) {
-          return new HomeMaterial(material.getName(), 0, null, material.getShininess());
-        });
-      }
-    });
-  this.registerEventListener(colorRadio, "change", function(ev) {
-      if (!this.disabled && this.checked) {
+  var colorChoiceChangeListener = function() {
+      if (!colorRadio.disabled && colorRadio.checked) {
         modifySelectedMaterials(function(material, index) {
-          var defaultMaterial = dialog.materialsList.getDefaultMaterialAtIndex(index);
-          var color = defaultMaterial.getColor() != colorSelector.get() || defaultMaterial.getTexture() != null
-              ? colorSelector.get()
-              : null;
-          return new HomeMaterial(material.getName(), color, null, material.getShininess());
-        });
+            var defaultMaterial = dialog.materialsList.getDefaultMaterialAtIndex(index);
+            var color = defaultMaterial.getColor() != colorSelector.getColor() || defaultMaterial.getTexture() != null
+                ? colorSelector.getColor()
+                : null;
+            return new HomeMaterial(material.getName(), color, null, material.getShininess());
+          });
+      }
+    };
+  var colorSelector = new JSColorSelectorButton(preferences, null, 
+      {
+        colorChanged: function(selectedColor) {
+          if (selectedColor != null) {
+            colorRadio.checked = true;
+            colorChoiceChangeListener();
+          }
+        }
+      });
+  this.registerEventListener(colorRadio, "click", function(ev) {
+      if (colorRadio.checked) {
+        colorChoiceChangeListener();
       }
     });
-  this.registerEventListener(textureRadio, "change", function(ev) {
-      if (!this.disabled && this.checked) {
+  this.attachChildComponent("color-selector-button", colorSelector);
+
+  var textureChoiceChangeListener = function() {
+      if (!textureRadio.disabled && textureRadio.checked) {
         modifySelectedMaterials(function(material, index) {
-          var defaultTexture = dialog.materialsList.getDefaultMaterialAtIndex(index).getTexture();
-          var texture = defaultTexture != controller.getTextureController().getTexture()
-              ? controller.getTextureController().getTexture()
-              : null;
-          return new HomeMaterial(material.getName(), null, texture, material.getShininess());
-        });
+            var defaultTexture = dialog.materialsList.getDefaultMaterialAtIndex(index).getTexture();
+            var texture = defaultTexture != controller.getTextureController().getTexture()
+                ? controller.getTextureController().getTexture()
+                : null;
+            return new HomeMaterial(material.getName(), null, texture, material.getShininess());
+          });
+      }
+    };
+  var textureSelector = controller.getTextureController().getView();
+  textureSelector.textureChanged = function(texture) {
+      if (texture != null) {
+        textureRadio.checked = true;
+        textureChoiceChangeListener();
+      }
+    };
+  this.registerEventListener(textureRadio, "click", function(ev) {
+      if (textureRadio.checked) {
+        textureChoiceChangeListener();
       }
     });
+  controller.getTextureController().addPropertyChangeListener("TEXTURE", function(ev) {
+      if (ev.getNewValue() != null) {
+        if (!textureRadio.checked) {
+          textureRadio.checked = true;
+        }
+        textureChoiceChangeListener();
+      }
+    });
+  this.attachChildComponent("texture-selector-button", textureSelector);
 
   this.colorAndTexturePanel = {
       defaultRadio: defaultRadio,
@@ -717,74 +788,3 @@ JSModelMaterialsSelectorDialog.prototype.enableComponents = function() {
   this.shininessSlider.disabled = selectionEmpty;
 }
 
-/**
- * A component to select a modelMaterials through a dialog, after clicking a button.
- * @param {UserPreferences} preferences user preferences
- * @param {ModelMaterialsController} controller modelMaterials choice controller
- * @param {HTMLElement} targetNode target node on which attach this component 
- * @param {{ onModelMaterialsSelected: function() }} [options]
- * > onModelMaterialsSelected: called with selected modelMaterials, when selection changed
- * @constructor
- */
-function JSModelMaterialsSelectorButton(preferences, controller, targetNode, options) {
-  this.controller = controller;
-
-  /** @field @type function(HomeModelMaterials) */
-  this.onModelMaterialsSelected = undefined;
-  if (typeof options == 'object' && typeof options.onModelMaterialsSelected == 'function') {
-    this.onModelMaterialsSelected = options.onModelMaterialsSelected;
-  }
-
-  JSComponentView.call(this, preferences, document.createElement("span"), 
-      {
-        useElementAsRootNode: true,
-        initializer: function(component) {
-          component.getRootNode().innerHTML = '<button class="model-materials-button">' + component.getLocalizedLabelText('ModelMaterialsComponent', "modifyButton.text") + '</button>';
-          component.button = component.getRootNode().querySelector(".model-materials-button");
-          component.button.disabled = true;
-    
-          component.registerEventListener(component.button, "click", function(ev) { 
-              component.openModelMaterialsSelectorDialog(); 
-            });
-        },
-        getter: function(component) {
-          throw new Error("Not supported for materials");
-        },
-        setter: function(component, modelMaterials) {
-          throw new Error("Not supported for materials");
-        }
-      });
-  if (targetNode != null) {
-    targetNode.appendChild(this.getRootNode());
-  }
-}
-
-JSModelMaterialsSelectorButton.prototype = Object.create(JSComponentView.prototype);
-JSModelMaterialsSelectorButton.prototype.constructor = JSModelMaterialsSelectorButton;
-
-/**
- * Enables or disables this component.
- * @param {boolean} [enabled] defaults to true 
- */
-JSModelMaterialsSelectorButton.prototype.enable = function(enabled) {
-  if (enabled === undefined) {
-    enabled = true;
-  }
-  this.button.disabled = !enabled;
-};
-
-/**
- * @private
- */
-JSModelMaterialsSelectorButton.prototype.openModelMaterialsSelectorDialog = function() {
-  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
-    return;
-  }
-
-  this.currentDialog = new JSModelMaterialsSelectorDialog(this.preferences, this.controller);
-  this.currentDialog.displayView();
-};
-
-JSModelMaterialsSelectorButton.prototype.dispose = function() {
-  JSComponentView.prototype.dispose.call(this);
-};
