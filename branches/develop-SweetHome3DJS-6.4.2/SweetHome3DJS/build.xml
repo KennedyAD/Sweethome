@@ -235,6 +235,7 @@
         <file name="PlanComponent.js"/>
         <file name="HomePane.js"/>
         <file name="DefaultFurnitureCatalog.js"/>
+        <file name="DefaultTexturesCatalog.js"/>
         <file name="FurnitureCatalogListPanel.js"/>
       	<file name="FurnitureTablePanel.js"/>
         <file name="toolkit.js"/>

@@ -1,5 +1,5 @@
 /*
- * dialog.js
+ * toolkit.js
  *
  * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
@@ -25,16 +25,12 @@
  * @param {UserPreferences} preferences the current user preferences
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
- * @param {{initializer: function(JSComponentView), getter: function, setter: function, disposer: function(JSDialogView), useElementAsRootNode?: boolean}} [behavior]
- * - initializer: an optional initialization function
- * - getter: an optional function that returns the value of the component
- *   (typically for inputs)
- * - setter: an optional function that sets the value of the component
- *   (typically for inputs)
+ * @param {{disposer: function(JSDialogView), useElementAsRootNode?: boolean}} [behavior]
  * - disposer: an optional function to release associated resources, listeners, ...
  * - useElementAsRootNode: will use given HTMLElement as root element without creating a new div - default false
  * @constructor
  * @author Renaud Pawlak
+ * @author Emmanuel Puybaret
  */
 function JSComponentView(preferences, template, behavior) {
   this.preferences = preferences;
@@ -51,19 +47,12 @@ function JSComponentView(preferences, template, behavior) {
   }
 
   if (behavior != null) {
-    this.initializer = behavior.initializer;
     this.disposer = behavior.disposer;
-    this.getter = behavior.getter;
-    this.setter = behavior.setter;
   }
-  this.initialize();
 }
-JSComponentView.prototype = Object.create(JSComponentView.prototype);
-JSComponentView.prototype.constructor = JSComponentView;
 
 /**
  * Returns true if element is or is child of candidateParent, false otherwise.
- *
  * @param {HTMLElement} element
  * @param {HTMLElement} candidateParent
  * @return {boolean}
@@ -106,7 +95,6 @@ JSComponentView.prototype.getRootNode = function() {
 
 /**
  * Attaches the given component to a child DOM element, becoming a child component.
- *
  * @param {string} name the component's name, which matches child DOM element name (as defined in {@link JSComponentView#getElement})
  * @param {JSComponentView} component child component instance
  */
@@ -137,8 +125,8 @@ JSComponentView.prototype.registerEventListener = function(elements, eventName, 
   if (this.listeners == null) {
     this.listeners = [];
   }
-  for (var j = 0; j < elements.length; j++) {
-    var element = elements[j];
+  for (var i = 0; i < elements.length; i++) {
+    var element = elements[i];
     element.addEventListener(eventName, listener, true);
   }
   this.listeners.push(
@@ -180,7 +168,6 @@ JSComponentView.prototype.getElement = function(name) {
 
 /**
  * Returns the element that matches the given query selector within this component.
- *
  * @param {string} query css selector to be applied on children elements
  */
 JSComponentView.prototype.findElement = function(query) {
@@ -189,20 +176,10 @@ JSComponentView.prototype.findElement = function(query) {
 
 /**
  * Returns the elements that match the given query selector within this component.
- *
  * @param {string} query css selector to be applied on children elements
  */
 JSComponentView.prototype.findElements = function(query) {
   return this.rootNode.querySelectorAll(query);
-}
-
-/**
- * Called when initializing the component. Override to perform custom initializations.
- */
-JSComponentView.prototype.initialize = function() {
-  if (this.initializer != null) {
-    this.initializer(this);
-  }
 }
 
 /**
@@ -217,25 +194,7 @@ JSComponentView.prototype.dispose = function() {
 };
 
 /**
- * Returns the value of this component if available.
- */
-JSComponentView.prototype.get = function() {
-  if (this.getter != null) {
-    return this.getter(this);
-  }
-}
-
-/**
- * Sets the value of this component if applicable.
- */
-JSComponentView.prototype.set = function(value) {
-  if (this.setter != null) {
-    this.setter(this, value);
-  }
-}
-
-/**
- * Delegates to ResourceAction.getLocalizedLabelText(this.preferences, ...)
+ * Delegates to ResourceAction.getLocalizedLabelText(this.preferences, ...).
  * @param {Object} resourceClass
  * @param {string} propertyKey
  * @param {Array} resourceParameters
@@ -247,8 +206,7 @@ JSComponentView.prototype.getLocalizedLabelText = function(resourceClass, proper
 }
 
 /**
- * @return {number} return step size for length inputs based on user preferences
- *
+ * @return {number} step size for length inputs based on user preferences
  * @protected
  */
 JSComponentView.prototype.getLengthInputStepSize = function() {
@@ -279,8 +237,7 @@ JSComponentView.createOptionElement = function(value, text, selected) {
  * @param {string} title the dialog's title (may contain HTML)
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
- * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView), size?: "small"|"medium"|"default"}} [behavior]
- * - initializer: an optional initialization function
+ * @param {{applier: function(JSDialogView), disposer: function(JSDialogView), size?: "small"|"medium"|"default"}} [behavior]
  * - applier: an optional dialog application function
  * - disposer: an optional dialog function to release associated resources, listeners, ...
  * - size: override style with "small" or "medium"
@@ -323,7 +280,6 @@ JSDialogView.prototype.constructor = JSDialogView;
  * @protected
  */
 JSDialogView.prototype.appendButtons = function(buttonsPanel) {
-
   var html;
   if (this.applier) {
     html = '<button class="dialog-ok-button">@{OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">@{OptionPane.cancelButton.textAndMnemonic}</button>';
@@ -408,15 +364,6 @@ JSDialogView.prototype.getCloseButton = function() {
 }
 
 /**
- * Called when initializing the dialog. Override to perform custom initializations.
- */
-JSDialogView.prototype.initialize = function() {
-  if (this.initializer != null) {
-    this.initializer(this);
-  }
-}
-
-/**
  * Called when the user presses the OK button.
  * Override to implement custom behavior when the dialog is validated by the user.
  */
@@ -497,8 +444,7 @@ JSDialogView.shownDialogsCounter = 0;
  * @param {string} title the dialog's title (may contain HTML)
  * @param {string|HTMLElement} template template element (view HTML will be this element's innerHTML) or HTML string (if null or undefined, then the component creates an empty div
  * for the root node)
- * @param {{initializer: function(JSDialogView), applier: function(JSDialogView), disposer: function(JSDialogView)}} [behavior]
- * - initializer: an optional initialization function
+ * @param {{applier: function(JSDialogView), disposer: function(JSDialogView)}} [behavior]
  * - applier: an optional dialog application function
  * - disposer: an optional dialog function to release associated resources, listeners, ...
  * @constructor
@@ -519,13 +465,17 @@ function JSWizardDialog(controller, preferences, title, behavior) {
 
   var dialog = this;
   this.updateStepView();
-  this.controller.addPropertyChangeListener("STEP_VIEW", function(ev) {
+  controller.addPropertyChangeListener("STEP_VIEW", function(ev) {
       dialog.updateStepView();
     });
 
   this.updateStepIcon();
-  this.controller.addPropertyChangeListener("STEP_ICON", function(ev) {
+  controller.addPropertyChangeListener("STEP_ICON", function(ev) {
       dialog.updateStepIcon();
+    });
+  
+  controller.addPropertyChangeListener("TITLE", function(ev) {
+      dialog.setTitle(controller.getTitle());
     });
 }
 JSWizardDialog.prototype = Object.create(JSDialogView.prototype);
@@ -537,14 +487,12 @@ JSWizardDialog.prototype.constructor = JSWizardDialog;
  * @protected
  */
 JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
-
   buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
-    '<div class="wizard-buttons">' +
-    '  <button class="wizard-cancel-button">@{InternalFrameTitlePane.closeButtonAccessibleName}</button>' +
-    '  <button class="wizard-back-button">@{WizardPane.backOptionButton.text}</button>' +
-    '  <button class="wizard-next-button"></button>' +
-    '</div>'
-  );
+      '<div class="wizard-buttons">' +
+      '  <button class="wizard-cancel-button">@{InternalFrameTitlePane.closeButtonAccessibleName}</button>' +
+      '  <button class="wizard-back-button">@{WizardPane.backOptionButton.text}</button>' +
+      '  <button class="wizard-next-button"></button>' +
+      '</div>');
 
   this.cancelButton = this.findElement(".wizard-cancel-button");
   this.backButton = this.findElement(".wizard-back-button");
@@ -591,16 +539,14 @@ JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
  * @private
  */
 JSWizardDialog.prototype.updateNextButtonText = function() {
-  this.nextButton.innerText = this.getLocalizedLabelText(
-    "WizardPane",
-    this.controller.isLastStep()
-      ? "finishOptionButton.text"
-      : "nextOptionButton.text"
-  );
+  this.nextButton.innerText = this.getLocalizedLabelText("WizardPane",
+      this.controller.isLastStep()
+          ? "finishOptionButton.text"
+          : "nextOptionButton.text");
 }
 
 /**
- * Update UI for current step
+ * Updates UI for current step.
  * @private
  */
 JSWizardDialog.prototype.updateStepView = function() {
@@ -610,7 +556,7 @@ JSWizardDialog.prototype.updateStepView = function() {
 }
 
 /**
- * Update image for current step
+ * Updates image for current step.
  * @private
  */
 JSWizardDialog.prototype.updateStepIcon = function() {
@@ -623,12 +569,12 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     try {
       // Read gradient colors used to paint icon background
       var stepIconBackgroundColors = this.getLocalizedLabelText(
-        "WizardPane", "stepIconBackgroundColors").trim().split(" ");
-      backgroundColor1 = parseInt(stepIconBackgroundColors[0]) || backgroundColor1;
+          "WizardPane", "stepIconBackgroundColors").trim().split(" ");
+      backgroundColor1 = stepIconBackgroundColors[0];
       if (stepIconBackgroundColors.length == 1) {
         backgroundColor2 = backgroundColor1;
       } else if (stepIconBackgroundColors.length == 2) {
-        backgroundColor2 = parseInt(stepIconBackgroundColors[1]) || backgroundColor2;
+        backgroundColor2 = stepIconBackgroundColors[1];
       }
     } catch (ex) {
       // Do not change if exception
@@ -647,13 +593,13 @@ JSWizardDialog.prototype.updateStepIcon = function() {
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. 
  *        Cannot be null for now for the root node
- * @param {{build: function(JSContextMenu.Builder, HTMLElement)}} behavior
+ * @param {{build: function(JSPopupMenu.Builder, HTMLElement)}} behavior
  *   > build: called with a builder, and optionnally with source element (which was right clicked, to show this menu)
  * @constructor
  * @author Louis Grignon
  * @author Renaud Pawlak
  */
-function JSContextMenu(preferences, sourceElements, behavior) {
+function JSPopupMenu(preferences, sourceElements, behavior) {
   if (sourceElements == null || sourceElements.length === 0) {
     throw new Error("Cannot register a context menu on an empty list of elements");
   }
@@ -672,23 +618,22 @@ function JSContextMenu(preferences, sourceElements, behavior) {
   var contextMenu = this;
   this.registerEventListener(sourceElements, "contextmenu", function(ev) {
       ev.preventDefault();
-      if (JSContextMenu.current != null) {
-        JSContextMenu.current.close();
+      if (JSPopupMenu.current != null) {
+        JSPopupMenu.current.close();
       }
       contextMenu.showForSourceElement(this, ev);
     });
-
 }
-JSContextMenu.prototype = Object.create(JSComponentView.prototype);
-JSContextMenu.prototype.constructor = JSContextMenu;
+JSPopupMenu.prototype = Object.create(JSComponentView.prototype);
+JSPopupMenu.prototype.constructor = JSPopupMenu;
 
 /**
  * Closes currently displayed context menu if any.
  * @static
  */
-JSContextMenu.closeCurrentIfAny = function() {
-  if (JSContextMenu.current != null) {
-    JSContextMenu.current.close();
+JSPopupMenu.closeCurrentIfAny = function() {
+  if (JSPopupMenu.current != null) {
+    JSPopupMenu.current.close();
     return true;
   }
   return false;
@@ -699,15 +644,15 @@ JSContextMenu.closeCurrentIfAny = function() {
  * @param {Event} ev
  * @private
  */
-JSContextMenu.prototype.showForSourceElement = function(sourceElement, ev) {
+JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   this.listenerUnregisterCallbacks = [];
 
-  var builder = new JSContextMenu.Builder();
+  var builder = new JSPopupMenu.Builder();
   this.build(builder, sourceElement);
 
   var items = builder.items;
   // Remove last element if it is a separator
-  if (items.length > 0 && items[items.length - 1] == CONTEXT_MENU_SEPARATOR_ITEM) {
+  if (items.length > 0 && items[items.length - 1] == JSPopupMenu.CONTEXT_MENU_SEPARATOR_ITEM) {
     items.pop();
   }
   var menuElement = this.createMenuElement(items);
@@ -736,15 +681,15 @@ JSContextMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   this.getRootNode().style.left = anchorX + "px";
   this.getRootNode().style.top = anchorY + "px";
 
-  JSContextMenu.current = this;
+  JSPopupMenu.current = this;
 };
 
 /**
- * @param {{}[]} items same type as JSContextMenu.Builder.items
+ * @param {{}[]} items same type as JSPopupMenu.Builder.items
  * @return {HTMLElement} menu root html element (`<ul>`)
  * @private
  */
-JSContextMenu.prototype.createMenuElement = function(items) {
+JSPopupMenu.prototype.createMenuElement = function(items) {
 
   var menuElement = document.createElement("ul");
   menuElement.classList.add("items");
@@ -755,7 +700,7 @@ JSContextMenu.prototype.createMenuElement = function(items) {
   this.registerEventListener(backElement, "click", function(ev) {
       var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != "li";
       if (isRootMenu) {
-        JSContextMenu.closeCurrentIfAny();
+        JSPopupMenu.closeCurrentIfAny();
       } else {
         menuElement.classList.remove("visible");
       }
@@ -766,7 +711,7 @@ JSContextMenu.prototype.createMenuElement = function(items) {
     var item = items[i];
 
     var itemElement = document.createElement("li");
-    if (item == CONTEXT_MENU_SEPARATOR_ITEM) {
+    if (item == JSPopupMenu.CONTEXT_MENU_SEPARATOR_ITEM) {
       itemElement.classList.add("separator");
     } else {
       this.initMenuItemElement(itemElement, item);
@@ -780,13 +725,11 @@ JSContextMenu.prototype.createMenuElement = function(items) {
 
 /**
  * Initializes a menu item element for the given item descriptor (model).
- *
  * @param {HTMLElement} menuItemElement
- * @param {{}[]} item an item from JSContextMenu.Builder.items
- *
+ * @param {{}[]} item an item from JSPopupMenu.Builder.items
  * @private
  */
-JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
+JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item) {
   var contextMenu = this;
 
   if (item.mode !== undefined) {
@@ -857,9 +800,9 @@ JSContextMenu.prototype.initMenuItemElement = function(itemElement, item) {
 /**
  * Closes the context menu.
  */
-JSContextMenu.prototype.close = function() {
+JSPopupMenu.prototype.close = function() {
   this.getRootNode().classList.remove("visible");
-  JSContextMenu.current = null;
+  JSPopupMenu.current = null;
 
   if (this.listenerUnregisterCallbacks) {
     for (var i = 0; i < this.listenerUnregisterCallbacks.length; i++) {
@@ -874,13 +817,12 @@ JSContextMenu.prototype.close = function() {
 /**
  * Builds items of a context menu which is about to be shown.
  */
-JSContextMenu.Builder = function() {
+JSPopupMenu.Builder = function() {
   /** @type {{ uid?: string, label?: string, iconPath?: string, onItemSelected?: function(), subItems?: {}[] }[] } } */
   this.items = [];
 }
-
-JSContextMenu.Builder.prototype = Object.create(JSContextMenu.Builder.prototype);
-JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
+JSPopupMenu.Builder.prototype = Object.create(JSPopupMenu.Builder.prototype);
+JSPopupMenu.Builder.prototype.constructor = JSPopupMenu.Builder;
 
 /**
  * Add a checkable item
@@ -888,7 +830,7 @@ JSContextMenu.Builder.prototype.constructor = JSContextMenu.Builder;
  * @param {function()} [onItemSelected]
  * @param {boolean} [checked]
  */
-JSContextMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
+JSPopupMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
   this.addNewItem(label, undefined, onItemSelected, checked === true, "checkbox");
 };
 
@@ -898,7 +840,7 @@ JSContextMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, c
  * @param {function()} [onItemSelected]
  * @param {boolean} [checked]
  */
-JSContextMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, checked) {
+JSPopupMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, checked) {
   this.addNewItem(label, undefined, onItemSelected, checked === true, "radio");
 };
 
@@ -912,10 +854,10 @@ JSContextMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, c
  * @param {string|function()} [onItemSelectedCallbackOrLabel]
  * @param {function()} [onItemSelectedCallback]
  *
- * @return {JSContextMenu.Builder}
+ * @return {JSPopupMenu.Builder}
  *
  */
-JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
+JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
   var label = null;
   var iconPath = null;
   var onItemSelected = null;
@@ -961,14 +903,13 @@ JSContextMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onIt
 }
 
 /**
- *
  * @param {string} label
  * @param {string | undefined} [iconPath]
  * @param {function() | undefined} [onItemSelected]
  * @param {boolean | undefined} [selected]
  * @param {"radio" | "checkbox" | undefined} [mode]
  */
-JSContextMenu.Builder.prototype.addNewItem = function(
+JSPopupMenu.Builder.prototype.addNewItem = function(
   label, iconPath, onItemSelected, selected, mode
 ) {
   this.items.push({
@@ -985,15 +926,12 @@ JSContextMenu.Builder.prototype.addNewItem = function(
  * Adds a sub menu to this menu, with an optional icon.
  * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', "myitem", function(builder) { builder.addItem(...) })`
  * 2) `builder.addSubMenu("myitem", function(builder) { builder.addItem(...) })`
- *
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} labelOrbuildSubMenuCallback
- * @param {function(JSContextMenu.Builder)} [buildSubMenuCallback]
- *
- * @return {JSContextMenu.Builder}
- *
+ * @param {function(JSPopupMenu.Builder)} [buildSubMenuCallback]
+ * @return {JSPopupMenu.Builder}
  */
-JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
+JSPopupMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, labelOrbuildSubMenuCallback, buildSubMenuCallback) {
   var label = null;
   var iconPath = null;
 
@@ -1020,7 +958,7 @@ JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, l
     buildSubMenuCallback = labelOrbuildSubMenuCallback;
   }
 
-  var subMenuBuilder = new JSContextMenu.Builder();
+  var subMenuBuilder = new JSPopupMenu.Builder();
   buildSubMenuCallback(subMenuBuilder);
   var subItems = subMenuBuilder.items;
   if (subItems.length > 0) {
@@ -1035,40 +973,39 @@ JSContextMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, l
   return this;
 }
 
-var CONTEXT_MENU_SEPARATOR_ITEM = {};
+JSPopupMenu.CONTEXT_MENU_SEPARATOR_ITEM = {};
 
 /**
  * Adds a separator after previous items.
  * Does nothing if there are no items yet or if the latest added item is already a separator.
- *
- * @return {JSContextMenu.Builder}
+ * @return {JSPopupMenu.Builder}
  */
-JSContextMenu.Builder.prototype.addSeparator = function() {
-  if (this.items.length > 0 && this.items[this.items.length - 1] != CONTEXT_MENU_SEPARATOR_ITEM) {
-    this.items.push(CONTEXT_MENU_SEPARATOR_ITEM);
+JSPopupMenu.Builder.prototype.addSeparator = function() {
+  if (this.items.length > 0 && this.items[this.items.length - 1] != JSPopupMenu.CONTEXT_MENU_SEPARATOR_ITEM) {
+    this.items.push(JSPopupMenu.CONTEXT_MENU_SEPARATOR_ITEM);
   }
   return this;
 }
 
 // Global initializations of the toolkit
-if (!JSContextMenu.globalCloserRegistered) {
+if (!JSPopupMenu.globalCloserRegistered) {
   document.addEventListener("click", function(ev) {
-    if (JSContextMenu.current != null
-      && !JSComponentView.isElementContained(ev.target, JSContextMenu.current.getRootNode())) {
+    if (JSPopupMenu.current != null
+      && !JSComponentView.isElementContained(ev.target, JSPopupMenu.current.getRootNode())) {
       // Clicked outside menu
-      if (JSContextMenu.closeCurrentIfAny()) {
+      if (JSPopupMenu.closeCurrentIfAny()) {
         ev.stopPropagation();
         ev.preventDefault();
       }
     }
   });
-  JSContextMenu.globalCloserRegistered = true;
+  JSPopupMenu.globalCloserRegistered = true;
 }
 
 document.addEventListener("keyup", function(ev) {
   if (ev.key == "Escape" || ev.keyCode == 27) {
     JSDialogView.closeTopMostDialogIfAny();
-    JSContextMenu.closeCurrentIfAny();
+    JSPopupMenu.closeCurrentIfAny();
   }
 });
 
@@ -1077,176 +1014,251 @@ document.addEventListener("keyup", function(ev) {
  * The root class for component views.
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} input input of type text on which install the spinner
- * @param {{format?: Format, nullable?: boolean, value?: number, min?: number, max?: number, step?: number}} [options]
+ * @param {{format?: Format, nullable?: boolean, value?: number, minimum?: number, maximum?: number, stepSize?: number}} [options]
  * - format: number format to be used for this input - default to DecimalFormat for current content
  * - nullable: false if null/undefined is not allowed - default true
  * - value: initial value,
  * - min: minimum number value,
  * - max: maximum number value,
- * - step: step between values when increment / decrement using UI - default 1
+ * - stepSize: step between values when increment / decrement using UI - default 1
  * @constructor
  * @extends JSComponentView
  * @author Louis Grignon
- *
  */
 function JSSpinner(preferences, input, options) {
   if (input.tagName.toUpperCase() != "SPAN") {
     throw new Error("JSSpinner: please provide a span for the spinner to work - " + input + " is not a span");
   }
 
-  var rootElement = input;
+  var container = input;
   if (!options) { 
     options = {}; 
   }
-  if (isNaN(parseFloat(options.step))) { 
-    options.step = 1; 
+  this.checkMinimumMaximum(options.minimum, options.maximum);
+
+  if (!isNaN(parseFloat(options.minimum))) { 
+    this.minimum = options.minimum;
   }
-  if (typeof options.nullable != "boolean") { 
-    options.nullable = false; 
+  if (!isNaN(parseFloat(options.maximum))) { 
+    this.maximum = options.maximum;
   }
-  if (!(options.format instanceof Format)) { 
-    options.format = new DecimalFormat(); 
+  if (isNaN(parseFloat(options.stepSize))) { 
+    this.stepSize = 1; 
+  } else {
+    this.stepSize = options.stepSize;
+  }
+  if (typeof options.nullable == "boolean") { 
+    this.nullable = options.nullable;
+  } else {
+    this.nullable = false; 
+  }
+  if (options.format instanceof Format) { 
+    this.format = options.format;
+  } else {
+    this.format = new DecimalFormat(); 
   }
 
-  var checkMinMax = function(min, max) {
-      if (min != null && max != null && min >= max) {
-        throw new Error("JSSpinner: min is not below max - min=" + min + " max=" + max);
-      }
-    };
-  checkMinMax(options.min, options.max);
-
-  /** @var {JSSpinner} */
   var component = this;
-  JSComponentView.call(this, preferences, rootElement, 
+  JSComponentView.call(this, preferences, container, 
       {
         useElementAsRootNode: true,
-        initializer: function(component) {
-          component.options = options;
-    
-          rootElement.classList.add("spinner");
-    
-          component.textInput = document.createElement("input");
-          component.textInput.type = "text";
-          rootElement.appendChild(component.textInput);
-    
-          component.incrementButton = document.createElement("button");
-          component.incrementButton.setAttribute("increment", "");
-          component.incrementButton.textContent = "+";
-          component.incrementButton.tabIndex = -1;
-          rootElement.appendChild(component.incrementButton);
-    
-          component.decrementButton = document.createElement("button");
-          component.decrementButton.setAttribute("decrement", "");
-          component.decrementButton.textContent = "-";
-          component.decrementButton.tabIndex = -1;
-          rootElement.appendChild(component.decrementButton);
-    
-          component.registerEventListener(component.textInput, "focus", function(ev) {
-              component.refreshUI();
-            });
-          component.registerEventListener(component.textInput, "focusout", function(ev) {
-              component.refreshUI();
-            });
-    
-          component.registerEventListener(component.textInput, "input", function(ev) {
-              var actualValue = component.parseFloatValueFromInput();
-              component.textInput.style.color = null;
-              if (actualValue == null || (options.min != null && actualValue < options.min) || (options.max != null && actualValue > options.max)) {
-                component.textInput.style.color = "red";
-              }
-              component._value = actualValue;
-            });
-    
-          component.registerEventListener(component.textInput, "blur", function(ev) {
-              var actualValue = component.parseFloatValueFromInput();
-              if (actualValue == null && !options.nullable) {
-                var restoredValue = component._value;
-                if (restoredValue == null) {
-                  restoredValue = component.getDefaultValue();
-                }
-                actualValue = restoredValue;
-              }
-              component.value = actualValue;
-              component.textInput.style.color = null;
-            });
-    
-          component.configureIncrementDecrement();
-    
-          Object.defineProperty(this, "value", {
-            get: function() { return component.get(); },
-            set: function(value) { component.set(value); }
-          });
-          Object.defineProperty(this, "width", {
-            get: function() { return rootElement.style.width; },
-            set: function(value) { rootElement.style.width = value; }
-          });
-          Object.defineProperty(this, "parentElement", {
-            get: function() { return rootElement.parentElement; }
-          });
-          Object.defineProperty(this, "previousElementSibling", {
-            get: function() { return rootElement.previousElementSibling; }
-          });
-          Object.defineProperty(this, "style", {
-            get: function() { return rootElement.style; }
-          });
-          Object.defineProperty(this, "min", {
-            get: function() { return options.min; },
-            set: function(min) {
-              checkMinMax(min, options.max);
-              options.min = min;
-            },
-          });
-          Object.defineProperty(this, "max", {
-            get: function() { return options.max; },
-            set: function(max) {
-              checkMinMax(options.min, max);
-              options.max = max;
-            },
-          });
-          Object.defineProperty(this, "step", {
-            get: function() { return options.step; },
-            set: function(step) { options.step = step; },
-          });
-          Object.defineProperty(this, "format", {
-            get: function() { return options.format; },
-            set: function(format) {
-              options.format = format;
-              component.refreshUI();
-            },
-          });
-    
-          var initialValue = options.value;
-          component.value = initialValue;
-        },
-        getter: function(component) {
-          return component._value;
-        },
-        setter: function(component, value) {
-          if (value instanceof Big) {
-            value = parseFloat(value);
-          }
-          if (value != null && typeof value != "number") {
-            throw new Error("JSSpinner: Expected values of type number");
-          }
-          if (value == null && !options.nullable) {
-            value = component.getDefaultValue();
-          }
-          if (value != null && options.min != null && value < options.min) {
-            value = options.min;
-          }
-          if (value != null && options.max != null && value > options.max) {
-            value = options.max;
-          }
-    
-          if (value != component.value) {
-            component._value = value;
-            component.refreshUI();
-          }
-        },
       });
+
+  container.classList.add("spinner");
+  
+  this.textInput = document.createElement("input");
+  this.textInput.type = "text";
+  container.appendChild(this.textInput);
+
+  this.registerEventListener(this.textInput, "focus", function(ev) {
+      component.updateUI();
+    });
+  this.registerEventListener(this.textInput, "focusout", function(ev) {
+      component.updateUI();
+    });
+
+  this.registerEventListener(this.textInput, "input", function(ev) {
+      var pos = new ParsePosition(0);
+      var inputValue = component.parseValueFromInput(pos);
+      if (pos.getIndex() != component.textInput.value.length
+          || inputValue == null && !component.nullable
+          || (component.minimum != null && inputValue < component.minimum) 
+          || (component.maximum != null && inputValue > component.maximum)) {
+        component.textInput.style.color = "red";
+      } else {
+        component.textInput.style.color = null;
+        component.value = inputValue;
+      }
+    });
+
+  this.registerEventListener(this.textInput, "blur", function(ev) {
+      var inputValue = component.parseValueFromInput();
+      if (inputValue == null && !component.nullable) {
+        var restoredValue = component.value;
+        if (restoredValue == null) {
+          restoredValue = component.getDefaultValue();
+        }
+        inputValue = restoredValue;
+      }
+      component.textInput.style.color = null;
+      component.setValue(inputValue);
+    });
+
+  this.initIncrementDecrementButtons(container);
+
+  Object.defineProperty(this, "width", {
+      get: function() { return container.style.width; },
+      set: function(value) { container.style.width = value; }
+    });
+  Object.defineProperty(this, "parentElement", {
+      get: function() { return container.parentElement; }
+    });
+  Object.defineProperty(this, "previousElementSibling", {
+      get: function() { return container.previousElementSibling; }
+    });
+  Object.defineProperty(this, "style", {
+      get: function() { return container.style; }
+    });
+
+  this.setValue(options.value);
 }
 JSSpinner.prototype = Object.create(JSComponentView.prototype);
 JSSpinner.prototype.constructor = JSSpinner;
+
+/**
+ * @return {Object} the value of this spinner
+ */
+JSSpinner.prototype.getValue = function() {
+  return this.value;
+}
+
+/**
+ * @param {Object} value the value of this spinner
+ */
+JSSpinner.prototype.setValue = function(value) {
+  if (value instanceof Big) {
+    value = parseFloat(value);
+  }
+  if (value != null && typeof value != "number") {
+    throw new Error("JSSpinner: Expected values of type number");
+  }
+  if (value == null && !this.nullable) {
+    value = this.getDefaultValue();
+  }
+  if (value != null && this.minimum != null && value < this.minimum) {
+    value = this.minimum;
+  }
+  if (value != null && this.maximum != null && value > this.maximum) {
+    value = this.maximum;
+  }
+
+  if (value != this.value) {
+    this.value = value;
+    this.updateUI();
+  }
+}
+
+/**
+ * @return {number} minimum of this spinner
+ * @private
+ */
+JSSpinner.prototype.checkMinimumMaximum = function(minimum, maximum) {
+  if (minimum != null && maximum != null && minimum > maximum) {
+    throw new Error("JSSpinner: minimum is not below maximum - minimum = " + minimum + " maximum = " + maximum);
+  }
+}
+
+/**
+ * @return {boolean} <code>true</code> if this spinner may contain no value
+ */
+JSSpinner.prototype.isNullable = function() {
+  return this.nullable;
+}
+
+/**
+ * @param {boolean} nullable <code>true</code> if this spinner may contain no value
+ */
+JSSpinner.prototype.setNullable = function(nullable) {
+  var containsNullValue = this.nullable && this.value === null;
+  this.nullable = nullable;
+  if (!nullable && containsNullValue) {
+    this.value = this.getDefaultValue();
+  }
+}
+
+/**
+ * @return {Format} format used to format the value of this spinner
+ */
+JSSpinner.prototype.getFormat = function() {
+  return this.format;
+}
+
+/**
+ * @param {Format} format  format used to format the value of this spinner
+ */
+JSSpinner.prototype.setFormat = function(format) {
+  this.format = format;
+  this.updateUI();
+}
+
+/**
+ * @return {number} minimum of this spinner
+ */
+JSSpinner.prototype.getMinimum = function() {
+  return this.minimum;
+}
+
+/**
+ * @param {number} minimum minimum value of this spinner
+ */
+JSSpinner.prototype.setMinimum = function(minimum) {
+  this.checkMinimumMaximum(minimum, this.maximum);
+  this.minimum = minimum; 
+}
+
+/**
+ * @return {number} minimum of this spinner
+ */
+JSSpinner.prototype.getMinimum = function() {
+  return this.minimum;
+}
+
+/**
+ * @param {number} minimum minimum value of this spinner
+ */
+JSSpinner.prototype.setMinimum = function(minimum) {
+  this.checkMinimumMaximum(minimum, this.maximum);
+  this.minimum = minimum; 
+}
+
+/**
+ * @return {number} maximum of this spinner
+ */
+JSSpinner.prototype.getMaximum = function() {
+  return this.maximum;
+}
+
+/**
+ * @param {number} maximum maximum value of this spinner
+ */
+JSSpinner.prototype.setMaximum = function(maximum) {
+  this.checkMinimumMaximum(this.minimum, maximum);
+  this.maximum = maximum; 
+}
+
+/**
+ * @return {number} step size of this spinner
+ */
+JSSpinner.prototype.getStepSize = function() {
+  return this.stepSize;
+}
+
+/**
+ * @param {number} stepSize step size of this spinner
+ */
+JSSpinner.prototype.setStepSize = function(stepSize) {
+  this.stepSize = stepSize; 
+}
 
 /**
  * @return {HTMLInputElement} underlying input element
@@ -1267,23 +1279,25 @@ JSSpinner.prototype.removeEventListener = function() {
  * Refreshes UI for current state / options. For instance, if format has changed, displayed text is updated.
  * @private
  */
-JSSpinner.prototype.refreshUI = function() {
+JSSpinner.prototype.updateUI = function() {
   this.textInput.value = this.formatValueForUI(this.value);
 }
 
 /**
+ * @param {ParsePosition} [parsePosition]
  * @return {number}
  * @private
  */
-JSSpinner.prototype.parseFloatValueFromInput = function() {
+JSSpinner.prototype.parseValueFromInput = function(parsePosition) {
   if (!this.textInput.value || this.textInput.value.trim() == "") {
-    if (this.options.nullable) {
+    if (this.nullable) {
       return null;
     } else {
-      return this.getDefaultValue();
+      return this.value;
     }
   }
-  return this.options.format.parse(this.textInput.value, new ParsePosition(0));
+  return this.format.parse(this.textInput.value, 
+      parsePosition != undefined ? parsePosition : new ParsePosition(0));
 }
 
 /**
@@ -1292,11 +1306,11 @@ JSSpinner.prototype.parseFloatValueFromInput = function() {
  */
 JSSpinner.prototype.getDefaultValue = function() {
   var defaultValue = 0;
-  if (this.options.min != null && this.options.min > defaultValue) {
-    defaultValue = this.options.min;
+  if (this.minimum != null && this.minimum > defaultValue) {
+    defaultValue = this.minimum;
   }
-  if (this.options.max != null && this.options.max < defaultValue) {
-    defaultValue = this.options.max;
+  if (this.maximum != null && this.maximum < defaultValue) {
+    defaultValue = this.maximum;
   }
   return defaultValue;
 }
@@ -1312,32 +1326,41 @@ JSSpinner.prototype.formatValueForUI = function(value) {
   }
 
   if (!this.isFocused()) {
-    return this.options.format.format(value);
+    return this.format.format(value);
   }
-  if (this.focusedFormatCache == null || this.lastFormat !== this.options.format) {
+  if (this.noGroupingFormat == null || this.lastFormat !== this.format) {
     // Format changed, compute focused format
-    this.lastFormat = this.options.format;
-    this.focusedFormatCache = this.lastFormat.clone();
-    this.focusedFormatCache.setGroupingUsed(false);
+    this.lastFormat = this.format;
+    this.noGroupingFormat = this.lastFormat.clone();
+    this.noGroupingFormat.setGroupingUsed(false);
   }
-  return this.focusedFormatCache.format(value);
-};
+  return this.noGroupingFormat.format(value);
+}
 
 /**
  * @return {boolean} true if this spinner has focus
  */
 JSSpinner.prototype.isFocused = function() {
   return this.textInput === document.activeElement;
-};
+}
 
 /**
- * Creates and initialize increment & decrement buttons + related keystrokes
- *
+ * Creates and initialize increment & decrement buttons + related keystrokes.
  * @private
  */
-JSSpinner.prototype.configureIncrementDecrement = function() {
+JSSpinner.prototype.initIncrementDecrementButtons = function(container) {
   var component = this;
-  var options = this.options;
+  this.incrementButton = document.createElement("button");
+  this.incrementButton.setAttribute("increment", "");
+  this.incrementButton.textContent = "+";
+  this.incrementButton.tabIndex = -1;
+  container.appendChild(this.incrementButton);
+
+  this.decrementButton = document.createElement("button");
+  this.decrementButton.setAttribute("decrement", "");
+  this.decrementButton.textContent = "-";
+  this.decrementButton.tabIndex = -1;
+  container.appendChild(this.decrementButton);
 
   this.registerEventListener(component.textInput, "keydown", function(ev) {
       var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, "keydown");
@@ -1351,33 +1374,34 @@ JSSpinner.prototype.configureIncrementDecrement = function() {
     });
 
   this.registerEventListener(component.incrementButton, "click", function(ev) {
-      var previousValue = parseFloat(component.value);
+      var previousValue = component.value;
       if (previousValue == null || isNaN(previousValue)) {
         previousValue = component.getDefaultValue();
       }
-      component.value = previousValue + options.step;
-      component.raiseInputEvent();
+      component.setValue(previousValue + component.stepSize);
+      component.fireInputEvent();
     });
 
   this.registerEventListener(component.decrementButton, "click", function(ev) {
-      var previousValue = parseFloat(component.value);
+      var previousValue = component.value;
       if (previousValue == null || isNaN(previousValue)) {
         previousValue = component.getDefaultValue();
       }
-      component.value = previousValue - options.step;
-      component.raiseInputEvent();
+      component.setValue(previousValue - component.stepSize);
+      component.fireInputEvent();
     });
-};
+}
 
 /**
- * Raises an "input" event on behalf of underlying text input
+ * Fires an "input" event on behalf of underlying text input.
  * @private
  */
-JSSpinner.prototype.raiseInputEvent = function() {
+JSSpinner.prototype.fireInputEvent = function() {
+  this.textInput.focus();
   var ev = document.createEvent("Event");
-  ev.initEvent("input", true, true );
+  ev.initEvent("input", true, true);
   this.textInput.dispatchEvent(ev);
-};
+}
 
 /**
  * Enables or disables this component
@@ -1390,23 +1414,22 @@ JSSpinner.prototype.enable = function(enabled) {
   this.textInput.disabled = !enabled;
   this.incrementButton.disabled = !enabled;
   this.decrementButton.disabled = !enabled;
-};
+}
 
 
 /**
  * A combo box component which allows any type of content (e.g. images).
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} container html element on which install this component
- * @param {{nullable?: boolean, value?: any, availableValues: (any)[], render?: function(value: any, element: HTMLElement), selectionChanged: function(newValue: any)}} [options]
+ * @param {{nullable?: boolean, value?: any, availableValues: (any)[], renderCell?: function(value: any, element: HTMLElement), selectionChanged: function(newValue: any)}} [options]
  * - nullable: false if null/undefined is not allowed - default true
  * - value: initial value - default undefined if nullable or first available value,
  * - availableValues: available values in this combo,
- * - render: a function which builds displayed element for a given value - defaults to setting textContent to value.toString()
+ * - renderCell: a function which builds displayed element for a given value - defaults to setting textContent to value.toString()
  * - selectionChanged: called with new value when selected by user
  * @constructor
  * @extends JSComponentView
  * @author Louis Grignon
- *
  */
 function JSComboBox(preferences, container, options) {
   var rootElement = container;
@@ -1420,71 +1443,41 @@ function JSComboBox(preferences, container, options) {
   if (!Array.isArray(options.availableValues) || options.availableValues.length <= 0) {
     throw new Error("JSComboBox: No available values provided");
   }
-  if (typeof options.render != "function") {
-    options.render = function(value, element) {
-      element.textContent = value == null ? "" : value.toString();
-    };
+  if (typeof options.renderCell != "function") {
+    options.renderCell = function(value, element) {
+        element.textContent = value == null ? "" : value.toString();
+      };
   }
   if (options.value == null && !options.nullable) {
     options.value = options.availableValues[0];
   }
 
   var component = this;
-  JSComponentView.call(this, preferences, rootElement, {
-    useElementAsRootNode: true,
-    initializer: function(component) {
-      component.options = options;
-
-      Object.defineProperty(this, "availableValues", {
-        get: function() { return options.availableValues; }
+  JSComponentView.call(this, preferences, rootElement, 
+      {
+        useElementAsRootNode: true,
       });
 
-      rootElement.classList.add("combo-box");
+  this.options = options;
 
-      component.button = document.createElement("button");
-      rootElement.appendChild(component.button);
+  rootElement.classList.add("combo-box");
 
-      component.overview = document.createElement("div");
-      component.overview.classList.add("overview");
-      component.button.appendChild(component.overview);
+  this.button = document.createElement("button");
+  rootElement.appendChild(this.button);
 
-      component.initSelectionPanel();
+  this.preview = document.createElement("div");
+  this.preview.classList.add("preview");
+  this.button.appendChild(this.preview);
 
-      component.registerEventListener(component.button, "click", function(ev) {
-          ev.stopImmediatePropagation();
-          component.openSelectionPanel(ev.pageX, ev.pageY);
-        });
+  this.initSelectionPanel();
 
-      var initialValue = options.value;
-      component.set(initialValue);
-    },
-    getter: function(component) {
-      return component.value;
-    },
-    setter: function(component, value) {
-      var isValueAvailable = false;
-      for (var i = 0; i < component.availableValues.length; i++) {
-        if (component.areValuesEqual(value, component.availableValues[i])) {
-          isValueAvailable = true;
-          break;
-        }
-      }
-      if (!isValueAvailable) {
-        value = null;
-      }
+  this.registerEventListener(this.button, "click", function(ev) {
+      ev.stopImmediatePropagation();
+      component.openSelectionPanel(ev.pageX, ev.pageY);
+    });
 
-      if (value == null && !options.nullable) {
-        value = options.availableValues[0];
-      }
-
-      if (!component.areValuesEqual(value, component.value)) {
-        component.value = value;
-        component.refreshUI();
-      }
-    },
-  });
-};
-
+  this.setSelectedItem(options.value);
+}
 JSComboBox.prototype = Object.create(JSComponentView.prototype);
 JSComboBox.prototype.constructor = JSComboBox;
 
@@ -1492,29 +1485,59 @@ JSComboBox.prototype.constructor = JSComboBox;
  * @private
  */
 JSComboBox.prototype.initSelectionPanel = function() {
-  var component = this;
-
   var selectionPanel = document.createElement("div");
   selectionPanel.classList.add("selection-panel");
 
-  var availableValues = component.availableValues;
-  for (var i = 0; i < availableValues.length; i++) {
+  for (var i = 0; i < this.options.availableValues.length; i++) {
     var currentItemElement = document.createElement("div");
-    currentItemElement.value = availableValues[i];
-    component.options.render(currentItemElement.value, currentItemElement);
+    currentItemElement.value = this.options.availableValues[i];
+    this.options.renderCell(currentItemElement.value, currentItemElement);
     selectionPanel.appendChild(currentItemElement);
   }
 
   this.getRootNode().appendChild(selectionPanel);
   this.selectionPanel = selectionPanel;
 
+  var component = this;
   this.registerEventListener(selectionPanel.children, "click", function(ev) {
-      component.value = this.value;
-      component.refreshUI();
+      component.selectedItem = this.value;
+      component.updateUI();
       if (typeof component.options.selectionChanged == "function") {
-        component.options.selectionChanged(component.value);
+        component.options.selectionChanged(component.selectedItem);
       }
     });
+}
+
+/**
+ * @return {number} the value selected in this combo box
+ */
+JSComboBox.prototype.getSelectedItem = function() {
+  return this.selectedItem;
+}
+
+/**
+ * @param {number} selectedItem  the value to select in this combo box
+ */
+JSComboBox.prototype.setSelectedItem = function(selectedItem) {
+  var isValueAvailable = false;
+  for (var i = 0; i < this.options.availableValues.length; i++) {
+    if (this.areValuesEqual(selectedItem, this.options.availableValues[i])) {
+      isValueAvailable = true;
+      break;
+    }
+  }
+  if (!isValueAvailable) {
+    selectedItem = null;
+  }
+
+  if (selectedItem == null && !this.options.nullable) {
+    selectedItem = this.options.availableValues[0];
+  }
+
+  if (!this.areValuesEqual(selectedItem, this.selectedItem)) {
+    this.selectedItem = selectedItem;
+    this.updateUI();
+  }
 }
 
 /**
@@ -1536,14 +1559,12 @@ JSComboBox.prototype.enable = function(enabled) {
  * @private
  */
 JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
-  var component = this;
   var selectionPanel = this.selectionPanel;
-
   var closeSelectorPanel = function() {
-    document.removeEventListener("click", closeSelectorPanel);
-    selectionPanel.style.opacity = 0;
-    selectionPanel.style.display = "none";
-  }
+      document.removeEventListener("click", closeSelectorPanel);
+      selectionPanel.style.opacity = 0;
+      selectionPanel.style.display = "none";
+    }
 
   selectionPanel.style.display = "block";
   selectionPanel.style.opacity = 1;
@@ -1553,17 +1574,16 @@ JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
 };
 
 /**
- * Refreshes UI, i.e. overview of selected value
+ * Refreshes UI, i.e. preview of selected value.
  */
-JSComboBox.prototype.refreshUI = function() {
-  this.overview.innerHTML = "";
-  this.options.render(this.get(), this.overview);
+JSComboBox.prototype.updateUI = function() {
+  this.preview.innerHTML = "";
+  this.options.renderCell(this.getSelectedItem(), this.preview);
 };
 
 /**
  * Checks if value1 and value2 are equal. Returns true if so.
  * NOTE: this internally uses JSON.stringify to compare values
- *
  * @return {boolean}
  * @private
  */
@@ -1623,20 +1643,19 @@ function JSTreeTable(container, preferences, model, data) {
   JSComponentView.call(this, preferences, container, 
       {
         useElementAsRootNode: true,
-        initializer: function(table) {
-          table.tableElement = document.createElement("div");
-          table.tableElement.classList.add("tree-table");
-          container.appendChild(table.tableElement);
-          table.setModel(model);
-          table.setData(data ? data : []);
-        }
       });
+  
+  this.tableElement = document.createElement("div");
+  this.tableElement.classList.add("tree-table");
+  container.appendChild(this.tableElement);
+  this.setModel(model);
+  this.setData(data ? data : []);
 }
 JSTreeTable.prototype = Object.create(JSComponentView.prototype);
 JSTreeTable.prototype.constructor = JSTreeTable;
 
 /**
- * Sets data and refreshes rows in UI
+ * Sets data and updatees rows in UI.
  * @param {{ value: any, children: {value, children}[] }[]} data
  */
 JSTreeTable.prototype.setData = function(data) {
@@ -1743,7 +1762,7 @@ JSTreeTable.prototype.getExpandedRowsValues = function() {
  */
 JSTreeTable.prototype.fireExpandedRowsChanged = function() {
   if (this.state.expandedRowsValues != null) {
-    this.refreshExpandedRowsIndices();
+    this.updateExpandedRowsIndices();
     this.model.expandedRowsChanged(this.state.expandedRowsValues, this.state.expandedRowsIndices);
   }
 }
@@ -1752,7 +1771,7 @@ JSTreeTable.prototype.fireExpandedRowsChanged = function() {
  * Refreshes expandedRowsIndices from expandedRowsValues
  * @private
  */
-JSTreeTable.prototype.refreshExpandedRowsIndices = function() {
+JSTreeTable.prototype.updateExpandedRowsIndices = function() {
   if (this.state.expandedRowsValues != null 
       && this.data != null 
       && this.data.sortedList != null) {
@@ -1925,7 +1944,7 @@ JSTreeTable.prototype.generateTableRows = function() {
   sortDataTree(this.data.slice(0), 0);
 
   // Synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
-  this.refreshExpandedRowsIndices();
+  this.updateExpandedRowsIndices();
   if (this.state.expandedRowsIndices && this.state.expandedRowsIndices.length > 0) {
     var expandedRowsValues = [];
     for (var i = 0; i < this.state.expandedRowsIndices.length; i++) {

@@ -487,7 +487,6 @@ body {
 </div>
 
 <div id="home-furniture-dialog-template" class="dialog-template">
-
   <div class="home-furniture-dialog">
     <h3 class="card" data-name="name-and-price-title"></h3>
     <div data-name="name-and-price-panel" class="card label-input-grid">
@@ -498,7 +497,7 @@ body {
         <input name="name-input" size="50" type="text" />
 
         <label>
-          <input name="name-visible-checkbox" type="checkbox" />
+          <input type="checkbox" name="name-visible-checkbox" />
           <span>@{HomeFurniturePanel.nameVisibleCheckBox.text}</span>
         </label>
       </div>
@@ -513,9 +512,8 @@ body {
         <span data-name="value-added-tax-percentage-input"></span>
       </div>
     </div>
+
     <br />
-
-
     <div class="columns-3">
       <div class="column1">
         <h3 class="card">@{HomeFurniturePanel.locationPanel.title}</h3>
@@ -536,18 +534,17 @@ body {
           </div>
 
           <label title="@{HomeFurniturePanel.mirroredModelCheckBox.tooltip}" class="whole-line">
-            <input name="mirrored-model-checkbox" type="checkbox" />
+            <input type="checkbox" name="mirrored-model-checkbox" />
             <span>@{HomeFurniturePanel.mirroredModelCheckBox.text}</span>
           </label>
 
           <label title="@{HomeFurniturePanel.basePlanItemCheckBox.tooltip}" class="whole-line">
-            <input name="base-plan-item-checkbox" type="checkbox" />
+            <input type="checkbox" name="base-plan-item-checkbox" />
             <span>@{HomeFurniturePanel.basePlanItemCheckBox.text}</span>
           </label>
         </div>
 
         <br />
-
         <h3 class="card">@{HomeFurniturePanel.colorAndTexturePanel.title}</h3>
         <div data-name="paint-panel" class="card label-input-grid">
           <div>
@@ -583,10 +580,10 @@ body {
           <div data-name="material-selector-button"></div>
         </div>
       </div>
+      
       <div class="column2">
         <h3 class="card">@{HomeFurniturePanel.orientationPanel.title}</h3>
         <div data-name="orientation-panel" class="card label-input-grid">
-
           <div class="whole-line" data-name="vertical-rotation-label">@{HomeFurniturePanel.verticalRotationLabel.text}</div>
 
           <div class="label-cell" data-name="angle-label">@{HomeFurniturePanel.angleLabel.text}</div>
@@ -617,6 +614,7 @@ body {
           </div>
         </div>
       </div>
+      
       <div class="column3">
         <h3 class="card">@{HomeFurniturePanel.sizePanel.title}</h3>
         <div data-name="size-panel" class="card label-input-grid">
@@ -624,45 +622,46 @@ body {
           <div>
             <span data-name="width-input"></span>
           </div>
+          
           <div data-name="depth-label" class="label-cell"></div>
           <div>
             <span data-name="depth-input"></span>
           </div>
+          
           <div data-name="height-label" class="label-cell"></div>
           <div>
             <span data-name="height-input"></span>
           </div>
 
           <label class="whole-line">
-            <input name="keep-proportions-checkbox" type="checkbox" />
+            <input type="checkbox" name="keep-proportions-checkbox" />
             <span>@{ImportedFurnitureWizardStepsPanel.keepProportionsCheckBox.text}</span>
           </label>
-
         </div>
+        
         <br />
-
         <h3 class="card">@{HomeFurniturePanel.shininessPanel.title}</h3>
         <div data-name="shininess-panel" class="card label-input-grid">
-
           <div>
             <label>
               <input name="shininess-radio" type="radio" value="DEFAULT" />
               <span>@{HomeFurniturePanel.defaultShininessRadioButton.text}</span>
             </label>
           </div>
+
           <div>
             <label>
               <input name="shininess-radio" type="radio" value="MATT" />
               <span>@{HomeFurniturePanel.mattRadioButton.text}</span>
             </label>
           </div>
+
           <div>
             <label>
               <input name="shininess-radio" type="radio" value="SHINY" />
               <span>@{HomeFurniturePanel.shinyRadioButton.text}</span>
             </label>
           </div>
-
         </div>
       </div>
     </div>
@@ -670,19 +669,16 @@ body {
     <br />
     <div class="card">
       <label>
-        <input name="visible-checkbox" type="checkbox" />
+        <input type="checkbox" name="visible-checkbox" />
         <span>@{HomeFurniturePanel.visibleCheckBox.text}</span>
       </label>
     </div>
-
   </div>
 </div>
 
 
 <div id="observer-camera-dialog-template" class="dialog-template">
-
   <div class="observer-camera-dialog">
-
     <div class="columns">
       <div>
         <h3 class="card">@{ObserverCameraPanel.locationPanel.title}</h3>
@@ -702,7 +698,6 @@ body {
             <span data-name="elevation-input" />
           </div>
         </div>
-
       </div>
 
       <div>
@@ -723,10 +718,8 @@ body {
           <div>
             <span data-name="field-of-view-input"></span>
           </div>
-
         </div>
       </div>
-
     </div>
 
     <br />
@@ -738,11 +731,8 @@ body {
 </div>
 
 <div id="home-3Dattributes-dialog-template" class="dialog-template">
-
   <div class="home-3Dattributes-dialog">
-
     <div class="columns">
-
       <div class="column1">
         <h3 class="card">@{Home3DAttributesPanel.groundPanel.title}</h3>
         <div class="card label-input-grid">
@@ -790,11 +780,9 @@ body {
           <div data-name="sky-texture-selector-button"></div>
         </div>
       </div>
-
     </div>
 
     <br />
-
     <h3 class="card">@{Home3DAttributesPanel.renderingPanel.title}</h3>
     <div class="card label-input-grid">
       <div>
@@ -820,22 +808,19 @@ body {
           <div>@{Home3DAttributesPanel.invisibleLabel.text}</div>
         </div>
       </div>
-
     </div>
-
   </div>
 </div>
 
 <div id="compass-dialog-template" class="dialog-template">
   <div class="compass-dialog">
-
     <h3 class="card">@{CompassPanel.compassRosePanel.title}</h3>
     <div class="card label-input-grid double">
       <span data-name="x-label" class="label-cell"></span>
       <span data-name="x-input"></span>
 
       <label class="label-and-input">
-        <input name="visible-checkbox" type="checkbox" />
+        <input type="checkbox" name="visible-checkbox" />
         <span>@{CompassPanel.visibleCheckBox.text}</span>
       </label>
 
@@ -845,8 +830,8 @@ body {
       <span data-name="diameter-label" class="label-cell"></span>
       <span data-name="diameter-input"></span>
     </div>
+    
     <br />
-
     <h3 class="card">@{CompassPanel.geographicLocationPanel.title}</h3>
     <div class="card label-input-grid double">
       <span class="label-cell">@{CompassPanel.latitudeLabel.text}</span>
@@ -855,24 +840,22 @@ body {
       <span class="label-cell">@{CompassPanel.northDirectionLabel.text}</span>
       <span>
         <span data-name="north-direction-input"></span>
-        <canvas data-name="compass-overview">
+        <canvas data-name="compass-preview">
         </canvas>
       </span>
 
       <span class="label-cell">@{CompassPanel.longitudeLabel.text}</span>
       <span data-name="longitude-input"></span>
     </div>
-
   </div>
 </div>
+
 <div id="level-dialog-template" class="dialog-template">
-
   <div class="level-dialog">
-
     <div class="label-input-grid">
       <span></span>
       <label>
-        <input name="visible-checkbox" type="checkbox" />
+        <input type="checkbox" name="viewable-checkbox" />
         <span>@{LevelPanel.viewableCheckBox.text}</span>
       </label>
 
@@ -893,7 +876,6 @@ body {
       <span>
         <span data-name="height-input"></span>
       </span>
-
     </div>
 
     <hr />
@@ -910,7 +892,6 @@ body {
           </tr>
         </thead>
         <tbody>
-
         </tbody>
       </table>
       <div class="levels-elevation-index-buttons">
@@ -919,14 +900,11 @@ body {
         <button name="decrease-elevation-index-button"></button>
       </div>
     </div>
-
   </div>
 </div>
 
 <div id="wall-dialog-template" class="dialog-template">
-  
   <div class="wall-dialog">
-
     <h3 class="card">@{WallPanel.startPointPanel.title}</h3>
     <div class="card label-input-grid double">
       <span data-name="x-start-label"></span>
@@ -950,7 +928,6 @@ body {
 
     <br />
     <div class="columns-2">
-
       <div class="column1">
         <h3 class="card">@{WallPanel.leftSidePanel.title}</h3>
         <div class="color-and-texture-panel card label-input-grid">
@@ -1026,7 +1003,6 @@ body {
           </div>
         </div>
       </div>
- 
     </div>
 
     <br />
@@ -1052,9 +1028,7 @@ body {
     <br />
     <h3 class="card">@{WallPanel.heightPanel.title}</h3>
     <div class="card">
-
       <div class="columns-2">
-
         <div class="column1">
 
           <div>
@@ -1072,7 +1046,6 @@ body {
         </div>
 
         <div class="column2">
-
           <div>
             <label class="label-and-input">
               <input type="radio" name="wall-shape-choice" value="SLOPING_WALL">
@@ -1084,32 +1057,34 @@ body {
           <div class="label-input-grid">
             <span class="label-cell">@{WallPanel.slopingWallHeightAtStartLabel.text}</span>
             <span data-name="sloping-wall-height-at-start-input"></span>
-
             <span class="label-cell">@{WallPanel.slopingWallHeightAtEndLabel.text}</span>
             <span data-name="sloping-wall-height-at-end-input"></span>
           </div>
         </div>
       </div>
+    </div>
 
-      <br />
-      <div class="label-input-grid double">
-        <span data-name="thickness-label" class="label-cell"></span>
-        <span data-name="thickness-input"></span>
-        <span data-name="arc-extent-label" class="label-cell"></span>
-        <span data-name="arc-extent-input"></span>
+    <br />
+    <div class="card">
+      <div class="columns-2">
+        <div class="column1">
+          <span data-name="thickness-label" class="label-cell"></span>
+          <span data-name="thickness-input"></span>
+        </div>
+        <div class="column2">
+          <span data-name="arc-extent-label" class="label-cell"></span>
+          <span data-name="arc-extent-input"></span>
+        </div>
       </div>
-
     </div>
     
     <br/>
-    
     <div data-name="wall-orientation-label" class="card">
     </div>
   </div>
 </div>
 
 <div id="room-dialog-template" class="dialog-template">
-  
   <div class="room-dialog">
     <h3 class=card>@{RoomPanel.nameAndAreaPanel.title}</h3>
     <div data-name="name-and-area-panel" class=card>
@@ -1119,20 +1094,19 @@ body {
       </span>
 
       <label>
-        <input name="area-visible-checkbox" type="checkbox"  />
+        <input type="checkbox" name="area-visible-checkbox" />
         @{RoomPanel.areaVisibleCheckBox.text}
       </label>
     </div>
 
     <div class="columns">
-    
       <div>
         <h3 class=card>@{RoomPanel.floorPanel.title}</h3>
         <div data-name="floor-panel" class="card label-input-grid">
 
           <div class="whole-line">
             <label>
-              <input name="floor-visible-checkbox" type="checkbox"  />
+              <input type="checkbox" name="floor-visible-checkbox" />
               @{RoomPanel.floorVisibleCheckBox.text}
             </label>
           </div>
@@ -1167,9 +1141,7 @@ body {
               @{RoomPanel.floorShinyRadioButton.text}
             </label>
           </div>
-          
         </div>
-
       </div>
 
       <div>
@@ -1178,7 +1150,7 @@ body {
 
           <div class="whole-line">
             <label>
-              <input name="ceiling-visible-checkbox" type="checkbox"  />
+              <input type="checkbox" name="ceiling-visible-checkbox" />
               @{RoomPanel.ceilingVisibleCheckBox.text}
             </label>
           </div>
@@ -1223,7 +1195,7 @@ body {
 
           <div class="whole-line">
             <label title="@{RoomPanel.splitSurroundingWallsCheckBox.tooltip}">
-              <input name="split-surrounding-walls-checkbox" type="checkbox"  />
+              <input type="checkbox" name="split-surrounding-walls-checkbox" />
               @{RoomPanel.splitSurroundingWallsCheckBox.text}
             </label>
           </div>
@@ -1235,7 +1207,6 @@ body {
             </label>
           </div>
           <div data-name="wall-sides-color-selector-button"></div>
-
           <div>
             <label>
               <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">
@@ -1258,7 +1229,6 @@ body {
               @{RoomPanel.wallSidesShinyRadioButton.text}
             </label>
           </div>
-
         </div>
       </div>
 
@@ -1268,9 +1238,7 @@ body {
 
           </div>
       </div>
-
     </div>
-    
   </div>
 </div>
 
@@ -1290,9 +1258,9 @@ body {
     <div>@{UserPreferencesPanel.currencyLabel.text}</div>
     <div>
       <select name="currency-select"></select>
-      
+
       <label>
-        <input name="value-added-tax-checkbox" type="checkbox"  />
+        <input type="checkbox" name="value-added-tax-checkbox" />
         @{UserPreferencesPanel.valueAddedTaxCheckBox.text}
       </label>
     </div>
@@ -1300,11 +1268,11 @@ body {
     <div>@{UserPreferencesPanel.furnitureCatalogViewLabel.text}</div>
     <div>
       <label>
-        <input name="furniture-catalog-view-radio" value="tree" type="radio"  />
+        <input type="radio" name="furniture-catalog-view-radio" value="tree" />
         @{UserPreferencesPanel.treeRadioButton.text}
       </label>
       <label>
-        <input name="furniture-catalog-view-radio" value="list" type="radio"  />
+        <input type="radio" name="furniture-catalog-view-radio" value="list" />
         @{UserPreferencesPanel.listRadioButton.text}
       </label>
     </div>
@@ -1312,7 +1280,7 @@ body {
     <div>@{UserPreferencesPanel.navigationPanelLabel.text}</div>
     <div>
       <label>
-        <input name="navigation-panel-checkbox" type="checkbox"  />
+        <input type="checkbox" name="navigation-panel-checkbox" />
         @{UserPreferencesPanel.navigationPanelCheckBox.text}
       </label>
     </div>
@@ -1320,7 +1288,7 @@ body {
     <div>@{UserPreferencesPanel.aerialViewCenteredOnSelectionLabel.text}</div>
     <div>
       <label>
-        <input name="aerial-view-centered-on-selection-checkbox" type="checkbox"  />
+        <input type="checkbox" name="aerial-view-centered-on-selection-checkbox" />
         @{UserPreferencesPanel.aerialViewCenteredOnSelectionCheckBox.text}
       </label>
     </div>
@@ -1328,7 +1296,7 @@ body {
     <div>@{UserPreferencesPanel.observerCameraSelectedAtChangeLabel.text}</div>
     <div>
       <label>
-        <input name="observer-camera-selected-at-change-checkbox" type="checkbox"  />
+        <input type="checkbox" name="observer-camera-selected-at-change-checkbox" />
         @{UserPreferencesPanel.observerCameraSelectedAtChangeCheckBox.text}
       </label>
     </div>
@@ -1336,7 +1304,7 @@ body {
     <div>@{UserPreferencesPanel.magnetismLabel.text}</div>
     <div>
       <label>
-        <input name="magnetism-checkbox" type="checkbox"  />
+        <input type="checkbox" name="magnetism-checkbox" />
         @{UserPreferencesPanel.magnetismCheckBox.text}
       </label>
     </div>
@@ -1344,7 +1312,7 @@ body {
     <div>@{UserPreferencesPanel.rulersLabel.text}</div>
     <div>
       <label>
-        <input name="rulers-checkbox" type="checkbox"  />
+        <input type="checkbox" name="rulers-checkbox" />
         @{UserPreferencesPanel.rulersCheckBox.text}
       </label>
     </div>
@@ -1352,7 +1320,7 @@ body {
     <div>@{UserPreferencesPanel.gridLabel.text}</div>
     <div>
       <label>
-        <input name="grid-checkbox" type="checkbox"  />
+        <input type="checkbox" name="grid-checkbox" />
         @{UserPreferencesPanel.gridCheckBox.text}
       </label>
     </div>
@@ -1366,12 +1334,12 @@ body {
     <div>@{UserPreferencesPanel.furnitureIconLabel.text}</div>
     <div>
       <label>
-        <input name="furniture-icon-radio" value="catalog" type="radio"  />
+        <input type="radio" name="furniture-icon-radio" value="catalog" />
         @{UserPreferencesPanel.catalogIconRadioButton.text}
       </label>
       <br />
       <label>
-        <input name="furniture-icon-radio" value="topView" type="radio"  />
+        <input type="radio" name="furniture-icon-radio" value="topView" />
         @{UserPreferencesPanel.topViewRadioButton.text}
       </label>
       @{UserPreferencesPanel.iconSizeLabel.text}
@@ -1381,11 +1349,11 @@ body {
     <div>@{UserPreferencesPanel.roomRenderingLabel.text}</div>
     <div>
       <label>
-        <input name="room-rendering-radio" value="monochrome" type="radio"  />
+        <input type="radio" name="room-rendering-radio" value="monochrome" />
         @{UserPreferencesPanel.monochromeRadioButton.text}
       </label>
       <label>
-        <input name="room-rendering-radio" value="floorColorOrTexture" type="radio"  />
+        <input type="radio" name="room-rendering-radio" value="floorColorOrTexture" />
         @{UserPreferencesPanel.floorColorOrTextureRadioButton.text}
       </label>
     </div>
@@ -1405,14 +1373,11 @@ body {
     <div>
       <span data-name="new-floor-thickness-input"></span>
     </div>
-
   </div>
 </div>
 
 <div id="polyline-dialog-template" class="dialog-template">
-  
   <div class="polyline-dialog label-input-grid">
-
     <div data-name="thickness-label">
     </div>
     <div>
@@ -1448,18 +1413,15 @@ body {
     
     <div>
       <label>
-        <input name="visible-in-3D-checkbox" type="checkbox"  />
+        <input type="checkbox" name="visible-in-3D-checkbox" />
         @{PolylinePanel.visibleIn3DViewCheckBox.text}
       </label>
     </div>
-
   </div>
 </div>
 
 <div id="label-dialog-template" class="dialog-template">
-  
   <div class="label-dialog">
-
     <h3 class=card>@{LabelPanel.textAndStylePanel.title}</h3>
     <div data-name="text-and-style-panel" class="card label-input-grid">
       <div>
@@ -1495,26 +1457,24 @@ body {
         </select>
       </div>
 
-      <div data-name="text-size-label">
+      <div data-name="font-size-label">
       </div>
-      <div data-name="text-size-input-container">
-        <span data-name="text-size-input" />
+      <div data-name="font-size-input-container">
+        <span data-name="font-size-input" />
       </div>
 
       <div data-name="color-label">
         @{LabelPanel.colorLabel.text}
       </div>
       <div data-name="color-selector-button"></div>
-
     </div>
 
     <br />
-
     <h3 class=card>@{LabelPanel.rendering3DPanel.title}</h3>
     <div data-name="rendering-3D-panel" class="card label-input-grid">
       <div class="whole-line">
         <label>
-          <input name="visible-in-3D-checkbox" type="checkbox"  />
+          <input type="checkbox" name="visible-in-3D-checkbox" />
           @{LabelPanel.visibleIn3DViewCheckBox.text}
         </label>
       </div>
@@ -1538,9 +1498,7 @@ body {
       <div>
         <span data-name="elevation-input" />
       </div>
-      
     </div>
-
   </div>
 </div>
 

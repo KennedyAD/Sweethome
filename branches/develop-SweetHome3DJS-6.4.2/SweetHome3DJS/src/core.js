@@ -39,7 +39,6 @@ function IllegalArgumentException(message) {
  * Creates an ParseException instance.
  * Adapted from java.text.ParseException
  * @constructor
- * @ignore
  */
 function ParseException(message, errorOffset) {
   this.message = message;
@@ -665,31 +664,29 @@ function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decima
 function parseLocalizedNumber(string, parsePosition, options) {
   var integer = options.decimalSeparator === undefined;
   var minusSign = options.minusSign;
+  var decimalSeparator = options.decimalSeparator;
   var positivePrefix = options.positivePrefix ? options.positivePrefix : '';
   var negativePrefix = options.negativePrefix ? options.negativePrefix : '';
 
   string = string.substring(parsePosition.getIndex(), string.length);
 
-  if (string.indexOf(minusSign) >= 0) {
-    string = string.replace(minusSign, "-");
-  } else if (string.indexOf(positivePrefix) === 0) {
+  if (string.indexOf(positivePrefix) === 0) {
     string = string.substring(positivePrefix.length);
   } else if (string.indexOf(negativePrefix) === 0) {
-    string = string.replace(negativePrefix, "-");
+    string = string.replace(negativePrefix, minusSign);
   }
 
-  if (!integer) {
-    string = string.replace(options.decimalSeparator, ".");
-  }
   var numberRegExp = integer 
-      ? /\d+/g 
-      : /^(?:-?\d*)\.?(\d+)?/g;
+      ? /\d+/g
+      : new RegExp("^\\" + minusSign + "?" 
+      		  + "((\\d+\\" + decimalSeparator + "?\\d*)" 
+            + "|(\\" + decimalSeparator + "\\d+))", "g"); // Same as /^\-?((\d+\.?\d*)|(\.\d+))/g
   if (numberRegExp.test(string) 
       && numberRegExp.lastIndex > 0) {      
     string = string.substring(0, numberRegExp.lastIndex);
     var number = integer
         ? parseInt(string)
-        : parseFloat(string);
+        : parseFloat(string.replace(minusSign, "-").replace(decimalSeparator, "."));
     parsePosition.setIndex(parsePosition.getIndex() + numberRegExp.lastIndex);
     return number;
   } else {
@@ -749,22 +746,22 @@ DecimalFormat.prototype.format = function(number) {
   this.checkLocaleChange();
 
   var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign, {
-    minimumFractionDigits: this.minimumFractionDigits,
-    maximumFractionDigits: this.maximumFractionDigits,
-    positivePrefix: this.positivePrefix,
-    negativePrefix: this.negativePrefix,
-  }); 
+      minimumFractionDigits: this.minimumFractionDigits,
+      maximumFractionDigits: this.maximumFractionDigits,
+      positivePrefix: this.positivePrefix,
+      negativePrefix: this.negativePrefix,
+    }); 
   return formattedNumber;
 }
 
 DecimalFormat.prototype.parse = function(text, parsePosition) {
   this.checkLocaleChange();
   var number = parseLocalizedNumber(text, parsePosition, {
-    decimalSeparator: this.decimalSeparator,
-    minusSign: this.minusSign,
-    positivePrefix: this.positivePrefix,
-    negativePrefix: this.negativePrefix
-  });
+      decimalSeparator: this.decimalSeparator,
+      minusSign: this.minusSign,
+      positivePrefix: this.positivePrefix,
+      negativePrefix: this.negativePrefix
+    });
   if (number === null) {
     return null;
   } else {
