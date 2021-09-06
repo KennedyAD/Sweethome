@@ -537,9 +537,9 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       } else if (plan.furnitureTopViewIconKeys != null 
                  && ("PLAN_ICON" == ev.getPropertyName() 
                      || "COLOR" == ev.getPropertyName() 
-              || "TEXTURE" == ev.getPropertyName() 
-              || "MODEL_MATERIALS" == ev.getPropertyName() 
-              || "SHININESS" == ev.getPropertyName())) {
+                     || "TEXTURE" == ev.getPropertyName() 
+                     || "MODEL_MATERIALS" == ev.getPropertyName() 
+                     || "SHININESS" == ev.getPropertyName())) {
         plan.removeTopViewIconFromCache(ev.getSource());
         plan.repaint();
       } else if ("ELEVATION" == ev.getPropertyName() 
@@ -1056,7 +1056,12 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                 && !mouseListener.isInCanvas(ev)) {
               mouseListener.autoScroll = setInterval(function() {
                   if (mouseListener.actionStartedInPlanComponent) {
-                    window.dispatchEvent(ev);
+                    // Dispatch a copy of event (IE doesn't support dispatching with the same event)
+                    var ev2 = document.createEvent("Event");
+                    ev2.initEvent("mousemove", true, true);
+                    ev2.clientX = ev.clientX;
+                    ev2.clientY = ev.clientY;
+                    window.dispatchEvent(ev2);
                   } else {
                     clearInterval(mouseListener.autoScroll);
                     mouseListener.autoScroll = null;
@@ -4279,7 +4284,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
       java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER);
   
   var furniture = Home.getFurnitureSubList(items);
-  var newFurniture = [];
+  var paintedFurniture = [];
   var furnitureGroupsArea = null;
   var furnitureGroupsStroke = new java.awt.BasicStroke(15 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_ROUND);
   var lastGroup = null;
@@ -4287,7 +4292,6 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
   var homeFurniture = this.home.getFurniture();
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture [i];
-    newFurniture.push(piece);
     if (piece.isVisible() 
         && this.isViewableAtSelectedLevel(piece)) {
       var homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
@@ -4310,6 +4314,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
         }
         lastGroup = homePieceOfFurniture;
       }
+      paintedFurniture.push(piece);
     }
   }
   if (furnitureGroupsArea != null) {
@@ -4320,7 +4325,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
     g2D.setAlpha(oldComposite);
   }
   
-  newFurniture.forEach(function(piece) {
+  paintedFurniture.forEach(function(piece) {
       var points = piece.getPoints();
       var pieceShape = ShapeTools.getShape(points, true, null);
       
