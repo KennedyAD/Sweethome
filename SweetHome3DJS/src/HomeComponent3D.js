@@ -796,15 +796,18 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       xLastMove : -1,
       yLastMove : -1,
       buttonPressed : -1,
+      touchEventType: false,
       pointerTouches : {},
       distanceLastPinch : -1,
       actionStartedInComponent3D : false,
       mousePressed : function(ev) {
-        userActionsListener.xLastMove = ev.clientX;
-        userActionsListener.yLastMove = ev.clientY;
-        userActionsListener.buttonPressed  = ev.button;
-        userActionsListener.actionStartedInComponent3D = true;
-        ev.stopPropagation();
+        if (!userActionsListener.touchEventType) {
+          userActionsListener.xLastMove = ev.clientX;
+          userActionsListener.yLastMove = ev.clientY;
+          userActionsListener.buttonPressed  = ev.button;
+          userActionsListener.actionStartedInComponent3D = true;
+          ev.stopPropagation();
+        }
       },
       windowMouseMoved : function(ev) {
         if (userActionsListener.actionStartedInComponent3D) {
@@ -812,9 +815,12 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         }
       },
       windowMouseReleased : function(ev) {
-        userActionsListener.buttonPressed = -1;
-        if (userActionsListener.actionStartedInComponent3D) {
-          delete userActionsListener.actionStartedInComponent3D;
+        if (!userActionsListener.touchEventType) {
+          userActionsListener.buttonPressed = -1;
+          if (userActionsListener.actionStartedInComponent3D) {
+            delete userActionsListener.actionStartedInComponent3D;
+          }
+          userActionsListener.touchEventType = false;
         }
       },
       pointerPressed : function(ev) {
@@ -851,9 +857,9 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         ev.preventDefault();
       },
       touchStarted : function(ev) {
-        // WARNING: prevent default prevents the focusout event to occur, which is problematic to blur the search field when needed.
-        // Commenting it does not have impacts on iPhone but we should also check other platforms.
-        //ev.preventDefault();
+        // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
+        // but track touch event types to avoid them to be managed also for mousedown and dblclick events
+        userActionsListener.touchEventType = ev.pointerType === undefined;
         this.actionStartedInComponent3D = true;
         if (ev.targetTouches.length == 1) {
           userActionsListener.xLastMove = ev.targetTouches [0].pageX;
@@ -888,6 +894,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       touchEnded : function(ev) {
         userActionsListener.buttonPressed = -1;
         this.actionStartedInComponent3D = false;
+        // Reset mouseListener.touchEventType in windowMouseReleased call
       },
       copyPointerToTargetTouches : function(ev) {
         // Copy the IE and Edge pointer location to ev.targetTouches
