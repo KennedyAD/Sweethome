@@ -1142,9 +1142,6 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.touchEnded(ev);
         }
       },
-      contextMenu : function(ev){
-        ev.preventDefault();
-      },
       touchStarted: function(ev) {
         // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
         // but track touch event types to avoid them to be managed also for mousedown and dblclick events
@@ -1337,6 +1334,10 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               }
             }
             
+            if (mouseListener.isLongTouch()) {
+              // Avoid firing contextmenu event
+              ev.preventDefault();
+            }
             plan.stopIndicatorAnimation();
             mouseListener.actionStartedInPlanComponent = false;
           } else if (ev.targetTouches.length == 1) {
@@ -1490,7 +1491,6 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", mouseListener.windowPointerMoved);
     window.addEventListener("pointerup", mouseListener.windowPointerReleased);
-    this.canvas.addEventListener('contextmenu', mouseListener.contextMenu);
   } else {
     this.canvas.addEventListener("touchstart", mouseListener.touchStarted);
     this.canvas.addEventListener("touchmove", mouseListener.touchMoved);

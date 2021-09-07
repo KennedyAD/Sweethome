@@ -690,12 +690,12 @@ JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
  * @private
  */
 JSPopupMenu.prototype.createMenuElement = function(items) {
-
   var menuElement = document.createElement("ul");
   menuElement.classList.add("items");
 
   var backElement = document.createElement("li");
-  backElement.classList.add("item", "back");
+  backElement.classList.add("item");
+  backElement.classList.add("back");
   backElement.textContent = "X";
   this.registerEventListener(backElement, "click", function(ev) {
       var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != "li";
@@ -924,8 +924,8 @@ JSPopupMenu.Builder.prototype.addNewItem = function(
 
 /**
  * Adds a sub menu to this menu, with an optional icon.
- * 1) `builder.addSubMenu('resources/icons/tango/media-skip-forward.png', "myitem", function(builder) { builder.addItem(...) })`
- * 2) `builder.addSubMenu("myitem", function(builder) { builder.addItem(...) })`
+ * 1) builder.addSubMenu('resources/icons/tango/media-skip-forward.png', "myitem", function(builder) { builder.addItem(...) })
+ * 2) builder.addSubMenu("myitem", function(builder) { builder.addItem(...) })
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} labelOrbuildSubMenuCallback
  * @param {function(JSPopupMenu.Builder)} [buildSubMenuCallback]
@@ -963,11 +963,11 @@ JSPopupMenu.Builder.prototype.addSubMenu = function(actionOrIconPathOrLabel, lab
   var subItems = subMenuBuilder.items;
   if (subItems.length > 0) {
     this.items.push({
-      uid: UUID.randomUUID(),
-      label: label,
-      iconPath: iconPath,
-      subItems: subItems
-    });
+        uid: UUID.randomUUID(),
+        label: label,
+        iconPath: iconPath,
+        subItems: subItems
+      });
   }
 
   return this;
