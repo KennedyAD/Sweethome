@@ -38,13 +38,6 @@ FurnitureCatalogListPanel.prototype.getHTMLElement = function() {
 }
 
 /**
- * Returns the HTML elements of all furniture in this list 
- */
-FurnitureCatalogListPanel.prototype.getFurnitureHTMLElements = function() {
-  return this.getHTMLElement().querySelectorAll('.furniture');
-}
-
-/**
  * Creates the components displayed by this panel.
  * @private
  */
@@ -90,21 +83,27 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
     categorySelector.appendChild(categoryOption);    
   }
   categorySelector.addEventListener("input", filterChangeHandler);
-  categorySelector.addEventListener("mousemove", function(event) { furnitureCatalogListPanel.hideTooltip(); event.stopPropagation(); });
+  categorySelector.addEventListener("mousemove", function(ev) { 
+      furnitureCatalogListPanel.hideTooltip(); 
+      ev.stopPropagation(); 
+    });
   filteringDiv.appendChild(categorySelector);
   searchInput.setAttribute('type', 'text'); 
   searchInput.id = "furniture-search-field";
   searchInput.placeholder = preferences.getLocalizedString("FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
   searchInput.addEventListener("input", filterChangeHandler);
-  searchInput.addEventListener("mousemove", function(event) { furnitureCatalogListPanel.hideTooltip(); event.stopPropagation(); });
-  this.getHTMLElement().addEventListener("click", function(event) {
+  searchInput.addEventListener("mousemove", function(ev) { 
+      furnitureCatalogListPanel.hideTooltip(); 
+      ev.stopPropagation(); 
+    });
+  this.getHTMLElement().addEventListener("click", function(ev) {
       var bounds = searchInput.getBoundingClientRect();
-      if (!(event.clientX >= bounds.left && event.clientX <= bounds.right 
-            && event.clientY >= bounds.top && event.clientY <= bounds.bottom)) {
+      if (!(ev.clientX >= bounds.left && ev.clientX <= bounds.right 
+            && ev.clientY >= bounds.top && ev.clientY <= bounds.bottom)) {
         furnitureCatalogListPanel.searchInput.blur();
       }
     });
-  searchInput.addEventListener("focusin", function(event) {
+  searchInput.addEventListener("focusin", function(ev) {
       if (!searchInput.classList.contains("expanded")) {
         searchInput.classList.add("expanded");
          setTimeout(function() { 
@@ -117,13 +116,13 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
             }, 100);
       }
     });
-  searchInput.addEventListener("focusout", function(event) {
+  searchInput.addEventListener("focusout", function(ev) {
       if (searchInput.classList.contains("expanded")) {
         searchInput.classList.remove("expanded");
       }
     });
   filteringDiv.appendChild(searchInput);
-
+  
   // Create catalog
   this.resetFurnitureCatalog(catalog);
   
@@ -324,18 +323,19 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
   var furnitureCatalogListPanel = this;
 
   pieceContainer.addEventListener("mousemove", function(ev) {
-    furnitureCatalogListPanel.currentFurnitureContainer = pieceContainer;
-  });
-
-  pieceContainer.addEventListener("mousedown", function() {
-    var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
-    for (var k = 0; k < furnitureElements.length; k++) {
-      furnitureElements[k].classList.remove("selected");
-    }
-    pieceContainer.classList.add("selected");
-    furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
-    furnitureCatalogListPanel.hideTooltip();
-  });
+      furnitureCatalogListPanel.currentFurnitureContainer = pieceContainer;
+    });
+  pieceContainer.addEventListener("mousedown", function(ev) {
+      if (ev.button === 0) {
+        var furnitureElements = furnitureCatalogListPanel.container.querySelectorAll(".furniture");
+        for (var k = 0; k < furnitureElements.length; k++) {
+          furnitureElements[k].classList.remove("selected");
+        }
+        pieceContainer.classList.add("selected");
+        furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
+        furnitureCatalogListPanel.hideTooltip();
+      }
+    });
 
   var touchEndListener = function(ev) {
       var containerBounds = pieceContainer.getBoundingClientRect();
@@ -370,7 +370,6 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
         ev.preventDefault();
       };
     pieceContainer.addEventListener("mousedown", defaultListener);
-    pieceContainer.addEventListener('contextmenu', defaultListener);
   } else {
     pieceContainer.addEventListener("touchend", touchEndListener);
   }

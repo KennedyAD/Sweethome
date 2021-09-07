@@ -26,11 +26,11 @@ input {
 
 input, textarea, keygen, select, button {
   font-size: 0.9em;
-}	
+}  
 
 @media (hover: none), (pointer: coarse) {
   body {
-	  font-size: 120%;
+    font-size: 120%;
   }
 }
 
@@ -114,8 +114,7 @@ input, textarea, keygen, select, button {
 /* PlanComponent                */
 /********************************/
 
-#toolbar-button-SHOW_PLAN_CONTEXT_MENU,
-#toolbar-button-PREFERENCES_DIALOG {
+#toolbar-button-SHOW_PLAN_POPUP_MENU {
   background-size: 80%;
   background-position: center center;
 }
@@ -505,9 +504,9 @@ input, textarea, keygen, select, button {
 
 .context-menu .item {
   cursor: pointer;
-  padding: 0.1em 1em;
+  padding: 0.1em 1.5em 0.1em 0.75em;
   position: relative;
-  line-height: 1.8em;
+  line-height: 1.25em;
   box-sizing: border-box;
   overflow: auto;
   white-space: nowrap;
@@ -525,10 +524,9 @@ input, textarea, keygen, select, button {
   white-space: nowrap;
   margin: 0.2em;
 }
-	
+  
 
 .context-menu .item:hover {
-  /*background-color: #909090;*/
   background-color: highlight;
   border-radius: 0.5em;
   color: black;
@@ -541,7 +539,6 @@ input, textarea, keygen, select, button {
 }
 
 .context-menu .item img {
-/*   display: none; */
   vertical-align: middle;
   margin-right: 0.6em;
 }
@@ -572,7 +569,7 @@ input, textarea, keygen, select, button {
   display: block;
   position: absolute;
   right: 0em;
-  top: 0.5em;
+  top: 0.25em;
 }
 
 .context-menu .sub-menu:hover > .items,
@@ -588,54 +585,52 @@ input, textarea, keygen, select, button {
 }
 
 @media (hover: none), (pointer: coarse) {
+  .context-menu {
+    display: block;
+    position: fixed;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: -90% !important;
+    width: 80%;
+    border-radius: 0;
+    transition-property: left;
+    transition-duration: 0.4s;
+  }
 
-    .context-menu {
-      display: block;
-      position: fixed;
-      top: 0 !important;
-      bottom: 0 !important;
-      left: -80% !important;
-      width: 80%;
-      border-radius: 0;
-      transition-property: left;
-      transition-duration: 0.4s;
-    }
+  .context-menu.visible {
+    transition-property: left;
+    transition-duration: 0.4s;
+    left: 0% !important;
+  }
 
-		.context-menu.visible {
-      transition-property: left;
-      transition-duration: 0.4s;
-	    left: 0% !important;
-		}
+  .context-menu .item.sub-menu {
+    height: auto;
+  }
 
+  .context-menu .sub-menu > .items.visible {
+    position: static !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+  }
 
-    .context-menu .item.sub-menu {
-      height: auto;
-    }
+  .context-menu .sub-menu:hover > .items:not(.visible) {
+    display: none !important;
+  }
 
-    .context-menu .sub-menu > .items.visible {
-      position: static !important;
-      left: 0 !important;
-      top: 0 !important;
-      width: 100% !important;
-    }
-
-    .context-menu .sub-menu:hover > .items:not(.visible) {
-      display: none !important;
-    }
-
-    .context-menu .back {
-      display: block;
-      text-align: left;
-      color: rgba(0,0,0,0);
-      font-size: 1em;
-      cursor: pointer;
-      background-image: url('menu.png');
-      background-repeat: no-repeat;
-      background-size: contain;
-      opacity: 0.5;
-      padding: 0.2em;
-      margin-left: 0.4em;
-    }
+  .context-menu .back {
+    display: block;
+    text-align: left;
+    color: rgba(0,0,0,0);
+    font-size: 1em;
+    cursor: pointer;
+    background-image: url('menu.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.5;
+    padding: 0.2em;
+    margin-left: 0.4em;
+  }
 }
 
 /************/
@@ -725,7 +720,7 @@ input, textarea, keygen, select, button {
     box-shadow: none;
   }
   .dialog-container.visible.small .dialog-content {
-	  width: 80%;
+    width: 80%;
   }
 }
 
@@ -766,10 +761,10 @@ input, textarea, keygen, select, button {
 }
 
 .dialog-body div.card {
-	background-color: #E0E0E0;
-	border: solid #D0D0D0 1px;
-	border-radius: 8px;
-	padding: 10px;
+  background-color: #E0E0E0;
+  border: solid #D0D0D0 1px;
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .dialog-body div.card .label-cell,
@@ -828,9 +823,9 @@ input, textarea, keygen, select, button {
   
 @media (min-width: 600px) {
   .dialog-body .columns-2 {
-	  display: grid;
-	  row-gap: 1em;
-	  column-gap: 2em;
+    display: grid;
+    row-gap: 1em;
+    column-gap: 2em;
       grid-template-columns: 1fr 1fr;
   }
 }
@@ -1073,11 +1068,11 @@ input, textarea, keygen, select, button {
 /*********************************/
 
 #wall-dialog .columns-2 > div {
-	padding: 1em;
+  padding: 1em;
 }
 
 #wall-dialog .columns-2 > div.selected {
-	border: solid 1px lightgray;
+  border: solid 1px lightgray;
   background: beige;
 }
 
@@ -1176,7 +1171,7 @@ input, textarea, keygen, select, button {
 .label-dialog [data-name="rendering-3D-panel"] > div:nth-child(1) {
   grid-column: 1 / 2;
 }
-	
+  
 /*********************************/
 /* Levels dialog         */
 /*********************************/
@@ -1268,7 +1263,7 @@ input, textarea, keygen, select, button {
   cursor: pointer;
 }
 
-.color-button .color-overview {
+.color-button .color-preview {
   border: solid 1px black;
   width: 60%;
   height: 90%;
@@ -1328,7 +1323,7 @@ input, textarea, keygen, select, button {
   line-height: 2em;
 }
 
-.color-selector .custom-color-editor .overview {
+.color-selector .custom-color-editor .preview {
   width: 2em;
   height: 2em;
   display: inline-block;
@@ -1352,7 +1347,7 @@ input, textarea, keygen, select, button {
   vertical-align: middle;
 }
 
-.combo-box button > .overview {
+.combo-box button > .preview {
   border: solid 1px black;
   width: 60%;
   height: 90%;
@@ -1398,7 +1393,7 @@ input, textarea, keygen, select, button {
   cursor: pointer;
 }
 
-.texture-button .texture-overview {
+.texture-button .texture-preview {
   border: solid 1px black;
   width: 60%;
   height: 90%;
@@ -1457,7 +1452,7 @@ input, textarea, keygen, select, button {
   max-width: 2em;
 }
 
-.texture-selector-dialog .selected-texture-overview {
+.texture-selector-dialog .selected-texture-preview {
   margin: 0 auto;
   border: solid 1px gray;
   margin-bottom: 1em;
@@ -1472,7 +1467,7 @@ input, textarea, keygen, select, button {
   overflow: hidden;
 }
 
-.texture-selector-dialog .selected-texture-overview > div {
+.texture-selector-dialog .selected-texture-preview > div {
   position: absolute;
   top: 0;
   left: 0;
@@ -1526,7 +1521,7 @@ input, textarea, keygen, select, button {
   min-height: 2em;
 }
 
-.recent-textures .texture-overview {
+.recent-textures .texture-preview {
   border: solid 1px black;
   width: 1.6em;
   height: 1.6em;

@@ -623,22 +623,23 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
   this.createAction(ActionType.HELP, preferences, controller, "help");
   this.createAction(ActionType.ABOUT, preferences, controller, "about");
 
-  // Additional action for 
-  var showPlanPopupMenuAction = new AbstractAction();
-  showPlanPopupMenuAction.putValue(AbstractAction.NAME, "SHOW_PLAN_POPUP_MENU");
-  showPlanPopupMenuAction.putValue(ResourceAction.RESOURCE_PREFIX, "SHOW_PLAN_POPUP_MENU");
-  showPlanPopupMenuAction.putValue(ResourceAction.TOOL_BAR_ICON, "menu.png");
-  showPlanPopupMenuAction.actionPerformed = function(ev) {
+  // Additional action for application popup menu 
+  var showApplicationMenuAction = new AbstractAction();
+  showApplicationMenuAction.putValue(AbstractAction.NAME, "SHOW_APPLICATION_MENU");
+  showApplicationMenuAction.putValue(ResourceAction.RESOURCE_PREFIX, "SHOW_APPLICATION_MENU");
+  showApplicationMenuAction.putValue(ResourceAction.TOOL_BAR_ICON, "menu.png");
+  var homePane = this; 
+  showApplicationMenuAction.actionPerformed = function(ev) {
       ev.stopPropagation();
       ev.preventDefault();
       var planElement = controller.getPlanController().getView().getHTMLElement();
-      var contextMenuEvent = new Event("contextmenu");
-      contextMenuEvent.clientX = planElement.offsetLeft + planElement.clientWidth / 2;
-      contextMenuEvent.clientY = planElement.offsetTop + planElement.clientHeight / 2;
-      planElement.dispatchEvent(contextMenuEvent);
-      return showPlanPopupMenuAction;
+      var contextMenuEvent = document.createEvent("Event");
+      contextMenuEvent.initEvent("contextmenu", true, true);
+      contextMenuEvent.clientX = homePane.showApplicationMenuButton.clientX + homePane.showApplicationMenuButton.clientWidth / 2;
+      contextMenuEvent.clientY = homePane.showApplicationMenuButton.clientY + homePane.showApplicationMenuButton.clientHeight / 2;
+      homePane.showApplicationMenuButton.dispatchEvent(contextMenuEvent);
     };
-  this.getActionMap()["SHOW_PLAN_POPUP_MENU"] = showPlanPopupMenuAction;
+  this.getActionMap()["SHOW_APPLICATION_MENU"] = showApplicationMenuAction;
 }
   
 /**
@@ -1093,7 +1094,8 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
 HomePane.prototype.createToolBar = function(home, preferences) {
   var toolBar = document.getElementById("home-pane-toolbar"); 
 
-  this.addActionToToolBar("SHOW_PLAN_POPUP_MENU", toolBar); 
+  this.addActionToToolBar("SHOW_APPLICATION_MENU", toolBar);
+  this.showApplicationMenuButton = toolBar.children[toolBar.children.length - 1].lastChild; 
   this.addSeparator(toolBar);
 
   this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
@@ -1140,12 +1142,6 @@ HomePane.prototype.createToolBar = function(home, preferences) {
   this.addToggleActionToToolBar(HomeView.ActionType.TOGGLE_ITALIC_STYLE, toolBar);
   this.addSeparator(toolBar);
 
-  
-  this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL, toolBar);
-  this.addActionToToolBar(HomeView.ActionType.ADD_LEVEL_AT_SAME_ELEVATION, toolBar);
-  this.addActionToToolBar(HomeView.ActionType.DELETE_LEVEL, toolBar);
-  this.addSeparator(toolBar);
-
   this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
   this.addSeparator(toolBar);
@@ -1165,10 +1161,10 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
   var ActionType = HomeView.ActionType;
   var homePane = this;
   
-  // Catalog view context menu
+  // Catalog view popup menu
   var catalogView = this.controller.getFurnitureCatalogController().getView();
   if (catalogView != null) {
-    new JSPopupMenu(this.preferences, catalogView.getFurnitureHTMLElements(), {
+    new JSPopupMenu(this.preferences, catalogView.getHTMLElement(), {
         build: function(builder) {
           homePane.addActionToMenu(ActionType.ADD_HOME_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.ADD_FURNITURE_TO_GROUP, builder);
@@ -1177,7 +1173,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
   }
 
   var furnitureView = this.controller.getFurnitureController().getView();
-  // Furniture view context menu
+  // Furniture view popup menu
   if (furnitureView != null) {
     new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), {
         build: function(builder) {
@@ -1189,8 +1185,6 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.PASTE, builder);
           homePane.addActionToMenu(ActionType.PASTE_TO_GROUP, builder);
           homePane.addActionToMenu(ActionType.PASTE_STYLE, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.DELETE, builder);
           builder.addSeparator();
           homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
@@ -1295,7 +1289,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
       });
   }
 
-  // Plan view context menu
+  // Plan view popup menu
   var planView = this.controller.getPlanController().getView();
   if (planView != null) {
     new JSPopupMenu(this.preferences, planView.getHTMLElement(), {
@@ -1303,6 +1297,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.UNDO, builder);
           homePane.addActionToMenu(ActionType.REDO, builder);
           builder.addSeparator();
+          homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
           homePane.addActionToMenu(ActionType.CUT, builder);
           homePane.addActionToMenu(ActionType.COPY, builder);
           homePane.addActionToMenu(ActionType.PASTE, builder);
@@ -1311,12 +1306,11 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.SELECT_ALL, builder);
           homePane.addActionToMenu(ActionType.SELECT_ALL_AT_ALL_LEVELS, builder);
           builder.addSeparator();
-          homePane.addActionToMenu(ActionType.FLIP_HORIZONTALLY, builder);
-          homePane.addActionToMenu(ActionType.FLIP_VERTICALLY, builder);
           homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
+          builder.addSeparator();
           homePane.addActionToMenu(ActionType.MODIFY_COMPASS, builder);
           homePane.addActionToMenu(ActionType.MODIFY_WALL, builder);
           homePane.addActionToMenu(ActionType.JOIN_WALLS, builder);
@@ -1339,12 +1333,15 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.SHOW_BACKGROUND_IMAGE, builder);
           homePane.addActionToMenu(ActionType.DELETE_BACKGROUND_IMAGE, builder);
           builder.addSeparator();
+          homePane.addActionToMenu(ActionType.ADD_LEVEL, builder);
+          homePane.addActionToMenu(ActionType.ADD_LEVEL_AT_SAME_ELEVATION, builder);
           homePane.addActionToMenu(ActionType.MODIFY_LEVEL, builder);
+          homePane.addActionToMenu(ActionType.DELETE_LEVEL, builder);
         }
       });
   }
 
-  // 3D view context menu
+  // 3D view popup menu
   var view3D = this.controller.getHomeController3D().getView();
   if (view3D != null) {
     var controller = this.controller;
@@ -1352,6 +1349,91 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
         build: function(builder) {
           homePane.addActionToMenu(ActionType.VIEW_FROM_TOP, builder);
           homePane.addActionToMenu(ActionType.VIEW_FROM_OBSERVER, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_OBSERVER, builder);
+          homePane.addActionToMenu(ActionType.STORE_POINT_OF_VIEW, builder);
+          var storedCameras = home.getStoredCameras();
+          if (storedCameras.length > 0) {
+            var goToPointOfViewAction = homePane.getMenuAction(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
+            if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
+              builder.addSubMenu(goToPointOfViewAction, function(builder) {
+                  var cameraMenuItemBuilder = function(camera) {
+                      builder.addItem(camera.getName(),
+                          function() { 
+                            controller.getHomeController3D().goToCamera(camera);
+                          });
+                    };
+                  var storedCameras = home.getStoredCameras();
+                  for (var i = 0; i < storedCameras.length; i++) {
+                    cameraMenuItemBuilder(storedCameras[i]);
+                  }
+                });
+            }
+            homePane.addActionToMenu(ActionType.DELETE_POINTS_OF_VIEW, builder);
+          }
+  
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
+          homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
+        }
+      });
+  }
+  
+  // Menu button popup menu
+  if (this.showApplicationMenuButton != null) {
+    new JSPopupMenu(this.preferences, this.showApplicationMenuButton, {
+        build: function(builder) {
+          homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
+          homePane.addActionToMenu(ActionType.CUT, builder);
+          homePane.addActionToMenu(ActionType.COPY, builder);
+          homePane.addActionToMenu(ActionType.PASTE, builder);
+          homePane.addActionToMenu(ActionType.PASTE_TO_GROUP, builder);
+          homePane.addActionToMenu(ActionType.PASTE_STYLE, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.SELECT_ALL, builder);
+          homePane.addActionToMenu(ActionType.SELECT_ALL_AT_ALL_LEVELS, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.ADD_HOME_FURNITURE, builder);
+          homePane.addActionToMenu(ActionType.ADD_FURNITURE_TO_GROUP, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
+          homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
+          homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
+          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), function(builder) {
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
+              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
+              homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
+              homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
+            });
+          homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.MODIFY_COMPASS, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_WALL, builder);
+          homePane.addActionToMenu(ActionType.JOIN_WALLS, builder);
+          homePane.addActionToMenu(ActionType.REVERSE_WALL_DIRECTION, builder);
+          homePane.addActionToMenu(ActionType.SPLIT_WALL, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_ROOM, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_POLYLINE, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_LABEL, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.IMPORT_BACKGROUND_IMAGE, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_BACKGROUND_IMAGE, builder);
+          homePane.addActionToMenu(ActionType.HIDE_BACKGROUND_IMAGE, builder);
+          homePane.addActionToMenu(ActionType.SHOW_BACKGROUND_IMAGE, builder);
+          homePane.addActionToMenu(ActionType.DELETE_BACKGROUND_IMAGE, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.ADD_LEVEL, builder);
+          homePane.addActionToMenu(ActionType.ADD_LEVEL_AT_SAME_ELEVATION, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_LEVEL, builder);
+          homePane.addActionToMenu(ActionType.DELETE_LEVEL, builder);
+          builder.addSeparator();
           homePane.addActionToMenu(ActionType.MODIFY_OBSERVER, builder);
           homePane.addActionToMenu(ActionType.STORE_POINT_OF_VIEW, builder);
           var storedCameras = home.getStoredCameras();
@@ -1606,7 +1688,6 @@ HomePane.prototype.addActionToToolBar = function(actionType, toolBar, additional
   if (action.getValue(AbstractAction.NAME) != null) {
     this.addButtonToToolBar(toolBar, this.createToolBarButton(action, additionalClass));
   }
-  return null;
 }
 
 /**
