@@ -106,6 +106,8 @@ body {
 
 #furniture-view .tree-table {
   width: 100%;
+  height: 100%;
+  overflow-y: hidden;
 }
 
 .pane-splitter.vertical::after {

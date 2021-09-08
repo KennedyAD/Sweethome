@@ -144,120 +144,101 @@ FurnitureTablePanel.prototype.addUserPreferencesListeners = function(home) {
  * @private
  */
 FurnitureTablePanel.prototype.createTableModel = function(home) {
-  var columns = {
+  var availableColumns = {
       "CATALOG_ID": {
         name: "CATALOG_ID", 
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "catalogIdColumn"), 
-        orderIndex: i++,
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "catalogIdColumn"),
         defaultWidth: "4rem"
       },
       "NAME": {
         name: "NAME", 
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "nameColumn"), 
-        orderIndex: i++,
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "nameColumn"),
         defaultWidth: "14rem"
       },
       "WIDTH": {
         name: "WIDTH", 
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "widthColumn"), 
-        orderIndex: i++,
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "widthColumn") 
       },
       "DEPTH": {
         name: "DEPTH",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "depthColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "depthColumn")
       },
       "HEIGHT": {
         name: "HEIGHT",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "heightColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "heightColumn")
       },
       "MOVABLE": {
         name: "MOVABLE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "movableColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "movableColumn")
       },
       "DOOR_OR_WINDOW": {
         name: "DOOR_OR_WINDOW",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "doorOrWindowColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "doorOrWindowColumn")
       },
       "COLOR": {
         name: "COLOR",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "colorColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "colorColumn")
       },
       "TEXTURE": {
         name: "TEXTURE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "textureColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "textureColumn")
       },
       "VISIBLE": {
         name: "VISIBLE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "visibleColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "visibleColumn")
       },
       "X": {
         name: "X",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "xColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "xColumn")
       },
       "Y": {
         name: "Y",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "yColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "yColumn")
       },
       "ELEVATION": {
         name: "ELEVATION",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "elevationColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "elevationColumn")
       },
       "ANGLE": {
         name: "ANGLE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "angleColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "angleColumn")
       },
       "MODEL_SIZE": {
         name: "MODEL_SIZE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "modelSizeColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "modelSizeColumn")
       },
       "CREATOR": {
         name: "CREATOR",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "creatorColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "creatorColumn")
       },
       "PRICE": {
         name: "PRICE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "priceColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "priceColumn")
       },
       "VALUE_ADDED_TAX": {
         name: "VALUE_ADDED_TAX",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "valueAddedTaxColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "valueAddedTaxColumn")
       },
       "VALUE_ADDED_TAX_PERCENTAGE": {
         name: "VALUE_ADDED_TAX_PERCENTAGE",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "valueAddedTaxPercentageColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "valueAddedTaxPercentageColumn")
       },
       "PRICE_VALUE_ADDED_TAX_INCLUDED": {
         name: "PRICE_VALUE_ADDED_TAX_INCLUDED",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "priceValueAddedTaxIncludedColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "priceValueAddedTaxIncludedColumn")
       },
       "LEVEL": {
         name: "LEVEL",
-        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "levelColumn"),
-        orderIndex: i++
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "levelColumn")
       }
     };
   var visibleColumns = [];
   var visibleProperties = home.getFurnitureVisibleProperties();
-  for (var i in columns) {
-    if (visibleProperties.indexOf(columns[i].name) > -1) {
-      visibleColumns.push(columns[i]);
+  for (var i = 0; i < visibleProperties.length; i++) {
+    for (var j in availableColumns) {
+      if (visibleProperties[i] == availableColumns[j].name) {
+        visibleColumns.push(availableColumns[j]);
+      }
     }
   }
   var expandedRowsIndices = [];
