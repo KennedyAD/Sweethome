@@ -1466,7 +1466,88 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
 }
 
 /**
- * Initialize pane splitter
+ * Initializes pane splitters.
+ * @private
+ */
+HomePane.prototype.initSplitters = function() {
+  var home = this.home;
+  var controller = this.controller;
+
+  var catalogView = controller.getFurnitureCatalogController().getView();
+  var furnitureView = controller.getFurnitureController().getView();
+  var planView = controller.getPlanController().getView();
+  var view3D = controller.getHomeController3D().getView();
+  
+  var furniturePlanSplitter = document.getElementById("furniture-plan-splitter");
+  var plan3DViewSplitter = document.getElementById("plan-3D-view-splitter");
+  var catalogFurnitureSplitter = document.getElementById("catalog-furniture-splitter");
+
+  var saveSplitterPosition = function(splitterPositionPropertyName, splitterPosition) {
+      controller.setHomeProperty(splitterPositionPropertyName, splitterPosition == null ? null : splitterPosition.toString());
+    };
+
+  var furniturePlanSplitterVisible = furniturePlanSplitter 
+      && furniturePlanSplitter.clientWidth > 0;
+  if (furniturePlanSplitterVisible) {
+    this.initSplitter(
+        furniturePlanSplitter,
+        [document.getElementById("catalog-furniture-pane")],
+        [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
+        home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+        function(splitterPosition, lastPosition) {
+            if (furnitureView != null) {
+              // Keep furniture view width at 100%
+              furnitureView.getHTMLElement().style.width = "100%"; 
+            }
+            // Refresh 2D/3D plan views on resize
+            planView.revalidate();
+            view3D.revalidate();
+            if (lastPosition) {
+              saveSplitterPosition(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+            }
+          });
+  }
+
+  var plan3DViewSplitterVisible = plan3DViewSplitter 
+      && plan3DViewSplitter.clientWidth > 0 
+      && planView != null 
+      && view3D != null;
+  if (plan3DViewSplitterVisible) {
+    this.initSplitter(
+        plan3DViewSplitter,
+        [planView.getHTMLElement()],
+        [view3D.getHTMLElement()],
+        home.getNumericProperty(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+        function(splitterPosition, lastPosition) {
+            // Refresh 2D/3D plan views on resize
+            planView.revalidate();
+            view3D.revalidate();
+            if (lastPosition) {
+              saveSplitterPosition(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+            }
+          });
+  }
+
+  var catalogFurnitureSplitterVisible = catalogFurnitureSplitter 
+      && catalogFurnitureSplitter.clientWidth > 0 
+      && catalogView != null 
+      && furnitureView != null;
+  if (catalogFurnitureSplitterVisible) {
+    this.initSplitter(
+        catalogFurnitureSplitter,
+        [catalogView.getHTMLElement()],
+        [furnitureView.getHTMLElement()],
+        home.getNumericProperty(HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
+        function(splitterPosition, lastPosition) {
+            if (lastPosition) {
+              saveSplitterPosition(HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+            }
+          });
+  }
+}
+
+/**
+ * Initializes pane splitter.
  * @param {HTMLElement} splitterElement
  * @param {HTMLElement[]} firstGroupElements elements displayed before the splitter
  * @param {HTMLElement[]} secondGroupElements elements displayed after the splitter
@@ -1490,20 +1571,23 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
   var pointerPositionProperty = horizontal ? "clientY" : "clientX";
   var offsetParent = firstGroupElements[0].offsetParent;
   var offsetProperty = horizontal ? "offsetTop" : "offsetLeft";
-  var offsetTopFirst = offsetParent == document.body ? firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] : 0;
+  var offsetTopFirst = offsetParent == document.body 
+      ? firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] 
+      : 0;
 
   var mouseListener = {
       getSplitterPosition: function(ev) {
-        var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 ? ev.touches[0] : ev;
+        var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 
+            ? ev.touches[0] : ev;
         return pointerCoordinatesObject[pointerPositionProperty] - offsetParent[offsetProperty];
       },
       setSplitterPosition: function(relativePosition) {
+        // Prevent to move splitter beyond limit (before first elements) 
         if (relativePosition < offsetTopFirst) {
-          // Try to move splitter beyond limit (before first elements) -- no can't do
           relativePosition = offsetTopFirst;
         }
+        // Prevent to move splitter beyond limit (farther than offsetParent) 
         if (relativePosition > offsetParent[dimensionProperty] - splitterElement[dimensionProperty]) {
-          // Try to move splitter beyond limit (after offsetParent) -- no can't do
           relativePosition = offsetParent[dimensionProperty] - splitterElement[dimensionProperty];
         }
         // Elements in first groups grow or shrink
@@ -1515,18 +1599,20 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
         // Elements in second groups move & grow / shrink
         for (var i = 0; i < secondGroupElements.length; i++) {
           secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitterElement[dimensionProperty]) + "px";
-          secondGroupElements[i].style[dimensionStyleProperty] = "calc(100% - " + relativePosition + "px)";
+          secondGroupElements[i].style[dimensionStyleProperty] = "calc(100% - " + relativePosition + "px - " + splitterElement[dimensionProperty] + "px)";
         }
       },
       mouseMoved: function(ev) {
         ev.stopImmediatePropagation();
-        mouseListener.setSplitterPosition(mouseListener.getSplitterPosition(ev));
+        mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
+        mouseListener.setSplitterPosition(mouseListener.currentPosition);
         if (onresize !== undefined) {
-          onresize(mouseListener.getSplitterPosition(ev), false);
+          onresize(mouseListener.currentPosition, false);
         }
       },
       mousePressed: function(ev) {
         ev.stopImmediatePropagation();
+        mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
         splitterElement.classList.add("moving");
         window.addEventListener("mousemove", mouseListener.mouseMoved, true);
         window.addEventListener("touchmove", mouseListener.mouseMoved, true);
@@ -1541,7 +1627,7 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
         window.removeEventListener("mouseup", mouseListener.mouseReleased, true);
         window.removeEventListener("touchend", mouseListener.mouseReleased, true);
         if (onresize !== undefined) {
-          onresize(mouseListener.getSplitterPosition(ev), true);
+          onresize(mouseListener.currentPosition, true);
         }
       }
     };
@@ -1554,76 +1640,6 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
   }
   splitterElement.addEventListener("mousedown", mouseListener.mousePressed, true);
   splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
-}
-
-/**
- * Initialize pane splitters
- * @private
- */
-HomePane.prototype.initSplitters = function() {
-  var home = this.home;
-  var controller = this.controller;
-
-  var catalogView = controller.getFurnitureCatalogController().getView();
-  var furnitureView = controller.getFurnitureController().getView();
-  var planView = controller.getPlanController().getView();
-  var home3DView = controller.getHomeController3D().getView();
-  
-  var furniturePlanSplitter = document.getElementById("furniture-plan-splitter");
-  var planPanesSplitter = document.getElementById("plan-3D-view-splitter");
-  var furnitureSplitter = document.getElementById("catalog-furniture-splitter");
-
-  var saveSplitterPosition = function(splitterPositionPropertyName, splitterPosition) {
-      controller.setHomeProperty(splitterPositionPropertyName, splitterPosition == null ? null : splitterPosition.toString());
-    };
-
-  var furniturePlanSplitterVisible = furniturePlanSplitter && furniturePlanSplitter.clientWidth > 0;
-  if (furniturePlanSplitterVisible) {
-    this.initSplitter(
-        furniturePlanSplitter,
-        [document.getElementById("catalog-furniture-pane")],
-        [planView.getHTMLElement(), planPanesSplitter, home3DView.getHTMLElement()],
-        home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
-        function(splitterPosition, lastPosition) {
-            // Refresh 2D/3D plan views on resize
-            planView.revalidate();
-            home3DView.revalidate();
-            if (lastPosition) {
-              saveSplitterPosition(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
-            }
-          });
-  }
-
-  var planPanesSplitterVisible = planPanesSplitter && planPanesSplitter.clientWidth > 0;
-  if (planPanesSplitterVisible) {
-    this.initSplitter(
-        planPanesSplitter,
-        [planView.getHTMLElement()],
-        [home3DView.getHTMLElement()],
-        home.getNumericProperty(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
-        function(splitterPosition, lastPosition) {
-          // Refresh 2D/3D plan views on resize
-          planView.revalidate();
-          home3DView.revalidate();
-          if (lastPosition) {
-            saveSplitterPosition(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
-          }
-        });
-  }
-
-  var furnitureSplitterVisible = furnitureSplitter && furnitureSplitter.clientWidth > 0;
-  if (furnitureSplitterVisible) {
-    this.initSplitter(
-        furnitureSplitter,
-        [catalogView.getHTMLElement()],
-        [furnitureView.getHTMLElement()],
-        home.getNumericProperty(HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
-        function(splitterPosition, lastPosition) {
-          if (lastPosition) {
-            saveSplitterPosition(HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
-          }
-        });
-  }
 }
 
 /** 
