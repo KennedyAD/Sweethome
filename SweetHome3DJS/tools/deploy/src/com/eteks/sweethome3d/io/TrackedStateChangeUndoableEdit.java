@@ -19,6 +19,7 @@
  */
 package com.eteks.sweethome3d.io;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.undo.AbstractUndoableEdit;
@@ -47,10 +48,11 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   private Camera              topCamera;
   private ObserverCamera      observerCamera;
   private Camera              camera;
+  private List<Camera>        storedCameras;
   private Level               selectedLevel;
   private Map<String, String> homeProperties;
-  private String furnitureSortedProperty;
-  private Boolean furnitureDescendingSorted;
+  private String              furnitureSortedProperty;
+  private Boolean             furnitureDescendingSorted;
 
   private TrackedStateChangeUndoableEdit() {
   }
@@ -78,6 +80,9 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
     }
     if (this.camera != null) {
       this.home.setCamera(this.camera);
+    }
+    if (this.storedCameras != null) {
+      this.home.setStoredCameras(this.storedCameras);
     }
     if (this.selectedLevel != null) {
       this.home.setSelectedLevel(this.selectedLevel);

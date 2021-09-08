@@ -77,8 +77,8 @@ IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
   HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
   HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
   PlanController.SCALE_VISUAL_PROPERTY,
-  // supported built-in properties
-  "CAMERA", "SELECTED_LEVEL", 
+  // Supported built-in properties
+  "CAMERA", "STORED_CAMERAS", "SELECTED_LEVEL",
   "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED" /*, "FURNITURE_VISIBLE_PROPERTIES" */
   ];
 
@@ -437,6 +437,9 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
         switch (property) {
           case "CAMERA":
             trackedStateChangeUndoableEdit.camera = home.getCamera();
+            break;
+          case "STORED_CAMERAS":
+            trackedStateChangeUndoableEdit.storedCameras = home.getStoredCameras();
             break;
           case "SELECTED_LEVEL":
             trackedStateChangeUndoableEdit.selectedLevel = home.getSelectedLevel();
