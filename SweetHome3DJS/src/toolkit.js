@@ -1827,7 +1827,7 @@ JSTreeTable.prototype.generateTableHeaders = function() {
   }
   head.innerHTML = "";
 
-  var columns = this.getSortedVisibleColumns();
+  var columns = this.getColumns();
   for (var i = 0; i < columns.length; i++) {
     var column = columns[i];
     var headCell = document.createElement("div");
@@ -1870,7 +1870,7 @@ JSTreeTable.prototype.generateTableRows = function() {
   var body = this.bodyElement = document.createElement("div");
   body.setAttribute("body", "true");
 
-  var columns = this.getSortedVisibleColumns();
+  var columns = this.getColumns();
   var columnNames = [];
   for (var i = 0; i < columns.length; i++) {
     columnNames.push(columns[i].name);
@@ -2112,19 +2112,8 @@ JSTreeTable.prototype.getColumnWidth = function(columnName) {
 /**
  * @private
  */
-JSTreeTable.prototype.getSortedVisibleColumns = function() {
-  var columns = this.model.columns;
-  columns = columns.sort(function(column1, column2) {
-    return column1.orderIndex < column2.orderIndex ? -1 : 1;
-  });
-  var visibleColumns = [];
-  for (var i = 0; i < columns.length; i++) {
-    var column = columns[i];
-    if (!this.state.visibleColumnNames || this.state.visibleColumnNames.indexOf(column.name) > -1) {
-      visibleColumns.push(column);
-    }
-  }
-  return visibleColumns;
+JSTreeTable.prototype.getColumns = function() {
+  return this.model.columns.slice(0);
 }
 
 /**
