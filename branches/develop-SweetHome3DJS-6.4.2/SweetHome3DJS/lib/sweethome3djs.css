@@ -1,7 +1,26 @@
+/*
+ * sweethome3djs.css 
+ *  
+ * Sweet Home 3D, Copyright (c) 2020-2021 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ *  
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
-/********************************/
-/* Global styling               */
-/********************************/
+/*
+ * Global styling
+ */
 
 /* Disable default selection device everywhere. */
 
@@ -34,101 +53,9 @@ input, textarea, keygen, select, button {
   }
 }
 
-/********************************/
-/* Splitter                */
-/********************************/
-
-.pane-splitter {
-  z-index: 4;
-  background-color: gray;
-  cursor: ew-resize;
-  width: 4px;
-  height: 4px;
-}
-
-.pane-splitter.horizontal {
-  cursor: ns-resize;
-}
-
-.pane-splitter:hover {
-  background-color: rgb(180, 180, 180);
-}
-.pane-splitter.moving {
-  background-color: rgb(200, 200, 200);
-}
-
-/********************************/
-/* Spinner                */
-/********************************/
-
-.spinner {
-  padding-right: 21px;
-  display: inline-block;
-  position: relative;
-  text-align: right;
-}
-
-.spinner input[type="text"] {
-  width: calc(100% - 2px);
-  box-sizing: border-box;
-}
-
-.spinner button {
-  display: block;
-  width: 20px;
-  height: 49%;
-  border: solid 1px #AAAAAA;
-  border-radius: 10%;
-  background: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  box-sizing: border-box;
-  cursor: pointer;
-  padding: 0;
-  line-height: 70%;
-  user-select: none;
-}
-
-.spinner button:hover {
-  background: #EEEEEE;
-}
-
-.spinner button:active {
-  background: #AAAAAA;
-}
-
-.spinner button:focus {
-  outline: 0;
-}
-
-.spinner [increment] {
-  margin-bottom: 2%;
-}
-
-.spinner [decrement] {
-  top: 51%;
-}
-
-/********************************/
-/* PlanComponent                */
-/********************************/
-
-#toolbar-button-SHOW_PLAN_POPUP_MENU {
-  background-size: 80%;
-  background-position: center center;
-}
-
-#home-pane-toolbar .toolbar-button-group:first-child {
-  display: none;
-}
-
-@media (hover: none), (pointer: coarse) {
-    #home-pane-toolbar .toolbar-button-group:first-child {
-      display: initial;
-    }
-}
-
+/*
+ * PlanComponent                
+ */
 #touch-overlay-timer {
   position: relative;
   width: 20px;
@@ -234,9 +161,23 @@ input, textarea, keygen, select, button {
   z-index: 10;
 }
 
-/*******************************/
-/* HomePane                    */
-/*******************************/
+/*
+ * HomePane tool bar
+ */
+#toolbar-button-SHOW_PLAN_POPUP_MENU {
+  background-size: 75%;
+  background-position: center center;
+}
+
+#home-pane-toolbar .toolbar-button-group:first-child {
+  display: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+    #home-pane-toolbar .toolbar-button-group:first-child {
+      display: initial;
+    }
+}
 
 #home-pane-toolbar {
   visibility: visible;
@@ -336,8 +277,9 @@ input, textarea, keygen, select, button {
   right: 15px;
 }
 
-/* ToolBar animations */
-
+/* 
+ * HomePane tool bar animations 
+ */
 #home-pane-toolbar.show {
   visibility: visible;
   opacity: 1;
@@ -359,10 +301,9 @@ input, textarea, keygen, select, button {
   100% { visibility: visible; opacity: 0; }
 }
 
-/*******************************/
-/* FurnitureCatalogListPanel   */
-/*******************************/
-
+/*
+ * FurnitureCatalogListPanel
+ */
 .furniture-catalog {
   -webkit-overflow-scrolling: touch;
   overflow-y: scroll;
@@ -476,11 +417,84 @@ input, textarea, keygen, select, button {
   }
 }
 
-/******************/
-/** CONTEXT MENU **/
-/******************/
+/*
+ * Splitter  
+ */
+.pane-splitter {
+  z-index: 4;
+  background-color: gray;
+  cursor: ew-resize;
+  width: 4px;
+  height: 4px;
+}
 
-.context-menu {
+.pane-splitter.horizontal {
+  cursor: ns-resize;
+}
+
+.pane-splitter:hover {
+  background-color: rgb(180, 180, 180);
+}
+.pane-splitter.moving {
+  background-color: rgb(200, 200, 200);
+}
+
+/*
+ * Spinner
+ */
+.spinner {
+  padding-right: 21px;
+  display: inline-block;
+  position: relative;
+  text-align: right;
+}
+
+.spinner input[type="text"] {
+  width: calc(100% - 2px);
+  box-sizing: border-box;
+}
+
+.spinner button {
+  display: block;
+  width: 20px;
+  height: 49%;
+  border: solid 1px #AAAAAA;
+  border-radius: 10%;
+  background: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 0;
+  line-height: 70%;
+  user-select: none;
+}
+
+.spinner button:hover {
+  background: #EEEEEE;
+}
+
+.spinner button:active {
+  background: #AAAAAA;
+}
+
+.spinner button:focus {
+  outline: 0;
+}
+
+.spinner [increment] {
+  margin-bottom: 2%;
+}
+
+.spinner [decrement] {
+  top: 51%;
+}
+
+/*
+ * Popup menu     
+ */
+.popup-menu {
   background-color: #EFEFEF;
   display: none;
   position: absolute;
@@ -491,18 +505,17 @@ input, textarea, keygen, select, button {
   z-index: 1000;
   font-size: 1em;
   font-family: Arial, Helvetica, sans-serif;
-
   max-height: 100%;
   overflow-y: auto;
 }
 
-.context-menu ul.items {
+.popup-menu ul.items {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.context-menu .item {
+.popup-menu .item {
   cursor: pointer;
   padding: 0.1em 1.5em 0.1em 0.75em;
   position: relative;
@@ -514,7 +527,7 @@ input, textarea, keygen, select, button {
 }
 
 
-.context-menu .back {
+.popup-menu .back {
   cursor: pointer;
   padding: 0;
   position: relative;
@@ -526,44 +539,40 @@ input, textarea, keygen, select, button {
 }
   
 
-.context-menu .item:hover {
+.popup-menu .item:hover {
   background-color: highlight;
   border-radius: 0.5em;
   color: black;
 }
 
-.context-menu .item input[type='radio'] {
+.popup-menu .item input[type='radio'] {
   vertical-align: middle;
   margin-right: 0.6em;
   pointer-events: none;  
 }
 
-.context-menu .item img {
+.popup-menu .item img {
   vertical-align: middle;
   margin-right: 0.6em;
 }
 
-/* .context-menu .item img.visible { */
-/*   display: initial; */
-/* } */
-
-.context-menu.visible {
+.popup-menu.visible {
   display: block;
 }
 
-.context-menu .separator {
+.popup-menu .separator {
   border-bottom: solid 1px #C0C0C0;
   margin-top: 0.4em;
   margin-bottom: 0.4em;
 }
 
-.context-menu .sub-menu .items:not(.visible) {
+.popup-menu .sub-menu .items:not(.visible) {
   display: none;
 }
 
-.context-menu .sub-menu::after {
+.popup-menu .sub-menu::after {
   content: '';
-  /* triangle */
+  /* Triangle */
   border: 0.5em solid transparent;
   border-left: 0.5em solid black;
   display: block;
@@ -572,20 +581,19 @@ input, textarea, keygen, select, button {
   top: 0.25em;
 }
 
-.context-menu .sub-menu:hover > .items,
-.context-menu .sub-menu > .items.visible {
+.popup-menu .sub-menu:hover > .items,
+.popup-menu .sub-menu > .items.visible {
   background-color: #EFEFEF;
-/*   border: solid 1px black; */
   position: absolute;
   display: block;
 }
 
-.context-menu .back {
+.popup-menu .back {
   display: none;
 }
 
 @media (hover: none), (pointer: coarse) {
-  .context-menu {
+  .popup-menu {
     display: block;
     position: fixed;
     top: 0 !important;
@@ -597,28 +605,28 @@ input, textarea, keygen, select, button {
     transition-duration: 0.4s;
   }
 
-  .context-menu.visible {
+  .popup-menu.visible {
     transition-property: left;
     transition-duration: 0.4s;
     left: 0% !important;
   }
 
-  .context-menu .item.sub-menu {
+  .popup-menu .item.sub-menu {
     height: auto;
   }
 
-  .context-menu .sub-menu > .items.visible {
+  .popup-menu .sub-menu > .items.visible {
     position: static !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
   }
 
-  .context-menu .sub-menu:hover > .items:not(.visible) {
+  .popup-menu .sub-menu:hover > .items:not(.visible) {
     display: none !important;
   }
 
-  .context-menu .back {
+  .popup-menu .back {
     display: block;
     text-align: left;
     color: rgba(0,0,0,0);
@@ -633,10 +641,9 @@ input, textarea, keygen, select, button {
   }
 }
 
-/************/
-/** MODALS **/
-/************/
-
+/*
+ * Modal dialogs
+ */
 .dialog-template {
   display: none;
 }
@@ -734,7 +741,7 @@ input, textarea, keygen, select, button {
   background-color: #F0F0F0;
 }
 
-/* The Close Button */
+/* Close Button */
 .dialog-content .dialog-close-button {
   color: #aaa;
   position: absolute;
@@ -853,7 +860,7 @@ input, textarea, keygen, select, button {
   grid-column: 1 / span 2;
 }
 
-/* if screen is wide enough, allow double layout: 2 label+input pairs per line */
+/* If screen is wide enough, allow double layout: 2 label+input pairs per line */
 @media (min-width: 600px) {
   .dialog-body .label-input-grid.double {
     grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -896,10 +903,9 @@ input, textarea, keygen, select, button {
   width: 12em;
 }
 
-/*********************************/
-/* WIZARD                        */
-/*********************************/
-
+/*
+ * Wizard dialogs
+ */
 .wizard {
   display: flex;
   flex-direction: row;
@@ -1018,10 +1024,9 @@ input, textarea, keygen, select, button {
   background-size: 100%;
 }
 
-/*********************************/
-/* HomeFurnitureDialog           */
-/*********************************/
-
+/*
+ * Home furniture dialog
+ */
 .home-furniture-dialog [data-name="name-and-price-panel"],
 .home-furniture-dialog [data-name="location-panel"],
 .home-furniture-dialog [data-name="orientation-panel"],
@@ -1063,10 +1068,9 @@ input, textarea, keygen, select, button {
   align-items: start;
 }
 
-/*********************************/
-/* WallDialog           */
-/*********************************/
-
+/*
+ * Wall dialog
+ */
 #wall-dialog .columns-2 > div {
   padding: 1em;
 }
@@ -1076,10 +1080,9 @@ input, textarea, keygen, select, button {
   background: beige;
 }
 
-/*********************************/
-/* RoomDialog                    */
-/*********************************/
-
+/*
+ * Room dialog                    
+ */
 .room-dialog label {
   cursor: pointer;
 }
@@ -1101,10 +1104,9 @@ input, textarea, keygen, select, button {
   grid-column: 1 / span 2;
 }
 
-/*********************************/
-/* PolylineDialog           */
-/*********************************/
-
+/*
+ * Polyline dialog
+ */
 .polyline-dialog {
   display: grid;
   grid-template-columns: max-content auto;
@@ -1120,10 +1122,9 @@ input, textarea, keygen, select, button {
   grid-column: 1 / span 2;
 }
 
-/*********************************/
-/* LabelDialog           */
-/*********************************/
-
+/*
+ * Label dialog
+ */
 .label-dialog [data-name="text-and-style-panel"] {
   display: grid;
   grid-template-columns: max-content auto;
@@ -1172,9 +1173,9 @@ input, textarea, keygen, select, button {
   grid-column: 1 / 2;
 }
   
-/*********************************/
-/* Levels dialog         */
-/*********************************/
+/*
+ * Level dialog
+ */
 .level-dialog .levels-summary {
   display: flex;
   flex-direction: row;
@@ -1220,10 +1221,9 @@ input, textarea, keygen, select, button {
   filter: grayscale(0.8);
 }
 
-/*********************************/
-/* UserPreferencesDialog         */
-/*********************************/
-
+/*
+ * User preferences dialog
+ */
 .user-preferences-dialog label {
   cursor: pointer;
 }
@@ -1249,9 +1249,9 @@ input, textarea, keygen, select, button {
   grid-column: 1 / span 2;
 }
 
-/**********************************/
-/** COLOR PICKER                 **/
-/**********************************/
+/*
+ * Color button
+ */
 .color-button {
   width: 3rem;
   height: 1.5rem;
@@ -1336,10 +1336,9 @@ input, textarea, keygen, select, button {
   line-height: 2em;
 }
 
-/**********************************/
-/** COMBO BOX                    **/
-/**********************************/
-
+/*
+ * Combo box
+ */
 .combo-box button {
   width: 5em;
   height: 1.5em;
@@ -1379,10 +1378,10 @@ input, textarea, keygen, select, button {
   background-color: rgb(220, 220, 220);
 }
 
-/**********************************/
-/** TEXTURE PICKER               **/
-/**********************************/
-.texture-button {
+/*
+ * Texture button
+ */
+ .texture-button {
   width: 3rem;
   height: 1.5rem;
   margin-top: -3px;
@@ -1533,10 +1532,9 @@ input, textarea, keygen, select, button {
   background-size: 100% 100%;
 }
 
-/**********************************/
-/** MODEL MATERIALS SELECTOR     **/
-/**********************************/
-
+/*
+ * Model materials button
+ */
 .model-materials-button {
   width: 6rem;
   height: 1.5rem;
@@ -1608,10 +1606,9 @@ input, textarea, keygen, select, button {
   right: 0;
 }
 
-/**********************************/
-/** TREE TABLE     **/
-/**********************************/
-
+/*
+ * Tree table
+ */
 .tree-table {
   font-size: 0.8em;
   border-collapse: collapse;
@@ -1763,15 +1760,14 @@ input, textarea, keygen, select, button {
   background-repeat: no-repeat;
 }
 
-/**********************************/
-/** IE 11 fixes     **/
-/**********************************/
-
+/*
+ * IE 11 fixes
+ */
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-  .context-menu .sub-menu > .items.visible {
+  .popup-menu .sub-menu > .items.visible {
     position: static !important;
   }
-  .context-menu .sub-menu:hover > .items {
+  .popup-menu .sub-menu:hover > .items {
     display: block !important;
     position: static !important;
   }
@@ -1828,6 +1824,7 @@ input, textarea, keygen, select, button {
     width: 100% !important;
   }
 }
+
 @media all and (-ms-high-contrast: none) and (min-width: 600px), (-ms-high-contrast: active) and (min-width: 600px) {
   .dialog-body .columns-2 {
     display: -ms-flexbox;

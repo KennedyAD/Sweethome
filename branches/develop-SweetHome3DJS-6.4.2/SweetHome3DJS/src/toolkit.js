@@ -589,7 +589,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
 
 
 /**
- * A class to create a context menu.
+ * Class handling context menus.
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. 
  *        Cannot be null for now for the root node
@@ -611,7 +611,7 @@ function JSPopupMenu(preferences, sourceElements, behavior) {
   this.build = behavior.build;
 
   JSComponentView.call(this, preferences, "", behavior);
-  this.getRootNode().classList.add("context-menu");
+  this.getRootNode().classList.add("popup-menu");
 
   document.body.appendChild(this.getRootNode());
 
