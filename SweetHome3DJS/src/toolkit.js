@@ -1359,33 +1359,67 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(container) {
   this.decrementButton.tabIndex = -1;
   container.appendChild(this.decrementButton);
 
-  this.registerEventListener(component.textInput, "keydown", function(ev) {
-      var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, "keydown");
-      if (keyStroke.lastIndexOf(" UP") > 0) {
-        ev.stopImmediatePropagation();
-        component.incrementButton.click();
-      } else if (keyStroke.lastIndexOf(" DOWN") > 0) {
-        ev.stopImmediatePropagation();
-        component.decrementButton.click();
-      }
-    });
-
-  this.registerEventListener(component.incrementButton, "click", function(ev) {
+  var incrementValue = function(ev) {
       var previousValue = component.value;
       if (previousValue == null || isNaN(previousValue)) {
         previousValue = component.getDefaultValue();
       }
       component.setValue(previousValue + component.stepSize);
       component.fireInputEvent();
-    });
-
-  this.registerEventListener(component.decrementButton, "click", function(ev) {
+    };
+  var decrementValue = function(ev) {
       var previousValue = component.value;
       if (previousValue == null || isNaN(previousValue)) {
         previousValue = component.getDefaultValue();
       }
       component.setValue(previousValue - component.stepSize);
       component.fireInputEvent();
+    };
+
+  // Repeat incrementValue / decrementValue every 80 ms with an initial delay of 400 ms
+  // while mouse button kept pressed, and ensure at least one change is triggered for a short click
+  var repeatAction = function(button, action) {
+      var stopRepeatedTask = function(ev) {
+          clearTimeout(taskId);
+          button.removeEventListener("mouseleave", stopRepeatedTask);
+          button.removeEventListener("mouseup", stopRepeatedTask);
+        };
+      var clickAction = function(ev) {
+          clearTimeout(taskId);
+          button.removeEventListener("click", clickAction);
+          action();
+        };
+      button.addEventListener("click", clickAction);
+      var repeatedTask = function() {
+          action();
+          taskId = setTimeout(repeatedTask, 80); 
+        };
+      var taskId = setTimeout(function() {
+          button.removeEventListener("click", clickAction);
+          button.addEventListener("mouseleave", stopRepeatedTask);
+          button.addEventListener("mouseup", stopRepeatedTask);
+          repeatedTask();
+        }, 400);
+    };
+  var repeatIncrementValue = function(ev) {
+      repeatAction(component.incrementButton, incrementValue);
+    };
+  this.registerEventListener(component.incrementButton, "mousedown", repeatIncrementValue);
+  
+  var repeatDecrementValue = function(ev) {
+      repeatAction(component.decrementButton, decrementValue);
+    };
+  this.registerEventListener(component.decrementButton, "mousedown", repeatDecrementValue);
+
+  this.registerEventListener(component.textInput, "keydown", function(ev) {
+      var keyStroke = KeyStroke.getKeyStrokeForEvent(ev, "keydown");
+      if (keyStroke.lastIndexOf(" UP") > 0) {
+        ev.stopImmediatePropagation();
+        incrementValue();
+      } else if (keyStroke.lastIndexOf(" DOWN") > 0) {
+        ev.stopImmediatePropagation();
+        decrementValue();
+      }
     });
 }
 
