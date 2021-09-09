@@ -1139,6 +1139,10 @@ input, textarea, keygen, select, button {
   line-height: 1.8em;
 }
 
+.label-dialog textarea {
+  -webkit-user-select: text; /* Required to be able to enter text in Safari */ 
+}
+
 .label-dialog [data-name="text-and-style-panel"] > div:nth-child(odd) {
   text-align: right;
   margin-right: 0.2em;
@@ -1151,12 +1155,15 @@ input, textarea, keygen, select, button {
 .label-dialog [data-name="text-and-style-panel"] > div[data-name="text-size-label"] {
   grid-column: 1;
 }
+
 .label-dialog [data-name="text-and-style-panel"] > div[data-name="text-size-input-container"] {
   grid-column: 2;
 }
+
 .label-dialog [data-name="text-and-style-panel"] > div[data-name="color-label"] {
   grid-column: 3;
 }
+
 .label-dialog [data-name="text-and-style-panel"] > div[data-name="color-selector-button"] {
   grid-column: 4;
 }
@@ -1732,10 +1739,11 @@ input, textarea, keygen, select, button {
   white-space: nowrap;
 }
 
-#furniture-view [cell].name [icon],
-#furniture-view [cell].name [icon] img {
+/* Should select icon of furniture name with selector
+ * #furniture-view [cell].name [icon] img
+ * but ".name" doesn't work under IE 11 */
+#furniture-view [cell] [icon] img {
   display: inline-block;
-  width: 1.2em;
   height: 1.2em;
   margin-right: 0.4em;
   background-size: contain;
@@ -1805,7 +1813,6 @@ input, textarea, keygen, select, button {
   .dialog-body .label-input-grid.double .label-and-input {
     width: 49%;
   }
-
 
   .color-selector .picker, .color-selector .custom-colors {
     display: -ms-flexbox;
