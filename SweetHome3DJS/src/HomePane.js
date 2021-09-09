@@ -1177,9 +1177,6 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
   if (furnitureView != null) {
     new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), {
         build: function(builder) {
-          homePane.addActionToMenu(ActionType.UNDO, builder);
-          homePane.addActionToMenu(ActionType.REDO, builder);
-          builder.addSeparator();
           homePane.addActionToMenu(ActionType.CUT, builder);
           homePane.addActionToMenu(ActionType.COPY, builder);
           homePane.addActionToMenu(ActionType.PASTE, builder);
@@ -1784,8 +1781,11 @@ HomePane.prototype.setEnabled = function(actionType, enabled) {
  * @param {string} redoText
  */
 HomePane.prototype.setUndoRedoName = function(undoText, redoText) {
-  this.setNameAndShortDescription(HomeView.ActionType.UNDO, undoText);
-  this.setNameAndShortDescription(HomeView.ActionType.REDO, redoText);
+  // Localize undo / redo prefix
+  this.setNameAndShortDescription(HomeView.ActionType.UNDO, 
+      undoText != null ? undoText.replace(/^Undo/, this.preferences.getLocalizedString("AbstractUndoableEdit", "undo.textAndMnemonic")) : null);
+  this.setNameAndShortDescription(HomeView.ActionType.REDO, 
+      redoText != null ? redoText.replace(/^Redo/, this.preferences.getLocalizedString("AbstractUndoableEdit", "redo.textAndMnemonic")) : null);
 }
 
 /**
