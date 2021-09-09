@@ -706,16 +706,23 @@ function DecimalFormat(pattern) {
   Format.call(this);
 
   this.groupingUsed = false;
+  this.minimumFractionDigits = 0;
   this.maximumFractionDigits = 2;
   this.checkLocaleChange();
 
-  this.positivePrefix = '';
-  this.negativePrefix = '';
-  if (pattern && pattern.trim() != '') {
-    var patternParts = pattern.split(';');
+  this.positivePrefix = "";
+  this.negativePrefix = "";
+  if (pattern && pattern.trim() != "") {
+    var patternParts = pattern.split(";");
 
     var fractionDigitsMatch = patternParts[0].match(/[.]([0]+)([#]*)/);
-    if (fractionDigitsMatch.length > 1) {
+    if (fractionDigitsMatch == null) {
+      this.minimumFractionDigits = 0;
+      fractionDigitsMatch = patternParts[0].match(/[.]([#]*)/);
+      if (fractionDigitsMatch.length > 1) {
+        this.maximumFractionDigits = fractionDigitsMatch[1].length;
+      }
+    } else if (fractionDigitsMatch.length > 1) {
       this.minimumFractionDigits = fractionDigitsMatch[1].length;
       if (fractionDigitsMatch.length > 2 && fractionDigitsMatch[2].length > 0) {
         this.maximumFractionDigits = this.minimumFractionDigits + fractionDigitsMatch[2].length;
@@ -724,14 +731,15 @@ function DecimalFormat(pattern) {
 
     if (patternParts.length > 1) {
       var part = patternParts[0].trim();
-      this.positivePrefix = part.substring(0, part.indexOf('#') == -1 ? part.indexOf('0') : part.indexOf('#'));
+      this.positivePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
       part = patternParts[1].trim();
-      this.negativePrefix = part.substring(0, part.indexOf('#') == -1 ? part.indexOf('0') : part.indexOf('#'));
+      this.negativePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
     } else {
       var part = patternParts[0].trim();
-      this.positivePrefix = this.negativePrefix = part.substring(0, part.indexOf('#') == -1 ? part.indexOf('0') : part.indexOf('#'));
+      this.positivePrefix = this.negativePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
     }
   }
+  
   if (this.maximumFractionDigits < this.minimumFractionDigits) {
     this.maximumFractionDigits = this.minimumFractionDigits;
   }
@@ -799,7 +807,6 @@ DecimalFormat.prototype.getNegativePrefix = function() {
 DecimalFormat.prototype.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
-
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
 
