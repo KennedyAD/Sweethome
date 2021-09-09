@@ -2030,9 +2030,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var controller = this.controller;
 
     var angleLabel = this.getElement("angle-label");
-    var angleDecimalFormat = new DecimalFormat();
-    angleDecimalFormat.maximumFractionDigits = 1;
-
+    var angleDecimalFormat = new DecimalFormat("0.#");
     var angleInput = new JSSpinner(this.preferences, this.getElement("angle-input"), 
         {
           nullable: this.controller.getAngle() == null,
@@ -2895,8 +2893,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         });
   
       dialog.getElement("arc-extent-label").textContent = dialog.getLocalizedLabelText("WallPanel", "arcExtentLabel.text", unitName);
-      var angleDecimalFormat = new DecimalFormat();
-      angleDecimalFormat.maximumFractionDigits = 1;
+      var angleDecimalFormat = new DecimalFormat("0.#");
       var arcExtentInput = new JSSpinner(this.preferences, dialog.getElement("arc-extent-input"), 
           {
             nullable: controller.getArcExtentInDegrees() == null,
@@ -4049,9 +4046,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
    * @private
    */
   JSObserverCameraDialogView.prototype.initAnglesPanel = function() {
-    var angleDecimalFormat = new DecimalFormat();
-    angleDecimalFormat.maximumFractionDigits = 1;
-
+    var angleDecimalFormat = new DecimalFormat("0.#");
     var yawInput = new JSSpinner(this.preferences, this.getElement("yaw-input"), 
         {
           format: angleDecimalFormat,
