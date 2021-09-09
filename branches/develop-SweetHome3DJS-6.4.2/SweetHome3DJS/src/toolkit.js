@@ -430,9 +430,9 @@ JSDialogView.prototype.displayView = function(parentView) {
 
   // Force browser to refresh before adding visible class to allow transition on width and height
   setTimeout(function() {
-    dialog.rootNode.classList.add("visible");
-    dialog.displayIndex = JSDialogView.shownDialogsCounter++;
-  }, 100);
+      dialog.rootNode.classList.add("visible");
+      dialog.displayIndex = JSDialogView.shownDialogsCounter++;
+    }, 100);
 }
 JSDialogView.shownDialogsCounter = 0;
 
@@ -743,8 +743,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item) {
   }
 
   var itemIconElement = document.createElement("img");
-  if (item.iconPath != null && item.selected === undefined) {
-    // Icons are not shown for toggle actions
+  if (item.iconPath != null) {
     itemIconElement.src = item.iconPath;
     itemIconElement.classList.add("visible");
   }
@@ -886,8 +885,8 @@ JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItem
     }
 
     onItemSelected = function() {
-      action.actionPerformed();
-    };
+        action.actionPerformed();
+      };
   } else if (typeof onItemSelectedCallback == "function") {
     iconPath = actionOrIconPathOrLabel;
     label = onItemSelectedCallbackOrLabel;
@@ -909,17 +908,15 @@ JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItem
  * @param {boolean | undefined} [selected]
  * @param {"radio" | "checkbox" | undefined} [mode]
  */
-JSPopupMenu.Builder.prototype.addNewItem = function(
-  label, iconPath, onItemSelected, selected, mode
-) {
+JSPopupMenu.Builder.prototype.addNewItem = function(label, iconPath, onItemSelected, selected, mode) {
   this.items.push({
-    uid: UUID.randomUUID(),
-    label: label,
-    iconPath: iconPath,
-    onItemSelected: onItemSelected,
-    selected: selected,
-    mode: mode
-  });
+      uid: UUID.randomUUID(),
+      label: label,
+      iconPath: iconPath,
+      onItemSelected: onItemSelected,
+      selected: selected,
+      mode: mode
+    });
 };
 
 /**

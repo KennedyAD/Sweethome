@@ -517,13 +517,13 @@ input, textarea, keygen, select, button {
 
 .popup-menu .item {
   cursor: pointer;
-  padding: 0.1em 1.5em 0.1em 0.75em;
+  padding: 0.1em 1.5em;
   position: relative;
   line-height: 1.25em;
   box-sizing: border-box;
   overflow: auto;
   white-space: nowrap;
-  margin: 0.2em 0.4em;
+  margin: 0.2em 0.2em;
 }
 
 
@@ -545,10 +545,16 @@ input, textarea, keygen, select, button {
   color: black;
 }
 
-.popup-menu .item input[type='radio'] {
-  vertical-align: middle;
-  margin-right: 0.6em;
-  pointer-events: none;  
+.popup-menu .item input[type='radio'],
+.popup-menu .item input[type='checkbox']  {
+  position: absolute;
+  left: 0.1em;
+  opacity: 0;
+}
+
+.popup-menu .item input[type='radio']:checked,
+.popup-menu .item input[type='checkbox']:checked {
+  opacity: 1;
 }
 
 .popup-menu .item img {

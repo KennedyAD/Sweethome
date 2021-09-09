@@ -1605,17 +1605,17 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
   var nameDisplay = controller.isPropertyEditable("NAME") ? "initial" : "none";
   nameInput.parentElement.style.display = nameDisplay;
   nameInput.parentElement.previousElementSibling.style.display = nameDisplay;
-  nameInput.value = controller.getName();
+  nameInput.value = controller.getName() != null ? controller.getName() : "";
   dialog.registerEventListener(nameInput, "input", function(ev) {
       var name = nameInput.value;
-      if (name == null || name.trim().length == 0) {
+      if (name.trim().length == 0) {
         controller.setName(null);
       } else {
         controller.setName(name);
       }
     });
   controller.addPropertyChangeListener("NAME", function(ev) {
-      nameInput.value = controller.getName();
+      nameInput.value = controller.getName() != null ? controller.getName() : "";
     });
 
   // Elevation spinner bound to ELEVATION controller property
@@ -1868,7 +1868,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     valueAddedTaxPercentageInput.style.display = vatDisplay;
 
     // 2) Set values
-    nameInput.value = this.controller.getName();
+    nameInput.value = controller.getName() != null ? controller.getName() : "";
     nameVisibleCheckbox.checked = this.controller.getNameVisible();
     priceInput.setValue(this.controller.getPrice());
     if (this.controller.getValueAddedTaxPercentage()) {
@@ -1877,25 +1877,30 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
     // 3) Add property listeners
     this.controller.addPropertyChangeListener("NAME", function(ev) {
-      nameInput.value = controller.getName();
-    });
+        nameInput.value = controller.getName() != null ? controller.getName() : "";
+      });
     this.controller.addPropertyChangeListener("NAME_VISIBLE", function(ev) {
-      nameVisibleCheckbox.checked = controller.getNameVisible();
-    });
+        nameVisibleCheckbox.checked = controller.getNameVisible();
+      });
     this.controller.addPropertyChangeListener("PRICE", function(ev) {
-      priceInput.setValue(controller.getPrice());
-    });
+        priceInput.setValue(controller.getPrice());
+      });
     this.controller.addPropertyChangeListener("VALUE_ADDED_TAX_PERCENTAGE", function(ev) {
-      if (controller.getValueAddedTaxPercentage()) {
-        valueAddedTaxPercentageInput.setValue(controller.getValueAddedTaxPercentage() * 100);
-      } else {
-        valueAddedTaxPercentageInput.setValue(null);
-      }
-    });
+        if (controller.getValueAddedTaxPercentage()) {
+          valueAddedTaxPercentageInput.setValue(controller.getValueAddedTaxPercentage() * 100);
+        } else {
+          valueAddedTaxPercentageInput.setValue(null);
+        }
+      });
 
     // 4) Add change listeners
     this.registerEventListener(nameInput, "input", function(ev) {
-        controller.setName(nameInput.value);
+        var name = nameInput.value;
+        if (name.trim().length == 0) {
+          controller.setName(null);
+        } else {
+          controller.setName(name);
+        }
       });
     this.registerEventListener(nameVisibleCheckbox, "change", function(ev) {
         controller.setNameVisible(nameVisibleCheckbox.checked);
@@ -3228,13 +3233,13 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
   var nameDisplay = controller.isPropertyEditable("NAME") ? "initial" : "none";
   dialog.nameInput = dialog.getElement("name-input");
-  dialog.nameInput.value = controller.getName();
+  dialog.nameInput.value = controller.getName() != null ? controller.getName() : "";
   dialog.nameInput.parentElement.style.display = nameDisplay;
   dialog.registerEventListener(dialog.nameInput, "input", function(ev) {
-      controller.setName(dialog.nameInput.trim());
+      controller.setName(dialog.nameInput.value.trim());
     });
   controller.addPropertyChangeListener("NAME", function(ev) {
-      dialog.nameInput.value = controller.getName();
+      dialog.nameInput.value = controller.getName() != null ? controller.getName() : "";
     });
 
   var areaVisiblePanelDisplay = controller.isPropertyEditable("AREA_VISIBLE") ? "initial" : "none";
@@ -3586,9 +3591,12 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
 
   // Text field bound to NAME controller property
   dialog.textInput = dialog.getElement("text");
-  dialog.textInput.value = controller.getText();
+  dialog.textInput.value = controller.getText() != null ? controller.getText() : "";
   dialog.registerEventListener(dialog.textInput, "input", function(ev) {
       controller.setText(dialog.textInput.value);
+    });
+  controller.addPropertyChangeListener("TEXT", function(ev) {
+      dialog.textInput.value = controller.getText() != null ? controller.getText() : "";
     });
   
   // Radio buttons bound to controller ALIGNMENT property
