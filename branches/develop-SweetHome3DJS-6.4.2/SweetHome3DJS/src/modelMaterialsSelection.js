@@ -33,16 +33,13 @@
 function JSModelMaterialsSelectorButton(preferences, controller, targetNode) {
   this.controller = controller;
 
-  JSComponentView.call(this, preferences, document.createElement("span"), 
-      {
-        useElementAsRootNode: true,
-      });
+  JSComponent.call(this, preferences, document.createElement("span"), true);
   if (targetNode != null) {
-    targetNode.appendChild(this.getRootNode());
+    targetNode.appendChild(this.getHTMLElement());
   }
 
-  this.getRootNode().innerHTML = '<button class="model-materials-button">' + this.getLocalizedLabelText('ModelMaterialsComponent', "modifyButton.text") + '</button>';
-  this.button = this.getRootNode().querySelector(".model-materials-button");
+  this.getHTMLElement().innerHTML = '<button class="model-materials-button">' + this.getLocalizedLabelText('ModelMaterialsComponent', "modifyButton.text") + '</button>';
+  this.button = this.getHTMLElement().querySelector(".model-materials-button");
   this.button.disabled = true;
 
   var component = this;
@@ -50,17 +47,14 @@ function JSModelMaterialsSelectorButton(preferences, controller, targetNode) {
       component.openModelMaterialsSelectorDialog(); 
     });
 }
-JSModelMaterialsSelectorButton.prototype = Object.create(JSComponentView.prototype);
+JSModelMaterialsSelectorButton.prototype = Object.create(JSComponent.prototype);
 JSModelMaterialsSelectorButton.prototype.constructor = JSModelMaterialsSelectorButton;
 
 /**
  * Enables or disables this component.
- * @param {boolean} [enabled] defaults to true 
+ * @param {boolean} enabled  
  */
-JSModelMaterialsSelectorButton.prototype.enable = function(enabled) {
-  if (enabled === undefined) {
-    enabled = true;
-  }
+JSModelMaterialsSelectorButton.prototype.setEnabled = function(enabled) {
   this.button.disabled = !enabled;
 }
 
@@ -77,16 +71,16 @@ JSModelMaterialsSelectorButton.prototype.openModelMaterialsSelectorDialog = func
 }
 
 JSModelMaterialsSelectorButton.prototype.dispose = function() {
-  JSComponentView.prototype.dispose.call(this);
+  JSComponent.prototype.dispose.call(this);
 }
 
 /**
  * The modelMaterials selector dialog class.
  * @param {UserPreferences} preferences the current user preferences
  * @param {ModelMaterialsController} controller modelMaterials choice controller
- * @param {{applier: function(JSDialogView)}} [options]
+ * @param {{applier: function(JSDialog)}} [options]
  * > applier: when dialog closes, takes dialog as parameter
- * @extends JSDialogView
+ * @extends JSDialog
  * @constructor
  * @private
  */
@@ -129,7 +123,7 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
     '  </div>' +
     '</div>';
 
-  JSDialogView.call(this, preferences, "@{HomeFurnitureController.modelMaterialsTitle}", html, 
+  JSDialog.call(this, preferences, "@{HomeFurnitureController.modelMaterialsTitle}", html, 
       {
         applier: function(dialog) {
           controller.setMaterials(dialog.materialsList.getMaterials());
@@ -142,7 +136,7 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
         }
       });
 
-  this.getRootNode().classList.add("model-materials-selector-dialog");
+  this.getHTMLElement().classList.add("model-materials-selector-dialog");
   
   this.initMaterialsList();
   this.initPreviewPanel();
@@ -239,7 +233,7 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
     });
   this.selectedMaterialBlinker = selectedMaterialBlinker; 
 }
-JSModelMaterialsSelectorDialog.prototype = Object.create(JSDialogView.prototype);
+JSModelMaterialsSelectorDialog.prototype = Object.create(JSDialog.prototype);
 JSModelMaterialsSelectorDialog.prototype.constructor = JSModelMaterialsSelectorDialog;
 
 /**
@@ -781,9 +775,9 @@ JSModelMaterialsSelectorDialog.prototype.enableComponents = function() {
   this.colorAndTexturePanel.defaultRadio.disabled = selectionEmpty;
   this.colorAndTexturePanel.invisibleRadio.disabled = selectionEmpty;
   this.colorAndTexturePanel.textureRadio.disabled = selectionEmpty;
-  this.colorAndTexturePanel.textureSelector.enable(!selectionEmpty);
+  this.colorAndTexturePanel.textureSelector.setEnabled(!selectionEmpty);
   this.colorAndTexturePanel.colorRadio.disabled = selectionEmpty;
-  this.colorAndTexturePanel.colorSelector.enable(!selectionEmpty);
+  this.colorAndTexturePanel.colorSelector.setEnabled(!selectionEmpty);
 
   this.shininessSlider.disabled = selectionEmpty;
 }

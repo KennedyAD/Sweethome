@@ -201,6 +201,13 @@ LengthUnit.MILLIMETER.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * @since 6.6
+ */
+LengthUnit.MILLIMETER.getStepSize = function() {
+  return 0.5;
+}
+
 LengthUnit.MILLIMETER.centimeterToUnit = function(length) {
   return length * 10.;
 }
@@ -269,6 +276,14 @@ LengthUnit.CENTIMETER.getMaximumLength = function() {
 
 LengthUnit.CENTIMETER.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
+}
+
+/**
+ * Returns the preferred step size in centimeter used to increment / decrement values of this unit.
+ * @since 6.6
+ */
+LengthUnit.CENTIMETER.getStepSize = function() {
+  return 0.5;
 }
 
 LengthUnit.CENTIMETER.centimeterToUnit = function(length) {
@@ -340,6 +355,13 @@ LengthUnit.METER.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * @since 6.6
+ */
+LengthUnit.METER.getStepSize = function() {
+  return 0.5;
+}
+
 LengthUnit.METER.centimeterToUnit = function(length) {
   return length / 100;
 }
@@ -407,6 +429,13 @@ LengthUnit.INCH.getMaximumLength = function() {
 
 LengthUnit.INCH.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
+}
+
+/**
+ * @since 6.6
+ */
+LengthUnit.INCH.getStepSize = function() {
+  return LengthUnit.inchToCentimeter(0.125);
 }
 
 LengthUnit.INCH.centimeterToUnit = function(length) {
@@ -477,6 +506,13 @@ LengthUnit.INCH_DECIMALS.getMaximumLength = function() {
 
 LengthUnit.INCH_DECIMALS.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
+}
+
+/**
+ * @since 6.6
+ */
+LengthUnit.INCH_DECIMALS.getStepSize = function() {
+  return LengthUnit.inchToCentimeter(0.125);
 }
 
 LengthUnit.INCH_DECIMALS.centimeterToUnit = function(length) {
