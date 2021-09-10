@@ -60,14 +60,14 @@ function JSPromptImageResizeDialog(controller, preferences,
                 imageResizeRequested, originalImageRequested) {
   this.controller = controller;
   this.preferences = preferences;
-  this.cancelButtonMessage = JSComponentView.substituteWithLocale(this.preferences, cancelButtonMessage);
-  this.keepUnchangedButtonMessage = JSComponentView.substituteWithLocale(this.preferences, keepUnchangedButtonMessage);
-  this.okButtonMessage = JSComponentView.substituteWithLocale(this.preferences, okButtonMessage);
+  this.cancelButtonMessage = JSComponent.substituteWithLocale(this.preferences, cancelButtonMessage);
+  this.keepUnchangedButtonMessage = JSComponent.substituteWithLocale(this.preferences, keepUnchangedButtonMessage);
+  this.okButtonMessage = JSComponent.substituteWithLocale(this.preferences, okButtonMessage);
 
-  JSDialogView.call(this, preferences,
-      JSComponentView.substituteWithLocale(this.preferences, title),
+  JSDialog.call(this, preferences,
+      JSComponent.substituteWithLocale(this.preferences, title),
       "<div>" +
-      JSComponentView.substituteWithLocale(this.preferences, message) +
+      JSComponent.substituteWithLocale(this.preferences, message) +
       "</div>",
       {
         applier: function(dialog) {
@@ -79,7 +79,7 @@ function JSPromptImageResizeDialog(controller, preferences,
         }
       });
 }
-JSPromptImageResizeDialog.prototype = Object.create(JSDialogView.prototype);
+JSPromptImageResizeDialog.prototype = Object.create(JSDialog.prototype);
 JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
 
 /**
@@ -88,7 +88,7 @@ JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
  * @protected
  */
 JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
-  buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
+  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
       '<button class="dialog-cancel-button">' + this.cancelButtonMessage + '</button>' +
       '<button class="keep-image-unchanged-button dialog-ok-button">' + this.keepUnchangedButtonMessage + '</button>' +
       '<button class="dialog-ok-button">' + this.okButtonMessage + '</button>');
@@ -160,7 +160,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   }
 
   function JSBackgroundImageWizardStepsView() {
-    JSComponentView.call(this, preferences,
+    JSComponent.call(this, preferences,
         '<div choiceStep>' +
         '  <div description>@{BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>' +
         '  <div class="buttons">' +
@@ -213,7 +213,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         '</div>');
 
     this.controller = controller;
-    this.getRootNode().classList.add("background-image-wizard");
+    this.getHTMLElement().classList.add("background-image-wizard");
 
     this.initImageChoiceStep();
     this.initScaleStep();
@@ -229,7 +229,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
 
     this.updateImage(backgroundImage);
   }
-  JSBackgroundImageWizardStepsView.prototype = Object.create(JSComponentView.prototype);
+  JSBackgroundImageWizardStepsView.prototype = Object.create(JSComponent.prototype);
   JSBackgroundImageWizardStepsView.prototype.constructor = JSBackgroundImageWizardStepsView;
 
   /**
@@ -286,7 +286,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
               format: preferences.getLengthUnit().getFormat(),
               minimum: preferences.getLengthUnit().getMinimumLength(),
               maximum: maximumLength,
-              stepSize: component.getLengthInputStepSize()
+              stepSize: preferences.getLengthUnit().getStepSize()
             }),
       };
 
@@ -459,7 +459,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
             value: controller.getXOrigin(),
             minimum: -maximumLength,
             maximum: maximumLength,
-            stepSize: component.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           }),
       yOriginLabel: component.getElement("y-origin-label"),
       yOriginInput: new JSSpinner(preferences, component.getElement("y-origin-input"), 
@@ -468,7 +468,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
             value: controller.getYOrigin(),
             minimum: -maximumLength,
             maximum: maximumLength,
-            stepSize: component.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           }),
     };
 
@@ -748,7 +748,7 @@ JSViewFactory.prototype.createImportedFurnitureWizardStepsView = function(piece,
  * @param {string} textureName 
  * @param {UserPreferences} preferences 
  * @param {ImportedTextureWizardController} controller 
- * @return {JSComponentView}
+ * @return {JSComponent}
  */
 JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture, textureName, preferences, controller) {
   var LARGE_IMAGE_PIXEL_COUNT_THRESHOLD = 640 * 640;
@@ -762,7 +762,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   }
 
   function ImportedTextureWizardStepsView() {
-    JSComponentView.call(this, preferences,
+    JSComponent.call(this, preferences,
         '<div imageStep>' + 
         '  <div description>@{ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
         '  <div class="buttons">' +
@@ -805,7 +805,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.controller = controller;
     this.userCategory = new TexturesCategory(
         ResourceAction.getLocalizedLabelText(preferences, "ImportedTextureWizardStepsPanel", "userCategory"));
-    this.getRootNode().classList.add("imported-texture-wizard");
+    this.getHTMLElement().classList.add("imported-texture-wizard");
     
     this.initComponents();
 
@@ -814,7 +814,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         component.updateStep();
       });
   }
-  ImportedTextureWizardStepsView.prototype = Object.create(JSComponentView.prototype);
+  ImportedTextureWizardStepsView.prototype = Object.create(JSComponent.prototype);
   ImportedTextureWizardStepsView.prototype.constructor = ImportedTextureWizardStepsView;
 
   /**
@@ -855,7 +855,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
           format: preferences.getLengthUnit().getFormat(),
           minimum: minimumLength,
           maximum: maximumLength,
-          stepSize: this.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
     this.heightLabel = this.getElement("height-label"),
     this.heightLabel.textContent = this.getLocalizedLabelText(
@@ -865,7 +865,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
           format: preferences.getLengthUnit().getFormat(),
           minimum: minimumLength,
           maximum: maximumLength,
-          stepSize: this.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
     
     var component = this;
@@ -1143,8 +1143,8 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
    * @private
    */
   function isElementVisible(element) {
-    if (element instanceof JSComponentView) {
-      element = element.getRootNode();
+    if (element instanceof JSComponent) {
+      element = element.getHTMLElement();
     }
     return window.getComputedStyle(element).display !== "none";
   }
@@ -1167,7 +1167,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
     currentElement.previousElementSibling.style.display = "none";
   }
 
-  var dialog = new JSDialogView(preferences, 
+  var dialog = new JSDialog(preferences, 
       "@{UserPreferencesPanel.preferences.title}", 
       document.getElementById("user-preferences-dialog-template"), 
       {
@@ -1257,7 +1257,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
       }
 
       var selected = languageCode == controller.getLanguage();
-      var languageOption = JSComponentView.createOptionElement(languageCode, languageDisplayName, selected);
+      var languageOption = JSComponent.createOptionElement(languageCode, languageDisplayName, selected);
       dialog.languageSelect.appendChild(languageOption);
     }
   } else {
@@ -1269,23 +1269,23 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   var unitEnabled = controller.isPropertyEditable("UNIT");
   if (unitEnabled) {
     dialog.unitSelect.appendChild(
-        JSComponentView.createOptionElement("MILLIMETER", 
+        JSComponent.createOptionElement("MILLIMETER", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.millimeter.text"),
             controller.getUnit() == LengthUnit.MILLIMETER));
     dialog.unitSelect.appendChild(
-        JSComponentView.createOptionElement("CENTIMETER", 
+        JSComponent.createOptionElement("CENTIMETER", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.centimeter.text"),
             controller.getUnit() == LengthUnit.CENTIMETER));
     dialog.unitSelect.appendChild(
-        JSComponentView.createOptionElement("METER", 
+        JSComponent.createOptionElement("METER", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.meter.text"),
             controller.getUnit() == LengthUnit.METER));
     dialog.unitSelect.appendChild(
-        JSComponentView.createOptionElement("INCH", 
+        JSComponent.createOptionElement("INCH", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.inch.text"),
             controller.getUnit() == LengthUnit.INCH));
     dialog.unitSelect.appendChild(
-        JSComponentView.createOptionElement("INCH_DECIMALS", 
+        JSComponent.createOptionElement("INCH_DECIMALS", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.inchDecimals.text"),
             controller.getUnit() == LengthUnit.INCH_DECIMALS));
 
@@ -1304,12 +1304,12 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   var vatEnabled = controller.isPropertyEditable("VALUE_ADDED_TAX_ENABLED");
   var noCurrencyLabel = dialog.getLocalizedLabelText("UserPreferencesPanel", "currencyComboBox.noCurrency.text");
   if (currencyEnabled) {
-    dialog.currencySelect.appendChild(JSComponentView.createOptionElement("", noCurrencyLabel, !controller.getCurrency()));
+    dialog.currencySelect.appendChild(JSComponent.createOptionElement("", noCurrencyLabel, !controller.getCurrency()));
     var currencies = Object.keys(UserPreferences.CURRENCIES);
     for (var i = 0; i < currencies.length; i++) {
       var currency = currencies[i];
       var currencyLabel = UserPreferences.CURRENCIES[currency];
-      dialog.currencySelect.appendChild(JSComponentView.createOptionElement(
+      dialog.currencySelect.appendChild(JSComponent.createOptionElement(
           currency, currencyLabel, currency == controller.getCurrency()));
     }
 
@@ -1421,7 +1421,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
       for (var i = 0; i < fonts.length; i++) {
         var font = fonts[i];
         var label = i == 0 ? dialog.getLocalizedLabelText("FontNameComboBox", "systemFontName") : font;
-        dialog.defaultFontNameSelect.appendChild(JSComponentView.createOptionElement(font, label));
+        dialog.defaultFontNameSelect.appendChild(JSComponent.createOptionElement(font, label));
       }
       setDefaultFontFromController();
     });
@@ -1448,7 +1448,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
     for (var i = 0; i < iconSizes.length; i++) {
       var size = iconSizes[i];
       dialog.iconSizeSelect.appendChild(
-          JSComponentView.createOptionElement(size, size + '×' + size,
+          JSComponent.createOptionElement(size, size + '×' + size,
               controller.getFurnitureModelIconSize() == size));
     }
 
@@ -1576,7 +1576,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
 }
 
 JSViewFactory.prototype.createLevelView = function(preferences, controller) {
-  var dialog = new JSDialogView(preferences,
+  var dialog = new JSDialog(preferences,
       "@{LevelPanel.level.title}",
       document.getElementById("level-dialog-template"), 
       {
@@ -1625,7 +1625,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
       var selectedLevelIndex = controller.getSelectedLevelIndex();
       if (selectedLevelIndex != null) {
         var levels = controller.getLevels();
-        dialog.floorThicknessInput.enable(levels[selectedLevelIndex].getElevation() != levels[0].getElevation());
+        dialog.floorThicknessInput.setEnabled(levels[selectedLevelIndex].getElevation() != levels[0].getElevation());
       }
     };
   var setElevationIndexButtonsEnabled = function() {
@@ -1651,7 +1651,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
         value: controller.getElevation(),
         minimum: -1000,
         maximum: preferences.getLengthUnit().getMaximumElevation(),
-        stepSize: dialog.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
   elevationInput.parentElement.style.display = elevationDisplay;
   elevationInput.parentElement.previousElementSibling.style.display = elevationDisplay;
@@ -1673,7 +1673,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
         value: controller.getFloorThickness(),
         minimum: minimumLength,
         maximum: maximumLength / 10,
-        stepSize: dialog.getLengthInputStepSize(),
+        stepSize: preferences.getLengthUnit().getStepSize(),
       });
   floorThicknessInput.parentElement.style.display = floorThicknessDisplay;
   floorThicknessInput.parentElement.previousElementSibling.style.display = floorThicknessDisplay;
@@ -1695,7 +1695,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
         value: controller.getHeight(),
         minimum: minimumLength,
         maximum: maximumLength,
-        stepSize: dialog.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
   heightInput.parentElement.style.display = heightDisplay;
   heightInput.parentElement.previousElementSibling.style.display = heightDisplay;
@@ -1780,7 +1780,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   function JSHomeFurnitureDialog() {
     this.controller = controller;
     
-    JSDialogView.call(this, preferences, 
+    JSDialog.call(this, preferences, 
       "@{HomeFurniturePanel.homeFurniture.title}", 
       document.getElementById("home-furniture-dialog-template"),
       {
@@ -1819,7 +1819,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       this.updatePaintRadioButtons();
     }
   }
-  JSHomeFurnitureDialog.prototype = Object.create(JSDialogView.prototype);
+  JSHomeFurnitureDialog.prototype = Object.create(JSDialog.prototype);
   JSHomeFurnitureDialog.prototype.constructor = JSHomeFurnitureDialog;
 
   /**
@@ -1864,7 +1864,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     priceLabel.style.display = priceDisplay;
     priceInput.style.display = priceDisplay;
 
-    valueAddedTaxPercentageInput.getRootNode().previousElementSibling.style.display = vatDisplay;
+    valueAddedTaxPercentageInput.getHTMLElement().previousElementSibling.style.display = vatDisplay;
     valueAddedTaxPercentageInput.style.display = vatDisplay;
 
     // 2) Set values
@@ -1927,21 +1927,21 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         {
           nullable: this.controller.getX() == null,
           format: this.preferences.getLengthUnit().getFormat(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var yLabel = this.getElement("y-label");
     var yInput = new JSSpinner(this.preferences, this.getElement("y-input"), 
         {
           nullable: this.controller.getY() == null,
           format: this.preferences.getLengthUnit().getFormat(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var elevationLabel = this.getElement("elevation-label");
     var elevationInput = new JSSpinner(this.preferences, this.getElement("elevation-input"), 
         {
           nullable: this.controller.getElevation() == null,
           format: this.preferences.getLengthUnit().getFormat(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
 
     var mirroredModelCheckbox = this.getElement("mirrored-model-checkbox");
@@ -1955,11 +1955,11 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var basePlanItemDisplay = this.controller.isPropertyEditable("BASE_PLAN_ITEM") ? "initial" : "none";
 
     xLabel.style.display = xDisplay;
-    xInput.getRootNode().parentElement.style.display = xDisplay;
+    xInput.getHTMLElement().parentElement.style.display = xDisplay;
     yLabel.style.display = yDisplay;
-    yInput.getRootNode().parentElement.style.display = yDisplay;
+    yInput.getHTMLElement().parentElement.style.display = yDisplay;
     elevationLabel.style.display =  elevationDisplay;
-    elevationInput.getRootNode().parentElement.style.display = elevationDisplay;
+    elevationInput.getHTMLElement().parentElement.style.display = elevationDisplay;
     
     mirroredModelCheckbox.parentElement.style.display = modelMirroredDisplay;
     basePlanItemCheckbox.parentElement.style.display = basePlanItemDisplay;
@@ -2070,13 +2070,13 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var furnitureOrientationImageDisplay = this.controller.isTexturable() && rollAndPitchDisplayed ? "initial" : "none";
 
     angleLabel.style.display = angleDisplay;
-    angleInput.getRootNode().parentElement.style.display = angleDisplay;
+    angleInput.getHTMLElement().parentElement.style.display = angleDisplay;
 
     horizontalRotationRadioRoll.parentElement.style.display = rollDisplay; 
-    rollInput.getRootNode().parentElement.style.display = rollDisplay; 
+    rollInput.getHTMLElement().parentElement.style.display = rollDisplay; 
     
     horizontalRotationRadioPitch.parentElement.style.display = pitchDisplay; 
-    pitchInput.getRootNode().parentElement.style.display = pitchDisplay; 
+    pitchInput.getHTMLElement().parentElement.style.display = pitchDisplay; 
 
     horizontalRotationLabel.style.display = horizontalRotationLabelDisplay;    
     verticalRotationLabel.style.display = verticalRotationLabelDisplay;
@@ -2211,7 +2211,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
     var uniqueModel = controller.getModelMaterialsController().getModel() != null;
     colorAndTextureRadioButtons[HomeFurnitureController.FurniturePaint.MODEL_MATERIALS].disabled = !uniqueModel;
-    materialSelector.enable(uniqueModel);
+    materialSelector.setEnabled(uniqueModel);
 
     dialog.paintPanel = {
         colorAndTextureRadioButtons: colorAndTextureRadioButtons,
@@ -2264,14 +2264,14 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         {
           nullable: controller.getWidth() == null,
           format: this.preferences.getLengthUnit().getFormat(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var depthLabel = this.getElement("depth-label");
     var depthInput = new JSSpinner(this.preferences, this.getElement("depth-input"), 
         {
           nullable: controller.getDepth() == null,
           format: this.preferences.getLengthUnit().getFormat(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var heightLabel = this.getElement("height-label");
     var heightInput = this.getElement("height-input");
@@ -2279,7 +2279,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         {
           nullable: controller.getHeight() == null,
           format: this.preferences.getLengthUnit().getFormat(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var keepProportionsCheckbox = this.getElement("keep-proportions-checkbox");
 
@@ -2467,7 +2467,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           value: controller.getXStart(),
           minimum: -maximumLength,
           maximum: maximumLength,
-          stepSize: dialog.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
     var yStartInput = new JSSpinner(preferences, dialog.getElement("y-start-input"), 
         {
@@ -2476,7 +2476,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           value: controller.getYStart(),
           minimum: -maximumLength,
           maximum: maximumLength,
-          stepSize: dialog.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
     var xEndLabel = dialog.getElement("x-end-label");
     var yEndLabel = dialog.getElement("y-end-label");
@@ -2488,7 +2488,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           value: controller.getXEnd(),
           minimum: -maximumLength,
           maximum: maximumLength,
-          stepSize: dialog.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
     var yEndInput = new JSSpinner(preferences, dialog.getElement("y-end-input"), 
         {
@@ -2497,7 +2497,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           value: controller.getYEnd(),
           minimum: -maximumLength,
           maximum: maximumLength,
-          stepSize: dialog.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
     var distanceToEndPointInput = new JSSpinner(preferences, dialog.getElement("distance-to-end-point-input"), 
         {
@@ -2506,7 +2506,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           value: controller.getDistanceToEndPoint(),
           minimum: preferences.getLengthUnit().getMinimumLength(),
           maximum: 2 * maximumLength * Math.sqrt(2),
-          stepSize: dialog.getLengthInputStepSize()
+          stepSize: preferences.getLengthUnit().getStepSize()
         });
 
     var unitName = preferences.getLengthUnit().getName();
@@ -2552,7 +2552,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
 
   var editBaseboard = function(dialogTitle, controller) {
       var view = controller.getView();
-      var dialog = new JSDialogView(preferences, dialogTitle,
+      var dialog = new JSDialog(preferences, dialogTitle,
           "<div data-name='content'></div>", 
           {
             size: "small",
@@ -2819,7 +2819,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             value: controller.getRectangularWallHeight(),
             minimum: minimumLength,
             maximum: maximumLength,
-            stepSize: dialog.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
       controller.addPropertyChangeListener("RECTANGULAR_WALL_HEIGHT", function(ev) {
           rectangularWallHeightInput.setValue(ev.getNewValue());
@@ -2838,7 +2838,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             value: controller.getSlopingWallHeightAtStart(),
             minimum: minimumHeight,
             maximum: maximumLength,
-            stepSize: dialog.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
       controller.addPropertyChangeListener("SLOPING_WALL_HEIGHT_AT_START", function(ev) {
           slopingWallHeightAtStartInput.setValue(ev.getNewValue());
@@ -2860,7 +2860,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             value: controller.getSlopingWallHeightAtEnd(),
             min: minimumHeight,
             maximum: maximumLength,
-            stepSize: dialog.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
       controller.addPropertyChangeListener("SLOPING_WALL_HEIGHT_AT_END", function(ev) {
           slopingWallHeightAtEndInput.setValue(ev.getNewValue());
@@ -2883,7 +2883,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             value: controller.getThickness(),
             minimum: minimumLength,
             maximum: maximumLength / 10,
-            stepSize: dialog.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
       controller.addPropertyChangeListener("THICKNESS", function(ev) {
           thicknessInput.setValue(ev.getNewValue());
@@ -2916,7 +2916,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         });
     };
 
-  var dialog = new JSDialogView(preferences,
+  var dialog = new JSDialog(preferences,
       "@{WallPanel.wall.title}", 
       document.getElementById("wall-dialog-template"), 
       {
@@ -2969,7 +2969,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
 /**
  * @param {UserPreferences} preferences
  * @param {RoomController} controller
- * @returns {JSDialogView}
+ * @returns {JSDialog}
  */
 JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   var initFloorPanel = function(dialog) {
@@ -3213,7 +3213,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       });
     };
 
-  var dialog = new JSDialogView(preferences, 
+  var dialog = new JSDialog(preferences, 
       "@{RoomPanel.room.title}", 
       document.getElementById("room-dialog-template"), 
       {
@@ -3350,7 +3350,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
       var arrowStyleChangeListener = function() {
           var startArrowStyle = controller.getStartArrowStyle();
           var endArrowStyle = controller.getEndArrowStyle();
-          comboBox.enable(controller.isArrowsStyleEditable());
+          comboBox.setEnabled(controller.isArrowsStyleEditable());
           comboBox.setSelectedItem(
               { 
                 startStyle: startArrowStyle, 
@@ -3421,7 +3421,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           });
   
       var joinStyleChangeListener = function() {
-          comboBox.enable(controller.isJoinStyleEditable());
+          comboBox.setEnabled(controller.isJoinStyleEditable());
           comboBox.setSelectedItem(controller.getJoinStyle());
         };
       joinStyleChangeListener();
@@ -3504,14 +3504,14 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         });
   
       var dashStyleChangeListener = function() {
-          dashOffsetInput.enable(controller.getDashStyle() != Polyline.DashStyle.SOLID);
+          dashOffsetInput.setEnabled(controller.getDashStyle() != Polyline.DashStyle.SOLID);
           comboBox.setSelectedItem(controller.getDashStyle());
         };
       dashStyleChangeListener();
       controller.addPropertyChangeListener("DASH_STYLE", dashStyleChangeListener);
     };
 
-  var dialog = new JSDialogView(preferences, 
+  var dialog = new JSDialog(preferences, 
       "@{PolylinePanel.polyline.title}", 
       document.getElementById("polyline-dialog-template"), 
       {
@@ -3544,7 +3544,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         value: controller.getThickness(),
         min: preferences.getLengthUnit().getMinimumLength(),
         maximum: 50,
-        stepSize: dialog.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
   controller.addPropertyChangeListener("THICKNESS", function(ev) {
       dialog.thicknessInput.setValue(controller.getThickness());
@@ -3570,7 +3570,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
 }
 
 JSViewFactory.prototype.createLabelView = function(modification, preferences, controller) {
-  var dialog = new JSDialogView(preferences, 
+  var dialog = new JSDialog(preferences, 
       "@{LabelPanel.labelModification.title}", 
       document.getElementById("label-dialog-template"), 
       {
@@ -3583,7 +3583,8 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         },
         disposer: function(dialog) {
           dialog.colorButton.dispose();
-        }
+        },
+        size: "small"
       });
 
   // Text field bound to NAME controller property
@@ -3597,7 +3598,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
     });
   
   // Radio buttons bound to controller ALIGNMENT property
-  dialog.alignmentRadioButtons = dialog.getRootNode().querySelectorAll("[name='label-alignment-radio']");
+  dialog.alignmentRadioButtons = dialog.getHTMLElement().querySelectorAll("[name='label-alignment-radio']");
   dialog.registerEventListener(dialog.alignmentRadioButtons, "change", function(ev) {
       for (var i = 0; i < dialog.alignmentRadioButtons.length; i++) {
         if (dialog.alignmentRadioButtons[i].checked) {
@@ -3640,7 +3641,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
       for (var i = 0; i < fonts.length; i++) {
         var font = fonts[i];
         var label = i == 0 ? dialog.getLocalizedLabelText("FontNameComboBox", "systemFontName") : font;
-        dialog.fontSelect.appendChild(JSComponentView.createOptionElement(font, label));
+        dialog.fontSelect.appendChild(JSComponent.createOptionElement(font, label));
       }
       fontNameChangeListener();
     });
@@ -3655,7 +3656,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         value: controller.getFontSize(),
         minimum: 5,
         maximum: 999,
-        stepSize: dialog.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
   var fontSizeChangeListener = function() {
       var fontSize = controller.getFontSize();
@@ -3686,7 +3687,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
       var visibleIn3D = controller.isPitchEnabled() === true;
       dialog.pitch0DegreeRadioButton.disabled = !visibleIn3D;
       dialog.pitch90DegreeRadioButton.disabled = !visibleIn3D;
-      dialog.elevationInput.enable(visibleIn3D);
+      dialog.elevationInput.setEnabled(visibleIn3D);
       if (controller.getPitch() !== null) {
         if (controller.getPitch() === 0) {
           dialog.pitch0DegreeRadioButton.checked = true;
@@ -3734,7 +3735,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         value: controller.getElevation(),
         minimum: 0,
         maximum: preferences.getLengthUnit().getMaximumElevation(),
-        stepSize: dialog.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
   var elevationChangeListener = function(ev) {
       dialog.elevationInput.setNullable(ev.getNewValue() === null);
@@ -3759,7 +3760,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
   function JSCompassDialogView() {
     this.controller = controller;
 
-    JSDialogView.call(this, preferences,
+    JSDialog.call(this, preferences,
         "@{CompassPanel.compass.title}",
         document.getElementById("compass-dialog-template"),
         {
@@ -3772,7 +3773,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
     this.initRosePanel();
     this.initGeographicLocationPanel();
   }
-  JSCompassDialogView.prototype = Object.create(JSDialogView.prototype);
+  JSCompassDialogView.prototype = Object.create(JSDialog.prototype);
   JSCompassDialogView.prototype.constructor = JSCompassDialogView;
 
   /**
@@ -3790,7 +3791,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
             format: preferences.getLengthUnit().getFormat(),
             minimum: -maximumLength,
             maximum: maximumLength,
-            stepSize: this.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
       var yLabel = this.getElement("y-label");
       var yInput = new JSSpinner(this.preferences, this.getElement("y-input"), 
@@ -3798,7 +3799,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
             format: preferences.getLengthUnit().getFormat(),
             minimum: -maximumLength,
             maximum: maximumLength,
-            stepSize: this.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
       var diameterLabel = this.getElement("diameter-label");
       var diameterInput = new JSSpinner(this.preferences, this.getElement("diameter-input"), 
@@ -3806,7 +3807,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
             format: preferences.getLengthUnit().getFormat(),
             minimum: preferences.getLengthUnit().getMinimumLength(),
             maximum: preferences.getLengthUnit().getMaximumLength() / 10,
-            stepSize: this.getLengthInputStepSize()
+            stepSize: preferences.getLengthUnit().getStepSize()
           });
   
       // Set values
@@ -3881,7 +3882,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
             maximum: 360,
             stepSize: 5
           });
-      northDirectionInput.getRootNode().style.width = "3em";
+      northDirectionInput.getHTMLElement().style.width = "3em";
       northDirectionInput.style.verticalAlign = "super";
   
       // Set values
@@ -3948,7 +3949,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
   function JSObserverCameraDialogView() {
     this.controller = controller;
 
-    JSDialogView.call(this, preferences,
+    JSDialog.call(this, preferences,
         "@{ObserverCameraPanel.observerCamera.title}",
         document.getElementById("observer-camera-dialog-template"),
         {
@@ -3971,7 +3972,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
         adjustObserverCameraElevationCheckBox.checked = controller.isElevationAdjusted();
       });
   }
-  JSObserverCameraDialogView.prototype = Object.create(JSDialogView.prototype);
+  JSObserverCameraDialogView.prototype = Object.create(JSDialog.prototype);
   JSObserverCameraDialogView.prototype.constructor = JSObserverCameraDialogView;
 
   /**
@@ -3986,7 +3987,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
           format: this.preferences.getLengthUnit().getFormat(),
           minimum: -maximumLength,
           maximum: maximumLength,
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var yLabel = this.getElement("y-label");
     var yInput = new JSSpinner(this.preferences, this.getElement("y-input"), 
@@ -3995,7 +3996,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
           format: this.preferences.getLengthUnit().getFormat(),
           minimum: -maximumLength,
           maximum: maximumLength,
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var elevationLabel = this.getElement("elevation-label");
     var elevationInput = new JSSpinner(this.preferences, this.getElement("elevation-input"), 
@@ -4004,7 +4005,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
           format: this.preferences.getLengthUnit().getFormat(),
           minimum: this.controller.getMinimumElevation(),
           maximum: this.preferences.getLengthUnit().getMaximumElevation(),
-          stepSize: this.getLengthInputStepSize()
+          stepSize: this.preferences.getLengthUnit().getStepSize()
         });
 
     // Set values
@@ -4104,7 +4105,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
   function JSHome3DAttributesDialogView() {
     this.controller = controller;
 
-    JSDialogView.call(this, preferences,
+    JSDialog.call(this, preferences,
         "@{Home3DAttributesPanel.home3DAttributes.title}",
         document.getElementById("home-3Dattributes-dialog-template"),
         {
@@ -4125,7 +4126,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     this.initSkyPanel();
     this.initRenderingPanel();
   }
-  JSHome3DAttributesDialogView.prototype = Object.create(JSDialogView.prototype);
+  JSHome3DAttributesDialogView.prototype = Object.create(JSDialog.prototype);
   JSHome3DAttributesDialogView.prototype.constructor = JSHome3DAttributesDialogView;
 
   /**
@@ -4286,14 +4287,14 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
  * @param {TextureChoiceController} textureChoiceController texture choice controller
  * @param {{ textureChanged: function(HomeTexture) }} [options]
  *   > textureChanged: called with selected texture, when selection changed
- * @return {JSComponentView} 
+ * @return {JSComponent} 
  */
 JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureChoiceController, options) {
   return new JSTextureSelectorButton(preferences, textureChoiceController, null, options);
 }
 
 JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, controller) {
-  var view = new JSComponentView(preferences,
+  var view = new JSComponent(preferences,
       '  <div class="whole-line">' +
       '    <label>' +
       '      <input name="baseboard-visible-checkbox" type="checkbox"/>' +
@@ -4338,8 +4339,8 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
         }
       });
 
-  view.getRootNode().dataset["name"] = "baseboard-panel";
-  view.getRootNode().classList.add("label-input-grid");
+  view.getHTMLElement().dataset["name"] = "baseboard-panel";
+  view.getHTMLElement().classList.add("label-input-grid");
 
   // VISIBLE
   view.visibleCheckBox = view.getElement("baseboard-visible-checkbox");
@@ -4355,10 +4356,10 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       for (var i = 0; i < view.colorAndTextureRadioButtons.length; i++) {
         view.colorAndTextureRadioButtons[i].disabled = !componentsEnabled;
       }
-      view.colorSelector.enable(componentsEnabled);
-      view.textureSelector.enable(componentsEnabled);
-      view.heightInput.enable(componentsEnabled);
-      view.thicknessInput.enable(componentsEnabled);
+      view.colorSelector.setEnabled(componentsEnabled);
+      view.textureSelector.setEnabled(componentsEnabled);
+      view.heightInput.setEnabled(componentsEnabled);
+      view.thicknessInput.setEnabled(componentsEnabled);
     };
   controller.addPropertyChangeListener("VISIBLE", function(ev) {
       visibleChanged();
@@ -4423,7 +4424,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
         maximum: controller.getMaxHeight() == null
             ? preferences.getLengthUnit().getMaximumLength() / 10
             : controller.getMaxHeight(),
-        stepSize: view.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
   view.thicknessInput = new JSSpinner(preferences, view.getElement("thickness-input"), 
       {
@@ -4432,7 +4433,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
         value: controller.getThickness(),
         minimum: minimumLength,
         maximum: 2,
-        stepSize: view.getLengthInputStepSize()
+        stepSize: preferences.getLengthUnit().getStepSize()
       });
 
   controller.addPropertyChangeListener("HEIGHT", function(ev) {

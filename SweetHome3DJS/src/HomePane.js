@@ -219,7 +219,7 @@ function HomePane(containerId, home, preferences, controller) {
   // Keyboard accelerators management
   var homePane = this;
   document.addEventListener("keydown", function(ev) {
-    if (JSDialogView.getTopMostDialog()) {
+    if (JSDialog.getTopMostDialog()) {
       // ignore keystrokes when dialog is displayed
       return;
     }
@@ -1164,19 +1164,18 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
   // Catalog view popup menu
   var catalogView = this.controller.getFurnitureCatalogController().getView();
   if (catalogView != null) {
-    new JSPopupMenu(this.preferences, catalogView.getHTMLElement(), {
-        build: function(builder) {
+    new JSPopupMenu(this.preferences, catalogView.getHTMLElement(), 
+        function(builder) {
           homePane.addActionToMenu(ActionType.ADD_HOME_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.ADD_FURNITURE_TO_GROUP, builder);
-        }
-      });
+        });
   }
 
   var furnitureView = this.controller.getFurnitureController().getView();
   // Furniture view popup menu
   if (furnitureView != null) {
-    new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), {
-        build: function(builder) {
+    new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), 
+        function(builder) {
           homePane.addActionToMenu(ActionType.CUT, builder);
           homePane.addActionToMenu(ActionType.COPY, builder);
           homePane.addActionToMenu(ActionType.PASTE, builder);
@@ -1186,111 +1185,113 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), function(builder) {
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
-              homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
-              homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
-            });
+          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), 
+              function(builder) {
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
+                homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
+                homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
+              });
           homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
           builder.addSeparator();
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.SORT_HOME_FURNITURE_MENU), function(builder) {
-              /**
-               * @param {HomeView.ActionType} type
-               * @param {string} sortableProperty
-               */
-              var addItem = function(type, sortableProperty) {
-                var action = homePane.getAction(type);
-                if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
-                  builder.addRadioItem(action.getValue(AbstractAction.NAME), function () {
-                    action.actionPerformed();
-                  }, sortableProperty == home.getFurnitureSortedProperty());
+          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.SORT_HOME_FURNITURE_MENU), 
+              function(builder) {
+                /**
+                 * @param {HomeView.ActionType} type
+                 * @param {string} sortableProperty
+                 */
+                var addItem = function(type, sortableProperty) {
+                  var action = homePane.getAction(type);
+                  if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+                    builder.addRadioItem(action.getValue(AbstractAction.NAME), function () {
+                      action.actionPerformed();
+                    }, sortableProperty == home.getFurnitureSortedProperty());
+                  }
                 }
-              }
-    
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, "CREATOR");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, "WIDTH");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, "DEPTH");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, "HEIGHT");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_X, "X");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, "Y");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, "ELEVATION");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, "ANGLE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, "LEVEL");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, "MODEL_SIZE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, "COLOR");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, "TEXTURE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, "MOVABLE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, "DOOR_OR_WINDOW");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, "VISIBLE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, "PRICE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
-              addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
-              builder.addSeparator();
-              var descSortAction = homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
-              if (descSortAction && descSortAction.getValue(AbstractAction.NAME) && descSortAction.getValue(ResourceAction.VISIBLE)) {
-                builder.addCheckItem(descSortAction.getValue(AbstractAction.NAME), function () {
-                    descSortAction.actionPerformed();
-                  }, 
-                  home.isFurnitureDescendingSorted());
-              }
-            });
+      
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, "CREATOR");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, "WIDTH");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, "DEPTH");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, "HEIGHT");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_X, "X");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, "Y");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, "ELEVATION");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, "ANGLE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, "LEVEL");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, "MODEL_SIZE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, "COLOR");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, "TEXTURE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, "MOVABLE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, "DOOR_OR_WINDOW");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, "VISIBLE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, "PRICE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
+                addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
+                builder.addSeparator();
+                var descSortAction = homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
+                if (descSortAction && descSortAction.getValue(AbstractAction.NAME) && descSortAction.getValue(ResourceAction.VISIBLE)) {
+                  builder.addCheckItem(descSortAction.getValue(AbstractAction.NAME), function () {
+                      descSortAction.actionPerformed();
+                    }, 
+                    home.isFurnitureDescendingSorted());
+                }
+              });
   
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU), function(builder) {
-              /**
-               * @param {HomeView.ActionType} type
-               * @param {string} sortableProperty
-               */
-              var addItem = function(type, sortableProperty) {
-                var action = homePane.getAction(type);
-                if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
-                  builder.addCheckItem(action.getValue(AbstractAction.NAME), function(){
-                    action.actionPerformed();
-                  }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
+          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU), 
+              function(builder) {
+                /**
+                 * @param {HomeView.ActionType} type
+                 * @param {string} sortableProperty
+                 */
+                var addItem = function(type, sortableProperty) {
+                  var action = homePane.getAction(type);
+                  if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+                    builder.addCheckItem(action.getValue(AbstractAction.NAME), function(){
+                      action.actionPerformed();
+                    }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
+                  }
                 }
-              }
-    
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, "CREATOR");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, "WIDTH");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, "DEPTH");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, "HEIGHT");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_X, "X");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, "Y");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, "ELEVATION");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, "ANGLE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, "LEVEL");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, "MODEL_SIZE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, "COLOR");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, "TEXTURE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, "MOVABLE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, "DOOR_OR_WINDOW");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, "VISIBLE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, "PRICE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
-              addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
-            });
-        }
-      });
+      
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, "CREATOR");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, "WIDTH");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, "DEPTH");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, "HEIGHT");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_X, "X");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, "Y");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, "ELEVATION");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, "ANGLE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, "LEVEL");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, "MODEL_SIZE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, "COLOR");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, "TEXTURE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, "MOVABLE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, "DOOR_OR_WINDOW");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, "VISIBLE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, "PRICE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
+                addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
+              });
+        });
   }
 
   // Plan view popup menu
   var planView = this.controller.getPlanController().getView();
   if (planView != null) {
-    new JSPopupMenu(this.preferences, planView.getHTMLElement(), {
-        build: function(builder) {
+    new JSPopupMenu(this.preferences, planView.getHTMLElement(),
+        function(builder) {
           homePane.addActionToMenu(ActionType.UNDO, builder);
           homePane.addActionToMenu(ActionType.REDO, builder);
           builder.addSeparator();
@@ -1334,16 +1335,15 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.ADD_LEVEL_AT_SAME_ELEVATION, builder);
           homePane.addActionToMenu(ActionType.MODIFY_LEVEL, builder);
           homePane.addActionToMenu(ActionType.DELETE_LEVEL, builder);
-        }
-      });
+        });
   }
 
   // 3D view popup menu
   var view3D = this.controller.getHomeController3D().getView();
   if (view3D != null) {
     var controller = this.controller;
-    new JSPopupMenu(this.preferences, view3D.getHTMLElement(), {
-        build: function(builder) {
+    new JSPopupMenu(this.preferences, view3D.getHTMLElement(), 
+        function(builder) {
           homePane.addActionToMenu(ActionType.VIEW_FROM_TOP, builder);
           homePane.addActionToMenu(ActionType.VIEW_FROM_OBSERVER, builder);
           homePane.addActionToMenu(ActionType.MODIFY_OBSERVER, builder);
@@ -1372,14 +1372,13 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
           homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
           homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
-        }
-      });
+        });
   }
   
   // Menu button popup menu
   if (this.showApplicationMenuButton != null) {
-    new JSPopupMenu(this.preferences, this.showApplicationMenuButton, {
-        build: function(builder) {
+    new JSPopupMenu(this.preferences, this.showApplicationMenuButton, 
+        function(builder) {
           homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
           homePane.addActionToMenu(ActionType.CUT, builder);
           homePane.addActionToMenu(ActionType.COPY, builder);
@@ -1396,19 +1395,20 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
           homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), function(builder) {
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
-              homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
-              homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
-              homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
-            });
+          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), 
+              function(builder) {
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
+                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
+                homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
+                homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
+              });
           homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
           builder.addSeparator();
           homePane.addActionToMenu(ActionType.MODIFY_COMPASS, builder);
@@ -1437,18 +1437,19 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           if (storedCameras.length > 0) {
             var goToPointOfViewAction = homePane.getMenuAction(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
             if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
-              builder.addSubMenu(goToPointOfViewAction, function(builder) {
-                  var cameraMenuItemBuilder = function(camera) {
-                      builder.addItem(camera.getName(),
-                          function() { 
-                            controller.getHomeController3D().goToCamera(camera);
-                          });
-                    };
-                  var storedCameras = home.getStoredCameras();
-                  for (var i = 0; i < storedCameras.length; i++) {
-                    cameraMenuItemBuilder(storedCameras[i]);
-                  }
-                });
+              builder.addSubMenu(goToPointOfViewAction, 
+                  function(builder) {
+                    var cameraMenuItemBuilder = function(camera) {
+                        builder.addItem(camera.getName(),
+                            function() { 
+                              controller.getHomeController3D().goToCamera(camera);
+                            });
+                      };
+                    var storedCameras = home.getStoredCameras();
+                    for (var i = 0; i < storedCameras.length; i++) {
+                      cameraMenuItemBuilder(storedCameras[i]);
+                    }
+                  });
             }
             homePane.addActionToMenu(ActionType.DELETE_POINTS_OF_VIEW, builder);
           }
@@ -1457,8 +1458,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
           homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
           homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
-        }
-      });
+        });
   }
 }
 
@@ -2434,7 +2434,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
 
   // 1. Confirm dialog
   function JSConfirmDeleteCamerasDialog() {
-    JSDialogView.call(this, pane.preferences,
+    JSDialog.call(this, pane.preferences,
         "@{HomePane.showDeletedCamerasDialog.title}",
         "<div>@{HomePane.confirmDeleteCameras.message}</div>",
         {
@@ -2443,11 +2443,11 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
           },
         });
   }
-  JSConfirmDeleteCamerasDialog.prototype = Object.create(JSDialogView.prototype);
+  JSConfirmDeleteCamerasDialog.prototype = Object.create(JSDialog.prototype);
   JSConfirmDeleteCamerasDialog.prototype.constructor = JSConfirmDeleteCamerasDialog;
 
   JSConfirmDeleteCamerasDialog.prototype.appendButtons = function(buttonsPanel) {
-      buttonsPanel.innerHTML = JSComponentView.substituteWithLocale(this.preferences,
+      buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
           "<button class='dialog-cancel-button'>@{HomePane.confirmDeleteCameras.cancel}</button>" +
           "<button class='dialog-ok-button'>@{HomePane.confirmDeleteCameras.delete}</button>");
   
@@ -2468,7 +2468,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
   }
 
   function JSDeleteCamerasDialog() {
-    JSDialogView.call(this, pane.preferences,
+    JSDialog.call(this, pane.preferences,
       "@{HomePane.showDeletedCamerasDialog.title}",
       html,
       {
@@ -2487,7 +2487,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
         },
       });
   }
-  JSDeleteCamerasDialog.prototype = Object.create(JSDialogView.prototype);
+  JSDeleteCamerasDialog.prototype = Object.create(JSDialog.prototype);
   JSDeleteCamerasDialog.prototype.constructor = JSDeleteCamerasDialog;
 
   var dialog = new JSDeleteCamerasDialog();

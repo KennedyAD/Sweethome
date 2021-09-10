@@ -24,10 +24,10 @@
  * The texture selector dialog class.
  * @param {UserPreferences} preferences the current user preferences
  * @param {TextureChoiceController} controller texture choice controller
- * @param {{selectedTexture, applier: function(JSDialogView)}} [options]
+ * @param {{selectedTexture, applier: function(JSDialog)}} [options]
  *   > selectedTexture: selected texture
  *   > applier: when dialog closes, takes dialog as parameter
- * @extends JSDialogView
+ * @extends JSDialog
  * @constructor
  */
 function JSTextureSelectorDialog(preferences, controller, options) {
@@ -89,7 +89,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
     '</div>' +
     '<div class="recent-textures"></div>';
 
-  JSDialogView.call(this, preferences, "@{HomeFurnitureController.textureTitle}", html, 
+  JSDialog.call(this, preferences, "@{HomeFurnitureController.textureTitle}", html, 
       {
         applier: function(dialog) {
           // Force refresh model from inputs, even if "change" event was not raised 
@@ -109,12 +109,12 @@ function JSTextureSelectorDialog(preferences, controller, options) {
         }
       });
 
-  this.getRootNode().classList.add("texture-selector-dialog");
+  this.getHTMLElement().classList.add("texture-selector-dialog");
   
-  this.recentTexturesPanel = this.getRootNode().querySelector(".recent-textures");
+  this.recentTexturesPanel = this.getHTMLElement().querySelector(".recent-textures");
   
-  this.catalogList = this.getRootNode().querySelector(".texture-catalog-list");
-  this.selectedTexturePreview = this.getRootNode().querySelector(".selected-texture-preview > div");
+  this.catalogList = this.getHTMLElement().querySelector(".texture-catalog-list");
+  this.selectedTexturePreview = this.getHTMLElement().querySelector(".selected-texture-preview > div");
 
   this.xOffsetInput = new JSSpinner(preferences, this.getElement("selected-texture-offset-x"), 
       {
@@ -196,7 +196,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
     };
   preferences.getTexturesCatalog().addTexturesListener(this.texturesCatalogListener);
 }
-JSTextureSelectorDialog.prototype = Object.create(JSDialogView.prototype);
+JSTextureSelectorDialog.prototype = Object.create(JSDialog.prototype);
 JSTextureSelectorDialog.prototype.constructor = JSTextureSelectorDialog;
 
 /**
@@ -330,7 +330,7 @@ JSTextureSelectorDialog.prototype.getCatalogTextureFromItem = function(item) {
  */
 JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function() {
   var dialog = this;
-  dialog.searchInput = this.getRootNode().querySelector(".texture-search input");
+  dialog.searchInput = this.getHTMLElement().querySelector(".texture-search input");
   dialog.registerEventListener(dialog.searchInput, "keyup", CoreTools.debounce(function() {
       var searchTerm = dialog.searchInput.value.trim().toLowerCase();
       for (var i = 0; i < dialog.texturesCatalogItems.length; i++) {
@@ -416,23 +416,20 @@ function JSTextureSelectorButton(preferences, controller, targetNode, options) {
     this.textureChanged = options.textureChanged;
   }
 
-  JSComponentView.call(this, preferences, document.createElement("span"), 
-      {
-        useElementAsRootNode: true,
-      });
+  JSComponent.call(this, preferences, document.createElement("span"), true);
   if (targetNode != null) {
-    targetNode.appendChild(this.getRootNode());
+    targetNode.appendChild(this.getHTMLElement());
   }
 
-  this.getRootNode().innerHTML = '<button class="texture-button"><div class="texture-preview" /></button>';
-  this.button = this.getRootNode().querySelector(".texture-button");
+  this.getHTMLElement().innerHTML = '<button class="texture-button"><div class="texture-preview" /></button>';
+  this.button = this.getHTMLElement().querySelector(".texture-button");
 
   var component = this;
   this.registerEventListener(this.button, "click", function(ev) { 
       component.openTextureSelectorDialog(); 
     });
   
-  this.preview = this.getRootNode().querySelector(".texture-preview");
+  this.preview = this.getHTMLElement().querySelector(".texture-preview");
   
   this.textureChangeListener = function() {
       component.updateTexture(controller.getTexture());
@@ -443,7 +440,7 @@ function JSTextureSelectorButton(preferences, controller, targetNode, options) {
   controller.addPropertyChangeListener("TEXTURE", component.textureChangeListener);
   this.updateTexture(controller.getTexture());
 }
-JSTextureSelectorButton.prototype = Object.create(JSComponentView.prototype);
+JSTextureSelectorButton.prototype = Object.create(JSComponent.prototype);
 JSTextureSelectorButton.prototype.constructor = JSTextureSelectorButton;
 
 /**
@@ -474,12 +471,9 @@ JSTextureSelectorButton.prototype.updateTexture = function(texture) {
 
 /**
  * Enables or disables this component.
- * @param {boolean} [enabled] defaults to true 
+ * @param {boolean} enabled  
  */
-JSTextureSelectorButton.prototype.enable = function(enabled) {
-  if (enabled == undefined) {
-    enabled = true;
-  }
+JSTextureSelectorButton.prototype.setEnabled = function(enabled) {
   this.button.disabled = !enabled;
 }
 
@@ -503,5 +497,5 @@ JSTextureSelectorButton.prototype.confirmDeleteSelectedCatalogTexture = function
 
 JSTextureSelectorButton.prototype.dispose = function() {
   this.controller.removePropertyChangeListener(this.textureChangeListener);
-  JSComponentView.prototype.dispose.call(this);
+  JSComponent.prototype.dispose.call(this);
 }
