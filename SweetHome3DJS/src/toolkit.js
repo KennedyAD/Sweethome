@@ -253,6 +253,9 @@ function JSDialog(preferences, title, template, behavior) {
     });
 
   this.buttonsPanel = this.findElement(".dialog-buttons");
+  if (OperatingSystem.isMacOSX()) {
+    this.buttonsPanel.classList.add("mac");
+  }
   this.appendButtons(this.buttonsPanel);
 }
 JSDialog.prototype = Object.create(JSComponent.prototype);
@@ -266,9 +269,10 @@ JSDialog.prototype.constructor = JSDialog;
 JSDialog.prototype.appendButtons = function(buttonsPanel) {
   var html;
   if (this.applier) {
-    html = '<button class="dialog-ok-button">@{OptionPane.okButton.textAndMnemonic}</button><button class="dialog-cancel-button">@{OptionPane.cancelButton.textAndMnemonic}</button>';
+    html = "<button class='dialog-ok-button'>@{OptionPane.okButton.textAndMnemonic}</button>"
+         + "<button class='dialog-cancel-button'>@{OptionPane.cancelButton.textAndMnemonic}</button>";
   } else {
-    html = '<button class="dialog-cancel-button">@{InternalFrameTitlePane.closeButtonAccessibleName}</button>';
+    html = "<button class='dialog-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
   }
   buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences, html);
 
@@ -476,12 +480,13 @@ JSWizardDialog.prototype.constructor = JSWizardDialog;
  * @protected
  */
 JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
-  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
-      '<div class="wizard-buttons">' +
-      '  <button class="wizard-cancel-button">@{InternalFrameTitlePane.closeButtonAccessibleName}</button>' +
-      '  <button class="wizard-back-button">@{WizardPane.backOptionButton.text}</button>' +
-      '  <button class="wizard-next-button"></button>' +
-      '</div>');
+  var cancelButton = "<button class='wizard-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
+  var backButton = "<button class='wizard-back-button'>@{WizardPane.backOptionButton.text}</button>";
+  var nextButton = "<button class='wizard-next-button'></button>";
+  var buttons = "<div class='dialog-buttons'>" 
+      + (OperatingSystem.isMacOSX() ? nextButton + backButton : backButton + nextButton) 
+      + cancelButton + "</div>";
+  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences, buttons);
 
   this.cancelButton = this.findElement(".wizard-cancel-button");
   this.backButton = this.findElement(".wizard-back-button");

@@ -880,25 +880,28 @@ input, textarea, keygen, select, button {
 }
 
 .dialog-content .dialog-buttons {
-  padding: 0 1em;
-  height: 40px;
-  min-height: 40px;
+  padding: 0.5em 1em 0em 1em;
+  height: 42px;
+  min-height: 42px;
   box-sizing: border-box;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   background-color: #E9E9E9;
-  padding-top: 0.3em;
   border-top: solid lightgrey 1px;
+  text-align: center;
 }
 
 .dialog-content .dialog-buttons button {
   position: relative;
-  float: right;
   margin-right: 1em;
   font-size: 1em;
   cursor: pointer;
+}
+
+.dialog-content .mac button {
+  float: right;
 }
 
 .dialog-body label {
@@ -934,21 +937,6 @@ input, textarea, keygen, select, button {
   flex-grow: 1;
   height: 100%;
   overflow: auto;
-}
-
-.wizard-buttons {
-  text-align: right;
-  position: relative;
-  height: 100%;
-}
-
-.dialog-content .dialog-buttons .wizard-buttons button:last-child {
-  margin-right: 0;
-}
-
-.wizard-buttons button.wizard-cancel-button {
-  position: absolute;
-  left: 0;
 }
 
 .imported-texture-wizard [imageStep] .buttons {
@@ -1023,7 +1011,7 @@ input, textarea, keygen, select, button {
 }
 
 .background-image-wizard [previewZoomIn],
-.background-image-wizard [previewZoomOut]{
+.background-image-wizard [previewZoomOut] {
   width: 1.3em;
   height: 1.3em;
   cursor: pointer;
