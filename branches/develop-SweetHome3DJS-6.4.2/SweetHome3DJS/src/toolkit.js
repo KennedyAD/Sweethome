@@ -424,6 +424,10 @@ JSDialog.prototype.displayView = function(parentView) {
   setTimeout(function() {
       dialog.getHTMLElement().classList.add("visible");
       dialog.displayIndex = JSDialog.shownDialogsCounter++;
+      var focusedInput = dialog.findElement('input');
+      if (focusedInput != null) {
+        focusedInput.focus();
+      }
     }, 100);
 }
 
