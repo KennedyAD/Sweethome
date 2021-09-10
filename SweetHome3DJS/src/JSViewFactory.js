@@ -89,9 +89,9 @@ JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
  */
 JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
   buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
-      '<button class="dialog-cancel-button">' + this.cancelButtonMessage + '</button>' +
-      '<button class="keep-image-unchanged-button dialog-ok-button">' + this.keepUnchangedButtonMessage + '</button>' +
-      '<button class="dialog-ok-button">' + this.okButtonMessage + '</button>');
+      "<button class='dialog-ok-button'>" + this.okButtonMessage + "</button>"
+      + "<button class='keep-image-unchanged-button dialog-ok-button'>" + this.keepUnchangedButtonMessage + "</button>"
+      + "<button class='dialog-cancel-button'>" + this.cancelButtonMessage + "</button>");
 
   var dialog = this;
   var cancelButton = this.findElement(".dialog-cancel-button");
