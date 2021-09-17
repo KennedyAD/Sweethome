@@ -1678,14 +1678,14 @@ input, textarea, keygen, select, button {
   min-width: 100%;
 }
 
-.tree-table [header] [cell]:hover,
-.tree-table [header] [cell].sort {
+.tree-table [header] [cell]:hover:not(.sort.descending),
+.tree-table [header] [cell].sort:not(:hover) {
   cursor: pointer;
   background-color: #999999;
 }
 
-.tree-table [header] [cell].sort:after,
-.tree-table [header] [cell]:hover:after {
+.tree-table [header] [cell].sort:not(:hover):after,
+.tree-table [header] [cell]:hover:not(.sort.descending):after {
   content: '';
   background-image: url('resources/ascending.png');
   position: absolute;
