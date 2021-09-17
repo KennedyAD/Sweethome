@@ -2021,6 +2021,11 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     this.registerEventListener(basePlanItemCheckbox, "change", function(ev) {
         controller.setBasePlanItem(basePlanItemCheckbox.checked);
       });
+
+    this.locationPanel = {
+      element: this.findElement('.location-panel'),
+      elevationInput: elevationInput
+    };
   }
 
   /**
@@ -2162,6 +2167,12 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
           controller.setHorizontalAxis(HomeFurnitureController.FurnitureHorizontalAxis.PITCH);
         }
       });
+
+    if (!rollAndPitchDisplayed) {
+      this.findElement('.orientation-column').style.display = 'none';
+      this.locationPanel.elevationInput.parentElement.insertAdjacentElement('afterend', angleLabel);
+      angleLabel.insertAdjacentElement('afterend', angleInput.parentElement);
+    }
   }
 
   /**
