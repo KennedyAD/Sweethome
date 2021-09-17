@@ -456,12 +456,14 @@ input, textarea, keygen, select, button {
   display: inline-block;
   position: relative;
   text-align: right;
+  height: 1.5rem;
 }
 
 .spinner input[type="text"] {
   width: calc(100% - 2px);
   box-sizing: border-box;
   margin: 0;
+  height: 100%;
 }
 
 .spinner button {
