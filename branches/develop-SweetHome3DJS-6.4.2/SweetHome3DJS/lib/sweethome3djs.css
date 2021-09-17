@@ -405,22 +405,24 @@ input, textarea, keygen, select, button {
 }
 
 @media (hover: none), (pointer: coarse) {
-  @media (orientation: portrait) {
-    #furniture-category-select {
-      display: none;
-    }
-    #furniture-search-field {
-      width: 25px;
-      height: 20px;
-      position: relative;
-      z-index: 1;
-      margin-bottom: -20px;
-      top: 2px;
-    }
-    #furniture-search-field.expanded {
-      width: calc(100% - 1px);
-      transition: width 1s;      
-    }
+  html[orientation="portrait"] #furniture-category-select {
+    display: none;
+  }
+  html[orientation="portrait"] #furniture-search-field {
+    width: 25px;
+    height: 20px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: -20px;
+    top: 2px;
+  }
+  html[orientation="portrait"] #furniture-search-field.expanded {
+    width: calc(100% - 1px);
+    transition: width 1s;
+  }
+  html[orientation="portrait"] #furniture-filter > :first-child,
+  html[orientation="portrait"] #furniture-filter > * {
+    margin: 0;
   }
 }
 
@@ -459,6 +461,7 @@ input, textarea, keygen, select, button {
 .spinner input[type="text"] {
   width: calc(100% - 2px);
   box-sizing: border-box;
+  margin: 0;
 }
 
 .spinner button {
@@ -603,15 +606,6 @@ input, textarea, keygen, select, button {
 
 .popup-menu .back {
   display: none;
-}
-
-@media (hover: none), (pointer: coarse) {
-  @media (orientation: portrait) {
-    #furniture-filter > :first-child,
-    #furniture-filter > * {
-      margin: 0;
-    }
-  }
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -800,6 +794,7 @@ input, textarea, keygen, select, button {
 .dialog-body .label-input-grid .label-cell{
   text-align: right;
   white-space: nowrap;
+  /*line-height: 1.8em;*/
 }
 
 .dialog-body .columns-2 {
@@ -926,6 +921,7 @@ input, textarea, keygen, select, button {
 
 .dialog-body :not(.spinner) > input:not([type="radio"]):not([type="checkbox"]) {
   width: 12em;
+  margin: 0;
 }
 
 /*

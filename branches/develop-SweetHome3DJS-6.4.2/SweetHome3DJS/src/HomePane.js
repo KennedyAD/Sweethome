@@ -204,6 +204,9 @@ function HomePane(containerId, home, preferences, controller) {
   this.clipboardEmpty = true;
   this.actionMap = {};
   this.inputMap = {};
+
+  this.initOrientationChangeListener();
+
   this.createActions(home, preferences, controller);
   this.initActions(preferences);
   this.addHomeListener(home);
@@ -215,7 +218,7 @@ function HomePane(containerId, home, preferences, controller) {
   this.initSplitters();
   
   // Additional implementation for Sweet Home 3D JS
-  
+
   // Keyboard accelerators management
   var homePane = this;
   document.addEventListener("keydown", function(ev) {
@@ -2519,4 +2522,33 @@ HomePane.prototype.getClipboardItems = function() {
  */
 HomePane.prototype.invokeLater = function(runnable) {
   setTimeout(runnable);
+}
+
+/**
+ * @private
+ */
+HomePane.prototype.initOrientationChangeListener = function() {
+  var homePane = this;
+  var planView = homePane.controller.getPlanController().getView();
+  var view3D = homePane.controller.getHomeController3D().getView();
+
+
+  var html = document.querySelector('html');
+  var detectOrientation = function() {
+    var orientation;
+    if (OperatingSystem.isMobileOrTablet()) {
+      orientation = screen.availHeight > screen.availWidth ? "portrait" : "landscape";
+    } else {
+      orientation = html.clientHeight > html.clientWidth ? "portrait" : "landscape";
+    }
+    if (html.orientation != orientation) {
+      html.setAttribute("orientation", orientation);
+      setTimeout(function() {
+        planView.revalidate();
+        view3D.revalidate();
+      }, 10);
+    }
+  };
+  detectOrientation();
+  window.addEventListener("resize", CoreTools.debounce(detectOrientation, 150));
 }
