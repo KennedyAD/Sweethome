@@ -749,7 +749,7 @@ input, textarea, keygen, select, button {
 .dialog-content .dialog-close-button {
   color: #aaa;
   position: absolute;
-  top: 2px;
+  top: 0;
   right: 8px;
   font-size: 2em;
   font-weight: bold;
