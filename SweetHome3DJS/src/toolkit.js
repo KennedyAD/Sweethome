@@ -697,12 +697,18 @@ JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
 
 /**
  * @param {{}[]} items same type as JSPopupMenu.Builder.items
+ * @param {number} [zIndex] default to initial value: 1000
  * @return {HTMLElement} menu root html element (`<ul>`)
  * @private
  */
-JSPopupMenu.prototype.createMenuElement = function(items) {
+JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
+  if (zIndex === undefined) {
+    zIndex = 1000;
+  }
+
   var menuElement = document.createElement("ul");
   menuElement.classList.add("items");
+  menuElement.style.zIndex = zIndex;
 
   var backElement = document.createElement("li");
   backElement.classList.add("item");
@@ -725,7 +731,7 @@ JSPopupMenu.prototype.createMenuElement = function(items) {
     if (item == JSPopupMenu.CONTEXT_MENU_SEPARATOR_ITEM) {
       itemElement.classList.add("separator");
     } else {
-      this.initMenuItemElement(itemElement, item);
+      this.initMenuItemElement(itemElement, item, zIndex);
     }
 
     menuElement.appendChild(itemElement)
@@ -738,9 +744,10 @@ JSPopupMenu.prototype.createMenuElement = function(items) {
  * Initializes a menu item element for the given item descriptor (model).
  * @param {HTMLElement} menuItemElement
  * @param {{}[]} item an item from JSPopupMenu.Builder.items
+ * @param {number} zIndex current menu z-index
  * @private
  */
-JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item) {
+JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) {
   var contextMenu = this;
 
   if (item.mode !== undefined) {
@@ -769,7 +776,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item) {
   if (Array.isArray(item.subItems)) {
     itemElement.classList.add("sub-menu");
 
-    var subMenuElement = this.createMenuElement(item.subItems);
+    var subMenuElement = this.createMenuElement(item.subItems, zIndex + 1);
     this.registerEventListener(itemElement, "click", function(ev) {
         subMenuElement.classList.add("visible");
       });
