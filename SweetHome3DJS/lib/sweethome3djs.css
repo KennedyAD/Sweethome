@@ -735,20 +735,6 @@ input, textarea, keygen, select, button {
   }
 }
 
-@media (max-width: 800px) {
-  .dialog-container.visible:not(.small) .dialog-content {
-    top: 0;
-    bottom: 0;
-    height: 100%;
-    max-height: 100%;
-    width: 100%;
-    box-shadow: none;
-  }
-  .dialog-container.visible.small .dialog-content {
-    width: 80%;
-  }
-}
-
 .dialog-content .dialog-top {
   text-align: center;
   height: 40px;
@@ -879,6 +865,33 @@ input, textarea, keygen, select, button {
   grid-column: 1 / span 2;
 }
 
+@media (max-width: 800px) {
+  .dialog-container.visible:not(.small) .dialog-content {
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    max-height: 100%;
+    width: 100%;
+    box-shadow: none;
+  }
+  .dialog-container.visible.small .dialog-content {
+    width: 80%;
+  }
+  .dialog-container.buttons-3 .dialog-body {
+    max-height: calc(100%/* max content height */ - 153px /* title and buttons */);
+  }
+  .dialog-container.buttons-3 .dialog-buttons {
+    height: 115px;
+    min-height: 115px;
+    padding: 0;
+  }
+  .dialog-container.buttons-3 .dialog-buttons button {
+    display: block;
+    width: auto;
+    margin: 2px auto;
+  }
+}
+
 /* If screen is wide enough, allow double layout: 2 label+input pairs per line */
 @media (min-width: 600px) {
   .dialog-body .label-input-grid.double {
@@ -978,6 +991,7 @@ input, textarea, keygen, select, button {
   -ms-grid-columns: 1fr 1fr;
   grid-gap: 1em;
   margin: 1em;
+  white-space: nowrap;
 }
 
 .imported-texture-wizard [attributesStep] [form] [preview] {
@@ -990,6 +1004,16 @@ input, textarea, keygen, select, button {
   width: 16em;
   height: 16em;
 }
+
+@media (max-width: 800px) {
+  .imported-texture-wizard [attributesStep] [form] {
+    grid-template-columns: 2.5fr 3fr;
+  }
+  .imported-texture-wizard [attributesStep] [form] [preview] {
+    grid-column: 1 / span 2;
+  }
+}
+
 
 .background-image-wizard [choiceStep] .buttons {
   text-align: center;
@@ -1305,10 +1329,13 @@ input, textarea, keygen, select, button {
 
 .color-selector .picker > div.selected,
 .color-selector .picker > div:hover,
-.color-selector .custom-colors > div.selected,
-.color-selector .custom-colors > div:hover {
+.color-selector .custom-colors > div {
   opacity: 1;
   cursor: pointer;
+}
+
+.color-selector .custom-colors > div {
+  margin-top: .5rem;
 }
 
 .color-selector div.picker div {

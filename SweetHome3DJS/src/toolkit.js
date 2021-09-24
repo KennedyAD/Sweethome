@@ -257,6 +257,7 @@ function JSDialog(preferences, title, template, behavior) {
     this.buttonsPanel.classList.add("mac");
   }
   this.appendButtons(this.buttonsPanel);
+  this.getHTMLElement().classList.add('buttons-' + this.buttonsPanel.querySelectorAll('button').length);
 }
 JSDialog.prototype = Object.create(JSComponent.prototype);
 JSDialog.prototype.constructor = JSDialog;
