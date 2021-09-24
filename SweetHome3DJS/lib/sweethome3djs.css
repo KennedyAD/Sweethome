@@ -1583,18 +1583,32 @@ input, textarea, keygen, select, button {
   vertical-align: middle;
 }
 
+.model-materials-selector-dialog .dialog-body {
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -ms-flex-direction: row;
+  -webkit-flex-direction: row;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  flex-direction: row;
+
+}
+
+.model-materials-selector-dialog [data-name="preview-panel"] {
+  flex-shrink: 1;
+  margin-right: 1rem;
+}
+
 .model-materials-selector-dialog [data-name="edit-panel"] {
   display: flex;
   flex-direction: row;
+  flex-grow: 1;
 }
 
 .model-materials-selector-dialog [data-name="edit-panel"] > :first-child {
   flex-grow: 1;
   margin-right: .8em;
-}
-
-.model-materials-selector-dialog [data-name="materials-list"] {
-
 }
 
 .model-materials-selector-dialog [data-name="materials-list"] > div {
@@ -1621,13 +1635,6 @@ input, textarea, keygen, select, button {
   position: absolute;
   top: .3em;
   left: .3em;
-}
-
-.model-materials-selector-dialog .dialog-body > div {
-  height: 100%;
-}
-
-.model-materials-selector-dialog #model-preview-canvas {
 }
 
 .dialog-body input[type="range"] {
@@ -1780,7 +1787,6 @@ input, textarea, keygen, select, button {
   background-repeat: no-repeat;
   vertical-align: middle;
 }
-
 
 #furniture-view [cell].color,
 #furniture-view [cell].boolean {

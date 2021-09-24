@@ -93,12 +93,11 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
   }
 
   var html = 
-    '<div class="columns-2">' +
-    '  <div class="column1" data-name="preview-panel">' +
+    '  <div data-name="preview-panel">' +
     '    <span>@{ModelMaterialsComponent.previewLabel.text}</span><br/>' +
     '    <canvas id="model-preview-canvas"></canvas>' +
     '  </div>' + 
-    '  <div class="column2" data-name="edit-panel">' +
+    '  <div data-name="edit-panel">' +
     '    <div>' +
     '      <span>@{ModelMaterialsComponent.materialsLabel.text}</span><br/>' +
     '      <div data-name="materials-list">' +
@@ -120,11 +119,11 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
     '      <datalist id="model-materials-shininess-list"></datalist> ' +
     '      <div class="slider-labels"><div>@{ModelMaterialsComponent.mattLabel.text}</div><div>@{ModelMaterialsComponent.shinyLabel.text}</div></div>' +
     '    </div>' +
-    '  </div>' +
     '</div>';
 
   JSDialog.call(this, preferences, "@{HomeFurnitureController.modelMaterialsTitle}", html, 
       {
+        size: "medium",
         applier: function(dialog) {
           controller.setMaterials(dialog.materialsList.getMaterials());
           applier(dialog);
@@ -604,6 +603,11 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
 
   var previewPanel = this.getElement("preview-panel");
   var previewCanvas = this.findElement("#model-preview-canvas");
+
+  previewCanvas.style.border = "1px lightgray dotted";
+  previewCanvas.width = 350;
+  previewCanvas.height = 350;
+
   var previewComponent = dialog.previewComponent = new ModelPreviewComponent(previewCanvas, true);
   ModelManager.getInstance().loadModel(controller.getModel(), false, 
       {
