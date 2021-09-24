@@ -559,7 +559,8 @@ JSWizardDialog.prototype.updateStepView = function() {
  * @private
  */
 JSWizardDialog.prototype.updateStepIcon = function() {
-  this.stepIconPanel.innerHTML = "";
+  var iconPanel = this.stepIconPanel;
+  iconPanel.innerHTML = "";
   // Add new icon
   var stepIcon = this.controller.getStepIcon();
   if (stepIcon != null) {
@@ -581,8 +582,18 @@ JSWizardDialog.prototype.updateStepIcon = function() {
 
     var gradientColor1 = backgroundColor1;
     var gradientColor2 = backgroundColor2;
-    var cssBackground = "linear-gradient(180deg, " + gradientColor1 + " 0%, " + gradientColor2 + " 100%)";
-    this.stepIconPanel.innerHTML = '<img src="lib/' + stepIcon + '" style="background: ' + cssBackground + '; border: solid 1px #333333;" />';
+    iconPanel.style.background = "linear-gradient(180deg, " + gradientColor1 + " 0%, " + gradientColor2 + " 100%)";
+    iconPanel.style.border = "solid 1px #333333";
+    var icon = new Image();
+    icon.onload = function() {
+      if (iconPanel.clientHeight > 0) {
+        icon.style.marginTop = ((iconPanel.clientHeight - icon.height) / 2) + "px";
+      } else {
+        icon.style.marginTop = '50%';
+      }
+      iconPanel.appendChild(icon);
+    };
+    icon.src = "lib/" + stepIcon;
   }
 }
 
