@@ -376,10 +376,10 @@ body {
     </div>
 
     <br />
-    <div class="columns-3">
-      <div class="column1">
+    <div class="columns">
+      <div class="location-column">
         <h3 class="card">@{HomeFurniturePanel.locationPanel.title}</h3>
-        <div data-name="location-panel" class="card label-input-grid">
+        <div class="location-panel card label-input-grid">
           <div data-name="x-label" class="label-cell"></div>
           <div>
             <span data-name="x-input" />
@@ -443,7 +443,7 @@ body {
         </div>
       </div>
       
-      <div class="column2">
+      <div class="orientation-column">
         <h3 class="card">@{HomeFurniturePanel.orientationPanel.title}</h3>
         <div data-name="orientation-panel" class="card label-input-grid">
           <div class="whole-line" data-name="vertical-rotation-label">@{HomeFurniturePanel.verticalRotationLabel.text}</div>
@@ -477,7 +477,7 @@ body {
         </div>
       </div>
       
-      <div class="column3">
+      <div>
         <h3 class="card">@{HomeFurniturePanel.sizePanel.title}</h3>
         <div data-name="size-panel" class="card label-input-grid">
           <div data-name="width-label" class="label-cell"></div>
