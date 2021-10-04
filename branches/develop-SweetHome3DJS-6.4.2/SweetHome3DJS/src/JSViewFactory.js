@@ -1230,6 +1230,9 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
       var languageDisplayName = languageCode;
       try {
         languageDisplayName = new Intl.DisplayNames([languageCode, "en"], { type: "language" }).of(languageCode);
+        if (languageDisplayName == languageCode) {
+          throw "No support for Intl.DisplayNames";
+        }
         languageDisplayName = languageDisplayName.charAt(0).toUpperCase() + languageDisplayName.slice(1);
       } catch (ex) {
         languageDisplayName = {"bg": "Български",
