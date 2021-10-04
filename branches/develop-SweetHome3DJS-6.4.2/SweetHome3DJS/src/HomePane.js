@@ -205,8 +205,6 @@ function HomePane(containerId, home, preferences, controller) {
   this.actionMap = {};
   this.inputMap = {};
 
-  this.initOrientationChangeListener();
-
   this.createActions(home, preferences, controller);
   this.initActions(preferences);
   this.addHomeListener(home);
@@ -216,9 +214,10 @@ function HomePane(containerId, home, preferences, controller) {
   this.createToolBar(home, preferences);
   this.createPopupMenus(home, preferences);
   this.initSplitters();
+  this.addOrientationChangeListener();
   
   // Additional implementation for Sweet Home 3D JS
-
+  
   // Keyboard accelerators management
   var homePane = this;
   document.addEventListener("keydown", function(ev) {
@@ -1642,6 +1641,33 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
   splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
 }
 
+/**
+ * @private
+ */
+HomePane.prototype.addOrientationChangeListener = function() {
+  var planView = this.controller.getPlanController().getView();
+  var view3D = this.controller.getHomeController3D().getView();
+
+  var html = document.querySelector('html');
+  var detectOrientation = function() {
+     var orientation;
+      if (OperatingSystem.isMobileOrTablet()) {
+        orientation = screen.availHeight > screen.availWidth ? "portrait" : "landscape";
+      } else {
+        orientation = html.clientHeight > html.clientWidth ? "portrait" : "landscape";
+      }
+      if (html.orientation != orientation) {
+        html.setAttribute("orientation", orientation);
+        setTimeout(function() {
+            planView.revalidate();
+            view3D.revalidate();
+          }, 10);
+      }
+    };
+  detectOrientation();
+  window.addEventListener("resize", CoreTools.debounce(detectOrientation, 150));
+}
+
 /** 
  * @private 
  */
@@ -2514,6 +2540,7 @@ HomePane.prototype.isClipboardEmpty = function() {
 HomePane.prototype.getClipboardItems = function() {
   return this.clipboard;
 }
+
 /**
  * Execute <code>runnable</code> asynchronously in the thread
  * that manages toolkit events.
@@ -2522,33 +2549,4 @@ HomePane.prototype.getClipboardItems = function() {
  */
 HomePane.prototype.invokeLater = function(runnable) {
   setTimeout(runnable);
-}
-
-/**
- * @private
- */
-HomePane.prototype.initOrientationChangeListener = function() {
-  var homePane = this;
-  var planView = homePane.controller.getPlanController().getView();
-  var view3D = homePane.controller.getHomeController3D().getView();
-
-
-  var html = document.querySelector('html');
-  var detectOrientation = function() {
-    var orientation;
-    if (OperatingSystem.isMobileOrTablet()) {
-      orientation = screen.availHeight > screen.availWidth ? "portrait" : "landscape";
-    } else {
-      orientation = html.clientHeight > html.clientWidth ? "portrait" : "landscape";
-    }
-    if (html.orientation != orientation) {
-      html.setAttribute("orientation", orientation);
-      setTimeout(function() {
-        planView.revalidate();
-        view3D.revalidate();
-      }, 10);
-    }
-  };
-  detectOrientation();
-  window.addEventListener("resize", CoreTools.debounce(detectOrientation, 150));
 }
