@@ -76,6 +76,7 @@ body {
 
 #catalog-furniture-pane {
   top: 30px;
+  left: 0;
   width: 296px;
   height: calc(100% - 30px);
   overflow: hidden;
@@ -215,7 +216,7 @@ body {
     display: none;
   }
 
-  @media (orientation: portrait) {
+  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
 
     #home-3D-view {
       top: 0%;
@@ -278,7 +279,7 @@ body {
     }
   }
 
-  @media (orientation: landscape) {
+  @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
 
     #catalog-furniture-pane {
       top: 0%;
