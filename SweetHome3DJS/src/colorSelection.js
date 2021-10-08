@@ -26,6 +26,7 @@
  * @param {HTMLElement} targetNode target node on which attach this component 
  * @constructor
  * @author Louis Grignon
+ * @private
  */
 function JSColorSelector(preferences, targetNode) {
   var html = 
@@ -201,24 +202,19 @@ JSColorSelector.prototype.dispose = function() {
  * @param preferences      the current user preferences
  * @param {{color: number, applier: function(JSDialog)}} [options]
  * > color: selected color as ARGB int
+ * > title: title of the dialog
  * > applier: apply color change, color as a ARGB int
  * @constructor
+ * @private
  */
 function JSColorSelectorDialog(preferences, options) {
-  var applier;
-  if (typeof options == "object" && typeof options.applier == "function") {
-    applier = options.applier;
-  } else {
-    applier = function() {};
-  }
-
   var html = 
-    '<div>' + 
-    '  <div data-name="color-selector"></div>' + 
-    '</div>'
-  JSDialog.call(this, preferences, "@{HomeFurniturePanel.colorDialog.title}", html, 
+      '<div>' + 
+      '  <div data-name="color-selector"></div>' + 
+      '</div>';
+  JSDialog.call(this, preferences, options.title, html, 
       {
-        applier: applier
+        applier: options.applier
       });
 
   this.getHTMLElement().classList.add("color-selector-dialog");
@@ -296,6 +292,21 @@ JSColorSelectorButton.prototype.setColor = function(color) {
 }
 
 /**
+ * Returns the title of color dialog displayed when this button is pressed.
+ */
+JSColorSelectorButton.prototype.getColorDialogTitle = function() {
+  return this.colorDialogTitle;
+}
+
+/**
+ * Sets the title of color dialog displayed when this button is pressed.
+ * @param {string} colorDialogTitle
+ */
+JSColorSelectorButton.prototype.setColorDialogTitle = function(colorDialogTitle) {
+  this.colorDialogTitle = colorDialogTitle;
+}
+
+/**
  * Enables or disables this component.
  * @param {boolean} enabled  
  */
@@ -308,6 +319,7 @@ JSColorSelectorButton.prototype.openColorSelectorDialog = function() {
   var dialog = new JSColorSelectorDialog(this.preferences, 
       { 
         color: this.color,
+        title: this.colorDialogTitle,
         applier: function() {
           button.setColor(dialog.getSelectedColor());
           if (typeof button.options.colorChanged == "function") {

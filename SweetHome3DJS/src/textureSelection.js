@@ -29,6 +29,7 @@
  *   > applier: when dialog closes, takes dialog as parameter
  * @extends JSDialog
  * @constructor
+ * @private
  */
 function JSTextureSelectorDialog(preferences, controller, options) {
   this.controller = controller;
@@ -43,6 +44,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
   /**
    * @param {CatalogTexture} catalogTexture 
    * @return {HTMLElement}
+   * @private
    */
   function createTextureListItem(catalogTexture) {
     var textureCategory = catalogTexture.getCategory();
@@ -52,11 +54,6 @@ function JSTextureSelectorDialog(preferences, controller, options) {
         + textureCategory.getName() + " - " + catalogTexture.getName();
     catalogTextureItem._catalogTexture = catalogTexture;
     return catalogTextureItem;
-  }
-
-  var applier = function() {};
-  if (typeof options == "object" && typeof options.applier == "function") {
-    applier = options.applier;
   }
 
   var html = 
@@ -89,7 +86,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
     '</div>' +
     '<div class="recent-textures"></div>';
 
-  JSDialog.call(this, preferences, "@{HomeFurnitureController.textureTitle}", html, 
+  JSDialog.call(this, preferences, controller.getDialogTitle(), html, 
       {
         applier: function(dialog) {
           // Force refresh model from inputs, even if "change" event was not raised 
@@ -102,7 +99,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
             controller.addRecentTexture(selectedTexture);
           }
     
-          applier(dialog);
+          options.applier(dialog);
         },
         disposer: function(dialog) {
           preferences.getTexturesCatalog().removeTexturesListener(dialog.texturesCatalogListener);
