@@ -1791,7 +1791,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
           controller.modifyFurniture();
         },
         disposer: function(dialog) {
-          dialog.paintPanel.colorSelector.dispose();
+          dialog.paintPanel.colorButton.dispose();
           dialog.paintPanel.textureSelector.dispose();
         }
       });
@@ -2186,7 +2186,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var controller = this.controller;
     var preferences = this.preferences;
 
-    var colorSelector = new JSColorSelectorButton(preferences, null,
+    var colorButton = new JSColorSelectorButton(preferences, null,
         {
           colorChanged: function(color) {
               colorAndTextureRadioButtons[HomeFurnitureController.FurniturePaint.COLORED].checked = true;
@@ -2194,8 +2194,9 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
               controller.setColor(color);
             }
         });
-    dialog.attachChildComponent("color-selector-button", colorSelector);
-    colorSelector.setColor(controller.getColor());
+    dialog.attachChildComponent("color-button", colorButton);
+    colorButton.setColor(controller.getColor());
+    colorButton.setColorDialogTitle(preferences.getLocalizedString("HomeFurniturePanel", "colorDialog.title"));
 
     var textureSelector = controller.getTextureController().getView();
     textureSelector.textureChanged = function(texture) {
@@ -2203,7 +2204,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         controller.setPaint(HomeFurnitureController.FurniturePaint.TEXTURED);
         controller.getTextureController().setTexture(texture);
       };
-    dialog.attachChildComponent("texture-selector-button", textureSelector);
+    dialog.attachChildComponent("texture-component", textureSelector);
 
     var selectedPaint = controller.getPaint();
 
@@ -2219,9 +2220,9 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
           || (paint == HomeFurnitureController.FurniturePaint.DEFAULT && !colorAndTextureRadioButtons[selectedPaint]);
     }
 
-    // material
+    // Material
     var materialSelector = controller.getModelMaterialsController().getView();
-    dialog.attachChildComponent("material-selector-button", materialSelector);
+    dialog.attachChildComponent("material-component", materialSelector);
 
     var uniqueModel = controller.getModelMaterialsController().getModel() != null;
     colorAndTextureRadioButtons[HomeFurnitureController.FurniturePaint.MODEL_MATERIALS].disabled = !uniqueModel;
@@ -2229,7 +2230,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
     dialog.paintPanel = {
         colorAndTextureRadioButtons: colorAndTextureRadioButtons,
-        colorSelector: colorSelector,
+        colorButton: colorButton,
         textureSelector: textureSelector};
 
     var panelDisplay = controller.isPropertyEditable("PAINT") ? undefined : "none";
@@ -2641,7 +2642,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     });
 
     // Colors
-    dialog.leftSideColorSelector = new JSColorSelectorButton(preferences, null, 
+    dialog.leftSideColorButton = new JSColorSelectorButton(preferences, null, 
         {
           colorChanged: function(selectedColor) {
               dialog.findElement("[name='left-side-color-and-texture-choice'][value='COLORED']").checked = true;
@@ -2649,7 +2650,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
               controller.setLeftSideColor(selectedColor);
             }
         });
-    dialog.rightSideColorSelector = new JSColorSelectorButton(preferences, null, 
+    dialog.rightSideColorButton = new JSColorSelectorButton(preferences, null, 
         {
           colorChanged: function(selectedColor) {
             dialog.findElement("[name='right-side-color-and-texture-choice'][value='COLORED']").checked = true;
@@ -2657,25 +2658,21 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             controller.setRightSideColor(selectedColor);
           }
         });
-    dialog.leftSideColorSelector = new JSColorSelectorButton(preferences, null,
-        {
-          colorChanged: function(selectedColor) {
-            dialog.findElement("[name='left-side-color-and-texture-choice'][value='COLORED']").checked = true;
-            controller.setLeftSidePaint(WallController.WallPaint.COLORED);
-            controller.setLeftSideColor(selectedColor);
-          }
-        });
-    dialog.attachChildComponent("left-side-color-selector-button", dialog.leftSideColorSelector);
-    dialog.attachChildComponent("right-side-color-selector-button", dialog.rightSideColorSelector);
+    dialog.attachChildComponent("left-side-color-button", dialog.leftSideColorButton);
+    dialog.attachChildComponent("right-side-color-button", dialog.rightSideColorButton);
 
-    dialog.leftSideColorSelector.setColor(controller.getLeftSideColor());
-    dialog.rightSideColorSelector.setColor(controller.getRightSideColor());
+    dialog.leftSideColorButton.setColor(controller.getLeftSideColor());
+    dialog.leftSideColorButton.setColorDialogTitle(preferences.getLocalizedString(
+        "WallPanel", "leftSideColorDialog.title"));
+    dialog.rightSideColorButton.setColor(controller.getRightSideColor());
+    dialog.rightSideColorButton.setColorDialogTitle(preferences.getLocalizedString(
+        "WallPanel", "rightSideColorDialog.title"));
     controller.addPropertyChangeListener("LEFT_SIDE_COLOR", function() {
-      dialog.leftSideColorSelector.setColor(controller.getLeftSideColor());
-    });
+        dialog.leftSideColorButton.setColor(controller.getLeftSideColor());
+      });
     controller.addPropertyChangeListener("RIGHT_SIDE_COLOR", function() {
-      dialog.rightSideColorSelector.setColor(controller.getRightSideColor());
-    });
+        dialog.rightSideColorButton.setColor(controller.getRightSideColor());
+      });
 
     // Textures
     dialog.leftSideTextureSelector = controller.getLeftSideTextureController().getView();
@@ -2684,7 +2681,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         controller.setLeftSidePaint(WallController.WallPaint.TEXTURED);
         controller.getLeftSideTextureController().setTexture(texture);
       };
-    dialog.attachChildComponent('left-side-texture-selector-button', dialog.leftSideTextureSelector);
+    dialog.attachChildComponent('left-side-texture-component', dialog.leftSideTextureSelector);
 
     dialog.rightSideTextureSelector = controller.getRightSideTextureController().getView();
     dialog.rightSideTextureSelector.textureChanged = function(texture) {
@@ -2692,7 +2689,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         controller.setRightSidePaint(WallController.WallPaint.TEXTURED);
         controller.getRightSideTextureController().setTexture(texture);
       };
-    dialog.attachChildComponent("right-side-texture-selector-button", dialog.rightSideTextureSelector);
+    dialog.attachChildComponent("right-side-texture-component", dialog.rightSideTextureSelector);
 
     // shininess
     var leftSideShininessRadioMatt = dialog.findElement("[name='left-side-shininess-choice'][value='0']");
@@ -2790,7 +2787,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           setTopPaintFromController();
         });
   
-      dialog.topColorSelector = new JSColorSelectorButton(preferences, null,
+      dialog.topColorButton = new JSColorSelectorButton(preferences, null,
           {
             colorChanged: function(selectedColor) {
               topPaintRadioColor.checked = true;
@@ -2798,10 +2795,12 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
               controller.setTopColor(selectedColor);
             }
           });
-      dialog.attachChildComponent("top-color-selector-button", dialog.topColorSelector);
-      dialog.topColorSelector.setColor(controller.getTopColor());
+      dialog.attachChildComponent("top-color-button", dialog.topColorButton);
+      dialog.topColorButton.setColor(controller.getTopColor());
+      dialog.topColorButton.setColorDialogTitle(preferences.getLocalizedString(
+          "WallPanel", "topColorDialog.title"));
       controller.addPropertyChangeListener("TOP_COLOR", function() {
-          dialog.topColorSelector.setColor(controller.getTopColor());
+          dialog.topColorButton.setColor(controller.getTopColor());
         });
     };
 
@@ -2938,11 +2937,11 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           controller.modifyWalls();
         },
         disposer: function(dialog) {
-          dialog.leftSideColorSelector.dispose();
-          dialog.rightSideColorSelector.dispose();
+          dialog.leftSideColorButton.dispose();
+          dialog.rightSideColorButton.dispose();
           dialog.leftSideTextureSelector.dispose();
           dialog.rightSideTextureSelector.dispose();
-          dialog.topColorSelector.dispose();
+          dialog.topColorButton.dispose();
         },
         size: "medium"
       });
@@ -3001,7 +3000,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       // FLOOR_PAINT
       var floorColorCheckbox = dialog.findElement("[name='floor-color-and-texture-choice'][value='COLORED']");
-      dialog.floorColorSelector = new JSColorSelectorButton(preferences, null,
+      dialog.floorColorButton = new JSColorSelectorButton(preferences, null,
           {
             colorChanged: function(selectedColor) {
               floorColorCheckbox.checked = true;
@@ -3009,8 +3008,10 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
               controller.setFloorColor(selectedColor);
             }
           });
-      dialog.attachChildComponent("floor-color-selector-button", dialog.floorColorSelector)
-      dialog.floorColorSelector.setColor(controller.getFloorColor());
+      dialog.attachChildComponent("floor-color-button", dialog.floorColorButton);
+      dialog.floorColorButton.setColor(controller.getFloorColor());
+      dialog.floorColorButton.setColorDialogTitle(preferences.getLocalizedString(
+          "RoomPanel", "floorColorDialog.title"));
   
       var floorTextureCheckbox = dialog.findElement("[name='floor-color-and-texture-choice'][value='TEXTURED']");
       dialog.floorTextureSelector = controller.getFloorTextureController().getView();
@@ -3019,7 +3020,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           controller.setFloorPaint(RoomController.RoomPaint.TEXTURED);
           controller.getFloorTextureController().setTexture(texture);
         };
-      dialog.attachChildComponent("floor-texture-selector-button", dialog.floorTextureSelector);
+      dialog.attachChildComponent("floor-texture-component", dialog.floorTextureSelector);
   
       dialog.registerEventListener([floorColorCheckbox, floorTextureCheckbox], "change", function(ev) {
           controller.setFloorPaint(RoomController.RoomPaint[this.value]);
@@ -3035,8 +3036,8 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       var floorPaintDisplay = controller.isPropertyEditable("FLOOR_PAINT") ? "initial" : "none";
       floorColorCheckbox.parentElement.parentElement.style.display = floorPaintDisplay;
       floorTextureCheckbox.parentElement.parentElement.style.display = floorPaintDisplay;
-      dialog.getElement("floor-color-selector-button").style.display = floorPaintDisplay;
-      dialog.getElement("floor-texture-selector-button").style.display = floorPaintDisplay;
+      dialog.getElement("floor-color-button").style.display = floorPaintDisplay;
+      dialog.getElement("floor-texture-component").style.display = floorPaintDisplay;
   
       // FLOOR_SHININESS
       var shininessRadioButtons = dialog.findElements("[name='floor-shininess-choice']");
@@ -3071,7 +3072,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       // CEILING_PAINT
       var ceilingColorCheckbox = dialog.findElement("[name='ceiling-color-and-texture-choice'][value='COLORED']");
-      dialog.ceilingColorSelector = new JSColorSelectorButton(preferences, null,
+      dialog.ceilingColorButton = new JSColorSelectorButton(preferences, null,
           {
             colorChanged: function(selectedColor) {
               ceilingColorCheckbox.checked = true;
@@ -3079,8 +3080,10 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
               controller.setCeilingColor(selectedColor);
             }
           });
-      dialog.attachChildComponent("ceiling-color-selector-button", dialog.ceilingColorSelector)
-      dialog.ceilingColorSelector.setColor(controller.getCeilingColor());
+      dialog.attachChildComponent("ceiling-color-button", dialog.ceilingColorButton);
+      dialog.ceilingColorButton.setColor(controller.getCeilingColor());
+      dialog.ceilingColorButton.setColorDialogTitle(preferences.getLocalizedString(
+          "RoomPanel", "ceilingColorDialog.title"));
   
       var ceilingTextureCheckbox = dialog.findElement("[name='ceiling-color-and-texture-choice'][value='TEXTURED']");
       dialog.ceilingTextureSelector = controller.getCeilingTextureController().getView();
@@ -3089,7 +3092,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
         controller.setCeilingPaint(RoomController.RoomPaint.TEXTURED);
         controller.getCeilingTextureController().setTexture(texture);
       };
-      dialog.attachChildComponent("ceiling-texture-selector-button", dialog.ceilingTextureSelector);
+      dialog.attachChildComponent("ceiling-texture-component", dialog.ceilingTextureSelector);
   
       dialog.registerEventListener([ceilingColorCheckbox, ceilingTextureCheckbox], "change", function(ev) {
           controller.setCeilingPaint(RoomController.RoomPaint[this.value]);
@@ -3105,8 +3108,8 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       var ceilingPaintDisplay = controller.isPropertyEditable("CEILING_PAINT") ? "initial" : "none";
       ceilingColorCheckbox.parentElement.parentElement.style.display = ceilingPaintDisplay;
       ceilingTextureCheckbox.parentElement.parentElement.style.display = ceilingPaintDisplay;
-      dialog.getElement("ceiling-color-selector-button").style.display = ceilingPaintDisplay;
-      dialog.getElement("ceiling-texture-selector-button").style.display = ceilingPaintDisplay;
+      dialog.getElement("ceiling-color-button").style.display = ceilingPaintDisplay;
+      dialog.getElement("ceiling-texture-component").style.display = ceilingPaintDisplay;
   
       // CEILING_SHININESS
       var shininessRadioButtons = dialog.findElements("[name='ceiling-shininess-choice']");
@@ -3155,7 +3158,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       // WALL_SIDES_PAINT
       var wallSidesColorCheckbox = dialog.findElement("[name='wall-sides-color-and-texture-choice'][value='COLORED']");
-      dialog.wallSidesColorSelector = new JSColorSelectorButton(preferences, null,
+      dialog.wallSidesColorButton = new JSColorSelectorButton(preferences, null,
           {
             colorChanged: function(selectedColor) {
               wallSidesColorCheckbox.checked = true;
@@ -3163,8 +3166,10 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
               controller.setWallSidesColor(selectedColor);
             }
           });
-      dialog.attachChildComponent("wall-sides-color-selector-button", dialog.wallSidesColorSelector)
-      dialog.wallSidesColorSelector.setColor(controller.getWallSidesColor());
+      dialog.attachChildComponent("wall-sides-color-button", dialog.wallSidesColorButton);
+      dialog.wallSidesColorButton.setColor(controller.getWallSidesColor());
+      dialog.wallSidesColorButton.setColorDialogTitle(preferences.getLocalizedString(
+          "RoomPanel", "wallSidesColorDialog.title"));
   
       var wallSidesTextureCheckbox = dialog.findElement("[name='wall-sides-color-and-texture-choice'][value='TEXTURED']");
       dialog.wallSidesTextureSelector = controller.getWallSidesTextureController().getView();
@@ -3173,7 +3178,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           controller.setWallSidesPaint(RoomController.RoomPaint.TEXTURED);
           controller.getWallSidesTextureController().setTexture(texture);
         };
-      dialog.attachChildComponent("wall-sides-texture-selector-button", dialog.wallSidesTextureSelector);
+      dialog.attachChildComponent("wall-sides-texture-component", dialog.wallSidesTextureSelector);
   
       dialog.registerEventListener([wallSidesColorCheckbox, wallSidesTextureCheckbox], "change", function(ev) {
           controller.setWallSidesPaint(RoomController.RoomPaint[this.value]);
@@ -3189,8 +3194,8 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       var wallSidesPaintDisplay = controller.isPropertyEditable("WALL_SIDES_PAINT") ? "initial" : "none";
       wallSidesColorCheckbox.parentElement.parentElement.style.display = wallSidesPaintDisplay;
       wallSidesTextureCheckbox.parentElement.parentElement.style.display = wallSidesPaintDisplay;
-      dialog.getElement("wall-sides-color-selector-button").style.display = wallSidesPaintDisplay;
-      dialog.getElement("wall-sides-texture-selector-button").style.display = wallSidesPaintDisplay;
+      dialog.getElement("wall-sides-color-button").style.display = wallSidesPaintDisplay;
+      dialog.getElement("wall-sides-texture-component").style.display = wallSidesPaintDisplay;
   
       // WALL_SIDES_SHININESS
       var shininessRadioButtons = dialog.findElements("[name='wall-sides-shininess-choice']");
@@ -3235,9 +3240,9 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           controller.modifyRooms();
         },
         disposer: function(dialog) {
-          dialog.floorColorSelector.dispose();
+          dialog.floorColorButton.dispose();
           dialog.floorTextureSelector.dispose();
-          dialog.ceilingColorSelector.dispose();
+          dialog.ceilingColorButton.dispose();
           dialog.ceilingTextureSelector.dispose();
         },
       });
@@ -3534,18 +3539,20 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           controller.modifyPolylines();
         },
         disposer: function(dialog) {
-          dialog.colorSelector.dispose();
+          dialog.colorButton.dispose();
         }
       });
 
-  dialog.colorSelector = new JSColorSelectorButton(preferences, null,
+  dialog.colorButton = new JSColorSelectorButton(preferences, null,
       {
         colorChanged: function(selectedColor) {
           controller.setColor(selectedColor);
         }
       });
-  dialog.attachChildComponent("color-selector-button", dialog.colorSelector)
-  dialog.colorSelector.setColor(controller.getColor());
+  dialog.attachChildComponent("color-button", dialog.colorButton);
+  dialog.colorButton.setColor(controller.getColor());
+  dialog.colorButton.setColorDialogTitle(preferences.getLocalizedString(
+      "PolylinePanel", "colorDialog.title"));
 
   dialog.thicknessLabelElement = dialog.getElement("thickness-label");
   dialog.thicknessLabelElement.textContent = dialog.getLocalizedLabelText(
@@ -3690,8 +3697,10 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
           controller.setColor(dialog.colorButton.getColor());
         }
       });
-  dialog.attachChildComponent("color-selector-button", dialog.colorButton);
+  dialog.attachChildComponent("color-button", dialog.colorButton);
   dialog.colorButton.setColor(controller.getColor());
+  dialog.colorButton.setColorDialogTitle(preferences
+      .getLocalizedString("LabelPanel", "colorDialog.title"));
   controller.addPropertyChangeListener("COLOR", function() {
       dialog.colorButton.setColor(controller.getColor());
     });
@@ -4128,9 +4137,9 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
             dialog.controller.modify3DAttributes();
           },
           disposer: function(dialog) {
-            dialog.groundPanel.colorSelector.dispose();
+            dialog.groundPanel.colorButton.dispose();
             dialog.groundPanel.textureSelector.dispose();
-            dialog.skyPanel.colorSelector.dispose();
+            dialog.skyPanel.colorButton.dispose();
             dialog.skyPanel.textureSelector.dispose();
           }
         });
@@ -4151,7 +4160,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     var dialog = this;
 
     var paintRadioColor = dialog.findElement("[name='ground-color-and-texture-choice'][value='COLORED']");
-    var colorSelector = new JSColorSelectorButton(preferences, null, 
+    var groundColorButton = new JSColorSelectorButton(preferences, null, 
         {
           colorChanged: function(selectedColor) {
             paintRadioColor.checked = true;
@@ -4159,8 +4168,10 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
             controller.setGroundColor(selectedColor);
           }
         });
-    dialog.attachChildComponent("ground-color-selector-button", colorSelector)
-    colorSelector.setColor(controller.getGroundColor());
+    dialog.attachChildComponent("ground-color-button", groundColorButton);
+    groundColorButton.setColor(controller.getGroundColor());
+    groundColorButton.setColorDialogTitle(preferences.getLocalizedString(
+        "Home3DAttributesPanel", "groundColorDialog.title"));
 
     var paintRadioTexture = dialog.findElement("[name='ground-color-and-texture-choice'][value='TEXTURED']");
     var textureSelector = controller.getGroundTextureController().getView();
@@ -4169,7 +4180,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
         controller.setGroundPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
         controller.getGroundTextureController().setTexture(texture);
       };
-    dialog.attachChildComponent("ground-texture-selector-button", textureSelector);
+    dialog.attachChildComponent("ground-texture-component", textureSelector);
 
     var radioButtons = [paintRadioColor, paintRadioTexture];
     dialog.registerEventListener(radioButtons, "change", function(ev) {
@@ -4185,7 +4196,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     setPaintFromController();
     controller.addPropertyChangeListener("GROUND_PAINT", setPaintFromController);
     controller.addPropertyChangeListener("GROUND_COLOR", function(ev) {
-        colorSelector.setColor(controller.getGroundColor());
+        groundColorButton.setColor(controller.getGroundColor());
       });
 
     var backgroundImageVisibleOnGround3DCheckBox = this.getElement("background-image-visible-on-ground-3D-checkbox");
@@ -4198,7 +4209,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
       });
 
     this.groundPanel = {
-        colorSelector: colorSelector,
+        colorButton: groundColorButton,
         textureSelector: textureSelector,
       };
   };
@@ -4211,7 +4222,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     var dialog = this;
 
     var paintRadioColor = dialog.findElement("[name='sky-color-and-texture-choice'][value='COLORED']");
-    var colorSelector = new JSColorSelectorButton(preferences, null, 
+    var skyColorButton = new JSColorSelectorButton(preferences, null, 
         {
           colorChanged: function(selectedColor) {
             paintRadioColor.checked = true;
@@ -4219,8 +4230,10 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
             controller.setSkyColor(selectedColor);
           }
         });
-    dialog.attachChildComponent("sky-color-selector-button", colorSelector)
-    colorSelector.setColor(controller.getSkyColor());
+    dialog.attachChildComponent("sky-color-button", skyColorButton);
+    skyColorButton.setColor(controller.getSkyColor());
+    skyColorButton.setColorDialogTitle(preferences.getLocalizedString(
+        "Home3DAttributesPanel", "skyColorDialog.title"));
 
     var paintRadioTexture = dialog.findElement("[name='sky-color-and-texture-choice'][value='TEXTURED']");
     var textureSelector = controller.getSkyTextureController().getView();
@@ -4229,7 +4242,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
         controller.setSkyPaint(Home3DAttributesController.EnvironmentPaint.TEXTURED);
         controller.getSkyTextureController().setTexture(texture);
       };
-    dialog.attachChildComponent("sky-texture-selector-button", textureSelector);
+    dialog.attachChildComponent("sky-texture-component", textureSelector);
 
     var radioButtons = [paintRadioColor, paintRadioTexture];
     dialog.registerEventListener(radioButtons, "change", function(ev) {
@@ -4245,13 +4258,13 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     setPaintFromController();
     controller.addPropertyChangeListener("SKY_PAINT", setPaintFromController);
     controller.addPropertyChangeListener("SKY_COLOR", function() {
-      colorSelector.setColor(controller.getSkyColor());
-    });
+        skyColorButton.setColor(controller.getSkyColor());
+      });
 
     this.skyPanel = {
-      colorSelector: colorSelector,
-      textureSelector: textureSelector,
-    }
+        colorButton: skyColorButton,
+        textureSelector: textureSelector,
+      };
   };
 
   /**
@@ -4328,7 +4341,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       '        @{BaseboardChoiceComponent.colorRadioButton.text}' +
       '    </label>' +
       '  </div>' +
-      '  <div data-name="baseboard-color-selector-button"></div>' +
+      '  <div data-name="baseboard-color-button"></div>' +
       '' +
       '  <div>' +
       '    <label>' +
@@ -4336,7 +4349,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       '        @{BaseboardChoiceComponent.textureRadioButton.text}' +
       '    </label>' +
       '  </div>' +
-      '  <div data-name="baseboard-texture-selector-button"></div>' +
+      '  <div data-name="baseboard-texture-component"></div>' +
       '' +
       '  <div class="whole-line">' +
       '    <hr/>' +
@@ -4348,7 +4361,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       '  <div><span data-name="thickness-input"></span></div>',
       {
         disposer: function(view) {
-          view.colorSelector.dispose();
+          view.colorButton.dispose();
           view.textureSelector.dispose();
         }
       });
@@ -4370,7 +4383,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       for (var i = 0; i < view.colorAndTextureRadioButtons.length; i++) {
         view.colorAndTextureRadioButtons[i].disabled = !componentsEnabled;
       }
-      view.colorSelector.setEnabled(componentsEnabled);
+      view.colorButton.setEnabled(componentsEnabled);
       view.textureSelector.setEnabled(componentsEnabled);
       view.heightInput.setEnabled(componentsEnabled);
       view.thicknessInput.setEnabled(componentsEnabled);
@@ -4383,7 +4396,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
   var paintRadioSameAsWall = view.findElement("[name='baseboard-color-and-texture-choice'][value='sameColorAsWall']");
 
   var paintRadioColor = view.findElement("[name='baseboard-color-and-texture-choice'][value='COLORED']");
-  view.colorSelector = new JSColorSelectorButton(preferences, null,
+  view.colorButton = new JSColorSelectorButton(preferences, null,
       {
         colorChanged: function(selectedColor) {
           paintRadioColor.checked = true;
@@ -4391,8 +4404,10 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
           controller.setColor(selectedColor);
         }
       });
-  view.attachChildComponent("baseboard-color-selector-button", view.colorSelector)
-  view.colorSelector.setColor(controller.getColor());
+  view.attachChildComponent("baseboard-color-button", view.colorButton);
+  view.colorButton.setColor(controller.getColor());
+  view.colorButton.setColorDialogTitle(preferences.getLocalizedString(
+      "BaseboardChoiceComponent", "colorDialog.title"));
 
   var paintRadioTexture = view.findElement("[name='baseboard-color-and-texture-choice'][value='TEXTURED']");
   view.textureSelector = controller.getTextureController().getView();
@@ -4401,7 +4416,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
       controller.setPaint(BaseboardChoiceController.BaseboardPaint.TEXTURED);
       controller.getTextureController().setTexture(texture);
     };
-  view.attachChildComponent("baseboard-texture-selector-button", view.textureSelector);
+  view.attachChildComponent("baseboard-texture-component", view.textureSelector);
 
   view.colorAndTextureRadioButtons = [paintRadioSameAsWall, paintRadioColor, paintRadioTexture];
   view.registerEventListener(view.colorAndTextureRadioButtons, "change", function(ev) {

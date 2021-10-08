@@ -423,7 +423,7 @@ body {
               @{HomeFurniturePanel.colorRadioButton.text}
             </label>
           </div>
-          <div data-name="color-selector-button"></div>
+          <div data-name="color-button"></div>
 
           <div>
             <label>
@@ -431,7 +431,7 @@ body {
               @{HomeFurniturePanel.textureRadioButton.text}
             </label>
           </div>
-          <div data-name="texture-selector-button"></div>
+          <div data-name="texture-component"></div>
 
           <div>
             <label>
@@ -439,7 +439,7 @@ body {
               @{HomeFurniturePanel.modelMaterialsRadioButton.text}
             </label>
           </div>
-          <div data-name="material-selector-button"></div>
+          <div data-name="material-component"></div>
         </div>
       </div>
       
@@ -604,7 +604,7 @@ body {
               @{Home3DAttributesPanel.groundColorRadioButton.text}
             </label>
           </div>
-          <div data-name="ground-color-selector-button"></div>
+          <div data-name="ground-color-button"></div>
 
           <div>
             <label>
@@ -612,7 +612,7 @@ body {
               @{Home3DAttributesPanel.groundTextureRadioButton.text}
             </label>
           </div>
-          <div data-name="ground-texture-selector-button"></div>
+          <div data-name="ground-texture-component"></div>
 
           <div class="whole-line">
             <label>
@@ -631,7 +631,7 @@ body {
               @{Home3DAttributesPanel.skyColorRadioButton.text}
             </label>
           </div>
-          <div data-name="sky-color-selector-button"></div>
+          <div data-name="sky-color-button"></div>
 
           <div>
             <label>
@@ -639,7 +639,7 @@ body {
               @{Home3DAttributesPanel.skyTextureRadioButton.text}
             </label>
           </div>
-          <div data-name="sky-texture-selector-button"></div>
+          <div data-name="sky-texture-component"></div>
         </div>
       </div>
     </div>
@@ -799,7 +799,7 @@ body {
               @{WallPanel.leftSideColorRadioButton.text}
             </label>
           </div>
-          <div data-name="left-side-color-selector-button"></div>
+          <div data-name="left-side-color-button"></div>
           
           <div>
             <label>
@@ -807,7 +807,7 @@ body {
               @{WallPanel.leftSideTextureRadioButton.text}
             </label>
           </div>
-          <div data-name="left-side-texture-selector-button"></div>
+          <div data-name="left-side-texture-component"></div>
 
           <div class="whole-line">
             <hr />
@@ -837,7 +837,7 @@ body {
               @{WallPanel.rightSideColorRadioButton.text}
             </label>
           </div>
-          <div data-name="right-side-color-selector-button"></div>
+          <div data-name="right-side-color-button"></div>
           
           <div>
             <label>
@@ -845,7 +845,7 @@ body {
               @{WallPanel.rightSideTextureRadioButton.text}
             </label>
           </div>         
-          <div data-name="right-side-texture-selector-button"></div>
+          <div data-name="right-side-texture-component"></div>
 
           <div class="whole-line">
             <hr />
@@ -882,7 +882,7 @@ body {
         <label>
           <input type="radio" name="top-color-choice" value="COLORED">
           @{WallPanel.topColorRadioButton.text}
-          <span data-name="top-color-selector-button"></span>
+          <span data-name="top-color-button"></span>
         </label>
       </span>
     </div>
@@ -979,7 +979,7 @@ body {
               @{RoomPanel.floorColorRadioButton.text}
             </label>
           </div>
-          <div data-name="floor-color-selector-button"></div>
+          <div data-name="floor-color-button"></div>
 
           <div>
             <label>
@@ -987,7 +987,7 @@ body {
               @{RoomPanel.floorTextureRadioButton.text}
             </label>
           </div>
-          <div data-name="floor-texture-selector-button"></div>
+          <div data-name="floor-texture-component"></div>
     
           <div class="whole-line">
             <hr />
@@ -1023,7 +1023,7 @@ body {
               @{RoomPanel.ceilingColorRadioButton.text}
             </label>
           </div>
-          <div data-name="ceiling-color-selector-button"></div>
+          <div data-name="ceiling-color-button"></div>
 
           <div>
             <label>
@@ -1031,7 +1031,7 @@ body {
               @{RoomPanel.ceilingTextureRadioButton.text}
             </label>
           </div>
-          <div data-name="ceiling-texture-selector-button"></div>
+          <div data-name="ceiling-texture-component"></div>
 
           <div class="whole-line">
             <hr />
@@ -1068,14 +1068,14 @@ body {
               @{RoomPanel.wallSidesColorRadioButton.text}
             </label>
           </div>
-          <div data-name="wall-sides-color-selector-button"></div>
+          <div data-name="wall-sides-color-button"></div>
           <div>
             <label>
               <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">
               @{RoomPanel.wallSidesTextureRadioButton.text}
             </label>
           </div>
-          <div data-name="wall-sides-texture-selector-button"></div>
+          <div data-name="wall-sides-texture-component"></div>
 
           <div class="whole-line">
             <hr />
@@ -1271,7 +1271,7 @@ body {
     <div>
       @{PolylinePanel.colorLabel.text}
     </div>
-    <div data-name="color-selector-button"></div>
+    <div data-name="color-button"></div>
     
     <div>
       <label>
@@ -1328,7 +1328,7 @@ body {
       <div data-name="color-label">
         @{LabelPanel.colorLabel.text}
       </div>
-      <div data-name="color-selector-button"></div>
+      <div data-name="color-button"></div>
     </div>
 
     <br />
