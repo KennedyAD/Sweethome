@@ -415,15 +415,16 @@ input, textarea, keygen, select, button {
 }
 
 #furniture-search-field {
+  left: 0;
   background: url(search.gif) no-repeat scroll 0px 0px;
   background-color: #FFFFFFAA;
   border-width: thin;
   border-radius: 5px;
-  padding-left: 20px;  
+  padding-left: 20px;
 }
 
 @media (hover: none), (pointer: coarse) {
-  @media (orientation: portrait) {
+  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
     #furniture-category-select {
       display: none;
     }
