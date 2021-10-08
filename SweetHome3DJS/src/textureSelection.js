@@ -98,8 +98,6 @@ function JSTextureSelectorDialog(preferences, controller, options) {
           if (selectedTexture != null) {
             controller.addRecentTexture(selectedTexture);
           }
-    
-          options.applier(dialog);
         },
         disposer: function(dialog) {
           preferences.getTexturesCatalog().removeTexturesListener(dialog.texturesCatalogListener);
