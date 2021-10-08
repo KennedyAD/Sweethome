@@ -88,11 +88,6 @@ JSModelMaterialsSelectorButton.prototype.dispose = function() {
 function JSModelMaterialsSelectorDialog(preferences, controller, options) {
   this.controller = controller;
 
-  var applier = function() {};
-  if (typeof options == "object" && typeof options.applier == "function") {
-    applier = options.applier;
-  }
-
   var html = 
     '  <div data-name="preview-panel">' +
     '    <span>@{ModelMaterialsComponent.previewLabel.text}</span><br/>' +
@@ -127,7 +122,6 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
         size: "medium",
         applier: function(dialog) {
           controller.setMaterials(dialog.materialsList.getMaterials());
-          applier(dialog);
         },
         disposer: function(dialog) {
           dialog.selectedMaterialBlinker.stop();
