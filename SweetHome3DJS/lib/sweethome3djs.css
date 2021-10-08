@@ -444,6 +444,17 @@ input, textarea, keygen, select, button {
       transition: width 0.5s;
     }
   }
+  
+  @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+    #furniture-filter > :first-child {
+      margin-top: 2px;
+    }
+
+   #furniture-filter > * {
+      margin-bottom: 2px;
+      height: 1.35em;
+    }
+  }
 }
 
 /*
