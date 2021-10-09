@@ -1522,7 +1522,7 @@ HomePane.prototype.initSplitters = function() {
             planView.revalidate();
             view3D.revalidate();
             if (lastPosition) {
-              saveSplitterPosition(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
+                                                     ;
             }
           });
   }
@@ -1628,7 +1628,7 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
         if (onresize !== undefined) {
           onresize(mouseListener.currentPosition, true);
         }
-      }
+      } 
     };
 
   if (initialSplitterPosition != null) {
@@ -1639,33 +1639,33 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
   }
   splitterElement.addEventListener("mousedown", mouseListener.mousePressed, true);
   splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
+  // Ensure splitter doesn't disappear after a window resize 
+  window.addEventListener("resize", function(ev) {
+      if (offsetParent[offsetProperty] + splitterElement[offsetProperty] + splitterElement[dimensionProperty]
+          > document.documentElement[dimensionProperty]) {
+        mouseListener.setSplitterPosition(document.documentElement[dimensionProperty] - splitterElement[dimensionProperty] - offsetParent[offsetProperty]);
+      }
+    });
 }
 
 /**
  * @private
  */
 HomePane.prototype.addOrientationChangeListener = function() {
-  var planView = this.controller.getPlanController().getView();
-  var view3D = this.controller.getHomeController3D().getView();
-
-  var html = document.querySelector('html');
-  var detectOrientation = function() {
-     var orientation;
-      if (OperatingSystem.isMobileOrTablet()) {
-        orientation = screen.availHeight > screen.availWidth ? "portrait" : "landscape";
-      } else {
-        orientation = html.clientHeight > html.clientWidth ? "portrait" : "landscape";
-      }
-      if (html.orientation != orientation) {
-        html.setAttribute("orientation", orientation);
-        setTimeout(function() {
-            planView.revalidate();
-            view3D.revalidate();
-          }, 10);
+  var homePane = this;
+  var orientationListener = function(ev) {
+      var planView = homePane.controller.getPlanController().getView();
+      var view3D = homePane.controller.getHomeController3D().getView();
+      if (planView != null && view3D != null) {
+        var splitter = document.getElementById("plan-3D-view-splitter");
+        splitter.removeAttribute("style");
+        planView.getHTMLElement().removeAttribute("style");
+        view3D.getHTMLElement().removeAttribute("style");
+        planView.revalidate();
+        view3D.revalidate();
       }
     };
-  detectOrientation();
-  window.addEventListener("resize", CoreTools.debounce(detectOrientation, 150));
+  window.addEventListener("orientationchange", orientationListener);
 }
 
 /** 
