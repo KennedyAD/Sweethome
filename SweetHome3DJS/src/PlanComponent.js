@@ -2144,7 +2144,7 @@ PlanComponent.prototype.addTextBounds = function(selectableClass, text, style, x
 PlanComponent.prototype.getTextBounds = function(text, style, x, y, angle) {
   var fontMetrics = this.getFontMetrics(this.getFont(), style);
   var textBounds = null;
-  var lines = text.split("\n");
+  var lines = text.replace(/\n*$/, "").split("\n");
   var g = this.getGraphics();
   if (g != null) {
     this.setRenderingHints(g);
@@ -2175,8 +2175,7 @@ PlanComponent.prototype.getTextBounds = function(text, style, x, y, angle) {
         [x + shiftX + textWidth, minY], 
         [x + shiftX + textWidth, maxY], 
         [x + shiftX, maxY]];
-  }
-  else {
+  } else {
     textBounds.add(textBounds.getX(), textBounds.getY() - textBounds.getHeight() * (lines.length - 1));
     var transform = new java.awt.geom.AffineTransform();
     transform.translate(x, y);
@@ -3242,7 +3241,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
     style = this.preferences.getDefaultTextStyle(selectableClass);
   }
   var fontMetrics = this.getFontMetrics(defaultFont, style);
-  var lines = text.split("\n");
+  var lines = text.replace(/\n*$/, "").split("\n");
   var lineWidths = new Array(lines.length);
   var textWidth = -3.4028235E38;
   for (var i = 0; i < lines.length; i++) {
@@ -3547,14 +3546,18 @@ PlanComponent.prototype.paintTextIndicators = function(g2D, selectableObject, li
 }
 
 /**
- * Returns the number of lines in the given <code>text</code>.
+ * Returns the number of lines in the given <code>text</code> ignoring trailing line returns.
  * @param {string} text
  * @return {number}
  * @private
  */
 PlanComponent.prototype.getLineCount = function(text) {
   var lineCount = 1;
-  for (var i = 0, n = text.length; i < n; i++) {
+  var i = text.length - 1;
+  while (i >= 0 && text.charAt(i) == '\n') {
+    i--;
+  }
+  for ( ; i >= 0; i--) {
     if (text.charAt(i) == '\n') {
       lineCount++;
     }
