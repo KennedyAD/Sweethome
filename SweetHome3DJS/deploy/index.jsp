@@ -226,6 +226,10 @@ body {
       border: 1px solid gray; 
     }
 
+    #plan-3D-view-splitter {
+      display: none;
+    }
+
     #home-plan {
       top: calc(50% - 60px);
       left: 0px;
@@ -237,8 +241,9 @@ body {
 
     /* Funiture catalog horizontal layout */
 
-    .furniture-catalog {
-      overflow: scroll;
+    #furniture-catalog {
+      overflow-x: scroll;
+      overflow-y: hidden;
       white-space: nowrap;
     }
 
