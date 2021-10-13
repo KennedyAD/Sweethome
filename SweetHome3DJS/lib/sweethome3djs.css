@@ -322,12 +322,15 @@ input, textarea, keygen, select, button {
 /*
  * FurnitureCatalogListPanel
  */
+#catalog-furniture-pane {
+  border: 1px solid gray;
+  background-color: white;
+}
+
 .furniture-catalog {
   -webkit-overflow-scrolling: touch;
   overflow-y: scroll;
   overflow-x: hidden;
-  border: 1px solid gray;
-  background-color: white;
   -moz-user-select: none; 
   -ms-user-select: none; 
   -webkit-user-select: none; 
@@ -365,8 +368,9 @@ input, textarea, keygen, select, button {
 .furniture > .furniture-label {
   font-family: Arial;
   position: absolute;
-  bottom: 2px;
+  bottom: 0.4em;
   font-size: 0.7em;
+  line-height: 95%;
   width: 70px;
   text-align: center;
   pointer-events: none;
@@ -416,7 +420,7 @@ input, textarea, keygen, select, button {
 
 #furniture-search-field {
   left: 0;
-  background: url(search.gif) no-repeat scroll 0px 0px;
+  background: url(search.gif) no-repeat scroll 0px 2px;
   background-color: #FFFFFFAA;
   border-width: thin;
   border-radius: 5px;
@@ -430,8 +434,10 @@ input, textarea, keygen, select, button {
     }
   
     #furniture-search-field {
+      background-position: 0px 1px;
+      font-size: 0.8em;
       width: 25px;
-      height: 20px;
+      height: 1.3em;
       position: relative;
       z-index: 1;
       margin-bottom: -20px;
