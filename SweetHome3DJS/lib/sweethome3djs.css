@@ -945,9 +945,7 @@ input, textarea, keygen, select, button {
 }
 
 .dialog-content .dialog-buttons {
-  padding: 0.5em 1em 0em 1em;
-  height: 42px;
-  min-height: 42px;
+  padding: 0.5em 1em 0.5em 1em;
   box-sizing: border-box;
   position: absolute;
   bottom: 0;
