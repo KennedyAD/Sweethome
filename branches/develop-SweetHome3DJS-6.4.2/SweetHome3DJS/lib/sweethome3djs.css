@@ -1353,7 +1353,7 @@ input, textarea, keygen, select, button {
 .color-selector .picker,
 .color-selector .custom-colors {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(14, 1fr);
   grid-gap: 0em;
   grid-auto-rows: minmax(2em, auto);
   min-height: 2em;
