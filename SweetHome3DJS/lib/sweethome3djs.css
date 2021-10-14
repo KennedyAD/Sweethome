@@ -1329,8 +1329,9 @@ input, textarea, keygen, select, button {
  * Color button
  */
 .color-button {
-  width: 3rem;
+  width: 4.5rem;
   height: 1.5rem;
+  box-sizing: border-box;
   margin-top: -3px;
   vertical-align: middle;
 }
@@ -1460,9 +1461,10 @@ input, textarea, keygen, select, button {
 /*
  * Texture button
  */
- .texture-button {
-  width: 3rem;
+.texture-button {
+  width: 4.5rem;
   height: 1.5rem;
+  box-sizing: border-box;
   margin-top: -3px;
   vertical-align: middle;
 }
@@ -1615,7 +1617,7 @@ input, textarea, keygen, select, button {
  * Model materials button
  */
 .model-materials-button {
-  width: 6rem;
+  width: 8rem;
   height: 1.5rem;
   vertical-align: middle;
 }
