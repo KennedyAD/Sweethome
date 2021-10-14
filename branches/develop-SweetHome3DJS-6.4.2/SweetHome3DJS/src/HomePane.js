@@ -1481,89 +1481,126 @@ HomePane.prototype.initSplitters = function() {
   var plan3DViewSplitter = document.getElementById("plan-3D-view-splitter");
   var catalogFurnitureSplitter = document.getElementById("catalog-furniture-splitter");
 
-  var saveSplitterPosition = function(splitterPositionPropertyName, splitterPosition) {
-      controller.setHomeProperty(splitterPositionPropertyName, splitterPosition == null ? null : splitterPosition.toString());
-    };
+  this.furniturePlanSplitter = {
+    element: furniturePlanSplitter,
+    homePropertyName: HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+    firstGroupElements: [document.getElementById("catalog-furniture-pane")],
+    secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
+    mouseListener: undefined,
+    shouldDisplay: function() {
+      return furniturePlanSplitter && furniturePlanSplitter.clientWidth > 0;
+    },
+    resizeListener: function(splitterPosition) {
+      if (furnitureView != null) {
+        // Keep furniture view width at 100%
+        furnitureView.getHTMLElement().style.width = "100%";
+      }
+      // Refresh 2D/3D plan views on resize
+      planView.revalidate();
+      view3D.revalidate();
+    }
+  };
 
-  var furniturePlanSplitterVisible = furniturePlanSplitter 
-      && furniturePlanSplitter.clientWidth > 0;
-  if (furniturePlanSplitterVisible) {
-    this.initSplitter(
-        furniturePlanSplitter,
-        [document.getElementById("catalog-furniture-pane")],
-        [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
-        home.getNumericProperty(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
-        function(splitterPosition, lastPosition) {
-            if (furnitureView != null) {
-              // Keep furniture view width at 100%
-              furnitureView.getHTMLElement().style.width = "100%"; 
-            }
-            // Refresh 2D/3D plan views on resize
-            planView.revalidate();
-            view3D.revalidate();
-            if (lastPosition) {
-              saveSplitterPosition(HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
-            }
-          });
-  }
+  this.plan3DViewSplitter = {
+    element: plan3DViewSplitter,
+    homePropertyName: HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+    firstGroupElements: [planView.getHTMLElement()],
+    secondGroupElements: [view3D.getHTMLElement()],
+    mouseListener: undefined,
+    shouldDisplay: function() {
+      return plan3DViewSplitter && plan3DViewSplitter.clientWidth > 0 && planView != null && view3D != null;
+    },
+    resizeListener: function(splitterPosition) {
+      // Refresh 2D/3D plan views on resize
+      planView.revalidate();
+      view3D.revalidate();
+    }
+  };
 
-  var plan3DViewSplitterVisible = plan3DViewSplitter 
-      && plan3DViewSplitter.clientWidth > 0 
-      && planView != null 
-      && view3D != null;
-  if (plan3DViewSplitterVisible) {
-    this.initSplitter(
-        plan3DViewSplitter,
-        [planView.getHTMLElement()],
-        [view3D.getHTMLElement()],
-        home.getNumericProperty(HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
-        function(splitterPosition, lastPosition) {
-            // Refresh 2D/3D plan views on resize
-            planView.revalidate();
-            view3D.revalidate();
-            if (lastPosition) {
-                                                     ;
-            }
-          });
-  }
+  this.catalogFurnitureSplitter = {
+    element: catalogFurnitureSplitter,
+    homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+    firstGroupElements: [catalogView.getHTMLElement()],
+    secondGroupElements: [furnitureView.getHTMLElement()],
+    mouseListener: undefined,
+    shouldDisplay: function() {
+      return catalogFurnitureSplitter && catalogFurnitureSplitter.clientWidth > 0 && catalogView != null && furnitureView != null;
+    }
+  };
 
-  var catalogFurnitureSplitterVisible = catalogFurnitureSplitter 
-      && catalogFurnitureSplitter.clientWidth > 0 
-      && catalogView != null 
-      && furnitureView != null;
-  if (catalogFurnitureSplitterVisible) {
-    this.initSplitter(
-        catalogFurnitureSplitter,
-        [catalogView.getHTMLElement()],
-        [furnitureView.getHTMLElement()],
-        home.getNumericProperty(HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY),
-        function(splitterPosition, lastPosition) {
-            if (lastPosition) {
-              saveSplitterPosition(HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, splitterPosition);
-            }
-          });
-  }
+  this.refreshSplitters();
 }
 
 /**
- * Initializes pane splitter.
- * @param {HTMLElement} splitterElement
- * @param {HTMLElement[]} firstGroupElements elements displayed before the splitter
- * @param {HTMLElement[]} secondGroupElements elements displayed after the splitter
- * @param {number} [initialSplitterPosition] initial splitter position in pixel relative to its offset parent
- * @param {function()} [onresize]
  * @private
  */
-HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, secondGroupElements, 
-                                           initialSplitterPosition, onresize) {
+HomePane.prototype.refreshSplitters = function() {
+  this.initSplitter(this.plan3DViewSplitter);
+  this.initSplitter(this.furniturePlanSplitter);
+  this.initSplitter(this.catalogFurnitureSplitter);
+}
+
+/**
+ * Initializes panes splitter.
+ * @param {{
+    element: HTMLElement,
+    homePropertyName: string,
+    firstGroupElements: HTMLElement[],
+    secondGroupElements: HTMLElement[],
+    mouseListener?: { mousePressed: function() },
+    shouldDisplay: function(): boolean,
+    resizeListener?: function(splitterPosition: number)
+  }} splitter
+ * @private
+ */
+HomePane.prototype.initSplitter = function(splitter) {
+  var controller = this.controller;
+  var home = this.home;
+  var splitterElement = splitter.element;
+  var firstGroupElements = splitter.firstGroupElements;
+  var secondGroupElements = splitter.secondGroupElements;
+
+  // reset
+  splitterElement.style.display = '';
+  splitterElement.style.top = '';
+  splitterElement.style.left = '';
+  for (var i = 0; i < firstGroupElements.length; i++) {
+    firstGroupElements[i].style.left = '';
+    firstGroupElements[i].style.top = '';
+    firstGroupElements[i].style.width = '';
+    firstGroupElements[i].style.height = '';
+  }
+  for (var i = 0; i < secondGroupElements.length; i++) {
+    secondGroupElements[i].style.left = '';
+    secondGroupElements[i].style.top = '';
+    secondGroupElements[i].style.width = '';
+    secondGroupElements[i].style.height = '';
+  }
+
+  var displayed = splitter.shouldDisplay();
+  if (displayed) {
+    splitterElement.style.display = 'block';
+  } else {
+    splitterElement.style.display = 'none';
+  }
+
+  if (splitter.mouseListener && splitter.mouseListener.mousePressed) {
+    splitterElement.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);
+    splitterElement.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
+  }
+
   splitterElement.draggable = false;
+  splitterElement.classList.remove("horizontal");
+  splitterElement.classList.remove("vertical");
   var horizontal = splitterElement.clientWidth > splitterElement.clientHeight;
   if (horizontal) {
     splitterElement.classList.add("horizontal");
   } else {
     splitterElement.classList.add("vertical");
   }
- 
+
+  var initialSplitterPosition = home.getNumericProperty(splitter.homePropertyName);
+
   var positionStyleProperty = horizontal ? "top" : "left";
   var dimensionStyleProperty = horizontal ? "height" : "width";
   var dimensionProperty = horizontal ? "clientHeight" : "clientWidth";
@@ -1574,7 +1611,8 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
       ? firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] 
       : 0;
 
-  var mouseListener = {
+  var resizeListener = splitter.resizeListener;
+  var mouseListener = splitter.mouseListener = {
       getSplitterPosition: function(ev) {
         var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 
             ? ev.touches[0] : ev;
@@ -1605,8 +1643,8 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
         ev.stopImmediatePropagation();
         mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
         mouseListener.setSplitterPosition(mouseListener.currentPosition);
-        if (onresize !== undefined) {
-          onresize(mouseListener.currentPosition, false);
+        if (resizeListener !== undefined) {
+          resizeListener(mouseListener.currentPosition);
         }
       },
       mousePressed: function(ev) {
@@ -1625,27 +1663,23 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
         window.removeEventListener("touchmove", mouseListener.mouseMoved, true);
         window.removeEventListener("mouseup", mouseListener.mouseReleased, true);
         window.removeEventListener("touchend", mouseListener.mouseReleased, true);
-        if (onresize !== undefined) {
-          onresize(mouseListener.currentPosition, true);
+        controller.setHomeProperty(splitter.homePropertyName, mouseListener.currentPosition == null ? null : mouseListener.currentPosition.toString());
+        if (resizeListener !== undefined) {
+          resizeListener(mouseListener.currentPosition);
         }
       } 
     };
 
   if (initialSplitterPosition != null) {
-    mouseListener.setSplitterPosition(initialSplitterPosition);
-    if (onresize !== undefined) {
-      onresize(initialSplitterPosition, false);
+    if (displayed) {
+      mouseListener.setSplitterPosition(initialSplitterPosition);
+    }
+    if (resizeListener !== undefined) {
+      resizeListener(initialSplitterPosition);
     }
   }
   splitterElement.addEventListener("mousedown", mouseListener.mousePressed, true);
   splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
-  // Ensure splitter doesn't disappear after a window resize 
-  window.addEventListener("resize", function(ev) {
-      if (offsetParent[offsetProperty] + splitterElement[offsetProperty] + splitterElement[dimensionProperty]
-          > document.documentElement[dimensionProperty]) {
-        mouseListener.setSplitterPosition(document.documentElement[dimensionProperty] - splitterElement[dimensionProperty] - offsetParent[offsetProperty]);
-      }
-    });
 }
 
 /**
@@ -1654,17 +1688,21 @@ HomePane.prototype.initSplitter = function(splitterElement, firstGroupElements, 
 HomePane.prototype.addOrientationChangeListener = function() {
   var homePane = this;
   var orientationListener = function(ev) {
-      var planView = homePane.controller.getPlanController().getView();
-      var view3D = homePane.controller.getHomeController3D().getView();
-      if (planView != null && view3D != null) {
-        var splitter = document.getElementById("plan-3D-view-splitter");
-        splitter.removeAttribute("style");
-        planView.getHTMLElement().removeAttribute("style");
-        view3D.getHTMLElement().removeAttribute("style");
-        planView.revalidate();
-        view3D.revalidate();
-      }
-    };
+    console.info('orientation change');
+    var planView = homePane.controller.getPlanController().getView();
+    var view3D = homePane.controller.getHomeController3D().getView();
+    if (planView != null && view3D != null) {
+      var splitter = document.getElementById("plan-3D-view-splitter");
+      splitter.removeAttribute("style");
+      planView.getHTMLElement().removeAttribute("style");
+      view3D.getHTMLElement().removeAttribute("style");
+      planView.revalidate();
+      view3D.revalidate();
+    }
+    setTimeout(function() {
+      homePane.refreshSplitters();
+    }, 0);
+  };
   window.addEventListener("orientationchange", orientationListener);
 }
 
