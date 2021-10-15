@@ -1486,7 +1486,6 @@ HomePane.prototype.initSplitters = function() {
       homePropertyName: HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
       firstGroupElements: [document.getElementById("catalog-furniture-pane")],
       secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
-      mouseListener: undefined,
       isDisplayed: function() {
         return furniturePlanSplitter && furniturePlanSplitter.clientWidth > 0;
       },
@@ -1506,7 +1505,6 @@ HomePane.prototype.initSplitters = function() {
       homePropertyName: HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
       firstGroupElements: [planView.getHTMLElement()],
       secondGroupElements: [view3D.getHTMLElement()],
-      mouseListener: undefined,
       isDisplayed: function() {
         return plan3DViewSplitter && plan3DViewSplitter.clientWidth > 0 && planView != null && view3D != null;
       },
@@ -1522,7 +1520,6 @@ HomePane.prototype.initSplitters = function() {
       homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
       firstGroupElements: [catalogView.getHTMLElement()],
       secondGroupElements: [furnitureView.getHTMLElement()],
-      mouseListener: undefined,
       isDisplayed: function() {
         return catalogFurnitureSplitter && catalogFurnitureSplitter.clientWidth > 0 && catalogView != null && furnitureView != null;
       }
@@ -1547,71 +1544,66 @@ HomePane.prototype.updateSplitters = function() {
  *   homePropertyName: string,
  *   firstGroupElements: HTMLElement[],
  *   secondGroupElements: HTMLElement[],
- *   mouseListener?: { mousePressed: function() },
  *   isDisplayed: function(): boolean,
  *   resizeListener?: function(splitterPosition: number)
  * }} splitter
  * @private
  */
 HomePane.prototype.updateSplitter = function(splitter) {
-  var controller = this.controller;
-  var home = this.home;
-  var splitterElement = splitter.element;
-  var firstGroupElements = splitter.firstGroupElements;
-  var secondGroupElements = splitter.secondGroupElements;
-
   // Reset
-  splitterElement.style.display = '';
-  splitterElement.style.top = '';
-  splitterElement.style.left = '';
-  for (var i = 0; i < firstGroupElements.length; i++) {
-    firstGroupElements[i].style.left = '';
-    firstGroupElements[i].style.top = '';
-    firstGroupElements[i].style.width = '';
-    firstGroupElements[i].style.height = '';
+  splitter.element.style.display = '';
+  splitter.element.style.top = '';
+  splitter.element.style.left = '';
+  for (var i = 0; i < splitter.firstGroupElements.length; i++) {
+    splitter.firstGroupElements[i].style.left = '';
+    splitter.firstGroupElements[i].style.top = '';
+    splitter.firstGroupElements[i].style.width = '';
+    splitter.firstGroupElements[i].style.height = '';
   }
-  for (var i = 0; i < secondGroupElements.length; i++) {
-    secondGroupElements[i].style.left = '';
-    secondGroupElements[i].style.top = '';
-    secondGroupElements[i].style.width = '';
-    secondGroupElements[i].style.height = '';
+  for (var i = 0; i < splitter.secondGroupElements.length; i++) {
+    splitter.secondGroupElements[i].style.left = '';
+    splitter.secondGroupElements[i].style.top = '';
+    splitter.secondGroupElements[i].style.width = '';
+    splitter.secondGroupElements[i].style.height = '';
   }
 
   var displayed = splitter.isDisplayed();
   if (displayed) {
-    splitterElement.style.display = 'block';
+    splitter.element.style.display = 'block';
   } else {
-    splitterElement.style.display = 'none';
+    splitter.element.style.display = 'none';
   }
 
-  if (splitter.mouseListener && splitter.mouseListener.mousePressed) {
-    splitterElement.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);
-    splitterElement.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
+  if (splitter.mouseListener !== undefined 
+      && splitter.mouseListener.mousePressed) {
+    splitter.element.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);
+    splitter.element.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
+    window.removeEventListener("resize", splitter.mouseListener.windowResized);
   }
 
-  splitterElement.draggable = false;
-  splitterElement.classList.remove("horizontal");
-  splitterElement.classList.remove("vertical");
-  var horizontal = splitterElement.clientWidth > splitterElement.clientHeight;
+  splitter.element.classList.remove("horizontal");
+  splitter.element.classList.remove("vertical");
+  var horizontal = splitter.element.clientWidth > splitter.element.clientHeight;
   if (horizontal) {
-    splitterElement.classList.add("horizontal");
+    splitter.element.classList.add("horizontal");
   } else {
-    splitterElement.classList.add("vertical");
+    splitter.element.classList.add("vertical");
   }
 
-  var initialSplitterPosition = home.getNumericProperty(splitter.homePropertyName);
+  var initialSplitterPosition = this.home.getNumericProperty(splitter.homePropertyName);
 
   var positionStyleProperty = horizontal ? "top" : "left";
   var dimensionStyleProperty = horizontal ? "height" : "width";
   var dimensionProperty = horizontal ? "clientHeight" : "clientWidth";
   var pointerPositionProperty = horizontal ? "clientY" : "clientX";
-  var offsetParent = firstGroupElements[0].offsetParent;
+  var offsetParent = splitter.firstGroupElements[0].offsetParent;
   var offsetProperty = horizontal ? "offsetTop" : "offsetLeft";
   var offsetTopFirst = offsetParent == document.body 
-      ? firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] 
+      ? splitter.firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] 
       : 0;
+  var homePane = this;
 
-  var mouseListener = splitter.mouseListener = {
+  var mouseListener = {
       getSplitterPosition: function(ev) {
         var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 
             ? ev.touches[0] : ev;
@@ -1623,19 +1615,19 @@ HomePane.prototype.updateSplitter = function(splitter) {
           relativePosition = offsetTopFirst;
         }
         // Prevent from moving splitter beyond limit (farther than offsetParent) 
-        if (relativePosition > offsetParent[dimensionProperty] - splitterElement[dimensionProperty]) {
-          relativePosition = offsetParent[dimensionProperty] - splitterElement[dimensionProperty];
+        if (relativePosition > offsetParent[dimensionProperty] - splitter.element[dimensionProperty]) {
+          relativePosition = offsetParent[dimensionProperty] - splitter.element[dimensionProperty];
         }
         // Elements in first groups grow or shrink
-        for (var i = 0; i < firstGroupElements.length; i++) {
-          firstGroupElements[i].style[dimensionStyleProperty] = (relativePosition - offsetTopFirst) + "px";
+        for (var i = 0; i < splitter.firstGroupElements.length; i++) {
+          splitter.firstGroupElements[i].style[dimensionStyleProperty] = (relativePosition - offsetTopFirst) + "px";
         }
         // Splitter moves to new mouse position
-        splitterElement.style[positionStyleProperty] = relativePosition + "px";
+        splitter.element.style[positionStyleProperty] = relativePosition + "px";
         // Elements in second groups move & grow / shrink
-        for (var i = 0; i < secondGroupElements.length; i++) {
-          secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitterElement[dimensionProperty]) + "px";
-          secondGroupElements[i].style[dimensionStyleProperty] = "calc(100% - " + relativePosition + "px - " + splitterElement[dimensionProperty] + "px)";
+        for (var i = 0; i < splitter.secondGroupElements.length; i++) {
+          splitter.secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitter.element[dimensionProperty]) + "px";
+          splitter.secondGroupElements[i].style[dimensionStyleProperty] = "calc(100% - " + relativePosition + "px - " + splitter.element[dimensionProperty] + "px)";
         }
       },
       mouseMoved: function(ev) {
@@ -1649,7 +1641,7 @@ HomePane.prototype.updateSplitter = function(splitter) {
       mousePressed: function(ev) {
         ev.stopImmediatePropagation();
         mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
-        splitterElement.classList.add("moving");
+        splitter.element.classList.add("moving");
         window.addEventListener("mousemove", mouseListener.mouseMoved, true);
         window.addEventListener("touchmove", mouseListener.mouseMoved, true);
         window.addEventListener("mouseup", mouseListener.mouseReleased, true);
@@ -1657,16 +1649,22 @@ HomePane.prototype.updateSplitter = function(splitter) {
       },
       mouseReleased: function(ev) {
         ev.stopImmediatePropagation();
-        splitterElement.classList.remove("moving");
+        splitter.element.classList.remove("moving");
         window.removeEventListener("mousemove", mouseListener.mouseMoved, true);
         window.removeEventListener("touchmove", mouseListener.mouseMoved, true);
         window.removeEventListener("mouseup", mouseListener.mouseReleased, true);
         window.removeEventListener("touchend", mouseListener.mouseReleased, true);
-        controller.setHomeProperty(splitter.homePropertyName, mouseListener.currentPosition == null ? null : mouseListener.currentPosition.toString());
+        homePane.controller.setHomeProperty(splitter.homePropertyName, mouseListener.currentPosition == null ? null : mouseListener.currentPosition.toString());
         if (splitter.resizeListener !== undefined) {
           splitter.resizeListener(mouseListener.currentPosition);
         }
-      } 
+      },
+      windowResized: function(ev) {
+        if (offsetParent[offsetProperty] + splitter.element[offsetProperty] + splitter.element[dimensionProperty]
+             > document.documentElement[dimensionProperty]) {
+          mouseListener.setSplitterPosition(document.documentElement[dimensionProperty] - splitter.element[dimensionProperty] - offsetParent[offsetProperty]);
+        }
+      }
     };
 
   if (initialSplitterPosition != null) {
@@ -1677,15 +1675,11 @@ HomePane.prototype.updateSplitter = function(splitter) {
       splitter.resizeListener(initialSplitterPosition);
     }
   }
-  splitterElement.addEventListener("mousedown", mouseListener.mousePressed, true);
-  splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
+  splitter.element.addEventListener("mousedown", mouseListener.mousePressed, true);
+  splitter.element.addEventListener("touchstart", mouseListener.mousePressed, true);
   // Ensure splitter doesn't disappear after a window resize 
-  window.addEventListener("resize", function(ev) {
-      if (offsetParent[offsetProperty] + splitterElement[offsetProperty] + splitterElement[dimensionProperty]
-          > document.documentElement[dimensionProperty]) {
-        mouseListener.setSplitterPosition(document.documentElement[dimensionProperty] - splitterElement[dimensionProperty] - offsetParent[offsetProperty]);
-      }
-    });
+  window.addEventListener("resize", mouseListener.windowResized);
+  splitter.mouseListener = mouseListener; 
 }
 
 /**
