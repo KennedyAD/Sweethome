@@ -804,7 +804,7 @@ input, textarea, keygen, select, button {
 .dialog-body {
   flex-grow: 1;
   box-sizing: border-box;
-  padding: 20px 2em 60px 2em;
+  padding: 20px 1em 60px 1em;
   overflow: auto;
   max-height: calc(100% /* max content height */ - 80px /* title and buttons */);
   background-color: #E9E9E9;
@@ -821,7 +821,6 @@ input, textarea, keygen, select, button {
 .dialog-body .label-input-grid .label-cell{
   text-align: right;
   white-space: nowrap;
-  /*line-height: 1.8em;*/
 }
 
 .dialog-body .columns-2 {
@@ -877,7 +876,7 @@ input, textarea, keygen, select, button {
     display: grid;
     row-gap: 1em;
     column-gap: 2em;
-      grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -933,10 +932,15 @@ input, textarea, keygen, select, button {
 
 /* If screen is wide enough, allow double layout: 2 label+input pairs per line */
 @media (min-width: 600px) {
+  .dialog-body {
+    padding: 20px 2em 60px 2em;
+  }
+	
   .dialog-body .label-input-grid.double {
     grid-template-columns: 1fr 1fr 1fr 1fr;
     -ms-grid-columns: 1fr 1fr 1fr 1fr;
   }
+  
   .dialog-body .label-input-grid.double .whole-line {
     -ms-grid-column: 1;
     -ms-grid-column-span: 4;
@@ -1355,20 +1359,28 @@ input, textarea, keygen, select, button {
   display: grid;
   grid-template-columns: repeat(14, 1fr);
   grid-gap: 0em;
-  grid-auto-rows: minmax(2em, auto);
-  min-height: 2em;
+  grid-auto-rows: minmax(1em, auto);
+  min-height: 2em;  
+}
+
+@media (min-height: 900px) {
+  .color-selector .picker,
+  .color-selector .custom-colors {
+    grid-auto-rows: minmax(2em, auto);
+  }
 }
 
 .color-selector .picker > div,
 .color-selector .custom-colors > div {
-  opacity: 0.7;
   position: relative;
 }
 
 .color-selector .picker > div.selected,
 .color-selector .picker > div:hover,
-.color-selector .custom-colors > div {
-  opacity: 1;
+.color-selector .custom-colors > div.selected,
+.color-selector .custom-colors > div:hover
+ {
+  border: 1px;
   cursor: pointer;
 }
 
@@ -1376,12 +1388,14 @@ input, textarea, keygen, select, button {
   margin-top: .5rem;
 }
 
-.color-selector div.picker div {
-  border: white solid 2px;
+.color-selector div.picker div,
+.color-selector .custom-colors div {
+  border: white solid 1px;
 }
 
-.color-selector div.picker div.selected {
-  border: grey solid 2px;
+.color-selector div.picker div.selected,
+.color-selector .custom-colors div.selected {
+  border: grey solid 1px;
 }
 
 .color-selector .custom-color-editor {
@@ -1389,18 +1403,17 @@ input, textarea, keygen, select, button {
 }
 
 .color-selector .custom-color-editor::before {
-  content: '#';
+  content: '# ';
   position: absolute;
   color: gray;
   left: 0.3em;
+  top: 0.5em;
   display: block;
-  line-height: 2em;
 }
 
 .color-selector .custom-color-editor input {
-  padding-left: 1em;
-  margin-bottom: 1em;
-  line-height: 2em;
+  padding-left: 1.3em;
+  max-width:  6em;  
 }
 
 .color-selector .custom-color-editor .preview {
