@@ -1482,85 +1482,85 @@ HomePane.prototype.initSplitters = function() {
   var catalogFurnitureSplitter = document.getElementById("catalog-furniture-splitter");
 
   this.furniturePlanSplitter = {
-    element: furniturePlanSplitter,
-    homePropertyName: HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-    firstGroupElements: [document.getElementById("catalog-furniture-pane")],
-    secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
-    mouseListener: undefined,
-    shouldDisplay: function() {
-      return furniturePlanSplitter && furniturePlanSplitter.clientWidth > 0;
-    },
-    resizeListener: function(splitterPosition) {
-      if (furnitureView != null) {
-        // Keep furniture view width at 100%
-        furnitureView.getHTMLElement().style.width = "100%";
+      element: furniturePlanSplitter,
+      homePropertyName: HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+      firstGroupElements: [document.getElementById("catalog-furniture-pane")],
+      secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
+      mouseListener: undefined,
+      isDisplayed: function() {
+        return furniturePlanSplitter && furniturePlanSplitter.clientWidth > 0;
+      },
+      resizeListener: function(splitterPosition) {
+        if (furnitureView != null) {
+          // Keep furniture view width at 100%
+          furnitureView.getHTMLElement().style.width = "100%";
+        }
+        // Refresh 2D/3D plan views on resize
+        planView.revalidate();
+        view3D.revalidate();
       }
-      // Refresh 2D/3D plan views on resize
-      planView.revalidate();
-      view3D.revalidate();
-    }
   };
 
   this.plan3DViewSplitter = {
-    element: plan3DViewSplitter,
-    homePropertyName: HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-    firstGroupElements: [planView.getHTMLElement()],
-    secondGroupElements: [view3D.getHTMLElement()],
-    mouseListener: undefined,
-    shouldDisplay: function() {
-      return plan3DViewSplitter && plan3DViewSplitter.clientWidth > 0 && planView != null && view3D != null;
-    },
-    resizeListener: function(splitterPosition) {
-      // Refresh 2D/3D plan views on resize
-      planView.revalidate();
-      view3D.revalidate();
-    }
+      element: plan3DViewSplitter,
+      homePropertyName: HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+      firstGroupElements: [planView.getHTMLElement()],
+      secondGroupElements: [view3D.getHTMLElement()],
+      mouseListener: undefined,
+      isDisplayed: function() {
+        return plan3DViewSplitter && plan3DViewSplitter.clientWidth > 0 && planView != null && view3D != null;
+      },
+      resizeListener: function(splitterPosition) {
+        // Refresh 2D/3D plan views on resize
+        planView.revalidate();
+        view3D.revalidate();
+      }
   };
 
   this.catalogFurnitureSplitter = {
-    element: catalogFurnitureSplitter,
-    homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-    firstGroupElements: [catalogView.getHTMLElement()],
-    secondGroupElements: [furnitureView.getHTMLElement()],
-    mouseListener: undefined,
-    shouldDisplay: function() {
-      return catalogFurnitureSplitter && catalogFurnitureSplitter.clientWidth > 0 && catalogView != null && furnitureView != null;
-    }
+      element: catalogFurnitureSplitter,
+      homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+      firstGroupElements: [catalogView.getHTMLElement()],
+      secondGroupElements: [furnitureView.getHTMLElement()],
+      mouseListener: undefined,
+      isDisplayed: function() {
+        return catalogFurnitureSplitter && catalogFurnitureSplitter.clientWidth > 0 && catalogView != null && furnitureView != null;
+      }
   };
 
-  this.refreshSplitters();
+  this.updateSplitters();
 }
 
 /**
  * @private
  */
-HomePane.prototype.refreshSplitters = function() {
-  this.initSplitter(this.plan3DViewSplitter);
-  this.initSplitter(this.furniturePlanSplitter);
-  this.initSplitter(this.catalogFurnitureSplitter);
+HomePane.prototype.updateSplitters = function() {
+  this.updateSplitter(this.plan3DViewSplitter);
+  this.updateSplitter(this.furniturePlanSplitter);
+  this.updateSplitter(this.catalogFurnitureSplitter);
 }
 
 /**
- * Initializes panes splitter.
+ * Updates the given pane splitter.
  * @param {{
-    element: HTMLElement,
-    homePropertyName: string,
-    firstGroupElements: HTMLElement[],
-    secondGroupElements: HTMLElement[],
-    mouseListener?: { mousePressed: function() },
-    shouldDisplay: function(): boolean,
-    resizeListener?: function(splitterPosition: number)
-  }} splitter
+ *   element: HTMLElement,
+ *   homePropertyName: string,
+ *   firstGroupElements: HTMLElement[],
+ *   secondGroupElements: HTMLElement[],
+ *   mouseListener?: { mousePressed: function() },
+ *   isDisplayed: function(): boolean,
+ *   resizeListener?: function(splitterPosition: number)
+ * }} splitter
  * @private
  */
-HomePane.prototype.initSplitter = function(splitter) {
+HomePane.prototype.updateSplitter = function(splitter) {
   var controller = this.controller;
   var home = this.home;
   var splitterElement = splitter.element;
   var firstGroupElements = splitter.firstGroupElements;
   var secondGroupElements = splitter.secondGroupElements;
 
-  // reset
+  // Reset
   splitterElement.style.display = '';
   splitterElement.style.top = '';
   splitterElement.style.left = '';
@@ -1577,7 +1577,7 @@ HomePane.prototype.initSplitter = function(splitter) {
     secondGroupElements[i].style.height = '';
   }
 
-  var displayed = splitter.shouldDisplay();
+  var displayed = splitter.isDisplayed();
   if (displayed) {
     splitterElement.style.display = 'block';
   } else {
@@ -1611,7 +1611,6 @@ HomePane.prototype.initSplitter = function(splitter) {
       ? firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] 
       : 0;
 
-  var resizeListener = splitter.resizeListener;
   var mouseListener = splitter.mouseListener = {
       getSplitterPosition: function(ev) {
         var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 
@@ -1619,11 +1618,11 @@ HomePane.prototype.initSplitter = function(splitter) {
         return pointerCoordinatesObject[pointerPositionProperty] - offsetParent[offsetProperty];
       },
       setSplitterPosition: function(relativePosition) {
-        // Prevent to move splitter beyond limit (before first elements) 
+        // Prevent from moving splitter beyond limit (before first elements) 
         if (relativePosition < offsetTopFirst) {
           relativePosition = offsetTopFirst;
         }
-        // Prevent to move splitter beyond limit (farther than offsetParent) 
+        // Prevent from moving splitter beyond limit (farther than offsetParent) 
         if (relativePosition > offsetParent[dimensionProperty] - splitterElement[dimensionProperty]) {
           relativePosition = offsetParent[dimensionProperty] - splitterElement[dimensionProperty];
         }
@@ -1643,8 +1642,8 @@ HomePane.prototype.initSplitter = function(splitter) {
         ev.stopImmediatePropagation();
         mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
         mouseListener.setSplitterPosition(mouseListener.currentPosition);
-        if (resizeListener !== undefined) {
-          resizeListener(mouseListener.currentPosition);
+        if (splitter.resizeListener !== undefined) {
+          splitter.resizeListener(mouseListener.currentPosition);
         }
       },
       mousePressed: function(ev) {
@@ -1664,8 +1663,8 @@ HomePane.prototype.initSplitter = function(splitter) {
         window.removeEventListener("mouseup", mouseListener.mouseReleased, true);
         window.removeEventListener("touchend", mouseListener.mouseReleased, true);
         controller.setHomeProperty(splitter.homePropertyName, mouseListener.currentPosition == null ? null : mouseListener.currentPosition.toString());
-        if (resizeListener !== undefined) {
-          resizeListener(mouseListener.currentPosition);
+        if (splitter.resizeListener !== undefined) {
+          splitter.resizeListener(mouseListener.currentPosition);
         }
       } 
     };
@@ -1674,12 +1673,19 @@ HomePane.prototype.initSplitter = function(splitter) {
     if (displayed) {
       mouseListener.setSplitterPosition(initialSplitterPosition);
     }
-    if (resizeListener !== undefined) {
-      resizeListener(initialSplitterPosition);
+    if (splitter.resizeListener !== undefined) {
+      splitter.resizeListener(initialSplitterPosition);
     }
   }
   splitterElement.addEventListener("mousedown", mouseListener.mousePressed, true);
   splitterElement.addEventListener("touchstart", mouseListener.mousePressed, true);
+  // Ensure splitter doesn't disappear after a window resize 
+  window.addEventListener("resize", function(ev) {
+      if (offsetParent[offsetProperty] + splitterElement[offsetProperty] + splitterElement[dimensionProperty]
+          > document.documentElement[dimensionProperty]) {
+        mouseListener.setSplitterPosition(document.documentElement[dimensionProperty] - splitterElement[dimensionProperty] - offsetParent[offsetProperty]);
+      }
+    });
 }
 
 /**
@@ -1688,21 +1694,20 @@ HomePane.prototype.initSplitter = function(splitter) {
 HomePane.prototype.addOrientationChangeListener = function() {
   var homePane = this;
   var orientationListener = function(ev) {
-    console.info('orientation change');
-    var planView = homePane.controller.getPlanController().getView();
-    var view3D = homePane.controller.getHomeController3D().getView();
-    if (planView != null && view3D != null) {
-      var splitter = document.getElementById("plan-3D-view-splitter");
-      splitter.removeAttribute("style");
-      planView.getHTMLElement().removeAttribute("style");
-      view3D.getHTMLElement().removeAttribute("style");
-      planView.revalidate();
-      view3D.revalidate();
-    }
-    setTimeout(function() {
-      homePane.refreshSplitters();
-    }, 0);
-  };
+      var planView = homePane.controller.getPlanController().getView();
+      var view3D = homePane.controller.getHomeController3D().getView();
+      if (planView != null && view3D != null) {
+        var splitter = document.getElementById("plan-3D-view-splitter");
+        splitter.removeAttribute("style");
+        planView.getHTMLElement().removeAttribute("style");
+        view3D.getHTMLElement().removeAttribute("style");
+        planView.revalidate();
+        view3D.revalidate();
+      }
+      setTimeout(function() {
+          homePane.updateSplitters();
+        }, 100);
+    };
   window.addEventListener("orientationchange", orientationListener);
 }
 
