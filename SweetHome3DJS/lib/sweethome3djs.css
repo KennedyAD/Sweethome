@@ -1677,6 +1677,14 @@ input, textarea, keygen, select, button {
 .model-materials-selector-dialog [data-name="edit-panel"] > :first-child {
   flex-grow: 1;
   margin-right: .8em;
+  display: flex;
+  flex-direction: column;
+}
+
+.model-materials-selector-dialog [data-name="materials-list"] {
+  flex-grow: 1;
+  overflow: auto;
+  max-height: 24em;
 }
 
 .model-materials-selector-dialog [data-name="materials-list"] > div {
