@@ -592,7 +592,7 @@ label {
 
 .popup-menu .item {
   cursor: pointer;
-  padding: 0.1em 1.5em;
+  padding: 0.1em 1.5em 0.1em .5em;
   position: relative;
   line-height: 1.25em;
   box-sizing: border-box;
@@ -601,6 +601,20 @@ label {
   margin: 0.2em 0.2em;
 }
 
+.popup-menu .item .icon {
+  padding: .2em;
+  margin-right: 0.2em;
+  display: inline-block;
+  width: 1.4em;
+  vertical-align: bottom;
+  box-sizing: border-box;
+}
+
+.popup-menu .item.checkable.selected .icon {
+  line-height: 1em;
+  text-align: center;
+  background-color: highlight;
+}
 
 .popup-menu .back {
   cursor: pointer;
@@ -630,11 +644,6 @@ label {
 .popup-menu .item input[type='radio']:checked,
 .popup-menu .item input[type='checkbox']:checked {
   opacity: 1;
-}
-
-.popup-menu .item img {
-  vertical-align: middle;
-  margin-right: 0.6em;
 }
 
 .popup-menu.visible {

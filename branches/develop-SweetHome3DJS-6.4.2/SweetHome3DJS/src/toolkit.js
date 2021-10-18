@@ -750,20 +750,22 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
 JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) {
   var contextMenu = this;
 
-  if (item.mode !== undefined) {
-    // Toggle action case
-    var toggle = document.createElement("input");
-    toggle.type = item.mode;
-    if (item.selected === true) {
-      toggle.checked = "checked";
-    }
-    itemElement.appendChild(toggle);
-  }
-
   var itemIconElement = document.createElement("img");
   if (item.iconPath != null) {
     itemIconElement.src = item.iconPath;
     itemIconElement.classList.add("visible");
+  }
+
+  if (item.mode !== undefined) {
+    itemElement.classList.add("checkable");
+    if (item.selected === true) {
+      itemElement.classList.add("selected");
+    }
+    if (item.iconPath == null) {
+      itemIconElement = document.createElement("span");
+      itemIconElement.innerHTML = item.selected === true ? "✓" : "&nbsp;";
+      itemIconElement.classList.add("visible");
+    }
   }
 
   var itemLabelElement = document.createElement("span");
@@ -771,6 +773,8 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
 
   itemElement.classList.add("item");
   itemElement.dataset["uid"] = item.uid;
+
+  itemIconElement.classList.add("icon");
   itemElement.appendChild(itemIconElement);
   itemElement.appendChild(itemLabelElement);
   if (Array.isArray(item.subItems)) {
