@@ -649,6 +649,7 @@ input, textarea, keygen, select, button {
   background-color: #EFEFEF;
   position: absolute;
   display: block;
+  border: solid 1px darkgray;
 }
 
 .popup-menu .back {
@@ -692,14 +693,13 @@ input, textarea, keygen, select, button {
   .popup-menu .back {
     display: block;
     text-align: left;
-    color: rgba(0,0,0,0);
+    color: black;
     font-size: 1em;
     cursor: pointer;
-    background-image: url('menu.png');
     background-repeat: no-repeat;
     background-size: contain;
-    opacity: 0.5;
-    padding: 0.2em;
+    opacity: 0.8;
+    padding: 0;
     margin-left: 0.4em;
   }
 }

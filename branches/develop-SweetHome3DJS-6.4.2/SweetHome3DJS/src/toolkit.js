@@ -678,8 +678,8 @@ JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   var anchorX = ev.clientX;
   if (menuElement.clientWidth > window.innerWidth) {
     anchorX = 0;
-  } else if (anchorX + menuElement.clientWidth > window.innerWidth) {
-    anchorX = window.innerWidth - menuElement.clientWidth;
+  } else if (anchorX + menuElement.clientWidth + 20 > window.innerWidth) {
+    anchorX = Math.max(0, window.innerWidth - menuElement.clientWidth - 20);
   }
   var anchorY = ev.clientY;
   if (menuElement.clientHeight > window.innerHeight) {
@@ -713,7 +713,7 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
   var backElement = document.createElement("li");
   backElement.classList.add("item");
   backElement.classList.add("back");
-  backElement.textContent = "X";
+  backElement.textContent = "☒";
   this.registerEventListener(backElement, "click", function(ev) {
       var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != "li";
       if (isRootMenu) {
