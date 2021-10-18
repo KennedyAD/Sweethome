@@ -49,6 +49,7 @@ input, textarea, keygen, select, button {
 
 @media (hover: none), (pointer: coarse) {
   body {
+    touch-action: pan-x pan-y;
     font-size: 120%;
   }
 }
