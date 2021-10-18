@@ -276,6 +276,11 @@ input, textarea, keygen, select, button {
   #home-pane-toolbar .toolbar-button-group {
     margin-right: 4px;
   }
+
+  .dialog-body {
+    padding-left: .5em;
+    padding-right: .5em;
+  }
 }
 
 @media (hover: none) {
@@ -1038,7 +1043,7 @@ input, textarea, keygen, select, button {
 .imported-texture-wizard [attributesStep] [form] [preview] {
   grid-row: 1 / span 5;
   text-align: center;
-  
+  justify-self: center;
 } 
 
 .imported-texture-wizard [attributesStep] [form] [preview] .image {
@@ -1049,6 +1054,7 @@ input, textarea, keygen, select, button {
 @media (max-width: 800px) {
   .imported-texture-wizard [attributesStep] [form] {
     grid-template-columns: 2.5fr 3fr;
+    margin: 0;
   }
   .imported-texture-wizard [attributesStep] [form] [preview] {
     grid-column: 1 / span 2;
