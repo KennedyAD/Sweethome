@@ -37,6 +37,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 input {
@@ -679,7 +681,8 @@ label {
     top: 0 !important;
     bottom: 0 !important;
     left: -90% !important;
-    width: 80%;
+    width: auto;
+    max-width: 90%;
     border-radius: 0;
     transition-property: left;
     transition-duration: 0.4s;
