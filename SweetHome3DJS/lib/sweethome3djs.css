@@ -1524,7 +1524,16 @@ input, textarea, keygen, select, button {
 }
 
 .texture-selector-dialog .texture-catalog-list {
-  overflow: scroll;
+  overflow: auto;
+  height: 40em;
+}
+
+@media (hover: none), (pointer: coarse) {
+  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
+    .texture-selector-dialog .texture-catalog-list {
+      height: 20vh;
+    }
+  }
 }
 
 .texture-selector-dialog .texture-catalog-list .item {
