@@ -846,6 +846,8 @@ label {
 .dialog-body .label-input-grid .label-cell{
   text-align: right;
   white-space: nowrap;
+  line-height: 1.5rem;
+  font-size: .95em;
 }
 
 .dialog-body .columns-2 {
