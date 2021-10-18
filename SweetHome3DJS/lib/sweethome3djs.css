@@ -1020,6 +1020,11 @@ label {
   margin: 0;
 }
 
+.dialog-body [type="radio"],
+.dialog-body [type="checkbox"] {
+  vertical-align: middle;
+}
+
 /*
  * Wizard dialogs
  */
