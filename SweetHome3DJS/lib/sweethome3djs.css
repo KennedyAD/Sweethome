@@ -203,7 +203,9 @@ input, textarea, keygen, select, button {
   visibility: visible;
   top: 0px;
   padding-left: 4px;
+  padding-right: 4px;
   width: 100%;
+  box-sizing: border-box;
   z-index: 2;
   background-color: rgba(0, 0, 0, 0.1);
   padding-top: 1px;
@@ -269,11 +271,17 @@ input, textarea, keygen, select, button {
   #home-pane-toolbar .toolbar-button-group:last-child {
     border-right: none;
     flex-grow: 1;
+    padding-right: 0;
+    margin-right: 0;
     text-align: right;
   }
 }
 
 @media (max-width: 800px) {
+  #home-pane-toolbar {
+    padding-left: 0;
+    padding-right: 0;
+  }
   #home-pane-toolbar > .toolbar-button  {
     width: 24px;
   }
