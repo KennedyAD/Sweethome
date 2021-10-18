@@ -713,7 +713,7 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
   var backElement = document.createElement("li");
   backElement.classList.add("item");
   backElement.classList.add("back");
-  backElement.textContent = "☒";
+  backElement.textContent = "×";
   this.registerEventListener(backElement, "click", function(ev) {
       var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != "li";
       if (isRootMenu) {

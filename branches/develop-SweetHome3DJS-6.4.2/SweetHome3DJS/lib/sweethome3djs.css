@@ -195,6 +195,10 @@ input, textarea, keygen, select, button {
   display: none;
 }
 
+#home-pane-toolbar .toolbar-button-group:first-child button {
+  background-size: 70%;
+}
+
 @media (hover: none), (pointer: coarse) {
   #home-pane-toolbar .toolbar-button-group:first-child {
     display: initial;
@@ -722,13 +726,13 @@ label {
     display: block;
     text-align: left;
     color: black;
-    font-size: 1em;
+    font-size: 1.4em;
     cursor: pointer;
     background-repeat: no-repeat;
     background-size: contain;
     opacity: 0.8;
     padding: 0;
-    margin-left: 0.4em;
+    margin-left: 0.7em;
   }
 }
 
