@@ -1256,11 +1256,11 @@ label {
 }
 
 .label-dialog [data-name="text-and-style-panel"] > div[data-name="color-label"] {
-  grid-column: 3;
+  grid-column: 1;
 }
 
 .label-dialog [data-name="text-and-style-panel"] > div[data-name="color-selector-button"] {
-  grid-column: 4;
+  grid-column: 2;
 }
 
 .label-dialog [data-name="rendering-3D-panel"] {
@@ -1364,7 +1364,6 @@ label {
   width: 4.5rem;
   height: 1.5rem;
   box-sizing: border-box;
-  margin-top: -3px;
   vertical-align: middle;
 }
 
@@ -1506,7 +1505,6 @@ label {
   width: 4.5rem;
   height: 1.5rem;
   box-sizing: border-box;
-  margin-top: -3px;
   vertical-align: middle;
 }
 
