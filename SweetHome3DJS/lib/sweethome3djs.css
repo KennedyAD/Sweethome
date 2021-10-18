@@ -302,6 +302,10 @@ input, textarea, keygen, select, button {
   right: 15px;
 }
 
+label {
+  white-space: nowrap;
+}
+
 /* 
  * HomePane tool bar animations 
  */
