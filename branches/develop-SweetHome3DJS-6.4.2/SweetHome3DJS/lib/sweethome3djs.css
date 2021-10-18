@@ -196,7 +196,7 @@ input, textarea, keygen, select, button {
 }
 
 #home-pane-toolbar .toolbar-button-group:first-child button {
-  background-size: 70%;
+  background-size: 85%;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -302,12 +302,21 @@ input, textarea, keygen, select, button {
   }
 }
 
-@media (hover: none) {
+@media (hover: none), (pointer: coarse) {
   #home-pane-toolbar {
     overflow-x: scroll;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     background-color: white;
+    padding-top: 2px;
+    padding-bottom: 0px;
+  }
+  
+  @media (min-width: 800px) {
+    #home-pane-toolbar .toolbar-button-group {
+      padding-right: 6px;
+      margin-right: 6px;
+    }
   }
 }
 
@@ -596,7 +605,7 @@ label {
 
 .popup-menu .item {
   cursor: pointer;
-  padding: 0.1em 1.5em 0.1em .5em;
+  padding: 0.1em 1.5em 0.1em .1em;
   position: relative;
   line-height: 1.25em;
   box-sizing: border-box;
@@ -732,7 +741,7 @@ label {
     background-size: contain;
     opacity: 0.8;
     padding: 0;
-    margin-left: 0.7em;
+    margin-left: 0.4em;
   }
 }
 
