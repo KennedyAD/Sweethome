@@ -1069,19 +1069,15 @@ function JSSpinner(preferences, spanElement, options) {
       component.updateUI();
     });
 
-  this.registerEventListener(this.textInput, "input", function(ev) {
-      var pos = new ParsePosition(0);
-      var inputValue = component.parseValueFromInput(pos);
-      if (pos.getIndex() != component.textInput.value.length
-          || inputValue == null && !component.nullable
-          || (component.minimum != null && inputValue < component.minimum) 
-          || (component.maximum != null && inputValue > component.maximum)) {
-        component.textInput.style.color = "red";
-      } else {
-        component.textInput.style.color = null;
-        component.value = inputValue;
-      }
-    });
+  this.registerEventListener(this.textInput, "input", function() {
+    var pos = new ParsePosition(0);
+    var inputValue = component.parseValueFromInput(pos);
+    if (pos.getIndex() != component.textInput.value.length) {
+      component.textInput.style.color = "red";
+      return;
+    }
+    component.valueValidationListener(inputValue);
+  });
 
   this.registerEventListener(this.textInput, "blur", function(ev) {
       var inputValue = component.parseValueFromInput();
@@ -1116,6 +1112,22 @@ function JSSpinner(preferences, spanElement, options) {
 }
 JSSpinner.prototype = Object.create(JSComponent.prototype);
 JSSpinner.prototype.constructor = JSSpinner;
+
+/**
+ * @param {number} value new value
+ * @private
+ */
+JSSpinner.prototype.valueValidationListener = function(inputValue) {
+  var component = this;
+  if (inputValue == null && !component.nullable
+    || (component.minimum != null && inputValue < component.minimum)
+    || (component.maximum != null && inputValue > component.maximum)) {
+    component.textInput.style.color = "red";
+  } else {
+    component.textInput.style.color = null;
+    component.value = inputValue;
+  }
+};
 
 /**
  * @return {Object} the value of this spinner
@@ -1360,7 +1372,7 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(spanElement) {
         previousValue = component.getDefaultValue();
       }
       component.setValue(previousValue + component.stepSize);
-      component.fireInputEvent();
+      component.valueValidationListener(component.value);
     };
   var decrementValue = function(ev) {
       var previousValue = component.value;
@@ -1368,7 +1380,7 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(spanElement) {
         previousValue = component.getDefaultValue();
       }
       component.setValue(previousValue - component.stepSize);
-      component.fireInputEvent();
+      component.valueValidationListener(component.value);
     };
 
   // Repeat incrementValue / decrementValue every 80 ms with an initial delay of 400 ms
@@ -1416,17 +1428,6 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(spanElement) {
         decrementValue();
       }
     });
-}
-
-/**
- * Fires an "input" event on behalf of underlying text input.
- * @private
- */
-JSSpinner.prototype.fireInputEvent = function() {
-  this.textInput.focus();
-  var ev = document.createEvent("Event");
-  ev.initEvent("input", true, true);
-  this.textInput.dispatchEvent(ev);
 }
 
 /**
