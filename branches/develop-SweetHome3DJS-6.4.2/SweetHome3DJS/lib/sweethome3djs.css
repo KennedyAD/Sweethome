@@ -35,6 +35,10 @@
   color: #404040;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 input {
   -webkit-user-select:text;
   -khtml-user-select:text;
@@ -1685,6 +1689,14 @@ input, textarea, keygen, select, button {
   flex-grow: 1;
   overflow: auto;
   max-height: 24em;
+}
+
+@media (hover: none), (pointer: coarse) {
+  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
+    .model-materials-selector-dialog [data-name="materials-list"] {
+      max-height: 15em;
+    }
+  }
 }
 
 .model-materials-selector-dialog [data-name="materials-list"] > div {
