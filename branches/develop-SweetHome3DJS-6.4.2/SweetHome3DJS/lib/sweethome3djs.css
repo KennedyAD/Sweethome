@@ -1556,14 +1556,14 @@ label {
 
 .texture-selector-dialog .texture-search input {
   left: 0;
-  background: url(search.gif) no-repeat scroll 0px 2px;
+  background: url(search.gif) no-repeat scroll 0px 3px;
   background-color: #FFFFFFFF;
   border-width: thin;
   border-radius: 5px;
   padding-left: 20px;
   width: 100%;
   font-size: 1em;
-  height: 1.3em;
+  height: 1.5em;
 }
 
 .texture-selector-dialog .texture-catalog-list {
@@ -1590,11 +1590,10 @@ label {
 
 .texture-selector-dialog .texture-catalog-list .item img {
   width: 1.3em;
-  object-fit: cover;
   height: 1.3em;
+  object-fit: cover;
   margin-right: 0.5em;
   vertical-align: middle;
-  max-width: 2em;
 }
 
 .texture-selector-dialog .selected-texture-preview {
@@ -1710,12 +1709,21 @@ label {
 
 }
 
+.model-materials-selector-dialog #model-preview-canvas,
+.model-materials-selector-dialog [data-name="materials-list"],
+.model-materials-selector-dialog .label-input-grid,
+.model-materials-selector-dialog input[type="range"] {
+  margin-top: 5px;
+}
+
 .model-materials-selector-dialog [data-name="preview-panel"] {
   flex-shrink: 1;
   margin-right: 1rem;
+  margin-top: 5px;
 }
 
 .model-materials-selector-dialog [data-name="edit-panel"] {
+  margin-top: 5px;
   display: flex;
   flex-direction: row;
   flex-grow: 1;
@@ -1732,6 +1740,8 @@ label {
   flex-grow: 1;
   overflow: auto;
   max-height: 24em;
+  background-color: #FFFFFFFF;
+  border: solid thin gray;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -1743,10 +1753,10 @@ label {
 }
 
 .model-materials-selector-dialog [data-name="materials-list"] > div {
-  height: 2em;
+  height: 1.5em;
   position: relative;
   padding-left: 1.8em;
-  line-height: 2em;
+  line-height: 1.5em;
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
@@ -1764,8 +1774,17 @@ label {
   width: 1.2em;
   height: 1.2em;
   position: absolute;
-  top: .3em;
-  left: .3em;
+  top: 2px;
+  left: 2px;
+}
+
+
+.model-materials-selector-dialog [data-name="color-texture-shininess-panel"] {
+  margin-top: 5px;
+}
+
+.model-materials-selector-dialog label input {
+  margin-right: 0.5em;
 }
 
 .dialog-body input[type="range"] {
