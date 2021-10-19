@@ -1551,40 +1551,30 @@ label {
 
 .texture-selector-dialog .texture-search {
   position: relative;
-}
-
-.texture-selector-dialog .texture-search::before {
-  content: '🔍';
-  position: absolute;
-  top: 0.2em;
-  left: 0.5em;
-  line-height: 2em;
+  margin-bottom: 0.5em;
 }
 
 .texture-selector-dialog .texture-search input {
+  left: 0;
+  background: url(search.gif) no-repeat scroll 0px 2px;
+  background-color: #FFFFFFFF;
+  border-width: thin;
+  border-radius: 5px;
+  padding-left: 20px;
   width: 100%;
-  line-height: 2em;
-  padding-left: 2em;
   font-size: 1em;
-  margin-bottom: 0.2em;
+  height: 1.3em;
 }
 
 .texture-selector-dialog .texture-catalog-list {
   overflow: auto;
   height: 40em;
-}
-
-@media (hover: none), (pointer: coarse) {
-  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-    .texture-selector-dialog .texture-catalog-list {
-      height: 20vh;
-    }
-  }
+  background-color: #FFFFFFFF;
+  border: solid thin gray;
 }
 
 .texture-selector-dialog .texture-catalog-list .item {
   margin: 0.1em;
-  padding: 0.1em 0;
   white-space: nowrap;
 }
 
@@ -1599,7 +1589,7 @@ label {
 }
 
 .texture-selector-dialog .texture-catalog-list .item img {
-  width: 10%;
+  width: 1.3em;
   object-fit: cover;
   height: 1.3em;
   margin-right: 0.5em;
@@ -1609,16 +1599,15 @@ label {
 
 .texture-selector-dialog .selected-texture-preview {
   margin: 0 auto;
+  margin-top: 1.8em;
   border: solid 1px gray;
   margin-bottom: 1em;
   background-color: #EEEEEE;
-  
   /* css trick to create a square: padding bottom uses width percentage.. */
-  width: 60%;
+  width: 50%;
   height: 0;
-  padding-bottom: 60%;
+  padding-bottom: 50%;
   position: relative;
-
   overflow: hidden;
 }
 
@@ -1654,6 +1643,18 @@ label {
 
 .texture-selector-dialog .column2 hr {
   margin: 2em 0;
+}
+
+@media (hover: none), (pointer: coarse) {
+  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
+	.texture-selector-dialog .texture-catalog-list {
+      height: 20vh;
+    }
+    
+    .texture-selector-dialog .selected-texture-preview {
+      margin-top: 1em; 
+    }
+  }
 }
 
 .texture-selector-dialog .imported-textures-panel {
