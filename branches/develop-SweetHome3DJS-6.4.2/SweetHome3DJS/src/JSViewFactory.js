@@ -3864,7 +3864,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
           controller.setY(yInput.getValue());
         });
       this.registerEventListener(diameterInput, "input", function (ev) {
-          controller.setDiameter(diameterInput.getValue() != null);
+          controller.setDiameter(diameterInput.getValue());
         });
   
       var visibleCheckBox = this.getElement("visible-checkbox");
