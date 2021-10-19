@@ -161,7 +161,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
     };
   this.registerEventListener(this.texturesCatalogItems, "click", mouseClicked);
 
-  this.initCatalogTextureSearch();
+  this.initCatalogTextureSearch(preferences);
   this.initRecentTextures();
   preferences.addPropertyChangeListener("RECENT_TEXTURES", function(ev) {
       dialog.initRecentTextures();
@@ -321,11 +321,13 @@ JSTextureSelectorDialog.prototype.getCatalogTextureFromItem = function(item) {
 }
 
 /**
+ * @param {UserPreferences} preferences 
  * @private
  */
-JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function() {
+JSTextureSelectorDialog.prototype.initCatalogTextureSearch = function(preferences) {
   var dialog = this;
   dialog.searchInput = this.getHTMLElement().querySelector(".texture-search input");
+  dialog.searchInput.placeholder = preferences.getLocalizedString("TextureChoiceComponent", "searchLabel.text").replace(":", "");
   dialog.registerEventListener(dialog.searchInput, "keyup", CoreTools.debounce(function() {
       var searchTerm = dialog.searchInput.value.trim().toLowerCase();
       for (var i = 0; i < dialog.texturesCatalogItems.length; i++) {
