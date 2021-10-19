@@ -95,7 +95,7 @@ function JSModelMaterialsSelectorDialog(preferences, controller, options) {
     '  </div>' + 
     '  <div data-name="edit-panel">' +
     '    <div>' +
-    '      <span>@{ModelMaterialsComponent.materialsLabel.text}</span><br/>' +
+    '      <span>@{ModelMaterialsComponent.materialsLabel.text}</span>' +
     '      <div data-name="materials-list">' +
     '      </div>' +
     '    </div>' +
@@ -599,9 +599,9 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
   var previewPanel = this.getElement("preview-panel");
   var previewCanvas = this.findElement("#model-preview-canvas");
 
-  previewCanvas.style.border = "1px lightgray dotted";
-  previewCanvas.width = 350;
-  previewCanvas.height = 350;
+  previewCanvas.style.border = "1px lightgray solid";
+  previewCanvas.width = 250;
+  previewCanvas.height = 250;
 
   var previewComponent = dialog.previewComponent = new ModelPreviewComponent(previewCanvas, true);
   ModelManager.getInstance().loadModel(controller.getModel(), false, 
