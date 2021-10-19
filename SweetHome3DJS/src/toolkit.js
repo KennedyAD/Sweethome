@@ -1380,7 +1380,10 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(spanElement) {
 
   // Repeat incrementValue / decrementValue every 80 ms with an initial delay of 400 ms
   // while mouse button kept pressed, and ensure at least one change is triggered for a short click
-  var repeatAction = function(button, action) {
+  var repeatAction = function(ev, button, action) {
+      if (component.isFocused()) {
+        ev.preventDefault(); // Prevent input from losing focus 
+      }
       var stopRepeatedTask = function(ev) {
           clearTimeout(taskId);
           button.removeEventListener("mouseleave", stopRepeatedTask);
@@ -1404,12 +1407,12 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(spanElement) {
         }, 400);
     };
   var repeatIncrementValue = function(ev) {
-      repeatAction(component.incrementButton, incrementValue);
+      repeatAction(ev, component.incrementButton, incrementValue);
     };
   this.registerEventListener(component.incrementButton, "mousedown", repeatIncrementValue);
   
   var repeatDecrementValue = function(ev) {
-      repeatAction(component.decrementButton, decrementValue);
+      repeatAction(ev, component.decrementButton, decrementValue);
     };
   this.registerEventListener(component.decrementButton, "mousedown", repeatDecrementValue);
 
@@ -1422,6 +1425,9 @@ JSSpinner.prototype.initIncrementDecrementButtons = function(spanElement) {
         ev.stopImmediatePropagation();
         decrementValue();
       }
+    });
+  this.registerEventListener(this.textInput, "focus", function(ev) {
+      component.updateUI();
     });
 }
 
