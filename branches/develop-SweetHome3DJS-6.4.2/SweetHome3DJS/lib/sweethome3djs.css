@@ -405,7 +405,7 @@ label {
 .furniture > .furniture-label {
   font-family: Arial;
   position: absolute;
-  bottom: 0.4em;
+  bottom: 0.25em;
   font-size: 0.7em;
   line-height: 95%;
   width: 70px;
