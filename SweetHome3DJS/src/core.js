@@ -375,6 +375,7 @@ ParsePosition.prototype.setErrorIndex = function(errorIndex) {
  * @extends Format
  * @author Louis Grignon
  * @author Emmanuel Puybaret
+ * @ignore
  */
 function DecimalFormat(pattern) {
   Format.call(this);
@@ -623,6 +624,7 @@ function parseLocalizedNumber(string, parsePosition, options) {
  * @constructor
  * @extends DecimalFormat
  * @author Louis Grignon
+ * @ignore
  */
 function IntegerFormat() {
   Format.call(this);
@@ -697,10 +699,16 @@ UUID.randomUUID = function() {
 }
 
 
+/**
+ * @ignore
+ */
 Math.toDegrees = function (x) {
   return x * 180 / Math.PI;
 }
 
+/**
+ * @ignore
+ */
 Math.toRadians = function (x) {
   return x * Math.PI / 180;
 }
