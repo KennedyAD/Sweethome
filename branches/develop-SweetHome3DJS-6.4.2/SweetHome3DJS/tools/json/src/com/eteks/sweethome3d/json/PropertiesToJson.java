@@ -182,12 +182,7 @@ public class PropertiesToJson {
 
   private static void afterLoaded(Properties properties, String sourceRoot, String resourcesOutputDirectory, String propertyFileBaseName,
                                   String resourcesRelativeDirectory, boolean copyResources, boolean resourceNameFromFile, String language) throws IOException {
-    if ("LengthUnit".equals(propertyFileBaseName)) {
-      System.out.println("***** Adding extra keys for '" + language + "'");
-      properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getGroupingSeparator());
-      properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getDecimalSeparator());
-      properties.put("minusSign", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getMinusSign());
-    } else if ("package".equals(propertyFileBaseName)) {
+    if ("package".equals(propertyFileBaseName)) {
       for (Iterator<Entry<Object, Object>> it = properties.entrySet().iterator(); it.hasNext(); ) {
         Entry<Object, Object> entry = it.next();
         String key = (String)entry.getKey();

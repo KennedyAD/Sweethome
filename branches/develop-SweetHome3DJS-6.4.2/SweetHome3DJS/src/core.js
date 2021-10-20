@@ -1,7 +1,7 @@
 /*
  * core.js
  *
- * Copyright (c) 2015-2018 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Copyright (c) 2015-2021 Emmanuel PUYBARET / eTeks <info@eteks.com>
  * 
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -368,6 +368,281 @@ ParsePosition.prototype.setErrorIndex = function(errorIndex) {
 }
 
 /**
+ * A format for numbers.
+ * Inspired by java.text.DecimalFormat
+ * @param {string} [pattern] partial support of pattern defined at https://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html
+ * @constructor
+ * @extends Format
+ * @author Louis Grignon
+ * @author Emmanuel Puybaret
+ */
+function DecimalFormat(pattern) {
+  Format.call(this);
+
+  this.groupingUsed = false;
+  this.minimumFractionDigits = 0;
+  this.maximumFractionDigits = 2;
+  this.checkLocaleChange();
+
+  if (pattern && pattern.trim() != "") {
+    var patternParts = pattern.split(";");
+
+    var fractionDigitsMatch = patternParts[0].match(/[.]([0]+)([#]*)/);
+    if (fractionDigitsMatch == null) {
+      this.minimumFractionDigits = 0;
+      fractionDigitsMatch = patternParts[0].match(/[.]([#]*)/);
+      if (fractionDigitsMatch == null) {
+        this.maximumFractionDigits = 0;
+      } else if (fractionDigitsMatch.length > 1) {
+        this.maximumFractionDigits = fractionDigitsMatch[1].length;
+      }
+    } else if (fractionDigitsMatch.length > 1) {
+      this.minimumFractionDigits = fractionDigitsMatch[1].length;
+      if (fractionDigitsMatch.length > 2 && fractionDigitsMatch[2].length > 0) {
+        this.maximumFractionDigits = this.minimumFractionDigits + fractionDigitsMatch[2].length;
+      }
+    }
+
+    if (patternParts.length > 1) {
+      var part = patternParts[0].trim();
+      this.positivePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
+      part = patternParts[1].trim();
+      this.negativePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
+    } else {
+      var part = patternParts[0].trim();
+      this.positivePrefix = this.negativePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
+    }
+  }
+  
+  if (this.maximumFractionDigits < this.minimumFractionDigits) {
+    this.maximumFractionDigits = this.minimumFractionDigits;
+  }
+}
+DecimalFormat.prototype = Object.create(Format.prototype);
+DecimalFormat.prototype.constructor = DecimalFormat;
+
+DecimalFormat.prototype.format = function(number) {
+  if (number == null) {
+    return '';
+  }
+  this.checkLocaleChange();
+
+  var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, {
+      minimumFractionDigits: this.minimumFractionDigits,
+      maximumFractionDigits: this.maximumFractionDigits,
+      positivePrefix: this.positivePrefix,
+      negativePrefix: this.negativePrefix,
+    }); 
+  return formattedNumber;
+}
+
+DecimalFormat.prototype.parse = function(text, parsePosition) {
+  this.checkLocaleChange();
+  var number = parseLocalizedNumber(text, parsePosition, {
+      decimalSeparator: this.decimalSeparator,
+      positivePrefix: this.positivePrefix,
+      negativePrefix: this.negativePrefix
+    });
+  if (number === null) {
+    return null;
+  } else {
+    return number;
+  }
+}
+
+DecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
+  this.groupingUsed = groupingUsed;
+}
+
+DecimalFormat.prototype.isGroupingUsed = function() {
+  return this.groupingUsed;
+}
+
+DecimalFormat.prototype.setPositivePrefix = function(positivePrefix) {
+  this.positivePrefix = positivePrefix;
+}
+
+DecimalFormat.prototype.getPositivePrefix = function() {
+  return this.positivePrefix;
+}
+
+DecimalFormat.prototype.setNegativePrefix = function(negativePrefix) {
+  this.negativePrefix = negativePrefix;
+}
+
+DecimalFormat.prototype.getNegativePrefix = function() {
+  return this.negativePrefix;
+}
+
+/**
+ * @private
+ */
+DecimalFormat.prototype.checkLocaleChange = function() {
+  // Instantiate format if locale changed
+  if (Locale.getDefault() != this.formatLocale) {
+    this.formatLocale = Locale.getDefault();
+    this.decimalSeparator = this.formatLocale.match(/(bg|cs|de|el|es|fi|fr|hu|in|it|nl|pl|pt|ru|sl|sr|sv|uk|vi)(_\w\w)?/) 
+        ? ","
+        : this.formatLocale.match(/(ar)(_\w\w)?/)
+            ? "٫"
+            : ".";
+    this.groupingSeparator = this.formatLocale.match(/(bg|cs|fi|fr|hu|pl|ru|sv|uk)(_\w\w)?/) 
+        ? "\u00a0"
+        : this.formatLocale.match(/(de|el|es|in|it|nl|pt|sl|sr|vi)(_\w\w)?/)
+            ? "."
+            : this.formatLocale.match(/(ar)(_\w\w)?/)
+                ? "٬"
+                : ",";
+  }
+}
+
+/**
+ * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
+ * are not supported (mainly Safari 8/9).
+ * @param {number} number
+ * @param {string} groupingSeparator
+ * @param {boolean} groupingUsed
+ * @param {string} decimalSeparator
+ * @param {Object} options
+ * @ignore
+ */
+function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decimalSeparator, options) {
+  if (options.minimumFractionDigits === 0) {
+    delete options.minimumFractionDigits;
+  }
+
+  var formattedNumber = number.toLocaleString("en", options);
+  var decimalSeparatorIndex = formattedNumber.indexOf('.');
+  if (decimalSeparatorIndex === -1) {
+    decimalSeparatorIndex = formattedNumber.length;
+  }
+  
+  if (options.maximumFractionDigits === 0) {
+    if (decimalSeparatorIndex < formattedNumber.length) {
+      // Remove last decimals
+      formattedNumber = Math.round(number).toString();
+      decimalSeparatorIndex = formattedNumber.length;
+    }
+  } else if (options.maximumFractionDigits < formattedNumber.length - decimalSeparatorIndex - 1) {
+    // Limit decimals to the required maximum using an integer with the right number of digits
+    formattedNumber = Math.round(number * Math.pow(10, options.maximumFractionDigits)).toString();
+    if (Math.abs(number) < 1) {
+      formattedNumber = number > 0 
+          ? '0.' + formattedNumber 
+          : '-0.' + formattedNumber.substring(1);
+    } else {
+      formattedNumber = formattedNumber.substring(0, decimalSeparatorIndex) + '.' + formattedNumber.substring(decimalSeparatorIndex);
+    }
+  }
+  
+  // Add a decimal separator if needed followed by the required number of zeros
+  if (options.minimumFractionDigits > 0) {
+    if (decimalSeparatorIndex === formattedNumber.length) {
+      formattedNumber += '.';
+    }
+    while (options.minimumFractionDigits > formattedNumber.length - decimalSeparatorIndex - 1) {
+      formattedNumber += '0';
+    }
+  }
+  
+  if (decimalSeparatorIndex > 3) {
+    if (formattedNumber.indexOf(',') === -1) {
+      if (groupingUsed) {
+        // Add missing grouping separator
+        for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
+          formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
+          decimalSeparatorIndex++;
+        }
+      }
+    } else if (!groupingUsed) {
+      // Remove grouping separator
+      formattedNumber = formattedNumber.replace(/\,/g, "");
+    } 
+  }
+
+  formattedNumber = formattedNumber.replace(".", "#");
+  if (groupingUsed) {
+    formattedNumber = formattedNumber.replace(/\,/g, groupingSeparator);
+  }
+  formattedNumber = formattedNumber.replace("#", decimalSeparator);
+  if (options.negativePrefix && options.negativePrefix.length > 0) {
+    formattedNumber = formattedNumber.replace("-", options.negativePrefix);
+  }
+  if (number > 0 && options.positivePrefix && options.positivePrefix.length > 0) {
+    formattedNumber = options.positivePrefix + formattedNumber;
+  }
+  return formattedNumber;
+}
+
+/**
+ * Returns the number parsed from the given string and updates parse position.
+ * @param {string} string
+ * @param {ParsePosition} parsePosition
+ * @param { { decimalSeparator?: string, positivePrefix?: string, negativePrefix?: string } } options
+ *  - decimalSeparator: if omitted the string only integer is parsed
+ *  - positivePrefix: optionally specify a prefix before positive numbers which should be ignored for parsing (default: '')
+ *  - negativePrefix: optionally specify a prefix before negative numbers which should be ignored for parsing (default: '')
+ * @returns {number} the parsed number or <code>null</code> if the string can't be parsed
+ * @ignore
+ */
+function parseLocalizedNumber(string, parsePosition, options) {
+  var integer = options.decimalSeparator === undefined;
+  var decimalSeparator = options.decimalSeparator;
+  var positivePrefix = options.positivePrefix ? options.positivePrefix : "";
+  var negativePrefix = options.negativePrefix ? options.negativePrefix : "";
+
+  string = string.substring(parsePosition.getIndex(), string.length);
+
+  if (positivePrefix.length > 0 && string.indexOf(positivePrefix) === 0) {
+    string = string.substring(positivePrefix.length);
+  } else if (negativePrefix.length > 0 && string.indexOf(negativePrefix) === 0) {
+    string = string.replace(negativePrefix, "-");
+  }
+
+  var numberRegExp = integer 
+      ? /\d+/g
+      : new RegExp("^\\-?" 
+            + "((\\d+\\" + decimalSeparator + "?\\d*)" 
+            + "|(\\" + decimalSeparator + "\\d+))", "g"); // Same as /^\-?((\d+\.?\d*)|(\.\d+))/g
+  if (numberRegExp.test(string) 
+      && numberRegExp.lastIndex > 0) {      
+    string = string.substring(0, numberRegExp.lastIndex);
+    var number = integer
+        ? parseInt(string)
+        : parseFloat(string.replace(decimalSeparator, "."));
+    parsePosition.setIndex(parsePosition.getIndex() + numberRegExp.lastIndex);
+    return number;
+  } else {
+    return null;
+  } 
+}
+
+/**
+ * A format for integer numbers.
+ * Inspired by java.text.NumberFormat.getIntegerInstance()
+ * @constructor
+ * @extends DecimalFormat
+ * @author Louis Grignon
+ */
+function IntegerFormat() {
+  Format.call(this);
+}
+IntegerFormat.prototype = Object.create(Format.prototype);
+IntegerFormat.prototype.constructor = IntegerFormat;
+
+IntegerFormat.prototype.format = function(number) {
+  if (number == null) {
+    return '';
+  }
+  return toLocaleStringUniversal(number, "", false, "", {maximumFractionDigits: 0}); 
+}
+  
+IntegerFormat.prototype.parse = function(text, parsePosition) {
+  return parseLocalizedNumber(text, parsePosition, {}); // No decimal separator to parse integer
+}
+
+
+/**
  * Locale class.
  * @class
  * @ignore
@@ -401,6 +676,7 @@ Locale.setDefault = function(language) {
   }
 }
 
+
 /**
  * UUID class.
  * @class
@@ -420,6 +696,7 @@ UUID.randomUUID = function() {
   
 }
 
+
 Math.toDegrees = function (x) {
   return x * 180 / Math.PI;
 }
@@ -427,6 +704,7 @@ Math.toDegrees = function (x) {
 Math.toRadians = function (x) {
   return x * Math.PI / 180;
 }
+
 
 /**
  * KeyStroke class.
@@ -565,277 +843,4 @@ KeyStroke.getKeyStrokeForEvent = function(ev, keyEventType) {
     keyStroke += nameWithoutVK;
   } 
   return keyStroke;
-}
-
-/**
- * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
- * are not supported (mainly Safari 8/9).
- * @param {number} number
- * @param {string} groupingSeparator
- * @param {boolean} groupingUsed
- * @param {string} decimalSeparator
- * @param {string} [minusSign]
- * @param {Object} options
- * @ignore
- */
-function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decimalSeparator, minusSign, options) {
-  if (options === undefined) {
-    options = minusSign;
-    minusSign = undefined;
-  }
-  if (options.minimumFractionDigits === 0) {
-    delete options.minimumFractionDigits;
-  }
-
-  var formattedNumber = number.toLocaleString("en", options);
-  var decimalSeparatorIndex = formattedNumber.indexOf('.');
-  if (decimalSeparatorIndex === -1) {
-    decimalSeparatorIndex = formattedNumber.length;
-  }
-  
-  if (options.maximumFractionDigits === 0) {
-    if (decimalSeparatorIndex < formattedNumber.length) {
-      // Remove last decimals
-      formattedNumber = Math.round(number).toString();
-      decimalSeparatorIndex = formattedNumber.length;
-    }
-  } else if (options.maximumFractionDigits < formattedNumber.length - decimalSeparatorIndex - 1) {
-    // Limit decimals to the required maximum using an integer with the right number of digits
-    formattedNumber = Math.round(number * Math.pow(10, options.maximumFractionDigits)).toString();
-    if (Math.abs(number) < 1) {
-      formattedNumber = number > 0 
-          ? '0.' + formattedNumber 
-          : '-0.' + formattedNumber.substring(1);
-    } else {
-      formattedNumber = formattedNumber.substring(0, decimalSeparatorIndex) + '.' + formattedNumber.substring(decimalSeparatorIndex);
-    }
-  }
-  
-  // Add a decimal separator if needed followed by the required number of zeros
-  if (options.minimumFractionDigits > 0) {
-    if (decimalSeparatorIndex === formattedNumber.length) {
-      formattedNumber += '.';
-    }
-    while (options.minimumFractionDigits > formattedNumber.length - decimalSeparatorIndex - 1) {
-      formattedNumber += '0';
-    }
-  }
-  
-  if (decimalSeparatorIndex > 3) {
-    if (formattedNumber.indexOf(',') === -1) {
-      if (groupingUsed) {
-        // Add missing grouping separator
-        for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
-          formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
-          decimalSeparatorIndex++;
-        }
-      }
-    } else if (!groupingUsed) {
-      // Remove grouping separator
-      formattedNumber = formattedNumber.replace(/\,/g, "");
-    } 
-  }
-
-  formattedNumber = formattedNumber.replace(".", "#").replace(/\,/g, groupingSeparator).replace("#", decimalSeparator);
-  formattedNumber = formattedNumber.replace(' ', '\u202f');
-  if (options.negativePrefix !== undefined) {
-    formattedNumber = formattedNumber.replace("-", options.negativePrefix);
-  }
-  if (minusSign !== undefined) {
-    formattedNumber = formattedNumber.replace("-", minusSign);
-  }
-  if (number > 0 && options.positivePrefix !== undefined) {
-    formattedNumber = options.positivePrefix + formattedNumber;
-  }
-  return formattedNumber;
-}
-
-/**
- * Returns the number parsed from the given string and updates parse position.
- * @param {string} string
- * @param {ParsePosition} parsePosition
- * @param { { minusSign: string, decimalSeparator?: string, positivePrefix?: string, negativePrefix?: string } } options
- *  - decimalSeparator: if omitted the string only integer is parsed
- *  - positivePrefix: optionally specify a prefix before positive numbers which should be ignored for parsing (default: '')
- *  - negativePrefix: optionally specify a prefix before negative numbers which should be ignored for parsing (default: '')
- * @returns {number} the parsed number or <code>null</code> if the string can't be parsed
- * @ignore
- */
-function parseLocalizedNumber(string, parsePosition, options) {
-  var integer = options.decimalSeparator === undefined;
-  var minusSign = options.minusSign;
-  var decimalSeparator = options.decimalSeparator;
-  var positivePrefix = options.positivePrefix ? options.positivePrefix : '';
-  var negativePrefix = options.negativePrefix ? options.negativePrefix : '';
-
-  string = string.substring(parsePosition.getIndex(), string.length);
-
-  if (string.indexOf(positivePrefix) === 0) {
-    string = string.substring(positivePrefix.length);
-  } else if (string.indexOf(negativePrefix) === 0) {
-    string = string.replace(negativePrefix, minusSign);
-  }
-
-  var numberRegExp = integer 
-      ? /\d+/g
-      : new RegExp("^\\" + minusSign + "?" 
-      		  + "((\\d+\\" + decimalSeparator + "?\\d*)" 
-            + "|(\\" + decimalSeparator + "\\d+))", "g"); // Same as /^\-?((\d+\.?\d*)|(\.\d+))/g
-  if (numberRegExp.test(string) 
-      && numberRegExp.lastIndex > 0) {      
-    string = string.substring(0, numberRegExp.lastIndex);
-    var number = integer
-        ? parseInt(string)
-        : parseFloat(string.replace(minusSign, "-").replace(decimalSeparator, "."));
-    parsePosition.setIndex(parsePosition.getIndex() + numberRegExp.lastIndex);
-    return number;
-  } else {
-    return null;
-  } 
-}
-
-/**
- * A format for numbers.
- * Inspired by java.text.DecimalFormat
- * @param {string} [pattern] partial support of pattern defined here https://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html
- * @constructor
- * @extends Format
- * @author Louis Grignon
- */
-function DecimalFormat(pattern) {
-  Format.call(this);
-
-  this.groupingUsed = false;
-  this.minimumFractionDigits = 0;
-  this.maximumFractionDigits = 2;
-  this.checkLocaleChange();
-
-  this.positivePrefix = "";
-  this.negativePrefix = "";
-  if (pattern && pattern.trim() != "") {
-    var patternParts = pattern.split(";");
-
-    var fractionDigitsMatch = patternParts[0].match(/[.]([0]+)([#]*)/);
-    if (fractionDigitsMatch == null) {
-      this.minimumFractionDigits = 0;
-      fractionDigitsMatch = patternParts[0].match(/[.]([#]*)/);
-      if (fractionDigitsMatch.length > 1) {
-        this.maximumFractionDigits = fractionDigitsMatch[1].length;
-      }
-    } else if (fractionDigitsMatch.length > 1) {
-      this.minimumFractionDigits = fractionDigitsMatch[1].length;
-      if (fractionDigitsMatch.length > 2 && fractionDigitsMatch[2].length > 0) {
-        this.maximumFractionDigits = this.minimumFractionDigits + fractionDigitsMatch[2].length;
-      }
-    }
-
-    if (patternParts.length > 1) {
-      var part = patternParts[0].trim();
-      this.positivePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
-      part = patternParts[1].trim();
-      this.negativePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
-    } else {
-      var part = patternParts[0].trim();
-      this.positivePrefix = this.negativePrefix = part.substring(0, Math.min(part.indexOf('#'), part.indexOf('0')));
-    }
-  }
-  
-  if (this.maximumFractionDigits < this.minimumFractionDigits) {
-    this.maximumFractionDigits = this.minimumFractionDigits;
-  }
-}
-DecimalFormat.prototype = Object.create(Format.prototype);
-DecimalFormat.prototype.constructor = DecimalFormat;
-
-DecimalFormat.prototype.format = function(number) {
-  if (number == null) {
-    return '';
-  }
-  this.checkLocaleChange();
-
-  var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, this.minusSign, {
-      minimumFractionDigits: this.minimumFractionDigits,
-      maximumFractionDigits: this.maximumFractionDigits,
-      positivePrefix: this.positivePrefix,
-      negativePrefix: this.negativePrefix,
-    }); 
-  return formattedNumber;
-}
-
-DecimalFormat.prototype.parse = function(text, parsePosition) {
-  this.checkLocaleChange();
-  var number = parseLocalizedNumber(text, parsePosition, {
-      decimalSeparator: this.decimalSeparator,
-      minusSign: this.minusSign,
-      positivePrefix: this.positivePrefix,
-      negativePrefix: this.negativePrefix
-    });
-  if (number === null) {
-    return null;
-  } else {
-    return number;
-  }
-}
-
-DecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
-  this.groupingUsed = groupingUsed;
-}
-
-DecimalFormat.prototype.isGroupingUsed = function() {
-  return this.groupingUsed;
-}
-
-DecimalFormat.prototype.setPositivePrefix = function(positivePrefix) {
-  this.positivePrefix = positivePrefix;
-}
-
-DecimalFormat.prototype.getPositivePrefix = function() {
-  return this.positivePrefix;
-}
-
-DecimalFormat.prototype.setNegativePrefix = function(negativePrefix) {
-  this.negativePrefix = negativePrefix;
-}
-
-DecimalFormat.prototype.getNegativePrefix = function() {
-  return this.negativePrefix;
-}
-
-/**
- * @protected
- */
-DecimalFormat.prototype.checkLocaleChange = function() {
-  // Instantiate format if locale changed
-  if (Locale.getDefault() != this.formatLocale) {
-    this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-
-    this.groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
-    this.decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.minusSign = CoreTools.getStringFromKey(resource, "minusSign");
-  }
-}
-
-/**
- * A format for integers numbers.
- * Inspired by java.text.DecimalFormat & java.text.NumberFormat.getIntegerInstance()
- * @constructor
- * @extends DecimalFormat
- * @author Louis Grignon
- */
-function IntegerFormat() {
-  DecimalFormat.call(this);
-  this.maximumFractionDigits = 0;
-}
-IntegerFormat.prototype = Object.create(DecimalFormat.prototype);
-IntegerFormat.prototype.constructor = IntegerFormat;
-
-IntegerFormat.prototype.parse = function(text, parsePosition) {
-  this.checkLocaleChange();
-  var number = DecimalFormat.prototype.parse.call(this, text, parsePosition);
-  if (number === null) {
-    return null;
-  } else {
-    return Math.floor(number);
-  }
 }
