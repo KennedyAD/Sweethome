@@ -18,35 +18,11 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 --%>
 <%@ page import="java.io.*" %>
-<%@ page import="java.net.URL"%>
-<%@ page import="java.util.*" %>
 <%@ page import="java.nio.file.*"%>
-<%@ page import="javax.swing.undo.UndoableEdit"%>
-<%@ page import="com.eteks.sweethome3d.model.UserPreferences" %>
-<%@ page import="com.eteks.sweethome3d.io.*" %>
 <% out.clear();
    request.setCharacterEncoding("UTF-8");
-
-   String contentType = request.getContentType();
-
-   InputStream inputStream = request.getInputStream();
-   int formDataLength = request.getContentLength();
-
-   final int BUFFER_SIZE = 4096;
-
-   File outputFile = new File(getServletContext().getRealPath("/userResources"), request.getParameter("path"));
-   outputFile.getParentFile().mkdirs();
-   System.out.println(outputFile.getCanonicalPath());
-   try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputFile), BUFFER_SIZE)) {
-      int bytesRead;
-      byte[] buffer = new byte[BUFFER_SIZE];
-      int totalBytesRead = 0;
-      while (totalBytesRead < formDataLength) {
-         bytesRead = inputStream.read(buffer, 0, BUFFER_SIZE);
-         totalBytesRead += bytesRead;
-         outputStream.write(buffer, 0, bytesRead);
-      }
-   }
-   System.out.println("written to " + outputFile);
-
+   InputStream input = request.getInputStream();
+   File resourceFile = new File(getServletContext().getRealPath("/userResources"), request.getParameter("path"));
+   resourceFile.getParentFile().mkdirs();
+   Files.copy(input, resourceFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 %>
