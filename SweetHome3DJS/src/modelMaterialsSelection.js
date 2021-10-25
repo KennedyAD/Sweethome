@@ -721,7 +721,7 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
         textureChoiceChangeListener();
       }
     });
-  controller.getTextureController().addPropertyChangeListener("TEXTURE", function(ev) {
+  this.registerPropertyChangeListener(controller.getTextureController(), "TEXTURE", function(ev) {
       if (ev.getNewValue() != null) {
         if (!textureRadio.checked) {
           textureRadio.checked = true;

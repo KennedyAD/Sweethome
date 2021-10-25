@@ -198,9 +198,6 @@ JSColorSelector.prototype.addAndSelectCustomColorTile = function(colorHex) {
   return tileElement;
 }
 
-JSColorSelector.prototype.dispose = function() {
-  JSComponent.prototype.dispose.call(this);
-}
 
 /**
  * Color selector dialog class.
@@ -333,8 +330,4 @@ JSColorSelectorButton.prototype.openColorSelectorDialog = function() {
         }
       });
   dialog.displayView();
-}
-
-JSColorSelectorButton.prototype.dispose = function() {
-  JSComponent.prototype.dispose.call(this);
 }
