@@ -730,14 +730,14 @@ HomePane.prototype.createClipboardAction = function(actionType, preferences, cli
       homePane.controller.enablePasteAction();
     }
     switch (actionType) {
-    case HomeView.ActionType.CUT:
-      homePane.controller.cut(homePane.home.getSelectedItems());
-      break;
-    case HomeView.ActionType.COPY:
-      break;
-    case HomeView.ActionType.PASTE:
-      homePane.controller.paste(Home.duplicate(homePane.clipboard));
-      break;
+      case HomeView.ActionType.CUT:
+        homePane.controller.cut(homePane.home.getSelectedItems());
+        break;
+      case HomeView.ActionType.COPY:
+        break;
+      case HomeView.ActionType.PASTE:
+        homePane.controller.paste(Home.duplicate(homePane.clipboard));
+        break;
     }
     return action;
   }
@@ -799,7 +799,6 @@ HomePane.prototype.addLevelVisibilityListener = function(home) {
  */
 HomePane.prototype.addUserPreferencesListener = function(preferences) {
   var listener = new HomePane.UserPreferencesChangeListener(this);
-  preferences.addPropertyChangeListener("LANGUAGE", listener);
   preferences.addPropertyChangeListener("CURRENCY", listener);
   preferences.addPropertyChangeListener("VALUE_ADDED_TAX_ENABLED", listener);
 }
@@ -812,9 +811,8 @@ HomePane.prototype.addUserPreferencesListener = function(preferences) {
  * @ignore
  */
 HomePane.UserPreferencesChangeListener = function(homePane) {
-  if (this.homePane === undefined)
-    this.homePane = null;
-  this.homePane = (homePane);
+  // TODO Manage weak reference ?
+  this.homePane = homePane;
 }
 
 HomePane.UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
@@ -824,25 +822,20 @@ HomePane.UserPreferencesChangeListener.prototype.propertyChange = function(ev) {
   var property = ev.getPropertyName();
   if (homePane == null) {
     preferences.removePropertyChangeListener(property, this);
-  }
-  else {
-    switch ((property)) {
-    case "LANGUAGE":
-      // TODO LOUIS refresh page language 
-      // SwingTools.updateSwingResourceLanguage(ev.getSource());
-      break;
-    case "CURRENCY":
-      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
-      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
-      break;
-    case "VALUE_ADDED_TAX_ENABLED":
-      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
-      break;
+  } else {
+    switch (property) {
+      case "CURRENCY":
+        homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
+        homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_PRICE).putValue(ResourceAction.VISIBLE, ev.getNewValue() != null);
+        break;
+      case "VALUE_ADDED_TAX_ENABLED":
+        homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+        homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+        homePane.getAction(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+        homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+        homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+        homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED).putValue(ResourceAction.VISIBLE, ev.getNewValue() == true);
+        break;
     }
   }
 }

@@ -222,6 +222,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var component = this;
     controller.addPropertyChangeListener("STEP", function(ev) {
         component.updateStep();
+        component.repaintOriginCanvas();
       });
     controller.addPropertyChangeListener("IMAGE", function(ev) {
         component.updateImagePreviews();
@@ -332,63 +333,61 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
           canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
         }
       };
-
     var mouseMove = function(ev) {
-      ev.stopImmediatePropagation();
-
-      var canvasRect = canvas.getBoundingClientRect();
-      var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 ? ev.touches[0] : ev;
-      var x = pointerCoordinatesObject.clientX - canvasRect.x;
-      var y = pointerCoordinatesObject.clientY - canvasRect.y;
-
-      if (canvas.dragging) {
-        var actualX = (component.selectedImage.width / canvas.width) * x;
-        var actualY = (component.selectedImage.height / canvas.height) * y;
-        var scaleDistancePoints = controller.getScaleDistancePoints();
-        if (canvas.scaleDistanceStartReached) {
-          scaleDistancePoints[0][0] = actualX;
-          scaleDistancePoints[0][1] = actualY;
-        } else {
-          scaleDistancePoints[1][0] = actualX;
-          scaleDistancePoints[1][1] = actualY;
+        ev.stopImmediatePropagation();
+  
+        var canvasRect = canvas.getBoundingClientRect();
+        var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 ? ev.touches[0] : ev;
+        var x = pointerCoordinatesObject.clientX - canvasRect.x;
+        var y = pointerCoordinatesObject.clientY - canvasRect.y;
+  
+        if (canvas.dragging) {
+          var actualX = (component.selectedImage.width / canvas.width) * x;
+          var actualY = (component.selectedImage.height / canvas.height) * y;
+          var scaleDistancePoints = controller.getScaleDistancePoints();
+          if (canvas.scaleDistanceStartReached) {
+            scaleDistancePoints[0][0] = actualX;
+            scaleDistancePoints[0][1] = actualY;
+          } else {
+            scaleDistancePoints[1][0] = actualX;
+            scaleDistancePoints[1][1] = actualY;
+          }
+          controller.setScaleDistancePoints(
+            scaleDistancePoints[0][0], scaleDistancePoints[0][1],
+            scaleDistancePoints[1][0], scaleDistancePoints[1][1]
+          );
+          component.repaintScaleCanvas();
+          return;
         }
-        controller.setScaleDistancePoints(
-          scaleDistancePoints[0][0], scaleDistancePoints[0][1],
-          scaleDistancePoints[1][0], scaleDistancePoints[1][1]
-        );
-        component.repaintScaleCanvas();
-        return;
-      }
-
-      if (y < canvas.scaleDistanceStart.y + CANVAS_TOUCHABLE_AREA_RADIUS
-          && y > canvas.scaleDistanceStart.y - CANVAS_TOUCHABLE_AREA_RADIUS
-          && x < canvas.scaleDistanceStart.x + CANVAS_TOUCHABLE_AREA_RADIUS
-          && x > canvas.scaleDistanceStart.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
-
-        canvas.scaleDistanceStartReached = true;
-        canvas.style.cursor = "crosshair";
-      } else if (y < canvas.scaleDistanceEnd.y + CANVAS_TOUCHABLE_AREA_RADIUS
-          && y > canvas.scaleDistanceEnd.y - CANVAS_TOUCHABLE_AREA_RADIUS
-          && x < canvas.scaleDistanceEnd.x + CANVAS_TOUCHABLE_AREA_RADIUS
-          && x > canvas.scaleDistanceEnd.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
-
-        canvas.scaleDistanceEndReached = true;
-        canvas.style.cursor = "crosshair";
-      } else {
-
-        canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
-        canvas.style.cursor = "default";
-      }
-    };
-
+  
+        if (y < canvas.scaleDistanceStart.y + CANVAS_TOUCHABLE_AREA_RADIUS
+            && y > canvas.scaleDistanceStart.y - CANVAS_TOUCHABLE_AREA_RADIUS
+            && x < canvas.scaleDistanceStart.x + CANVAS_TOUCHABLE_AREA_RADIUS
+            && x > canvas.scaleDistanceStart.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
+  
+          canvas.scaleDistanceStartReached = true;
+          canvas.style.cursor = "crosshair";
+        } else if (y < canvas.scaleDistanceEnd.y + CANVAS_TOUCHABLE_AREA_RADIUS
+            && y > canvas.scaleDistanceEnd.y - CANVAS_TOUCHABLE_AREA_RADIUS
+            && x < canvas.scaleDistanceEnd.x + CANVAS_TOUCHABLE_AREA_RADIUS
+            && x > canvas.scaleDistanceEnd.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
+  
+          canvas.scaleDistanceEndReached = true;
+          canvas.style.cursor = "crosshair";
+        } else {
+  
+          canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
+          canvas.style.cursor = "default";
+        }
+      };
     var mouseDown = function(ev) {
-      ev.stopImmediatePropagation();
-      mouseMove(ev);
-
-      if (canvas.scaleDistanceStartReached || canvas.scaleDistanceEndReached) {
-        canvas.dragging = true;
-      }
-    };
+        ev.stopImmediatePropagation();
+        mouseMove(ev);
+  
+        if (canvas.scaleDistanceStartReached || canvas.scaleDistanceEndReached) {
+          canvas.dragging = true;
+        }
+      };
 
     this.registerEventListener(canvas, "mousedown", mouseDown, true);
     this.registerEventListener(canvas, "touchstart", mouseDown, true);
@@ -403,39 +402,51 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
    */
   JSBackgroundImageWizardStepsView.prototype.repaintScaleCanvas = function () {
     var canvas = this.scaleStep.preview;
-    var canvasContext = canvas.getContext("2d");
-
+    var g2D = new Graphics2D(canvas);
+    g2D.fillRect(0, 0, canvas.width, canvas.height);
     var image = this.selectedImage;
-    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     if (image) {
       canvas.height = (image.height / image.width) * canvas.width;
+      g2D.drawImageWithSize(image, 0, 0, canvas.width, canvas.height);
+      g2D.setColor("blue");
+      var oldTransform = g2D.getTransform();
+      var translation = { x: 0, y : 0};
+      var scale = canvas.width / image.width;
+      // Use same origin and scale as image drawing in super class
+      g2D.translate(translation.x, translation.y);
+      g2D.scale(scale, scale);
+      // Draw a scale distance line
+      g2D.setStroke(new java.awt.BasicStroke(5 / scale,
+          java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_BEVEL));
+      var scaleDistancePoints = this.controller.getScaleDistancePoints();
+      g2D.draw(new java.awt.geom.Line2D.Float(scaleDistancePoints [0][0], scaleDistancePoints [0][1],
+                                              scaleDistancePoints [1][0], scaleDistancePoints [1][1]));
+      // Draw start point line
+      g2D.setStroke(new java.awt.BasicStroke(1 / scale,
+          java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_BEVEL));
+      var angle = Math.atan2(scaleDistancePoints [1][1] - scaleDistancePoints [0][1],
+                             scaleDistancePoints [1][0] - scaleDistancePoints [0][0]);
+      var oldTransform2 = g2D.getTransform();
+      g2D.translate(scaleDistancePoints [0][0], scaleDistancePoints [0][1]);
+      g2D.rotate(angle);
+      var endLine = new java.awt.geom.Line2D.Double(0, 5 / scale, 0, -5 / scale);
+      g2D.draw(endLine);
+      g2D.setTransform(oldTransform2);
 
-      canvasContext.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-      var xFactor = canvas.width / image.width;
-      var yFactor = canvas.height / image.height;
-
-      var scaleDistancePoints = controller.getScaleDistancePoints();
-      canvas.scaleDistanceStart = { x: xFactor * scaleDistancePoints [0][0], y: yFactor * scaleDistancePoints [0][1] };
-      canvas.scaleDistanceEnd = { x: xFactor * scaleDistancePoints [1][0], y: yFactor * scaleDistancePoints [1][1] };
-
-      canvasContext.strokeStyle = "blue";
-      canvasContext.lineWidth = 3;
-      canvasContext.lineCap = "square";
-      canvasContext.lineJoin = "miter";
-      canvasContext.moveTo(canvas.scaleDistanceStart.x, canvas.scaleDistanceStart.y);
-      canvasContext.lineTo(canvas.scaleDistanceEnd.x, canvas.scaleDistanceEnd.y);
-      canvasContext.closePath();
-      canvasContext.stroke();
-
-      canvasContext.fillStyle = "blue";
-      canvasContext.arc(canvas.scaleDistanceStart.x, canvas.scaleDistanceStart.y, 5, 0, 2 * Math.PI);
-      canvasContext.closePath();
-      canvasContext.fill();
-
-      canvasContext.arc(canvas.scaleDistanceEnd.x, canvas.scaleDistanceEnd.y, 5, 0, 2 * Math.PI);
-      canvasContext.closePath();
-      canvasContext.fill();
+      // Draw end point line
+      g2D.translate(scaleDistancePoints [1][0], scaleDistancePoints [1][1]);
+      g2D.rotate(angle);
+      g2D.draw(endLine);
+      g2D.setTransform(oldTransform);
+      
+      canvas.scaleDistanceStart = { 
+          x: scale * scaleDistancePoints [0][0], 
+          y: scale * scaleDistancePoints [0][1] 
+        };
+      canvas.scaleDistanceEnd = { 
+          x: scale * scaleDistancePoints [1][0], 
+          y: scale * scaleDistancePoints [1][1] 
+        };
     }
   }
 
@@ -480,13 +491,13 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         controller.setOrigin(component.originStep.xOriginInput.getValue(), component.originStep.yOriginInput.getValue());
       });
     controller.addPropertyChangeListener("X_ORIGIN", function() {
-      component.originStep.xOriginInput.setValue(controller.getXOrigin());
-      component.repaintOriginCanvas();
-    });
+        component.originStep.xOriginInput.setValue(controller.getXOrigin());
+        component.repaintOriginCanvas();
+      });
     controller.addPropertyChangeListener("Y_ORIGIN", function() {
-      component.originStep.yOriginInput.setValue(controller.getYOrigin());
-      component.repaintOriginCanvas();
-    });
+        component.originStep.yOriginInput.setValue(controller.getYOrigin());
+        component.repaintOriginCanvas();
+      });
 
     var canvas = component.originStep.preview;
 
@@ -494,39 +505,40 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var zoomOutButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_OUT", true);
     component.originStep.previewZoomIn.style.backgroundImage = "url('lib/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
     component.registerEventListener(component.originStep.previewZoomIn, "click", function(ev) {
-      component.originStep.preview.width *= 2;
-      component.repaintOriginCanvas();
-    });
+        component.originStep.preview.width *= 2;
+        component.repaintOriginCanvas();
+      });
     component.originStep.previewZoomOut.style.backgroundImage = "url('lib/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
     component.registerEventListener(component.originStep.previewZoomOut, "click", function(ev) {
-      component.originStep.preview.width /= 2;
-      component.repaintOriginCanvas();
-    });
+        component.originStep.preview.width /= 2;
+        component.repaintOriginCanvas();
+      });
 
     var mouseUp = function(ev) {
-      component.isMovingOrigin = false;
-      canvas.style.cursor = "default";
-    };
-
+        component.isMovingOrigin = false;
+        canvas.style.cursor = "default";
+      };
     var mouseMove = function(ev) {
-      ev.stopImmediatePropagation();
-      if (component.isMovingOrigin) {
-        var canvasRect = canvas.getBoundingClientRect();
-        var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 ? ev.touches[0] : ev;
-        var x = pointerCoordinatesObject.clientX - canvasRect.left;
-        var y = pointerCoordinatesObject.clientY - canvasRect.top;
-        var actualX = (component.selectedImage.width / canvas.width) * x;
-        var actualY = (component.selectedImage.height / canvas.height) * y;
-        controller.setOrigin(actualX, actualY);
-        component.repaintOriginCanvas();
-      }
-    };
-
+        ev.stopImmediatePropagation();
+        if (component.isMovingOrigin) {
+          var canvasRect = canvas.getBoundingClientRect();
+          var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 ? ev.touches[0] : ev;
+          var scaleDistancePoints = controller.getScaleDistancePoints();
+          var rescale = component.originStep.preview.width / component.selectedImage.width;
+          rescale = rescale / BackgroundImage.getScale(controller.getScaleDistance(),
+              scaleDistancePoints [0][0], scaleDistancePoints [0][1],
+              scaleDistancePoints [1][0], scaleDistancePoints [1][1]);
+          var xOrigin = Math.round((pointerCoordinatesObject.clientX - canvasRect.left) / rescale * 10) / 10;
+          var yOrigin = Math.round((pointerCoordinatesObject.clientY - canvasRect.top) / rescale * 10) / 10;
+          controller.setOrigin(xOrigin, yOrigin);
+          component.repaintOriginCanvas();
+        }
+      };
     var mouseDown = function(ev) {
-      component.isMovingOrigin = true;
-      canvas.style.cursor = "crosshair";
-      mouseMove(ev);
-    };
+        component.isMovingOrigin = true;
+        canvas.style.cursor = "crosshair";
+        mouseMove(ev);
+      };
 
     this.registerEventListener(canvas, "mousedown", mouseDown, true);
     this.registerEventListener(canvas, "touchstart", mouseDown, true);
@@ -541,21 +553,36 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
    */
   JSBackgroundImageWizardStepsView.prototype.repaintOriginCanvas = function () {
     var canvas = this.originStep.preview;
-    var canvasContext = canvas.getContext("2d");
+    var g2D = new Graphics2D(canvas);
+    g2D.fillRect(0, 0, canvas.width, canvas.height);
     var image = this.selectedImage;
-    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     if (image) {
       canvas.height = (image.height / image.width) * canvas.width;
-      canvasContext.drawImage(image, 0, 0, canvas.width, canvas.height);
+      g2D.drawImageWithSize(image, 0, 0, canvas.width, canvas.height);
+      g2D.setColor("blue");
+      var oldTransform = g2D.getTransform();
+      var translation = { x: 0, y : 0};
+      g2D.translate(translation.x, translation.y);
+      var scale = canvas.width / image.width;
+      var scaleDistancePoints = this.controller.getScaleDistancePoints();
+      scale = scale / BackgroundImage.getScale(this.controller.getScaleDistance(),
+          scaleDistancePoints [0][0], scaleDistancePoints [0][1],
+          scaleDistancePoints [1][0], scaleDistancePoints [1][1]);
+      g2D.scale(scale, scale);
 
-      var xFactor = canvas.width / image.width;
-      var yFactor = canvas.height / image.height;
-      var originInCanvas = { x: xFactor * controller.getXOrigin(), y: yFactor * controller.getYOrigin() };
+      // Draw a dot at origin
+      g2D.translate(this.controller.getXOrigin(), this.controller.getYOrigin());
+      
+      var originRadius = 4 / scale;
+      g2D.fill(new java.awt.geom.Ellipse2D.Float(-originRadius, -originRadius,
+          originRadius * 2, originRadius * 2));
 
-      canvasContext.fillStyle = "blue";
-      canvasContext.arc(originInCanvas.x, originInCanvas.y, 5, 0, 2 * Math.PI);
-      canvasContext.closePath();
-      canvasContext.fill();
+      // Draw a cross
+      g2D.setStroke(new java.awt.BasicStroke(1 / scale,
+          java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_BEVEL));
+      g2D.draw(new java.awt.geom.Line2D.Double(8 / scale, 0, -8 / scale, 0));
+      g2D.draw(new java.awt.geom.Line2D.Double(0, 8 / scale, 0, -8 / scale));
+      g2D.setTransform(oldTransform);
     }
   }
 
@@ -1321,7 +1348,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         var selectedCurrency = dialog.currencySelect.options[selectedIndex].value;
         controller.setCurrency(selectedCurrency ? selectedCurrency : null);
       });
-    controller.addPropertyChangeListener("CURRENCY", function() {
+    dialog.registerPropertyChangeListener(controller, "CURRENCY", function(ev) {
         var option = dialog.currencySelect.querySelector("[value='" + (controller.getCurrency() ? controller.getCurrency() : "") + "']");
         option.selected = true;
         dialog.valueAddedTaxCheckBox.disabled = controller.getCurrency() == null;
@@ -1334,7 +1361,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
     dialog.registerEventListener(dialog.valueAddedTaxCheckBox, "change", function(ev) {
         controller.setValueAddedTaxEnabled(dialog.valueAddedTaxCheckBox.checked);
       });
-    controller.addPropertyChangeListener("VALUE_ADDED_TAX_ENABLED", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "VALUE_ADDED_TAX_ENABLED", function(ev) {
         dialog.valueAddedTaxCheckBox.disabled = controller.getCurrency() == null;
         dialog.valueAddedTaxCheckBox.checked = controller.isValueAddedTaxEnabled();
       });
@@ -1429,7 +1456,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
       setDefaultFontFromController();
     });
 
-    controller.addPropertyChangeListener("DEFAULT_FONT_NAME", setDefaultFontFromController);
+    dialog.registerPropertyChangeListener(controller, "DEFAULT_FONT_NAME", setDefaultFontFromController);
 
     dialog.registerEventListener(dialog.defaultFontNameSelect, "change", function(ev) {
         var selectedValue = dialog.defaultFontNameSelect.querySelector("option:checked").value;
@@ -1506,7 +1533,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
           ? controller.getNewWallPattern() 
           : controller.getWallPattern()).getImage().getURL();
     dialog.patternComboBox.setSelectedItem(selectedUrl);
-    controller.addPropertyChangeListener("NEW_WALL_PATTERN", function() {
+    dialog.registerPropertyChangeListener(controller, "NEW_WALL_PATTERN", function() {
         var selectedUrl = controller.getNewWallPattern().getImage().getURL();
         dialog.patternComboBox.setSelectedItem(selectedUrl);
       });
@@ -1572,7 +1599,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
     };
 
   updateStepsAndLength();
-  controller.addPropertyChangeListener("UNIT", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "UNIT", function(ev) {
       updateStepsAndLength();
     });
   return dialog;
@@ -1599,7 +1626,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
   dialog.registerEventListener(viewableCheckbox, "change", function(ev) {
       controller.setViewable(viewableCheckbox.checked);
     });
-  controller.addPropertyChangeListener("VIEWABLE", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "VIEWABLE", function(ev) {
       viewableCheckbox.checked = controller.getViewable();
     });
 
@@ -1617,7 +1644,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
         controller.setName(name);
       }
     });
-  controller.addPropertyChangeListener("NAME", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "NAME", function(ev) {
       nameInput.value = controller.getName() != null ? controller.getName() : "";
     });
 
@@ -1663,7 +1690,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
       setFloorThicknessEnabled();
       setElevationIndexButtonsEnabled();
     });
-  controller.addPropertyChangeListener("ELEVATION", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "ELEVATION", function(ev) {
       elevationInput.setValue(ev.getNewValue());
     });
 
@@ -1683,7 +1710,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
   dialog.registerEventListener(floorThicknessInput, "input", function(ev) {
       controller.setFloorThickness(floorThicknessInput.getValue());
     });
-  controller.addPropertyChangeListener("FLOOR_THICKNESS", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "FLOOR_THICKNESS", function(ev) {
       floorThicknessInput.setValue(getNewValue());
     });
   dialog.floorThicknessInput = floorThicknessInput;
@@ -1705,7 +1732,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
   dialog.registerEventListener(heightInput, "input", function(ev) {
       controller.setHeight(heightInput.getValue());
     });
-  controller.addPropertyChangeListener("HEIGHT", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "HEIGHT", function(ev) {
       heightInput.setValue(ev.getNewValue());
     });
 
@@ -1769,8 +1796,8 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
 
   generateTableBody();
 
-  controller.addPropertyChangeListener("SELECT_LEVEL_INDEX", updateSelectedLevel);
-  controller.addPropertyChangeListener("LEVELS", generateTableBody);
+  dialog.registerPropertyChangeListener(controller, "SELECT_LEVEL_INDEX", updateSelectedLevel);
+  dialog.registerPropertyChangeListener(controller, "LEVELS", generateTableBody);
   return dialog;
 }
 
@@ -1808,7 +1835,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       // Create visible check box bound to VISIBLE controller property
       var visibleCheckBox = this.getElement("visible-checkbox");
       visibleCheckBox.checked = this.controller.getVisible();
-      this.controller.addPropertyChangeListener("VISIBLE", function(ev) {
+      this.registerPropertyChangeListener(this.controller, "VISIBLE", function(ev) {
           visibleCheckBox.checked = ev.getNewValue();
         });
 
@@ -1879,16 +1906,16 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     }
 
     // 3) Add property listeners
-    this.controller.addPropertyChangeListener("NAME", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "NAME", function(ev) {
         nameInput.value = controller.getName() != null ? controller.getName() : "";
       });
-    this.controller.addPropertyChangeListener("NAME_VISIBLE", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "NAME_VISIBLE", function(ev) {
         nameVisibleCheckbox.checked = controller.getNameVisible();
       });
-    this.controller.addPropertyChangeListener("PRICE", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "PRICE", function(ev) {
         priceInput.setValue(controller.getPrice());
       });
-    this.controller.addPropertyChangeListener("VALUE_ADDED_TAX_PERCENTAGE", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "VALUE_ADDED_TAX_PERCENTAGE", function(ev) {
         if (controller.getValueAddedTaxPercentage()) {
           valueAddedTaxPercentageInput.setValue(controller.getValueAddedTaxPercentage() * 100);
         } else {
@@ -1992,19 +2019,19 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
     // 5) add property listeners
     var controller = this.controller;
-    this.controller.addPropertyChangeListener("X", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "X", function(ev) {
         xInput.setValue(controller.getX());
       });
-    this.controller.addPropertyChangeListener("Y", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "Y", function(ev) {
         yInput.setValue(controller.getY());
       });
-    this.controller.addPropertyChangeListener("ELEVATION", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "ELEVATION", function(ev) {
         elevationInput.setValue(controller.getElevation());
       });
-    this.controller.addPropertyChangeListener("MODEL_MIRRORED", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "MODEL_MIRRORED", function(ev) {
         mirroredModelCheckbox.checked = controller.getModelMirrored();
       });
-    this.controller.addPropertyChangeListener("BASE_PLAN_ITEM", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "BASE_PLAN_ITEM", function(ev) {
         basePlanItemCheckbox.checked = controller.getBasePlanItem();
       });
 
@@ -2114,28 +2141,28 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     updateHorizontalAxisRadioButtons();
 
     // 3) Add property listeners
-    this.controller.addPropertyChangeListener("ANGLE", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "ANGLE", function(ev) {
         if (controller.getAngle() != null) {
           angleInput.setValue(Math.toDegrees(controller.getAngle()));
         } else {
           angleInput.setValue(null);
         }
       });
-    this.controller.addPropertyChangeListener("ROLL", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "ROLL", function(ev) {
         if (controller.getRoll() != null) {
           rollInput.setValue(Math.toDegrees(controller.getRoll()));
         } else {
           rollInput.setValue(null);
         }
       });
-    this.controller.addPropertyChangeListener("PITCH", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "PITCH", function(ev) {
         if (controller.getPitch() != null) {
           pitchInput.setValue(Math.toDegrees(controller.getPitch()));
         } else {
           pitchInput.setValue(null);
         }
       });
-    this.controller.addPropertyChangeListener("HORIZONTAL_AXIS", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "HORIZONTAL_AXIS", function(ev) {
         updateHorizontalAxisRadioButtons();
       });
 
@@ -2194,7 +2221,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
               controller.setColor(color);
             }
         });
-    dialog.attachChildComponent("color-button", colorButton);
+    this.attachChildComponent("color-button", colorButton);
     colorButton.setColor(controller.getColor());
     colorButton.setColorDialogTitle(preferences.getLocalizedString("HomeFurniturePanel", "colorDialog.title"));
 
@@ -2204,7 +2231,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         controller.setPaint(HomeFurnitureController.FurniturePaint.TEXTURED);
         controller.getTextureController().setTexture(texture);
       };
-    dialog.attachChildComponent("texture-component", textureSelector);
+    this.attachChildComponent("texture-component", textureSelector);
 
     var selectedPaint = controller.getPaint();
 
@@ -2222,13 +2249,13 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
     // Material
     var materialSelector = controller.getModelMaterialsController().getView();
-    dialog.attachChildComponent("material-component", materialSelector);
+    this.attachChildComponent("material-component", materialSelector);
 
     var uniqueModel = controller.getModelMaterialsController().getModel() != null;
     colorAndTextureRadioButtons[HomeFurnitureController.FurniturePaint.MODEL_MATERIALS].disabled = !uniqueModel;
     materialSelector.setEnabled(uniqueModel);
 
-    dialog.paintPanel = {
+    this.paintPanel = {
         colorAndTextureRadioButtons: colorAndTextureRadioButtons,
         colorButton: colorButton,
         textureSelector: textureSelector};
@@ -2237,11 +2264,11 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     this.getElement("paint-panel").style.display = panelDisplay;
     this.getElement("paint-panel").previousElementSibling.style.display = panelDisplay;
 
-    controller.addPropertyChangeListener("PAINT", function(ev) {
+    this.registerPropertyChangeListener(controller, "PAINT", function(ev) {
         dialog.updatePaintRadioButtons();
       });
 
-    dialog.registerEventListener(colorAndTextureRadioButtons, "change", function(ev) { 
+    this.registerEventListener(colorAndTextureRadioButtons, "change", function(ev) { 
         var paint = colorAndTextureRadioButtons.indexOf(ev.target);
         controller.setPaint(paint);
       });
@@ -2336,16 +2363,16 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 
     // 5) Add property listeners
     var controller = this.controller;
-    this.controller.addPropertyChangeListener("WIDTH", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "WIDTH", function(ev) {
         widthInput.setValue(controller.getWidth());
       });
-    this.controller.addPropertyChangeListener("DEPTH", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "DEPTH", function(ev) {
         depthInput.setValue(controller.getDepth());
       });
-    this.controller.addPropertyChangeListener("HEIGHT", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "HEIGHT", function(ev) {
         heightInput.setValue(controller.getHeight());
       });
-    this.controller.addPropertyChangeListener("PROPORTIONAL", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "PROPORTIONAL", function(ev) {
         keepProportionsCheckbox.checked = controller.isProportional();
       });
 
@@ -2375,13 +2402,13 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       };
 
     // 8) Handle components activation
-    dialog.updateSizeComponents();
+    this.updateSizeComponents();
     // Add a listener that enables / disables size fields depending on furniture
     // resizable and deformable
-    dialog.controller.addPropertyChangeListener("RESIZABLE", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "RESIZABLE", function(ev) {
         dalog.updateSizeComponents();
       });
-    dialog.controller.addPropertyChangeListener("DEFORMABLE", function(ev) {
+    this.registerPropertyChangeListener(this.controller, "DEFORMABLE", function(ev) {
         dalog.updateSizeComponents();
       });
   };
@@ -2428,7 +2455,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
             var selectedRadio = dialog.findElement("[name='shininess-radio']:checked");
             controller.setShininess(HomeFurnitureController.FurnitureShininess[selectedRadio.value]);
           });
-      controller.addPropertyChangeListener("SHININESS", function(ev) {
+      this.registerPropertyChangeListener(controller, "SHININESS", function(ev) {
           dialog.updateShininessRadioButtons(controller);
         });
       
@@ -2531,19 +2558,19 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     yEndLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "yLabel.text", unitName)
     distanceToEndPointLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "distanceToEndPointLabel.text", unitName)
 
-    controller.addPropertyChangeListener("X_START", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "X_START", function(ev) {
         xStartInput.setValue(ev.getNewValue());
       });
-    controller.addPropertyChangeListener("Y_START", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "Y_START", function(ev) {
         yStartInput.setValue(ev.getNewValue());
       });
-    controller.addPropertyChangeListener("X_END", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "X_END", function(ev) {
         xEndInput.setValue(ev.getNewValue());
       });
-    controller.addPropertyChangeListener("Y_END", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "Y_END", function(ev) {
         yEndInput.setValue(ev.getNewValue());
       });
-    controller.addPropertyChangeListener("DISTANCE_TO_END_POINT", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "DISTANCE_TO_END_POINT", function(ev) {
         distanceToEndPointInput.setValue(ev.getNewValue());
       });
 
@@ -2573,6 +2600,9 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             size: "small",
             applier: function() {
               // Do not remove - applier must be defined so OK button shows
+            },
+            disposer: function() {
+              view.dispose();
             }
           });
       dialog.attachChildComponent("content", view);
@@ -2634,10 +2664,10 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
 
     updateLeftSidePaint();
     updateRightSidePaint();
-    controller.addPropertyChangeListener("LEFT_SIDE_PAINT", function() {
+    dialog.registerPropertyChangeListener(controller, "LEFT_SIDE_PAINT", function() {
       updateLeftSidePaint();
     });
-    controller.addPropertyChangeListener("RIGHT_SIDE_PAINT", function() {
+    dialog.registerPropertyChangeListener(controller, "RIGHT_SIDE_PAINT", function() {
       updateRightSidePaint();
     });
 
@@ -2667,10 +2697,10 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     dialog.rightSideColorButton.setColor(controller.getRightSideColor());
     dialog.rightSideColorButton.setColorDialogTitle(preferences.getLocalizedString(
         "WallPanel", "rightSideColorDialog.title"));
-    controller.addPropertyChangeListener("LEFT_SIDE_COLOR", function() {
+    dialog.registerPropertyChangeListener(controller, "LEFT_SIDE_COLOR", function() {
         dialog.leftSideColorButton.setColor(controller.getLeftSideColor());
       });
-    controller.addPropertyChangeListener("RIGHT_SIDE_COLOR", function() {
+    dialog.registerPropertyChangeListener(controller, "RIGHT_SIDE_COLOR", function() {
         dialog.rightSideColorButton.setColor(controller.getRightSideColor());
       });
 
@@ -2708,10 +2738,10 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
 
     updateLeftSideShininess();
     updateRightSideShininess();
-    controller.addPropertyChangeListener("LEFT_SIDE_SHININESS", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "LEFT_SIDE_SHININESS", function(ev) {
         updateLeftSideShininess();
       });
-    controller.addPropertyChangeListener("RIGHT_SIDE_SHININESS", function(ev) {
+    dialog.registerPropertyChangeListener(controller, "RIGHT_SIDE_SHININESS", function(ev) {
         updateRightSideShininess();
       });
     dialog.registerEventListener([leftSideShininessRadioMatt, leftSideShininessRadioShiny], "change", 
@@ -2767,7 +2797,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
               : null);
         };
       setPatternFromController();
-      controller.addPropertyChangeListener("PATTERN", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "PATTERN", function(ev) {
           setPatternFromController();
         });
   
@@ -2783,7 +2813,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           controller.setTopPaint(WallController.WallPaint[this.value]);
         });
       setTopPaintFromController();
-      controller.addPropertyChangeListener("TOP_PAINT", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "TOP_PAINT", function(ev) {
           setTopPaintFromController();
         });
   
@@ -2799,7 +2829,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
       dialog.topColorButton.setColor(controller.getTopColor());
       dialog.topColorButton.setColorDialogTitle(preferences.getLocalizedString(
           "WallPanel", "topColorDialog.title"));
-      controller.addPropertyChangeListener("TOP_COLOR", function() {
+      dialog.registerPropertyChangeListener(controller, "TOP_COLOR", function() {
           dialog.topColorButton.setColor(controller.getTopColor());
         });
     };
@@ -2819,7 +2849,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           wallShapeRadioSloping.checked = controller.getShape() == WallController.WallShape.SLOPING_WALL;
         };
       setWallShapeFromController();
-      controller.addPropertyChangeListener("SHAPE", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "SHAPE", function(ev) {
           setWallShapeFromController();
         });
   
@@ -2834,7 +2864,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             maximum: maximumLength,
             stepSize: preferences.getLengthUnit().getStepSize()
           });
-      controller.addPropertyChangeListener("RECTANGULAR_WALL_HEIGHT", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "RECTANGULAR_WALL_HEIGHT", function(ev) {
           rectangularWallHeightInput.setValue(ev.getNewValue());
         });
       dialog.registerEventListener(rectangularWallHeightInput, "input", function(ev) {
@@ -2853,7 +2883,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             maximum: maximumLength,
             stepSize: preferences.getLengthUnit().getStepSize()
           });
-      controller.addPropertyChangeListener("SLOPING_WALL_HEIGHT_AT_START", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "SLOPING_WALL_HEIGHT_AT_START", function(ev) {
           slopingWallHeightAtStartInput.setValue(ev.getNewValue());
         });
       dialog.registerEventListener(slopingWallHeightAtStartInput, "input", function(ev) {
@@ -2875,7 +2905,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             maximum: maximumLength,
             stepSize: preferences.getLengthUnit().getStepSize()
           });
-      controller.addPropertyChangeListener("SLOPING_WALL_HEIGHT_AT_END", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "SLOPING_WALL_HEIGHT_AT_END", function(ev) {
           slopingWallHeightAtEndInput.setValue(ev.getNewValue());
         });
       dialog.registerEventListener(slopingWallHeightAtEndInput, "input", function(ev) {
@@ -2898,7 +2928,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             maximum: maximumLength / 10,
             stepSize: preferences.getLengthUnit().getStepSize()
           });
-      controller.addPropertyChangeListener("THICKNESS", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "THICKNESS", function(ev) {
           thicknessInput.setValue(ev.getNewValue());
         });
       dialog.registerEventListener(thicknessInput, "input", function(ev) {
@@ -2920,7 +2950,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           arcExtentInput.setValue(controller.getArcExtentInDegrees());
         };
       setArcExtentFromController();
-      controller.addPropertyChangeListener("ARC_EXTENT_IN_DEGREES", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "ARC_EXTENT_IN_DEGREES", function(ev) {
           setArcExtentFromController();
         });
   
@@ -2973,7 +3003,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
       setVisible(dialog.getElement("distance-to-end-point-input"), controller.isEditablePoints());
       setVisible(dialog.getElement("arc-extent-input"), controller.isEditablePoints());
     };
-  controller.addPropertyChangeListener("EDITABLE_POINTS", editablePointsListener);
+  dialog.registerPropertyChangeListener(controller, "EDITABLE_POINTS", editablePointsListener);
   editablePointsListener(controller.isEditablePoints());
   
   return dialog;
@@ -2994,7 +3024,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       dialog.registerEventListener(dialog.floorVisibleCheckBox, "change", function(ev) {
           controller.setFloorVisible(dialog.floorVisibleCheckBox.checked);
         });
-      controller.addPropertyChangeListener("FLOOR_VISIBLE", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "FLOOR_VISIBLE", function(ev) {
           dialog.floorVisibleCheckBox.checked = controller.getFloorVisible(ev);
         });
   
@@ -3031,7 +3061,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           floorTextureCheckbox.checked = controller.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
         };
       setPaintFromController();
-      controller.addPropertyChangeListener("FLOOR_PAINT", setPaintFromController);
+      dialog.registerPropertyChangeListener(controller, "FLOOR_PAINT", setPaintFromController);
   
       var floorPaintDisplay = controller.isPropertyEditable("FLOOR_PAINT") ? "initial" : "none";
       floorColorCheckbox.parentElement.parentElement.style.display = floorPaintDisplay;
@@ -3051,7 +3081,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           }
         };
       setShininessFromController();
-      controller.addPropertyChangeListener("FLOOR_SHININESS", setShininessFromController);
+      dialog.registerPropertyChangeListener(controller, "FLOOR_SHININESS", setShininessFromController);
   
       var floorShininessDisplay = controller.isPropertyEditable("FLOOR_SHININESS") ? "initial" : "none";
       shininessRadioButtons[0].parentElement.parentElement = floorShininessDisplay;
@@ -3066,7 +3096,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       dialog.registerEventListener(dialog.ceilingVisibleCheckBox, "change", function(ev) {
           controller.setCeilingVisible(dialog.ceilingVisibleCheckBox.checked);
         });
-      controller.addPropertyChangeListener("CEILING_VISIBLE", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "CEILING_VISIBLE", function(ev) {
           dialog.ceilingVisibleCheckBox.checked = controller.getCeilingVisible();
         });
   
@@ -3103,7 +3133,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           ceilingTextureCheckbox.checked = controller.getCeilingPaint() == RoomController.RoomPaint.TEXTURED;
         };
       setPaintFromController();
-      controller.addPropertyChangeListener("CEILING_PAINT", setPaintFromController);
+      dialog.registerPropertyChangeListener(controller, "CEILING_PAINT", setPaintFromController);
   
       var ceilingPaintDisplay = controller.isPropertyEditable("CEILING_PAINT") ? "initial" : "none";
       ceilingColorCheckbox.parentElement.parentElement.style.display = ceilingPaintDisplay;
@@ -3123,7 +3153,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
         }
       }
       setShininessFromController();
-      controller.addPropertyChangeListener("CEILING_SHININESS", setShininessFromController);
+      dialog.registerPropertyChangeListener(controller, "CEILING_SHININESS", setShininessFromController);
   
       var ceilingShininessDisplay = controller.isPropertyEditable("CEILING_SHININESS") ? "initial" : "none";
       shininessRadioButtons[0].parentElement.parentElement = ceilingShininessDisplay;
@@ -3152,7 +3182,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           controller.setSplitSurroundingWalls(dialog.splitSurroundingWallsCheckBox.checked);
         });
       onSplitSurroundingWallsPropertyChanged();
-      controller.addPropertyChangeListener("SPLIT_SURROUNDING_WALLS", function(ev) {
+      dialog.registerPropertyChangeListener(controller, "SPLIT_SURROUNDING_WALLS", function(ev) {
           onSplitSurroundingWallsPropertyChanged();
         });
   
@@ -3189,7 +3219,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           wallSidesTextureCheckbox.checked = controller.getWallSidesPaint() == RoomController.RoomPaint.TEXTURED;
         };
       setPaintFromController();
-      controller.addPropertyChangeListener("WALL_SIDES_PAINT", setPaintFromController);
+      dialog.registerPropertyChangeListener(controller, "WALL_SIDES_PAINT", setPaintFromController);
   
       var wallSidesPaintDisplay = controller.isPropertyEditable("WALL_SIDES_PAINT") ? "initial" : "none";
       wallSidesColorCheckbox.parentElement.parentElement.style.display = wallSidesPaintDisplay;
@@ -3209,7 +3239,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
         }
       }
       setShininessFromController();
-      controller.addPropertyChangeListener("WALL_SIDES_SHININESS", setShininessFromController);
+      dialog.registerPropertyChangeListener(controller, "WALL_SIDES_SHININESS", setShininessFromController);
   
       var wallSidesShininessDisplay = controller.isPropertyEditable("WALL_SIDES_SHININESS") ? "initial" : "none";
       shininessRadioButtons[0].parentElement.parentElement.style.display = wallSidesShininessDisplay;
@@ -3227,7 +3257,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       var baseboardComponentView = controller.getWallSidesBaseboardController().getView();
       dialog.attachChildComponent("wall-sides-baseboard-panel", baseboardComponentView);
-      controller.getWallSidesBaseboardController().addPropertyChangeListener("VISIBLE", function() {
+      dialog.registerPropertyChangeListener(controller.getWallSidesBaseboardController(), "VISIBLE", function() {
           selectSplitSurroundingWallsAtFirstChange(dialog);
       });
     };
@@ -3244,6 +3274,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           dialog.floorTextureSelector.dispose();
           dialog.ceilingColorButton.dispose();
           dialog.ceilingTextureSelector.dispose();
+          controller.getWallSidesBaseboardController().getView().dispose();
         },
       });
   
@@ -3254,7 +3285,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   dialog.registerEventListener(dialog.nameInput, "input", function(ev) {
       controller.setName(dialog.nameInput.value.trim());
     });
-  controller.addPropertyChangeListener("NAME", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "NAME", function(ev) {
       dialog.nameInput.value = controller.getName() != null ? controller.getName() : "";
     });
 
@@ -3265,7 +3296,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   dialog.registerEventListener(dialog.areaVisibleCheckbox, "change", function(ev) {
       controller.setAreaVisible(dialog.areaVisibleCheckbox.checked);
     });
-  controller.addPropertyChangeListener("AREA_VISIBLE", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "AREA_VISIBLE", function(ev) {
       dialog.areaVisibleCheckbox.checked = controller.getAreaVisible();
     });
 
@@ -3377,8 +3408,8 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
               });
         };
       arrowStyleChangeListener();
-      controller.addPropertyChangeListener("START_ARROW_STYLE", arrowStyleChangeListener);
-      controller.addPropertyChangeListener("END_ARROW_STYLE", arrowStyleChangeListener);
+      dialog.registerPropertyChangeListener(controller, "START_ARROW_STYLE", arrowStyleChangeListener);
+      dialog.registerPropertyChangeListener(controller, "END_ARROW_STYLE", arrowStyleChangeListener);
     };
 
   var initJoinStyleComboBox = function(dialog) {
@@ -3444,7 +3475,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           comboBox.setSelectedItem(controller.getJoinStyle());
         };
       joinStyleChangeListener();
-      controller.addPropertyChangeListener("JOIN_STYLE", joinStyleChangeListener);
+      dialog.registerPropertyChangeListener(controller, "JOIN_STYLE", joinStyleChangeListener);
     };
 
   var initDashStyleComboBox = function(dialog) {
@@ -3517,7 +3548,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
               ? dashOffsetInput.getValue() / 100
               : null);
         });
-      controller.addPropertyChangeListener("DASH_OFFSET", function() {
+      dialog.registerPropertyChangeListener(controller, "DASH_OFFSET", function() {
           dashOffsetInput.setValue(controller.getDashOffset() == null ? null : controller.getDashOffset() * 100);
           comboBox.updateUI();
         });
@@ -3527,7 +3558,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           comboBox.setSelectedItem(controller.getDashStyle());
         };
       dashStyleChangeListener();
-      controller.addPropertyChangeListener("DASH_STYLE", dashStyleChangeListener);
+      dialog.registerPropertyChangeListener(controller, "DASH_STYLE", dashStyleChangeListener);
     };
 
   var dialog = new JSDialog(preferences, 
@@ -3567,7 +3598,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         maximum: 50,
         stepSize: preferences.getLengthUnit().getStepSize()
       });
-  controller.addPropertyChangeListener("THICKNESS", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "THICKNESS", function(ev) {
       dialog.thicknessInput.setValue(controller.getThickness());
     });
   dialog.registerEventListener(dialog.thicknessInput, "input", function(ev) {
@@ -3614,7 +3645,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
   dialog.registerEventListener(dialog.textInput, "input", function(ev) {
       controller.setText(dialog.textInput.value);
     });
-  controller.addPropertyChangeListener("TEXT", function(ev) {
+  dialog.registerPropertyChangeListener(controller, "TEXT", function(ev) {
       dialog.textInput.value = controller.getText() != null ? controller.getText() : "";
     });
   
@@ -3633,7 +3664,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         selectedAlignmentRadio.checked = true;
       }
     };
-  controller.addPropertyChangeListener("ALIGNMENT", alignmentChangeListener);
+  dialog.registerPropertyChangeListener(controller, "ALIGNMENT", alignmentChangeListener);
   alignmentChangeListener();
 
   // Font select bound to controller FONT_NAME property
@@ -3656,7 +3687,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         dialog.fontSelect.selectedIndex = undefined;
       }
     };
-  controller.addPropertyChangeListener("FONT_NAME", fontNameChangeListener);
+  dialog.registerPropertyChangeListener(controller, "FONT_NAME", fontNameChangeListener);
   CoreTools.loadAvailableFontNames(function(fonts) {
       fonts = [DEFAULT_SYSTEM_FONT_NAME].concat(fonts);
       for (var i = 0; i < fonts.length; i++) {
@@ -3685,7 +3716,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
       dialog.fontSizeInput.setValue(fontSize);
     };
   fontSizeChangeListener();
-  controller.addPropertyChangeListener("FONT_SIZE", fontSizeChangeListener);
+  dialog.registerPropertyChangeListener(controller, "FONT_SIZE", fontSizeChangeListener);
   dialog.registerEventListener(dialog.fontSizeInput, "input", function(ev) {
       controller.setFontSize(dialog.fontSizeInput.getValue());
     });
@@ -3701,7 +3732,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
   dialog.colorButton.setColor(controller.getColor());
   dialog.colorButton.setColorDialogTitle(preferences
       .getLocalizedString("LabelPanel", "colorDialog.title"));
-  controller.addPropertyChangeListener("COLOR", function() {
+  dialog.registerPropertyChangeListener(controller, "COLOR", function() {
       dialog.colorButton.setColor(controller.getColor());
     });
 
@@ -3719,7 +3750,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
         }
       }
     };
-  controller.addPropertyChangeListener("PITCH", update3DViewComponents);
+  dialog.registerPropertyChangeListener(controller, "PITCH", update3DViewComponents);
     
   dialog.visibleIn3DCheckbox = dialog.getElement("visible-in-3D-checkbox");
   dialog.visibleIn3DCheckbox.checked = 
@@ -3764,7 +3795,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
       dialog.elevationInput.setNullable(ev.getNewValue() === null);
       dialog.elevationInput.setValue(ev.getNewValue());
     };
-  controller.addPropertyChangeListener("ELEVATION", elevationChangeListener);
+  dialog.registerPropertyChangeListener(controller, "ELEVATION", elevationChangeListener);
   dialog.registerEventListener(dialog.elevationInput, "input", function(ev) {
       controller.setElevation(dialog.elevationInput.getValue());
     });
@@ -3846,13 +3877,13 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
   
       // Add property listeners
       var controller = this.controller;
-      this.controller.addPropertyChangeListener("X", function (ev) {
+      this.registerPropertyChangeListener(this.controller, "X", function (ev) {
           xInput.setValue(controller.getX());
         });
-      this.controller.addPropertyChangeListener("Y", function (ev) {
+      this.registerPropertyChangeListener(this.controller, "Y", function (ev) {
           yInput.setValue(controller.getY());
         });
-      this.controller.addPropertyChangeListener("DIAMETER", function (ev) {
+      this.registerPropertyChangeListener(this.controller, "DIAMETER", function (ev) {
           diameterInput.setValue(controller.getDiameter());
         });
   
@@ -3872,7 +3903,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
       this.registerEventListener(visibleCheckBox, "change", function(ev) {
           controller.setVisible(visibleCheckBox.checked);
         });
-      controller.addPropertyChangeListener("VISIBLE", function(ev) {
+      this.registerPropertyChangeListener(controller, "VISIBLE", function(ev) {
           visibleCheckBox.checked = controller.isVisible();
         });
     };
@@ -3914,13 +3945,13 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
       northDirectionInput.setValue(controller.getNorthDirectionInDegrees());
   
       // Add property listeners
-      controller.addPropertyChangeListener("LATITUDE_IN_DEGREES", function(ev) {
+      this.registerPropertyChangeListener(controller, "LATITUDE_IN_DEGREES", function(ev) {
           latitudeInput.setValue(controller.getLatitudeInDegrees());
         });
-      controller.addPropertyChangeListener("LONGITUDE_IN_DEGREES", function(ev) {
+      this.registerPropertyChangeListener(controller, "LONGITUDE_IN_DEGREES", function(ev) {
           longitudeInput.setValue(controller.getLongitudeInDegrees());
         });
-      controller.addPropertyChangeListener("NORTH_DIRECTION_IN_DEGREES", function(ev) {
+      this.registerPropertyChangeListener(controller, "NORTH_DIRECTION_IN_DEGREES", function(ev) {
           northDirectionInput.setValue(controller.getNorthDirectionInDegrees());
         });
   
@@ -3991,7 +4022,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
     this.registerEventListener(adjustObserverCameraElevationCheckBox, "change", function(ev) {
         controller.setElevationAdjusted(adjustObserverCameraElevationCheckBox.checked);
       });
-    controller.addPropertyChangeListener("OBSERVER_CAMERA_ELEVATION_ADJUSTED", function(ev) {
+    this.registerPropertyChangeListener(controller, "OBSERVER_CAMERA_ELEVATION_ADJUSTED", function(ev) {
         adjustObserverCameraElevationCheckBox.checked = controller.isElevationAdjusted();
       });
   }
@@ -4044,13 +4075,13 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
 
     // Add property listeners
     var controller = this.controller;
-    this.controller.addPropertyChangeListener("X", function (ev) {
+    this.registerPropertyChangeListener(this.controller, "X", function (ev) {
         xInput.setValue(controller.getX());
       });
-    this.controller.addPropertyChangeListener("Y", function (ev) {
+    this.registerPropertyChangeListener(this.controller, "Y", function (ev) {
         yInput.setValue(controller.getY());
       });
-    this.controller.addPropertyChangeListener("ELEVATION", function (ev) {
+    this.registerPropertyChangeListener(this.controller, "ELEVATION", function (ev) {
         elevationInput.setValue(controller.getElevation());
       });
 
@@ -4099,13 +4130,13 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
 
     // add property listeners
     var controller = this.controller;
-    this.controller.addPropertyChangeListener("YAW", function (ev) {
+    this.registerPropertyChangeListener(this.controller, "YAW", function (ev) {
       yawInput.setValue(Math.toDegrees(this.controller.getYaw()));
     });
-    this.controller.addPropertyChangeListener("PITCH", function (ev) {
+    this.registerPropertyChangeListener(this.controller, "PITCH", function (ev) {
       pitchInput.setValue(Math.toDegrees(this.controller.getPitch()));
     });
-    this.controller.addPropertyChangeListener("FIELD_OF_VIEW", function (ev) {
+    this.registerPropertyChangeListener(this.controller, "FIELD_OF_VIEW", function (ev) {
       fieldOfViewInput.setValue(Math.toDegrees(this.controller.getFieldOfView()));
     });
 
@@ -4194,8 +4225,8 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
         paintRadioTexture.checked = controller.getGroundPaint() == Home3DAttributesController.EnvironmentPaint.TEXTURED;
       };
     setPaintFromController();
-    controller.addPropertyChangeListener("GROUND_PAINT", setPaintFromController);
-    controller.addPropertyChangeListener("GROUND_COLOR", function(ev) {
+    this.registerPropertyChangeListener(controller, "GROUND_PAINT", setPaintFromController);
+    this.registerPropertyChangeListener(controller, "GROUND_COLOR", function(ev) {
         groundColorButton.setColor(controller.getGroundColor());
       });
 
@@ -4204,7 +4235,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     this.registerEventListener(backgroundImageVisibleOnGround3DCheckBox, "change", function(ev) {
         controller.setBackgroundImageVisibleOnGround3D(backgroundImageVisibleOnGround3DCheckBox.checked);
       });
-    controller.addPropertyChangeListener("BACKGROUND_IMAGE_VISIBLE_ON_GROUND_3D", function(ev) {
+    this.registerPropertyChangeListener(controller, "BACKGROUND_IMAGE_VISIBLE_ON_GROUND_3D", function(ev) {
         backgroundImageVisibleOnGround3DCheckBox.checked = controller.isBackgroundImageVisibleOnGround3D();
       });
 
@@ -4256,8 +4287,8 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
         paintRadioTexture.checked = controller.getSkyPaint() == Home3DAttributesController.EnvironmentPaint.TEXTURED;
       };
     setPaintFromController();
-    controller.addPropertyChangeListener("SKY_PAINT", setPaintFromController);
-    controller.addPropertyChangeListener("SKY_COLOR", function() {
+    this.registerPropertyChangeListener(controller, "SKY_PAINT", setPaintFromController);
+    this.registerPropertyChangeListener(controller, "SKY_COLOR", function() {
         skyColorButton.setColor(controller.getSkyColor());
       });
 
@@ -4297,10 +4328,10 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
         controller.setWallsAlpha(this.value / 255);
       });
 
-    controller.addPropertyChangeListener("LIGHT_COLOR", function(ev) {
+    this.registerPropertyChangeListener(controller, "LIGHT_COLOR", function(ev) {
         brightnessSlider.value = controller.getLightColor() & 0xFF;
       });
-    controller.addPropertyChangeListener("WALLS_ALPHA", function(ev) {
+    this.registerPropertyChangeListener(controller, "WALLS_ALPHA", function(ev) {
         wallsTransparencySlider.value = controller.getWallsAlpha() * 255;
       });
   };
@@ -4321,175 +4352,188 @@ JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureC
 }
 
 JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, controller) {
-  var view = new JSComponent(preferences,
-      '  <div class="whole-line">' +
-      '    <label>' +
-      '      <input name="baseboard-visible-checkbox" type="checkbox"/>' +
-      '      @{BaseboardChoiceComponent.visibleCheckBox.text}' +
-      '    </label>' +
-      '  </div>' +
-      '' +
-      '  <div class="whole-line">' +
-      '    <label>' +
-      '      <input type="radio" name="baseboard-color-and-texture-choice" value="sameColorAsWall"/>' +
-      '      @{BaseboardChoiceComponent.sameColorAsWallRadioButton.text}' +
-      '    </label>' +
-      '  </div>' +
-      '  <div>' +
-      '    <label>' +
-      '      <input type="radio" name="baseboard-color-and-texture-choice" value="COLORED">' +
-      '        @{BaseboardChoiceComponent.colorRadioButton.text}' +
-      '    </label>' +
-      '  </div>' +
-      '  <div data-name="baseboard-color-button"></div>' +
-      '' +
-      '  <div>' +
-      '    <label>' +
-      '      <input type="radio" name="baseboard-color-and-texture-choice" value="TEXTURED">' +
-      '        @{BaseboardChoiceComponent.textureRadioButton.text}' +
-      '    </label>' +
-      '  </div>' +
-      '  <div data-name="baseboard-texture-component"></div>' +
-      '' +
-      '  <div class="whole-line">' +
-      '    <hr/>' +
-      '  </div>' +
-      '' +
-      '  <div data-name="height-label" class="label-cell"></div>' +
-      '  <div><span data-name="height-input"></span></div>' +
-      '  <div data-name="thickness-label" class="label-cell"></div>' +
-      '  <div><span data-name="thickness-input"></span></div>',
-      {
-        disposer: function(view) {
-          view.colorButton.dispose();
-          view.textureSelector.dispose();
+  function BaseboardChoiceComponent() {
+    JSComponent.call(this, preferences,
+        '  <div class="whole-line">' +
+        '    <label>' +
+        '      <input name="baseboard-visible-checkbox" type="checkbox"/>' +
+        '      @{BaseboardChoiceComponent.visibleCheckBox.text}' +
+        '    </label>' +
+        '  </div>' +
+        '' +
+        '  <div class="whole-line">' +
+        '    <label>' +
+        '      <input type="radio" name="baseboard-color-and-texture-choice" value="sameColorAsWall"/>' +
+        '      @{BaseboardChoiceComponent.sameColorAsWallRadioButton.text}' +
+        '    </label>' +
+        '  </div>' +
+        '  <div>' +
+        '    <label>' +
+        '      <input type="radio" name="baseboard-color-and-texture-choice" value="COLORED">' +
+        '        @{BaseboardChoiceComponent.colorRadioButton.text}' +
+        '    </label>' +
+        '  </div>' +
+        '  <div data-name="baseboard-color-button"></div>' +
+        '' +
+        '  <div>' +
+        '    <label>' +
+        '      <input type="radio" name="baseboard-color-and-texture-choice" value="TEXTURED">' +
+        '        @{BaseboardChoiceComponent.textureRadioButton.text}' +
+        '    </label>' +
+        '  </div>' +
+        '  <div data-name="baseboard-texture-component"></div>' +
+        '' +
+        '  <div class="whole-line">' +
+        '    <hr/>' +
+        '  </div>' +
+        '' +
+        '  <div data-name="height-label" class="label-cell"></div>' +
+        '  <div><span data-name="height-input"></span></div>' +
+        '  <div data-name="thickness-label" class="label-cell"></div>' +
+        '  <div><span data-name="thickness-input"></span></div>');
+
+    this.initComponents(controller);
+  }
+  BaseboardChoiceComponent.prototype = Object.create(JSComponent.prototype);
+  BaseboardChoiceComponent.prototype.constructor = BaseboardChoiceComponent;
+  
+  BaseboardChoiceComponent.prototype.dispose = function () {
+    this.colorButton.dispose();
+    this.textureSelector.dispose();
+    JSComponent.prototype.dispose.call(this);
+  }
+  
+  /**
+   * @private
+   */
+  BaseboardChoiceComponent.prototype.initComponents = function (controller) {
+    var component = this;
+    this.getHTMLElement().dataset["name"] = "baseboard-panel";
+    this.getHTMLElement().classList.add("label-input-grid");
+
+    // VISIBLE
+    this.visibleCheckBox = this.getElement("baseboard-visible-checkbox");
+    this.visibleCheckBox.checked = controller.getVisible();
+    this.registerEventListener(this.visibleCheckBox, "change", function(ev) {
+        controller.setVisible(component.visibleCheckBox.checked);
+      });
+
+    var visibleChanged = function() {
+        var visible = controller.getVisible();
+        component.visibleCheckBox.checked = visible;
+        var componentsEnabled = visible !== false;
+        for (var i = 0; i < component.colorAndTextureRadioButtons.length; i++) {
+          component.colorAndTextureRadioButtons[i].disabled = !componentsEnabled;
+        }
+        component.colorButton.setEnabled(componentsEnabled);
+        component.textureSelector.setEnabled(componentsEnabled);
+        component.heightInput.setEnabled(componentsEnabled);
+        component.thicknessInput.setEnabled(componentsEnabled);
+      };
+    this.registerPropertyChangeListener(controller, "VISIBLE", function(ev) {
+        visibleChanged();
+      });
+
+    // PAINT
+    var paintRadioSameAsWall = this.findElement("[name='baseboard-color-and-texture-choice'][value='sameColorAsWall']");
+
+    var paintRadioColor = this.findElement("[name='baseboard-color-and-texture-choice'][value='COLORED']");
+    this.colorButton = new JSColorSelectorButton(preferences, null,
+        {
+          colorChanged: function(selectedColor) {
+            paintRadioColor.checked = true;
+            controller.setPaint(BaseboardChoiceController.BaseboardPaint.COLORED);
+            controller.setColor(selectedColor);
+          }
+        });
+    this.attachChildComponent("baseboard-color-button", this.colorButton);
+    this.colorButton.setColor(controller.getColor());
+    this.colorButton.setColorDialogTitle(preferences.getLocalizedString(
+        "BaseboardChoiceComponent", "colorDialog.title"));
+
+    var paintRadioTexture = this.findElement("[name='baseboard-color-and-texture-choice'][value='TEXTURED']");
+    this.textureSelector = controller.getTextureController().getView();
+    this.textureSelector.textureChanged = function(texture) {
+        paintRadioTexture.checked = true;
+        controller.setPaint(BaseboardChoiceController.BaseboardPaint.TEXTURED);
+        controller.getTextureController().setTexture(texture);
+      };
+    this.attachChildComponent("baseboard-texture-component", this.textureSelector);
+
+    this.colorAndTextureRadioButtons = [paintRadioSameAsWall, paintRadioColor, paintRadioTexture];
+    this.registerEventListener(this.colorAndTextureRadioButtons, "change", function(ev) {
+        if (ev.target.checked) {
+          var selectedPaint = ev.target.value == "sameColorAsWall"
+              ? BaseboardChoiceController.BaseboardPaint.DEFAULT
+              : BaseboardChoiceController.BaseboardPaint[ev.target.value];
+          controller.setPaint(selectedPaint);
         }
       });
 
-  view.getHTMLElement().dataset["name"] = "baseboard-panel";
-  view.getHTMLElement().classList.add("label-input-grid");
+    var setPaintFromController = function() {
+        paintRadioSameAsWall.checked = controller.getPaint() == BaseboardChoiceController.BaseboardPaint.DEFAULT;
+        paintRadioColor.checked = controller.getPaint() == BaseboardChoiceController.BaseboardPaint.COLORED;
+        paintRadioTexture.checked = controller.getPaint() == BaseboardChoiceController.BaseboardPaint.TEXTURED;
+      };
+    setPaintFromController();
+    this.registerPropertyChangeListener(controller, "PAINT", setPaintFromController);
 
-  // VISIBLE
-  view.visibleCheckBox = view.getElement("baseboard-visible-checkbox");
-  view.visibleCheckBox.checked = controller.getVisible();
-  view.registerEventListener(view.visibleCheckBox, "change", function(ev) {
-      controller.setVisible(view.visibleCheckBox.checked);
-    });
+    // Height & thickness
+    var unitName = preferences.getLengthUnit().getName();
+    this.getElement("height-label").textContent = this.getLocalizedLabelText("BaseboardChoiceComponent", "heightLabel.text", unitName);
+    this.getElement("thickness-label").textContent = this.getLocalizedLabelText("BaseboardChoiceComponent", "thicknessLabel.text", unitName);
 
-  var visibleChanged = function() {
-      var visible = controller.getVisible();
-      view.visibleCheckBox.checked = visible;
-      var componentsEnabled = visible !== false;
-      for (var i = 0; i < view.colorAndTextureRadioButtons.length; i++) {
-        view.colorAndTextureRadioButtons[i].disabled = !componentsEnabled;
-      }
-      view.colorButton.setEnabled(componentsEnabled);
-      view.textureSelector.setEnabled(componentsEnabled);
-      view.heightInput.setEnabled(componentsEnabled);
-      view.thicknessInput.setEnabled(componentsEnabled);
-    };
-  controller.addPropertyChangeListener("VISIBLE", function(ev) {
-      visibleChanged();
-    });
+    var minimumLength = preferences.getLengthUnit().getMinimumLength();
+    this.heightInput = new JSSpinner(preferences, this.getElement("height-input"), 
+        {
+          nullable: controller.getHeight() == null,
+          format: preferences.getLengthUnit().getFormat(),
+          value: controller.getHeight() != null && controller.getMaxHeight() != null
+              ? Math.min(controller.getHeight(), controller.getMaxHeight())
+              : controller.getHeight(),
+          minimum: minimumLength,
+          maximum: controller.getMaxHeight() == null
+              ? preferences.getLengthUnit().getMaximumLength() / 10
+              : controller.getMaxHeight(),
+          stepSize: preferences.getLengthUnit().getStepSize()
+        });
+    this.thicknessInput = new JSSpinner(preferences, this.getElement("thickness-input"), 
+        {
+          nullable: controller.getThickness() == null,
+          format: preferences.getLengthUnit().getFormat(),
+          value: controller.getThickness(),
+          minimum: minimumLength,
+          maximum: 2,
+          stepSize: preferences.getLengthUnit().getStepSize()
+        });
 
-  // PAINT
-  var paintRadioSameAsWall = view.findElement("[name='baseboard-color-and-texture-choice'][value='sameColorAsWall']");
-
-  var paintRadioColor = view.findElement("[name='baseboard-color-and-texture-choice'][value='COLORED']");
-  view.colorButton = new JSColorSelectorButton(preferences, null,
-      {
-        colorChanged: function(selectedColor) {
-          paintRadioColor.checked = true;
-          controller.setPaint(BaseboardChoiceController.BaseboardPaint.COLORED);
-          controller.setColor(selectedColor);
+    this.registerPropertyChangeListener(controller, "HEIGHT", function(ev) {
+        component.heightInput.setValue(ev.getNewValue());
+      });
+    this.registerPropertyChangeListener(controller, "MAX_HEIGHT", function(ev) {
+        if (ev.getOldValue() == null
+            || controller.getMaxHeight() != null
+            && component.heightInput.max < controller.getMaxHeight()) {
+          // Change max only if larger value to avoid taking into account intermediate max values
+          // that may be fired by auto commit spinners while entering a value
+          component.heightInput.max = controller.getMaxHeight();
         }
       });
-  view.attachChildComponent("baseboard-color-button", view.colorButton);
-  view.colorButton.setColor(controller.getColor());
-  view.colorButton.setColorDialogTitle(preferences.getLocalizedString(
-      "BaseboardChoiceComponent", "colorDialog.title"));
-
-  var paintRadioTexture = view.findElement("[name='baseboard-color-and-texture-choice'][value='TEXTURED']");
-  view.textureSelector = controller.getTextureController().getView();
-  view.textureSelector.textureChanged = function(texture) {
-      paintRadioTexture.checked = true;
-      controller.setPaint(BaseboardChoiceController.BaseboardPaint.TEXTURED);
-      controller.getTextureController().setTexture(texture);
-    };
-  view.attachChildComponent("baseboard-texture-component", view.textureSelector);
-
-  view.colorAndTextureRadioButtons = [paintRadioSameAsWall, paintRadioColor, paintRadioTexture];
-  view.registerEventListener(view.colorAndTextureRadioButtons, "change", function(ev) {
-      if (ev.target.checked) {
-        var selectedPaint = ev.target.value == "sameColorAsWall"
-            ? BaseboardChoiceController.BaseboardPaint.DEFAULT
-            : BaseboardChoiceController.BaseboardPaint[ev.target.value];
-        controller.setPaint(selectedPaint);
-      }
-    });
-
-  var setPaintFromController = function() {
-      paintRadioSameAsWall.checked = controller.getPaint() == BaseboardChoiceController.BaseboardPaint.DEFAULT;
-      paintRadioColor.checked = controller.getPaint() == BaseboardChoiceController.BaseboardPaint.COLORED;
-      paintRadioTexture.checked = controller.getPaint() == BaseboardChoiceController.BaseboardPaint.TEXTURED;
-    };
-  setPaintFromController();
-  controller.addPropertyChangeListener("PAINT", setPaintFromController);
-
-  // Height & thickness
-  var unitName = preferences.getLengthUnit().getName();
-  view.getElement("height-label").textContent = view.getLocalizedLabelText("BaseboardChoiceComponent", "heightLabel.text", unitName);
-  view.getElement("thickness-label").textContent = view.getLocalizedLabelText("BaseboardChoiceComponent", "thicknessLabel.text", unitName);
-
-  var minimumLength = preferences.getLengthUnit().getMinimumLength();
-  view.heightInput = new JSSpinner(preferences, view.getElement("height-input"), 
-      {
-        nullable: controller.getHeight() == null,
-        format: preferences.getLengthUnit().getFormat(),
-        value: controller.getHeight() != null && controller.getMaxHeight() != null
-            ? Math.min(controller.getHeight(), controller.getMaxHeight())
-            : controller.getHeight(),
-        minimum: minimumLength,
-        maximum: controller.getMaxHeight() == null
-            ? preferences.getLengthUnit().getMaximumLength() / 10
-            : controller.getMaxHeight(),
-        stepSize: preferences.getLengthUnit().getStepSize()
-      });
-  view.thicknessInput = new JSSpinner(preferences, view.getElement("thickness-input"), 
-      {
-        nullable: controller.getThickness() == null,
-        format: preferences.getLengthUnit().getFormat(),
-        value: controller.getThickness(),
-        minimum: minimumLength,
-        maximum: 2,
-        stepSize: preferences.getLengthUnit().getStepSize()
+    this.registerPropertyChangeListener(controller, "THICKNESS", function(ev) {
+        component.thicknessInput.setValue(ev.getNewValue());
       });
 
-  controller.addPropertyChangeListener("HEIGHT", function(ev) {
-      view.heightInput.setValue(ev.getNewValue());
-    });
-  controller.addPropertyChangeListener("MAX_HEIGHT", function(ev) {
-      if (ev.getOldValue() == null
-          || controller.getMaxHeight() != null
-          && view.heightInput.max < controller.getMaxHeight()) {
-        // Change max only if larger value to avoid taking into account intermediate max values
-        // that may be fired by auto commit spinners while entering a value
-        view.heightInput.max = controller.getMaxHeight();
-      }
-    });
-  controller.addPropertyChangeListener("THICKNESS", function(ev) {
-      view.thicknessInput.setValue(ev.getNewValue());
-    });
+    this.registerEventListener(this.heightInput, "input", function(ev) {
+        controller.setHeight(component.heightInput.getValue());
+      });
+    this.registerEventListener(this.thicknessInput, "input", function(ev) {
+        controller.setThickness(component.thicknessInput.getValue());
+      });
 
-  view.registerEventListener(view.heightInput, "input", function(ev) {
-      controller.setHeight(view.heightInput.getValue());
-    });
-  view.registerEventListener(view.thicknessInput, "input", function(ev) {
-      controller.setThickness(view.thicknessInput.getValue());
-    });
+    visibleChanged();
+  }
 
-  visibleChanged();
-  return view;
+  return new BaseboardChoiceComponent();
 }
 
 JSViewFactory.prototype.createModelMaterialsView = function(preferences, controller) {

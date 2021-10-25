@@ -97,7 +97,7 @@ JSComponent.prototype.attachChildComponent = function(name, component) {
 }
 
 /**
- * Registers given listener on given elements(s) and removes them when this component is disposed.
+ * Registers the given listener on given elements(s) and removes them when this component is disposed.
  * @param {(HTMLElement[]|HTMLElement)} elements
  * @param {string} eventName
  * @param {function} listener
@@ -132,6 +132,22 @@ JSComponent.prototype.registerEventListener = function(elements, eventName, list
 }
 
 /**
+ * Registers the given property change listener on object and removes it when this component is disposed.
+ * @param {Object} object
+ * @param {string} propertyName
+ * @param {function} listener
+ */
+JSComponent.prototype.registerPropertyChangeListener = function(object, propertyName, listener) {
+  object.addPropertyChangeListener(propertyName, listener);
+  this.listeners.push(
+      {
+        listener: listener,
+        propertyName: propertyName,
+        object: object
+      });
+}
+
+/**
  * Releases all listeners registered with {@link JSComponent#registerEventListener}
  * @private
  */
@@ -139,9 +155,13 @@ JSComponent.prototype.unregisterEventListeners = function() {
   if (Array.isArray(this.listeners)) {
     for (var i = 0; i < this.listeners.length; i++) {
       var registeredEntry = this.listeners[i];
-      for (var j = 0; j < registeredEntry.elements.length; j++) {
-        var element = registeredEntry.elements[j];
-        element.removeEventListener(registeredEntry.eventName, registeredEntry.listener);
+      if (registeredEntry.eventName !== undefined) {
+        for (var j = 0; j < registeredEntry.elements.length; j++) {
+          var element = registeredEntry.elements[j];
+          element.removeEventListener(registeredEntry.eventName, registeredEntry.listener);
+        }
+      } else {
+        registeredEntry.object.removePropertyChangeListener(registeredEntry.propertyName, registeredEntry.listener);
       }
     }
   }
@@ -870,13 +890,10 @@ JSPopupMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, che
  * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
  * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', "myitem", function() { console.log('my item clicked') })
  * 3) builder.addItem("myitem", function() { console.log('my item clicked') })
- *
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} [onItemSelectedCallbackOrLabel]
  * @param {function()} [onItemSelectedCallback]
- *
  * @return {JSPopupMenu.Builder}
- *
  */
 JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
   var label = null;

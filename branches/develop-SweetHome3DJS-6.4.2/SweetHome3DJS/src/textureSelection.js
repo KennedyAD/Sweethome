@@ -163,7 +163,7 @@ function JSTextureSelectorDialog(preferences, controller, options) {
 
   this.initCatalogTextureSearch(preferences);
   this.initRecentTextures();
-  preferences.addPropertyChangeListener("RECENT_TEXTURES", function(ev) {
+  this.registerPropertyChangeListener(preferences, "RECENT_TEXTURES", function(ev) {
       dialog.initRecentTextures();
     });
 
@@ -428,13 +428,13 @@ function JSTextureSelectorButton(preferences, controller, targetNode, options) {
   
   this.preview = this.getHTMLElement().querySelector(".texture-preview");
   
-  this.textureChangeListener = function() {
+  var textureChangeListener = function() {
       component.updateTexture(controller.getTexture());
       if (typeof component.textureChanged == "function") {
         component.textureChanged(controller.getTexture());
       }
     };
-  controller.addPropertyChangeListener("TEXTURE", component.textureChangeListener);
+  this.registerPropertyChangeListener(controller, "TEXTURE", textureChangeListener);
   this.updateTexture(controller.getTexture());
 }
 JSTextureSelectorButton.prototype = Object.create(JSComponent.prototype);
@@ -484,15 +484,10 @@ JSTextureSelectorButton.prototype.openTextureSelectorDialog = function() {
     this.currentDialog.setSelectedTexture(this.controller.getTexture());
   }
   this.currentDialog.displayView();
-};
+}
 
 JSTextureSelectorButton.prototype.confirmDeleteSelectedCatalogTexture = function() {
   if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
     return this.currentDialog.confirmDeleteSelectedCatalogTexture();
   }
-}
-
-JSTextureSelectorButton.prototype.dispose = function() {
-  this.controller.removePropertyChangeListener(this.textureChangeListener);
-  JSComponent.prototype.dispose.call(this);
 }
