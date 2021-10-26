@@ -451,7 +451,7 @@ var ColorTools = {};
  * @return {string} a CSS string
  */
 ColorTools.integerToHexadecimalString = function(color) {
-  return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
+  return "#" + ("00000" + (color & 0xFFFFFF).toString(16).toUpperCase()).slice(-6);
 }
 
 /**
