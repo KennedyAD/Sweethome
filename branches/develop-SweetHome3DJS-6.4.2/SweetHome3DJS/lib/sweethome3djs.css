@@ -1409,7 +1409,7 @@ label {
 }
 
 .color-selector .picker,
-.color-selector .custom-colors {
+.color-selector .recent-colors {
   display: grid;
   grid-template-columns: repeat(14, 1fr);
   grid-gap: 0em;
@@ -1419,36 +1419,37 @@ label {
 
 @media (min-height: 900px) {
   .color-selector .picker,
-  .color-selector .custom-colors {
+  .color-selector .recent-colors {
     grid-auto-rows: minmax(2em, auto);
   }
 }
 
 .color-selector .picker > div,
-.color-selector .custom-colors > div {
+.color-selector .recent-colors > div {
   position: relative;
 }
 
 .color-selector .picker > div.selected,
 .color-selector .picker > div:hover,
-.color-selector .custom-colors > div.selected,
-.color-selector .custom-colors > div:hover
- {
+.color-selector .recent-colors > div.selected,
+.color-selector .recent-colors > div:hover
+.color-selector .current-color,
+.color-selector .current-color:hover {
   border: 1px;
   cursor: pointer;
 }
 
-.color-selector .custom-colors > div {
+.color-selector .recent-colors > div {
   margin-top: .5rem;
 }
 
 .color-selector div.picker div,
-.color-selector .custom-colors div {
+.color-selector .recent-colors div {
   border: white solid 1px;
 }
 
 .color-selector div.picker div.selected,
-.color-selector .custom-colors div.selected {
+.color-selector .recent-colors div.selected {
   border: grey solid 1px;
 }
 
@@ -1473,14 +1474,10 @@ label {
 .color-selector .custom-color-editor .preview {
   width: 2em;
   height: 2em;
+  border: grey solid 1px;
+  margin-left: 5px;
   display: inline-block;
   vertical-align: middle;
-  background-color: black;
-}
-
-.color-selector .custom-color-editor button:not([disabled]) {
-  cursor: pointer;
-  line-height: 2em;
 }
 
 /*
@@ -2000,7 +1997,7 @@ label {
     width: 49%;
   }
 
-  .color-selector .picker, .color-selector .custom-colors {
+  .color-selector .picker, .color-selector .recent-colors {
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
@@ -2010,7 +2007,7 @@ label {
     flex-wrap: wrap;
   }
 
-  .color-selector .picker > *, .color-selector .custom-colors > * {
+  .color-selector .picker > *, .color-selector .recent-colors > * {
     width: 10%;
     height: 2em;
   }
