@@ -33,7 +33,7 @@ function JSColorSelector(preferences, targetNode) {
       '<div class="picker"></div>' +
       '<hr />' +
       '<div class="custom-color-editor">' +
-      '  <input type="text" value="000000" />' +
+      '  <input type="text" value="FFFFFF" />' +
       '  <div class="preview"></div>' +
       '  <button>➕</button>' +
       '</div>' +
@@ -120,13 +120,11 @@ JSColorSelector.prototype.getColor = function() {
  */
 JSColorSelector.prototype.setColor = function(color) {
   this.color = color;
-  if (color != null) {
-    var matchingTile = this.getHTMLElement().querySelector("[data-color='" + color + "']");
-    if (matchingTile == null) {
-      this.addAndSelectCustomColorTile(ColorTools.integerToHexadecimalString(color));
-    } else {
-      this.selectColorTile(matchingTile);
-    }
+  var matchingTile = this.getHTMLElement().querySelector("[data-color='" + (color != null ? color : 0xFFFFFF) + "']");
+  if (matchingTile == null) {
+    this.addAndSelectCustomColorTile(ColorTools.integerToHexadecimalString(color != null ? color : 0xFFFFFF));
+  } else {
+    this.selectColorTile(matchingTile);
   }
 }
 
@@ -155,7 +153,7 @@ JSColorSelector.prototype.selectColorTile = function(tileElement) {
  * @private
  */
 JSColorSelector.prototype.getTileColor = function(tileElement) {
-  return 0xFF000000 | parseInt(tileElement.dataset["color"]);
+  return parseInt(tileElement.dataset["color"]);
 }
 
 /**
@@ -180,11 +178,10 @@ JSColorSelector.prototype.createColorTile = function(colorHex) {
  */
 JSColorSelector.prototype.addAndSelectCustomColorTile = function(colorHex) {
   var colorSelector = this;
-
   var tileElement = this.createColorTile(colorHex);
   this.customColorsContainerElement.appendChild(tileElement);
 
-  var colorNumber = 0xFF000000 | ColorTools.hexadecimalStringToInteger(colorHex);
+  var colorNumber = ColorTools.hexadecimalStringToInteger(colorHex);
   if (this.preferences.getRecentColors().indexOf(colorNumber) === -1) {
     var recentColors = [colorNumber].concat(this.preferences.getRecentColors());
     this.preferences.setRecentColors(recentColors);
@@ -223,9 +220,7 @@ function JSColorSelectorDialog(preferences, options) {
   this.getHTMLElement().classList.add("small");
 
   this.colorSelector = new JSColorSelector(preferences, this.getElement("color-selector"));
-  if (options.color != null) { 
-    this.colorSelector.setColor(options.color);
-  }
+  this.colorSelector.setColor(options.color);
   var dialog = this;
   this.registerEventListener(this.colorSelector.colorTileElements, "dblclick", function(ev) { 
       dialog.validate(); 
@@ -290,7 +285,8 @@ JSColorSelectorButton.prototype.getColor = function() {
  */
 JSColorSelectorButton.prototype.setColor = function(color) {
   this.color = color;
-  this.colorOverview.style.backgroundColor = ColorTools.integerToHexadecimalString(color);
+  this.colorOverview.style.backgroundColor = 
+      color != null ? ColorTools.integerToHexadecimalString(color) : "transparent";
 }
 
 /**
