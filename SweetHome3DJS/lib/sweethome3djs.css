@@ -1400,8 +1400,8 @@ label {
 
 .color-button .color-preview {
   border: solid 1px black;
-  width: 60%;
-  height: 90%;
+  width: 1.1em;
+  height: 1.1em;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
@@ -1541,8 +1541,8 @@ label {
 
 .texture-button .texture-preview {
   border: solid 1px black;
-  width: 60%;
-  height: 90%;
+  width: 1.1em;
+  height: 1.1em;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
@@ -1672,6 +1672,7 @@ label {
 
 
 .recent-textures {
+  margin-top: 1em;
   text-align: center;
   min-height: 2em;
 }
