@@ -483,16 +483,16 @@ function JSWizardDialog(controller, preferences, title, behavior) {
 
   var dialog = this;
   this.updateStepView();
-  controller.addPropertyChangeListener("STEP_VIEW", function(ev) {
+  this.registerPropertyChangeListener(controller, "STEP_VIEW", function(ev) {
       dialog.updateStepView();
     });
 
   this.updateStepIcon();
-  controller.addPropertyChangeListener("STEP_ICON", function(ev) {
+  this.registerPropertyChangeListener(controller, "STEP_ICON", function(ev) {
       dialog.updateStepIcon();
     });
   
-  controller.addPropertyChangeListener("TITLE", function(ev) {
+  this.registerPropertyChangeListener(controller, "TITLE", function(ev) {
       dialog.setTitle(controller.getTitle());
     });
 }
@@ -524,17 +524,17 @@ JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
     });
 
   this.backButton.disabled = !controller.isBackStepEnabled();
-  controller.addPropertyChangeListener("BACK_STEP_ENABLED", function(ev) {
+  this.registerPropertyChangeListener(controller, "BACK_STEP_ENABLED", function(ev) {
       dialog.backButton.disabled = !controller.isBackStepEnabled();
     });
 
   this.nextButton.disabled = !controller.isNextStepEnabled();
-  controller.addPropertyChangeListener("NEXT_STEP_ENABLED", function(ev) {
+  this.registerPropertyChangeListener(controller, "NEXT_STEP_ENABLED", function(ev) {
       dialog.nextButton.disabled = !controller.isNextStepEnabled();
     });
 
   this.updateNextButtonText();
-  controller.addPropertyChangeListener("LAST_STEP", function(ev) {
+  this.registerPropertyChangeListener(controller, "LAST_STEP", function(ev) {
       dialog.updateNextButtonText();
     });
 
