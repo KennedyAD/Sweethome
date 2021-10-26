@@ -313,7 +313,7 @@ JSColorSelectorButton.prototype.openColorSelectorDialog = function(preferences) 
             if (colorIndex > 0) {
               recentColors.splice(colorIndex, 1);
             } else {
-              recentColors.length = Math.min(recentColors.length, 14);
+              recentColors.length = Math.min(recentColors.length, 13);
             }
             recentColors.splice(0, 0, color);
             preferences.setRecentColors(recentColors);
