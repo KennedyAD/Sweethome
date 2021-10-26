@@ -324,7 +324,7 @@ IncrementalHomeRecorder.prototype.saveBlobs = function(savedObject, serverErrorH
       var writeResourceURL = this.application.params.writeResourceURL;
       var uploadUrl = CoreTools.format(writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(savedObject.resourceFileName));
       var request = new XMLHttpRequest();
-      request.open("POST", uploadUrl);
+      request.open("POST", uploadUrl, true);
       request.addEventListener("error", serverErrorHandler);
       request.addEventListener("timeout", serverErrorHandler);
       request.send(savedObject.blob);
@@ -795,32 +795,14 @@ SweetHome3DJSApplication.prototype.getContentManager = function() {
   };
 }
 
-/**
- * Hack to fix invalid overload of addPropertyChangeListener in which property is enum in Java, and string in TypeScript
- */
-// TODO LOUIS RENAUD JSweet generates overload based on Property enum which becomes a string, so overload resolution does not work at the end - a decent solution would be to enhance the SH3D JSweet adapter to resolve overload variant depending on Property names
-ImportedTextureWizardController.prototype.addPropertyChangeListener = function (property, listener) {
-  WizardController.prototype.addPropertyChangeListener.call(this, property, listener);
-  return this.addPropertyChangeListener$com_eteks_sweethome3d_viewcontroller_ImportedTextureWizardController_Property$java_beans_PropertyChangeListener(property, listener);
-};
-
-/**
- * Hack to fix invalid overload of addPropertyChangeListener in which property is enum in Java, and string in TypeScript
- */
-// TODO LOUIS RENAUD JSweet generates overload based on Property enum which becomes a string, so overload resolution does not work at the end - a decent solution would be to enhance the SH3D JSweet adapter to resolve overload variant depending on Property names
-BackgroundImageWizardController.prototype.addPropertyChangeListener = function (property, listener) {
-  WizardController.prototype.addPropertyChangeListener.call(this, property, listener);
-  return this.addPropertyChangeListener$com_eteks_sweethome3d_viewcontroller_BackgroundImageWizardController_Property$java_beans_PropertyChangeListener(property, listener);
-};
-
 HomeController.prototype.deleteCameras = function () {
-  /** @type {HomeController} */
+  // Redefine HomeController.deleteCameras to handle deleted cameras asynchronously
   var controller = this;
   /** @type {HomePane} */
   var homePane = this.getView();
   homePane.showDeletedCamerasDialog(function(deletedCameraList) {
-    if (deletedCameraList != null) {
-      controller.getHomeController3D().deleteCameras(deletedCameraList);
-    }
-  });
-};
+      if (deletedCameraList != null) {
+        controller.getHomeController3D().deleteCameras(deletedCameraList);
+      }
+    });
+}

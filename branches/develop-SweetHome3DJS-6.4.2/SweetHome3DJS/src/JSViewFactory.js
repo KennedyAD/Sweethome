@@ -220,11 +220,11 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     this.initOriginStep();
 
     var component = this;
-    controller.addPropertyChangeListener("STEP", function(ev) {
+    this.registerPropertyChangeListener(controller, "STEP", function(ev) {
         component.updateStep();
         component.repaintOriginCanvas();
       });
-    controller.addPropertyChangeListener("IMAGE", function(ev) {
+    this.registerPropertyChangeListener(controller, "IMAGE", function(ev) {
         component.updateImagePreviews();
       });
 
@@ -304,7 +304,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         component.scaleStep.scaleDistanceInput.setValue(scaleDistance);
       };
     setScaleDistanceFromController();
-    controller.addPropertyChangeListener("SCALE_DISTANCE", setScaleDistanceFromController);
+    this.registerPropertyChangeListener(controller, "SCALE_DISTANCE", setScaleDistanceFromController);
 
     var zoomInButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_IN", true);
     var zoomOutButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_OUT", true);
@@ -318,7 +318,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         component.scaleStep.preview.width /= 2;
         component.repaintScaleCanvas();
       });
-    controller.addPropertyChangeListener("SCALE_DISTANCE_POINTS", function() {
+    this.registerPropertyChangeListener(controller, "SCALE_DISTANCE_POINTS", function() {
         component.repaintScaleCanvas();
       });
 
@@ -330,7 +330,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var mouseUp = function(ev) {
         if (canvas.dragging) {
           canvas.dragging = false;
-          canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
+          canvas.distanceStartPoint = canvas.distanceEndPoint = false;
         }
       };
     var mouseMove = function(ev) {
@@ -342,49 +342,65 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         var y = pointerCoordinatesObject.clientY - canvasRect.y;
   
         if (canvas.dragging) {
-          var actualX = (component.selectedImage.width / canvas.width) * x;
-          var actualY = (component.selectedImage.height / canvas.height) * y;
+          var scale = canvas.width / component.selectedImage.width;
+          var newX = x / scale;
+          var newY = y / scale;
           var scaleDistancePoints = controller.getScaleDistancePoints();
-          if (canvas.scaleDistanceStartReached) {
-            scaleDistancePoints[0][0] = actualX;
-            scaleDistancePoints[0][1] = actualY;
+          var updatedPoint;
+          var fixedPoint;
+          if (canvas.distanceStartPoint) {
+            updatedPoint = scaleDistancePoints [0];
+            fixedPoint   = scaleDistancePoints [1];
           } else {
-            scaleDistancePoints[1][0] = actualX;
-            scaleDistancePoints[1][1] = actualY;
+            updatedPoint = scaleDistancePoints [1];
+            fixedPoint   = scaleDistancePoints [0];
           }
-          controller.setScaleDistancePoints(
-            scaleDistancePoints[0][0], scaleDistancePoints[0][1],
-            scaleDistancePoints[1][0], scaleDistancePoints[1][1]
-          );
-          component.repaintScaleCanvas();
-          return;
-        }
-  
-        if (y < canvas.scaleDistanceStart.y + CANVAS_TOUCHABLE_AREA_RADIUS
-            && y > canvas.scaleDistanceStart.y - CANVAS_TOUCHABLE_AREA_RADIUS
-            && x < canvas.scaleDistanceStart.x + CANVAS_TOUCHABLE_AREA_RADIUS
-            && x > canvas.scaleDistanceStart.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
-  
-          canvas.scaleDistanceStartReached = true;
-          canvas.style.cursor = "crosshair";
-        } else if (y < canvas.scaleDistanceEnd.y + CANVAS_TOUCHABLE_AREA_RADIUS
-            && y > canvas.scaleDistanceEnd.y - CANVAS_TOUCHABLE_AREA_RADIUS
-            && x < canvas.scaleDistanceEnd.x + CANVAS_TOUCHABLE_AREA_RADIUS
-            && x > canvas.scaleDistanceEnd.x - CANVAS_TOUCHABLE_AREA_RADIUS) {
-  
-          canvas.scaleDistanceEndReached = true;
-          canvas.style.cursor = "crosshair";
+          // Accept new points only if distance is greater that 2 pixels
+          if (java.awt.geom.Point2D.distanceSq(fixedPoint [0] * scale, fixedPoint [1] * scale,
+                  newX * scale, newY * scale) >= 4) {
+            // If shift is down constrain keep the line vertical or horizontal
+            if (ev.shiftKey) {
+              var angle = Math.abs(Math.atan2(fixedPoint [1] - newY, newX - fixedPoint [0]));
+              if (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) {
+                newX = fixedPoint [0];
+              } else {
+                newY = fixedPoint [1];
+              }
+            }
+            updatedPoint [0] = newX;
+            updatedPoint [1] = newY;
+            controller.setScaleDistancePoints(
+              scaleDistancePoints[0][0], scaleDistancePoints[0][1],
+              scaleDistancePoints[1][0], scaleDistancePoints[1][1]);
+            component.repaintScaleCanvas();
+          }
         } else {
-  
-          canvas.scaleDistanceStartReached = canvas.scaleDistanceEndReached = false;
-          canvas.style.cursor = "default";
+          canvas.distanceStartPoint = 
+          canvas.distanceEndPoint = false;
+          
+          var scaleDistancePoints = controller.getScaleDistancePoints();
+          var scale = canvas.width / component.selectedImage.width;
+          // Check if user clicked on start or end point of distance line
+          if (Math.abs(scaleDistancePoints [0][0] * scale - x) <= CANVAS_TOUCHABLE_AREA_RADIUS
+              && Math.abs(scaleDistancePoints [0][1] * scale - y) <= CANVAS_TOUCHABLE_AREA_RADIUS) {
+            canvas.distanceStartPoint = true;
+          } else if (Math.abs(scaleDistancePoints [1][0] * scale - x) <= CANVAS_TOUCHABLE_AREA_RADIUS
+                     && Math.abs(scaleDistancePoints [1][1] * scale - y) <= CANVAS_TOUCHABLE_AREA_RADIUS) {
+            canvas.distanceEndPoint = true;
+          }
+          
+          if (canvas.distanceStartPoint || canvas.distanceEndPoint) {
+            canvas.style.cursor = "crosshair";
+          } else {
+            canvas.style.cursor = "default";
+          }
         }
       };
     var mouseDown = function(ev) {
         ev.stopImmediatePropagation();
         mouseMove(ev);
   
-        if (canvas.scaleDistanceStartReached || canvas.scaleDistanceEndReached) {
+        if (canvas.distanceStartPoint || canvas.distanceEndPoint) {
           canvas.dragging = true;
         }
       };
@@ -410,10 +426,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       g2D.drawImageWithSize(image, 0, 0, canvas.width, canvas.height);
       g2D.setColor("blue");
       var oldTransform = g2D.getTransform();
-      var translation = { x: 0, y : 0};
       var scale = canvas.width / image.width;
-      // Use same origin and scale as image drawing in super class
-      g2D.translate(translation.x, translation.y);
       g2D.scale(scale, scale);
       // Draw a scale distance line
       g2D.setStroke(new java.awt.BasicStroke(5 / scale,
@@ -438,15 +451,6 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       g2D.rotate(angle);
       g2D.draw(endLine);
       g2D.setTransform(oldTransform);
-      
-      canvas.scaleDistanceStart = { 
-          x: scale * scaleDistancePoints [0][0], 
-          y: scale * scaleDistancePoints [0][1] 
-        };
-      canvas.scaleDistanceEnd = { 
-          x: scale * scaleDistancePoints [1][0], 
-          y: scale * scaleDistancePoints [1][1] 
-        };
     }
   }
 
@@ -458,13 +462,13 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var unitName = preferences.getLengthUnit().getName();
     var maximumLength = preferences.getLengthUnit().getMaximumLength();
 
-    component.originStep = {
-      panel: component.findElement("[originStep]"),
-      preview: component.findElement("[originStep] [preview] canvas"),
-      previewZoomIn: component.findElement("[originStep] [previewZoomIn]"),
-      previewZoomOut: component.findElement("[originStep] [previewZoomOut]"),
-      xOriginLabel: component.getElement("x-origin-label"),
-      xOriginInput: new JSSpinner(preferences, component.getElement("x-origin-input"), 
+    this.originStep = {
+      panel: this.findElement("[originStep]"),
+      preview: this.findElement("[originStep] [preview] canvas"),
+      previewZoomIn: this.findElement("[originStep] [previewZoomIn]"),
+      previewZoomOut: this.findElement("[originStep] [previewZoomOut]"),
+      xOriginLabel: this.getElement("x-origin-label"),
+      xOriginInput: new JSSpinner(preferences, this.getElement("x-origin-input"), 
           {
             format: preferences.getLengthUnit().getFormat(),
             value: controller.getXOrigin(),
@@ -472,8 +476,8 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
             maximum: maximumLength,
             stepSize: preferences.getLengthUnit().getStepSize()
           }),
-      yOriginLabel: component.getElement("y-origin-label"),
-      yOriginInput: new JSSpinner(preferences, component.getElement("y-origin-input"), 
+      yOriginLabel: this.getElement("y-origin-label"),
+      yOriginInput: new JSSpinner(preferences, this.getElement("y-origin-input"), 
           {
             format: preferences.getLengthUnit().getFormat(),
             value: controller.getYOrigin(),
@@ -483,33 +487,33 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
           }),
     };
 
-    component.originStep.xOriginLabel.textContent = this.getLocalizedLabelText(
+    this.originStep.xOriginLabel.textContent = this.getLocalizedLabelText(
         "BackgroundImageWizardStepsPanel", "xOriginLabel.text", unitName);
-    component.originStep.yOriginLabel.textContent = this.getLocalizedLabelText(
+    this.originStep.yOriginLabel.textContent = this.getLocalizedLabelText(
         "BackgroundImageWizardStepsPanel", "yOriginLabel.text", unitName);
-    component.registerEventListener([component.originStep.xOriginInput, component.originStep.yOriginInput], "input", function(ev) {
+    this.registerEventListener([this.originStep.xOriginInput, this.originStep.yOriginInput], "input", function(ev) {
         controller.setOrigin(component.originStep.xOriginInput.getValue(), component.originStep.yOriginInput.getValue());
       });
-    controller.addPropertyChangeListener("X_ORIGIN", function() {
+    this.registerPropertyChangeListener(controller, "X_ORIGIN", function() {
         component.originStep.xOriginInput.setValue(controller.getXOrigin());
         component.repaintOriginCanvas();
       });
-    controller.addPropertyChangeListener("Y_ORIGIN", function() {
+    this.registerPropertyChangeListener(controller, "Y_ORIGIN", function() {
         component.originStep.yOriginInput.setValue(controller.getYOrigin());
         component.repaintOriginCanvas();
       });
 
-    var canvas = component.originStep.preview;
+    var canvas = this.originStep.preview;
 
     var zoomInButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_IN", true);
     var zoomOutButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_OUT", true);
-    component.originStep.previewZoomIn.style.backgroundImage = "url('lib/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
-    component.registerEventListener(component.originStep.previewZoomIn, "click", function(ev) {
+    this.originStep.previewZoomIn.style.backgroundImage = "url('lib/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    this.registerEventListener(this.originStep.previewZoomIn, "click", function(ev) {
         component.originStep.preview.width *= 2;
         component.repaintOriginCanvas();
       });
-    component.originStep.previewZoomOut.style.backgroundImage = "url('lib/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
-    component.registerEventListener(component.originStep.previewZoomOut, "click", function(ev) {
+    this.originStep.previewZoomOut.style.backgroundImage = "url('lib/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    this.registerEventListener(this.originStep.previewZoomOut, "click", function(ev) {
         component.originStep.preview.width /= 2;
         component.repaintOriginCanvas();
       });
@@ -561,8 +565,6 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
       g2D.drawImageWithSize(image, 0, 0, canvas.width, canvas.height);
       g2D.setColor("blue");
       var oldTransform = g2D.getTransform();
-      var translation = { x: 0, y : 0};
-      g2D.translate(translation.x, translation.y);
       var scale = canvas.width / image.width;
       var scaleDistancePoints = this.controller.getScaleDistancePoints();
       scale = scale / BackgroundImage.getScale(this.controller.getScaleDistance(),
@@ -837,7 +839,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.initComponents();
 
     var component = this;
-    controller.addPropertyChangeListener("STEP", function(ev) {
+    this.registerPropertyChangeListener(controller, "STEP", function(ev) {
         component.updateStep();
       });
   }
@@ -918,13 +920,13 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         reader.readAsDataURL(file);
       });
   
-    controller.addPropertyChangeListener("IMAGE", function(ev) {
+    this.registerPropertyChangeListener(controller, "IMAGE", function(ev) {
         component.updateImagePreviews();
       });
-    controller.addPropertyChangeListener("WIDTH", function(ev) {
+    this.registerPropertyChangeListener(controller, "WIDTH", function(ev) {
         component.updateImagePreviews();
       });
-    controller.addPropertyChangeListener("HEIGHT", function(ev) {
+    this.registerPropertyChangeListener(controller, "HEIGHT", function(ev) {
         component.updateImagePreviews();
       });
   
@@ -942,7 +944,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   
     this.attributesStepPanelDescription.innerHTML = this.getLocalizedLabelText(
         "ImportedTextureWizardStepsPanel", "attributesLabel.text").replace("<html>", "");
-    controller.addPropertyChangeListener("NAME", function() {
+    this.registerPropertyChangeListener(controller, "NAME", function() {
         if (component.nameInput.value.trim() != controller.getName()) {
           component.nameInput.value = controller.getName();
         }
@@ -951,7 +953,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         controller.setName(component.nameInput.value.trim());
       });
   
-    controller.addPropertyChangeListener("CATEGORY", function(ev) {
+    this.registerPropertyChangeListener(controller, "CATEGORY", function(ev) {
         var category = controller.getCategory();
         if (category != null) {
           component.categorySelect.value = category.getName();
@@ -962,7 +964,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         controller.setCategory(category);
       });
   
-    controller.addPropertyChangeListener("CREATOR", function(ev) {
+    this.registerPropertyChangeListener(controller, "CREATOR", function(ev) {
         if (component.creatorInput.value.trim() != controller.getCreator()) {
           component.creatorInput.value = controller.getCreator();
         }
@@ -971,14 +973,14 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         controller.setCreator(component.creatorInput.value.trim());
       });
   
-    controller.addPropertyChangeListener("WIDTH", function(ev) {
+    this.registerPropertyChangeListener(controller, "WIDTH", function(ev) {
         component.widthInput.setValue(controller.getWidth());
       });
     this.registerEventListener(this.widthInput, "input", function(ev) {
         controller.setWidth(parseFloat(component.widthInput.value));
       });
   
-    controller.addPropertyChangeListener("HEIGHT", function(ev) {
+    this.registerPropertyChangeListener(controller, "HEIGHT", function(ev) {
         component.heightInput.setValue(controller.getHeight());
       });
     this.registerEventListener(this.heightInput, "input", function(ev) {
