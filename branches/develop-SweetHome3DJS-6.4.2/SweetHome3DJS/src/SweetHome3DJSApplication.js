@@ -79,7 +79,7 @@ IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
   PlanController.SCALE_VISUAL_PROPERTY,
   // Supported built-in properties
   "CAMERA", "STORED_CAMERAS", "SELECTED_LEVEL",
-  "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED" /*, "FURNITURE_VISIBLE_PROPERTIES" */
+  "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED", "FURNITURE_VISIBLE_PROPERTIES" 
   ];
 
 /**
@@ -449,6 +449,9 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
             break;
           case "FURNITURE_DESCENDING_SORTED":
             trackedStateChangeUndoableEdit.furnitureDescendingSorted = home.isFurnitureDescendingSorted();
+            break;
+          case "FURNITURE_VISIBLE_PROPERTIES":
+            trackedStateChangeUndoableEdit.furnitureVisibleProperties = home.getFurnitureVisibleProperties();
             break;
           default:
             // Non-builtin properties (may be user-defined)
