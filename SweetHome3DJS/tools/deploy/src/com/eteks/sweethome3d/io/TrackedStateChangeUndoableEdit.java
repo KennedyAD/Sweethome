@@ -19,6 +19,7 @@
  */
 package com.eteks.sweethome3d.io;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,7 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   private Map<String, String> homeProperties;
   private String              furnitureSortedProperty;
   private Boolean             furnitureDescendingSorted;
+  private List<String>        furnitureVisibleProperties;
 
   private TrackedStateChangeUndoableEdit() {
   }
@@ -91,6 +93,18 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
       for (Map.Entry<String, String> property : this.homeProperties.entrySet()) {
         this.home.setProperty(property.getKey(), property.getValue());
       }
+    }
+    if (this.furnitureVisibleProperties != null) {
+      List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>();
+      for (String furnitureVisibleProperty : this.furnitureVisibleProperties) {
+        try {
+          furnitureVisibleProperties.add(
+              HomePieceOfFurniture.SortableProperty.valueOf(furnitureVisibleProperty));
+        } catch (IllegalArgumentException ex) {
+          // Ignore malformed enum constants
+        }
+      }
+      this.home.setFurnitureVisibleProperties(furnitureVisibleProperties);
     }
   }
 }
