@@ -771,10 +771,6 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
   return this.viewFactory;
 }
 
-SweetHome3DJSApplication.prototype.getContentManager = function() {
-  return null;
-}
-
 SweetHome3DJSApplication.prototype.createHomeController = function(home) {
-  return new HomeController(home, this, this.getViewFactory(), this.getContentManager());
+  return new HomeController(home, this, this.getViewFactory());
 }
