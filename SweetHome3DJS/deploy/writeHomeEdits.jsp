@@ -37,6 +37,7 @@
 
      // Retrieve home file copy stored in session attribute
      File referenceCopy = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
+     String readHomeRequest = "readHome.jsp?home=";
      if (referenceCopy != null
          || !homeFile.exists()
          || !HomeServerRecorder.isFileWithContent(homeFile)) {
@@ -56,7 +57,7 @@
            count = (Integer)request.getSession().getAttribute("lastEditCount");
          } else {
            HomeServerRecorder recorder = new HomeServerRecorder(homeFile, serverUserPreferences);
-           HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString());
+           HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString(), readHomeRequest);
            List<UndoableEdit> edits = deserializer.deserializeEdits(jsonEdits);
            count = deserializer.applyEdits(edits);
            recorder.writeHome(homeFile, 0);
