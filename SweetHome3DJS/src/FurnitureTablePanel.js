@@ -473,9 +473,9 @@ FurnitureTablePanel.prototype.renderPriceCellValue = function(piece, value, cell
   var currency = piece.getCurrency() == null 
       ? this.preferences.getCurrency() 
       : piece.getCurrency();
-  // TODO Manage price format for IE 11
-  var priceFormat = new Intl.NumberFormat(this.preferences.getLanguage(), { style: "currency", currency: currency });
-  this.renderNumberCellValue(bigToNumber(value), cell, priceFormat);
+  var currencyFormat = NumberFormat.getCurrencyInstance(); 
+  currencyFormat.setCurrency(currency);
+  this.renderNumberCellValue(this.bigToNumber(value), cell, currencyFormat);
 }
 
 /**
@@ -581,7 +581,7 @@ FurnitureTablePanel.prototype.renderCell = function(piece, columnName, cell) {
     case "PRICE":
       return this.renderPriceCellValue(piece, piece.getPrice(), cell);
     case "VALUE_ADDED_TAX_PERCENTAGE":
-      return this.renderNumberCellValue(bigToNumber(piece.getValueAddedTaxPercentage()) * 100, cell);
+      return this.renderNumberCellValue(this.bigToNumber(piece.getValueAddedTaxPercentage()) * 100, cell);
     case "VALUE_ADDED_TAX":
       return this.renderPriceCellValue(piece, piece.getValueAddedTax(), cell);
     case "PRICE_VALUE_ADDED_TAX_INCLUDED":
