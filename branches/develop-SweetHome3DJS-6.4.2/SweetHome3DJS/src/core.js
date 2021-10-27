@@ -367,40 +367,122 @@ ParsePosition.prototype.setErrorIndex = function(errorIndex) {
   this.errorIndex = errorIndex;
 }
 
+
 /**
  * A format for numbers.
- * Inspired by java.text.DecimalFormat
+ * Inspired by java.text.NumberFormat
  * @param {string} [pattern] partial support of pattern defined at https://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html
  * @constructor
  * @extends Format
+ * @private
+ * @ignore
  * @author Louis Grignon
  * @author Emmanuel Puybaret
- * @ignore
  */
-function DecimalFormat(pattern) {
+function NumberFormat() {
   Format.call(this);
 
   this.groupingUsed = false;
   this.minimumFractionDigits = 0;
   this.maximumFractionDigits = 2;
-  this.checkLocaleChange();
 
-  if (pattern && pattern.trim() != "") {
+}
+NumberFormat.prototype = Object.create(Format.prototype);
+NumberFormat.prototype.constructor = NumberFormat;
+
+NumberFormat.prototype.setGroupingUsed = function(groupingUsed) {
+  this.groupingUsed = groupingUsed;
+}
+
+NumberFormat.prototype.isGroupingUsed = function() {
+  return this.groupingUsed;
+}
+
+NumberFormat.prototype.setPositivePrefix = function(positivePrefix) {
+  this.positivePrefix = positivePrefix;
+}
+
+NumberFormat.prototype.getPositivePrefix = function() {
+  return this.positivePrefix;
+}
+
+NumberFormat.prototype.setNegativePrefix = function(negativePrefix) {
+  this.negativePrefix = negativePrefix;
+}
+
+NumberFormat.prototype.getNegativePrefix = function() {
+  return this.negativePrefix;
+}
+
+NumberFormat.prototype.setMinimumFractionDigits = function(minimumFractionDigits) {
+  this.minimumFractionDigits = minimumFractionDigits;
+}
+
+NumberFormat.prototype.getMinimumFractionDigits = function() {
+  return this.minimumFractionDigits;
+}
+
+NumberFormat.prototype.setMaximumFractionDigits = function(maximumFractionDigits) {
+  this.maximumFractionDigits = maximumFractionDigits;
+}
+
+NumberFormat.prototype.getMaximumFractionDigits = function() {
+  return this.maximumFractionDigits;
+}
+
+/**
+ * @returns {NumberFormat} 
+ */
+NumberFormat.getNumberInstance = function() {
+  return new DecimalFormat("#.##");
+}
+
+/**
+ * @returns {NumberFormat} 
+ */
+NumberFormat.getIntegerInstance = function() {
+  return new IntegerFormat();
+}
+
+/**
+ * @returns {NumberFormat} 
+ */
+NumberFormat.getCurrencyInstance = function() {
+  return new CurrencyFormat();
+}
+
+/**
+ * A format for decimal numbers.
+ * Inspired by java.text.DecimalFormat
+ * @param {string} [pattern] partial support of pattern defined at https://docs.oracle.com/javase/7/docs/api/java/text/DecimalFormat.html
+ * @constructor
+ * @extends NumberFormat
+ * @ignore
+ * @author Louis Grignon
+ * @author Emmanuel Puybaret
+ */
+function DecimalFormat(pattern) {
+  NumberFormat.call(this);
+  this.checkLocaleChange();
+  
+  var minimumFractionDigits = 0;
+  var maximumFractionDigits = 2;
+  if (pattern !== undefined && pattern.trim() != "") {
     var patternParts = pattern.split(";");
 
     var fractionDigitsMatch = patternParts[0].match(/[.]([0]+)([#]*)/);
     if (fractionDigitsMatch == null) {
-      this.minimumFractionDigits = 0;
+      minimumFractionDigits = 0;
       fractionDigitsMatch = patternParts[0].match(/[.]([#]*)/);
       if (fractionDigitsMatch == null) {
-        this.maximumFractionDigits = 0;
+        maximumFractionDigits = 0;
       } else if (fractionDigitsMatch.length > 1) {
-        this.maximumFractionDigits = fractionDigitsMatch[1].length;
+        maximumFractionDigits = fractionDigitsMatch[1].length;
       }
     } else if (fractionDigitsMatch.length > 1) {
-      this.minimumFractionDigits = fractionDigitsMatch[1].length;
+      minimumFractionDigits = fractionDigitsMatch[1].length;
       if (fractionDigitsMatch.length > 2 && fractionDigitsMatch[2].length > 0) {
-        this.maximumFractionDigits = this.minimumFractionDigits + fractionDigitsMatch[2].length;
+        maximumFractionDigits = minimumFractionDigits + fractionDigitsMatch[2].length;
       }
     }
 
@@ -415,28 +497,38 @@ function DecimalFormat(pattern) {
     }
   }
   
-  if (this.maximumFractionDigits < this.minimumFractionDigits) {
-    this.maximumFractionDigits = this.minimumFractionDigits;
+  if (maximumFractionDigits < minimumFractionDigits) {
+    maximumFractionDigits = minimumFractionDigits;
   }
+  
+  this.setMinimumFractionDigits(minimumFractionDigits);
+  this.setMaximumFractionDigits(maximumFractionDigits);
 }
-DecimalFormat.prototype = Object.create(Format.prototype);
+DecimalFormat.prototype = Object.create(NumberFormat.prototype);
 DecimalFormat.prototype.constructor = DecimalFormat;
 
+/**
+ * @param {number} number
+ * @returns {string}
+ */
 DecimalFormat.prototype.format = function(number) {
   if (number == null) {
     return '';
   }
   this.checkLocaleChange();
 
-  var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.groupingUsed, this.decimalSeparator, {
-      minimumFractionDigits: this.minimumFractionDigits,
-      maximumFractionDigits: this.maximumFractionDigits,
+  var formattedNumber = toLocaleStringUniversal(number, this.groupingSeparator, this.isGroupingUsed(), this.decimalSeparator, {
+      minimumFractionDigits: this.getMinimumFractionDigits(),
+      maximumFractionDigits: this.getMaximumFractionDigits(),
       positivePrefix: this.positivePrefix,
       negativePrefix: this.negativePrefix,
     }); 
   return formattedNumber;
 }
 
+/**
+ * @returns {number}
+ */
 DecimalFormat.prototype.parse = function(text, parsePosition) {
   this.checkLocaleChange();
   var number = parseLocalizedNumber(text, parsePosition, {
@@ -449,30 +541,6 @@ DecimalFormat.prototype.parse = function(text, parsePosition) {
   } else {
     return number;
   }
-}
-
-DecimalFormat.prototype.setGroupingUsed = function(groupingUsed) {
-  this.groupingUsed = groupingUsed;
-}
-
-DecimalFormat.prototype.isGroupingUsed = function() {
-  return this.groupingUsed;
-}
-
-DecimalFormat.prototype.setPositivePrefix = function(positivePrefix) {
-  this.positivePrefix = positivePrefix;
-}
-
-DecimalFormat.prototype.getPositivePrefix = function() {
-  return this.positivePrefix;
-}
-
-DecimalFormat.prototype.setNegativePrefix = function(negativePrefix) {
-  this.negativePrefix = negativePrefix;
-}
-
-DecimalFormat.prototype.getNegativePrefix = function() {
-  return this.negativePrefix;
 }
 
 /**
@@ -620,18 +688,22 @@ function parseLocalizedNumber(string, parsePosition, options) {
 
 /**
  * A format for integer numbers.
- * Inspired by java.text.NumberFormat.getIntegerInstance()
  * @constructor
- * @extends DecimalFormat
+ * @extends NumberFormat
  * @author Louis Grignon
+ * @author Emmanuel Puybaret
  * @ignore
  */
 function IntegerFormat() {
-  Format.call(this);
+  NumberFormat.call(this);
 }
-IntegerFormat.prototype = Object.create(Format.prototype);
+IntegerFormat.prototype = Object.create(NumberFormat.prototype);
 IntegerFormat.prototype.constructor = IntegerFormat;
 
+/**
+ * @param {number} number
+ * @returns {string}
+ */
 IntegerFormat.prototype.format = function(number) {
   if (number == null) {
     return '';
@@ -639,8 +711,67 @@ IntegerFormat.prototype.format = function(number) {
   return toLocaleStringUniversal(number, "", false, "", {maximumFractionDigits: 0}); 
 }
   
+/**
+ * @returns {number}
+ */
 IntegerFormat.prototype.parse = function(text, parsePosition) {
   return parseLocalizedNumber(text, parsePosition, {}); // No decimal separator to parse integer
+}
+
+
+/**
+ * A format for prices.
+ * @constructor
+ * @extends DecimalFormat
+ * @author Emmanuel Puybaret
+ * @ignore
+ */
+function CurrencyFormat() {
+  DecimalFormat.call(this);
+  this.currency = "USD";
+  this.setGroupingUsed(true);
+}
+CurrencyFormat.prototype = Object.create(DecimalFormat.prototype);
+CurrencyFormat.prototype.constructor = CurrencyFormat;
+
+/**
+ * @param {number} number
+ * @returns {string}
+ */
+CurrencyFormat.prototype.format = function(number) {
+  try {
+    var priceFormat = new Intl.NumberFormat(Locale.getDefault().replace('_', '-'), { 
+        style: "currency", 
+        currency: this.currency});
+    return priceFormat.format(number);
+  } catch(ex) {
+    var fractionDigits = this.currency.match(/(JPY|VND)/) ? 0 : 2;
+    this.setMinimumFractionDigits(fractionDigits);
+    this.setMaximumFractionDigits(fractionDigits);
+    var price = DecimalFormat.prototype.format.call(this, number);
+    
+    var formatLocale = Locale.getDefault();
+    if (formatLocale === null || formatLocale.indexOf("en") == 0) {
+      price = this.currency + price;
+    } else {
+      price += " " + this.currency;
+    }
+    return price;
+  }  
+}
+  
+/**
+ * @param {string} currency
+ */
+CurrencyFormat.prototype.setCurrency = function(currency) {
+  this.currency = currency;
+}
+
+/**
+ * @returns {string}
+ */
+CurrencyFormat.prototype.getCurrency = function() {
+  return this.currency;
 }
 
 

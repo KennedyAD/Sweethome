@@ -621,7 +621,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
   var value = 0;
   var numberPosition = new ParsePosition(parsePosition.getIndex());
   this.skipWhiteSpaces(text, numberPosition);
-  var footNumberFormat = new IntegerFormat();
+  var footNumberFormat = NumberFormat.getIntegerInstance();
   // Parse feet
   var quoteIndex = text.indexOf('\'', parsePosition.getIndex());
   var negative = numberPosition.getIndex() < text.length  
