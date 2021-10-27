@@ -526,15 +526,6 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
     processedEdit._action = "undo";
   }
   
-  // TODO use local storage
-  // if (this.homeData[home.editionId].editCounter === undefined) {
-  //   this.homeData[home.editionId].editCounter = 0;
-  // } else {
-  //   this.homeData[home.editionId].editCounter++;
-  // }
-  // var key = home.editionId + "/" + this.homeData[home.editionId].editCounter;
-  // localStorage.setItem(key, toJSON(o));
-  
   if (!this.queue) {
     this.queue = [];
   }
@@ -557,7 +548,6 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
     return null;
   }
   
-  // TODO use local storage
   this.homeData[home.editionId].ongoingUpdate = { 'home': home, 'id': UUID.randomUUID(), 'edits': this.queue.slice(0) };
   if (this.configuration !== undefined 
       && this.configuration.writingObserver 
@@ -573,7 +563,6 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
  * @private 
  */
 IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
-  // TODO use local storage
   for (var i = 0; i < update.edits.length; i++) {
     if (this.queue[0] === update.edits[i]) {
       this.queue.shift();
@@ -782,27 +771,10 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
   return this.viewFactory;
 }
 
+SweetHome3DJSApplication.prototype.getContentManager = function() {
+  return null;
+}
+
 SweetHome3DJSApplication.prototype.createHomeController = function(home) {
   return new HomeController(home, this, this.getViewFactory(), this.getContentManager());
-}
-
-SweetHome3DJSApplication.prototype.getContentManager = function() {
-  // TODO LOUIS RENAUD how to handle content management in web context: to be discussed with Emmanuel
-  return {
-    constructor: { 
-      "__interfaces": "com.eteks.sweethome3d.viewcontroller.ContentManager"
-    }
-  };
-}
-
-HomeController.prototype.deleteCameras = function () {
-  // Redefine HomeController.deleteCameras to handle deleted cameras asynchronously
-  var controller = this;
-  /** @type {HomePane} */
-  var homePane = this.getView();
-  homePane.showDeletedCamerasDialog(function(deletedCameraList) {
-      if (deletedCameraList != null) {
-        controller.getHomeController3D().deleteCameras(deletedCameraList);
-      }
-    });
 }

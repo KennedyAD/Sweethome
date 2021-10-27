@@ -2484,21 +2484,20 @@ HomePane.prototype.showStoreCameraDialog = function(cameraName) {
 
 /**
  * Displays a dialog showing the list of cameras stored in home
- * and returns the ones selected by the user to be deleted.
- * @param {function(Camera[])} callback
+ * and returns <code>null</code> to delete selected cameras asynchronously.
  */
-HomePane.prototype.showDeletedCamerasDialog = function(callback) {
-  var pane = this;
+HomePane.prototype.showDeletedCamerasDialog = function() {
+  var homePane = this;
   var storedCameras = this.home.getStoredCameras();
 
   // 1. Confirm dialog
   function JSConfirmDeleteCamerasDialog() {
-    JSDialog.call(this, pane.preferences,
+    JSDialog.call(this, homePane.preferences,
         "@{HomePane.showDeletedCamerasDialog.title}",
         "<div>@{HomePane.confirmDeleteCameras.message}</div>",
         {
           applier: function(dialog) {
-            callback(dialog.selectedCameras);
+            homePane.controller.getHomeController3D().deleteCameras(dialog.selectedCameras);
           },
         });
   }
@@ -2527,7 +2526,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
   }
 
   function JSDeleteCamerasDialog() {
-    JSDialog.call(this, pane.preferences,
+    JSDialog.call(this, homePane.preferences,
       "@{HomePane.showDeletedCamerasDialog.title}",
       html,
       {
@@ -2540,9 +2539,11 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
             selectedCameras.push(camera);
           }
 
-          var confirmDialog = new JSConfirmDeleteCamerasDialog();
-          confirmDialog.selectedCameras = selectedCameras;
-          confirmDialog.displayView();
+          if (selectedCameras.length > 0) {
+            var confirmDialog = new JSConfirmDeleteCamerasDialog();
+            confirmDialog.selectedCameras = selectedCameras;
+            confirmDialog.displayView();
+          }
         },
       });
   }
@@ -2551,6 +2552,7 @@ HomePane.prototype.showDeletedCamerasDialog = function(callback) {
 
   var dialog = new JSDeleteCamerasDialog();
   dialog.displayView();
+  return null;
 }
 
 /**
