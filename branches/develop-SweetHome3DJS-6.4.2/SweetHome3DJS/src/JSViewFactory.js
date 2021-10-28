@@ -3014,7 +3014,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
 /**
  * @param {UserPreferences} preferences
  * @param {RoomController} controller
- * @returns {JSDialog}
+ * @return {JSDialog}
  */
 JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   var initFloorPanel = function(dialog) {
@@ -4345,12 +4345,10 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
  * Creates a texture selection component
  * @param {UserPreferences} preferences current user's preferences 
  * @param {TextureChoiceController} textureChoiceController texture choice controller
- * @param {{ textureChanged: function(HomeTexture) }} [options]
- *   > textureChanged: called with selected texture, when selection changed
  * @return {JSComponent} 
  */
-JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureChoiceController, options) {
-  return new JSTextureSelectorButton(preferences, textureChoiceController, null, options);
+JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureChoiceController) {
+  return new TextureChoiceComponent(preferences, textureChoiceController);
 }
 
 JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, controller) {
