@@ -2215,7 +2215,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var controller = this.controller;
     var preferences = this.preferences;
 
-    var colorButton = new JSColorSelectorButton(preferences, null,
+    var colorButton = new ColorButton(preferences, 
         {
           colorChanged: function(color) {
               colorAndTextureRadioButtons[HomeFurnitureController.FurniturePaint.COLORED].checked = true;
@@ -2674,7 +2674,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     });
 
     // Colors
-    dialog.leftSideColorButton = new JSColorSelectorButton(preferences, null, 
+    dialog.leftSideColorButton = new ColorButton(preferences,  
         {
           colorChanged: function(selectedColor) {
               dialog.findElement("[name='left-side-color-and-texture-choice'][value='COLORED']").checked = true;
@@ -2682,7 +2682,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
               controller.setLeftSideColor(selectedColor);
             }
         });
-    dialog.rightSideColorButton = new JSColorSelectorButton(preferences, null, 
+    dialog.rightSideColorButton = new ColorButton(preferences,  
         {
           colorChanged: function(selectedColor) {
             dialog.findElement("[name='right-side-color-and-texture-choice'][value='COLORED']").checked = true;
@@ -2819,7 +2819,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
           setTopPaintFromController();
         });
   
-      dialog.topColorButton = new JSColorSelectorButton(preferences, null,
+      dialog.topColorButton = new ColorButton(preferences, 
           {
             colorChanged: function(selectedColor) {
               topPaintRadioColor.checked = true;
@@ -3032,7 +3032,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       // FLOOR_PAINT
       var floorColorCheckbox = dialog.findElement("[name='floor-color-and-texture-choice'][value='COLORED']");
-      dialog.floorColorButton = new JSColorSelectorButton(preferences, null,
+      dialog.floorColorButton = new ColorButton(preferences, 
           {
             colorChanged: function(selectedColor) {
               floorColorCheckbox.checked = true;
@@ -3104,7 +3104,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       // CEILING_PAINT
       var ceilingColorCheckbox = dialog.findElement("[name='ceiling-color-and-texture-choice'][value='COLORED']");
-      dialog.ceilingColorButton = new JSColorSelectorButton(preferences, null,
+      dialog.ceilingColorButton = new ColorButton(preferences, 
           {
             colorChanged: function(selectedColor) {
               ceilingColorCheckbox.checked = true;
@@ -3190,7 +3190,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       // WALL_SIDES_PAINT
       var wallSidesColorCheckbox = dialog.findElement("[name='wall-sides-color-and-texture-choice'][value='COLORED']");
-      dialog.wallSidesColorButton = new JSColorSelectorButton(preferences, null,
+      dialog.wallSidesColorButton = new ColorButton(preferences, 
           {
             colorChanged: function(selectedColor) {
               wallSidesColorCheckbox.checked = true;
@@ -3576,7 +3576,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         }
       });
 
-  dialog.colorButton = new JSColorSelectorButton(preferences, null,
+  dialog.colorButton = new ColorButton(preferences, 
       {
         colorChanged: function(selectedColor) {
           controller.setColor(selectedColor);
@@ -3724,7 +3724,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
     });
     
   // Color button bound to controller COLOR controller property
-  dialog.colorButton = new JSColorSelectorButton(preferences, null,  
+  dialog.colorButton = new ColorButton(preferences,   
       {
         colorChanged: function(selectedColor) {
           controller.setColor(dialog.colorButton.getColor());
@@ -4193,7 +4193,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     var dialog = this;
 
     var paintRadioColor = dialog.findElement("[name='ground-color-and-texture-choice'][value='COLORED']");
-    var groundColorButton = new JSColorSelectorButton(preferences, null, 
+    var groundColorButton = new ColorButton(preferences,  
         {
           colorChanged: function(selectedColor) {
             paintRadioColor.checked = true;
@@ -4255,7 +4255,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     var dialog = this;
 
     var paintRadioColor = dialog.findElement("[name='sky-color-and-texture-choice'][value='COLORED']");
-    var skyColorButton = new JSColorSelectorButton(preferences, null, 
+    var skyColorButton = new ColorButton(preferences,  
         {
           colorChanged: function(selectedColor) {
             paintRadioColor.checked = true;
@@ -4440,7 +4440,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
     var paintRadioSameAsWall = this.findElement("[name='baseboard-color-and-texture-choice'][value='sameColorAsWall']");
 
     var paintRadioColor = this.findElement("[name='baseboard-color-and-texture-choice'][value='COLORED']");
-    this.colorButton = new JSColorSelectorButton(preferences, null,
+    this.colorButton = new ColorButton(preferences, 
         {
           colorChanged: function(selectedColor) {
             paintRadioColor.checked = true;
