@@ -97,10 +97,8 @@ ColorButton.prototype.setEnabled = function(enabled) {
  */
 ColorButton.prototype.openColorSelectorDialog = function(preferences) {
   var button = this;
-  var dialog = new JSColorChooserDialog(this.preferences, 
+  var dialog = new JSColorChooserDialog(this.preferences, this.colorDialogTitle, this.color,  
       { 
-        color: this.color,
-        title: this.colorDialogTitle,
         applier: function() {
           var color = dialog.getSelectedColor();
           if (color != null) {
@@ -200,19 +198,19 @@ JSColorChooser.prototype.createPickerColorTiles = function() {
     this.recentColorsContainerElement.appendChild(tileElement);
   }
   
-  var colorSelector = this;
+  var colorChooser = this;
   this.registerEventListener(this.colorTileElements, "click", function(ev) { 
-      colorSelector.selectColorTile(this); 
+      colorChooser.selectColorTile(this); 
     });
 }
 
 JSColorChooser.prototype.initCustomColorEditor = function() {
-  var colorSelector = this;
+  var colorChooser = this;
   this.registerEventListener(this.customColorEditorInput, "input", function(ev) {
-      var colorHex = '#' + colorSelector.customColorEditorInput.value;
+      var colorHex = '#' + colorChooser.customColorEditorInput.value;
       if (colorHex.match(/#[0-9a-fA-F]{3,6}/)) {
-        colorSelector.customColorEditorPreview.style.backgroundColor = colorHex;
-        colorSelector.color = ColorTools.hexadecimalStringToInteger(colorHex);
+        colorChooser.customColorEditorPreview.style.backgroundColor = colorHex;
+        colorChooser.color = ColorTools.hexadecimalStringToInteger(colorHex);
       }
     });
 }
@@ -289,31 +287,31 @@ JSColorChooser.prototype.createColorTile = function(colorHex) {
 
 /**
  * Color selector dialog class.
- * @param preferences      the current user preferences
- * @param {{color: number, applier: function(JSDialog)}} [options]
- * > color: selected color as ARGB int
- * > title: title of the dialog
+ * @param {UserPreferences} preferences  user preferences
+ * @param {number} color selected color as ARGB int
+ * @param {string} title title of the dialog
+ * @param {{applier: function(JSDialog)}} [observer]
  * > applier: apply color change, color as a ARGB int
  * @constructor
  * @private
  */
-function JSColorChooserDialog(preferences, options) {
+function JSColorChooserDialog(preferences, title, color, observer) {
   var html = 
       '<div>' + 
       '  <div data-name="color-selector"></div>' + 
       '</div>';
-  JSDialog.call(this, preferences, options.title, html, 
+  JSDialog.call(this, preferences, title, html, 
       {
-        applier: options.applier
+        applier: observer.applier
       });
 
   this.getHTMLElement().classList.add("color-selector-dialog");
   this.getHTMLElement().classList.add("small");
 
-  this.colorSelector = new JSColorChooser(preferences, this.getElement("color-selector"));
-  this.colorSelector.setColor(options.color);
+  this.colorChooser = new JSColorChooser(preferences, this.getElement("color-selector"));
+  this.colorChooser.setColor(color);
   var dialog = this;
-  this.registerEventListener(this.colorSelector.colorTileElements, "dblclick", function(ev) { 
+  this.registerEventListener(this.colorChooser.colorTileElements, "dblclick", function(ev) { 
       dialog.validate(); 
     });
 }
@@ -325,10 +323,10 @@ JSColorChooserDialog.prototype.constructor = JSColorChooserDialog;
  * @return currently selected color
  */
 JSColorChooserDialog.prototype.getSelectedColor = function() {
-  return this.colorSelector.getColor();
+  return this.colorChooser.getColor();
 }
 
 JSColorChooserDialog.prototype.dispose = function() {
-  this.colorSelector.dispose();
+  this.colorChooser.dispose();
   JSDialog.prototype.dispose.call(this);
 }
