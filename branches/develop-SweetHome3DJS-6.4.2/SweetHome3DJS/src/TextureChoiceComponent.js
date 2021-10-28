@@ -34,17 +34,15 @@ function TextureChoiceComponent(preferences, controller) {
   JSComponent.call(this, preferences, document.createElement("span"), true);
 
   this.controller = controller;
-
   this.getHTMLElement().innerHTML = '<button class="texture-button"><div class="texture-preview" /></button>';
   this.button = this.findElement(".texture-button");
 
   var component = this;
   this.registerEventListener(this.button, "click", function(ev) { 
-      component.openTextureSelectorDialog(); 
+      component.openTextureDialog(); 
     });
   
   this.preview = this.findElement(".texture-preview");
-  
   var textureChangeListener = function() {
       component.updateTexture(controller.getTexture());
     };
@@ -84,22 +82,25 @@ TextureChoiceComponent.prototype.setEnabled = function(enabled) {
   this.button.disabled = !enabled;
 }
 
-TextureChoiceComponent.prototype.openTextureSelectorDialog = function() {
-  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
-    return;
-  }
-
-  this.currentDialog = new JSTextureDialog(this.preferences, this.controller);
+/**
+ * @private
+ */
+TextureChoiceComponent.prototype.openTextureDialog = function() {
+  var dialog = new JSTextureDialog(this.preferences, this.controller);
   if (this.controller.getTexture() != null) {
-    this.currentDialog.setSelectedTexture(this.controller.getTexture());
+    dialog.setSelectedTexture(this.controller.getTexture());
   }
-  this.currentDialog.displayView();
+  dialog.displayView();
 }
 
+/**
+ * @return {boolean}
+ */
 TextureChoiceComponent.prototype.confirmDeleteSelectedCatalogTexture = function() {
-  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
-    return this.currentDialog.confirmDeleteSelectedCatalogTexture();
-  }
+  // Remove html tags from message because confirm does not support it
+  var messageText = this.getLocalizedLabelText("TextureChoiceComponent", "confirmDeleteSelectedCatalogTexture.message").
+  replaceAll(/\<[^\>]*\>/g, " ").replaceAll(/[ ]+/g, " ").replace(/^\s*/, "");
+  return confirm(messageText);
 }
 
 
@@ -477,14 +478,4 @@ JSTextureDialog.prototype.initImportTexturesPanel = function() {
   this.registerEventListener(this.deleteTextureButton, "click", function(ev) { 
       controller.deleteTexture(dialog.selectedTextureModel.texture);
     });
-}
-
-/**
- * @return {boolean}
- */
-JSTextureDialog.prototype.confirmDeleteSelectedCatalogTexture = function() {
-  // Remove html tags from message because confirm does not support it
-  var messageText = this.getLocalizedLabelText("TextureChoiceComponent", "confirmDeleteSelectedCatalogTexture.message").
-      replaceAll(/\<[^\>]*\>/g, " ").replaceAll(/[ ]+/g, " ").replace(/^\s*/, "");
-  return confirm(messageText);
 }
