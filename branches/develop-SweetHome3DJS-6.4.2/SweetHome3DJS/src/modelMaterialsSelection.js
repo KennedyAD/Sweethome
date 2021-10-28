@@ -680,7 +680,7 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
           });
       }
     };
-  var colorButton = new JSColorSelectorButton(preferences, null, 
+  var colorButton = new ColorButton(preferences, 
       {
         colorChanged: function(selectedColor) {
           if (selectedColor != null) {

@@ -1,5 +1,5 @@
 /*
- * colorSelection.js
+ * ColorButton.js
  *
  * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
@@ -19,17 +19,123 @@
  */
 
 // Requires toolkit.js
+// Requires CoreTools.js
+
+/**
+ * A component to select a color through a dialog, after clicking a button.
+ * @param {UserPreferences} preferences
+ * @param {{ colorChanged: function(number) }} [observer] 
+ *    the observer that will be notified when the color of the button changed. 
+ *    It may define <code>colorChanged</code> called with selected color, as ARGB int, when a color is selected
+ * @constructor
+ * @author Louis Grignon
+ * @author Emmanuel Puybaret
+ */
+function ColorButton(preferences, observer) {
+  JSComponent.call(this, preferences, document.createElement("span"), true);
+
+  if (observer !== undefined) {
+    this.observer = observer;
+  }
+  
+  this.getHTMLElement().innerHTML = '<button class="color-button"><div class="color-preview" /></button>';
+  this.button = this.getHTMLElement().querySelector(".color-button");
+  
+  var component = this;
+  this.registerEventListener(this.button, "click", function(ev) { 
+      component.openColorSelectorDialog(preferences);
+    });
+  
+  this.colorOverview = this.getHTMLElement().querySelector(".color-preview");
+}
+ColorButton.prototype = Object.create(JSComponent.prototype);
+ColorButton.prototype.constructor = ColorButton;
+
+/**
+ * Returns the color displayed by this button.
+ * @return {number} the RGB code of the color of this button or <code>null</code>.
+ */
+ColorButton.prototype.getColor = function() {
+  return this.color;
+}
+
+/**
+ * Sets the color displayed by this button.
+ * @param {number} color RGB code of the color or <code>null</code>.
+ */
+ColorButton.prototype.setColor = function(color) {
+  this.color = color;
+  this.colorOverview.style.backgroundColor = 
+      color != null ? ColorTools.integerToHexadecimalString(color) : "transparent";
+}
+
+/**
+ * Returns the title of color dialog displayed when this button is pressed.
+ */
+ColorButton.prototype.getColorDialogTitle = function() {
+  return this.colorDialogTitle;
+}
+
+/**
+ * Sets the title of color dialog displayed when this button is pressed.
+ * @param {string} colorDialogTitle
+ */
+ColorButton.prototype.setColorDialogTitle = function(colorDialogTitle) {
+  this.colorDialogTitle = colorDialogTitle;
+}
+
+/**
+ * Enables or disables this component.
+ * @param {boolean} enabled  
+ */
+ColorButton.prototype.setEnabled = function(enabled) {
+  this.button.disabled = !enabled;
+}
+
+/**
+ * @param {UserPreferences} preferences
+ */
+ColorButton.prototype.openColorSelectorDialog = function(preferences) {
+  var button = this;
+  var dialog = new JSColorChooserDialog(this.preferences, 
+      { 
+        color: this.color,
+        title: this.colorDialogTitle,
+        applier: function() {
+          var color = dialog.getSelectedColor();
+          if (color != null) {
+            color |= 0xFF000000;
+          }
+          button.setColor(color);
+          var recentColors = preferences.getRecentColors().slice(0);
+          var colorIndex = recentColors.indexOf(color);
+          if (colorIndex != 0) {
+            // Move color at the beginning of the list and ensure it doesn't contain more than 14 colors
+            if (colorIndex > 0) {
+              recentColors.splice(colorIndex, 1);
+            } else {
+              recentColors.length = Math.min(recentColors.length, 13);
+            }
+            recentColors.splice(0, 0, color);
+            preferences.setRecentColors(recentColors);
+          }  
+          if (button.observer !== undefined 
+              && typeof button.observer.colorChanged == "function") {
+            button.observer.colorChanged(color);
+          }
+        }
+      });
+  dialog.displayView();
+}
+
 
 /**
  * A component used to select a color.
  * @param {UserPreferences} preferences user preferences
- * @param {HTMLElement} targetNode target node on which attach this component 
  * @constructor
- * @author Louis Grignon
- * @author Emmanuel Puybaret
  * @private
  */
-function JSColorSelector(preferences, targetNode) {
+function JSColorChooser(preferences, targetNode) {
   var html = 
       '<div class="picker"></div>' +
       '<hr />' +
@@ -55,13 +161,13 @@ function JSColorSelector(preferences, targetNode) {
   this.createPickerColorTiles();
   this.initCustomColorEditor();
 }
-JSColorSelector.prototype = Object.create(JSComponent.prototype);
-JSColorSelector.prototype.constructor = JSColorSelector;
+JSColorChooser.prototype = Object.create(JSComponent.prototype);
+JSColorChooser.prototype.constructor = JSColorChooser;
 
 /**
  * @private
  */
-JSColorSelector.prototype.createPickerColorTiles = function() {
+JSColorChooser.prototype.createPickerColorTiles = function() {
   var colors = [
     // RAL colors from http://www.ralcolor.com/
     "#BEBD7F", "#C2B078", "#C6A664", "#E5BE01", "#CDA434", "#A98307", "#E4A010", "#DC9D00", "#8A6642", "#C7B446", "#EAE6CA", "#E1CC4F", "#E6D690", "#EDFF21", 
@@ -100,7 +206,7 @@ JSColorSelector.prototype.createPickerColorTiles = function() {
     });
 }
 
-JSColorSelector.prototype.initCustomColorEditor = function() {
+JSColorChooser.prototype.initCustomColorEditor = function() {
   var colorSelector = this;
   this.registerEventListener(this.customColorEditorInput, "input", function(ev) {
       var colorHex = '#' + colorSelector.customColorEditorInput.value;
@@ -115,7 +221,7 @@ JSColorSelector.prototype.initCustomColorEditor = function() {
  * Returns the color displayed by this button.
  * @return {number} the RGB code of the color of this button or <code>null</code>.
  */
-JSColorSelector.prototype.getColor = function() {
+JSColorChooser.prototype.getColor = function() {
   return this.color;
 }
 
@@ -123,7 +229,7 @@ JSColorSelector.prototype.getColor = function() {
  * Sets the color displayed by this button.
  * @param {number} color RGB code of the color or <code>null</code>.
  */
-JSColorSelector.prototype.setColor = function(color) {
+JSColorChooser.prototype.setColor = function(color) {
   this.color = color;
   var displayedColor = color != null ? color : 0xFFFFFF;
   var matchingTile = this.getHTMLElement().querySelector("[data-color='" + displayedColor + "']");
@@ -142,7 +248,7 @@ JSColorSelector.prototype.setColor = function(color) {
  * @param {HTMLElement} tileElement
  * @private
  */
-JSColorSelector.prototype.selectColorTile = function(tileElement) {
+JSColorChooser.prototype.selectColorTile = function(tileElement) {
   for (var i = 0; i < this.colorTileElements.length; i++) {
     var currentTileElement = this.colorTileElements[i];
     if (currentTileElement == tileElement) {
@@ -162,7 +268,7 @@ JSColorSelector.prototype.selectColorTile = function(tileElement) {
  * @return color as ARGB number
  * @private
  */
-JSColorSelector.prototype.getTileColor = function(tileElement) {
+JSColorChooser.prototype.getTileColor = function(tileElement) {
   return parseInt(tileElement.dataset["color"]);
 }
 
@@ -172,7 +278,7 @@ JSColorSelector.prototype.getTileColor = function(tileElement) {
  * @return {HTMLElement} tile element
  * @private
  */
-JSColorSelector.prototype.createColorTile = function(colorHex) {
+JSColorChooser.prototype.createColorTile = function(colorHex) {
   var tileElement = document.createElement("div");
   tileElement.dataset["color"] = ColorTools.hexadecimalStringToInteger(colorHex);
   tileElement.style.backgroundColor = colorHex;
@@ -191,7 +297,7 @@ JSColorSelector.prototype.createColorTile = function(colorHex) {
  * @constructor
  * @private
  */
-function JSColorSelectorDialog(preferences, options) {
+function JSColorChooserDialog(preferences, options) {
   var html = 
       '<div>' + 
       '  <div data-name="color-selector"></div>' + 
@@ -204,124 +310,25 @@ function JSColorSelectorDialog(preferences, options) {
   this.getHTMLElement().classList.add("color-selector-dialog");
   this.getHTMLElement().classList.add("small");
 
-  this.colorSelector = new JSColorSelector(preferences, this.getElement("color-selector"));
+  this.colorSelector = new JSColorChooser(preferences, this.getElement("color-selector"));
   this.colorSelector.setColor(options.color);
   var dialog = this;
   this.registerEventListener(this.colorSelector.colorTileElements, "dblclick", function(ev) { 
       dialog.validate(); 
     });
 }
-JSColorSelectorDialog.prototype = Object.create(JSDialog.prototype);
-JSColorSelectorDialog.prototype.constructor = JSColorSelectorDialog;
+JSColorChooserDialog.prototype = Object.create(JSDialog.prototype);
+JSColorChooserDialog.prototype.constructor = JSColorChooserDialog;
 
 /**
  * Returns the currently selected color.
  * @return currently selected color
  */
-JSColorSelectorDialog.prototype.getSelectedColor = function() {
+JSColorChooserDialog.prototype.getSelectedColor = function() {
   return this.colorSelector.getColor();
-};
+}
 
-JSColorSelectorDialog.prototype.dispose = function() {
+JSColorChooserDialog.prototype.dispose = function() {
   this.colorSelector.dispose();
   JSDialog.prototype.dispose.call(this);
-}
-
-/**
- * A component to select a color through a dialog, after clicking a button.
- * @param {UserPreferences} preferences
- * @param {HTMLElement} [targetNode]
- * @param {{ colorChanged: function(number) }} [options]
- * > colorChanged: called with selected color, as ARGB int, when a color is selected
- * @constructor
- */
-function JSColorSelectorButton(preferences, targetNode, options) {
-  this.options = options || {};
-
-  JSComponent.call(this, preferences, document.createElement("span"), true);
-  if (targetNode != null) {
-    targetNode.appendChild(this.getHTMLElement());
-  }
-
-  this.getHTMLElement().innerHTML = '<button class="color-button"><div class="color-preview" /></button>';
-  this.button = this.getHTMLElement().querySelector(".color-button");
-  
-  var component = this;
-  this.registerEventListener(this.button, "click", function(ev) { 
-      component.openColorSelectorDialog(preferences);
-    });
-  
-  this.colorOverview = this.getHTMLElement().querySelector(".color-preview");
-}
-JSColorSelectorButton.prototype = Object.create(JSComponent.prototype);
-JSColorSelectorButton.prototype.constructor = JSColorSelectorButton;
-
-/**
- * Returns the color displayed by this button.
- * @return {number} the RGB code of the color of this button or <code>null</code>.
- */
-JSColorSelectorButton.prototype.getColor = function() {
-  return this.color;
-}
-
-/**
- * Sets the color displayed by this button.
- * @param {number} color RGB code of the color or <code>null</code>.
- */
-JSColorSelectorButton.prototype.setColor = function(color) {
-  this.color = color;
-  this.colorOverview.style.backgroundColor = 
-      color != null ? ColorTools.integerToHexadecimalString(color) : "transparent";
-}
-
-/**
- * Returns the title of color dialog displayed when this button is pressed.
- */
-JSColorSelectorButton.prototype.getColorDialogTitle = function() {
-  return this.colorDialogTitle;
-}
-
-/**
- * Sets the title of color dialog displayed when this button is pressed.
- * @param {string} colorDialogTitle
- */
-JSColorSelectorButton.prototype.setColorDialogTitle = function(colorDialogTitle) {
-  this.colorDialogTitle = colorDialogTitle;
-}
-
-/**
- * Enables or disables this component.
- * @param {boolean} enabled  
- */
-JSColorSelectorButton.prototype.setEnabled = function(enabled) {
-  this.button.disabled = !enabled;
-}
-
-JSColorSelectorButton.prototype.openColorSelectorDialog = function(preferences) {
-  var button = this;
-  var dialog = new JSColorSelectorDialog(this.preferences, 
-      { 
-        color: this.color,
-        title: this.colorDialogTitle,
-        applier: function() {
-          var color = dialog.getSelectedColor();
-          button.setColor(color);
-          var recentColors = preferences.getRecentColors().slice(0);
-          var colorIndex = recentColors.indexOf(color);
-          if (colorIndex != 0) {
-            // Move color at the beginning of the list and ensure it doesn't contain more than 14 colors
-            if (colorIndex > 0) {
-              recentColors.splice(colorIndex, 1);
-            } else {
-              recentColors.length = Math.min(recentColors.length, 13);
-            }
-            recentColors.splice(0, 0, color);
-            preferences.setRecentColors(recentColors);
-          }  
-          if (typeof button.options.colorChanged == "function") {
-            button.options.colorChanged(dialog.getSelectedColor());
-          }
-        }
-      });
-  dialog.displayView();
 }

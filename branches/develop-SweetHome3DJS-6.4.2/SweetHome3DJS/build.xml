@@ -239,7 +239,7 @@
         <file name="FurnitureCatalogListPanel.js"/>
       	<file name="FurnitureTablePanel.js"/>
         <file name="toolkit.js"/>
-        <file name="colorSelection.js"/>
+        <file name="ColorButton.js"/>
         <file name="textureSelection.js"/>
         <file name="modelMaterialsSelection.js"/>
         <file name="JSViewFactory.js"/>
