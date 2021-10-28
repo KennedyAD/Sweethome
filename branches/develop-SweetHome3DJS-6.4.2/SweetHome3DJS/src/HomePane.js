@@ -28,6 +28,7 @@
  * @constructor
  * @author Emmanuel Puybaret
  * @author Renaud Pawlak
+ * @author Louis Grignon 
  */
 function HomePane(containerId, home, preferences, controller) {
   if (containerId != null) {
@@ -2328,7 +2329,6 @@ HomePane.prototype.showDeletedCamerasDialog = function() {
   var homePane = this;
   var storedCameras = this.home.getStoredCameras();
 
-  // 1. Confirm dialog
   function JSConfirmDeleteCamerasDialog() {
     JSDialog.call(this, homePane.preferences,
         "@{HomePane.showDeletedCamerasDialog.title}",
@@ -2338,25 +2338,25 @@ HomePane.prototype.showDeletedCamerasDialog = function() {
             homePane.controller.getHomeController3D().deleteCameras(dialog.selectedCameras);
           },
         });
+    
+    var confirmDialog = this;
+    var cancelButton = this.findElement(".dialog-cancel-button");
+    this.registerEventListener(cancelButton, "click", function(ev) {
+        confirmDialog.cancel();
+      });
+    var okButtons = this.findElements(".dialog-ok-button");
+    this.registerEventListener(okButtons, "click", function(ev) {
+        confirmDialog.validate();
+      });
   }
   JSConfirmDeleteCamerasDialog.prototype = Object.create(JSDialog.prototype);
   JSConfirmDeleteCamerasDialog.prototype.constructor = JSConfirmDeleteCamerasDialog;
 
   JSConfirmDeleteCamerasDialog.prototype.appendButtons = function(buttonsPanel) {
-      buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
-          "<button class='dialog-cancel-button'>@{HomePane.confirmDeleteCameras.cancel}</button>" +
-          "<button class='dialog-ok-button'>@{HomePane.confirmDeleteCameras.delete}</button>");
-  
-      var confirmDialog = this;
-      var cancelButton = this.findElement(".dialog-cancel-button");
-      this.registerEventListener(cancelButton, "click", function(ev) {
-          confirmDialog.cancel();
-        });
-      var okButtons = this.findElements(".dialog-ok-button");
-      this.registerEventListener(okButtons, "click", function(ev) {
-          confirmDialog.validate();
-        });
-    };
+    buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
+        "<button class='dialog-cancel-button'>@{HomePane.confirmDeleteCameras.cancel}</button>" +
+        "<button class='dialog-ok-button'>@{HomePane.confirmDeleteCameras.delete}</button>");
+  }
 
   var html = "<div>@{HomePane.showDeletedCamerasDialog.message}</div><br />";
   for (var i = 0; i < storedCameras.length; i++) {

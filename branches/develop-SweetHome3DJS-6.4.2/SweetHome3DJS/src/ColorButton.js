@@ -98,7 +98,7 @@ ColorButton.prototype.setEnabled = function(enabled) {
  */
 ColorButton.prototype.openColorDialog = function(preferences) {
   var button = this;
-  var dialog = new JSColorChooserDialog(this.preferences, this.colorDialogTitle, this.color,  
+  var dialog = new JSColorChooserDialog(this.getUserPreferences(), this.colorDialogTitle, this.color,  
       { 
         applier: function() {
           var color = dialog.getSelectedColor();
@@ -192,7 +192,7 @@ JSColorChooser.prototype.createPickerColorTiles = function() {
     var tileElement = this.createColorTile(colorHex);
     this.pickerElement.appendChild(tileElement);
   }
-  var recentColors = this.preferences.getRecentColors();
+  var recentColors = this.getUserPreferences().getRecentColors();
   for (var i = 0; i < recentColors.length; i++) {
     var colorHex = ColorTools.integerToHexadecimalString(recentColors[i]);
     var tileElement = this.createColorTile(colorHex);

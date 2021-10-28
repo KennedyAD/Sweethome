@@ -86,7 +86,7 @@ TextureChoiceComponent.prototype.setEnabled = function(enabled) {
  * @private
  */
 TextureChoiceComponent.prototype.openTextureDialog = function() {
-  var dialog = new JSTextureDialog(this.preferences, this.controller);
+  var dialog = new JSTextureDialog(this.getUserPreferences(), this.controller);
   if (this.controller.getTexture() != null) {
     dialog.setSelectedTexture(this.controller.getTexture());
   }
@@ -306,7 +306,7 @@ JSTextureDialog.prototype.setSelectedTexture = function(texture) {
   
     // Resolve texture from URL
     var textureUrl = texture.getImage().getURL();
-    var textureCategories = this.preferences.getTexturesCatalog().getCategories();
+    var textureCategories = this.getUserPreferences().getTexturesCatalog().getCategories();
     var catalogTexture = null;
     for (var i = 0; i < textureCategories.length && catalogTexture === null; i++) {
       var categoryTextures = textureCategories[i].getTextures();
@@ -435,7 +435,7 @@ JSTextureDialog.prototype.initCatalogTextureSearch = function(preferences) {
 JSTextureDialog.prototype.initRecentTextures = function() {
   var dialog = this;
   this.recentTexturesPanel.innerHTML = "";
-  var recentTextures = this.preferences.getRecentTextures();
+  var recentTextures = this.getUserPreferences().getRecentTextures();
   for (var i = 0; i < recentTextures.length; i++) {
     var recentTexture = recentTextures[i];
     var recentTextureElement = document.createElement("div");
