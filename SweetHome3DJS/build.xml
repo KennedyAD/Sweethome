@@ -232,6 +232,7 @@
         <file name="LengthUnit.js"/>
         <file name="UserPreferences.js"/>
         <file name="HomeRecorder.js"/>
+      	<file name="ResourceAction.js"/>
         <file name="PlanComponent.js"/>
         <file name="HomePane.js"/>
         <file name="DefaultFurnitureCatalog.js"/>
