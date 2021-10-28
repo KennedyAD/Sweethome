@@ -170,7 +170,7 @@ JSComponent.prototype.unregisterEventListeners = function() {
 /**
  * Returns the named element that corresponds to the given name within this component.
  * A named element shall define the "name" attribute (for instance an input), or
- * a "data-name" attribute if the name attribue is not supported.
+ * a "data-name" attribute if the name attribute is not supported.
  */
 JSComponent.prototype.getElement = function(name) {
   var element = this.container.querySelector("[name='" + name + "']");
@@ -2083,7 +2083,7 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
         child.classList.add("selected");
       }
   
-      if (ev.shiftKey) {
+      if (OperatingSystem.isMacOSX() ? ev.metaKey : ev.ctrlKey) {
         treeTable.selectedRowsValues.push(rowValue);
       } else {
         treeTable.selectedRowsValues = [rowValue];
