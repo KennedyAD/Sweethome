@@ -39,14 +39,14 @@ function ColorButton(preferences, observer) {
   }
   
   this.getHTMLElement().innerHTML = '<button class="color-button"><div class="color-preview" /></button>';
-  this.button = this.getHTMLElement().querySelector(".color-button");
+  this.button = this.findElement(".color-button");
   
   var component = this;
   this.registerEventListener(this.button, "click", function(ev) { 
       component.openColorSelectorDialog(preferences);
     });
   
-  this.colorOverview = this.getHTMLElement().querySelector(".color-preview");
+  this.colorOverview = this.findElement(".color-preview");
 }
 ColorButton.prototype = Object.create(JSComponent.prototype);
 ColorButton.prototype.constructor = ColorButton;
@@ -151,10 +151,10 @@ function JSColorChooser(preferences, targetNode) {
   }
 
   this.getHTMLElement().classList.add("color-selector");
-  this.pickerElement = this.getHTMLElement().querySelector(".picker");
-  this.recentColorsContainerElement = this.getHTMLElement().querySelector(".recent-colors");
-  this.customColorEditorInput = this.getHTMLElement().querySelector(".custom-color-editor input");
-  var colorPreviews = this.getHTMLElement().querySelectorAll(".custom-color-editor .preview");
+  this.pickerElement = this.findElement(".picker");
+  this.recentColorsContainerElement = this.findElement(".recent-colors");
+  this.customColorEditorInput = this.findElement(".custom-color-editor input");
+  var colorPreviews = this.findElements(".custom-color-editor .preview");
   this.customColorEditorPreview = colorPreviews[0];
   this.currentColorEditorPreview = colorPreviews[1];
 
@@ -232,7 +232,7 @@ JSColorChooser.prototype.getColor = function() {
 JSColorChooser.prototype.setColor = function(color) {
   this.color = color;
   var displayedColor = color != null ? color : 0xFFFFFF;
-  var matchingTile = this.getHTMLElement().querySelector("[data-color='" + displayedColor + "']");
+  var matchingTile = this.findElement("[data-color='" + displayedColor + "']");
   if (matchingTile != null) {
     this.selectColorTile(matchingTile);
   } else {
