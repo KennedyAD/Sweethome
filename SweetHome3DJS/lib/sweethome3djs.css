@@ -1674,7 +1674,7 @@ label {
   min-height: 2em;
 }
 
-.recent-textures .texture-preview {
+.recent-textures .item {
   border: solid 1px black;
   width: 1.6em;
   height: 1.6em;
