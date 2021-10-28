@@ -19,6 +19,7 @@
  */
 
 // Requires UserPreferences.js
+// Requires ResourceAction.js
 
 /**
  * The root class for additional UI components.
