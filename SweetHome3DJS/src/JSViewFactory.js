@@ -4537,7 +4537,7 @@ JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, contro
 }
 
 JSViewFactory.prototype.createModelMaterialsView = function(preferences, controller) {
-  return new JSModelMaterialsSelectorButton(preferences, controller, null);
+  return new ModelMaterialsComponent(preferences, controller);
 }
 
 JSViewFactory.prototype.createPageSetupView = function(preferences, pageSetupController) {

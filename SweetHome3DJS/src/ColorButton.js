@@ -43,7 +43,7 @@ function ColorButton(preferences, observer) {
   
   var component = this;
   this.registerEventListener(this.button, "click", function(ev) { 
-      component.openColorSelectorDialog(preferences);
+      component.openColorDialog(preferences);
     });
   
   this.colorOverview = this.findElement(".color-preview");
@@ -94,8 +94,9 @@ ColorButton.prototype.setEnabled = function(enabled) {
 
 /**
  * @param {UserPreferences} preferences
+ * @private
  */
-ColorButton.prototype.openColorSelectorDialog = function(preferences) {
+ColorButton.prototype.openColorDialog = function(preferences) {
   var button = this;
   var dialog = new JSColorChooserDialog(this.preferences, this.colorDialogTitle, this.color,  
       { 
