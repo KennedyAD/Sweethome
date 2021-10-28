@@ -47,6 +47,22 @@ function JSComponent(preferences, template, useElementAsRootHTMLElement) {
 }
 
 /**
+ * Returns the HTML element used to view this component.
+ * @return {HTMLElement}
+ */
+JSComponent.prototype.getHTMLElement = function() {
+  return this.container;
+}
+
+/**
+ * Returns the user preferences used to localize this component.
+ * @return {UserPreferences}
+ */
+JSComponent.prototype.getUserPreferences = function() {
+  return this.preferences;
+}
+
+/**
  * Returns true if element is or is child of candidateParent, false otherwise.
  * @param {HTMLElement} element
  * @param {HTMLElement} candidateParent
@@ -79,13 +95,6 @@ JSComponent.substituteWithLocale = function(preferences, html) {
 
 JSComponent.prototype.buildHtmlFromTemplate = function(templateHtml) {
   return JSComponent.substituteWithLocale(this.preferences, templateHtml);
-}
-
-/**
- * Returns the HTML element used to view this component.
- */
-JSComponent.prototype.getHTMLElement = function() {
-  return this.container;
 }
 
 /**
@@ -285,6 +294,7 @@ JSDialog.prototype.constructor = JSDialog;
 
 /**
  * Appends dialog buttons to given panel.
+ * Caution : this method is called from constructor.
  * @param {HTMLElement} buttonsPanel Dialog buttons panel
  * @protected
  */
@@ -296,10 +306,9 @@ JSDialog.prototype.appendButtons = function(buttonsPanel) {
   } else {
     html = "<button class='dialog-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
   }
-  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences, html);
+  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.getUserPreferences(), html);
 
   var dialog = this;
-
   var cancelButton = this.findElement(".dialog-cancel-button");
   if (cancelButton) {
     this.registerEventListener(cancelButton, "click", function(ev) {
@@ -312,7 +321,7 @@ JSDialog.prototype.appendButtons = function(buttonsPanel) {
         dialog.validate();
       });
   }
-};
+}
 
 /**
  * Closes currently displayed topmost dialog if any.
@@ -345,7 +354,7 @@ JSDialog.getTopMostDialog = function() {
 }
 
 JSDialog.prototype.buildHtmlFromTemplate = function(templateHtml) {
-  return JSComponent.substituteWithLocale(this.preferences,
+  return JSComponent.substituteWithLocale(this.getUserPreferences(),
       '<div class="dialog-content">' +
       '  <div class="dialog-top">' +
       '    <span class="title"></span>' +
@@ -424,7 +433,7 @@ JSDialog.prototype.dispose = function() {
  */
 JSDialog.prototype.setTitle = function(title) {
   var titleElement = this.findElement(".dialog-top .title");
-  titleElement.textContent = JSComponent.substituteWithLocale(this.preferences, title || "");
+  titleElement.textContent = JSComponent.substituteWithLocale(this.getUserPreferences(), title || "");
 }
 
 /**
@@ -470,56 +479,22 @@ JSDialog.shownDialogsCounter = 0;
  * @author Louis Grignon
  */
 function JSWizardDialog(controller, preferences, title, behavior) {
-  this.controller = controller;
-
   JSDialog.call(this, preferences, title,
-    '<div class="wizard">' +
-    '  <div stepIcon></div>' +
-    '  <div stepView></div>' +
-    '</div>',
-    behavior);
+      '<div class="wizard">' +
+      '  <div stepIcon></div>' +
+      '  <div stepView></div>' +
+      '</div>',
+      behavior);
 
+  this.controller = controller;
   this.stepIconPanel = this.findElement("[stepIcon]");
   this.stepViewPanel = this.findElement("[stepView]");
 
   var dialog = this;
-  this.updateStepView();
-  this.registerPropertyChangeListener(controller, "STEP_VIEW", function(ev) {
-      dialog.updateStepView();
-    });
-
-  this.updateStepIcon();
-  this.registerPropertyChangeListener(controller, "STEP_ICON", function(ev) {
-      dialog.updateStepIcon();
-    });
-  
-  this.registerPropertyChangeListener(controller, "TITLE", function(ev) {
-      dialog.setTitle(controller.getTitle());
-    });
-}
-JSWizardDialog.prototype = Object.create(JSDialog.prototype);
-JSWizardDialog.prototype.constructor = JSWizardDialog;
-
-/**
- * Append dialog buttons to given panel
- * @param {HTMLElement} buttonsPanel Dialog buttons panel
- * @protected
- */
-JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
-  var cancelButton = "<button class='wizard-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
-  var backButton = "<button class='wizard-back-button'>@{WizardPane.backOptionButton.text}</button>";
-  var nextButton = "<button class='wizard-next-button'></button>";
-  var buttons = "<div class='dialog-buttons'>" 
-      + (OperatingSystem.isMacOSX() ? nextButton + backButton : backButton + nextButton) 
-      + cancelButton + "</div>";
-  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences, buttons);
-
   this.cancelButton = this.findElement(".wizard-cancel-button");
   this.backButton = this.findElement(".wizard-back-button");
   this.nextButton = this.findElement(".wizard-next-button");
 
-  var dialog = this;
-  var controller = this.controller;
   this.registerEventListener(this.cancelButton, "click", function(ev) {
       dialog.cancel();
     });
@@ -552,7 +527,38 @@ JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
         controller.goToNextStep();
       }
     });
-};
+
+  this.updateStepView();
+  this.registerPropertyChangeListener(controller, "STEP_VIEW", function(ev) {
+      dialog.updateStepView();
+    });
+
+  this.updateStepIcon();
+  this.registerPropertyChangeListener(controller, "STEP_ICON", function(ev) {
+      dialog.updateStepIcon();
+    });
+  
+  this.registerPropertyChangeListener(controller, "TITLE", function(ev) {
+      dialog.setTitle(controller.getTitle());
+    });
+}
+JSWizardDialog.prototype = Object.create(JSDialog.prototype);
+JSWizardDialog.prototype.constructor = JSWizardDialog;
+
+/**
+ * Append dialog buttons to given panel
+ * @param {HTMLElement} buttonsPanel Dialog buttons panel
+ * @protected
+ */
+JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
+  var cancelButton = "<button class='wizard-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
+  var backButton = "<button class='wizard-back-button'>@{WizardPane.backOptionButton.text}</button>";
+  var nextButton = "<button class='wizard-next-button'></button>";
+  var buttons = "<div class='dialog-buttons'>" 
+      + (OperatingSystem.isMacOSX() ? nextButton + backButton : backButton + nextButton) 
+      + cancelButton + "</div>";
+  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.getUserPreferences(), buttons);
+}
 
 /**
  * Change text of the next button depending on if state is last step or not
@@ -620,6 +626,68 @@ JSWizardDialog.prototype.updateStepIcon = function() {
 
 
 /**
+ * A dialog prompting user to choose whether an image should be resized or not.
+ * @param {UserPreferences} preferences
+ * @param {string} title title of the dialog
+ * @param {string} message message to be displayed
+ * @param {string} cancelButtonMessage
+ * @param {string} keepUnchangedButtonMessage
+ * @param {string} okButtonMessage
+ * @param {function()} imageResizeRequested called when user selected "resize image" option
+ * @param {function()} originalImageRequested called when user selected "keep image unchanged" option
+ * @constructor
+ * @ignore
+ */
+function JSPromptImageResizeDialog(preferences,
+                title, message, cancelButtonMessage, keepUnchangedButtonMessage, okButtonMessage, 
+                imageResizeRequested, originalImageRequested) {
+  this.cancelButtonMessage = JSComponent.substituteWithLocale(preferences, cancelButtonMessage);
+  this.keepUnchangedButtonMessage = JSComponent.substituteWithLocale(preferences, keepUnchangedButtonMessage);
+  this.okButtonMessage = JSComponent.substituteWithLocale(preferences, okButtonMessage);
+  
+  JSDialog.call(this, preferences,
+      JSComponent.substituteWithLocale(preferences, title),
+      "<div>" +
+      JSComponent.substituteWithLocale(preferences, message) +
+      "</div>",
+      {
+        applier: function(dialog) {
+          if (dialog.resizeRequested) {
+            imageResizeRequested();
+          } else {
+            originalImageRequested();
+          }
+        }
+      });
+  
+  var dialog = this;
+  var cancelButton = this.findElement(".dialog-cancel-button");
+  this.registerEventListener(cancelButton, "click", function(ev) {
+      dialog.cancel();
+    });
+  var okButtons = this.findElements(".dialog-ok-button");
+  this.registerEventListener(okButtons, "click", function(ev) {
+      dialog.resizeRequested = !ev.target.classList.contains("keep-image-unchanged-button");
+      dialog.validate();
+    });
+}
+JSPromptImageResizeDialog.prototype = Object.create(JSDialog.prototype);
+JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
+
+/**
+ * Appends dialog buttons to given panel.
+ * @param {HTMLElement} buttonsPanel Dialog buttons panel
+ * @protected
+ */
+JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
+  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.getUserPreferences(),
+      "<button class='dialog-ok-button'>" + this.okButtonMessage + "</button>"
+      + "<button class='keep-image-unchanged-button dialog-ok-button'>" + this.keepUnchangedButtonMessage + "</button>"
+      + "<button class='dialog-cancel-button'>" + this.cancelButtonMessage + "</button>");
+}
+
+
+/**
  * Class handling context menus.
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement|HTMLElement[]} sourceElements context menu will show when right click on this element. 
@@ -629,19 +697,19 @@ JSWizardDialog.prototype.updateStepIcon = function() {
  * @constructor
  * @author Louis Grignon
  * @author Renaud Pawlak
+ * @ignore
  */
 function JSPopupMenu(preferences, sourceElements, build) {
   if (sourceElements == null || sourceElements.length === 0) {
     throw new Error("Cannot register a context menu on an empty list of elements");
   }
+  JSComponent.call(this, preferences, "");
+
   this.sourceElements = sourceElements;
   if (!Array.isArray(sourceElements)) {
     this.sourceElements = [sourceElements];
   }
-
   this.build = build;
-
-  JSComponent.call(this, preferences, "");
   this.getHTMLElement().classList.add("popup-menu");
 
   document.body.appendChild(this.getHTMLElement());
@@ -714,7 +782,7 @@ JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   this.getHTMLElement().style.top = anchorY + "px";
 
   JSPopupMenu.current = this;
-};
+}
 
 /**
  * @param {{}[]} items same type as JSPopupMenu.Builder.items
@@ -759,7 +827,7 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
   }
 
   return menuElement;
-};
+}
 
 /**
  * Initializes a menu item element for the given item descriptor (model).
@@ -790,7 +858,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
   }
 
   var itemLabelElement = document.createElement("span");
-  itemLabelElement.textContent = JSComponent.substituteWithLocale(this.preferences, item.label);
+  itemLabelElement.textContent = JSComponent.substituteWithLocale(this.getUserPreferences(), item.label);
 
   itemElement.classList.add("item");
   itemElement.dataset["uid"] = item.uid;
@@ -837,7 +905,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
       itemElement.removeEventListener("click", listener);
     });
   }
-};
+}
 
 /**
  * Closes the context menu.
@@ -854,10 +922,11 @@ JSPopupMenu.prototype.close = function() {
 
   this.listenerUnregisterCallbacks = null;
   this.getHTMLElement().innerHTML = "";
-};
+}
 
 /**
  * Builds items of a context menu which is about to be shown.
+ * @ignore
  */
 JSPopupMenu.Builder = function() {
   /** @type {{ uid?: string, label?: string, iconPath?: string, onItemSelected?: function(), subItems?: {}[] }[] } } */
@@ -874,7 +943,7 @@ JSPopupMenu.Builder.prototype.constructor = JSPopupMenu.Builder;
  */
 JSPopupMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
   this.addNewItem(label, undefined, onItemSelected, checked === true, "checkbox");
-};
+}
 
 /**
  * Add a radio button item
@@ -884,7 +953,7 @@ JSPopupMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, che
  */
 JSPopupMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, checked) {
   this.addNewItem(label, undefined, onItemSelected, checked === true, "radio");
-};
+}
 
 /**
  * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback.
@@ -957,7 +1026,7 @@ JSPopupMenu.Builder.prototype.addNewItem = function(label, iconPath, onItemSelec
       selected: selected,
       mode: mode
     });
-};
+}
 
 /**
  * Adds a sub menu to this menu.
@@ -1005,27 +1074,29 @@ JSPopupMenu.Builder.prototype.addSeparator = function() {
   return this;
 }
 
+
 // Global initializations of the toolkit
 if (!JSPopupMenu.globalCloserRegistered) {
   document.addEventListener("click", function(ev) {
-    if (JSPopupMenu.current != null
-      && !JSComponent.isElementContained(ev.target, JSPopupMenu.current.getHTMLElement())) {
-      // Clicked outside menu
-      if (JSPopupMenu.closeCurrentIfAny()) {
-        ev.stopPropagation();
-        ev.preventDefault();
+      if (JSPopupMenu.current != null
+        && !JSComponent.isElementContained(ev.target, JSPopupMenu.current.getHTMLElement())) {
+        // Clicked outside menu
+        if (JSPopupMenu.closeCurrentIfAny()) {
+          ev.stopPropagation();
+          ev.preventDefault();
+        }
       }
-    }
-  });
+    });
+  
+  document.addEventListener("keyup", function(ev) {
+      if (ev.key == "Escape" || ev.keyCode == 27) {
+        JSDialog.closeTopMostDialogIfAny();
+        JSPopupMenu.closeCurrentIfAny();
+      }
+    });
+
   JSPopupMenu.globalCloserRegistered = true;
 }
-
-document.addEventListener("keyup", function(ev) {
-  if (ev.key == "Escape" || ev.keyCode == 27) {
-    JSDialog.closeTopMostDialogIfAny();
-    JSPopupMenu.closeCurrentIfAny();
-  }
-});
 
 
 /**
@@ -1042,6 +1113,7 @@ document.addEventListener("keyup", function(ev) {
  * @constructor
  * @extends JSComponent
  * @author Louis Grignon
+ * @author Emmanuel Puybaret
  */
 function JSSpinner(preferences, spanElement, options) {
   if (spanElement.tagName.toUpperCase() != "SPAN") {
@@ -1485,6 +1557,8 @@ JSSpinner.prototype.setEnabled = function(enabled) {
  * @author Louis Grignon
  */
 function JSComboBox(preferences, selectElement, options) {
+  JSComponent.call(this, preferences, selectElement, true);
+  
   if (!options) { 
     options = {}; 
   }
@@ -1502,9 +1576,6 @@ function JSComboBox(preferences, selectElement, options) {
   if (options.value == null && !options.nullable) {
     options.value = options.availableValues[0];
   }
-
-  var component = this;
-  JSComponent.call(this, preferences, selectElement, true);
 
   this.options = options;
 
@@ -1678,7 +1749,6 @@ JSComboBox.prototype.areValuesEqual = function(value1, value2) {
  * @extends JSComponent
  * @author Louis Grignon
  */
-// TODO LOUIS contextual menu
 function JSTreeTable(container, preferences, model, data) {
   JSComponent.call(this, preferences, container, true);
   
@@ -2013,7 +2083,7 @@ JSTreeTable.prototype.generateTableRows = function() {
   this.tableElement.appendChild(body);
 
   body.scrollTop = scrollTop;
-};
+}
 
 /**
  * @param {string[]} columnNames

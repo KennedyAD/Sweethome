@@ -40,70 +40,12 @@ JSViewFactory.prototype.constructor = JSViewFactory;
 JSViewFactory["__class"] = "JSViewFactory";
 JSViewFactory["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.ViewFactory"];
 
+
 JSViewFactory.dummyDialogView = {
-  displayView: function(parent) { }
-};
-
-/**
- * @param {Controller} controller
- * @param {UserPreferences} preferences
- * @param {string} title title of the dialog
- * @param {string} message message to be displayed
- * @param {string} cancelButtonMessage
- * @param {string} keepUnchangedButtonMessage
- * @param {string} okButtonMessage
- * @param {function()} imageResizeRequested called when user selected "resize image" option
- * @param {function()} originalImageRequested called when user selected "keep image unchanged" option
- */
-function JSPromptImageResizeDialog(controller, preferences,
-                title, message, cancelButtonMessage, keepUnchangedButtonMessage, okButtonMessage, 
-                imageResizeRequested, originalImageRequested) {
-  this.controller = controller;
-  this.preferences = preferences;
-  this.cancelButtonMessage = JSComponent.substituteWithLocale(this.preferences, cancelButtonMessage);
-  this.keepUnchangedButtonMessage = JSComponent.substituteWithLocale(this.preferences, keepUnchangedButtonMessage);
-  this.okButtonMessage = JSComponent.substituteWithLocale(this.preferences, okButtonMessage);
-
-  JSDialog.call(this, preferences,
-      JSComponent.substituteWithLocale(this.preferences, title),
-      "<div>" +
-      JSComponent.substituteWithLocale(this.preferences, message) +
-      "</div>",
-      {
-        applier: function(dialog) {
-          if (dialog.resizeRequested) {
-            imageResizeRequested();
-          } else {
-            originalImageRequested();
-          }
-        }
-      });
+  displayView: function(parent) { 
+    // Do nothing
+  }
 }
-JSPromptImageResizeDialog.prototype = Object.create(JSDialog.prototype);
-JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
-
-/**
- * Append dialog buttons to given panel
- * @param {HTMLElement} buttonsPanel Dialog buttons panel
- * @protected
- */
-JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
-  buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.preferences,
-      "<button class='dialog-ok-button'>" + this.okButtonMessage + "</button>"
-      + "<button class='keep-image-unchanged-button dialog-ok-button'>" + this.keepUnchangedButtonMessage + "</button>"
-      + "<button class='dialog-cancel-button'>" + this.cancelButtonMessage + "</button>");
-
-  var dialog = this;
-  var cancelButton = this.findElement(".dialog-cancel-button");
-  this.registerEventListener(cancelButton, "click", function(ev) {
-      dialog.cancel();
-    });
-  var okButtons = this.findElements(".dialog-ok-button");
-  this.registerEventListener(okButtons, "click", function(ev) {
-      dialog.resizeRequested = !ev.target.classList.contains("keep-image-unchanged-button");
-      dialog.validate();
-    });
-};
 
 JSViewFactory.prototype.createFurnitureCatalogView = function(catalog, preferences, furnitureCatalogController) {
   return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
@@ -692,7 +634,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var factor = Math.sqrt(LARGE_IMAGE_MAX_PIXEL_COUNT / (image.width * image.height));
     var reducedWidth = Math.round(image.width * factor);
     var reducedHeight = Math.round(image.height * factor);
-    var promptDialog = new JSPromptImageResizeDialog(controller, preferences,
+    var promptDialog = new JSPromptImageResizeDialog(preferences,
         "@{BackgroundImageWizardStepsPanel.reduceImageSize.title}",
         stepsView.getLocalizedLabelText(
             "BackgroundImageWizardStepsPanel", "reduceImageSize.message", [image.width, image.height, reducedWidth, reducedHeight]),
@@ -1093,7 +1035,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
 
     var reducedWidth = Math.round(image.width * factor);
     var reducedHeight = Math.round(image.height * factor);
-    var promptDialog = new JSPromptImageResizeDialog(controller, preferences,
+    var promptDialog = new JSPromptImageResizeDialog(preferences,
         "@{ImportedTextureWizardStepsPanel.reduceImageSize.title}",
         this.getLocalizedLabelText(
             "ImportedTextureWizardStepsPanel", "reduceImageSize.message", [image.width, image.height, reducedWidth, reducedHeight]),

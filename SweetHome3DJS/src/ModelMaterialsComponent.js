@@ -59,12 +59,8 @@ ModelMaterialsComponent.prototype.setEnabled = function(enabled) {
  * @private
  */
 ModelMaterialsComponent.prototype.openModelMaterialsSelectorDialog = function() {
-  if (this.currentDialog != null && this.currentDialog.isDisplayed()) {
-    return;
-  }
-
-  this.currentDialog = new JSModelMaterialsSelectorDialog(this.preferences, this.controller);
-  this.currentDialog.displayView();
+  var dialog = new JSModelMaterialsSelectorDialog(this.getUserPreferences(), this.controller);
+  dialog.displayView();
 }
 
 ModelMaterialsComponent.prototype.dispose = function() {
@@ -616,7 +612,6 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
 JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
   var dialog = this;
   var controller = this.controller;
-  var preferences = this.preferences;
 
   this.defaultColorAndTextureRadioButton = this.findElement("[name='color-and-texture-checkbox'][value='DEFAULT']");
   this.invisibleRadioButton = this.findElement("[name='color-and-texture-checkbox'][value='INVISIBLE']");
@@ -666,7 +661,7 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
           });
       }
     };
-  this.colorButton = new ColorButton(preferences, 
+  this.colorButton = new ColorButton(this.getUserPreferences(), 
       {
         colorChanged: function(selectedColor) {
           if (selectedColor != null) {
@@ -675,7 +670,7 @@ JSModelMaterialsSelectorDialog.prototype.initColorAndTexturePanel = function() {
           }
         }
       });
-  this.colorButton.setColorDialogTitle(preferences.getLocalizedString(
+  this.colorButton.setColorDialogTitle(this.getUserPreferences().getLocalizedString(
       "ModelMaterialsComponent", "colorDialog.title"));
   this.registerEventListener(this.colorRadioButton, "click", function(ev) {
       if (dialog.colorRadioButton.checked) {
