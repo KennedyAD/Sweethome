@@ -413,20 +413,30 @@ JSTextureDialog.prototype.getCatalogTextureFromItem = function(item) {
  */
 JSTextureDialog.prototype.initCatalogTextureSearch = function(preferences) {
   var dialog = this;
-  dialog.searchInput = this.findElement(".texture-search input");
-  dialog.searchInput.placeholder = preferences.getLocalizedString("TextureChoiceComponent", "searchLabel.text").replace(":", "");
-  dialog.registerEventListener(dialog.searchInput, "keyup", CoreTools.debounce(function() {
-      var searchTerm = dialog.searchInput.value.trim().toLowerCase();
+  this.searchInput = this.findElement(".texture-search input");
+  this.searchInput.placeholder = ResourceAction.getLocalizedLabelText(preferences, "TextureChoiceComponent", "searchLabel.text").replace(":", "");
+  this.registerEventListener(dialog.searchInput, "input", function() {
+      var valueToSearch = CoreTools.removeAccents(dialog.searchInput.value.trim());
       for (var i = 0; i < dialog.texturesCatalogItems.length; i++) {
         var item = dialog.texturesCatalogItems[i];
-        var isVisible = searchTerm.length <= 0 || item.textContent.toLowerCase().indexOf(searchTerm) > -1;
-        if (isVisible) {
+        var textureDescriptor = item._catalogTexture.getName() + "|" + item._catalogTexture.getCategory().getName();
+        if (item._catalogTexture.getCreator() !== null) {
+          textureDescriptor += "|" + item._catalogTexture.getCreator();
+        }
+        if (RegExp(valueToSearch, "i").test(CoreTools.removeAccents(textureDescriptor))) {
           item.classList.remove("hidden");
         } else {
           item.classList.add("hidden");
         }
       }
-    }, 200));
+    });
+  this.searchInput.addEventListener("focusin", function(ev) {
+      setTimeout(function() { 
+          if (dialog.searchInput.value != "") {
+            dialog.searchInput.select(); 
+          }
+        }, 100);
+    });
 }
 
 /**

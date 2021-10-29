@@ -60,10 +60,10 @@ function HomePane(containerId, home, preferences, controller) {
   // Keyboard accelerators management
   var homePane = this;
   document.addEventListener("keydown", function(ev) {
-    if (JSDialog.getTopMostDialog()) {
-      // ignore keystrokes when dialog is displayed
-      return;
-    }
+      if (JSDialog.getTopMostDialog() !== null) {
+        // ignore keystrokes when dialog is displayed
+        return;
+      }
 
       var keyStroke = KeyStroke.getKeyStrokeForEvent(ev);
       if (keyStroke !== undefined) {

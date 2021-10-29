@@ -85,16 +85,34 @@ JSComponent.isElementContained = function(element, candidateParent) {
 
 /**
  * Substitutes all the place holders in the html with localized labels.
+ * @param {UserPreferences} preferences the current user preferences
+ * @param {string} html 
  */
 JSComponent.substituteWithLocale = function(preferences, html) {
   return html.replace(/\@\{([a-zA-Z0-9_.]+)\}/g, function(fullMatch, str) {
-      var replacement = ResourceAction.getLocalizedLabelText(preferences, str.substring(0, str.indexOf('.')), str.substring(str.indexOf('.') + 1));
-      return replacement || all;
+      return ResourceAction.getLocalizedLabelText(preferences, 
+          str.substring(0, str.indexOf('.')), str.substring(str.indexOf('.') + 1));
     });
 }
 
+/**
+ * Substitutes all the place holders in the given html with localized labels.
+ * @param {string} templateHtml 
+ */
 JSComponent.prototype.buildHtmlFromTemplate = function(templateHtml) {
   return JSComponent.substituteWithLocale(this.preferences, templateHtml);
+}
+
+/**
+ * Returns the localized text defined for the given <code>>resourceClass</code> + <code>propertyKey</code>.
+ * @param {Object} resourceClass
+ * @param {string} propertyKey
+ * @param {Array} resourceParameters
+ * @return {string}
+ * @protected
+ */
+JSComponent.prototype.getLocalizedLabelText = function(resourceClass, propertyKey, resourceParameters) {
+  return ResourceAction.getLocalizedLabelText(this.preferences, resourceClass, propertyKey, resourceParameters);
 }
 
 /**
@@ -216,22 +234,11 @@ JSComponent.prototype.dispose = function() {
 }
 
 /**
- * Delegates to ResourceAction.getLocalizedLabelText(this.preferences, ...).
- * @param {Object} resourceClass
- * @param {string} propertyKey
- * @param {Array} resourceParameters
- * @return {string}
- * @protected
- */
-JSComponent.prototype.getLocalizedLabelText = function(resourceClass, propertyKey, resourceParameters) {
-  return ResourceAction.getLocalizedLabelText(this.preferences, resourceClass, propertyKey, resourceParameters);
-}
-
-/**
  * @param {string} value option's value
  * @param {string} text option's display text
  * @param {boolean} [selected] true if selected, default false
  * @return {HTMLOptionElement}
+ * @ignore
  */
 JSComponent.createOptionElement = function(value, text, selected) {
   var option = document.createElement("option");
@@ -325,7 +332,7 @@ JSDialog.prototype.appendButtons = function(buttonsPanel) {
 
 /**
  * Closes currently displayed topmost dialog if any.
- * @static
+ * @private
  */
 JSDialog.closeTopMostDialogIfAny = function() {
   var topMostDialog = JSDialog.getTopMostDialog();
@@ -337,12 +344,12 @@ JSDialog.closeTopMostDialogIfAny = function() {
 /**
  * Returns the currently displayed topmost dialog if any.
  * @return {JSDialog} currently displayed topmost dialog if any, otherwise null
- * @static
+ * @ignore
  */
 JSDialog.getTopMostDialog = function() {
   var visibleDialogElements = document.querySelectorAll(".dialog-container.visible");
+  var topMostDialog = null;
   if (visibleDialogElements.length > 0) {
-    var topMostDialog = null;
     for (var i = 0; i < visibleDialogElements.length; i++) {
       var visibleDialog = visibleDialogElements[i]._dialogBoxInstance;
       if (topMostDialog == null || topMostDialog.displayIndex <= visibleDialog.displayIndex) {
@@ -353,6 +360,9 @@ JSDialog.getTopMostDialog = function() {
   return topMostDialog;
 }
 
+/**
+ * @param {string} templateHtml
+ */
 JSDialog.prototype.buildHtmlFromTemplate = function(templateHtml) {
   return JSComponent.substituteWithLocale(this.getUserPreferences(),
       '<div class="dialog-content">' +
@@ -478,7 +488,7 @@ JSDialog.shownDialogsCounter = 0;
  * @constructor
  * @author Louis Grignon
  */
-function JSWizardDialog(controller, preferences, title, behavior) {
+function JSWizardDialog(preferences, controller, title, behavior) {
   JSDialog.call(this, preferences, title,
       '<div class="wizard">' +
       '  <div stepIcon></div>' +
@@ -636,9 +646,10 @@ JSWizardDialog.prototype.updateStepIcon = function() {
  * @param {function()} imageResizeRequested called when user selected "resize image" option
  * @param {function()} originalImageRequested called when user selected "keep image unchanged" option
  * @constructor
+ * @package
  * @ignore
  */
-function JSPromptImageResizeDialog(preferences,
+function JSImageResizingDialog(preferences,
                 title, message, cancelButtonMessage, keepUnchangedButtonMessage, okButtonMessage, 
                 imageResizeRequested, originalImageRequested) {
   this.cancelButtonMessage = JSComponent.substituteWithLocale(preferences, cancelButtonMessage);
@@ -671,15 +682,15 @@ function JSPromptImageResizeDialog(preferences,
       dialog.validate();
     });
 }
-JSPromptImageResizeDialog.prototype = Object.create(JSDialog.prototype);
-JSPromptImageResizeDialog.prototype.constructor = JSPromptImageResizeDialog;
+JSImageResizingDialog.prototype = Object.create(JSDialog.prototype);
+JSImageResizingDialog.prototype.constructor = JSImageResizingDialog;
 
 /**
  * Appends dialog buttons to given panel.
  * @param {HTMLElement} buttonsPanel Dialog buttons panel
  * @protected
  */
-JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
+JSImageResizingDialog.prototype.appendButtons = function(buttonsPanel) {
   buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.getUserPreferences(),
       "<button class='dialog-ok-button'>" + this.okButtonMessage + "</button>"
       + "<button class='keep-image-unchanged-button dialog-ok-button'>" + this.keepUnchangedButtonMessage + "</button>"
@@ -695,9 +706,9 @@ JSPromptImageResizeDialog.prototype.appendButtons = function(buttonsPanel) {
  * @param {function(JSPopupMenu.Builder, HTMLElement)}  build 
  *    Function called with a builder, and optionally with source element (which was right clicked, to show this menu)
  * @constructor
+ * @ignore
  * @author Louis Grignon
  * @author Renaud Pawlak
- * @ignore
  */
 function JSPopupMenu(preferences, sourceElements, build) {
   if (sourceElements == null || sourceElements.length === 0) {
@@ -1088,7 +1099,7 @@ if (!JSPopupMenu.globalCloserRegistered) {
       }
     });
   
-  document.addEventListener("keyup", function(ev) {
+  document.addEventListener("keydown", function(ev) {
       if (ev.key == "Escape" || ev.keyCode == 27) {
         JSDialog.closeTopMostDialogIfAny();
         JSPopupMenu.closeCurrentIfAny();
