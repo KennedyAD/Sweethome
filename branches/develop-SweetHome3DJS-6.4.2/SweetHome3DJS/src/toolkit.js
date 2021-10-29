@@ -1601,7 +1601,7 @@ function JSComboBox(preferences, selectElement, options) {
   this.button.appendChild(this.preview);
 
   this.initSelectionPanel();
-
+  var component = this;
   this.registerEventListener(this.button, "click", function(ev) {
       ev.stopImmediatePropagation();
       component.openSelectionPanel(ev.pageX, ev.pageY);
