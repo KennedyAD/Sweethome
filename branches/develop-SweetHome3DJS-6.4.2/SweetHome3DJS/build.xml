@@ -28,8 +28,7 @@
     <javac srcdir="tools/JSweet/src"
            destdir="tools/JSweet/build/SweetHome3DJSweetExtension"
            classpath="tools/JSweet/lib/jsweet-transpiler-${jsweet-version}-jar-with-dependencies.jar"
-           source="1.8"
-           encoding="ISO-8859-1"
+           source="1.8" target="1.8" encoding="ISO-8859-1"
            includes="com/eteks/sweethome3d/jsweet/*" />
 
     <!-- Transpile Sweet Home 3D classes -->
@@ -108,7 +107,8 @@
           description="Builds tools/JSweet/lib/generated/SweetHome3DJS.jar JSweet Candy for sub projects">
     <mkdir dir="tools/JSweet/build/candy/classes" />
     <javac srcdir="tools/JSweet/src" destdir="tools/JSweet/build/candy/classes" classpath="tools/JSweet/lib/jsweet-core-6.3.1.jar"
-           source="1.8" encoding="ISO-8859-1" includes="def/**" />
+           source="1.8" target="1.8" encoding="ISO-8859-1" 
+    	   includes="def/**" />
 
     <mkdir dir="tools/JSweet/build/candy/resources/META-INF/resources/typings" />
     <move file="tools/JSweet/build/js/bundle.d.ts" tofile="tools/JSweet/build/candy/resources/META-INF/resources/typings/viewhome.d.ts"  />
@@ -151,7 +151,7 @@
     <mkdir dir="tools/json/build"/>
     <javac srcdir="tools/json/src" destdir="tools/json/build/"
            classpath="tools/json/lib/json-20190722.jar"
-           source="1.8"  encoding="ISO-8859-1"
+           source="1.8" target="1.8" encoding="ISO-8859-1"
            includes="com/eteks/sweethome3d/json/*" />
     <java classname="com.eteks.sweethome3d.json.PropertiesToJson" fork="true" failonerror="true">
       <classpath>
@@ -538,7 +538,7 @@
     <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
     <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
     <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
-           source="1.8" encoding="ISO-8859-1"
+           source="1.8" target="1.8" encoding="ISO-8859-1"
            debug="${debug}" debuglevel="lines,vars,source">
       <classpath>
         <fileset dir="deploy/WEB-INF/lib" />
@@ -674,7 +674,6 @@
     <delete dir="install/source" />
 
     <echo message="install/SweetHome3DJS-${version}-src.zip ready for ftp" />
-
   </target>
 </project>
 
