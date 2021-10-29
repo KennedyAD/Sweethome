@@ -26,6 +26,8 @@
 var LengthUnit = {};
 
 /**
+ * @param {number} length
+ * @param {number} maxDelta
  * Returns the value close to the given length under magnetism for meter units.
  * @private
  */
@@ -53,6 +55,8 @@ LengthUnit.getMagnetizedMeterLength = function(length, maxDelta) {
 }
 
 /**
+ * @param {number} length
+ * @param {number} maxDelta
  * Returns the value close to the given length under magnetism for inch units.
  * @private
  */
@@ -80,6 +84,7 @@ LengthUnit.getMagnetizedInchLength = function(length, maxDelta) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in centimeters converted to inches.
  */
 LengthUnit.centimeterToInch = function(length) {
@@ -87,6 +92,7 @@ LengthUnit.centimeterToInch = function(length) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in centimeters converted to feet.
  */
 LengthUnit.centimeterToFoot = function(length) {
@@ -94,6 +100,7 @@ LengthUnit.centimeterToFoot = function(length) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in inches converted to centimeters.
  */
 LengthUnit.inchToCentimeter = function(length) {
@@ -101,6 +108,7 @@ LengthUnit.inchToCentimeter = function(length) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in feet converted to centimeters.
  */
 LengthUnit.footToCentimeter = function(length) {
@@ -108,24 +116,20 @@ LengthUnit.footToCentimeter = function(length) {
 }
 
 /**
- * Return the enum name of the given unit
- * <br/>
+ * Returns the enum name of the given unit.
  * <b>WARNING</b> enum name (CENTIMETERS, MILLIMETERS, ..) is different from unit's name (cm, mm, ..)
  * @param {LengthUnit} unit
  */
 LengthUnit.nameOf = function(unit) {
-  if (unit == null) {
-    return null;
-  }
-
-  var unitEnumNames = Object.keys(LengthUnit);
-  for (var i = 0; i < unitEnumNames.length; i++) {
-    var unitEnumName = unitEnumNames[i];
-    if (LengthUnit[unitEnumName] == unit) {
-      return unitEnumName;
+  if (unit != null) {
+    var unitEnumNames = Object.keys(LengthUnit);
+    for (var i = 0; i < unitEnumNames.length; i++) {
+      var unitEnumName = unitEnumNames[i];
+      if (LengthUnit[unitEnumName] == unit) {
+        return unitEnumName;
+      }
     }
   }
-
   return null;
 }
 
@@ -520,7 +524,11 @@ LengthUnit.INCH_DECIMALS.unitToCentimeter = function(length) {
 
 // Specific format classes for lengths
 
-/** @private */
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
 function MeterFamilyFormat(pattern, unitMultiplier, unit) {
   DecimalFormat.call(this, pattern);
   this.setGroupingUsed(true);
@@ -544,7 +552,11 @@ MeterFamilyFormat.prototype.parse = function(text, parsePosition) {
   }
 }
 
-/** @private */
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
 function SquareMeterAreaFormatWithUnit(squareMeterUnit) {
   DecimalFormat.call(this, "0.##");
   this.setGroupingUsed(true);
@@ -566,7 +578,11 @@ var inchFractionCharacters = ['\u215b',   // 1/8
                               '\u00be',   // 3/4
                               '\u215e'];  // 7/8        
 
-/** @private */
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
 function InchFormat(footInchSeparator) {
   DecimalFormat.call(this, "0.###");
   this.setGroupingUsed(true);
@@ -742,7 +758,11 @@ InchFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
   }
 }
 
-/** @private */
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
 function SquareFootAreaFormatWithUnit(pattern, unit) {
   DecimalFormat.call(this, pattern);
   this.setGroupingUsed(true);
@@ -756,7 +776,11 @@ SquareFootAreaFormatWithUnit.prototype.format = function(number) {
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
 
-/** @private */
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
 function InchDecimalsFormat(pattern, unit) {
   DecimalFormat.call(this, pattern);
   this.setGroupingUsed(true);

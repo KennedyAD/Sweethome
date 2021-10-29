@@ -47,7 +47,7 @@ function UserPreferences() {
   this.defaultValueAddedTaxPercentage = null;
   /** @type {LengthUnit} */
   this.unit = null;
-  this.furnitureCatalogViewedInTree = true;
+  this.furnitureCatalogViewedInTree = false;
   this.aerialViewCenteredOnSelectionEnabled = false;
   this.observerCameraSelectedAtChange = true;
   this.navigationPanelVisible = true;
@@ -82,166 +82,6 @@ UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es
 
 UserPreferences.DEFAULT_TEXT_STYLE = new TextStyle(18);
 UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
-
-UserPreferences.CURRENCIES = {
-  EUR: 'EUR €',
-  AED: 'AED AED',
-  AFN: 'AFN ؋',
-  ALL: 'ALL Lekë',
-  AMD: 'AMD ֏',
-  ANG: 'ANG NAf.',
-  AOA: 'AOA Kz',
-  ARS: 'ARS $',
-  AUD: 'AUD $',
-  AWG: 'AWG Afl.',
-  AZN: 'AZN ₼',
-  BAM: 'BAM KM',
-  BBD: 'BBD $',
-  BDT: 'BDT ৳',
-  BGN: 'BGN лв.',
-  BHD: 'BHD د.ب.‏',
-  BIF: 'BIF FBu',
-  BMD: 'BMD $',
-  BND: 'BND $',
-  BOB: 'BOB Bs',
-  BRL: 'BRL R$',
-  BSD: 'BSD $',
-  BTN: 'BTN Nu.',
-  BWP: 'BWP P',
-  BYN: 'BYN Br',
-  BZD: 'BZD $',
-  CAD: 'CAD $',
-  CDF: 'CDF FC',
-  CHF: 'CHF CHF',
-  CLP: 'CLP $',
-  CNY: 'CNY ￥',
-  COP: 'COP $',
-  CRC: 'CRC ₡',
-  CSD: 'CSD CSD',
-  CUP: 'CUP $',
-  CVE: 'CVE ​',
-  CZK: 'CZK Kč',
-  DJF: 'DJF Fdj',
-  DKK: 'DKK kr',
-  DOP: 'DOP RD$',
-  DZD: 'DZD DA',
-  EGP: 'EGP ج.م.‏',
-  ERN: 'ERN Nfk',
-  ETB: 'ETB Br',
-  EUR: 'EUR €',
-  FJD: 'FJD $',
-  FKP: 'FKP £',
-  GBP: 'GBP £',
-  GEL: 'GEL ₾',
-  GHS: 'GHS GH₵',
-  GIP: 'GIP £',
-  GMD: 'GMD D',
-  GNF: 'GNF FG',
-  GTQ: 'GTQ Q',
-  GYD: 'GYD $',
-  HKD: 'HKD HK$',
-  HNL: 'HNL L',
-  HRK: 'HRK HRK',
-  HTG: 'HTG G',
-  HUF: 'HUF Ft',
-  IDR: 'IDR Rp',
-  ILS: 'ILS ₪',
-  INR: 'INR ₹',
-  IQD: 'IQD د.ع.‏',
-  IRR: 'IRR IRR',
-  ISK: 'ISK ISK',
-  JMD: 'JMD $',
-  JOD: 'JOD د.أ.‏',
-  JPY: 'JPY ￥',
-  KES: 'KES Ksh',
-  KGS: 'KGS сом',
-  KHR: 'KHR ៛',
-  KMF: 'KMF CF',
-  KPW: 'KPW KPW',
-  KRW: 'KRW ₩',
-  KWD: 'KWD د.ك.‏',
-  KYD: 'KYD $',
-  KZT: 'KZT ₸',
-  LAK: 'LAK ₭',
-  LBP: 'LBP ل.ل.‏',
-  LKR: 'LKR Rs.',
-  LRD: 'LRD $',
-  LSL: 'LSL LSL',
-  LYD: 'LYD د.ل.‏',
-  MAD: 'MAD MAD',
-  MDL: 'MDL L',
-  MGA: 'MGA Ar',
-  MKD: 'MKD den',
-  MMK: 'MMK K',
-  MNT: 'MNT ₮',
-  MOP: 'MOP MOP$',
-  MRU: 'MRU UM',
-  MUR: 'MUR Rs',
-  MWK: 'MWK MK',
-  MXN: 'MXN $',
-  MYR: 'MYR RM',
-  MZN: 'MZN MTn',
-  NAD: 'NAD $',
-  NGN: 'NGN ₦',
-  NIO: 'NIO C$',
-  NOK: 'NOK kr',
-  NPR: 'NPR नेरू',
-  NZD: 'NZD $',
-  OMR: 'OMR ر.ع.‏',
-  PAB: 'PAB B/.',
-  PEN: 'PEN S/',
-  PGK: 'PGK K',
-  PHP: 'PHP ₱',
-  PKR: 'PKR ر',
-  PLN: 'PLN zł',
-  PYG: 'PYG Gs.',
-  QAR: 'QAR ر.ق.‏',
-  RON: 'RON RON',
-  RSD: 'RSD RSD',
-  RUB: 'RUB ₽',
-  RWF: 'RWF RF',
-  SAR: 'SAR ر.س.‏',
-  SBD: 'SBD $',
-  SCR: 'SCR SR',
-  SDG: 'SDG SDG',
-  SEK: 'SEK kr',
-  SGD: 'SGD $',
-  SHP: 'SHP £',
-  SLL: 'SLL Le',
-  SOS: 'SOS S',
-  SRD: 'SRD $',
-  SSP: 'SSP £',
-  STN: 'STN Db',
-  SVC: 'SVC C',
-  SYP: 'SYP LS',
-  SZL: 'SZL E',
-  THB: 'THB ฿',
-  TJS: 'TJS сом.',
-  TMT: 'TMT TMT',
-  TND: 'TND DT',
-  TOP: 'TOP T$',
-  TRY: 'TRY ₺',
-  TTD: 'TTD $',
-  TWD: 'TWD $',
-  TZS: 'TZS TSh',
-  UAH: 'UAH ₴',
-  UGX: 'UGX USh',
-  USD: 'USD $',
-  UYU: 'UYU $',
-  UZS: 'UZS сўм',
-  VES: 'VES Bs.S',
-  VND: 'VND ₫',
-  VUV: 'VUV VT',
-  WST: 'WST WS$',
-  XAF: 'XAF FCFA',
-  XCD: 'XCD $',
-  XOF: 'XOF CFA',
-  XPF: 'XPF FCFP',
-  YER: 'YER ر.ي.‏',
-  ZAR: 'ZAR R',
-  ZMW: 'ZMW K',
-  ZWL: 'ZWL ZWL'
-};
 
 /**
  * Initializes the supportedLanguage property (and potentially the language property if it has to change)
@@ -610,7 +450,7 @@ UserPreferences.prototype.setDefaultValueAddedTaxPercentage = function(valueAdde
 
 /**
  * Returns <code>true</code> if the furniture catalog should be viewed in a tree.
- * @return {Big} the default VAT percentage
+ * @return {boolean}
  * @ignore
  */
 UserPreferences.prototype.isFurnitureCatalogViewedInTree = function() {
@@ -619,6 +459,7 @@ UserPreferences.prototype.isFurnitureCatalogViewedInTree = function() {
 
 /**
  * Sets whether the furniture catalog should be viewed in a tree or a different way.
+ * @param {boolean}
  * @ignore
  */
 UserPreferences.prototype.setFurnitureCatalogViewedInTree = function(furnitureCatalogViewedInTree) {
@@ -1246,6 +1087,14 @@ UserPreferences.prototype.setCheckUpdatesEnabled = function(updatesChecked) {
   // Empty implementation because it is used by the controller but useless for the Web version
 }
 
+/**
+ * Returns <code>true</code> if large imported images should be resized without requesting user.
+ * @ignore
+ */
+UserPreferences.prototype.isImportedImageResizedWithoutPrompting = function() {
+  return true;
+}
+
 
 /**
  * Default user preferences.
@@ -1422,6 +1271,7 @@ function RecordedUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase
 
   var properties = this.getProperties();
   this.updatePreferencesFromProperties(properties);
+  this.uploadingBlobs = {};
 }
 
 RecordedUserPreferences.prototype = Object.create(UserPreferences.prototype);
@@ -1620,7 +1470,7 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
   }
 
   var preferences = this;
-  this.addPropertyChangeListener('LANGUAGE', function() {
+  this.addPropertyChangeListener("LANGUAGE", function() {
       preferences.updateDefaultCatalogs();
     });
 
@@ -1646,7 +1496,7 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
  * @private
  */
 RecordedUserPreferences.prototype.getProperties = function() {
-  if (!this.properties) {
+  if (this.properties === undefined) {
     this.properties = {};
     if (this.readPreferencesUrl) {
       this.readPreferences(this.properties);
@@ -1759,6 +1609,7 @@ RecordedUserPreferences.prototype.readModifiableTexturesCatalog = function(prope
  * @param {string, string} properties 
  * @param {number} index  the index of the read texture
  * @return the read texture or <code>null</code> if the texture at the given index doesn't exist.
+ * @protected
  */
 RecordedUserPreferences.prototype.readModifiableTexture = function(properties, index) {
   var name = this.getProperty(properties, RecordedUserPreferences.TEXTURE_NAME + index, null);
@@ -1778,6 +1629,7 @@ RecordedUserPreferences.prototype.readModifiableTexture = function(properties, i
 * read from <code>properties</code>.
  * @param {string, string} properties 
  * @param {number} index  the index of the read texture
+ * @protected
 */
 RecordedUserPreferences.prototype.readModifiableTextureCategory = function(properties, index) {
   var category = this.getProperty(properties, RecordedUserPreferences.TEXTURE_CATEGORY + index, "");
@@ -1786,19 +1638,16 @@ RecordedUserPreferences.prototype.readModifiableTextureCategory = function(prope
 
 /**
  * Writes user preferences to properties, and sends to the <code>writePreferencesUrl</code> (if
- * given at the creation) a JSON content describing preferences in a parameter named preferences.
- * @override
+ * given at the creation) a JSON content describing preferences.
  */
 RecordedUserPreferences.prototype.write = function() {
   UserPreferences.prototype.write.call(this);
 
+  // Write actually preferences only if written properties were updated
   if (this.writtenPropertiesUpdated) {
-    // Write actually preferences only if written properties were updated
-    this.writtenPropertiesUpdated = false;
-
     var properties = this.getProperties();
     this.writeModifiableTexturesCatalog(properties);
-    
+   
     // Write other preferences
     this.setProperty(properties, RecordedUserPreferences.LANGUAGE, this.getLanguage());
     this.setProperty(properties, RecordedUserPreferences.UNIT, this.getLengthUnit().name());
@@ -1855,11 +1704,15 @@ RecordedUserPreferences.prototype.write = function() {
       }
     }
 
-    try {
-      // Write preferences to back end
+    if (Object.keys(this.uploadingBlobs).length > 0) {
+      var preferences = this;
+      // Wait blobs uploading end before trying to write preferences referencing them
+      setTimeout(function() {
+          preferences.write();
+        }, 500);
+    } else {
+      this.writtenPropertiesUpdated = false;
       this.writePreferences(properties);
-    } catch (ex) {
-      throw new RecorderException("Couldn't write preferences", ex);
     }
   }
 }
@@ -1871,29 +1724,47 @@ RecordedUserPreferences.prototype.write = function() {
  */
 RecordedUserPreferences.prototype.writePreferences = function(properties) {
   if (this.writePreferencesUrl) {
-    var error = null;
-    var serverErrorHandler = function(ev) {
-        error = ev;
-        console.error('Error while writing preferences', error);
-      };
-  
-    var jsonPreferences = JSON.stringify(properties);
-    var request = new XMLHttpRequest();
-    var querySeparator = this.writePreferencesUrl.indexOf('?') != -1 ? '&' : '?';
-    request.open("POST", this.writePreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), false);
-    request.addEventListener("error", serverErrorHandler);
-    request.addEventListener("timeout", serverErrorHandler);
-    request.send(jsonPreferences);
-  
-    if (error) {
-      throw error;
+    var preferences = this;
+    if (this.writingPreferences) {
+      // Avoid writing preferences twice at the same time
+      setTimeout(function() {
+          preferences.writePreferences(properties);
+        }, 100);
+    } else {
+      this.writingPreferences = true;
+      var jsonPreferences = JSON.stringify(properties);
+      var request = new XMLHttpRequest();
+      var querySeparator = this.writePreferencesUrl.indexOf('?') != -1 ? '&' : '?';
+      request.open("POST", this.writePreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), true);
+      request.addEventListener('load', function (ev) {
+          if (request.readyState === XMLHttpRequest.DONE) {
+            if (request.status === 200) {
+              setTimeout(function() {
+                  delete preferences.writingPreferences;
+                }, 500);
+            } else {
+              errorListener(request.statusText);
+            }
+          }
+        });
+      var errorListener = function(error) {
+          console.error("Can't save preferences at " + new Date(), error);
+          setTimeout(function() {
+              delete preferences.writingPreferences;
+              // Retry
+              preferences.writePreferences(properties);
+            }, 1000);
+        };
+      request.addEventListener("error", errorListener);
+      request.addEventListener("timeout", errorListener);
+      request.send(jsonPreferences);
     }
   }
 }
 
 /**
  * Sets which action tip should be ignored.
- * @override
+ * @ignore
  */
 RecordedUserPreferences.prototype.setActionTipIgnored = function(actionKey) {
   this.ignoredActionTips[actionKey] = true;
@@ -1902,7 +1773,7 @@ RecordedUserPreferences.prototype.setActionTipIgnored = function(actionKey) {
 
 /**
  * Returns whether an action tip should be ignored or not.
- * @override
+ * @ignore
  */
 RecordedUserPreferences.prototype.isActionTipIgnored = function(actionKey) {
   var ignoredActionTip = this.ignoredActionTips[actionKey];
@@ -1911,7 +1782,7 @@ RecordedUserPreferences.prototype.isActionTipIgnored = function(actionKey) {
 
 /**
  * Resets the display flag of action tips.
- * @override
+ * @ignore
  */
 RecordedUserPreferences.prototype.resetIgnoredActionTips = function() {
   var keys = Object.keys(this.ignoredActionTips);
@@ -1922,16 +1793,16 @@ RecordedUserPreferences.prototype.resetIgnoredActionTips = function() {
 }
 
 /**
- * Throws an exception because applet user preferences can't manage language libraries.
- * @override
+ * Throws an exception because these user preferences can't manage language libraries.
+ * @ignore
  */
 RecordedUserPreferences.prototype.addLanguageLibrary = function(location) {
   throw new UnsupportedOperationException();
 }
 
 /**
- * Throws an exception because applet user preferences can't manage additional language libraries.
- * @override
+ * Throws an exception because these user preferences can't manage additional language libraries.
+ * @ignore
  */
 RecordedUserPreferences.prototype.languageLibraryExists = function(location) {
   throw new UnsupportedOperationException();
@@ -1939,15 +1810,15 @@ RecordedUserPreferences.prototype.languageLibraryExists = function(location) {
 
 /**
  * Returns <code>true</code> if the furniture library at the given <code>location</code> exists.
- * @override
+ * @ignore
  */
 RecordedUserPreferences.prototype.furnitureLibraryExists = function(location) {
   throw new UnsupportedOperationException();
 }
 
 /**
- * Throws an exception because applet user preferences can't manage additional furniture libraries.
- * @override
+ * Throws an exception because these user preferences can't manage additional furniture libraries.
+ * @ignore
  */
 RecordedUserPreferences.prototype.addFurnitureLibrary = function(location) {
   throw new UnsupportedOperationException();
@@ -1955,23 +1826,23 @@ RecordedUserPreferences.prototype.addFurnitureLibrary = function(location) {
 
 /**
  * Returns <code>true</code> if the textures library at the given <code>location</code> exists.
- * @override
+ * @ignore
  */
 RecordedUserPreferences.prototype.texturesLibraryExists = function(location) {
   throw new UnsupportedOperationException();
 }
 
 /**
- * Throws an exception because applet user preferences can't manage additional textures libraries.
- * @override
+ * Throws an exception because these user preferences can't manage additional textures libraries.
+ * @ignore
  */
 RecordedUserPreferences.prototype.addTexturesLibrary = function(location) {
   throw new UnsupportedOperationException();
 }
 
 /**
- * Throws an exception because applet user preferences don't manage additional libraries.
- * @override
+ * Throws an exception because these user preferences don't manage additional libraries.
+ * @ignore
  */
 RecordedUserPreferences.prototype.getLibraries = function() {
   throw new UnsupportedOperationException();
@@ -1980,31 +1851,13 @@ RecordedUserPreferences.prototype.getLibraries = function() {
 /**
  * Save modifiable textures to catalog.json and upload new resources.
  * @param {string, string} properties 
- * @param {function()} [onsuccess] called when textures catalog is fully saved
- * @param {function()} [onerror] called if any error occurs during save
  * @private
  */
-RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(properties, onsuccess, onerror) {
+RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(properties) {
   if (this.writeResourceUrl && this.readResourceUrl) {
-    if (onsuccess === undefined) { 
-      onsuccess = function() {}; 
-    }
-    if (onerror === undefined) { 
-      onerror = function(error) { 
-          console.error('Error while writing textures image', error);
-        }; 
-    }
-  
-    var expectedUploadCount = 0;
-    function onuploadsuccess() {
-        expectedUploadCount--;
-        if (expectedUploadCount === 0) {
-          onsuccess();
-        }
-      };
-  
     var index = 1;
     var texturesCatalog = this.getTexturesCatalog();
+    var preferences = this;
     for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
       var textureCategory = texturesCatalog.getCategory(i);
       for (var j = 0; j < textureCategory.getTexturesCount(); j++) {
@@ -2025,16 +1878,26 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
           if (textureImage instanceof BlobURLContent) {
             var savedContent = textureImage.getSavedContent();
             if (savedContent === null) {
-              var resourceId = UUID.randomUUID();
-              var imageExtension = textureImage.getBlob().type == "image/png" ? "png" : "jpg";
-              var textureImageFileName = resourceId + '.' + imageExtension;
-              
-              expectedUploadCount++;
-              // TODO Manage writing resource later when service is not available 
-              this.writeResource(textureImageFileName, textureImage.getBlob(), onuploadsuccess, onerror);
-              var savedContent = new URLContent(
-                  CoreTools.format(this.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
-              textureImage.setSavedContent(savedContent);
+              savedContent = this.uploadingBlobs[textureImage.getURL()];
+              if (savedContent === undefined) {
+                var resourceId = UUID.randomUUID();
+                var imageExtension = textureImage.getBlob().type == "image/png" ? "png" : "jpg";
+                var textureImageFileName = resourceId + '.' + imageExtension;
+                savedContent = new URLContent(
+                    CoreTools.format(this.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
+                this.uploadingBlobs[textureImage.getURL()] = savedContent;
+              }
+              var errorListener = function(error) { 
+                  // A new upload will be attempted later by the caller  
+                }; 
+              var loadListener = function(textureImage, ev) {
+                  textureImage.setSavedContent(preferences.uploadingBlobs[textureImage.getURL()]);
+                  delete preferences.uploadingBlobs[textureImage.getURL()];
+                };
+              this.writeResource(textureImage, textureImageFileName, loadListener, errorListener);
+            } else {
+              // Always update uploading blobs map because blob may have been saved elsewhere
+              delete preferences.uploadingBlobs[textureImage.getURL()];
             }
             this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, savedContent.getURL());
           } else if (textureImage instanceof URLContent) {
@@ -2058,18 +1921,26 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
 }
 
 /**
+ * @param {BlobURLContent} urlContent  blob content
  * @param {string} path unique file name of the written resource.
- * @param {Blob} blob   file content
- * @param {function()} onsuccess called when content is uploaded
- * @param {function()} onerror called if error is detected
+ * @param {function()} loadListener called when content is uploaded
+ * @param {function()} errorListener called if error is detected
  * @private
  */
-RecordedUserPreferences.prototype.writeResource = function(path, blob, onsuccess, onerror) {
+RecordedUserPreferences.prototype.writeResource = function(urlContent, path, loadListener, errorListener) {
   var uploadUrl = CoreTools.format(this.writeResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
   var request = new XMLHttpRequest();
   request.open("POST", uploadUrl, true);
-  request.addEventListener("load", onsuccess);
-  request.addEventListener("error", onerror);
-  request.addEventListener("timeout", onerror);
-  request.send(blob);
+  request.addEventListener("load", function(ev) {
+      if (request.readyState === XMLHttpRequest.DONE) {
+        if (request.status === 200) {
+          loadListener(urlContent, ev);
+        } else {
+          errorListener(urlContent, request.statusText);
+        }
+      }
+    });
+  request.addEventListener("error", errorListener);
+  request.addEventListener("timeout", errorListener);
+  request.send(urlContent.getBlob());
 }

@@ -68,6 +68,7 @@ IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
 
 /**
  * The home properties that are tracked by default by incremental recorders.
+ * @private
  */
 IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
   FurnitureTablePanel.EXPANDED_ROWS_VISUAL_PROPERTY,
@@ -110,8 +111,8 @@ IncrementalHomeRecorder.prototype.configure = function(configuration) {
 IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
   var recorder = this;
   var request = new XMLHttpRequest();
-  request.open('GET', this.configuration['pingURL'], true);
-  request.addEventListener('load', function(ev) {
+  request.open("GET", this.configuration["pingURL"], true);
+  request.addEventListener("load", function(ev) {
       if (request.readyState === XMLHttpRequest.DONE
           && request.status === 200) {
         if (!recorder.online) {
@@ -139,7 +140,7 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
           }, pingDelay);
       }
     });
-  request.addEventListener('error', function(ev) {
+  request.addEventListener("error", function(ev) {
       if (recorder.online) {
         if (recorder.configuration 
             && recorder.configuration.writingObserver 
@@ -284,21 +285,21 @@ IncrementalHomeRecorder.prototype.getAutoWriteDelay = function() {
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
   if (this.configuration !== undefined) {
-    if (this.configuration['closeHomeURL'] !== undefined) {
+    if (this.configuration["closeHomeURL"] !== undefined) {
       var closeHomeURL = CoreTools.format(this.configuration.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
       if (navigator.sendBeacon) {
         navigator.sendBeacon(closeHomeURL);
       } else {
         try {
           var request = new XMLHttpRequest();
-          request.open('GET', closeHomeURL, true); // Asynchronous call required during unload
+          request.open("GET", closeHomeURL, true); // Asynchronous call required during unload
           request.send();
         } catch (ex) {
           console.error(ex); 
         }
       }
     }
-    if (this.configuration['writeHomeEditsURL'] !== undefined) {
+    if (this.configuration["writeHomeEditsURL"] !== undefined) {
       var undoableEditListeners = this.homeData[home.editionId].undoableEditSupport.getUndoableEditListeners();
       for (var i = 0; i < undoableEditListeners.length; i++) {
         if (undoableEditListeners [i].source === this) {
@@ -325,12 +326,23 @@ IncrementalHomeRecorder.prototype.saveBlobs = function(savedObject, serverErrorH
       var uploadUrl = CoreTools.format(writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(savedObject.resourceFileName));
       var request = new XMLHttpRequest();
       request.open("POST", uploadUrl, true);
-      request.addEventListener("error", serverErrorHandler);
-      request.addEventListener("timeout", serverErrorHandler);
+      request.addEventListener("load", function(ev) {
+          if (request.readyState === XMLHttpRequest.DONE) {
+            if (request.status === 200) {
+              delete savedObject.blob;
+              delete savedObject.resourceFileName;
+            } else {
+              serverErrorHandler(request.status, request.statusText);
+            }
+          }
+        });
+      var errorListener = function(ev) {
+          // There was an error connecting with the server: rollback and retry
+          serverErrorHandler(0, ev);
+        };      
+      request.addEventListener("error", errorListener);
+      request.addEventListener("timeout", errorListener);
       request.send(savedObject.blob);
-  
-      delete savedObject.blob;
-      delete savedObject.resourceFileName;
     } else {
       // Save recursively other map objects depending on savedObject
       var propertyNames = Object.getOwnPropertyNames(savedObject);
@@ -376,9 +388,9 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
 
     // 2. Send edit
     request = new XMLHttpRequest();
-    request.open('POST', this.configuration['writeHomeEditsURL'], true);
+    request.open("POST", this.configuration["writeHomeEditsURL"], true);
     request.withCredentials = true;
-    request.addEventListener('load', function (ev) {
+    request.addEventListener("load", function (ev) {
         if (request.readyState === XMLHttpRequest.DONE) {
           if (request.status === 200) {
             var result = JSON.parse(request.responseText);
@@ -394,16 +406,18 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
           }
         }
       });
-    request.addEventListener('error', function(ev) {
+    var errorListener = function(ev) {
         // There was an error connecting with the server: rollback and retry
         serverErrorHandler(0, ev);
-      });
+      };
+    request.addEventListener("error", errorListener);
+    request.addEventListener("timeout", errorListener);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send('home=' + encodeURIComponent(home.name) 
-        + '&editionId=' + home.editionId 
-        + '&updateId=' + update.id 
-        + '&version=' + this.application.getVersion()  
-        + '&edits=' + encodeURIComponent(JSON.stringify(update.edits)));
+    request.send("home=" + encodeURIComponent(home.name) 
+        + "&editionId=" + home.editionId 
+        + "&updateId=" + update.id 
+        + "&version=" + this.application.getVersion()  
+        + "&edits=" + encodeURIComponent(JSON.stringify(update.edits)));
   }
 }
 

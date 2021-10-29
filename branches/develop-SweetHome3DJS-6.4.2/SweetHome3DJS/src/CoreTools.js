@@ -317,26 +317,6 @@ CoreTools.intersection = function(array1, array2) {
 }
 
 /**
- * Triggers <code>actionFunction</code> after the given wait, 
- * and start over the timer if called again before timeout is reached.
- * @param {function} actionFunction function to be called after wait
- * @param {number} waitMillis wait time in milliseconds
- */
-CoreTools.debounce = function(actionFunction, waitMillis) {
-	var timeout;
-	return function() {
-  		var context = this;
-  		var args = arguments;
-  		var later = function() {
-    			timeout = null;
-    			actionFunction.apply(context, args);
-    		};
-  		clearTimeout(timeout);
-  		timeout = setTimeout(later, waitMillis);
-  	};
-};
-
-/**
  * Provides a list of available font names (asynchronously, see callback parameter).
  * Internally uses a fixed list of standard Windows and macOS default fonts, and if FontFaceSet API is available, filter this list
  * @param {function(string[])} onFontsListAvailable called back when list is available
@@ -539,21 +519,22 @@ var ImageTools = {};
  * @param {HTMLImageElement} image
  * @return {boolean} true if image has alpha channel
  */
-ImageTools.doesImageHaveAlpha = function(image) {
+ImageTools.isImageWithAlpha = function(image) {
   var canvas = document.createElement("canvas");
   var context = canvas.getContext("2d");
   canvas.width = image.width;
   canvas.height = image.height;
   context.drawImage(image, 0, 0, image.width, image.height);
-  return ImageTools.doesCanvasHaveAlpha(canvas, context);
+  return ImageTools.isCanvasWithAlpha(canvas, context);
 }
 
 /**
  * @param {HTMLCanvasElement} canvas
  * @param {CanvasRenderingContext2D} [context] given canvas context. If not provided, canvas.getContext("2d") will be used
  * @return {boolean} true if image has alpha channel
+ * @private
  */
-ImageTools.doesCanvasHaveAlpha = function(canvas, context) {
+ImageTools.isCanvasWithAlpha = function(canvas, context) {
   context = context ? context : canvas.getContext("2d");
   var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
   var hasAlphaPixels = false;
@@ -586,3 +567,4 @@ ImageTools.resize = function(image, targetWidth, targetHeight, onsuccess, imageT
     });
   resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
 }
+

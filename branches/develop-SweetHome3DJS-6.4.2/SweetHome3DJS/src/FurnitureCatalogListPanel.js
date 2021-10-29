@@ -61,13 +61,17 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   var searchInput = document.createElement("input");
   this.searchInput = searchInput;
   var filterChangeHandler = function() {
-      var valueToSearch = CoreTools.removeAccents(searchInput.value);
+      var valueToSearch = CoreTools.removeAccents(searchInput.value.trim());
       furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
-          if (valueToSearch == null || valueToSearch === "") {
+          if (valueToSearch == "") {
             return true;
+          } else {
+            var pieceDescriptor = piece.getName() + "|" + piece.getTags().join("|");
+            if (piece.getCreator() !== null) {
+              pieceDescriptor += "|" + piece.getCreator();
+            }
+            return RegExp(valueToSearch, "i").test(CoreTools.removeAccents(pieceDescriptor));
           }
-          var pieceDescriptor = CoreTools.removeAccents(piece.getName() + "|" + piece.getCreator() + "|" + piece.getTags().join("|"));
-          return RegExp(valueToSearch, "i").test(pieceDescriptor);
         });
     };
   categorySelector.id = "furniture-category-select";
@@ -90,7 +94,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   filteringDiv.appendChild(categorySelector);
   searchInput.setAttribute('type', 'text'); 
   searchInput.id = "furniture-search-field";
-  searchInput.placeholder = preferences.getLocalizedString("FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
+  searchInput.placeholder = ResourceAction.getLocalizedLabelText(preferences, "FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
   searchInput.addEventListener("input", filterChangeHandler);
   searchInput.addEventListener("mousemove", function(ev) { 
       furnitureCatalogListPanel.hideTooltip(); 
@@ -106,19 +110,27 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   searchInput.addEventListener("focusin", function(ev) {
       if (!searchInput.classList.contains("expanded")) {
         searchInput.classList.add("expanded");
-         setTimeout(function() { 
-              if (document.body.scrollTop == 0) {
-                // Device did not scroll automatically, so we have to force it to show the search field
-                window.scrollTo(0, furnitureCatalogListPanel.container.getBoundingClientRect().top); 
-                //var delta = window.innerHeight - document.body.getBoundingClientRect();
-                //window.scrollBy(0, -delta);
-              }
-            }, 100);
+        setTimeout(function() { 
+            if (searchInput.value != "") {
+              searchInput.select(); 
+            }
+            if (document.body.scrollTop == 0) {
+              // Device did not scroll automatically, so we have to force it to show the search field
+              window.scrollTo(0, furnitureCatalogListPanel.container.getBoundingClientRect().top); 
+              //var delta = window.innerHeight - document.body.getBoundingClientRect();
+              //window.scrollBy(0, -delta);
+            }
+          }, 100);
       }
     });
   searchInput.addEventListener("focusout", function(ev) {
       if (searchInput.classList.contains("expanded")) {
         searchInput.classList.remove("expanded");
+      }
+    });
+  searchInput.addEventListener("keydown", function(ev) {
+      if (ev.keyCode == 27) {
+        searchInput.value = "";
       }
     });
   filteringDiv.appendChild(searchInput);
@@ -167,7 +179,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   
   preferences.addPropertyChangeListener("LANGUAGE", function(ev) {
       var searchInput = document.getElementById("furniture-search-field");
-      searchInput.placeholder = preferences.getLocalizedString("FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
+      searchInput.placeholder = ResourceAction.getLocalizedLabelText(preferences, "FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
       var categorySelector = document.getElementById("furniture-category-select");
       var noCategory = preferences.getLocalizedString("FurnitureCatalogListPanel", "categoryFilterComboBox.noCategory");
       noCategoryOption.value = 
