@@ -952,8 +952,8 @@ JSPopupMenu.Builder.prototype.constructor = JSPopupMenu.Builder;
  * @param {function()} [onItemSelected]
  * @param {boolean} [checked]
  */
-JSPopupMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, checked) {
-  this.addNewItem(label, undefined, onItemSelected, checked === true, "checkbox");
+JSPopupMenu.Builder.prototype.addCheckBoxItem = function(label, onItemSelected, checked) {
+  this.addNewMenuItem(label, undefined, onItemSelected, checked === true, "checkbox");
 }
 
 /**
@@ -962,21 +962,21 @@ JSPopupMenu.Builder.prototype.addCheckItem = function(label, onItemSelected, che
  * @param {function()} [onItemSelected]
  * @param {boolean} [checked]
  */
-JSPopupMenu.Builder.prototype.addRadioItem = function(label, onItemSelected, checked) {
-  this.addNewItem(label, undefined, onItemSelected, checked === true, "radio");
+JSPopupMenu.Builder.prototype.addRadioButtonItem = function(label, onItemSelected, checked) {
+  this.addNewMenuItem(label, undefined, onItemSelected, checked === true, "radio");
 }
 
 /**
  * Adds an item to this menu using either a ResourceAction, or icon (optional), label & callback.
- * 1) builder.addItem(pane.getAction(MyPane.ActionType.MY_ACTION))
- * 2) builder.addItem('resources/icons/tango/media-skip-forward.png', "myitem", function() { console.log('my item clicked') })
- * 3) builder.addItem("myitem", function() { console.log('my item clicked') })
+ * 1) builder.addMenuItem(pane.getAction(MyPane.ActionType.MY_ACTION))
+ * 2) builder.addMenuItem('resources/icons/tango/media-skip-forward.png', "myitem", function() { console.log('my item clicked') })
+ * 3) builder.addMenuItem("myitem", function() { console.log('my item clicked') })
  * @param {ResourceAction|string} actionOrIconPathOrLabel
  * @param {string|function()} [onItemSelectedCallbackOrLabel]
  * @param {function()} [onItemSelectedCallback]
  * @return {JSPopupMenu.Builder}
  */
-JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
+JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
   var label = null;
   var iconPath = null;
   var onItemSelected = null;
@@ -1016,7 +1016,7 @@ JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItem
     onItemSelected = onItemSelectedCallbackOrLabel;
   }
 
-  this.addNewItem(label, iconPath, onItemSelected, selected, selected !== undefined ? "radio" : undefined);
+  this.addNewMenuItem(label, iconPath, onItemSelected, selected, selected !== undefined ? "radio" : undefined);
 
   return this;
 }
@@ -1027,8 +1027,9 @@ JSPopupMenu.Builder.prototype.addItem = function(actionOrIconPathOrLabel, onItem
  * @param {function() | undefined} [onItemSelected]
  * @param {boolean | undefined} [selected]
  * @param {"radio" | "checkbox" | undefined} [mode]
+ * @private
  */
-JSPopupMenu.Builder.prototype.addNewItem = function(label, iconPath, onItemSelected, selected, mode) {
+JSPopupMenu.Builder.prototype.addNewMenuItem = function(label, iconPath, onItemSelected, selected, mode) {
   this.items.push({
       uid: UUID.randomUUID(),
       label: label,
