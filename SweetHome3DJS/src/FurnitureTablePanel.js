@@ -522,6 +522,7 @@ FurnitureTablePanel.prototype.renderCreatorCell = function(piece, cell) {
       }
     }
   }
+  cell.textContent = creator;
 }
 
 /**

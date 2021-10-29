@@ -26,12 +26,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.NotEnoughSpaceRecorderException;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.UserPreferences;
@@ -164,7 +166,11 @@ public class HomeServerRecorder {
       try (DefaultHomeOutputStream output = new DefaultHomeOutputStream(byteArrayOutput,
               9, ContentRecording.INCLUDE_TEMPORARY_CONTENT,
               false, new HomeXMLExporter())) {
-        output.writeHome(new Home());
+        Home home = new Home();
+        home.setFurnitureVisibleProperties(Arrays.asList(
+            HomePieceOfFurniture.SortableProperty.NAME,
+            HomePieceOfFurniture.SortableProperty.VISIBLE));
+        output.writeHome(home);
       } catch (IOException ex) {
         throw new RecorderException("Couldn't generate content of an empty home", ex);
       }
