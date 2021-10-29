@@ -726,7 +726,7 @@ HomePane.prototype.addPlanControllerListener = function(planController) {
 HomePane.prototype.addActionToMenu = function(actionType, menuBuilder) {
   var action = this.getAction(actionType);
   if (action != null && action.getValue(AbstractAction.NAME) != null) {
-    menuBuilder.addItem(action);
+    menuBuilder.addMenuItem(action);
   }
 }
 
@@ -1042,13 +1042,13 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
                  * @param {string} sortableProperty
                  */
                 var addItem = function(type, sortableProperty) {
-                  var action = homePane.getAction(type);
-                  if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
-                    builder.addRadioItem(action.getValue(AbstractAction.NAME), function () {
-                      action.actionPerformed();
-                    }, sortableProperty == home.getFurnitureSortedProperty());
-                  }
-                }
+                    var action = homePane.getAction(type);
+                    if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+                      builder.addRadioButtonItem(action.getValue(AbstractAction.NAME), function () {
+                          action.actionPerformed();
+                        }, sortableProperty == home.getFurnitureSortedProperty());
+                    }
+                  };
       
                 addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
                 addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
@@ -1074,7 +1074,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
                 builder.addSeparator();
                 var descSortAction = homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
                 if (descSortAction && descSortAction.getValue(AbstractAction.NAME) && descSortAction.getValue(ResourceAction.VISIBLE)) {
-                  builder.addCheckItem(descSortAction.getValue(AbstractAction.NAME), function () {
+                  builder.addCheckBoxItem(descSortAction.getValue(AbstractAction.NAME), function () {
                       descSortAction.actionPerformed();
                     }, 
                     home.isFurnitureDescendingSorted());
@@ -1088,13 +1088,13 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
                  * @param {string} sortableProperty
                  */
                 var addItem = function(type, sortableProperty) {
-                  var action = homePane.getAction(type);
-                  if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
-                    builder.addCheckItem(action.getValue(AbstractAction.NAME), function(){
-                      action.actionPerformed();
-                    }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
-                  }
-                }
+                    var action = homePane.getAction(type);
+                    if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+                      builder.addCheckBoxItem(action.getValue(AbstractAction.NAME), function(){
+                          action.actionPerformed();
+                        }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
+                    }
+                  };
       
                 addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
                 addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
@@ -1188,7 +1188,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
             if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
               builder.addSubMenu(goToPointOfViewAction, function(builder) {
                   var cameraMenuItemBuilder = function(camera) {
-                      builder.addItem(camera.getName(),
+                      builder.addMenuItem(camera.getName(),
                           function() { 
                             controller.getHomeController3D().goToCamera(camera);
                           });
@@ -1274,7 +1274,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
               builder.addSubMenu(goToPointOfViewAction, 
                   function(builder) {
                     var cameraMenuItemBuilder = function(camera) {
-                        builder.addItem(camera.getName(),
+                        builder.addMenuItem(camera.getName(),
                             function() { 
                               controller.getHomeController3D().goToCamera(camera);
                             });
