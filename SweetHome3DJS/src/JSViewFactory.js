@@ -2996,7 +2996,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
             nullable: controller.getSlopingWallHeightAtEnd() == null,
             format: preferences.getLengthUnit().getFormat(),
             value: controller.getSlopingWallHeightAtEnd(),
-            min: minimumHeight,
+            minimum: minimumHeight,
             maximum: maximumLength,
             stepSize: preferences.getLengthUnit().getStepSize()
           });
@@ -3689,7 +3689,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
         nullable: controller.getThickness() == null,
         format: preferences.getLengthUnit().getFormat(),
         value: controller.getThickness(),
-        min: preferences.getLengthUnit().getMinimumLength(),
+        minimum: preferences.getLengthUnit().getMinimumLength(),
         maximum: 50,
         stepSize: preferences.getLengthUnit().getStepSize()
       });
