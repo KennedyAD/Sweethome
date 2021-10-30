@@ -630,7 +630,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
       }
       iconPanel.appendChild(icon);
     };
-    icon.src = "lib/" + stepIcon;
+    icon.src = ZIPTools.getScriptFolder() + "/" + stepIcon;
   }
 }
 
@@ -995,9 +995,9 @@ JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, on
 
     label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
 
-    var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
-    if (libIconPath != null) {
-      iconPath = "lib/" + libIconPath;
+    var icon = action.getValue(AbstractAction.SMALL_ICON);
+    if (icon != null) {
+      iconPath = ZIPTools.getScriptFolder() + "/" + icon;
     }
 
     if (action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP)) {
@@ -1050,10 +1050,10 @@ JSPopupMenu.Builder.prototype.addSubMenu = function(action, buildSubMenu) {
   // Do no show item if action is disabled
   if (action.isEnabled()) {
     var label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
-    var libIconPath = action.getValue(AbstractAction.SMALL_ICON);
+    var icon = action.getValue(AbstractAction.SMALL_ICON);
     var iconPath = null;
-    if (libIconPath != null) {
-      iconPath = "lib/" + libIconPath;
+    if (icon != null) {
+      iconPath = ZIPTools.getScriptFolder() + "/" + icon;
     }
   
     var subMenuBuilder = new JSPopupMenu.Builder();
