@@ -1454,7 +1454,7 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
   for (var i = 1; i <= this.getRecentHomesMaxCount(); i++) {
     var recentHome = this.getProperty(properties, RecordedUserPreferences.RECENT_HOMES + i);
     if (recentHome != null) {
-      recentHomes.add(recentHome);
+      recentHomes.push(recentHome);
     }
   }
   this.setRecentHomes(recentHomes);
@@ -1709,7 +1709,7 @@ RecordedUserPreferences.prototype.write = function() {
       // Wait blobs uploading end before trying to write preferences referencing them
       setTimeout(function() {
           preferences.write();
-        }, 500);
+        }, 1000);
     } else {
       this.writtenPropertiesUpdated = false;
       this.writePreferences(properties);
@@ -1878,20 +1878,23 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
           if (textureImage instanceof BlobURLContent) {
             var savedContent = textureImage.getSavedContent();
             if (savedContent === null) {
-              savedContent = this.uploadingBlobs[textureImage.getURL()];
-              if (savedContent === undefined) {
+              var textureImageFileName = this.uploadingBlobs[textureImage.getURL()];
+              if (textureImageFileName === undefined) {
                 var resourceId = UUID.randomUUID();
                 var imageExtension = textureImage.getBlob().type == "image/png" ? "png" : "jpg";
-                var textureImageFileName = resourceId + '.' + imageExtension;
-                savedContent = new URLContent(
-                    CoreTools.format(this.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
-                this.uploadingBlobs[textureImage.getURL()] = savedContent;
+                textureImageFileName = resourceId + '.' + imageExtension;
+                this.uploadingBlobs[textureImage.getURL()] = textureImageFileName;
               }
+              savedContent = new URLContent(
+                  CoreTools.format(this.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
               var errorListener = function(error) { 
                   // A new upload will be attempted later by the caller  
                 }; 
               var loadListener = function(textureImage, ev) {
-                  textureImage.setSavedContent(preferences.uploadingBlobs[textureImage.getURL()]);
+                  var textureImageFileName = preferences.uploadingBlobs[textureImage.getURL()];
+                  var savedContent = new URLContent(
+                      CoreTools.format(preferences.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
+                  textureImage.setSavedContent(savedContent);
                   delete preferences.uploadingBlobs[textureImage.getURL()];
                 };
               this.writeResource(textureImage, textureImageFileName, loadListener, errorListener);
