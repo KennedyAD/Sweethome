@@ -2188,6 +2188,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var verticalRotationLabel = this.getElement("vertical-rotation-label");
     var horizontalRotationLabel = this.getElement("horizontal-rotation-label");
     var furnitureOrientationImage = this.getElement("furniture-orientation-image");
+	furnitureOrientationImage.innerHTML = "<img src='" + ZIPTools.getScriptFolder() + "/resources/furnitureOrientation.png' />";
 
     // 1) Adjust visibility
     var angleDisplay = this.controller.isPropertyEditable("ANGLE_IN_DEGREES") || this.controller.isPropertyEditable("ANGLE") ? "initial" : "none";
@@ -3077,7 +3078,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
   initHeightPanel(dialog);
 
   dialog.getElement("wall-orientation-label").innerHTML = dialog.getLocalizedLabelText(
-      "WallPanel", "wallOrientationLabel.text", "lib/wallOrientation.png");
+      "WallPanel", "wallOrientationLabel.text", ZIPTools.getScriptFolder() + "/resources/wallOrientation.png");
 
   var setVisible = function(element, visible, parent) {
       if (element != null) {
