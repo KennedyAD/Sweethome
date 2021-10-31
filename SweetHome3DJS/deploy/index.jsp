@@ -478,7 +478,6 @@ body {
           </div>
 
           <div class="whole-line" data-name="furniture-orientation-image">
-            <img src="lib/resources/furnitureOrientation.png" />
           </div>
         </div>
       </div>
