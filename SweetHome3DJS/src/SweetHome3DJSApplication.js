@@ -374,7 +374,6 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   if (update !== null) {
     var serverErrorHandler = function(status, error) {
         recorder.rollbackUpdate(home, update, status, error);
-        // TODO define a retry delay?
         recorder.scheduleWrite(home, 10000);
       };
 
@@ -565,7 +564,10 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
     return null;
   }
   
-  this.homeData[home.editionId].ongoingUpdate = { 'home': home, 'id': UUID.randomUUID(), 'edits': this.queue.slice(0) };
+  this.homeData[home.editionId].ongoingUpdate = { 
+	  "home": home, 
+      "id": UUID.randomUUID(), 
+      "edits": this.queue.slice(0)};
   if (this.configuration !== undefined 
       && this.configuration.writingObserver 
       && this.configuration.writingObserver.writeStarted) {
@@ -766,11 +768,7 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
     if (this.params === undefined) {
       this.preferences = new DefaultUserPreferences();
     } else if (this.params.writePreferencesURL || this.params.readPreferencesURL) {
-      this.preferences = new RecordedUserPreferences(
-          this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
-          this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase,
-          this.params.writePreferencesURL, this.params.readPreferencesURL,
-          this.params.writeResourceURL, this.params.readResourceURL);
+      this.preferences = new RecordedUserPreferences(this.params);
     } else {
       this.preferences = new DefaultUserPreferences(
         this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
