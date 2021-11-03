@@ -496,6 +496,8 @@ function JSWizardDialog(preferences, controller, title, behavior) {
       '</div>',
       behavior);
 
+  this.getHTMLElement().classList.add("wizard-dialog");
+
   this.controller = controller;
   this.stepIconPanel = this.findElement("[stepIcon]");
   this.stepViewPanel = this.findElement("[stepView]");
@@ -622,14 +624,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     iconPanel.style.background = "linear-gradient(180deg, " + gradientColor1 + " 0%, " + gradientColor2 + " 100%)";
     iconPanel.style.border = "solid 1px #333333";
     var icon = new Image();
-    icon.onload = function() {
-      if (iconPanel.clientHeight > 0) {
-        icon.style.marginTop = ((iconPanel.clientHeight - icon.height) / 2) + "px";
-      } else {
-        icon.style.marginTop = '50%';
-      }
-      iconPanel.appendChild(icon);
-    };
+    iconPanel.appendChild(icon);
     icon.src = ZIPTools.getScriptFolder() + "/" + stepIcon;
   }
 }

@@ -961,6 +961,9 @@ label {
     width: 100%;
     box-shadow: none;
   }
+  .dialog-container.buttons-3 .mac button {
+    float: none;
+  }
   .dialog-container.visible.small .dialog-content {
     width: 80%;
   }
@@ -971,11 +974,15 @@ label {
     height: 115px;
     min-height: 115px;
     padding: 0;
+    display: flex;
+    flex-direction: column;
   }
   .dialog-container.buttons-3 .dialog-buttons button {
     display: block;
     width: auto;
     margin: 2px auto;
+    flex-grow: 1;
+    width: calc(100% - 1rem);
   }
 }
 
@@ -1037,19 +1044,33 @@ label {
 /*
  * Wizard dialogs
  */
+.wizard-dialog .dialog-body {
+  display: flex;
+  flex-direction: column;
+}
+
 .wizard {
   display: flex;
   flex-direction: row;
-  height: 30em;
+  flex-grow: 1;
+  min-height: 0;
 }
 
 .wizard [stepIcon] {
-  flex-shrink: 1;
+  flex: 1 1 auto;
+  min-width: 2rem;
   margin-right: 2em;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-@media (max-width: 800px) {
+.wizard [stepIcon] img {
+  max-width: 100%;
+  flex-grow: 1;
+  object-fit: contain;
+}
+
+@media (max-width: 1000px) {
   .wizard [stepIcon] {
     display: none;
   }
@@ -1100,10 +1121,10 @@ label {
   height: 16em;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1200px) {
   .imported-texture-wizard [attributesStep] [form] {
     grid-template-columns: 2.5fr 3fr;
-    margin: 0;
+    margin: 1em 0;
   }
   .imported-texture-wizard [attributesStep] [form] [preview] {
     grid-column: 1 / span 2;

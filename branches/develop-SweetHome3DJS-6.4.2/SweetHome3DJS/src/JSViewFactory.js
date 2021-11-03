@@ -87,7 +87,6 @@ JSViewFactory.prototype.createWizardView = function(preferences, controller) {
   return new JSWizardDialog(preferences, controller,  
       controller.getTitle() || "@{WizardPane.wizard.title}", 
       {
-        size: "medium",
       });
 }
 
