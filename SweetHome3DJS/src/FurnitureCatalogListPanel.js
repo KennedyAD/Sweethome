@@ -117,8 +117,6 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
             if (document.body.scrollTop == 0) {
               // Device did not scroll automatically, so we have to force it to show the search field
               window.scrollTo(0, furnitureCatalogListPanel.container.getBoundingClientRect().top); 
-              //var delta = window.innerHeight - document.body.getBoundingClientRect();
-              //window.scrollBy(0, -delta);
             }
           }, 100);
       }
