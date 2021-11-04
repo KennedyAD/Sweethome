@@ -804,9 +804,9 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
   var menuElement = document.createElement("ul");
   menuElement.classList.add("items");
   menuElement.style.zIndex = zIndex;
-  menuElement.oncontextmenu = function(ev) {
+  menuElement.addEventListener("contextmenu", function(ev) {
       ev.preventDefault();
-  };
+    });
 
   var backElement = document.createElement("li");
   backElement.classList.add("item");
