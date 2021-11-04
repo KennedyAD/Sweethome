@@ -1687,6 +1687,10 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
       } else {
         spinner.setStepSize(centimeterStepSize);
       }
+      spinner.setMinimum(controller.getUnit().getMinimumLength());
+      if (spinner.getMinimum() > spinner.getValue()) {
+        spinner.setValue(spinner.getMinimum());
+      }
       spinner.setFormat(controller.getUnit().getFormat());
     };
 
