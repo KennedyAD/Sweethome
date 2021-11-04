@@ -1574,7 +1574,7 @@ label {
 
 .texture-selector-dialog .texture-search {
   position: relative;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.4em;
 }
 
 .texture-selector-dialog .texture-search input {
@@ -1591,7 +1591,7 @@ label {
 
 .texture-selector-dialog .texture-catalog-list {
   overflow: auto;
-  height: 40em;
+  height: 27.9em;
   background-color: #FFFFFFFF;
   border: solid thin gray;
 }
@@ -1647,7 +1647,7 @@ label {
 .texture-selector-dialog .selected-texture-config {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  row-gap: 1em;
+  row-gap: .5em;
   column-gap: 0.2em;
 }
 
@@ -1664,7 +1664,7 @@ label {
 }
 
 .texture-selector-dialog .column2 hr {
-  margin: 2em 0;
+  margin: .5em 0;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -1683,7 +1683,7 @@ label {
   text-align: center;
   display: grid;
   grid-template-columns: max-content;
-  row-gap: 1em;
+  row-gap: .5em;
   column-gap: 0.2em;
   width: fit-content;
   margin: 0 auto;
@@ -1695,7 +1695,8 @@ label {
 
 
 .recent-textures {
-  margin-top: 1em;
+  margin-top: 0.2em;
+
   text-align: center;
   min-height: 2em;
 }
