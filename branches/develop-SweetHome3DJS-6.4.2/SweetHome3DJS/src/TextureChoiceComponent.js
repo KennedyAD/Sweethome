@@ -141,7 +141,8 @@ function JSTextureDialog(preferences, controller) {
     '  <div class="column1">' + 
     '    <div class="texture-search"><input type="text" /></div>' + 
     '    <div class="texture-catalog-list"></div>' + 
-    '  </div>' + 
+    '    <div class="recent-textures"></div>' +
+    '  </div>' +
     '  <div class="column2">' + 
     '    <div class="selected-texture-preview">' + 
     '      <div></div>' + 
@@ -163,8 +164,7 @@ function JSTextureDialog(preferences, controller) {
     '      <div><button disabled delete>@{TextureChoiceComponent.deleteTextureButton.text}</button></div>' +  
     '    </div>' +  
     '  </div>' + 
-    '</div>' +
-    '<div class="recent-textures"></div>';
+    '</div>';
 
   JSDialog.call(this, preferences, controller.getDialogTitle(), html, 
       {
