@@ -51,7 +51,24 @@ input {
 
 input, textarea, keygen, select, button {
   font-size: 0.9em;
-}  
+}
+
+button {
+  background-color: #FAFAFA;
+  border: solid 1px #DDDDDD;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #FFFFFF;
+}
+
+button:disabled {
+  background-color: rgba(150, 150, 150, .3);
+  border: solid 1px #999999;
+  cursor: not-allowed;
+}
 
 @media (hover: none), (pointer: coarse) {
   body {
