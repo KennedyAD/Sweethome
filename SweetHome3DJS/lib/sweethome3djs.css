@@ -966,15 +966,19 @@ label {
     width: 100%;
     box-shadow: none;
   }
-  .dialog-container.buttons-3 .mac button {
-    float: none;
-  }
+  
   .dialog-container.visible.small .dialog-content {
     width: 80%;
   }
+  
+  .dialog-container.buttons-3 .mac button {
+    float: none;
+  }
+  
   .dialog-container.buttons-3 .dialog-body {
     max-height: calc(100%/* max content height */ - 153px /* title and buttons */);
   }
+  
   .dialog-container.buttons-3 .dialog-buttons {
     height: 115px;
     min-height: 115px;
@@ -982,6 +986,7 @@ label {
     display: flex;
     flex-direction: column;
   }
+  
   .dialog-container.buttons-3 .dialog-buttons button {
     display: block;
     width: auto;
@@ -1062,20 +1067,18 @@ label {
 }
 
 .wizard [stepIcon] {
-  flex: 1 1 auto;
-  min-width: 2rem;
   margin-right: 2em;
   display: flex;
   flex-direction: column;
 }
 
 .wizard [stepIcon] img {
-  max-width: 100%;
+  width: 210px;
   flex-grow: 1;
   object-fit: contain;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 800px) {
   .wizard [stepIcon] {
     display: none;
   }
@@ -1591,7 +1594,7 @@ label {
 
 .texture-selector-dialog .texture-catalog-list {
   overflow: auto;
-  height: 27.9em;
+  height: 28em;
   background-color: #FFFFFFFF;
   border: solid thin gray;
 }
@@ -1664,7 +1667,7 @@ label {
 }
 
 .texture-selector-dialog .column2 hr {
-  margin: .5em 0;
+  margin: .75em 0;
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -1693,10 +1696,8 @@ label {
   width: 100%;
 }
 
-
 .recent-textures {
-  margin-top: 0.2em;
-
+  margin-top: 0.5em;
   text-align: center;
   min-height: 2em;
 }
@@ -1705,7 +1706,7 @@ label {
   border: solid 1px black;
   width: 1.6em;
   height: 1.6em;
-  margin: 0.2em;
+  margin: 0.1em;
   padding: 0;
   box-sizing: border-box;
   display: inline-block;
