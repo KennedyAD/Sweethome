@@ -1369,6 +1369,16 @@ HomePane.prototype.initSplitters = function() {
  * @private
  */
 HomePane.prototype.updateSplitters = function() {
+  var planView = this.controller.getPlanController().getView();
+  var view3D = this.controller.getHomeController3D().getView();
+  // plan 3D view splitter inverts its group depending on orientation
+  if (planView.getHTMLElement().getBoundingClientRect().top < view3D.getHTMLElement().getBoundingClientRect().top) {
+    this.plan3DViewSplitter.firstGroupElements = [planView.getHTMLElement()];
+    this.plan3DViewSplitter.secondGroupElements = [view3D.getHTMLElement()];
+  } else {
+    this.plan3DViewSplitter.secondGroupElements = [planView.getHTMLElement()];
+    this.plan3DViewSplitter.firstGroupElements = [view3D.getHTMLElement()];
+  }
   this.updateSplitter(this.plan3DViewSplitter);
   this.updateSplitter(this.furniturePlanSplitter);
   this.updateSplitter(this.catalogFurnitureSplitter);
