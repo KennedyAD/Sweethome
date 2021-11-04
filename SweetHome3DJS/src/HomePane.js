@@ -1470,7 +1470,7 @@ HomePane.prototype.updateSplitter = function(splitter) {
               + " - " + (splitter.remainingMargin ? splitter.remainingMargin : 0) + "px)";
         }
       },
-      mouseMoved: function(ev) {
+      mouseDragged: function(ev) {
         ev.stopImmediatePropagation();
         mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
         mouseListener.setSplitterPosition(mouseListener.currentPosition);
@@ -1482,18 +1482,18 @@ HomePane.prototype.updateSplitter = function(splitter) {
         ev.stopImmediatePropagation();
         mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
         splitter.element.classList.add("moving");
-        window.addEventListener("mousemove", mouseListener.mouseMoved, true);
-        window.addEventListener("touchmove", mouseListener.mouseMoved, true);
-        window.addEventListener("mouseup", mouseListener.mouseReleased, true);
-        window.addEventListener("touchend", mouseListener.mouseReleased, true);
+        window.addEventListener("mousemove", mouseListener.mouseDragged, true);
+        window.addEventListener("touchmove", mouseListener.mouseDragged, true);
+        window.addEventListener("mouseup", mouseListener.windowMouseReleased, true);
+        window.addEventListener("touchend", mouseListener.windowMouseReleased, true);
       },
-      mouseReleased: function(ev) {
+      windowMouseReleased: function(ev) {
         ev.stopImmediatePropagation();
         splitter.element.classList.remove("moving");
-        window.removeEventListener("mousemove", mouseListener.mouseMoved, true);
-        window.removeEventListener("touchmove", mouseListener.mouseMoved, true);
-        window.removeEventListener("mouseup", mouseListener.mouseReleased, true);
-        window.removeEventListener("touchend", mouseListener.mouseReleased, true);
+        window.removeEventListener("mousemove", mouseListener.mouseDragged, true);
+        window.removeEventListener("touchmove", mouseListener.mouseDragged, true);
+        window.removeEventListener("mouseup", mouseListener.windowMouseReleased, true);
+        window.removeEventListener("touchend", mouseListener.windowMouseReleased, true);
         homePane.controller.setHomeProperty(splitter.homePropertyName, mouseListener.currentPosition == null ? null : mouseListener.currentPosition.toString());
         if (splitter.resizeListener !== undefined) {
           splitter.resizeListener(mouseListener.currentPosition);
@@ -1748,6 +1748,7 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
         window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
       }
+      catalogView.getHTMLElement().addEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
     }
   } else {
     if (catalogView != null) {
@@ -1771,6 +1772,7 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
         window.removeEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         window.removeEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
       }
+      catalogView.getHTMLElement().removeEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
     }
   }
   this.transferHandlerEnabled = enabled;
@@ -1792,9 +1794,10 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
       draggedImage: null,
       pointerTouches: {},
       actionStartedInFurnitureCatalog: false,
-
+      contextMenuEventType: false,
       mousePressed: function(ev) {
-        if (ev.button === 0 || ev.targetTouches) {
+        if (!mouseListener.contextMenuEventType 
+            && (ev.button === 0 || ev.targetTouches)) {
           if (!ev.target.classList.contains("selected")) {
            return;
           }
@@ -1813,7 +1816,8 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
         }
       },
       mouseDragged: function(ev) {
-        if (mouseListener.actionStartedInFurnitureCatalog
+        if (!mouseListener.contextMenuEventType 
+            && mouseListener.actionStartedInFurnitureCatalog
             && ((ev.buttons & 1) == 1 || ev.targetTouches)
             && mouseListener.selectedPiece != null) {
           ev.preventDefault();
@@ -1917,12 +1921,16 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
         }
         return null;
       },
+      contextMenuDisplayed: function(ev) {
+        mouseListener.contextMenuEventType = true;
+      },
       windowMouseReleased: function(ev) {
-        if (mouseListener.actionStartedInFurnitureCatalog) {
-          if (mouseListener.draggedImage != null) {
-            document.body.removeChild(mouseListener.draggedImage);
-            mouseListener.draggedImage = null;
-          }
+        if (mouseListener.draggedImage != null) {
+          document.body.removeChild(mouseListener.draggedImage);
+          mouseListener.draggedImage = null;
+        }
+        if (!mouseListener.contextMenuEventType
+            && mouseListener.actionStartedInFurnitureCatalog) {
           if ((ev.button === 0 || ev.targetTouches) && mouseListener.selectedPiece != null) {
             ev.preventDefault();
             if (!mouseListener.escaped) {
@@ -1948,6 +1956,7 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
         }
         mouseListener.selectedPiece = null;
         mouseListener.actionStartedInFurnitureCatalog = false;
+        mouseListener.contextMenuEventType = false;
         delete homePane.inputMap ["ESCAPE"];
       },
       pointerPressed : function(ev) {
