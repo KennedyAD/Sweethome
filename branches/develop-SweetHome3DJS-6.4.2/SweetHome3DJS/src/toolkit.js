@@ -751,7 +751,7 @@ JSPopupMenu.closeCurrentIfAny = function() {
  * @private
  */
 JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
-  this.listenerUnregisterCallbacks = [];
+  this.menuItemListeners = [];
 
   var builder = new JSPopupMenu.Builder();
   this.build(builder, sourceElement);
@@ -904,15 +904,19 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
     itemElement.appendChild(subMenuElement);
   }
 
-  if (typeof item.onItemSelected == "function") {
+  if (typeof item.itemSelectedListener == "function") {
     var listener = function() {
-        item.onItemSelected();
         contextMenu.close();
+        setTimeout(function() {
+            item.itemSelectedListener();
+          }, 50);
       };
     itemElement.addEventListener("click", listener);
-    this.listenerUnregisterCallbacks.push(function() {
-      itemElement.removeEventListener("click", listener);
-    });
+    itemElement.addEventListener("mouseup", listener);
+    this.menuItemListeners.push(function() {
+        itemElement.removeEventListener("click", listener);
+        itemElement.removeEventListener("mouseup", listener);
+      });
   }
 }
 
@@ -923,13 +927,13 @@ JSPopupMenu.prototype.close = function() {
   this.getHTMLElement().classList.remove("visible");
   JSPopupMenu.current = null;
 
-  if (this.listenerUnregisterCallbacks) {
-    for (var i = 0; i < this.listenerUnregisterCallbacks.length; i++) {
-      this.listenerUnregisterCallbacks[i]();
+  if (this.menuItemListeners) {
+    for (var i = 0; i < this.menuItemListeners.length; i++) {
+      this.menuItemListeners[i]();
     }
   }
 
-  this.listenerUnregisterCallbacks = null;
+  this.menuItemListeners = null;
   this.getHTMLElement().innerHTML = "";
 }
 
@@ -938,7 +942,7 @@ JSPopupMenu.prototype.close = function() {
  * @ignore
  */
 JSPopupMenu.Builder = function() {
-  /** @type {{ uid?: string, label?: string, iconPath?: string, onItemSelected?: function(), subItems?: {}[] }[] } } */
+  /** @type {{ uid?: string, label?: string, iconPath?: string, itemSelectedListener?: function(), subItems?: {}[] }[] } } */
   this.items = [];
 }
 JSPopupMenu.Builder.prototype = Object.create(JSPopupMenu.Builder.prototype);
@@ -947,21 +951,21 @@ JSPopupMenu.Builder.prototype.constructor = JSPopupMenu.Builder;
 /**
  * Add a checkable item
  * @param {string} label
- * @param {function()} [onItemSelected]
+ * @param {function()} [itemSelectedListener]
  * @param {boolean} [checked]
  */
-JSPopupMenu.Builder.prototype.addCheckBoxItem = function(label, onItemSelected, checked) {
-  this.addNewMenuItem(label, undefined, onItemSelected, checked === true, "checkbox");
+JSPopupMenu.Builder.prototype.addCheckBoxItem = function(label, itemSelectedListener, checked) {
+  this.addNewMenuItem(label, undefined, itemSelectedListener, checked === true, "checkbox");
 }
 
 /**
  * Add a radio button item
  * @param {string} label
- * @param {function()} [onItemSelected]
+ * @param {function()} [itemSelectedListener]
  * @param {boolean} [checked]
  */
-JSPopupMenu.Builder.prototype.addRadioButtonItem = function(label, onItemSelected, checked) {
-  this.addNewMenuItem(label, undefined, onItemSelected, checked === true, "radio");
+JSPopupMenu.Builder.prototype.addRadioButtonItem = function(label, itemSelectedListener, checked) {
+  this.addNewMenuItem(label, undefined, itemSelectedListener, checked === true, "radiobutton");
 }
 
 /**
@@ -970,14 +974,14 @@ JSPopupMenu.Builder.prototype.addRadioButtonItem = function(label, onItemSelecte
  * 2) builder.addMenuItem('resources/icons/tango/media-skip-forward.png', "myitem", function() { console.log('my item clicked') })
  * 3) builder.addMenuItem("myitem", function() { console.log('my item clicked') })
  * @param {ResourceAction|string} actionOrIconPathOrLabel
- * @param {string|function()} [onItemSelectedCallbackOrLabel]
- * @param {function()} [onItemSelectedCallback]
+ * @param {string|function()} [itemSelectedListenerOrLabel]
+ * @param {function()} [itemSelectedListener]
  * @return {JSPopupMenu.Builder}
  */
-JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, onItemSelectedCallbackOrLabel, onItemSelectedCallback) {
+JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, itemSelectedListenerOrLabel, itemSelectedListener) {
   var label = null;
   var iconPath = null;
-  var onItemSelected = null;
+  var itemSelectedListener = null;
   // Defined only for a check action
   var checked = undefined;
   // Defined only for a toggle action
@@ -985,14 +989,12 @@ JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, on
 
   if (actionOrIconPathOrLabel instanceof ResourceAction) {
     var action = actionOrIconPathOrLabel;
-
     // Do no show item if action is disabled
     if (!action.isEnabled() || action.getValue(ResourceAction.VISIBLE) === false) {
       return this;
     }
 
     label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
-
     var icon = action.getValue(AbstractAction.SMALL_ICON);
     if (icon != null) {
       iconPath = ZIPTools.getScriptFolder() + "/" + icon;
@@ -1001,38 +1003,36 @@ JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, on
     if (action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP)) {
       selected = action.getValue(AbstractAction.SELECTED_KEY);
     }
-
-    onItemSelected = function() {
+    itemSelectedListener = function() {
         action.actionPerformed();
       };
-  } else if (typeof onItemSelectedCallback == "function") {
+  } else if (typeof itemSelectedListener == "function") {
     iconPath = actionOrIconPathOrLabel;
-    label = onItemSelectedCallbackOrLabel;
-    onItemSelected = onItemSelectedCallback;
+    label = itemSelectedListenerOrLabel;
+    itemSelectedListener = itemSelectedListener;
   } else {
     label = actionOrIconPathOrLabel;
-    onItemSelected = onItemSelectedCallbackOrLabel;
+    itemSelectedListener = itemSelectedListenerOrLabel;
   }
 
-  this.addNewMenuItem(label, iconPath, onItemSelected, selected, selected !== undefined ? "radio" : undefined);
-
+  this.addNewMenuItem(label, iconPath, itemSelectedListener, selected, selected !== undefined ? "radiobutton" : undefined);
   return this;
 }
 
 /**
  * @param {string} label
  * @param {string | undefined} [iconPath]
- * @param {function() | undefined} [onItemSelected]
+ * @param {function() | undefined} [itemSelectedListener]
  * @param {boolean | undefined} [selected]
- * @param {"radio" | "checkbox" | undefined} [mode]
+ * @param {"radiobutton" | "checkbox" | undefined} [mode]
  * @private
  */
-JSPopupMenu.Builder.prototype.addNewMenuItem = function(label, iconPath, onItemSelected, selected, mode) {
+JSPopupMenu.Builder.prototype.addNewMenuItem = function(label, iconPath, itemSelectedListener, selected, mode) {
   this.items.push({
       uid: UUID.randomUUID(),
       label: label,
       iconPath: iconPath,
-      onItemSelected: onItemSelected,
+      itemSelectedListener: itemSelectedListener,
       selected: selected,
       mode: mode
     });
