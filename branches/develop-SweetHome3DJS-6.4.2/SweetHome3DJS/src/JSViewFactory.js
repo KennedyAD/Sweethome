@@ -174,7 +174,11 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   }
   JSBackgroundImageWizardStepsView.prototype = Object.create(JSComponent.prototype);
   JSBackgroundImageWizardStepsView.prototype.constructor = JSBackgroundImageWizardStepsView;
-
+  
+  JSBackgroundImageWizardStepsView.prototype.buildHtmlFromTemplate = function(templateHtml) {
+    return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replaceAll("<br>", " ");
+  }
+  
   /**
    * @private
    */
@@ -803,10 +807,10 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.previewPanel = this.findElement("[preview]");
   
     if (texture == null) {
-      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceLabel.text");
+      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceLabel.text").replaceAll("<br>", " ");;
       this.changeImageButton.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceButton.text");
     } else {
-      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeLabel.text");
+      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeLabel.text").replaceAll("<br>", " ");;
       this.changeImageButton.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeButton.text");
     }
   
@@ -889,7 +893,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     }
   
     this.attributesStepPanelDescription.innerHTML = this.getLocalizedLabelText(
-        "ImportedTextureWizardStepsPanel", "attributesLabel.text").replace("<html>", "");
+        "ImportedTextureWizardStepsPanel", "attributesLabel.text").replaceAll("<br>", " ");
     this.registerPropertyChangeListener(controller, "NAME", function() {
         if (component.nameInput.value.trim() != controller.getName()) {
           component.nameInput.value = controller.getName();

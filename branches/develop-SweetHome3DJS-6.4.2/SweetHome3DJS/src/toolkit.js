@@ -654,7 +654,7 @@ function JSImageResizingDialog(preferences,
   JSDialog.call(this, preferences,
       JSComponent.substituteWithLocale(preferences, title),
       "<div>" +
-      JSComponent.substituteWithLocale(preferences, message) +
+      JSComponent.substituteWithLocale(preferences, message).replace("<br>", " ") +
       "</div>",
       {
         applier: function(dialog) {
