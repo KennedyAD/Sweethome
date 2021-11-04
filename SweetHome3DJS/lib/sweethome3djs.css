@@ -1889,6 +1889,7 @@ label {
   flex-direction: column;
   height: calc(100% - 1.8rem);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .tree-table [body] [row] {
@@ -1947,7 +1948,6 @@ label {
 
 #furniture-view {
   overflow: hidden;
-  z-index: 2;
 }
 
 #furniture-view > .tree-table {
