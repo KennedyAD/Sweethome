@@ -868,10 +868,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
 
   var itemLabelElement = document.createElement("span");
   itemLabelElement.textContent = JSComponent.substituteWithLocale(this.getUserPreferences(), item.label);
-
   itemElement.classList.add("item");
-  itemElement.dataset["uid"] = item.uid;
-
   itemIconElement.classList.add("icon");
   itemElement.appendChild(itemIconElement);
   itemElement.appendChild(itemLabelElement);
@@ -942,7 +939,7 @@ JSPopupMenu.prototype.close = function() {
  * @ignore
  */
 JSPopupMenu.Builder = function() {
-  /** @type {{ uid?: string, label?: string, iconPath?: string, itemSelectedListener?: function(), subItems?: {}[] }[] } } */
+  /** @type {{ label?: string, iconPath?: string, itemSelectedListener?: function(), subItems?: {}[] }[] } } */
   this.items = [];
 }
 JSPopupMenu.Builder.prototype = Object.create(JSPopupMenu.Builder.prototype);
@@ -1029,7 +1026,6 @@ JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, it
  */
 JSPopupMenu.Builder.prototype.addNewMenuItem = function(label, iconPath, itemSelectedListener, selected, mode) {
   this.items.push({
-      uid: UUID.randomUUID(),
       label: label,
       iconPath: iconPath,
       itemSelectedListener: itemSelectedListener,
@@ -1059,7 +1055,6 @@ JSPopupMenu.Builder.prototype.addSubMenu = function(action, buildSubMenu) {
     var subItems = subMenuBuilder.items;
     if (subItems.length > 0) {
       this.items.push({
-          uid: UUID.randomUUID(),
           label: label,
           iconPath: iconPath,
           subItems: subItems

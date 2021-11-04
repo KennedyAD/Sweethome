@@ -792,6 +792,9 @@ label {
   flex-direction: column;
 }
 
+.dialog-content hr {
+  margin: .25em 0;
+}
 
 .dialog-container.closing  {
   opacity: 0;
@@ -1041,7 +1044,7 @@ label {
   cursor: pointer;
 }
 
-.dialog-body :not(.spinner) > input:not([type="radio"]):not([type="checkbox"]) {
+.dialog-body :not(.spinner) > input:not([type="radio"]):not([type="checkbox"]):not([type="range"]) {
   width: 12em;
   margin: 0;
 }
@@ -1819,10 +1822,6 @@ label {
 
 .model-materials-selector-dialog label input {
   margin-right: 0.5em;
-}
-
-.dialog-body input[type="range"] {
-  width: 100%;
 }
 
 .slider-labels {
