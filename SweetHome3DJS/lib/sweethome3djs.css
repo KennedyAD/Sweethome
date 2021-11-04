@@ -1057,6 +1057,8 @@ label {
 .wizard-dialog .dialog-body {
   display: flex;
   flex-direction: column;
+  min-height: 400px; 
+  height: -webkit-fill-available;
 }
 
 .wizard {
