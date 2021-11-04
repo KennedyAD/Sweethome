@@ -346,6 +346,7 @@ HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
       window.removeEventListener("mousemove", this.userActionsListener.windowMouseMoved);
       window.removeEventListener("mouseup", this.userActionsListener.windowMouseReleased);
     }
+    canvas3D.getHTMLElement().removeEventListener("contextmenu", userActionsListener.contextMenuDisplayed);
     canvas3D.getHTMLElement().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
     canvas3D.getHTMLElement().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
   }
@@ -799,8 +800,10 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       pointerTouches : {},
       distanceLastPinch : -1,
       actionStartedInComponent3D : false,
+      contextMenuEventType: false,
       mousePressed : function(ev) {
-        if (!userActionsListener.touchEventType) {
+        if (!userActionsListener.touchEventType
+            && !userActionsListener.contextMenuEventType) {
           userActionsListener.xLastMove = ev.clientX;
           userActionsListener.yLastMove = ev.clientY;
           userActionsListener.buttonPressed  = ev.button;
@@ -809,18 +812,19 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         }
       },
       windowMouseMoved : function(ev) {
-        if (userActionsListener.actionStartedInComponent3D) {
+        if (userActionsListener.actionStartedInComponent3D
+            && !userActionsListener.contextMenuEventType) {
           userActionsListener.moved(ev.clientX, ev.clientY, ev.altKey, ev.shiftKey);
         }
       },
       windowMouseReleased : function(ev) {
-        if (!userActionsListener.touchEventType) {
+        if (!userActionsListener.touchEventType
+            && !userActionsListener.contextMenuEventType) {
           userActionsListener.buttonPressed = -1;
-          if (userActionsListener.actionStartedInComponent3D) {
-            delete userActionsListener.actionStartedInComponent3D;
-          }
-          userActionsListener.touchEventType = false;
         }
+        userActionsListener.touchEventType = false;
+        userActionsListener.contextMenuEventType = false;
+        userActionsListener.actionStartedInComponent3D = false;
       },
       pointerPressed : function(ev) {
         if (ev.pointerType == "mouse") {
@@ -851,6 +855,9 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
           delete userActionsListener.pointerTouches [ev.pointerId];
           userActionsListener.touchEnded(ev);
         }
+      },
+      contextMenuDisplayed : function(ev) {
+        userActionsListener.contextMenuEventType = true;
       },
       touchStarted : function(ev) {
         // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
@@ -971,6 +978,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
     window.addEventListener("mousemove", userActionsListener.windowMouseMoved);
     window.addEventListener("mouseup", userActionsListener.windowMouseReleased);
   }
+  canvas3D.getHTMLElement().addEventListener("contextmenu", userActionsListener.contextMenuDisplayed);
   canvas3D.getHTMLElement().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
   canvas3D.getHTMLElement().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
 

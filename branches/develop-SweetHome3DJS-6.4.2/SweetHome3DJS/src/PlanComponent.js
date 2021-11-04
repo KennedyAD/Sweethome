@@ -1009,8 +1009,10 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       longTouch: null,
       longTouchWhenDragged: false,
       actionStartedInPlanComponent: false,
+      contextMenuEventType: false,
       mousePressed: function(ev) {
-        if (!mouseListener.touchEventType 
+        if (!mouseListener.touchEventType
+            && !mouseListener.contextMenuEventType
             && plan.isEnabled() && ev.button === 0) {
           mouseListener.updateCoordinates(ev, "mousePressed");
           mouseListener.autoScroll = null;
@@ -1048,7 +1050,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         mouseListener.mousePressed(ev);
       },
       windowMouseMoved: function(ev) {
-        if (!mouseListener.touchEventType) {
+        if (!mouseListener.touchEventType
+            && !mouseListener.contextMenuEventType) {
           mouseListener.updateCoordinates(ev, "mouseMoved");
           // Handle autoscroll
           if (mouseListener.lastPointerLocation != null) {
@@ -1101,14 +1104,20 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             
             if (mouseListener.actionStartedInPlanComponent 
                 && plan.isEnabled() && ev.button === 0) {
-              mouseListener.updateCoordinates(ev, "mouseReleased");
-              controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+              if (mouseListener.contextMenuEventType) {
+                controller.releaseMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), 
+                    plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
+              } else {
+                mouseListener.updateCoordinates(ev, "mouseReleased");
+                controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+              }
             }
             mouseListener.initialPointerLocation = null;
             mouseListener.lastPointerLocation = null;
             mouseListener.actionStartedInPlanComponent = false;
           }
         } 
+        mouseListener.contextMenuEventType = false;
       },
       pointerPressed : function(ev) {
         if (ev.pointerType == "mouse") {
@@ -1141,6 +1150,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.copyPointerToTargetTouches(ev, true);
           mouseListener.touchEnded(ev);
         }
+      },
+      contextMenuDisplayed : function(ev) {
+        mouseListener.contextMenuEventType = true;
       },
       touchStarted: function(ev) {
         // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
@@ -1500,6 +1512,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
     window.addEventListener("mousemove", mouseListener.windowMouseMoved);
     window.addEventListener("mouseup", mouseListener.windowMouseReleased);
   }
+  this.canvas.addEventListener("contextmenu", mouseListener.contextMenuDisplayed);
   this.canvas.addEventListener("mousewheel", mouseListener.mouseWheelMoved);
   
   this.mouseListener = mouseListener;
