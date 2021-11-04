@@ -536,6 +536,7 @@ label {
   position: relative;
   text-align: right;
   height: 1.5rem;
+  width: 8rem;
 }
 
 .spinner input[type="text"] {
@@ -1194,9 +1195,9 @@ label {
   column-gap: 0.2em;
 }
 
-.home-furniture-dialog [data-name="location-panel"] input:not([type="checkbox"]), 
-.home-furniture-dialog [data-name="size-panel"] input:not([type="checkbox"]), 
-.home-furniture-dialog [data-name="orientation-panel"] input:not([type="checkbox"]):not([type="radio"]) {
+.home-furniture-dialog [data-name="location-panel"] :not(.spinner) input:not([type="checkbox"]),
+.home-furniture-dialog [data-name="size-panel"] :not(.spinner) input:not([type="checkbox"]),
+.home-furniture-dialog [data-name="orientation-panel"] :not(.spinner) input:not([type="checkbox"]):not([type="radio"]) {
   width: 100%;
 }
 
