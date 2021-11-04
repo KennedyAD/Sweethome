@@ -1309,17 +1309,17 @@ HomePane.prototype.initSplitters = function() {
   var planView = controller.getPlanController().getView();
   var view3D = controller.getHomeController3D().getView();
   
-  var furniturePlanSplitter = document.getElementById("furniture-plan-splitter");
-  var plan3DViewSplitter = document.getElementById("plan-3D-view-splitter");
-  var catalogFurnitureSplitter = document.getElementById("catalog-furniture-splitter");
+  var furniturePlanSplitterElement = document.getElementById("furniture-plan-splitter");
+  var plan3DViewSplitterElement = document.getElementById("plan-3D-view-splitter");
+  var catalogFurnitureSplitterElement = document.getElementById("catalog-furniture-splitter");
 
   this.furniturePlanSplitter = {
-      element: furniturePlanSplitter,
+      element: furniturePlanSplitterElement,
       homePropertyName: HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
       firstGroupElements: [document.getElementById("catalog-furniture-pane")],
-      secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitter, view3D.getHTMLElement()],
+      secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitterElement, view3D.getHTMLElement()],
       isDisplayed: function() {
-        return furniturePlanSplitter && furniturePlanSplitter.clientWidth > 0;
+        return furniturePlanSplitterElement && furniturePlanSplitterElement.clientWidth > 0;
       },
       resizeListener: function(splitterPosition) {
         if (furnitureView != null) {
@@ -1330,32 +1330,37 @@ HomePane.prototype.initSplitters = function() {
         planView.revalidate();
         view3D.revalidate();
       }
-  };
+    };
 
   this.plan3DViewSplitter = {
-      element: plan3DViewSplitter,
+      element: plan3DViewSplitterElement,
       homePropertyName: HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
       firstGroupElements: [planView.getHTMLElement()],
       secondGroupElements: [view3D.getHTMLElement()],
+      remainingMargin: window.getComputedStyle(furniturePlanSplitterElement).display == "none"
+          ? 0
+          : (plan3DViewSplitterElement.clientWidth > plan3DViewSplitterElement.clientHeight
+              ? window.innerHeight - furniturePlanSplitterElement.getBoundingClientRect().top - furniturePlanSplitterElement.clientHeight
+              : window.innerWidth - furniturePlanSplitterElement.getBoundingClientRect().left - furniturePlanSplitterElement.clientWidth), 
       isDisplayed: function() {
-        return plan3DViewSplitter && plan3DViewSplitter.clientWidth > 0 && planView != null && view3D != null;
+        return plan3DViewSplitterElement && plan3DViewSplitterElement.clientWidth > 0 && planView != null && view3D != null;
       },
       resizeListener: function(splitterPosition) {
         // Refresh 2D/3D plan views on resize
         planView.revalidate();
         view3D.revalidate();
       }
-  };
+    };
 
   this.catalogFurnitureSplitter = {
-      element: catalogFurnitureSplitter,
+      element: catalogFurnitureSplitterElement,
       homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
       firstGroupElements: [catalogView.getHTMLElement()],
       secondGroupElements: [furnitureView.getHTMLElement()],
       isDisplayed: function() {
-        return catalogFurnitureSplitter && catalogFurnitureSplitter.clientWidth > 0 && catalogView != null && furnitureView != null;
+        return catalogFurnitureSplitterElement && catalogFurnitureSplitterElement.clientWidth > 0 && catalogView != null && furnitureView != null;
       }
-  };
+    };
 
   this.updateSplitters();
 }
@@ -1459,7 +1464,10 @@ HomePane.prototype.updateSplitter = function(splitter) {
         // Elements in second groups move & grow / shrink
         for (var i = 0; i < splitter.secondGroupElements.length; i++) {
           splitter.secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitter.element[dimensionProperty]) + "px";
-          splitter.secondGroupElements[i].style[dimensionStyleProperty] = "calc(100% - " + relativePosition + "px - " + splitter.element[dimensionProperty] + "px)";
+          splitter.secondGroupElements[i].style[dimensionStyleProperty] = "calc(100%" 
+              + " - " + relativePosition + "px" 
+              +	" - " + splitter.element[dimensionProperty] + "px"
+              + " - " + (splitter.remainingMargin ? splitter.remainingMargin : 0) + "px)";
         }
       },
       mouseMoved: function(ev) {
