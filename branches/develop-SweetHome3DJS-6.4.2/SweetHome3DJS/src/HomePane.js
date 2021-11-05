@@ -1316,16 +1316,12 @@ HomePane.prototype.initSplitters = function() {
   this.furniturePlanSplitter = {
       element: furniturePlanSplitterElement,
       homePropertyName: HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-      firstGroupElements: [document.getElementById("catalog-furniture-pane")],
-      secondGroupElements: [planView.getHTMLElement(), plan3DViewSplitterElement, view3D.getHTMLElement()],
+      firstGroupElement: document.getElementById("catalog-furniture-pane"),
+      secondGroupElement: document.getElementById("plan-3D-view-pane"),
       isDisplayed: function() {
         return furniturePlanSplitterElement && furniturePlanSplitterElement.clientWidth > 0;
       },
       resizeListener: function(splitterPosition) {
-        if (furnitureView != null) {
-          // Keep furniture view width at 100%
-          furnitureView.getHTMLElement().style.width = "100%";
-        }
         // Refresh 2D/3D plan views on resize
         planView.revalidate();
         view3D.revalidate();
@@ -1335,13 +1331,8 @@ HomePane.prototype.initSplitters = function() {
   this.plan3DViewSplitter = {
       element: plan3DViewSplitterElement,
       homePropertyName: HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-      firstGroupElements: [planView.getHTMLElement()],
-      secondGroupElements: [view3D.getHTMLElement()],
-      remainingMargin: window.getComputedStyle(furniturePlanSplitterElement).display == "none"
-          ? 0
-          : (plan3DViewSplitterElement.clientWidth > plan3DViewSplitterElement.clientHeight
-              ? window.innerHeight - furniturePlanSplitterElement.getBoundingClientRect().top - furniturePlanSplitterElement.clientHeight
-              : window.innerWidth - furniturePlanSplitterElement.getBoundingClientRect().left - furniturePlanSplitterElement.clientWidth), 
+      firstGroupElement: planView.getHTMLElement(),
+      secondGroupElement: view3D.getHTMLElement(),
       isDisplayed: function() {
         return plan3DViewSplitterElement && plan3DViewSplitterElement.clientWidth > 0 && planView != null && view3D != null;
       },
@@ -1355,8 +1346,8 @@ HomePane.prototype.initSplitters = function() {
   this.catalogFurnitureSplitter = {
       element: catalogFurnitureSplitterElement,
       homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-      firstGroupElements: [catalogView.getHTMLElement()],
-      secondGroupElements: [furnitureView.getHTMLElement()],
+      firstGroupElement: catalogView.getHTMLElement(),
+      secondGroupElement: furnitureView.getHTMLElement(),
       isDisplayed: function() {
         return catalogFurnitureSplitterElement && catalogFurnitureSplitterElement.clientWidth > 0 && catalogView != null && furnitureView != null;
       }
@@ -1371,13 +1362,15 @@ HomePane.prototype.initSplitters = function() {
 HomePane.prototype.updateSplitters = function() {
   var planView = this.controller.getPlanController().getView();
   var view3D = this.controller.getHomeController3D().getView();
-  // plan 3D view splitter inverts its group depending on orientation
-  if (planView.getHTMLElement().getBoundingClientRect().top < view3D.getHTMLElement().getBoundingClientRect().top) {
-    this.plan3DViewSplitter.firstGroupElements = [planView.getHTMLElement()];
-    this.plan3DViewSplitter.secondGroupElements = [view3D.getHTMLElement()];
+  var catalogView = this.controller.getFurnitureCatalogController().getView();
+  // Plan 3D view splitter inverts its group depending on orientation
+  if (catalogView !== null 
+      && catalogView.getHTMLElement().getBoundingClientRect().top > view3D.getHTMLElement().getBoundingClientRect().top + 10) {
+    this.plan3DViewSplitter.firstGroupElement = view3D.getHTMLElement();
+    this.plan3DViewSplitter.secondGroupElement = planView.getHTMLElement();
   } else {
-    this.plan3DViewSplitter.secondGroupElements = [planView.getHTMLElement()];
-    this.plan3DViewSplitter.firstGroupElements = [view3D.getHTMLElement()];
+    this.plan3DViewSplitter.firstGroupElement = planView.getHTMLElement();
+    this.plan3DViewSplitter.secondGroupElement = view3D.getHTMLElement();
   }
   this.updateSplitter(this.plan3DViewSplitter);
   this.updateSplitter(this.furniturePlanSplitter);
@@ -1389,8 +1382,8 @@ HomePane.prototype.updateSplitters = function() {
  * @param {{
  *   element: HTMLElement,
  *   homePropertyName: string,
- *   firstGroupElements: HTMLElement[],
- *   secondGroupElements: HTMLElement[],
+ *   firstGroupElement: HTMLElement,
+ *   secondGroupElement: HTMLElement,
  *   isDisplayed: function(): boolean,
  *   resizeListener?: function(splitterPosition: number)
  * }} splitter
@@ -1401,18 +1394,14 @@ HomePane.prototype.updateSplitter = function(splitter) {
   splitter.element.style.display = '';
   splitter.element.style.top = '';
   splitter.element.style.left = '';
-  for (var i = 0; i < splitter.firstGroupElements.length; i++) {
-    splitter.firstGroupElements[i].style.left = '';
-    splitter.firstGroupElements[i].style.top = '';
-    splitter.firstGroupElements[i].style.width = '';
-    splitter.firstGroupElements[i].style.height = '';
-  }
-  for (var i = 0; i < splitter.secondGroupElements.length; i++) {
-    splitter.secondGroupElements[i].style.left = '';
-    splitter.secondGroupElements[i].style.top = '';
-    splitter.secondGroupElements[i].style.width = '';
-    splitter.secondGroupElements[i].style.height = '';
-  }
+  splitter.firstGroupElement.style.left = '';
+  splitter.firstGroupElement.style.top = '';
+  splitter.firstGroupElement.style.width = '';
+  splitter.firstGroupElement.style.height = '';
+  splitter.secondGroupElement.style.left = '';
+  splitter.secondGroupElement.style.top = '';
+  splitter.secondGroupElement.style.width = '';
+  splitter.secondGroupElement.style.height = '';
 
   var displayed = splitter.isDisplayed();
   if (displayed) {
@@ -1438,15 +1427,14 @@ HomePane.prototype.updateSplitter = function(splitter) {
   }
 
   var initialSplitterPosition = this.home.getNumericProperty(splitter.homePropertyName);
-
   var positionStyleProperty = horizontal ? "top" : "left";
   var dimensionStyleProperty = horizontal ? "height" : "width";
   var dimensionProperty = horizontal ? "clientHeight" : "clientWidth";
   var pointerPositionProperty = horizontal ? "clientY" : "clientX";
-  var offsetParent = splitter.firstGroupElements[0].offsetParent;
+  var offsetParent = splitter.firstGroupElement.offsetParent;
   var offsetProperty = horizontal ? "offsetTop" : "offsetLeft";
   var offsetTopFirst = offsetParent == document.body 
-      ? splitter.firstGroupElements[0][offsetProperty] - offsetParent[offsetProperty] 
+      ? splitter.firstGroupElement[offsetProperty] - offsetParent[offsetProperty] 
       : 0;
   var homePane = this;
 
@@ -1461,24 +1449,17 @@ HomePane.prototype.updateSplitter = function(splitter) {
         if (relativePosition < offsetTopFirst) {
           relativePosition = offsetTopFirst;
         }
-        // Prevent from moving splitter beyond limit (farther than offsetParent) 
+        // Prevent from moving splitter beyond limit (farther than parents width or height) 
         if (relativePosition > offsetParent[dimensionProperty] - splitter.element[dimensionProperty]) {
           relativePosition = offsetParent[dimensionProperty] - splitter.element[dimensionProperty];
         }
         // Elements in first groups grow or shrink
-        for (var i = 0; i < splitter.firstGroupElements.length; i++) {
-          splitter.firstGroupElements[i].style[dimensionStyleProperty] = (relativePosition - offsetTopFirst) + "px";
-        }
+        splitter.firstGroupElement.style[dimensionStyleProperty] = (relativePosition - offsetTopFirst) + "px";
         // Splitter moves to new mouse position
         splitter.element.style[positionStyleProperty] = relativePosition + "px";
         // Elements in second groups move & grow / shrink
-        for (var i = 0; i < splitter.secondGroupElements.length; i++) {
-          splitter.secondGroupElements[i].style[positionStyleProperty] = (relativePosition + splitter.element[dimensionProperty]) + "px";
-          splitter.secondGroupElements[i].style[dimensionStyleProperty] = "calc(100%" 
-              + " - " + relativePosition + "px" 
-              +	" - " + splitter.element[dimensionProperty] + "px"
-              + " - " + (splitter.remainingMargin ? splitter.remainingMargin : 0) + "px)";
-        }
+        splitter.secondGroupElement.style[positionStyleProperty] = (relativePosition + splitter.element[dimensionProperty]) + "px";
+        splitter.secondGroupElement.style[dimensionStyleProperty] = "calc(100% - " + (relativePosition + splitter.element[dimensionProperty]) + "px)";
       },
       mouseDragged: function(ev) {
         ev.stopImmediatePropagation();
@@ -1510,10 +1491,11 @@ HomePane.prototype.updateSplitter = function(splitter) {
         }
       },
       windowResized: function(ev) {
-        if (offsetParent[offsetProperty] + splitter.element[offsetProperty] + splitter.element[dimensionProperty]
-             > document.documentElement[dimensionProperty]) {
-          mouseListener.setSplitterPosition(document.documentElement[dimensionProperty] - splitter.element[dimensionProperty] - offsetParent[offsetProperty]);
-        }
+        var splitterPosition = window.getComputedStyle(splitter.element)[positionStyleProperty];
+        splitterPosition = splitterPosition.substring(0, splitterPosition.length - 2);
+        if (splitterPosition > offsetParent[dimensionProperty] - splitter.element[dimensionProperty]) {
+          mouseListener.setSplitterPosition(offsetParent[dimensionProperty] - splitter.element[dimensionProperty]);
+        } 
       }
     };
 
