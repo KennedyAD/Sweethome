@@ -995,222 +995,223 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
   var ActionType = HomeView.ActionType;
   var homePane = this;
   
-  // Catalog view popup menu
-  var catalogView = this.controller.getFurnitureCatalogController().getView();
-  if (catalogView != null) {
-    new JSPopupMenu(this.preferences, catalogView.getHTMLElement(), 
-        function(builder) {
-          homePane.addActionToMenu(ActionType.ADD_HOME_FURNITURE, builder);
-          homePane.addActionToMenu(ActionType.ADD_FURNITURE_TO_GROUP, builder);
-        });
-  }
-
-  var furnitureView = this.controller.getFurnitureController().getView();
-  // Furniture view popup menu
-  if (furnitureView != null) {
-    new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), 
-        function(builder) {
-          homePane.addActionToMenu(ActionType.CUT, builder);
-          homePane.addActionToMenu(ActionType.COPY, builder);
-          homePane.addActionToMenu(ActionType.PASTE, builder);
-          homePane.addActionToMenu(ActionType.PASTE_TO_GROUP, builder);
-          homePane.addActionToMenu(ActionType.PASTE_STYLE, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
-          homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
-          homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), 
-              function(builder) {
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
-                homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
-                homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
-                homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
-              });
-          homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
-          builder.addSeparator();
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.SORT_HOME_FURNITURE_MENU), 
-              function(builder) {
-                /**
-                 * @param {HomeView.ActionType} type
-                 * @param {string} sortableProperty
-                 */
-                var addItem = function(type, sortableProperty) {
-                    var action = homePane.getAction(type);
-                    if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
-                      builder.addRadioButtonItem(action.getValue(AbstractAction.NAME), function () {
-                          action.actionPerformed();
-                        }, sortableProperty == home.getFurnitureSortedProperty());
-                    }
-                  };
-      
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, "CREATOR");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, "WIDTH");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, "DEPTH");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, "HEIGHT");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_X, "X");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, "Y");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, "ELEVATION");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, "ANGLE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, "LEVEL");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, "MODEL_SIZE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, "COLOR");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, "TEXTURE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, "MOVABLE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, "DOOR_OR_WINDOW");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, "VISIBLE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, "PRICE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
-                addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
-                builder.addSeparator();
-                var descSortAction = homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
-                if (descSortAction && descSortAction.getValue(AbstractAction.NAME) && descSortAction.getValue(ResourceAction.VISIBLE)) {
-                  builder.addCheckBoxItem(descSortAction.getValue(AbstractAction.NAME), function () {
-                      descSortAction.actionPerformed();
-                    }, 
-                    home.isFurnitureDescendingSorted());
-                }
-              });
+  if (this.showApplicationMenuButton == null
+      || !window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+    // Catalog view popup menu
+    var catalogView = this.controller.getFurnitureCatalogController().getView();
+    if (catalogView != null) {
+      new JSPopupMenu(this.preferences, catalogView.getHTMLElement(), 
+          function(builder) {
+            homePane.addActionToMenu(ActionType.ADD_HOME_FURNITURE, builder);
+            homePane.addActionToMenu(ActionType.ADD_FURNITURE_TO_GROUP, builder);
+          });
+    }
   
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU), 
-              function(builder) {
-                /**
-                 * @param {HomeView.ActionType} type
-                 * @param {string} sortableProperty
-                 */
-                var addItem = function(type, sortableProperty) {
-                    var action = homePane.getAction(type);
-                    if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
-                      builder.addCheckBoxItem(action.getValue(AbstractAction.NAME), function(){
-                          action.actionPerformed();
-                        }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
-                    }
-                  };
-      
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, "CREATOR");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, "WIDTH");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, "DEPTH");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, "HEIGHT");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_X, "X");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, "Y");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, "ELEVATION");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, "ANGLE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, "LEVEL");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, "MODEL_SIZE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, "COLOR");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, "TEXTURE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, "MOVABLE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, "DOOR_OR_WINDOW");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, "VISIBLE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, "PRICE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
-                addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
-              });
-        });
-  }
-
-  // Plan view popup menu
-  var planView = this.controller.getPlanController().getView();
-  if (planView != null) {
-    new JSPopupMenu(this.preferences, planView.getHTMLElement(),
-        function(builder) {
-          homePane.addActionToMenu(ActionType.UNDO, builder);
-          homePane.addActionToMenu(ActionType.REDO, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
-          homePane.addActionToMenu(ActionType.CUT, builder);
-          homePane.addActionToMenu(ActionType.COPY, builder);
-          homePane.addActionToMenu(ActionType.PASTE, builder);
-          homePane.addActionToMenu(ActionType.PASTE_STYLE, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.SELECT_ALL, builder);
-          homePane.addActionToMenu(ActionType.SELECT_ALL_AT_ALL_LEVELS, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
-          homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
-          homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
-          homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.MODIFY_COMPASS, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_WALL, builder);
-          homePane.addActionToMenu(ActionType.JOIN_WALLS, builder);
-          homePane.addActionToMenu(ActionType.REVERSE_WALL_DIRECTION, builder);
-          homePane.addActionToMenu(ActionType.SPLIT_WALL, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_ROOM, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_POLYLINE, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_LABEL, builder);
-          builder.addSeparator();
-          builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.MODIFY_TEXT_STYLE), function(builder) {
-              homePane.addActionToMenu(ActionType.INCREASE_TEXT_SIZE, builder);
-              homePane.addActionToMenu(ActionType.DECREASE_TEXT_SIZE, builder);
-              homePane.addActionToMenu(ActionType.TOGGLE_BOLD_STYLE, builder);
-              homePane.addActionToMenu(ActionType.TOGGLE_ITALIC_STYLE, builder);
-            });
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.IMPORT_BACKGROUND_IMAGE, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_BACKGROUND_IMAGE, builder);
-          homePane.addActionToMenu(ActionType.HIDE_BACKGROUND_IMAGE, builder);
-          homePane.addActionToMenu(ActionType.SHOW_BACKGROUND_IMAGE, builder);
-          homePane.addActionToMenu(ActionType.DELETE_BACKGROUND_IMAGE, builder);
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.ADD_LEVEL, builder);
-          homePane.addActionToMenu(ActionType.ADD_LEVEL_AT_SAME_ELEVATION, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_LEVEL, builder);
-          homePane.addActionToMenu(ActionType.DELETE_LEVEL, builder);
-        });
-  }
-
-  // 3D view popup menu
-  var view3D = this.controller.getHomeController3D().getView();
-  if (view3D != null) {
-    var controller = this.controller;
-    new JSPopupMenu(this.preferences, view3D.getHTMLElement(), 
-        function(builder) {
-          homePane.addActionToMenu(ActionType.VIEW_FROM_TOP, builder);
-          homePane.addActionToMenu(ActionType.VIEW_FROM_OBSERVER, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_OBSERVER, builder);
-          homePane.addActionToMenu(ActionType.STORE_POINT_OF_VIEW, builder);
-          var storedCameras = home.getStoredCameras();
-          if (storedCameras.length > 0) {
-            var goToPointOfViewAction = homePane.getMenuAction(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
-            if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
-              builder.addSubMenu(goToPointOfViewAction, function(builder) {
-                  var cameraMenuItemBuilder = function(camera) {
-                      builder.addMenuItem(camera.getName(),
-                          function() { 
-                            controller.getHomeController3D().goToCamera(camera);
-                          });
+    var furnitureView = this.controller.getFurnitureController().getView();
+    // Furniture view popup menu
+    if (furnitureView != null) {
+      new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), 
+          function(builder) {
+            homePane.addActionToMenu(ActionType.CUT, builder);
+            homePane.addActionToMenu(ActionType.COPY, builder);
+            homePane.addActionToMenu(ActionType.PASTE, builder);
+            homePane.addActionToMenu(ActionType.PASTE_TO_GROUP, builder);
+            homePane.addActionToMenu(ActionType.PASTE_STYLE, builder);
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
+            homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
+            homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
+            builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.ALIGN_OR_DISTRIBUTE_MENU), 
+                function(builder) {
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_TOP, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BOTTOM, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_FRONT_SIDE, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_BACK_SIDE, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_LEFT_SIDE, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_ON_RIGHT_SIDE, builder);
+                  homePane.addActionToMenu(ActionType.ALIGN_FURNITURE_SIDE_BY_SIDE, builder);
+                  homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_HORIZONTALLY, builder);
+                  homePane.addActionToMenu(ActionType.DISTRIBUTE_FURNITURE_VERTICALLY, builder);
+                });
+            homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
+            builder.addSeparator();
+            builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.SORT_HOME_FURNITURE_MENU), 
+                function(builder) {
+                  /**
+                   * @param {HomeView.ActionType} type
+                   * @param {string} sortableProperty
+                   */
+                  var addItem = function(type, sortableProperty) {
+                      var action = homePane.getAction(type);
+                      if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+                        builder.addRadioButtonItem(action.getValue(AbstractAction.NAME), function () {
+                            action.actionPerformed();
+                          }, sortableProperty == home.getFurnitureSortedProperty());
+                      }
                     };
-                  var storedCameras = home.getStoredCameras();
-                  for (var i = 0; i < storedCameras.length; i++) {
-                    cameraMenuItemBuilder(storedCameras[i]);
+        
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, "CREATOR");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, "WIDTH");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, "DEPTH");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, "HEIGHT");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_X, "X");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_Y, "Y");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_ELEVATION, "ELEVATION");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_ANGLE, "ANGLE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_LEVEL, "LEVEL");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_MODEL_SIZE, "MODEL_SIZE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_COLOR, "COLOR");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_TEXTURE, "TEXTURE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_MOVABILITY, "MOVABLE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_TYPE, "DOOR_OR_WINDOW");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_VISIBILITY, "VISIBLE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE, "PRICE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
+                  addItem(ActionType.SORT_HOME_FURNITURE_BY_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
+                  builder.addSeparator();
+                  var descSortAction = homePane.getAction(ActionType.SORT_HOME_FURNITURE_BY_DESCENDING_ORDER);
+                  if (descSortAction && descSortAction.getValue(AbstractAction.NAME) && descSortAction.getValue(ResourceAction.VISIBLE)) {
+                    builder.addCheckBoxItem(descSortAction.getValue(AbstractAction.NAME), function () {
+                        descSortAction.actionPerformed();
+                      }, 
+                      home.isFurnitureDescendingSorted());
                   }
                 });
+    
+            builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.DISPLAY_HOME_FURNITURE_PROPERTY_MENU), 
+                function(builder) {
+                  /**
+                   * @param {HomeView.ActionType} type
+                   * @param {string} sortableProperty
+                   */
+                  var addItem = function(type, sortableProperty) {
+                      var action = homePane.getAction(type);
+                      if (action && action.getValue(AbstractAction.NAME) && action.getValue(ResourceAction.VISIBLE)) {
+                        builder.addCheckBoxItem(action.getValue(AbstractAction.NAME), function(){
+                            action.actionPerformed();
+                          }, home.getFurnitureVisibleProperties().indexOf(sortableProperty) > -1);
+                      }
+                    };
+        
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, "CREATOR");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, "WIDTH");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, "DEPTH");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, "HEIGHT");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_X, "X");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_Y, "Y");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_ELEVATION, "ELEVATION");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_ANGLE, "ANGLE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_LEVEL, "LEVEL");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_MODEL_SIZE, "MODEL_SIZE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_COLOR, "COLOR");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_TEXTURE, "TEXTURE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_MOVABLE, "MOVABLE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_DOOR_OR_WINDOW, "DOOR_OR_WINDOW");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_VISIBLE, "VISIBLE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE, "PRICE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX_PERCENTAGE, "VALUE_ADDED_TAX_PERCENTAGE");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_VALUE_ADDED_TAX, "VALUE_ADDED_TAX");
+                  addItem(ActionType.DISPLAY_HOME_FURNITURE_PRICE_VALUE_ADDED_TAX_INCLUDED, "PRICE_VALUE_ADDED_TAX_INCLUDED");
+                });
+          });
+    }
+  
+    // Plan view popup menu
+    var planView = this.controller.getPlanController().getView();
+    if (planView != null) {
+      new JSPopupMenu(this.preferences, planView.getHTMLElement(),
+          function(builder) {
+            homePane.addActionToMenu(ActionType.UNDO, builder);
+            homePane.addActionToMenu(ActionType.REDO, builder);
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
+            homePane.addActionToMenu(ActionType.CUT, builder);
+            homePane.addActionToMenu(ActionType.COPY, builder);
+            homePane.addActionToMenu(ActionType.PASTE, builder);
+            homePane.addActionToMenu(ActionType.PASTE_STYLE, builder);
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.SELECT_ALL, builder);
+            homePane.addActionToMenu(ActionType.SELECT_ALL_AT_ALL_LEVELS, builder);
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.MODIFY_FURNITURE, builder);
+            homePane.addActionToMenu(ActionType.GROUP_FURNITURE, builder);
+            homePane.addActionToMenu(ActionType.UNGROUP_FURNITURE, builder);
+            homePane.addActionToMenu(ActionType.RESET_FURNITURE_ELEVATION, builder);
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.MODIFY_COMPASS, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_WALL, builder);
+            homePane.addActionToMenu(ActionType.JOIN_WALLS, builder);
+            homePane.addActionToMenu(ActionType.REVERSE_WALL_DIRECTION, builder);
+            homePane.addActionToMenu(ActionType.SPLIT_WALL, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_ROOM, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_POLYLINE, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_LABEL, builder);
+            builder.addSeparator();
+            builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.MODIFY_TEXT_STYLE), function(builder) {
+                homePane.addActionToMenu(ActionType.INCREASE_TEXT_SIZE, builder);
+                homePane.addActionToMenu(ActionType.DECREASE_TEXT_SIZE, builder);
+                homePane.addActionToMenu(ActionType.TOGGLE_BOLD_STYLE, builder);
+                homePane.addActionToMenu(ActionType.TOGGLE_ITALIC_STYLE, builder);
+              });
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.IMPORT_BACKGROUND_IMAGE, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_BACKGROUND_IMAGE, builder);
+            homePane.addActionToMenu(ActionType.HIDE_BACKGROUND_IMAGE, builder);
+            homePane.addActionToMenu(ActionType.SHOW_BACKGROUND_IMAGE, builder);
+            homePane.addActionToMenu(ActionType.DELETE_BACKGROUND_IMAGE, builder);
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.ADD_LEVEL, builder);
+            homePane.addActionToMenu(ActionType.ADD_LEVEL_AT_SAME_ELEVATION, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_LEVEL, builder);
+            homePane.addActionToMenu(ActionType.DELETE_LEVEL, builder);
+          });
+    }
+  
+    // 3D view popup menu
+    var view3D = this.controller.getHomeController3D().getView();
+    if (view3D != null) {
+      var controller = this.controller;
+      new JSPopupMenu(this.preferences, view3D.getHTMLElement(), 
+          function(builder) {
+            homePane.addActionToMenu(ActionType.VIEW_FROM_TOP, builder);
+            homePane.addActionToMenu(ActionType.VIEW_FROM_OBSERVER, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_OBSERVER, builder);
+            homePane.addActionToMenu(ActionType.STORE_POINT_OF_VIEW, builder);
+            var storedCameras = home.getStoredCameras();
+            if (storedCameras.length > 0) {
+              var goToPointOfViewAction = homePane.getMenuAction(HomePane.MenuActionType.GO_TO_POINT_OF_VIEW);
+              if (goToPointOfViewAction.getValue(AbstractAction.NAME) != null) {
+                builder.addSubMenu(goToPointOfViewAction, function(builder) {
+                    var cameraMenuItemBuilder = function(camera) {
+                        builder.addMenuItem(camera.getName(),
+                            function() { 
+                              controller.getHomeController3D().goToCamera(camera);
+                            });
+                      };
+                    var storedCameras = home.getStoredCameras();
+                    for (var i = 0; i < storedCameras.length; i++) {
+                      cameraMenuItemBuilder(storedCameras[i]);
+                    }
+                  });
+              }
+              homePane.addActionToMenu(ActionType.DELETE_POINTS_OF_VIEW, builder);
             }
-            homePane.addActionToMenu(ActionType.DELETE_POINTS_OF_VIEW, builder);
-          }
-  
-          builder.addSeparator();
-          homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
-          homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
-          homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
-        });
-  }
-  
-  // Menu button popup menu
-  if (this.showApplicationMenuButton != null) {
+    
+            builder.addSeparator();
+            homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
+            homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
+          });
+    }
+  } else {
+    // Menu button popup menu
     new JSPopupMenu(this.preferences, this.showApplicationMenuButton, 
         function(builder) {
           homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
@@ -1279,21 +1280,21 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
                               controller.getHomeController3D().goToCamera(camera);
                             });
                       };
-                    var storedCameras = home.getStoredCameras();
-                    for (var i = 0; i < storedCameras.length; i++) {
-                      cameraMenuItemBuilder(storedCameras[i]);
-                    }
-                  });
+                var storedCameras = home.getStoredCameras();
+                for (var i = 0; i < storedCameras.length; i++) {
+                  cameraMenuItemBuilder(storedCameras[i]);
+                }
+              });
             }
             homePane.addActionToMenu(ActionType.DELETE_POINTS_OF_VIEW, builder);
           }
-  
+          
           builder.addSeparator();
           homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
           homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
           homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
         });
-  }
+  } 
 }
 
 /**
