@@ -1159,6 +1159,13 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         // but track touch event types to avoid them to be managed also for mousedown and dblclick events
         mouseListener.touchEventType = ev.pointerType === undefined;
         if (plan.isEnabled()) {
+          // Prevent default behavior to ensure a second touchstart event will be received 
+          // for double taps under iOS >= 15
+          ev.preventDefault(); 
+          if (document.activeElement != plan.container) {
+            // Request focus explicitly since default behavior is disabled
+            plan.container.focus();
+          } 
           mouseListener.updateCoordinates(ev, "touchStarted");
           mouseListener.autoScroll = null;
           if (mouseListener.longTouch != null) {

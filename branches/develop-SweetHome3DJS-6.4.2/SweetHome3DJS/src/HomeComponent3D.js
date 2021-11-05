@@ -860,8 +860,12 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
         userActionsListener.contextMenuEventType = true;
       },
       touchStarted : function(ev) {
-        // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
-        // but track touch event types to avoid them to be managed also for mousedown and dblclick events
+        // Prevent default behavior to avoid local zooming under iOS >= 15
+        ev.preventDefault(); 
+        if (document.activeElement != component3D.canvas3D.getHTMLElement()) {
+          // Request focus explicitly since default behavior is disabled
+          component3D.canvas3D.getHTMLElement().focus();
+        }
         userActionsListener.touchEventType = ev.pointerType === undefined;
         this.actionStartedInComponent3D = true;
         if (ev.targetTouches.length == 1) {
