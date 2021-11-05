@@ -1471,6 +1471,7 @@ HomePane.prototype.updateSplitter = function(splitter) {
         }
       },
       mousePressed: function(ev) {
+        ev.preventDefault();
         ev.stopImmediatePropagation();
         mouseListener.currentPosition = mouseListener.getSplitterPosition(ev);
         splitter.element.classList.add("moving");
