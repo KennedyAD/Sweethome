@@ -484,6 +484,9 @@
     <unzip src="tools/yuicompressor.zip" dest="tools" />
     <delete file="tools/yuicompressor.zip" />
     <move file="tools/yuicompressor-2.4.8" tofile="tools/yuicompressor" />
+  	<!-- Update javac source and target versions to be able to compile project with Java 11 -->
+  	<replace file="tools/yuicompressor/build.xml" token='source="1.5"' value='source="1.8"' />
+  	<replace file="tools/yuicompressor/build.xml" token='target="1.5"' value='target="1.8"' />
     <ant dir="tools/yuicompressor" />
   </target>
 
