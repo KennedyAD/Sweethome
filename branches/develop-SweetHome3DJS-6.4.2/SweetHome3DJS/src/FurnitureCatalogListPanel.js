@@ -129,6 +129,9 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   searchInput.addEventListener("keydown", function(ev) {
       if (ev.keyCode == 27) {
         searchInput.value = "";
+        var ev = document.createEvent("Event");
+        ev.initEvent("input", true, true);
+        searchInput.dispatchEvent(ev);
       }
     });
   filteringDiv.appendChild(searchInput);
