@@ -3077,10 +3077,10 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         if (parent) {
           element = element.parentElement;
         }
-        element.style.display = visible ? "block" : "none";
-        element.previousElementSibling.style.display = visible ? "block" : "none";
+        element.style.display = visible ? "" : "none";
+        element.previousElementSibling.style.display = visible ? "" : "none";
         if (parent) {
-          element.nextElementSibling.style.display = visible ? "block" : "none";
+          element.nextElementSibling.style.display = visible ? "" : "none";
         }
       }
     };
