@@ -2641,10 +2641,9 @@ testHome();
 <script type="text/javascript">
 // If set to not null value, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var backendURLBase = document.location.origin;
-// var backendURLBase = 'http://localhost:8080';
-var backendURLBase = null;
-var useServer = backendURLBase != null;
+var backendURLBase = 'http://localhost:8080';
+var useServer = false;
+var skipTests = window.location.search.indexOf("skipTests=true") >= 0;
 
 var application = useServer
     ? new SweetHome3DJSApplication(
@@ -2678,16 +2677,6 @@ var application = useServer
           })
     : new SweetHome3DJSApplication();
 var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
-
-var queryString = window.location.search.substr(1);
-var queryStringPairs = queryString.split("&");
-var skipTests = false;
-for (var i = 0; i < queryStringPairs.length; i++) {
-  var pair = queryStringPairs[i].split("=");
-  if (pair[0].trim() == 'skipTests' && pair[1].trim() == 'true') {
-    skipTests = true;
-  }
-}
 
 // Read and display test file 
 // TODO Should be performed in HomeController.open
