@@ -139,7 +139,7 @@ function JSColorChooser(preferences, targetNode) {
       '<div class="picker"></div>' +
       '<hr />' +
       '<div class="custom-color-editor">' +
-      '  <input type="text" value="FFFFFF" />' +
+      '  <input class="not-focusable-at-opening" type="text" value="FFFFFF" />' +
       '  <div class="preview"></div><div class="preview current-color"></div>' +
       '</div>' +
       '<div class="recent-colors"></div>';
