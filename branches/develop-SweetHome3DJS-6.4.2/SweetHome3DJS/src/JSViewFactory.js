@@ -101,7 +101,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         "imageChoiceError"));
   }
 
-  function JSBackgroundImageWizardStepsView() {
+  function BackgroundImageWizardStepsView() {
     JSComponent.call(this, preferences,
         '<div choiceStep>' +
         '  <div description>@{BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>' +
@@ -172,17 +172,17 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
 
     this.updateImage(backgroundImage);
   }
-  JSBackgroundImageWizardStepsView.prototype = Object.create(JSComponent.prototype);
-  JSBackgroundImageWizardStepsView.prototype.constructor = JSBackgroundImageWizardStepsView;
+  BackgroundImageWizardStepsView.prototype = Object.create(JSComponent.prototype);
+  BackgroundImageWizardStepsView.prototype.constructor = BackgroundImageWizardStepsView;
   
-  JSBackgroundImageWizardStepsView.prototype.buildHtmlFromTemplate = function(templateHtml) {
-    return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replaceAll("<br>", " ");
-  }
+  BackgroundImageWizardStepsView.prototype.buildHtmlFromTemplate = function(templateHtml) {
+      return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replaceAll("<br>", " ");
+    }
   
   /**
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.initImageChoiceStep = function () {
+  BackgroundImageWizardStepsView.prototype.initImageChoiceStep = function () {
     var component = this;
     component.imageChoiceStep = {
         panel: component.findElement("[choiceStep]"),
@@ -217,7 +217,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.initScaleStep = function () {
+  BackgroundImageWizardStepsView.prototype.initScaleStep = function () {
     var component = this;
     var unitName = preferences.getLengthUnit().getName();
     var maximumLength = preferences.getLengthUnit().getMaximumLength();
@@ -362,7 +362,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.repaintScaleCanvas = function () {
+  BackgroundImageWizardStepsView.prototype.repaintScaleCanvas = function () {
     var canvas = this.scaleStep.preview;
     var g2D = new Graphics2D(canvas);
     g2D.fillRect(0, 0, canvas.width, canvas.height);
@@ -403,7 +403,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.initOriginStep = function () {
+  BackgroundImageWizardStepsView.prototype.initOriginStep = function () {
     var component = this;
     var unitName = preferences.getLengthUnit().getName();
     var maximumLength = preferences.getLengthUnit().getMaximumLength();
@@ -501,7 +501,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.repaintOriginCanvas = function () {
+  BackgroundImageWizardStepsView.prototype.repaintOriginCanvas = function () {
     var canvas = this.originStep.preview;
     var g2D = new Graphics2D(canvas);
     g2D.fillRect(0, 0, canvas.width, canvas.height);
@@ -538,7 +538,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
    * @param {"newImage"|"changeImage"} mode
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.setImageChoicePanelLabels = function (mode) {
+  BackgroundImageWizardStepsView.prototype.setImageChoicePanelLabels = function (mode) {
     if (mode == "changeImage") {
       this.imageChoiceStep.description.innerHTML = this.getLocalizedLabelText(
           "BackgroundImageWizardStepsPanel", "imageChangeLabel.text");
@@ -556,7 +556,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
    * @param {BackgroundImage} backgroundImage
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.updateImage = function (backgroundImage) {
+  BackgroundImageWizardStepsView.prototype.updateImage = function (backgroundImage) {
     if (backgroundImage == null) {
       this.setImageChoicePanelLabels("newImage");
       this.updateImagePreviews();
@@ -581,7 +581,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
    * @param {HTMLImageElement?} image
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.updateController = function(image) {
+  BackgroundImageWizardStepsView.prototype.updateController = function(image) {
     var view = this;
     var controller = this.controller;
 
@@ -628,7 +628,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
    * @param {function(HTMLImageElement)} imageReady function called after resize with resized image (or with original image if resize was not necessary or declined by user)
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.checkImageSize = function (image, imageType, imageReady) {
+  BackgroundImageWizardStepsView.prototype.checkImageSize = function (image, imageType, imageReady) {
     if (image.width * image.height < LARGE_IMAGE_PIXEL_COUNT_THRESHOLD) {
       imageReady(image);
     } else {
@@ -661,7 +661,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * @private
    */
-  JSBackgroundImageWizardStepsView.prototype.updateImagePreviews = function() {
+  BackgroundImageWizardStepsView.prototype.updateImagePreviews = function() {
     var component = this;
     var image = this.controller.getImage();
 
@@ -694,7 +694,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * Changes displayed view based on current step.
    */
-  JSBackgroundImageWizardStepsView.prototype.updateStep = function() {
+  BackgroundImageWizardStepsView.prototype.updateStep = function() {
     var step = this.controller.getStep();
     switch (step) {
       case BackgroundImageWizardController.Step.CHOICE:
@@ -715,7 +715,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     }
   };
 
-  return new JSBackgroundImageWizardStepsView();
+  return new BackgroundImageWizardStepsView();
 }
 
 JSViewFactory.prototype.createImportedFurnitureWizardStepsView = function(piece, modelName, importHomePiece, preferences, importedFurnitureWizardController) {
@@ -1909,7 +1909,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
  * @param {HomeFurnitureController} controller
  */
 JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controller) {
-  function JSHomeFurnitureDialog() {
+  function HomeFurnitureDialog() {
     this.controller = controller;
     
     JSDialog.call(this, preferences, 
@@ -1951,13 +1951,13 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       this.updatePaintRadioButtons();
     }
   }
-  JSHomeFurnitureDialog.prototype = Object.create(JSDialog.prototype);
-  JSHomeFurnitureDialog.prototype.constructor = JSHomeFurnitureDialog;
+  HomeFurnitureDialog.prototype = Object.create(JSDialog.prototype);
+  HomeFurnitureDialog.prototype.constructor = HomeFurnitureDialog;
 
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.initNameAndPricePanel = function() {
+  HomeFurnitureDialog.prototype.initNameAndPricePanel = function() {
     var title = this.getElement("name-and-price-title");
     title.textContent = this.getLocalizedLabelText(
         "HomeFurniturePanel", controller.isPropertyEditable("PRICE") ? "nameAndPricePanel.title" : "namePanel.title");
@@ -2053,7 +2053,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.initLocationPanel = function() {
+  HomeFurnitureDialog.prototype.initLocationPanel = function() {
     var xLabel = this.getElement("x-label");
     var xInput = new JSSpinner(this.preferences, this.getElement("x-input"), 
         {
@@ -2163,7 +2163,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.initOrientationPanel = function() {
+  HomeFurnitureDialog.prototype.initOrientationPanel = function() {
     var controller = this.controller;
 
     var angleLabel = this.getElement("angle-label");
@@ -2311,7 +2311,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.initPaintPanel = function() {
+  HomeFurnitureDialog.prototype.initPaintPanel = function() {
     var dialog = this;
     var controller = this.controller;
     var preferences = this.preferences;
@@ -2375,7 +2375,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.updatePaintRadioButtons = function() {
+  HomeFurnitureDialog.prototype.updatePaintRadioButtons = function() {
     var dialog = this;
     var controller = this.controller;
     var colorAndTextureRadioButtons = dialog.paintPanel.colorAndTextureRadioButtons;
@@ -2395,7 +2395,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.initSizePanel = function() {
+  HomeFurnitureDialog.prototype.initSizePanel = function() {
     var dialog = this;
     var controller = this.controller;
   
@@ -2514,7 +2514,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.updateSizeComponents = function() {
+  HomeFurnitureDialog.prototype.updateSizeComponents = function() {
     var editableSize = this.controller.isResizable();
     this.sizePanel.widthLabel.disabled = !editableSize;
     this.sizePanel.widthInput.disabled = !editableSize;
@@ -2528,7 +2528,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.initShininessPanel = function() {
+  HomeFurnitureDialog.prototype.initShininessPanel = function() {
     var controller = this.controller;
     var dialog = this;
 
@@ -2564,7 +2564,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
   /**
    * @private
    */
-  JSHomeFurnitureDialog.prototype.updateShininessRadioButtons = function() {
+  HomeFurnitureDialog.prototype.updateShininessRadioButtons = function() {
     var controller = this.controller;
 
     if (controller.isPropertyEditable("SHININESS")) {
@@ -2591,7 +2591,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     }
   };
 
-  return new JSHomeFurnitureDialog();
+  return new HomeFurnitureDialog();
 }
 
 JSViewFactory.prototype.createWallView = function(preferences, controller) {
@@ -3892,7 +3892,7 @@ JSViewFactory.prototype.createLabelView = function(modification, preferences, co
  * @return {JSCompassDialogView}
  */
 JSViewFactory.prototype.createCompassView = function(preferences, controller) {
-  function JSCompassDialogView() {
+  function CompassDialog() {
     this.controller = controller;
 
     JSDialog.call(this, preferences,
@@ -3908,13 +3908,13 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
     this.initRosePanel();
     this.initGeographicLocationPanel();
   }
-  JSCompassDialogView.prototype = Object.create(JSDialog.prototype);
-  JSCompassDialogView.prototype.constructor = JSCompassDialogView;
+  CompassDialog.prototype = Object.create(JSDialog.prototype);
+  CompassDialog.prototype.constructor = CompassDialog;
 
   /**
    * @private
    */
-  JSCompassDialogView.prototype.initRosePanel = function() {
+  CompassDialog.prototype.initRosePanel = function() {
       var preferences = this.preferences;
       var controller = this.controller;
   
@@ -3992,7 +3992,7 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
   /**
    * @private
    */
-  JSCompassDialogView.prototype.initGeographicLocationPanel = function() {
+  CompassDialog.prototype.initGeographicLocationPanel = function() {
       var preferences = this.preferences;
       var controller = this.controller;
   
@@ -4077,11 +4077,11 @@ JSViewFactory.prototype.createCompassView = function(preferences, controller) {
       updatePreview();
     };
 
-  return new JSCompassDialogView();
+  return new CompassDialog();
 }
 
 JSViewFactory.prototype.createObserverCameraView = function(preferences, controller) {
-  function JSObserverCameraDialogView() {
+  function ObserverCameraDialog() {
     this.controller = controller;
 
     JSDialog.call(this, preferences,
@@ -4107,13 +4107,13 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
         adjustObserverCameraElevationCheckBox.checked = controller.isElevationAdjusted();
       });
   }
-  JSObserverCameraDialogView.prototype = Object.create(JSDialog.prototype);
-  JSObserverCameraDialogView.prototype.constructor = JSObserverCameraDialogView;
+  ObserverCameraDialog.prototype = Object.create(JSDialog.prototype);
+  ObserverCameraDialog.prototype.constructor = ObserverCameraDialog;
 
   /**
    * @private
    */
-  JSObserverCameraDialogView.prototype.initLocationPanel = function() {
+  ObserverCameraDialog.prototype.initLocationPanel = function() {
     var maximumLength = 5E5;
     var xLabel = this.getElement("x-label");
     var xInput = new JSSpinner(this.preferences, this.getElement("x-input"), 
@@ -4181,7 +4181,7 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
   /**
    * @private
    */
-  JSObserverCameraDialogView.prototype.initAnglesPanel = function() {
+  ObserverCameraDialog.prototype.initAnglesPanel = function() {
     var angleDecimalFormat = new DecimalFormat("0.#");
     var yawInput = new JSSpinner(this.preferences, this.getElement("yaw-input"), 
         {
@@ -4233,11 +4233,11 @@ JSViewFactory.prototype.createObserverCameraView = function(preferences, control
       });
   };
 
-  return new JSObserverCameraDialogView();
+  return new ObserverCameraDialog();
 }
 
 JSViewFactory.prototype.createHome3DAttributesView = function(preferences, controller) {
-  function JSHome3DAttributesDialogView() {
+  function Home3DAttributesDialog() {
     this.controller = controller;
 
     JSDialog.call(this, preferences,
@@ -4261,13 +4261,13 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
     this.initSkyPanel();
     this.initRenderingPanel();
   }
-  JSHome3DAttributesDialogView.prototype = Object.create(JSDialog.prototype);
-  JSHome3DAttributesDialogView.prototype.constructor = JSHome3DAttributesDialogView;
+  Home3DAttributesDialog.prototype = Object.create(JSDialog.prototype);
+  Home3DAttributesDialog.prototype.constructor = Home3DAttributesDialog;
 
   /**
    * @private
    */
-  JSHome3DAttributesDialogView.prototype.initGroundPanel = function() {
+  Home3DAttributesDialog.prototype.initGroundPanel = function() {
     var controller = this.controller;
     var dialog = this;
 
@@ -4324,7 +4324,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
   /**
    * @private
    */
-  JSHome3DAttributesDialogView.prototype.initSkyPanel = function() {
+  Home3DAttributesDialog.prototype.initSkyPanel = function() {
     var controller = this.controller;
     var dialog = this;
 
@@ -4372,7 +4372,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
   /**
    * @private
    */
-  JSHome3DAttributesDialogView.prototype.initRenderingPanel = function() {
+  Home3DAttributesDialog.prototype.initRenderingPanel = function() {
     var controller = this.controller;
 
     var brightnessSlider = this.getElement("brightness-slider");
@@ -4407,7 +4407,7 @@ JSViewFactory.prototype.createHome3DAttributesView = function(preferences, contr
       });
   };
 
-  return new JSHome3DAttributesDialogView();
+  return new Home3DAttributesDialog();
 }
 
 /**
