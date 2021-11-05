@@ -1712,7 +1712,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
       "@{LevelPanel.level.title}",
       document.getElementById("level-dialog-template"), 
       {
-        size: "small",
+        size: "medium",
         applier: function() {
           controller.modifyLevels();
         }

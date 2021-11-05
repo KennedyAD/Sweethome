@@ -61,7 +61,9 @@ body {
 
 #home-plan::selection { background: #0042E0; }
 
-#home-pane-toolbar, #catalog-furniture-pane, #home-plan, #home-3D-view {
+#home-pane-toolbar, 
+#catalog-furniture-pane, #furniture-catalog, #catalog-furniture-splitter, #furniture-view, 
+#furniture-plan-splitter, #plan-3D-view-pane, #home-plan, #plan-3D-view-splitter, #home-3D-view {
   position: absolute;
 }
 
@@ -69,7 +71,7 @@ body {
  * No-touch devices common CSS
  */
 #home-pane-toolbar {
-  top: 0px;
+  top: 0;
   height: 30px;
   white-space: nowrap;
 }
@@ -83,21 +85,18 @@ body {
 }
 
 #furniture-catalog {
-  position: absolute;
   height: 70%;
   width: 100%;
   overflow-y: scroll;
 }
 
 #catalog-furniture-splitter {
-  position: absolute;
   top: 70%;
   left: 0;
   width: 100%;
 }
 
 #furniture-view {
-  position: absolute;
   top: calc(70% + 4px);
   width: 100%;
   height: calc(30% - 4px);
@@ -117,58 +116,49 @@ body {
 }
 
 #furniture-plan-splitter {
-  position: absolute;
   top: 30px;
   left: 296px;
   height: calc(100% - 30px);
 }
 
-#home-plan {
+#plan-3D-view-pane {
   top: 30px;
   left: 300px;
   width: calc(100% - 300px);
-  height: calc(50% - 15px - 2px);
+  height: calc(100% - 30px);
+}
+
+#home-plan {
+  width: 100%;
+  height: calc(50% - 2px);
   font-family: sans-serif;
   border-top: 1px solid gray; 
   border-bottom: 1px solid gray; 
 }
 
 #plan-3D-view-splitter {
-  position: absolute;  
-  top: calc(30px + 50% - 15px - 2px);
-  left: 300px;
-  width: calc(100% - 300px);
+  top: calc(50% - 2px);
+  width: 100%;
 }
 
 #home-3D-view {
-  top: calc(50% + 15px + 2px);
-  left: 300px;
-  width: calc(100% - 300px);
-  height: calc(50% - 15px - 2px);
+  top: calc(50% + 2px);
+  width: 100%;
+  height: calc(50% - 2px);
+  border-bottom: 1px solid gray; 
 }
 
 @media (orientation: portrait) {
 
   #catalog-furniture-pane {
     width: 160px;
-    height: 100%;
   }
 
   #furniture-plan-splitter {
     left: 160px;
   }
 
-  #home-plan {
-    left: 164px;
-    width: calc(100% - 164px);
-  }
-
-  #plan-3D-view-splitter {
-    left: 160px;
-    width: calc(100% - 160px);
-  }
-
-  #home-3D-view {
+  #plan-3D-view-pane {
     left: 164px;
     width: calc(100% - 164px);
   }
@@ -217,30 +207,48 @@ body {
 
   @media (orientation: portrait), (max-aspect-ratio: 5/4) {
 
+    #plan-3D-view-pane {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 78px - 40px);
+    }
+
     #home-3D-view {
-      top: 0%;
-      left: 0%;
+      top: 0;
       width: calc(100% - 2px);
-      height: calc(50% - 61px);
-      border: 1px solid gray; 
-    }
-
-    #plan-3D-view-splitter {
-      display: none;
-    }
-
-    #home-plan {
-      top: calc(50% - 60px);
-      left: 0px;
-      width: calc(100% - 2px);
-      height: calc(50% - 61.5px);
-      z-index: 1;
+      height: calc(50% - 2px - 4px);
       border: 1px solid gray;
     }
 
+    #plan-3D-view-splitter {
+      display: initial;
+      top: calc(50% - 4px);
+      left: 0;
+      width: calc(100%);
+      height: 6px;
+    }
+
+    #home-plan {
+      top: calc(50% - 1px + 8px);
+      width: calc(100% - 2px);
+      height: calc(50% - 1px - 3px);
+      border: 1px solid gray;
+    }
+    
     /* Funiture catalog horizontal layout */
 
+    #catalog-furniture-pane {
+      top: calc(100% - 40px - 80px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: 78px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+
     #furniture-catalog {
+      width: 100%;
       overflow-x: scroll;
       overflow-y: hidden;
       white-space: nowrap;
@@ -272,15 +280,6 @@ body {
       margin-right: 10px;
       border-right: dashed 1px rgba(0, 0, 0, 0.4);
     }
-
-    #catalog-furniture-pane {
-      top: calc(100% - 40px - 80px);
-      left: 0px;
-      width: calc(100% - 2px);
-      height: 78px;
-      overflow-x: scroll; 
-      overflow-y: hidden; 
-    }
   }
 
   @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
@@ -294,29 +293,33 @@ body {
       overflow-y: scroll; 
     }
 
-    #home-plan {
-      top: 0%;
+    #plan-3D-view-pane {
+      top: 0;
       left: 150px;
-      width: calc(50% - 75px - 5px);
-      height: calc(100% - 40px - 2px);
+      width: calc(100% - 150px);
+      height: calc(100% - 40px);
+    }
+
+    #home-plan {
+      top: 0;
+      width: calc(50% - 6px);
+      height: calc(100% - 2px);
       border: 1px solid gray;
-      z-index: 1;
     }
 
     #plan-3D-view-splitter {
       display: initial;
-      position: absolute;
+      top: 0;
+      left: calc(50% - 4px);
       width: 6px;
-      left: calc(50% + 75px - 3px);
-      height: calc(100% - 40px);
-      top: 0%;
+      height: calc(100%);
     }
 
     #home-3D-view {
-      top: 0%;
-      left: calc(50% + 75px + 3px);
-      width: calc(50% - 75px - 5px);
-      height: calc(100% - 40px - 2px);
+      top: 0;
+      left: calc(50%  + 4px);
+      width: calc(50% - 6px);
+      height: calc(100% - 2px);
       border: 1px solid gray; 
       border-left: 0px; 
     }
@@ -346,7 +349,7 @@ body {
   
   <div id="furniture-plan-splitter" class="pane-splitter"></div>
   
-  <div>
+  <div id="plan-3D-view-pane">
     <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ><select id="level-selector"></select></div>
     <div id="plan-3D-view-splitter" class="pane-splitter"></div>
     <canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas>
@@ -931,17 +934,11 @@ body {
     </div>
 
     <br />
-    <div class="card">
-      <div class="columns-2">
-        <div class="column1">
-          <span data-name="thickness-label" class="label-cell"></span>
-          <span data-name="thickness-input"></span>
-        </div>
-        <div class="column2">
-          <span data-name="arc-extent-label" class="label-cell"></span>
-          <span data-name="arc-extent-input"></span>
-        </div>
-      </div>
+    <div class="card label-input-grid double">
+      <span data-name="thickness-label" class="label-cell"></span>
+      <span data-name="thickness-input"></span>
+      <span data-name="arc-extent-label" class="label-cell"></span>
+      <span data-name="arc-extent-input"></span>
     </div>
     
     <br/>

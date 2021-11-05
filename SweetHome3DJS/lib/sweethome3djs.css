@@ -480,7 +480,7 @@ label {
       width: 25px;
       height: 1.3em;
       position: relative;
-      z-index: 1;
+      z-index: 2;
       margin-bottom: -20px;
       top: 3px;
       left: 1px;
@@ -534,7 +534,6 @@ label {
   padding-right: 21px;
   display: inline-block;
   position: relative;
-  text-align: right;
   height: 1.5rem;
   width: 8rem;
 }
@@ -544,6 +543,7 @@ label {
   box-sizing: border-box;
   margin: 0;
   height: 100%;
+  text-align: right;
 }
 
 .spinner button {
@@ -1335,13 +1335,10 @@ label {
 .label-dialog [data-name="rendering-3D-panel"] > div:nth-child(even) {
   text-align: right;
   margin-right: 0.2em;
+  margin-left: 2em;
   grid-column: 1;
 }
 
-.label-dialog [data-name="rendering-3D-panel"] > div:nth-child(1) {
-  grid-column: 1 / 2;
-}
-  
 /*
  * Level dialog
  */
@@ -1356,6 +1353,10 @@ label {
   text-align: right;
   margin: 0 2em;
   border-collapse: collapse;
+}
+
+.level-dialog hr {
+  margin: .75em 0;
 }
 
 .level-dialog .levels-summary > table tr[disabled] td {
@@ -1535,7 +1536,7 @@ label {
 
 .combo-box .selection-panel {
   background-color: white;
-  z-index: 30000;
+  z-index: 3000;
   transition: opacity 0.5s;
   display: none;
   position: fixed;
