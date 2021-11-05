@@ -1154,7 +1154,7 @@ ModelManager.prototype.searchShapeTransformations = function(node, shape, transf
  * Returns a new geometry where coordinates are transformed with the given transformations.
  * @param {IndexedGeometryArray3D} geometry
  * @param {mat4[]} transformations
- * @returns {IndexedGeometryArray3D}
+ * @return {IndexedGeometryArray3D}
  */
 ModelManager.prototype.getTransformedGeometry = function(geometry, transformations) {
   var offsetIndex = 0;

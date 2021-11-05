@@ -1607,7 +1607,7 @@ HomePane.prototype.addActionToToolBar = function(actionType, toolBar, additional
  * Returns a button configured from the given <code>action</code>.
  * @param {HomeView.ResourceAction} action
  * @param {string} additionalClass additional CSS class
- * @returns {HTMLButton} 
+ * @return {HTMLButton} 
  * @private
  */
 HomePane.prototype.createToolBarButton = function(action, additionalClass) {

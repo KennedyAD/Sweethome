@@ -1152,7 +1152,7 @@ HomeComponent3D.prototype.getInputMap = function() {
  * Returns the closest home item displayed at client coordinates (x, y). 
  * @param {number} x
  * @param {number} y
- * @returns {Object}
+ * @return {Object}
  * @since 1.1
  */
 HomeComponent3D.prototype.getClosestItemAt = function(x, y) {
