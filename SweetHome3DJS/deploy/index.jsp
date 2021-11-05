@@ -226,13 +226,13 @@ body {
       top: calc(50% - 4px);
       left: 0;
       width: calc(100%);
-      height: 6px;
+      height: 8px;
     }
 
     #home-plan {
-      top: calc(50% - 1px + 8px);
+      top: calc(50% - 1px + 4px);
       width: calc(100% - 2px);
-      height: calc(50% - 1px - 3px);
+      height: calc(50% - 1px - 4px);
       border: 1px solid gray;
     }
     
@@ -302,7 +302,7 @@ body {
 
     #home-plan {
       top: 0;
-      width: calc(50% - 6px);
+      width: calc(50% - 4px);
       height: calc(100% - 2px);
       border: 1px solid gray;
     }
@@ -311,14 +311,14 @@ body {
       display: initial;
       top: 0;
       left: calc(50% - 4px);
-      width: 6px;
+      width: 8px;
       height: calc(100%);
     }
 
     #home-3D-view {
       top: 0;
       left: calc(50%  + 4px);
-      width: calc(50% - 6px);
+      width: calc(50% - 4px);
       height: calc(100% - 2px);
       border: 1px solid gray; 
       border-left: 0px; 
