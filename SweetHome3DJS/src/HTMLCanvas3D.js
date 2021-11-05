@@ -1487,7 +1487,7 @@ HTMLCanvas3D.prototype.setIgnoreShininess = function(ignoreShininess) {
  * Returns the closest shape displayed at client coordinates (x, y) among the displayed objects. 
  * @param {number} x
  * @param {number} y
- * @returns {Node3D}
+ * @return {Node3D}
  */
 HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
   // Inspired from http://coffeesmudge.blogspot.fr/2013/08/implementing-picking-in-webgl.html

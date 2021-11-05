@@ -138,7 +138,7 @@ Graphics2D.prototype.drawImageWithSize = function(img, x, y, width, height, bgco
 
 /**
  * Gets the current clip.
- * @returns {java.awt.Shape} the clip as a shape
+ * @return {java.awt.Shape} the clip as a shape
  */
 Graphics2D.prototype.getClip = function() {
   return this._clip;
@@ -251,7 +251,7 @@ Graphics2D.prototype.setAlpha = function(alpha) {
 
 /**
  * Gets the alpha component of the canvas.
- * @returns {number}
+ * @return {number}
  */
 Graphics2D.prototype.getAlpha = function() {
   return this.context.globalAlpha;
@@ -311,7 +311,7 @@ Graphics2D.prototype.setFont = function(font) {
 
 /**
  * Gets the current font.
- * @returns {string} a CSS font descriptor
+ * @return {string} a CSS font descriptor
  */
 Graphics2D.prototype.getFont = function() {
   return this.context.font;
@@ -328,7 +328,7 @@ Graphics2D.prototype.setBackground = function(color) {
 
 /**
  * Gets the fill style.
- * @returns {string} a CSS color descriptor
+ * @return {string} a CSS color descriptor
  */
 Graphics2D.prototype.getBackground = function() {
   return this.background;
@@ -345,7 +345,7 @@ Graphics2D.prototype.setTransform = function(transform) {
 
 /**
  * Gets the current transform matrix.
- * @returns {java.awt.geom.AffineTransform} the current transform matrix
+ * @return {java.awt.geom.AffineTransform} the current transform matrix
  */
 Graphics2D.prototype.getTransform = function() {
   return new java.awt.geom.AffineTransform(this.currentTransform);
@@ -365,7 +365,7 @@ Graphics2D.prototype.setPaintMode = function() {
 
 /**
  * Gets the current paint.
- * @returns {string|CanvasPattern}
+ * @return {string|CanvasPattern}
  */
 Graphics2D.prototype.getPaint = function() {
   return this.color;
@@ -425,7 +425,7 @@ Graphics2D.prototype.setStroke = function(s) {
 /**
  * Creates a pattern from an image.
  * @param {HTMLImageElement} image
- * @returns CanvasPattern
+ * @return CanvasPattern
  */
 Graphics2D.prototype.createPattern = function(image) {
   return this.context.createPattern(image, 'repeat');
@@ -451,7 +451,7 @@ FontMetrics.prototype.constructor = FontMetrics;
 /**
  * Gets the bounds of the given string for this font metrics.
  * @param {string} aString the string to get the bounds of
- * @returns {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
+ * @return {java.awt.geom.Rectangle2D} the bounds as an instance of java.awt.geom.Rectangle2D
  */
 FontMetrics.prototype.getStringBounds = function(aString) {
   this.compute(aString);
@@ -461,7 +461,7 @@ FontMetrics.prototype.getStringBounds = function(aString) {
 
 /**
  * Gets the font ascent.
- * @returns {number} the font ascent
+ * @return {number} the font ascent
  */
 FontMetrics.prototype.getAscent = function() {
   if (!this.cached) {
@@ -472,7 +472,7 @@ FontMetrics.prototype.getAscent = function() {
 
 /**
  * Gets the font descent.
- * @returns {number} the font descent
+ * @return {number} the font descent
  */
 FontMetrics.prototype.getDescent = function() {
   if (!this.cached) {
@@ -483,7 +483,7 @@ FontMetrics.prototype.getDescent = function() {
 
 /**
  * Gets the font height.
- * @returns {number} the font height
+ * @return {number} the font height
  */
 FontMetrics.prototype.getHeight = function() {
   if (!this.cached) {
@@ -570,7 +570,7 @@ Font.prototype.constructor = Font;
 
 /**
  * Returns the font as a browser-normalized CSS string.
- * @returns {string}
+ * @return {string}
  */
 Font.prototype.toString = function() {
   var font = '';

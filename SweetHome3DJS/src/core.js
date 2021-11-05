@@ -284,7 +284,7 @@ Format.prototype.format = function(object) {
  * Returns the object parsed from the given string and updates optional parse position.
  * @param {string} string
  * @param {ParsePosition} [parsePosition] 
- * @returns the parsed object or if the string can't be parsed, <code>null</code> when position is given
+ * @return the parsed object or if the string can't be parsed, <code>null</code> when position is given
  *              or throws a ParseException if position isn't given
  */
 Format.prototype.parseObject = function(string, position) {
@@ -303,7 +303,7 @@ Format.prototype.parseObject = function(string, position) {
  * Returns the date or number parsed from the given string and updates optional parse position.
  * @param {string} string a date or number with English notation
  * @param {ParsePosition} [parsePosition] 
- * @returns the parsed date or number or if the string can't be parsed, <code>null</code> when position is given
+ * @return the parsed date or number or if the string can't be parsed, <code>null</code> when position is given
  *              or throws a ParseException if position isn't given
  */
 Format.prototype.parse = function(string, position) {
@@ -431,21 +431,21 @@ NumberFormat.prototype.getMaximumFractionDigits = function() {
 }
 
 /**
- * @returns {NumberFormat} 
+ * @return {NumberFormat} 
  */
 NumberFormat.getNumberInstance = function() {
   return new DecimalFormat("#.##");
 }
 
 /**
- * @returns {NumberFormat} 
+ * @return {NumberFormat} 
  */
 NumberFormat.getIntegerInstance = function() {
   return new IntegerFormat();
 }
 
 /**
- * @returns {NumberFormat} 
+ * @return {NumberFormat} 
  */
 NumberFormat.getCurrencyInstance = function() {
   return new CurrencyFormat();
@@ -509,7 +509,7 @@ DecimalFormat.prototype.constructor = DecimalFormat;
 
 /**
  * @param {number} number
- * @returns {string}
+ * @return {string}
  */
 DecimalFormat.prototype.format = function(number) {
   if (number == null) {
@@ -527,7 +527,7 @@ DecimalFormat.prototype.format = function(number) {
 }
 
 /**
- * @returns {number}
+ * @return {number}
  */
 DecimalFormat.prototype.parse = function(text, parsePosition) {
   this.checkLocaleChange();
@@ -651,7 +651,7 @@ function toLocaleStringUniversal(number, groupingSeparator, groupingUsed, decima
  *  - decimalSeparator: if omitted the string only integer is parsed
  *  - positivePrefix: optionally specify a prefix before positive numbers which should be ignored for parsing (default: '')
  *  - negativePrefix: optionally specify a prefix before negative numbers which should be ignored for parsing (default: '')
- * @returns {number} the parsed number or <code>null</code> if the string can't be parsed
+ * @return {number} the parsed number or <code>null</code> if the string can't be parsed
  * @ignore
  */
 function parseLocalizedNumber(string, parsePosition, options) {
@@ -702,7 +702,7 @@ IntegerFormat.prototype.constructor = IntegerFormat;
 
 /**
  * @param {number} number
- * @returns {string}
+ * @return {string}
  */
 IntegerFormat.prototype.format = function(number) {
   if (number == null) {
@@ -712,7 +712,7 @@ IntegerFormat.prototype.format = function(number) {
 }
   
 /**
- * @returns {number}
+ * @return {number}
  */
 IntegerFormat.prototype.parse = function(text, parsePosition) {
   return parseLocalizedNumber(text, parsePosition, {}); // No decimal separator to parse integer
@@ -736,7 +736,7 @@ CurrencyFormat.prototype.constructor = CurrencyFormat;
 
 /**
  * @param {number} number
- * @returns {string}
+ * @return {string}
  */
 CurrencyFormat.prototype.format = function(number) {
   try {
@@ -768,7 +768,7 @@ CurrencyFormat.prototype.setCurrency = function(currency) {
 }
 
 /**
- * @returns {string}
+ * @return {string}
  */
 CurrencyFormat.prototype.getCurrency = function() {
   return this.currency;
@@ -784,7 +784,7 @@ var Locale = {}
 
 /**
  * Returns the default locale.
- * @returns {string} an ISO 639 language code, possibly followed by a underscore and an ISO 3166 country code
+ * @return {string} an ISO 639 language code, possibly followed by a underscore and an ISO 3166 country code
  */
 Locale.getDefault = function() {
   if (window && window.defaultLocaleLanguageAndCountry) {
@@ -856,7 +856,7 @@ var KeyStroke = {}
  * Returns a string describing the key event in parameter. 
  * @param {KeyboardEvent} ev
  * @param {string} [keyEventType] "keyup", "keydown" or "keypress"
- * @returns {string} a string describing the key stroke event
+ * @return {string} a string describing the key stroke event
  */
 KeyStroke.getKeyStrokeForEvent = function(ev, keyEventType) {
   if (KeyStroke.KEY_CODE_TEXTS === undefined) {
