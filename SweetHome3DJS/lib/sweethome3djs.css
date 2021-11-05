@@ -220,7 +220,6 @@ button:disabled {
   background-color: rgba(0, 0, 0, 0.1);
   padding-top: 1px;
   padding-bottom: 1px;
-  display: flex;
 } 
 
 #home-pane-toolbar .toolbar-button-group {
@@ -273,11 +272,16 @@ button:disabled {
 }
 
 @media (min-width: 800px) {
+  #home-pane-toolbar {
+    display: flex;
+  }
+  
   #home-pane-toolbar .toolbar-button-group {
     padding-right: 8px;
     margin-right: 8px;
     border-right: 1px dotted rgba(0, 0, 0, 0.6);
   }
+  
   #home-pane-toolbar .toolbar-button-group:last-child {
     border-right: none;
     flex-grow: 1;
@@ -288,10 +292,6 @@ button:disabled {
 }
 
 @media (max-width: 800px) {
-  #home-pane-toolbar {
-    padding-left: 0;
-    padding-right: 0;
-  }
   #home-pane-toolbar > .toolbar-button  {
     width: 24px;
   }
@@ -312,8 +312,7 @@ button:disabled {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     background-color: white;
-    padding-top: 2px;
-    padding-bottom: 0px;
+    padding: 2px 0 0 0;
   }
   
   @media (min-width: 800px) {
