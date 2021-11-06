@@ -1268,7 +1268,7 @@ function RecordedUserPreferences(configuration) {
   if (configuration !== undefined) {	
     this.furnitureCatalogUrls = configuration.furnitureCatalogURLs;
     this.furnitureResourcesUrlBase = configuration.furnitureResourcesURLBase;
-	this.texturesCatalogUrls = configuration.texturesCatalogURLs;
+	  this.texturesCatalogUrls = configuration.texturesCatalogURLs;
     this.texturesResourcesUrlBase = configuration.texturesResourcesURLBase;
     this.writePreferencesUrl = configuration.writePreferencesURL;
     this.readPreferencesUrl = configuration.readPreferencesURL;
