@@ -1824,6 +1824,10 @@ label {
   margin-right: 0.5em;
 }
 
+.dialog-body input[type="range"] {
+  width: 100%;
+}
+
 .slider-labels {
   position: relative;
   height: 1.2em;
