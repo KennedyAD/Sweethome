@@ -2058,6 +2058,10 @@ label {
   .model-materials-selector-dialog  [name="shininess-slider"] {
     width: 100% !important;
   }
+
+  #furniture-view [cell] [icon] img {
+    width: 1.2em;
+  }
 }
 
 @media all and (-ms-high-contrast: none) and (min-width: 600px), (-ms-high-contrast: active) and (min-width: 600px) {
