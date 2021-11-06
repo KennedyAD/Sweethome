@@ -507,7 +507,7 @@ label {
  * Splitter  
  */
 .pane-splitter {
-  z-index: 4;
+  z-index: 1;
   background-color: gray;
   cursor: ew-resize;
   width: 4px;
