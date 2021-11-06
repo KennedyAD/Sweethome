@@ -99,7 +99,7 @@ TextureChoiceComponent.prototype.openTextureDialog = function() {
 TextureChoiceComponent.prototype.confirmDeleteSelectedCatalogTexture = function() {
   // Remove html tags from message because confirm does not support it
   var messageText = this.getLocalizedLabelText("TextureChoiceComponent", "confirmDeleteSelectedCatalogTexture.message").
-  replaceAll(/\<[^\>]*\>/g, " ").replaceAll(/[ ]+/g, " ").replace(/^\s*/, "");
+      replace(/\<[^\>]*\>/g, " ").replace(/[ ]+/g, " ").replace(/^\s*/, "");
   return confirm(messageText);
 }
 

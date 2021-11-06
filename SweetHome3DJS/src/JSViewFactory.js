@@ -176,7 +176,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   BackgroundImageWizardStepsView.prototype.constructor = BackgroundImageWizardStepsView;
   
   BackgroundImageWizardStepsView.prototype.buildHtmlFromTemplate = function(templateHtml) {
-      return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replaceAll("<br>", " ");
+      return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replace(/\<br\>/g, " ");
     }
   
   /**
@@ -807,10 +807,10 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.previewPanel = this.findElement("[preview]");
   
     if (texture == null) {
-      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceLabel.text").replaceAll("<br>", " ");;
+      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceLabel.text").replace(/\<br\>/g, " ");
       this.changeImageButton.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceButton.text");
     } else {
-      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeLabel.text").replaceAll("<br>", " ");;
+      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeLabel.text").replace(/\<br\>/g, " ");
       this.changeImageButton.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeButton.text");
     }
   
@@ -893,7 +893,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     }
   
     this.attributesStepPanelDescription.innerHTML = this.getLocalizedLabelText(
-        "ImportedTextureWizardStepsPanel", "attributesLabel.text").replaceAll("<br>", " ");
+        "ImportedTextureWizardStepsPanel", "attributesLabel.text").replace(/\<br\>/g, " ");
     this.registerPropertyChangeListener(controller, "NAME", function() {
         if (component.nameInput.value.trim() != controller.getName()) {
           component.nameInput.value = controller.getName();
