@@ -943,6 +943,7 @@ label {
   grid-template-columns: 1fr 1fr;
   -ms-grid-columns: 1fr 1fr;
 }
+
 @supports(grid-area: auto) {
   .dialog-body .label-input-grid {
     display: grid;
@@ -1120,6 +1121,13 @@ label {
   grid-gap: 1em;
   margin: 1em;
   white-space: nowrap;
+}
+
+/* IE 11 fix */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .imported-texture-wizard [attributesStep] [form] {
+    display: block;
+  }
 }
 
 .imported-texture-wizard [attributesStep] [form] [preview] {
@@ -2061,6 +2069,12 @@ label {
 
   #furniture-view [cell] [icon] img {
     width: 1.2em;
+  }
+  
+  .wizard [stepIcon] img {
+    flex-grow: 0;
+    margin-top: auto;
+    margin-bottom: auto;
   }
 }
 
