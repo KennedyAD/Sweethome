@@ -6252,8 +6252,7 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     }
     canvas3D.setScene(sceneRoot);
     PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
-  }
-  else {
+  } else {
     if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getHTMLElement().width !== iconSize) {
       PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
       delete PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
