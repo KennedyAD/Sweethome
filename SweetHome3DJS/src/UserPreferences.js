@@ -1155,6 +1155,7 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
   this.setNavigationPanelVisible(false);
   this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
   this.setNewWallPattern(this.getWallPattern());
+  this.setAerialViewCenteredOnSelectionEnabled(true);
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
