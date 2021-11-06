@@ -2641,20 +2641,20 @@ testHome();
 <script type="text/javascript">
 // If set to not null value, requires the server to be properly started on localhost:8080 with a ROOT path 
 // and this page being accessed from localhost:8080 too (using a module path pointing on project for example)
-var backendURLBase = 'http://localhost:8080';
+var urlBase = 'http://localhost:8080';
 var useServer = false;
 var skipTests = window.location.search.indexOf("skipTests=true") >= 0;
 
 var application = useServer
     ? new SweetHome3DJSApplication(
-          {readHomeURL:                 backendURLBase + "/readHome.jsp?home=%s",
-           writeHomeEditsURL:           backendURLBase + "/writeHomeEdits.jsp",
-           closeHomeURL:                backendURLBase + "/closeHome.jsp?home=%s",
-           pingURL:                     backendURLBase + "/ping.jsp",
-           writeResourceURL:            backendURLBase + "/writeResource.jsp?path=%s",
-           readResourceURL:             backendURLBase + "/userResources/%s",
-           writePreferencesURL:         backendURLBase + "/writeResource.jsp?path=userPreferences.json",
-           readPreferencesURL:          backendURLBase + "/userResources/userPreferences.json",
+          {readHomeURL:                 urlBase + "/readHome.jsp?home=%s",
+           writeHomeEditsURL:           urlBase + "/writeHomeEdits.jsp",
+           closeHomeURL:                urlBase + "/closeHome.jsp?home=%s",
+           pingURL:                     urlBase + "/ping.jsp",
+           writeResourceURL:            urlBase + "/writeResource.jsp?path=%s",
+           readResourceURL:             urlBase + "/userResources/%s",
+           writePreferencesURL:         urlBase + "/writeResource.jsp?path=userPreferences.json",
+           readPreferencesURL:          urlBase + "/userResources/userPreferences.json",
            autoWriteDelay:              1000,
            autoWriteTrackedStateChange: true,
            writingObserver: {
