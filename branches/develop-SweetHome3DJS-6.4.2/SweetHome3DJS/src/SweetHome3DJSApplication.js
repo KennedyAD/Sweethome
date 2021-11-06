@@ -767,12 +767,8 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
   if (this.preferences == null) {
     if (this.params === undefined) {
       this.preferences = new DefaultUserPreferences();
-    } else if (this.params.writePreferencesURL || this.params.readPreferencesURL) {
-      this.preferences = new RecordedUserPreferences(this.params);
     } else {
-      this.preferences = new DefaultUserPreferences(
-        this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase,
-        this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase);
+      this.preferences = new RecordedUserPreferences(this.params);
     }
     this.preferences.setFurnitureViewedFromTop(true);
   }
