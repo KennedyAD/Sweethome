@@ -3413,26 +3413,26 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           arrowsStylesCombinations.push({ startStyle: arrowsStyles[i], endStyle: arrowsStyles[j] });
         }
       }
-  
-      var svgBase =
-          '<svg style="top: calc(50% - 5px); position: relative;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 100">' +
-          '  <defs>' +
-          '    <marker id="startMarker%1$s" markerWidth="8" markerHeight="7" refX="1" refY="3.5" orient="auto">' +
-          '       %2$s' +
-          '    </marker>' +
-          '    <marker id="endMarker%1$s" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">' +
-          '      %3$s' +
-          '    </marker>' +
-          '  </defs>' +
-          '  <line x1="30" y1="50" x2="320" y2="50" stroke="#000" stroke-width="8" marker-start="url(#startMarker%1$s)" marker-end="url(#endMarker%1$s)" />' +
-          '</svg>';
-  
-      var svgLeftArrow = '<polygon points="0 3.5, 8 0, 8 7" />';
-      var svgRightArrow = '<polygon points="0 0, 9 3.5, 0 7" />';
-      var svgLeftArrowOpen = '<polyline fill="none" stroke="black" stroke-width="1" points="8 0, 0 3.5, 8 7" />';
-      var svgRightArrowOpen = '<polyline fill="none" stroke="black" stroke-width="1" points="0 1, 8 3.5, 0 6" />';
-      var svgDisc = ' <circle cx="3.5" cy="3.5" r="3.5"/>';
-  
+ 
+      var openStyleAtStart = new java.awt.geom.GeneralPath();
+      openStyleAtStart.moveTo(15, 4);
+      openStyleAtStart.lineTo(5, 8);
+      openStyleAtStart.lineTo(15, 12);
+      var deltaStyleAtStart = new java.awt.geom.GeneralPath();
+      deltaStyleAtStart.moveTo(3, 8);
+      deltaStyleAtStart.lineTo(15, 3);
+      deltaStyleAtStart.lineTo(15, 13);
+      deltaStyleAtStart.closePath();
+      var iconWidth = 64;
+      var openStyleAtEnd = new java.awt.geom.GeneralPath();
+      openStyleAtEnd.moveTo(iconWidth - 14, 4);
+      openStyleAtEnd.lineTo(iconWidth - 4, 8);
+      openStyleAtEnd.lineTo(iconWidth - 14, 12);
+      var deltaStyleAtEnd = new java.awt.geom.GeneralPath();
+      deltaStyleAtEnd.moveTo(iconWidth - 2, 8);
+      deltaStyleAtEnd.lineTo(iconWidth - 14, 3);
+      deltaStyleAtEnd.lineTo(iconWidth - 14, 13);
+      deltaStyleAtEnd.closePath();
       var comboBox = new JSComboBox(this.preferences, dialog.getElement("arrows-style-select"), 
           {
             nullable: controller.getCapStyle() == null,
@@ -3441,35 +3441,42 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
               itemElement.style.border = "none";
               itemElement.style.maxWidth = "6em";
               itemElement.style.margin = "auto";
-      
+              itemElement.style.textAlign = "center";
+              
+              var canvas = document.createElement("canvas");
+              canvas.width = 200;
+              canvas.height = 50;
+              canvas.style.height = "1em";
+              canvas.style.maxWidth = "100%";
               if (arrowStyle != null) {
-                var leftShape = "";
+                var g2D = new Graphics2D(canvas);
+                g2D.scale(canvas.width / iconWidth, canvas.width / iconWidth);
+                g2D.setStroke(new java.awt.BasicStroke(2));
+                g2D.draw(new java.awt.geom.Line2D.Float(6, 8, iconWidth - 6, 8));
                 switch (arrowStyle.startStyle) {
-                case Polyline.ArrowStyle.DELTA:
-                  leftShape = svgLeftArrow;
-                  break;
-                case Polyline.ArrowStyle.OPEN:
-                  leftShape = svgLeftArrowOpen;
-                  break;
-                case Polyline.ArrowStyle.DISC:
-                  leftShape = svgDisc;
-                  break;
+                  case Polyline.ArrowStyle.DISC :
+                    g2D.fill(new java.awt.geom.Ellipse2D.Float(4, 4, 9, 9));
+                    break;
+                  case Polyline.ArrowStyle.OPEN :
+                    g2D.draw(openStyleAtStart);
+                    break;
+                  case Polyline.ArrowStyle.DELTA :
+                    g2D.fill(deltaStyleAtStart);
+                    break;
                 }
-                var rightShape = "";
                 switch (arrowStyle.endStyle) {
-                case Polyline.ArrowStyle.DELTA:
-                  rightShape = svgRightArrow;
-                  break;
-                case Polyline.ArrowStyle.OPEN:
-                  rightShape = svgRightArrowOpen;
-                  break;
-                case Polyline.ArrowStyle.DISC:
-                  rightShape = svgDisc;
-                  break;
+                  case Polyline.ArrowStyle.DISC :
+                    g2D.fill(new java.awt.geom.Ellipse2D.Float(iconWidth - 12, 4, 9, 9));
+                    break;
+                  case Polyline.ArrowStyle.OPEN :
+                    g2D.draw(openStyleAtEnd);
+                    break;
+                  case Polyline.ArrowStyle.DELTA :
+                    g2D.fill(deltaStyleAtEnd);
+                    break;
                 }
                 
-                var uid = UUID.randomUUID();
-                itemElement.innerHTML = CoreTools.format(svgBase, [uid, leftShape, rightShape]);
+                itemElement.appendChild(canvas);
               }
             },
             selectionChanged: function(newValue) {
@@ -3502,7 +3509,12 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
           joinStyles.push(joinStyle);
         }
       }
-  
+
+      var joinPath = new java.awt.geom.GeneralPath();
+      joinPath.moveTo(10, 10);
+      joinPath.lineTo(80, 10);
+      joinPath.lineTo(50, 35);
+      var curvedPath = new java.awt.geom.Arc2D.Float(10, 20, 80, 20, 0, 180, java.awt.geom.Arc2D.OPEN);
       var comboBox = new JSComboBox(this.preferences, dialog.getElement("join-style-select"), 
           {
             nullable: controller.getJoinStyle() == null,
@@ -3510,37 +3522,19 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
             renderCell: function(joinStyle, itemElement) {
               itemElement.style.border = "none";
               itemElement.style.textAlign = "center";
-      
-              var canvasJoinStyle = "miter";
-              switch (joinStyle) {
-                case Polyline.JoinStyle.BEVEL:
-                  canvasJoinStyle = "bevel";
-                  break;
-                case Polyline.JoinStyle.CURVED:
-                case Polyline.JoinStyle.ROUND:
-                  canvasJoinStyle = "round";
-                  break;
-              }
+              
               var canvas = document.createElement("canvas");
               canvas.width = 100;
               canvas.height = 40;
               canvas.style.height = "1em";
               canvas.style.maxWidth = "100%";
               if (joinStyle != null) {
-                var canvasContext = canvas.getContext("2d");
-                canvasContext.lineJoin = canvasJoinStyle;
-                canvasContext.lineCap = "butt";
-                canvasContext.lineWidth = 6;
+                var g2D = new Graphics2D(canvas);
+                g2D.setStroke(ShapeTools.getStroke(8, Polyline.CapStyle.BUTT, joinStyle, null, 0));
                 if (joinStyle == Polyline.JoinStyle.CURVED) {
-                  canvasContext.beginPath();
-                  canvasContext.ellipse(50, 30, 40, 10, 0, Math.PI, 0);
-                  canvasContext.stroke();
+                  g2D.draw(curvedPath);
                 } else {
-                  canvasContext.beginPath();
-                  canvasContext.moveTo(10, 10);
-                  canvasContext.lineTo(80, 10);
-                  canvasContext.lineTo(50, 35);
-                  canvasContext.stroke();
+                  g2D.draw(joinPath);
                 }
               }
       
@@ -3590,23 +3584,11 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
                   ? Polyline.DashStyle._$wrappers[dashStyle].getDashPattern() 
                   : controller.getDashPattern();
               if (dashPattern != null) {
-                var canvasContext = canvas.getContext("2d");
-                canvasContext.imageSmoothingEnabled= false;
-                canvasContext.lineWidth = 10;
-                canvasContext.beginPath();
-                canvasContext.moveTo(0, canvas.height / 2);
-                
-                dashPattern = dashPattern.slice(0);
-                // Apply 10 factor to enhance rendering
-                for (var i = 0; i < dashPattern.length; i++) {
-                  dashPattern[i] = 10 * dashPattern[i];
-                }
-                
+                var g2D = new Graphics2D(canvas);
                 var dashOffset = controller.getDashOffset() != null ? controller.getDashOffset() : 0;
-                canvasContext.setLineDash(dashPattern);
-                canvasContext.lineDashOffset = dashOffset * canvas.width;
-                canvasContext.lineTo(canvas.width, canvas.height / 2);
-                canvasContext.stroke();
+                g2D.setStroke(ShapeTools.getStroke(12, Polyline.CapStyle.BUTT, Polyline.JoinStyle.MITER,
+                    dashPattern, dashOffset));
+                g2D.draw(new java.awt.geom.Line2D.Float(0, canvas.height / 2, canvas.width, canvas.height / 2));
               }
       
               itemElement.appendChild(canvas);
