@@ -1386,7 +1386,7 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
   }
   this.setUnit(unit);
 
-  this.setCurrency(this.getProperty(properties, RecordedUserPreferences.CURRENCY));
+  this.setCurrency(this.getProperty(properties, RecordedUserPreferences.CURRENCY), defaultPreferences.getCurrency());
   this.setValueAddedTaxEnabled(
       this.getProperty(properties, RecordedUserPreferences.VALUE_ADDED_TAX_ENABLED, 
           '' + defaultPreferences.isValueAddedTaxEnabled()) == 'true');
@@ -1421,9 +1421,8 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
   this.setFurnitureViewedFromTop(
       this.getProperty(properties, RecordedUserPreferences.FURNITURE_VIEWED_FROM_TOP, 
           '' + defaultPreferences.isFurnitureViewedFromTop()) == 'true');
-  this.setFurnitureModelIconSize(this.getProperty(properties, RecordedUserPreferences.FURNITURE_MODEL_ICON_SIZE) !== null 
-      ? parseInt(this.getProperty(properties, RecordedUserPreferences.FURNITURE_MODEL_ICON_SIZE)) 
-      : null);
+  this.setFurnitureModelIconSize(parseInt(this.getProperty(properties, RecordedUserPreferences.FURNITURE_MODEL_ICON_SIZE,  
+      '' + defaultPreferences.getFurnitureModelIconSize())));
   this.setFloorColoredOrTextured(
       this.getProperty(properties, RecordedUserPreferences.ROOM_FLOOR_COLORED_OR_TEXTURED, 
           '' + defaultPreferences.isRoomFloorColoredOrTextured()) == 'true');
