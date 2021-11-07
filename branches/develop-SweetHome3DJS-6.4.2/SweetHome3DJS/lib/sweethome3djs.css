@@ -518,12 +518,22 @@ label {
   cursor: ns-resize;
 }
 
-.pane-splitter:hover {
-  background-color: rgb(180, 180, 180);
+.pane-splitter.horizontal {
+  background: linear-gradient(#AAA, #888, #666);
 }
 
-.pane-splitter.moving {
-  background-color: rgb(200, 200, 200);
+.pane-splitter.vertical {
+  background: linear-gradient(to right, #AAA, #888, #666);
+}
+
+.pane-splitter.horizontal:hover,
+.pane-splitter.vertical:hover {
+  background: #BBB;
+}
+
+.pane-splitter.horizontal.moving,
+.pane-splitter.vertical.moving {
+  background: #CCC;
 }
 
 /*
