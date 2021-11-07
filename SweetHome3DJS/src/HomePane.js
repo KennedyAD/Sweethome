@@ -994,6 +994,7 @@ HomePane.prototype.createToolBar = function(home, preferences) {
 HomePane.prototype.createPopupMenus = function(home, preferences) {
   var ActionType = HomeView.ActionType;
   var homePane = this;
+  var controller = this.controller;
   
   if (this.showApplicationMenuButton == null
       || !window.matchMedia("(hover: none), (pointer: coarse)").matches) {
@@ -1177,7 +1178,6 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
     // 3D view popup menu
     var view3D = this.controller.getHomeController3D().getView();
     if (view3D != null) {
-      var controller = this.controller;
       new JSPopupMenu(this.preferences, view3D.getHTMLElement(), 
           function(builder) {
             homePane.addActionToMenu(ActionType.VIEW_FROM_TOP, builder);
