@@ -1,4 +1,4 @@
-SWEET HOME 3D JS v 6.4.2
+SWEET HOME 3D JS v 6.6.2
 ------------------------
 
 This archive contains source code of Sweet Home 3D JS, a HTML5 3D viewer and editor
@@ -6,14 +6,14 @@ for Sweet Home 3D files saved with version 5.3 or a more recent version.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_4_2/SweetHome3DJS SweetHome3DJS
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_6_2/SweetHome3DJS SweetHome3DJS
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code from 
-http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-6.4.2-src.zip 
+http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-6.6.2-src.zip 
 or with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_4_2/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_6_2/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
@@ -24,10 +24,10 @@ you find this README.TXT file contains all the information required to run the c
 
 Part of the JavaScript code required to run examples is generated from Sweet Home 3D Java code 
 with JSweet transpiler available at http://www.jsweet.org
-To generate the missing JavaScript code and run tests, install JDK 8, Node available 
-at https://nodejs.org/ and Ant available at http://ant.apache.org/ then run ant command  
-in the directory where you uncompressed this archive followed by the "viewerLibraries" 
-or "applicationLibraries" target names.
+To generate the missing JavaScript code and run tests, install JDK 11 or more recent, 
+Node available at https://nodejs.org/ and Ant available at http://ant.apache.org/ 
+then run ant command in the directory where you uncompressed this archive followed 
+by the "viewerLibraries" or "applicationLibraries" target names.
 The "viewerLibraries" target will create missing JavaScript code in lib/generated 
 for Sweet Home 3D JS Viewer and required to run the HTML files found in the test directory 
 of this archive with any compatible browser (except for test/testHome.html). 
@@ -51,5 +51,5 @@ Read LICENSE.TXT file for more details about licenses applicable to this softwar
 and included materials developed by third parties.
     
     
-Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks. 
+Sweet Home 3D, Copyright (c) 2016-2021 Emmanuel PUYBARET / eTeks. 
 Distributed under GNU General Public License    
