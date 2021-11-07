@@ -234,6 +234,80 @@ BlobURLContent.fromImage = function(image, imageType, oncontentready) {
   }
 }
 
+
+/**
+ * Utilities about the system environment.
+ * @class
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+var OperatingSystem = {}
+
+/**
+ * Returns <code>true</code> if the operating system is Linux.
+ */
+OperatingSystem.isLinux = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Linux") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns <code>true</code> if the operating system is Windows.
+ */
+OperatingSystem.isWindows = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Windows") !== -1 || navigator.platform.indexOf("Win") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns <code>true</code> if the operating system is Mac OS X.
+ */
+OperatingSystem.isMacOSX = function() {
+  if (navigator && navigator.platform) {
+    return navigator.platform.indexOf("Mac") !== -1;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Returns the operating system name used to filter some information.
+ */
+OperatingSystem.getName = function() {
+  if (OperatingSystem.isMacOSX()) {
+    return "Mac OS X";
+  } else if (OperatingSystem.isLinux()) {
+    return "Linux";
+  } else if (OperatingSystem.isWindows()) {
+    return "Windows";
+  } else {
+    return "Other";
+  }
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Internet Explorer or Edge (note based on Chromium).
+ */
+OperatingSystem.isInternetExplorerOrLegacyEdge = function() {
+  // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return (document.documentMode || /Edge/.test(navigator.userAgent));
+}
+
+/**
+ * Returns <code>true</code> if the current browser is Internet Explorer.
+ */
+OperatingSystem.isInternetExplorer = function() {
+  // IE test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
+  return document.documentMode;
+}
+
+
 /**
  * ZIP reading utilities.
  * @class
