@@ -865,6 +865,10 @@ label {
   cursor: pointer;
 }
 
+.dialog-content .default-capable {
+  outline: solid Highlight;
+}
+
 .dialog-body {
   flex-grow: 1;
   box-sizing: border-box;
@@ -1702,6 +1706,10 @@ label {
     .texture-selector-dialog .selected-texture-preview {
       margin-top: 1em; 
     }
+  }
+
+  .dialog-content .default-capable {
+    outline: none;
   }
 }
 
