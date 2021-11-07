@@ -308,10 +308,10 @@ JSDialog.prototype.constructor = JSDialog;
 JSDialog.prototype.appendButtons = function(buttonsPanel) {
   var html;
   if (this.applier) {
-    html = "<button class='dialog-ok-button'>@{OptionPane.okButton.textAndMnemonic}</button>"
+    html = "<button class='dialog-ok-button default-capable'>@{OptionPane.okButton.textAndMnemonic}</button>"
          + "<button class='dialog-cancel-button'>@{OptionPane.cancelButton.textAndMnemonic}</button>";
   } else {
-    html = "<button class='dialog-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
+    html = "<button class='dialog-cancel-button default-capable'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
   }
   buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.getUserPreferences(), html);
 
@@ -569,7 +569,7 @@ JSWizardDialog.prototype.constructor = JSWizardDialog;
 JSWizardDialog.prototype.appendButtons = function(buttonsPanel) {
   var cancelButton = "<button class='wizard-cancel-button'>@{InternalFrameTitlePane.closeButtonAccessibleName}</button>";
   var backButton = "<button class='wizard-back-button'>@{WizardPane.backOptionButton.text}</button>";
-  var nextButton = "<button class='wizard-next-button'></button>";
+  var nextButton = "<button class='wizard-next-button default-capable'></button>";
   var buttons = "<div class='dialog-buttons'>" 
       + (OperatingSystem.isMacOSX() ? nextButton + backButton : backButton + nextButton) 
       + cancelButton + "</div>";
@@ -691,7 +691,7 @@ JSImageResizingDialog.prototype.constructor = JSImageResizingDialog;
  */
 JSImageResizingDialog.prototype.appendButtons = function(buttonsPanel) {
   buttonsPanel.innerHTML = JSComponent.substituteWithLocale(this.getUserPreferences(),
-      "<button class='dialog-ok-button'>" + this.okButtonMessage + "</button>"
+      "<button class='dialog-ok-button default-capable'>" + this.okButtonMessage + "</button>"
       + "<button class='keep-image-unchanged-button dialog-ok-button'>" + this.keepUnchangedButtonMessage + "</button>"
       + "<button class='dialog-cancel-button'>" + this.cancelButtonMessage + "</button>");
 }
@@ -1111,6 +1111,11 @@ if (!JSPopupMenu.globalCloserRegistered) {
       if (ev.key == "Escape" || ev.keyCode == 27) {
         JSDialog.closeTopMostDialog();
         JSPopupMenu.closeOpenedMenu();
+      } else if (ev.keyCode == 13 && JSDialog.getTopMostDialog() != null) {
+        var defaultCapableButton = JSDialog.getTopMostDialog().findElement(".default-capable");
+        if (defaultCapableButton != null) {
+          defaultCapableButton.click();
+        }
       }
     });
 
