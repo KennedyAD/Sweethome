@@ -334,7 +334,7 @@ JSDialog.prototype.appendButtons = function(buttonsPanel) {
  * Closes currently displayed topmost dialog if any.
  * @private
  */
-JSDialog.closeTopMostDialogIfAny = function() {
+JSDialog.closeTopMostDialog = function() {
   var topMostDialog = JSDialog.getTopMostDialog();
   if (topMostDialog != null) {
     topMostDialog.close();
@@ -724,13 +724,13 @@ function JSPopupMenu(preferences, sourceElements, build) {
 
   document.body.appendChild(this.getHTMLElement());
 
-  var contextMenu = this;
+  var popupMenu = this;
   this.registerEventListener(sourceElements, "contextmenu", function(ev) {
       ev.preventDefault();
       if (JSPopupMenu.current != null) {
         JSPopupMenu.current.close();
       }
-      contextMenu.showForSourceElement(this, ev);
+      popupMenu.showSourceElement(this, ev);
     });
 }
 JSPopupMenu.prototype = Object.create(JSComponent.prototype);
@@ -741,7 +741,7 @@ JSPopupMenu.prototype.constructor = JSPopupMenu;
  * @static
  * @private
  */
-JSPopupMenu.closeCurrentIfAny = function() {
+JSPopupMenu.closeOpenedMenu = function() {
   if (JSPopupMenu.current != null) {
     JSPopupMenu.current.close();
     return true;
@@ -754,7 +754,7 @@ JSPopupMenu.closeCurrentIfAny = function() {
  * @param {Event} ev
  * @private
  */
-JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
+JSPopupMenu.prototype.showSourceElement = function(sourceElement, ev) {
   this.menuItemListeners = [];
 
   var builder = new JSPopupMenu.Builder();
@@ -768,6 +768,11 @@ JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   var menuElement = this.createMenuElement(items);
 
   this.getHTMLElement().appendChild(menuElement);
+  
+  // Accept focus
+  this.getHTMLElement().setAttribute("tabindex", 1000);
+  this.getHTMLElement().style.outline = "none";
+  this.getHTMLElement().style.outlineWidth = "0";
 
   // Temporarily use hidden visibility to get element's height
   this.getHTMLElement().style.visibility = "hidden";
@@ -783,13 +788,15 @@ JSPopupMenu.prototype.showForSourceElement = function(sourceElement, ev) {
   var anchorY = ev.clientY;
   if (menuElement.clientHeight > window.innerHeight) {
     anchorY = 0;
-  } else if (anchorY + menuElement.clientHeight > window.innerHeight) {
-    anchorY = window.innerHeight - menuElement.clientHeight;
+  } else if (anchorY + menuElement.clientHeight + 10 > window.innerHeight) {
+    anchorY = window.innerHeight - menuElement.clientHeight - 10;
   }
 
   this.getHTMLElement().style.visibility = "visible";
   this.getHTMLElement().style.left = anchorX + "px";
   this.getHTMLElement().style.top = anchorY + "px";
+  // Request focus to receive esc key press
+  this.getHTMLElement().focus();
 
   JSPopupMenu.current = this;
 }
@@ -819,7 +826,7 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
   this.registerEventListener(backElement, "click", function(ev) {
       var isRootMenu = menuElement.parentElement.tagName.toLowerCase() != "li";
       if (isRootMenu) {
-        JSPopupMenu.closeCurrentIfAny();
+        JSPopupMenu.closeOpenedMenu();
       } else {
         menuElement.classList.remove("visible");
       }
@@ -850,7 +857,7 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
  * @private
  */
 JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) {
-  var contextMenu = this;
+  var popupMenu = this;
 
   var itemIconElement = document.createElement("img");
   if (item.iconPath != null) {
@@ -907,7 +914,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
 
   if (typeof item.itemSelectedListener == "function") {
     var listener = function() {
-        contextMenu.close();
+        popupMenu.close();
         setTimeout(function() {
             item.itemSelectedListener();
           }, 50);
@@ -925,6 +932,7 @@ JSPopupMenu.prototype.initMenuItemElement = function(itemElement, item, zIndex) 
  * Closes the context menu.
  */
 JSPopupMenu.prototype.close = function() {
+  this.getHTMLElement().removeAttribute("tabindex");
   this.getHTMLElement().classList.remove("visible");
   JSPopupMenu.current = null;
 
@@ -1086,21 +1094,23 @@ JSPopupMenu.Builder.prototype.addSeparator = function() {
 
 // Global initializations of the toolkit
 if (!JSPopupMenu.globalCloserRegistered) {
-  document.addEventListener("click", function(ev) {
+  var listener = function(ev) {
       if (JSPopupMenu.current != null
         && !JSComponent.isElementContained(ev.target, JSPopupMenu.current.getHTMLElement())) {
         // Clicked outside menu
-        if (JSPopupMenu.closeCurrentIfAny()) {
+        if (JSPopupMenu.closeOpenedMenu()) {
           ev.stopPropagation();
           ev.preventDefault();
         }
       }
-    });
+    };
+  document.addEventListener("click", listener);
+  document.addEventListener("touchstart", listener);
   
   document.addEventListener("keydown", function(ev) {
       if (ev.key == "Escape" || ev.keyCode == 27) {
-        JSDialog.closeTopMostDialogIfAny();
-        JSPopupMenu.closeCurrentIfAny();
+        JSDialog.closeTopMostDialog();
+        JSPopupMenu.closeOpenedMenu();
       }
     });
 
