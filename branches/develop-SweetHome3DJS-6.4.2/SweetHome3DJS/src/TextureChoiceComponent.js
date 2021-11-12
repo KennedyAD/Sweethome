@@ -182,7 +182,7 @@ function JSTextureDialog(preferences, controller) {
         }
       });
 
-  this.getHTMLElement().classList.add("texture-selector-dialog");
+  this.getHTMLElement().classList.add("texture-chooser-dialog");
   
   this.recentTexturesPanel = this.findElement(".recent-textures");
   

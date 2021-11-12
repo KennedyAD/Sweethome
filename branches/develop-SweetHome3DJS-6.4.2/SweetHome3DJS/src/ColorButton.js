@@ -136,26 +136,25 @@ ColorButton.prototype.openColorDialog = function(preferences) {
  */
 function JSColorChooser(preferences, targetNode) {
   var html = 
-      '<div class="picker"></div>' +
-      '<hr />' +
-      '<div class="custom-color-editor">' +
-      '  <input class="not-focusable-at-opening" type="text" value="FFFFFF" />' +
-      '  <div class="preview"></div><div class="preview current-color"></div>' +
-      '</div>' +
-      '<div class="recent-colors"></div>';
+      "<div class='picker'></div>" +
+      "<hr />" +
+      "<div class='custom-color-editor'>" +
+      "  <input class='not-focusable-at-opening' type='text' value='FFFFFF' />" +
+      "  <div class='custom-color-preview'></div><div class='current-color-preview'></div>" +
+      "</div>" +
+      "<div class='recent-colors'></div>";
 
   JSComponent.call(this, preferences, html);
   if (targetNode != null) {
     targetNode.appendChild(this.getHTMLElement());
   }
 
-  this.getHTMLElement().classList.add("color-selector");
+  this.getHTMLElement().classList.add("color-chooser");
   this.pickerElement = this.findElement(".picker");
   this.recentColorsContainerElement = this.findElement(".recent-colors");
   this.customColorEditorInput = this.findElement(".custom-color-editor input");
-  var colorPreviews = this.findElements(".custom-color-editor .preview");
-  this.customColorEditorPreview = colorPreviews[0];
-  this.currentColorEditorPreview = colorPreviews[1];
+  this.customColorEditorPreview = this.findElement(".custom-color-preview");
+  this.currentColorEditorPreview = this.findElement(".current-color-preview");
 
   this.createPickerColorTiles();
   this.initCustomColorEditor();
@@ -205,8 +204,26 @@ JSColorChooser.prototype.createPickerColorTiles = function() {
     });
 }
 
+/**
+ * @private
+ */
 JSColorChooser.prototype.initCustomColorEditor = function() {
   var colorChooser = this;
+  if (!OperatingSystem.isInternetExplorerOrLegacyEdge()) {
+    // Display browser color picker for clicks on custom editor preview 
+    var colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.classList.add("color-input");
+    this.customColorEditorPreview.appendChild(colorInput);
+    var colorChangeListener = function(ev) {
+        colorChooser.customColorEditorPreview.style.backgroundColor = colorInput.value;
+        colorChooser.customColorEditorInput.value = colorInput.value.substring(1);
+        colorChooser.color = ColorTools.hexadecimalStringToInteger(colorInput.value);
+      };
+    colorInput.value = "#010101"; // Color different from black required on some browsers
+    this.registerEventListener(colorInput, "change", colorChangeListener);
+  }
+  
   this.registerEventListener(this.customColorEditorInput, "input", function(ev) {
       var colorHex = '#' + colorChooser.customColorEditorInput.value;
       if (colorHex.match(/#[0-9a-fA-F]{3,6}/)) {
@@ -237,6 +254,10 @@ JSColorChooser.prototype.setColor = function(color) {
   } else {
     this.customColorEditorInput.value = ColorTools.integerToHexadecimalString(displayedColor).substring(1);
     this.customColorEditorPreview.style.backgroundColor = ColorTools.integerToHexadecimalString(displayedColor);
+  }
+  
+  if (this.findElement(".color-input") != null) {
+    this.findElement(".color-input").value = ColorTools.integerToHexadecimalString(displayedColor);
   }
   
   this.currentColorEditorPreview.style.backgroundColor = ColorTools.integerToHexadecimalString(displayedColor);
@@ -299,17 +320,17 @@ JSColorChooser.prototype.createColorTile = function(colorHex) {
 function JSColorChooserDialog(preferences, title, color, observer) {
   var html = 
       '<div>' + 
-      '  <div data-name="color-selector"></div>' + 
+      '  <div data-name="color-chooser"></div>' + 
       '</div>';
   JSDialog.call(this, preferences, title, html, 
       {
         applier: observer.applier
       });
 
-  this.getHTMLElement().classList.add("color-selector-dialog");
+  this.getHTMLElement().classList.add("color-chooser-dialog");
   this.getHTMLElement().classList.add("small");
 
-  this.colorChooser = new JSColorChooser(preferences, this.getElement("color-selector"));
+  this.colorChooser = new JSColorChooser(preferences, this.getElement("color-chooser"));
   this.colorChooser.setColor(color);
   var dialog = this;
   this.registerEventListener(this.colorChooser.colorTileElements, "dblclick", function(ev) { 

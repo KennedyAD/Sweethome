@@ -1382,7 +1382,7 @@ label {
   grid-column: 1;
 }
 
-.label-dialog [data-name="text-and-style-panel"] > div[data-name="color-selector-button"] {
+.label-dialog [data-name="text-and-style-panel"] > div[data-name="color-chooser-button"] {
   grid-column: 2;
 }
 
@@ -1505,8 +1505,8 @@ label {
   background-size: cover;
 }
 
-.color-selector .picker,
-.color-selector .recent-colors {
+.color-chooser .picker,
+.color-chooser .recent-colors {
   display: grid;
   grid-template-columns: repeat(14, 1fr);
   grid-gap: 0em;
@@ -1515,46 +1515,48 @@ label {
 }
 
 @media (min-height: 900px) {
-  .color-selector .picker,
-  .color-selector .recent-colors {
+  .color-chooser .picker,
+  .color-chooser .recent-colors {
     grid-auto-rows: minmax(2em, auto);
   }
 }
 
-.color-selector .picker > div,
-.color-selector .recent-colors > div {
+.color-chooser .picker > div,
+.color-chooser .recent-colors > div {
   position: relative;
 }
 
-.color-selector .picker > div.selected,
-.color-selector .picker > div:hover,
-.color-selector .recent-colors > div.selected,
-.color-selector .recent-colors > div:hover
-.color-selector .current-color,
-.color-selector .current-color:hover {
+.color-chooser .picker > div.selected,
+.color-chooser .picker > div:hover,
+.color-chooser .recent-colors > div.selected,
+.color-chooser .recent-colors > div:hover,
+.color-chooser .current-color-preview,
+.color-chooser .current-color-preview,
+.color-chooser .custom-color-preview input,
+.color-chooser .custom-color-preview input:hover {
   border: 1px;
   cursor: pointer;
 }
 
-.color-selector .recent-colors > div {
+.color-chooser .recent-colors > div {
   margin-top: .5rem;
 }
 
-.color-selector div.picker div,
-.color-selector .recent-colors div {
+.color-chooser div.picker div,
+.color-chooser .recent-colors div {
   border: white solid 1px;
 }
 
-.color-selector div.picker div.selected,
-.color-selector .recent-colors div.selected {
+.color-chooser div.picker div.selected,
+.color-chooser .recent-colors div.selected {
   border: grey solid 1px;
 }
 
-.color-selector .custom-color-editor {
+.color-chooser .custom-color-editor {
   position: relative;
 }
 
-.color-selector .custom-color-editor::before {
+.color-chooser .custom-color-editor::before {
   content: '# ';
   position: absolute;
   color: gray;
@@ -1563,18 +1565,29 @@ label {
   display: block;
 }
 
-.color-selector .custom-color-editor input {
+.color-chooser .custom-color-editor input {
   padding-left: 1.3em;
   max-width:  6em;  
 }
 
-.color-selector .custom-color-editor .preview {
+.color-chooser .current-color-preview,
+.color-chooser .custom-color-preview {
   width: 2em;
   height: 2em;
   border: grey solid 1px;
   margin-left: 5px;
   display: inline-block;
   vertical-align: middle;
+}
+
+.color-chooser .custom-color-preview {
+  border: grey solid 2px;
+}
+
+.color-chooser .custom-color-preview .color-input {
+  opacity: 0;
+  width: 2em;
+  height: 2em;
 }
 
 /*
@@ -1643,12 +1656,12 @@ label {
   background-size: 100% 100%;
 }
 
-.texture-selector-dialog .texture-search {
+.texture-chooser-dialog .texture-search {
   position: relative;
   margin-bottom: 0.4em;
 }
 
-.texture-selector-dialog .texture-search input {
+.texture-chooser-dialog .texture-search input {
   left: 0;
   background: url(search.gif) no-repeat scroll 0px 3px;
   background-color: #FFFFFFFF;
@@ -1660,29 +1673,29 @@ label {
   height: 1.5em;
 }
 
-.texture-selector-dialog .texture-catalog-list {
+.texture-chooser-dialog .texture-catalog-list {
   overflow: auto;
   height: 28em;
   background-color: #FFFFFFFF;
   border: solid thin gray;
 }
 
-.texture-selector-dialog .texture-catalog-list .item {
+.texture-chooser-dialog .texture-catalog-list .item {
   margin: 0.1em;
   white-space: nowrap;
 }
 
-.texture-selector-dialog .texture-catalog-list .item.hidden {
+.texture-chooser-dialog .texture-catalog-list .item.hidden {
   display: none;
 }
 
-.texture-selector-dialog .texture-catalog-list .item:hover,
-.texture-selector-dialog .texture-catalog-list .item.selected {
+.texture-chooser-dialog .texture-catalog-list .item:hover,
+.texture-chooser-dialog .texture-catalog-list .item.selected {
   background-color: rgba(200, 200, 200, 0.5);
   cursor: pointer;
 }
 
-.texture-selector-dialog .texture-catalog-list .item img {
+.texture-chooser-dialog .texture-catalog-list .item img {
   width: 1.3em;
   height: 1.3em;
   object-fit: cover;
@@ -1690,7 +1703,7 @@ label {
   vertical-align: middle;
 }
 
-.texture-selector-dialog .selected-texture-preview {
+.texture-chooser-dialog .selected-texture-preview {
   margin: 0 auto;
   margin-top: 1.8em;
   border: solid 1px gray;
@@ -1704,7 +1717,7 @@ label {
   overflow: hidden;
 }
 
-.texture-selector-dialog .selected-texture-preview > div {
+.texture-chooser-dialog .selected-texture-preview > div {
   position: absolute;
   top: 0;
   left: 0;
@@ -1715,36 +1728,36 @@ label {
   background-repeat: repeat-x;
 }
 
-.texture-selector-dialog .selected-texture-config {
+.texture-chooser-dialog .selected-texture-config {
   display: grid;
   grid-template-columns: 1fr 1fr;
   row-gap: .5em;
   column-gap: 0.2em;
 }
 
-.texture-selector-dialog .selected-texture-config input {
+.texture-chooser-dialog .selected-texture-config input {
   width: 100%;
 }
 
-.texture-selector-dialog .selected-texture-config > :nth-child(odd) {
+.texture-chooser-dialog .selected-texture-config > :nth-child(odd) {
   text-align: right;
 }
 
-.texture-selector-dialog .selected-texture-config > :nth-child(even) {
+.texture-chooser-dialog .selected-texture-config > :nth-child(even) {
   text-align: left;
 }
 
-.texture-selector-dialog .column2 hr {
+.texture-chooser-dialog .column2 hr {
   margin: .75em 0;
 }
 
 @media (hover: none), (pointer: coarse) {
   @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-	.texture-selector-dialog .texture-catalog-list {
+	.texture-chooser-dialog .texture-catalog-list {
       height: 20vh;
     }
     
-    .texture-selector-dialog .selected-texture-preview {
+    .texture-chooser-dialog .selected-texture-preview {
       margin-top: 1em; 
     }
   }
@@ -1758,7 +1771,7 @@ label {
   }
 }
 
-.texture-selector-dialog .imported-textures-panel {
+.texture-chooser-dialog .imported-textures-panel {
   text-align: center;
   display: grid;
   grid-template-columns: max-content;
@@ -1768,7 +1781,7 @@ label {
   margin: 0 auto;
 }
 
-.texture-selector-dialog .imported-textures-panel button {
+.texture-chooser-dialog .imported-textures-panel button {
   width: 100%;
 }
 
@@ -1799,7 +1812,7 @@ label {
   vertical-align: middle;
 }
 
-.model-materials-selector-dialog .dialog-body {
+.model-materials-chooser-dialog .dialog-body {
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex;
@@ -1811,40 +1824,40 @@ label {
 
 }
 
-.model-materials-selector-dialog #model-preview-canvas,
-.model-materials-selector-dialog [data-name="materials-list"],
-.model-materials-selector-dialog .label-input-grid,
-.model-materials-selector-dialog input[type="range"] {
+.model-materials-chooser-dialog #model-preview-canvas,
+.model-materials-chooser-dialog [data-name="materials-list"],
+.model-materials-chooser-dialog .label-input-grid,
+.model-materials-chooser-dialog input[type="range"] {
   margin-top: 5px;
 }
 
-.model-materials-selector-dialog #model-preview-canvas {
+.model-materials-chooser-dialog #model-preview-canvas {
   border: 1px lightgray solid;
   width: 250px;
   height: 250px;
 }
   
-.model-materials-selector-dialog [data-name="preview-panel"] {
+.model-materials-chooser-dialog [data-name="preview-panel"] {
   flex-shrink: 1;
   margin-right: 1rem;
   margin-top: 5px;
 }
 
-.model-materials-selector-dialog [data-name="edit-panel"] {
+.model-materials-chooser-dialog [data-name="edit-panel"] {
   margin-top: 5px;
   display: flex;
   flex-direction: row;
   flex-grow: 1;
 }
 
-.model-materials-selector-dialog [data-name="edit-panel"] > :first-child {
+.model-materials-chooser-dialog [data-name="edit-panel"] > :first-child {
   flex-grow: 1;
   margin-right: .8em;
   display: flex;
   flex-direction: column;
 }
 
-.model-materials-selector-dialog [data-name="materials-list"] {
+.model-materials-chooser-dialog [data-name="materials-list"] {
   flex-grow: 1;
   overflow: auto;
   max-height: 24em;
@@ -1854,13 +1867,13 @@ label {
 
 @media (hover: none), (pointer: coarse) {
   @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-    .model-materials-selector-dialog [data-name="materials-list"] {
+    .model-materials-chooser-dialog [data-name="materials-list"] {
       max-height: 15em;
     }
   }
 }
 
-.model-materials-selector-dialog [data-name="materials-list"] > div {
+.model-materials-chooser-dialog [data-name="materials-list"] > div {
   height: 1.5em;
   position: relative;
   padding-left: 1.8em;
@@ -1870,12 +1883,12 @@ label {
   box-sizing: border-box;
 }
 
-.model-materials-selector-dialog [data-name="materials-list"] > div:hover,
-.model-materials-selector-dialog [data-name="materials-list"] > div.selected {
+.model-materials-chooser-dialog [data-name="materials-list"] > div:hover,
+.model-materials-chooser-dialog [data-name="materials-list"] > div.selected {
   background-color: #DDDDDD;
 }
 
-.model-materials-selector-dialog [data-name="materials-list"] div.icon {
+.model-materials-chooser-dialog [data-name="materials-list"] div.icon {
   background-repeat: no-repeat;
   background-size: cover;
   border: solid 1px black;
@@ -1887,11 +1900,11 @@ label {
 }
 
 
-.model-materials-selector-dialog [data-name="color-texture-shininess-panel"] {
+.model-materials-chooser-dialog [data-name="color-texture-shininess-panel"] {
   margin-top: 5px;
 }
 
-.model-materials-selector-dialog label input {
+.model-materials-chooser-dialog label input {
   margin-right: 0.5em;
 }
 
@@ -2108,7 +2121,7 @@ label {
     width: 49%;
   }
 
-  .color-selector .picker, .color-selector .recent-colors {
+  .color-chooser .picker, .color-chooser .recent-colors {
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
@@ -2118,7 +2131,7 @@ label {
     flex-wrap: wrap;
   }
 
-  .color-selector .picker > *, .color-selector .recent-colors > * {
+  .color-chooser .picker > *, .color-chooser .recent-colors > * {
     width: 10%;
     height: 2em;
   }
@@ -2127,7 +2140,7 @@ label {
     height: 80%;
   }
 
-  .model-materials-selector-dialog  [name="shininess-slider"] {
+  .model-materials-chooser-dialog  [name="shininess-slider"] {
     width: 100% !important;
   }
 

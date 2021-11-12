@@ -120,7 +120,7 @@ function JSModelMaterialsSelectorDialog(preferences, controller) {
         }
       });
 
-  this.getHTMLElement().classList.add("model-materials-selector-dialog");
+  this.getHTMLElement().classList.add("model-materials-chooser-dialog");
   
   this.initMaterialsList();
   this.initPreviewPanel();
