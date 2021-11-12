@@ -698,19 +698,20 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var step = this.controller.getStep();
     switch (step) {
       case BackgroundImageWizardController.Step.CHOICE:
-        this.imageChoiceStep.panel.style.display = "block";
+        this.imageChoiceStep.panel.style.display = "flex";
         this.scaleStep.panel.style.display = "none";
         this.originStep.panel.style.display = "none";
         break;
       case BackgroundImageWizardController.Step.SCALE:
         this.imageChoiceStep.panel.style.display = "none";
-        this.scaleStep.panel.style.display = "block";
+        this.scaleStep.panel.style.display = "flex";
+        delete this.scaleStep.panel.style.display;
         this.originStep.panel.style.display = "none";
         break;
       case BackgroundImageWizardController.Step.ORIGIN:
         this.imageChoiceStep.panel.style.display = "none";
         this.scaleStep.panel.style.display = "none";
-        this.originStep.panel.style.display = "block";
+        this.originStep.panel.style.display = "flex";
         break;
     }
   };

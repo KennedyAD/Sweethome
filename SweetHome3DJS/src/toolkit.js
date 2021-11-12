@@ -495,7 +495,7 @@ JSDialog.shownDialogsCounter = 0;
 function JSWizardDialog(preferences, controller, title, behavior) {
   JSDialog.call(this, preferences, title,
       '<div class="wizard">' +
-      '  <div stepIcon></div>' +
+      '  <div stepIcon><div></div></div>' +
       '  <div stepView></div>' +
       '</div>',
       behavior);
@@ -603,7 +603,8 @@ JSWizardDialog.prototype.updateStepView = function() {
  */
 JSWizardDialog.prototype.updateStepIcon = function() {
   var iconPanel = this.stepIconPanel;
-  iconPanel.innerHTML = "";
+  var imageContainer = this.stepIconPanel.querySelector('div');
+  imageContainer.innerHTML = "";
   // Add new icon
   var stepIcon = this.controller.getStepIcon();
   if (stepIcon != null) {
@@ -628,7 +629,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     iconPanel.style.background = "linear-gradient(180deg, " + gradientColor1 + " 0%, " + gradientColor2 + " 100%)";
     iconPanel.style.border = "solid 1px #333333";
     var icon = new Image();
-    iconPanel.appendChild(icon);
+    imageContainer.appendChild(icon);
     icon.src = ZIPTools.getScriptFolder() + "/" + stepIcon;
   }
 }
