@@ -55,6 +55,8 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   private String              furnitureSortedProperty;
   private Boolean             furnitureDescendingSorted;
   private List<String>        furnitureVisibleProperties;
+  private Boolean             observerCameraElevationAdjusted;
+  private Boolean             allLevelsVisible;
 
   private TrackedStateChangeUndoableEdit() {
   }
@@ -87,6 +89,8 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
       this.home.setStoredCameras(this.storedCameras);
     }
     if (this.selectedLevel != null) {
+      // Set selected level to null first to force recomputing levels visibility
+      this.home.setSelectedLevel(null);
       this.home.setSelectedLevel(this.selectedLevel);
     }
     if (this.homeProperties != null) {
@@ -105,6 +109,12 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
         }
       }
       this.home.setFurnitureVisibleProperties(furnitureVisibleProperties);
+    }
+    if (this.observerCameraElevationAdjusted != null) {
+      home.getEnvironment().setObserverCameraElevationAdjusted(this.observerCameraElevationAdjusted);
+    }
+    if (this.allLevelsVisible!= null) {
+      home.getEnvironment().setAllLevelsVisible(this.allLevelsVisible);
     }
   }
 }

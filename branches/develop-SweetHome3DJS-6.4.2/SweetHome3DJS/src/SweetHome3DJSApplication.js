@@ -80,7 +80,9 @@ IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
   PlanController.SCALE_VISUAL_PROPERTY,
   // Supported built-in properties
   "CAMERA", "STORED_CAMERAS", "SELECTED_LEVEL",
-  "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED", "FURNITURE_VISIBLE_PROPERTIES" 
+  "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED", "FURNITURE_VISIBLE_PROPERTIES",
+  // HomeEnvironment properties
+  "OBSERVER_CAMERA_ELEVATION_ADJUSTED", "ALL_LEVELS_VISIBLE"
   ];
 
 /**
@@ -239,7 +241,8 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         if (ev.source === home.getTopCamera()) {
           fieldName = "topCamera";
         }
-        if (ev.source === home) {
+        if (ev.source === home
+            || ev.source === home.getEnvironment()) {
           if (recorder.getTrackedHomeProperties().indexOf(ev.getPropertyName()) !== -1) {
             fieldName = ev.getPropertyName();
           }
@@ -256,7 +259,12 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     home.getTopCamera().addPropertyChangeListener(stateChangeTracker);
     var trackedHomeProperties = this.getTrackedHomeProperties();
     for (var i = 0; i < trackedHomeProperties.length; i++) {
-      home.addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
+      if (trackedHomeProperties[i] == "OBSERVER_CAMERA_ELEVATION_ADJUSTED"
+          || trackedHomeProperties[i] == "ALL_LEVELS_VISIBLE") {
+        home.getEnvironment().addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
+      } else {
+        home.addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
+      }
     }
 
     // Schedule first write if needed
@@ -465,6 +473,12 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
             break;
           case "FURNITURE_VISIBLE_PROPERTIES":
             trackedStateChangeUndoableEdit.furnitureVisibleProperties = home.getFurnitureVisibleProperties();
+            break;
+          case "OBSERVER_CAMERA_ELEVATION_ADJUSTED":
+            trackedStateChangeUndoableEdit.observerCameraElevationAdjusted = home.getEnvironment().isObserverCameraElevationAdjusted();
+            break;
+          case "ALL_LEVELS_VISIBLE":
+            trackedStateChangeUndoableEdit.allLevelsVisible = home.getEnvironment().isAllLevelsVisible();
             break;
           default:
             // Non-builtin properties (may be user-defined)
