@@ -125,7 +125,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         '    <div preview>' +
         '      <canvas />' +
         '    </div>' +
-        '    <div class="preview-controls">' +
+        '    <div class="preview-controls" style="z-index:5">' +
         '      <div previewZoomIn></div>' +
         '      <br />' +
         '      <div previewZoomOut></div>' +
@@ -146,7 +146,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         '    <div preview>' +
           '      <canvas />' +
         '    </div>' +
-        '    <div class="preview-controls">' +
+        '    <div class="preview-controls" style="z-index:5">' +
         '      <div previewZoomIn></div>' +
         '      <br />' +
         '      <div previewZoomOut></div>' +
