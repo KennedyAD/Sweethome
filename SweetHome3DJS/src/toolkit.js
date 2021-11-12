@@ -629,6 +629,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     iconPanel.style.background = "linear-gradient(180deg, " + gradientColor1 + " 0%, " + gradientColor2 + " 100%)";
     iconPanel.style.border = "solid 1px #333333";
     var icon = new Image();
+    icon.crossOrigin = "anonymous";
     imageContainer.appendChild(icon);
     icon.src = ZIPTools.getScriptFolder() + "/" + stepIcon;
   }
