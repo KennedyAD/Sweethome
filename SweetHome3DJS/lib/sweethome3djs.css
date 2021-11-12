@@ -481,7 +481,7 @@ label {
       position: relative;
       z-index: 2;
       margin-bottom: -20px;
-      top: 3px;
+      top: 5px;
       left: 1px;
     }
   
@@ -1175,15 +1175,18 @@ label {
     width: calc(100% - 2em);
     flex-wrap: wrap;
   }
+  
   .imported-texture-wizard [attributesStep] [form] [preview] {
     margin: 1em auto;
     width: 100%;
     flex-grow: 1;
     flex-shrink: 0;
   }
+  
   .imported-texture-wizard [attributesStep] [form] [preview] .image {
     margin: 0 auto;
   }
+  
   .imported-texture-wizard [attributesStep] [form] div:not([preview]) {
     margin-bottom: .5em;
     width: 49%;
@@ -1747,6 +1750,10 @@ label {
 
   .dialog-content .default-capable {
     outline: none;
+  }
+  
+  .home-furniture-dialog .visibility {
+    display: none;
   }
 }
 

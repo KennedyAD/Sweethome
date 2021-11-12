@@ -536,7 +536,7 @@ body {
     </div>
 
     <br />
-    <div class="card">
+    <div class="card visibility">
       <label>
         <input type="checkbox" name="visible-checkbox" />
         <span>@{HomeFurniturePanel.visibleCheckBox.text}</span>
