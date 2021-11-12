@@ -1526,11 +1526,8 @@ label {
   position: relative;
 }
 
-.color-chooser .picker > div.selected,
 .color-chooser .picker > div:hover,
-.color-chooser .recent-colors > div.selected,
 .color-chooser .recent-colors > div:hover,
-.color-chooser .current-color-preview,
 .color-chooser .current-color-preview,
 .color-chooser .custom-color-preview input,
 .color-chooser .custom-color-preview input:hover {
@@ -1542,13 +1539,13 @@ label {
   margin-top: .5rem;
 }
 
-.color-chooser div.picker div,
-.color-chooser .recent-colors div {
+.color-chooser .picker > div,
+.color-chooser .recent-colors > div {
   border: white solid 1px;
 }
 
-.color-chooser div.picker div.selected,
-.color-chooser .recent-colors div.selected {
+.color-chooser div.picker > div.selected,
+.color-chooser .recent-colors > div.selected {
   border: grey solid 1px;
 }
 
@@ -1588,6 +1585,14 @@ label {
   opacity: 0;
   width: 2em;
   height: 2em;
+}
+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .color-chooser .picker > div,
+  .color-chooser .recent-colors > div {
+    width: 1.5em;
+    height: 1.5em;
+  }
 }
 
 /*
