@@ -24,7 +24,6 @@
  */
 function FurnitureCatalogListPanel(containerId, catalog, preferences, controller) {
   this.container = document.getElementById(containerId);
-  this.container.classList.add("furniture-catalog");
   this.controller = controller;
   this.preferences = preferences;
   this.createComponents(catalog, preferences, controller);
@@ -43,6 +42,7 @@ FurnitureCatalogListPanel.prototype.getHTMLElement = function() {
  */
 FurnitureCatalogListPanel.prototype.createComponents = function (catalog, preferences, controller) {
   var furnitureCatalogListPanel = this;
+  var furnitureCatalogList = this.container.getElementsByClassName("furniture-catalog-list") [0];
   this.catalog = catalog;
 
   this.toolTipDiv = document.createElement("div");
@@ -55,7 +55,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   // Filtering
   var filteringDiv = document.createElement("div");
   filteringDiv.id = "furniture-filter";
-  this.container.appendChild(filteringDiv);
+  this.container.insertBefore(filteringDiv, furnitureCatalogList);
 
   var categorySelector = document.createElement("select");
   var searchInput = document.createElement("input");
@@ -100,7 +100,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
       furnitureCatalogListPanel.hideTooltip(); 
       ev.stopPropagation(); 
     });
-  this.getHTMLElement().addEventListener("click", function(ev) {
+  furnitureCatalogList.addEventListener("click", function(ev) {
       var bounds = searchInput.getBoundingClientRect();
       if (!(ev.clientX >= bounds.left && ev.clientX <= bounds.right 
             && ev.clientY >= bounds.top && ev.clientY <= bounds.bottom)) {
@@ -174,7 +174,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
     }
   });
 
-  this.container.addEventListener("mouseleave", function(ev) {
+  furnitureCatalogList.addEventListener("mouseleave", function(ev) {
      furnitureCatalogListPanel.hideTooltip();
    });
   
@@ -236,9 +236,10 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
  */
 FurnitureCatalogListPanel.prototype.findCategoryElements = function(category) {
   var elements = [];
-  for (var i = 0; i < this.container.childNodes.length; i++) {
-    if (this.container.childNodes[i].category === category) {
-      elements.push(this.container.childNodes[i]);
+  var furnitureCatalogList = this.container.getElementsByClassName("furniture-catalog-list") [0];
+  for (var i = 0; i < furnitureCatalogList.childNodes.length; i++) {
+    if (furnitureCatalogList.childNodes[i].category === category) {
+      elements.push(furnitureCatalogList.childNodes[i]);
     }
   }
   return elements;
@@ -249,13 +250,14 @@ FurnitureCatalogListPanel.prototype.findCategoryElements = function(category) {
  */
 FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, pieceFilter) {
   // First hide all elements (save display value for further restoring)
-  for (var i = 0; i < this.container.childNodes.length; i++) {
-    if (this.container.childNodes[i] instanceof HTMLElement
-        && this.container.childNodes[i].id !== "furniture-filter") {
-      if (this.container.childNodes[i]._displayBackup === undefined) {
-        this.container.childNodes[i]._displayBackup = this.container.childNodes[i].style.display;
+  var furnitureCatalogList = this.container.getElementsByClassName("furniture-catalog-list") [0];
+  for (var i = 0; i < furnitureCatalogList.childNodes.length; i++) {
+    if (furnitureCatalogList.childNodes[i] instanceof HTMLElement
+        && furnitureCatalogList.childNodes[i].id !== "furniture-filter") {
+      if (furnitureCatalogList.childNodes[i]._displayBackup === undefined) {
+        furnitureCatalogList.childNodes[i]._displayBackup = furnitureCatalogList.childNodes[i].style.display;
       }
-      this.container.childNodes[i].style.display = "none";
+      furnitureCatalogList.childNodes[i].style.display = "none";
     }
   }
 
@@ -271,7 +273,9 @@ FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, piec
     if (furniture != null && furniture.length > 0) {
       var elements = this.findCategoryElements(category);
       elements.forEach(function(element) {
-          if (element.classList.contains("furniture-category-label") || element.classList.contains("furniture-category-separator")) {
+          if (categories.length > 1 
+              && (element.classList.contains("furniture-category-label") 
+                  || element.classList.contains("furniture-category-separator"))) {
             element.style.display = element._displayBackup;
           }
           if (element.piece && furniture.indexOf(element.piece) !== -1) {
@@ -286,17 +290,18 @@ FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, piec
  * @private
  */
 FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
-  var children = this.container.getElementsByClassName("furniture-category-label");
+  var furnitureCatalogList = this.container.getElementsByClassName("furniture-catalog-list") [0];
+  var children = furnitureCatalogList.getElementsByClassName("furniture-category-label");
   for (var i = children.length - 1; i >= 0; i--) {
-    this.container.removeChild(children[i]);
+    furnitureCatalogList.removeChild(children[i]);
   }
-  children = this.container.getElementsByClassName("furniture");
+  children = furnitureCatalogList.getElementsByClassName("furniture");
   for (var i = children.length - 1; i >= 0; i--) {
-    this.container.removeChild(children[i]);
+    furnitureCatalogList.removeChild(children[i]);
   }
-  children = this.container.getElementsByClassName("furniture-category-separator");
+  children = furnitureCatalogList.getElementsByClassName("furniture-category-separator");
   for (var i = children.length - 1; i >= 0; i--) {
-    this.container.removeChild(children[i]);
+    furnitureCatalogList.removeChild(children[i]);
   }
   
   for (var i = 0; i < catalog.getCategoriesCount() ; i++) {
@@ -305,7 +310,7 @@ FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
     categoryLabel.className = "furniture-category-label";
     categoryLabel.innerHTML = category.getName();
     categoryLabel.category = category;
-    this.container.appendChild(categoryLabel);
+    furnitureCatalogList.appendChild(categoryLabel);
   
     for (var j = 0; j < category.getFurnitureCount(); j++) {
       var piece = category.getFurniture()[j];
@@ -313,7 +318,7 @@ FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
       pieceContainer.pieceOfFurniture = piece;
       pieceContainer.className = "furniture";
       pieceContainer.innerHTML = '<div class="furniture-label">' + piece.getName() + '</div>';
-      this.container.appendChild(pieceContainer);
+      furnitureCatalogList.appendChild(pieceContainer);
       this.createPieceOfFurniturePanel(pieceContainer, piece);
       // Memorize piece & category for filtering
       pieceContainer.category = category;
@@ -324,7 +329,7 @@ FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
       var categorySeparator = document.createElement("div");
       categorySeparator.className = "furniture-category-separator";
       categorySeparator.category = category;
-      this.container.appendChild(categorySeparator);
+      furnitureCatalogList.appendChild(categorySeparator);
     }
   }
 }

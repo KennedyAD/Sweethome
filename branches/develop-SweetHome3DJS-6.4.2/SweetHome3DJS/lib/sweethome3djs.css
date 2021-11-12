@@ -367,7 +367,7 @@ label {
   background-color: white;
 }
 
-.furniture-catalog {
+.furniture-catalog-list {
   -webkit-overflow-scrolling: touch;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -375,6 +375,7 @@ label {
   -ms-user-select: none; 
   -webkit-user-select: none; 
   -webkit-touch-callout: none; /* Disable callouts */
+  border-top: solid gray 1px;
 }
 
 .furniture-category-label {
@@ -408,7 +409,7 @@ label {
 .furniture > .furniture-label {
   font-family: Arial;
   position: absolute;
-  bottom: 0.25em;
+  bottom: 0.3em;
   font-size: 0.7em;
   line-height: 95%;
   width: 70px;
@@ -2021,6 +2022,7 @@ label {
 
 #furniture-view {
   overflow: hidden;
+  background-color: #FFFFFF;
 }
 
 #furniture-view > .tree-table {

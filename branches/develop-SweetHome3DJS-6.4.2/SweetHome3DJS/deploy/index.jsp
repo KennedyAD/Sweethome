@@ -87,6 +87,12 @@ body {
 #furniture-catalog {
   height: 70%;
   width: 100%;
+  overflow-y: hidden;
+}
+
+#furniture-catalog-list {
+  height: calc(100% - 3.3em);
+  width: 100%;
   overflow-y: scroll;
 }
 
@@ -197,6 +203,11 @@ body {
     height: 100%;
   }
 
+  #furniture-catalog-list {
+    height: calc(100% - 2.5em);
+    left: 0;
+  }
+
   #catalog-furniture-splitter {
     display: none;
   }
@@ -249,6 +260,11 @@ body {
 
     #furniture-catalog {
       width: 100%;
+    }
+
+    #furniture-catalog-list {
+      width: 100%;
+      height: 100%;
       overflow-x: scroll;
       overflow-y: hidden;
       white-space: nowrap;
@@ -285,8 +301,8 @@ body {
   @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
 
     #catalog-furniture-pane {
-      top: 0%;
-      left: 0%;
+      top: 0;
+      left: 0;
       width: 150px;
       height: calc(100% - 40px - 2px);
       overflow-x: hidden; 
@@ -342,7 +358,7 @@ body {
   <div id="home-pane-toolbar"></div>
 
   <div id="catalog-furniture-pane">
-    <div id="furniture-catalog"></div>
+    <div id="furniture-catalog"><div id="furniture-catalog-list" class="furniture-catalog-list"></div></div>
     <div id="catalog-furniture-splitter" class="pane-splitter"></div>
     <div id="furniture-view"></div>
   </div>
