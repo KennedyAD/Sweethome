@@ -284,8 +284,8 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   
         var canvasRect = canvas.getBoundingClientRect();
         var pointerCoordinatesObject = ev.touches && ev.touches.length > 0 ? ev.touches[0] : ev;
-        var x = pointerCoordinatesObject.clientX - canvasRect.x;
-        var y = pointerCoordinatesObject.clientY - canvasRect.y;
+        var x = pointerCoordinatesObject.clientX - canvasRect.left;
+        var y = pointerCoordinatesObject.clientY - canvasRect.top;
   
         if (canvas.dragging) {
           var scale = canvas.width / component.selectedImage.width;
