@@ -445,7 +445,7 @@ HomePreviewComponent.prototype.prepareComponent = function(canvasId, onprogressi
         home.getEnvironment().setAllLevelsVisible(home.getCamera() instanceof ObserverCamera);
       };
     setAllLevelsVisibleWhenObserverCamera();
-    home.addPropertyChangeListener(Home.CAMERA, setAllLevelsVisibleWhenObserverCamera);
+    home.addPropertyChangeListener("CAMERA", setAllLevelsVisibleWhenObserverCamera);
   }
   home.getEnvironment().setObserverCameraElevationAdjusted(true);
   

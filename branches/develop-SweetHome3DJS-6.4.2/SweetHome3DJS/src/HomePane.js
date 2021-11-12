@@ -135,11 +135,11 @@ function HomePane(containerId, home, preferences, controller) {
   updateLevels();
   if (homePane.levelSelector) {
     homePane.levelSelector.addEventListener("change", function(ev) {
-        home.setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
+        controller.getPlanController().setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
         updateLevels();
       });
   }
-  home.addPropertyChangeListener(Home.SELECTED_LEVEL, function() {
+  home.addPropertyChangeListener("SELECTED_LEVEL", function() {
       updateLevels();
     });
   var levelChangeListener = function(ev) {
