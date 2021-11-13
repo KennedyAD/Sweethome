@@ -6197,10 +6197,13 @@ PlanComponent.PieceOfFurnitureModelIcon = function(piece, object3dFactory, waiti
         normalizedPiece.setAngle(0);
         if (waitingComponent !== null) {
           var updater = function() {
-              modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize, 
-                  function(icon) {
-                    modelIcon.setIcon(icon);
-                    waitingComponent.repaint();
+              object3dFactory.createObject3D(null, normalizedPiece,
+                  function(pieceNode) {
+                    modelIcon.createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, 
+                        function(icon) {
+                          modelIcon.setIcon(icon);
+                          waitingComponent.repaint();
+                        });
                   });
             };
           setTimeout(updater, 0);
