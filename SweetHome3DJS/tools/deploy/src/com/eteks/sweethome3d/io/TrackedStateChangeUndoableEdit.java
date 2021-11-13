@@ -20,6 +20,7 @@
 package com.eteks.sweethome3d.io;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -46,17 +47,17 @@ import com.eteks.sweethome3d.model.ObserverCamera;
 @SuppressWarnings("serial")
 class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   private Home                home;
-  private Camera              topCamera;
-  private ObserverCamera      observerCamera;
-  private Camera              camera;
-  private List<Camera>        storedCameras;
   private Level               selectedLevel;
-  private Map<String, String> homeProperties;
+  private List<Camera>        storedCameras;
+  private Camera              camera;
+  private List<String>        furnitureVisibleProperties;
   private String              furnitureSortedProperty;
   private Boolean             furnitureDescendingSorted;
-  private List<String>        furnitureVisibleProperties;
+  private Map<String, String> homeProperties;
   private Boolean             observerCameraElevationAdjusted;
   private Boolean             allLevelsVisible;
+  private Camera              topCamera;
+  private ObserverCamera      observerCamera;
 
   private TrackedStateChangeUndoableEdit() {
   }
@@ -64,39 +65,14 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   @Override
   public void redo() throws CannotRedoException {
     super.redo();
-    if (this.topCamera != null) {
-      Camera topCamera = this.home.getTopCamera();
-      topCamera.setCamera(this.topCamera);
-      topCamera.setTime(this.topCamera.getTime());
-      topCamera.setLens(this.topCamera.getLens());
-    }
-    if (this.observerCamera != null) {
-      Camera observerCamera = this.home.getObserverCamera();
-      observerCamera.setCamera(this.observerCamera);
-      observerCamera.setTime(this.observerCamera.getTime());
-      observerCamera.setLens(this.observerCamera.getLens());
-    }
-    if (this.furnitureSortedProperty != null) {
-      this.home.setFurnitureSortedProperty(HomePieceOfFurniture.SortableProperty.valueOf(this.furnitureSortedProperty));
-    }
-    if (this.furnitureDescendingSorted != null) {
-      this.home.setFurnitureDescendingSorted(this.furnitureDescendingSorted);
-    }
-    if (this.camera != null) {
-      this.home.setCamera(this.camera);
+    if (this.selectedLevel != null) {
+      this.home.setSelectedLevel(this.selectedLevel);
     }
     if (this.storedCameras != null) {
       this.home.setStoredCameras(this.storedCameras);
     }
-    if (this.selectedLevel != null) {
-      // Set selected level to null first to force recomputing levels visibility
-      this.home.setSelectedLevel(null);
-      this.home.setSelectedLevel(this.selectedLevel);
-    }
-    if (this.homeProperties != null) {
-      for (Map.Entry<String, String> property : this.homeProperties.entrySet()) {
-        this.home.setProperty(property.getKey(), property.getValue());
-      }
+    if (this.camera != null) {
+      this.home.setCamera(this.camera);
     }
     if (this.furnitureVisibleProperties != null) {
       List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>();
@@ -110,11 +86,34 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
       }
       this.home.setFurnitureVisibleProperties(furnitureVisibleProperties);
     }
+    if (this.furnitureSortedProperty != null) {
+      this.home.setFurnitureSortedProperty(HomePieceOfFurniture.SortableProperty.valueOf(this.furnitureSortedProperty));
+    }
+    if (this.furnitureDescendingSorted != null) {
+      this.home.setFurnitureDescendingSorted(this.furnitureDescendingSorted);
+    }
+    if (this.homeProperties != null) {
+      for (Map.Entry<String, String> property : this.homeProperties.entrySet()) {
+        this.home.setProperty(property.getKey(), property.getValue());
+      }
+    }
     if (this.observerCameraElevationAdjusted != null) {
       home.getEnvironment().setObserverCameraElevationAdjusted(this.observerCameraElevationAdjusted);
     }
     if (this.allLevelsVisible!= null) {
       home.getEnvironment().setAllLevelsVisible(this.allLevelsVisible);
+    }
+    if (this.topCamera != null) {
+      Camera topCamera = this.home.getTopCamera();
+      topCamera.setCamera(this.topCamera);
+      topCamera.setTime(this.topCamera.getTime());
+      topCamera.setLens(this.topCamera.getLens());
+    }
+    if (this.observerCamera != null) {
+      Camera observerCamera = this.home.getObserverCamera();
+      observerCamera.setCamera(this.observerCamera);
+      observerCamera.setTime(this.observerCamera.getTime());
+      observerCamera.setLens(this.observerCamera.getLens());
     }
   }
 }

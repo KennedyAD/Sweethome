@@ -108,6 +108,8 @@ public class HomeEditsDeserializer {
     } else {
       this.homeController = new HomeController(home, this.preferences, new NoOperationViewFactory());
     }
+    // Instantiate 3D controller to ensure its listeners added to home are called
+    this.homeController.getHomeController3D();
     this.homeObjects = new HashMap<String, HomeObject>();
     for (HomeObject homeObject : home.getHomeObjects()) {
       this.homeObjects.put(homeObject.getId(), homeObject);
