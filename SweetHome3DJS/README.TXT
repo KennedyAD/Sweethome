@@ -9,9 +9,8 @@ You may also download this source code with the following SVN command:
 svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_6_2/SweetHome3DJS SweetHome3DJS
 
 
-As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code from 
-http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-6.6.2-src.zip 
-or with the following SVN command: 
+As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code 
+in the same folder with the following SVN command: 
 
 svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_6_2/SweetHome3D SweetHome3D
 
