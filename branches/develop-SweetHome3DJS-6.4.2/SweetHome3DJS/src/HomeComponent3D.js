@@ -2170,6 +2170,9 @@ function Object3DBranchFactory() {
 
 /**
  * Returns the 3D object matching a given <code>item</code>.
+ * @param {Home} home
+ * @param {Object} item
+ * @param {boolean|function} waitForLoading 
  * @return {Object3DBranch} an instance of a subclass of {@link Object3DBranch}
  */
 Object3DBranchFactory.prototype.createObject3D = function(home, item, waitForLoading) {
