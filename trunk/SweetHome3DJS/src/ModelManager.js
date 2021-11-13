@@ -1125,7 +1125,7 @@ ModelManager.prototype.searchSharedShapes = function(node, sharedShapes, childOf
  * Searches all the transformations applied to a shared <code>shape</code> child of the given <b>node</b>.
  * @param {Node3D}  node  a node
  * @param {Shape3D} shape 
- * @param {mat4 []} transformations
+ * @param {mat4[]} transformations
  * @param {mat4}    parentTransformations
  */
 ModelManager.prototype.searchShapeTransformations = function(node, shape, transformations, parentTransformations) {
@@ -1153,8 +1153,8 @@ ModelManager.prototype.searchShapeTransformations = function(node, shape, transf
 /**
  * Returns a new geometry where coordinates are transformed with the given transformations.
  * @param {IndexedGeometryArray3D} geometry
- * @param {mat4 []} transformations
- * @returns {IndexedGeometryArray3D}
+ * @param {mat4[]} transformations
+ * @return {IndexedGeometryArray3D}
  */
 ModelManager.prototype.getTransformedGeometry = function(geometry, transformations) {
   var offsetIndex = 0;

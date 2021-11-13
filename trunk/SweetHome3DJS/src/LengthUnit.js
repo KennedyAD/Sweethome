@@ -26,6 +26,8 @@
 var LengthUnit = {};
 
 /**
+ * @param {number} length
+ * @param {number} maxDelta
  * Returns the value close to the given length under magnetism for meter units.
  * @private
  */
@@ -53,6 +55,8 @@ LengthUnit.getMagnetizedMeterLength = function(length, maxDelta) {
 }
 
 /**
+ * @param {number} length
+ * @param {number} maxDelta
  * Returns the value close to the given length under magnetism for inch units.
  * @private
  */
@@ -80,6 +84,7 @@ LengthUnit.getMagnetizedInchLength = function(length, maxDelta) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in centimeters converted to inches.
  */
 LengthUnit.centimeterToInch = function(length) {
@@ -87,6 +92,7 @@ LengthUnit.centimeterToInch = function(length) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in centimeters converted to feet.
  */
 LengthUnit.centimeterToFoot = function(length) {
@@ -94,6 +100,7 @@ LengthUnit.centimeterToFoot = function(length) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in inches converted to centimeters.
  */
 LengthUnit.inchToCentimeter = function(length) {
@@ -101,17 +108,52 @@ LengthUnit.inchToCentimeter = function(length) {
 }
 
 /**
+ * @param {number} length
  * Returns the <code>length</code> given in feet converted to centimeters.
  */
 LengthUnit.footToCentimeter = function(length) {
   return length * 2.54 * 12;
 }
 
+/**
+ * Returns the enum name of the given unit.
+ * <b>WARNING</b> enum name (CENTIMETERS, MILLIMETERS, ..) is different from unit's name (cm, mm, ..)
+ * @param {LengthUnit} unit
+ */
+LengthUnit.nameOf = function(unit) {
+  if (unit != null) {
+    var unitEnumNames = Object.keys(LengthUnit);
+    for (var i = 0; i < unitEnumNames.length; i++) {
+      var unitEnumName = unitEnumNames[i];
+      if (LengthUnit[unitEnumName] == unit) {
+        return unitEnumName;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Gets a LengthUnit by its enum name
+ * <br/>
+ * <b>WARNING</b> enum name (CENTIMETERS, MILLIMETERS, ..) is different from unit's name (cm, mm, ..)
+ * @param {string} unitEnumName
+ * @return {LengthUnit}
+ */
+LengthUnit.valueOf = function(unitEnumName) {
+  return LengthUnit[unitEnumName];
+}
 
 /**
  * Millimeter unit.
  */
-LengthUnit.MILLIMETER = {formatLocale : null};
+LengthUnit.MILLIMETER = {
+    formatLocale : null
+};
+
+LengthUnit.MILLIMETER.name = function() {
+  return LengthUnit.nameOf(this);
+}
   
 LengthUnit.MILLIMETER.getFormatWithUnit = function() {
   this.checkLocaleChange();
@@ -130,7 +172,7 @@ LengthUnit.MILLIMETER.getFormat = function() {
 
 LengthUnit.MILLIMETER.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
 
 LengthUnit.MILLIMETER.checkLocaleChange = function() {
@@ -138,13 +180,11 @@ LengthUnit.MILLIMETER.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "millimeterUnit");
-    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10, this.name);          
-    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "", 10);
+    this.unitName = CoreTools.getStringFromKey(resource, "millimeterUnit");
+    this.lengthFormatWithUnit = new MeterFamilyFormat("0", 10, this.unitName);
+    this.lengthFormat = new MeterFamilyFormat("0", 10);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
-    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
+    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
   }
 }
 
@@ -164,6 +204,13 @@ LengthUnit.MILLIMETER.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * @since 6.6
+ */
+LengthUnit.MILLIMETER.getStepSize = function() {
+  return 0.5;
+}
+
 LengthUnit.MILLIMETER.centimeterToUnit = function(length) {
   return length * 10.;
 }
@@ -176,8 +223,14 @@ LengthUnit.MILLIMETER.unitToCentimeter = function(length) {
 /**
  * Centimeter unit.
  */
-LengthUnit.CENTIMETER = {formatLocale : null};
-  
+LengthUnit.CENTIMETER = {
+    formatLocale : null
+};
+
+LengthUnit.CENTIMETER.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
 LengthUnit.CENTIMETER.getFormatWithUnit = function() {
   this.checkLocaleChange();
   return this.lengthFormatWithUnit;
@@ -195,7 +248,7 @@ LengthUnit.CENTIMETER.getFormat = function() {
   
 LengthUnit.CENTIMETER.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
   
 LengthUnit.CENTIMETER.checkLocaleChange = function() {
@@ -203,13 +256,11 @@ LengthUnit.CENTIMETER.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "centimeterUnit");
-    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1, this.name);          
-    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "#", 1);
+    this.unitName = CoreTools.getStringFromKey(resource, "centimeterUnit");
+    this.lengthFormatWithUnit = new MeterFamilyFormat("0.#", 1, this.unitName);
+    this.lengthFormat = new MeterFamilyFormat("0.#", 1);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
-    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
+    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
   }
 }
 
@@ -229,6 +280,14 @@ LengthUnit.CENTIMETER.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * Returns the preferred step size in centimeter used to increment / decrement values of this unit.
+ * @since 6.6
+ */
+LengthUnit.CENTIMETER.getStepSize = function() {
+  return 0.5;
+}
+
 LengthUnit.CENTIMETER.centimeterToUnit = function(length) {
   return length;
 }
@@ -240,8 +299,14 @@ LengthUnit.CENTIMETER.unitToCentimeter = function(length) {
 /**
  * Meter unit.
  */
-LengthUnit.METER = {formatLocale : null};
-  
+LengthUnit.METER = {
+    formatLocale : null
+};
+
+LengthUnit.METER.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
 LengthUnit.METER.getFormatWithUnit = function() {
   this.checkLocaleChange();
   return this.lengthFormatWithUnit;
@@ -259,7 +324,7 @@ LengthUnit.METER.getFormat = function() {
 
 LengthUnit.METER.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
 
 LengthUnit.METER.checkLocaleChange = function() {
@@ -267,13 +332,11 @@ LengthUnit.METER.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "meterUnit");
-    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01, this.name);          
-    this.lengthFormat = new MeterFamilyFormat(groupingSeparator, decimalSeparator, "00#", 0.01);
+    this.unitName = CoreTools.getStringFromKey(resource, "meterUnit");
+    this.lengthFormatWithUnit = new MeterFamilyFormat("0.00#", 0.01, this.unitName);
+    this.lengthFormat = new MeterFamilyFormat("0.00#", 0.01);
     var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
-    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, squareMeterUnit);
+    this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
   }
 }
 
@@ -293,6 +356,13 @@ LengthUnit.METER.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * @since 6.6
+ */
+LengthUnit.METER.getStepSize = function() {
+  return 0.5;
+}
+
 LengthUnit.METER.centimeterToUnit = function(length) {
   return length / 100;
 }
@@ -305,7 +375,13 @@ LengthUnit.METER.unitToCentimeter = function(length) {
 /**
  * Foot/Inch unit followed by fractions.
  */
-LengthUnit.INCH = {formatLocale : null};
+LengthUnit.INCH = {
+    formatLocale : null
+};
+
+LengthUnit.INCH.name = function() {
+  return LengthUnit.nameOf(this);
+}
 
 LengthUnit.INCH.getFormatWithUnit = function() {
   this.checkLocaleChange();
@@ -323,7 +399,7 @@ LengthUnit.INCH.getAreaFormatWithUnit = function() {
 
 LengthUnit.INCH.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
 
 LengthUnit.INCH.checkLocaleChange = function() {
@@ -331,11 +407,11 @@ LengthUnit.INCH.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
-    this.lengthFormat = new InchFormat(this.name);
-    this.lengthFormatWithUnit = new InchFormat(this.name);
+    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
+    var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
+    this.lengthFormat = new InchFormat(footInchSeparator);
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
-    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
+    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0", squareFootUnit);
   }
 }
 
@@ -355,6 +431,13 @@ LengthUnit.INCH.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * @since 6.6
+ */
+LengthUnit.INCH.getStepSize = function() {
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
 LengthUnit.INCH.centimeterToUnit = function(length) {
   return LengthUnit.centimeterToInch(length);
 }
@@ -367,7 +450,13 @@ LengthUnit.INCH.unitToCentimeter = function(length) {
 /**
  * Inch unit with decimals.
  */
-LengthUnit.INCH_DECIMALS = {formatLocale : null};
+LengthUnit.INCH_DECIMALS = {
+    formatLocale : null
+};
+
+LengthUnit.INCH_DECIMALS.name = function() {
+  return LengthUnit.nameOf(this);
+}
 
 LengthUnit.INCH_DECIMALS.getFormatWithUnit = function() {
   this.checkLocaleChange();
@@ -386,7 +475,7 @@ LengthUnit.INCH_DECIMALS.getAreaFormatWithUnit = function() {
 
 LengthUnit.INCH_DECIMALS.getName = function() {
   this.checkLocaleChange();
-  return this.name;
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
 }
   
 LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {  
@@ -394,13 +483,11 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.name = CoreTools.getStringFromKey(resource, "inchUnit");
-    var groupingSeparator = CoreTools.getStringFromKey(resource, "groupingSeparator");
-    var decimalSeparator = CoreTools.getStringFromKey(resource, "decimalSeparator");
-    this.lengthFormatWithUnit = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###", this.name); 
-    this.lengthFormat = new InchDecimalFormat(groupingSeparator, decimalSeparator, "###");
+    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
+    this.lengthFormat = new InchDecimalsFormat("0.###");
+    this.lengthFormatWithUnit = new InchDecimalsFormat("0.###", "\""); 
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
-    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit(this.formatLocale, squareFootUnit);
+    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0.##", squareFootUnit);
   }
 }
   
@@ -420,6 +507,13 @@ LengthUnit.INCH_DECIMALS.getMaximumElevation = function() {
   return this.getMaximumLength() / 10;
 }
 
+/**
+ * @since 6.6
+ */
+LengthUnit.INCH_DECIMALS.getStepSize = function() {
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
 LengthUnit.INCH_DECIMALS.centimeterToUnit = function(length) {
   return centimeterToInch(length);
 }
@@ -430,40 +524,50 @@ LengthUnit.INCH_DECIMALS.unitToCentimeter = function(length) {
 
 // Specific format classes for lengths
 
-/** @private */
-function MeterFamilyFormat(groupingSeparator, decimalSeparator, decimalsFormat, unitMultiplier, unit) {
-  Format.call(this);
-  this.groupingSeparator = groupingSeparator;
-  this.decimalSeparator = decimalSeparator;
-  this.decimalsFormat = decimalsFormat;
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
+function MeterFamilyFormat(pattern, unitMultiplier, unit) {
+  DecimalFormat.call(this, pattern);
+  this.setGroupingUsed(true);
   this.unitMultiplier = unitMultiplier;
   this.unit = unit;
 }
-MeterFamilyFormat.prototype = Object.create(Format.prototype);
+MeterFamilyFormat.prototype = Object.create(DecimalFormat.prototype);
 MeterFamilyFormat.prototype.constructor = MeterFamilyFormat;
 
 MeterFamilyFormat.prototype.format = function(number) {
-  var formattedNumber = toLocaleStringUniversal(number * this.unitMultiplier, 
-      this.groupingSeparator, this.decimalSeparator,
-      { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 }); 
+  var formattedNumber = DecimalFormat.prototype.format.call(this, number * this.unitMultiplier); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
 
-/** @private */
-function SquareMeterAreaFormatWithUnit(groupingSeparator, decimalSeparator, unit) {
-  Format.call(this);
-  this.groupingSeparator = groupingSeparator;
-  this.decimalSeparator = decimalSeparator;
-  this.unit = unit;
+MeterFamilyFormat.prototype.parse = function(text, parsePosition) {
+  var number = DecimalFormat.prototype.parse.call(this, text, parsePosition);
+  if (number === null) {
+    return null;
+  } else {
+    return number / this.unitMultiplier;
+  }
 }
-SquareMeterAreaFormatWithUnit.prototype = Object.create(Format.prototype);
+
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
+function SquareMeterAreaFormatWithUnit(squareMeterUnit) {
+  DecimalFormat.call(this, "0.##");
+  this.setGroupingUsed(true);
+  this.squareMeterUnit = squareMeterUnit;
+}
+SquareMeterAreaFormatWithUnit.prototype = Object.create(DecimalFormat.prototype);
 SquareMeterAreaFormatWithUnit.prototype.constructor = SquareMeterAreaFormatWithUnit;
 
 SquareMeterAreaFormatWithUnit.prototype.format = function(number) {
-  var formattedNumber = toLocaleStringUniversal(number / 10000, 
-      this.groupingSeparator, this.decimalSeparator,
-      { maximumFractionDigits: 2, minimumFractionDigits: 0 }); 
-  return formattedNumber + (this.unit ? " " + this.unit : "");
+  var formattedNumber = DecimalFormat.prototype.format.call(this, number / 10000); 
+  return formattedNumber + (this.squareMeterUnit ? " " + this.squareMeterUnit : "");
 }
 
 var inchFractionCharacters = ['\u215b',   // 1/8
@@ -474,12 +578,17 @@ var inchFractionCharacters = ['\u215b',   // 1/8
                               '\u00be',   // 3/4
                               '\u215e'];  // 7/8        
 
-/** @private */
-function InchFormat(unit) {
-  Format.call(this);
-  this.unit = unit;
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
+function InchFormat(footInchSeparator) {
+  DecimalFormat.call(this, "0.###");
+  this.setGroupingUsed(true);
+  this.footInchSeparator = footInchSeparator;
 }
-InchFormat.prototype = Object.create(Format.prototype);
+InchFormat.prototype = Object.create(DecimalFormat.prototype);
 InchFormat.prototype.constructor = InchFormat;
 
 InchFormat.prototype.format = function(number) {
@@ -490,15 +599,15 @@ InchFormat.prototype.format = function(number) {
     feet++;
     remainingInches -= 12;
   }
-  //fieldPosition.setEndIndex(fieldPosition.getEndIndex() + 1);
   var result = number >= 0 ? "" : "-";
   // Format remaining inches only if it's larger that 0.0005
+  var feetString = DecimalFormat.prototype.format.call(this, feet);
   if (remainingInches >= 0.0005) {
     // Try to format decimals with 1/8, 1/4, 1/2 fractions first
     var integerPart = Math.floor(remainingInches);
     var fractionPart = remainingInches - integerPart;
     var eighth = Math.round(fractionPart * 8); 
-    result += feet;
+    result += feetString;
     if (eighth === 0 || eighth === 8) {
       result += "'";
       result += Math.round(remainingInches * 8) / 8;
@@ -510,239 +619,211 @@ InchFormat.prototype.format = function(number) {
       result += "\"";
     }
   } else {
-    result += feet;
+    result += feetString;
     result += "'";
   }
   return result;
 }
 
-//    var inchFractionStrings  = ["1/8",
-//                                "1/4",  
-//                                "3/8",
-//                                "1/2",
-//                                "5/8",
-//                                "3/4",
-//                                "7/8"];     
+var inchFractionStrings = ["1/8",
+                           "1/4",  
+                           "3/8",
+                           "1/2",
+                           "5/8",
+                           "3/4",
+                           "7/8"];     
 
-//        public Number parse(String text, ParsePosition parsePosition) {
-//          double value = 0;
-//          ParsePosition numberPosition = new ParsePosition(parsePosition.getIndex());
-//          skipWhiteSpaces(text, numberPosition);
-//          // Parse feet
-//          int quoteIndex = text.indexOf('\'', parsePosition.getIndex());
-//          boolean negative = numberPosition.getIndex() < text.length()  
-//              && text.charAt(numberPosition.getIndex()) === this.getDecimalFormatSymbols().getMinusSign();
-//          if (quoteIndex != -1) {
-//            Number feet = footNumberFormat.parse(text, numberPosition);
-//            if (feet === null) {
-//              parsePosition.setErrorIndex(numberPosition.getErrorIndex());
-//              return null;
-//            }
-//            skipWhiteSpaces(text, numberPosition);
-//            if (numberPosition.getIndex() != quoteIndex) {
-//              parsePosition.setErrorIndex(numberPosition.getIndex());
-//              return null;
-//            }
-//            value = LengthUnit.footToCentimeter(feet.intValue());                
-//            numberPosition = new ParsePosition(quoteIndex + 1);
-//            skipWhiteSpaces(text, numberPosition);
-//            // Test optional foot inch separator
-//            if (numberPosition.getIndex() < text.length()
-//                && footInchSeparator.indexOf(text.charAt(numberPosition.getIndex())) >= 0) {
-//              numberPosition.setIndex(numberPosition.getIndex() + 1);
-//              skipWhiteSpaces(text, numberPosition);
-//            }
-//            if (numberPosition.getIndex() === text.length()) {
-//              parsePosition.setIndex(text.length());
-//              return value;
-//            }
-//          } 
-//          // Parse inches
-//          Number inches = inchNumberFormat.parse(text, numberPosition);
-//          if (inches === null) {
-//            parsePosition.setErrorIndex(numberPosition.getErrorIndex());
-//            return null;
-//          }
-//          if (negative) {
-//            if (quoteIndex === -1) {
-//              value = inchToCentimeter(inches.floatValue());
-//            } else {
-//              value -= inchToCentimeter(inches.floatValue());
-//            }
-//          } else {
-//            value += inchToCentimeter(inches.floatValue());
-//          }
-//          // Parse fraction
-//          skipWhiteSpaces(text, numberPosition);
-//          if (numberPosition.getIndex() === text.length()) {
-//            parsePosition.setIndex(text.length());
-//            return value;
-//          }
-//          if (text.charAt(numberPosition.getIndex()) === '\"') {
-//            parsePosition.setIndex(numberPosition.getIndex() + 1);
-//            return value;
-//          }
-//
-//          var fractionChar = text.charAt(numberPosition.getIndex());    
-//          var fractionString = text.length() - numberPosition.getIndex() >= 3 
-//              ? text.substring(numberPosition.getIndex(), numberPosition.getIndex() + 3)
-//              : null;
-//          for (var i = 0; i < inchFractionCharacters.length; i++) {
-//            if (inchFractionCharacters [i] === fractionChar
-//                || inchFractionStrings [i] == fractionString) {
-//              // Check no decimal fraction was specified
-//              int lastDecimalSeparatorIndex = text.lastIndexOf(getDecimalFormatSymbols().getDecimalSeparator(), 
-//                  numberPosition.getIndex() - 1);
-//              if (lastDecimalSeparatorIndex > quoteIndex) {
-//                return null;
-//              } else {
-//                if (negative) {
-//                  value -= inchToCentimeter((i + 1) / 8f);
-//                } else {
-//                  value += inchToCentimeter((i + 1) / 8f);
-//                }
-//                parsePosition.setIndex(numberPosition.getIndex() 
-//                    + (inchFractionCharacters [i] === fractionChar ? 1 : 3));
-//                skipWhiteSpaces(text, parsePosition);
-//                if (parsePosition.getIndex() < text.length() 
-//                    && text.charAt(parsePosition.getIndex()) === '\"') {
-//                  parsePosition.setIndex(parsePosition.getIndex() + 1);
-//                }
-//                return value;
-//              }
-//            }
-//          }
-//          
-//          parsePosition.setIndex(numberPosition.getIndex());
-//          return value;
-//        }
-//        
-//        /**
-//         * Increases the index of <code>fieldPosition</code> to skip white spaces. 
-//         */
-//        private void skipWhiteSpaces(String text, ParsePosition fieldPosition) {
-//          while (fieldPosition.getIndex() < text.length()
-//              && Character.isWhitespace(text.charAt(fieldPosition.getIndex()))) {
-//            fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-//          }
-//        }
-//      };
-/** @private */
-function SquareFootAreaFormatWithUnit(formatLocale, unit) {
-  Format.call(this);
-  this.formatLocale = formatLocale;
+InchFormat.prototype.parse = function(text, parsePosition) {
+  var value = 0;
+  var numberPosition = new ParsePosition(parsePosition.getIndex());
+  this.skipWhiteSpaces(text, numberPosition);
+  var footNumberFormat = NumberFormat.getIntegerInstance();
+  // Parse feet
+  var quoteIndex = text.indexOf('\'', parsePosition.getIndex());
+  var negative = numberPosition.getIndex() < text.length  
+      && text.charAt(numberPosition.getIndex()) === '-';
+  var footValue = false;
+  if (quoteIndex !== -1) {
+    var feet = footNumberFormat.parse(text, numberPosition);
+    if (feet === null) {
+      parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+      return null;
+    }
+    this.skipWhiteSpaces(text, numberPosition);
+    if (numberPosition.getIndex() === quoteIndex) {
+      value = LengthUnit.footToCentimeter(feet);
+      footValue = true;
+      numberPosition = new ParsePosition(quoteIndex + 1);
+      this.skipWhiteSpaces(text, numberPosition);
+      // Test optional foot inch separator
+      if (numberPosition.getIndex() < text.length
+          && this.footInchSeparator.indexOf(text.charAt(numberPosition.getIndex())) >= 0) {
+        numberPosition.setIndex(numberPosition.getIndex() + 1);
+        this.skipWhiteSpaces(text, numberPosition);
+      }
+      if (numberPosition.getIndex() === text.length) {
+        parsePosition.setIndex(text.length);
+        return value;
+      }
+    } else {
+      if (this.decimalSeparator === text.charAt(numberPosition.getIndex())) {
+        var decimalNumberPosition = new ParsePosition(parsePosition.getIndex());
+        if (DecimalFormat.prototype.parse.call(this, text, decimalNumberPosition) !== null
+            && decimalNumberPosition.getIndex() === quoteIndex) {
+          // Don't allow a decimal number in front of a quote
+          parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+          return null;
+        }
+      }
+      // Try to parse beginning as inches
+      numberPosition.setIndex(parsePosition.getIndex());
+    }
+  }
+    
+  // Parse inches
+  var inches = DecimalFormat.prototype.parse.call(this, text, numberPosition);
+  if (inches === null) {
+    if (footValue) {
+      parsePosition.setIndex(numberPosition.getIndex());
+      return value;
+    } else {
+      parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+      return null;
+    }
+  }
+  if (negative) {
+    if (quoteIndex === -1) {
+      value = LengthUnit.inchToCentimeter(inches);
+    } else {
+      value -= LengthUnit.inchToCentimeter(inches);
+    }
+  } else {
+    value += LengthUnit.inchToCentimeter(inches);
+  }
+  // Parse fraction
+  this.skipWhiteSpaces(text, numberPosition);
+  if (numberPosition.getIndex() === text.length) {
+    parsePosition.setIndex(text.length);
+    return value;
+  }
+  if (text.charAt(numberPosition.getIndex()) === '\"') {
+    parsePosition.setIndex(numberPosition.getIndex() + 1);
+    return value;
+  }
+
+  var fractionChar = text.charAt(numberPosition.getIndex());    
+  var fractionString = text.length - numberPosition.getIndex() >= 3 
+      ? text.substring(numberPosition.getIndex(), numberPosition.getIndex() + 3)
+      : null;
+  for (var i = 0; i < inchFractionCharacters.length; i++) {
+    if (inchFractionCharacters [i] === fractionChar
+        || inchFractionStrings [i] == fractionString) {
+      // Check no decimal fraction was specified
+      var lastDecimalSeparatorIndex = text.lastIndexOf(this.decimalSeparator, 
+          numberPosition.getIndex() - 1);
+      if (lastDecimalSeparatorIndex > quoteIndex) {
+        return null;
+      } else {
+        if (negative) {
+          value -= LengthUnit.inchToCentimeter((i + 1) / 8);
+        } else {
+          value += LengthUnit.inchToCentimeter((i + 1) / 8);
+        }
+        parsePosition.setIndex(numberPosition.getIndex() 
+            + (inchFractionCharacters [i] === fractionChar ? 1 : 3));
+        this.skipWhiteSpaces(text, parsePosition);
+        if (parsePosition.getIndex() < text.length
+            && text.charAt(parsePosition.getIndex()) === '\"') {
+          parsePosition.setIndex(parsePosition.getIndex() + 1);
+        }
+        return value;
+      }
+    }
+  }
+  
+  parsePosition.setIndex(numberPosition.getIndex());
+  return value;
+}
+
+/**
+ * Increases the index of <code>fieldPosition</code> to skip white spaces.
+ * @param {string} text
+ * @param {ParsePosition} fieldPosition
+ * @private 
+ */
+InchFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
+  while (fieldPosition.getIndex() < text.length
+      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
+    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
+  }
+}
+
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
+function SquareFootAreaFormatWithUnit(pattern, unit) {
+  DecimalFormat.call(this, pattern);
+  this.setGroupingUsed(true);
   this.unit = unit;
 }
-SquareFootAreaFormatWithUnit.prototype = Object.create(Format.prototype);
+SquareFootAreaFormatWithUnit.prototype = Object.create(DecimalFormat.prototype);
 SquareFootAreaFormatWithUnit.prototype.constructor = SquareFootAreaFormatWithUnit;
 
 SquareFootAreaFormatWithUnit.prototype.format = function(number) {
-  var formattedNumber = toLocaleStringUniversal(number / 929.0304, 
-      this.groupingSeparator, this.decimalSeparator,
-      { maximumFractionDigits: 0, minimumFractionDigits: 0 }); 
+  var formattedNumber = DecimalFormat.prototype.format.call(this, number / 929.0304); 
   return formattedNumber + (this.unit ? " " + this.unit : "");
 }
 
-/** @private */
-function InchDecimalFormat(groupingSeparator, decimalSeparator, decimalsFormat) {
-  Format.call(this);
-  this.groupingSeparator = groupingSeparator;
-  this.decimalSeparator = decimalSeparator;
-  this.decimalsFormat = decimalsFormat;
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
+function InchDecimalsFormat(pattern, unit) {
+  DecimalFormat.call(this, pattern);
+  this.setGroupingUsed(true);
+  this.unit = unit;
 }
-InchDecimalFormat.prototype = Object.create(Format.prototype);
-InchDecimalFormat.prototype.constructor = InchDecimalFormat;
+InchDecimalsFormat.prototype = Object.create(DecimalFormat.prototype);
+InchDecimalsFormat.prototype.constructor = InchDecimalsFormat;
 
-InchDecimalFormat.prototype.format = function(number) {
-  var formattedNumber = toLocaleStringUniversal(LengthUnit.centimeterToInch(number), 
-      this.groupingSeparator, this.decimalSeparator,
-      { maximumFractionDigits: this.decimalsFormat.length, minimumFractionDigits: this.decimalsFormat.split("0").length - 1 });
-  return formattedNumber + "\"";
+InchDecimalsFormat.prototype.format = function(number) {
+  var formattedNumber = DecimalFormat.prototype.format.call(this, LengthUnit.centimeterToInch(number));
+  return formattedNumber + (this.unit ? this.unit : "");
 }
 
-//      public Number parse(String text, ParsePosition parsePosition) {
-//        ParsePosition numberPosition = new ParsePosition(parsePosition.getIndex());
-//        skipWhiteSpaces(text, numberPosition);
-//        // Parse inches
-//        Number inches = this.inchNumberFormat.parse(text, numberPosition);
-//        if (inches === null) {
-//          parsePosition.setErrorIndex(numberPosition.getErrorIndex());
-//          return null;
-//        }
-//        double value = LengthUnit.inchToCentimeter(inches.floatValue());
-//        // Parse "
-//        skipWhiteSpaces(text, numberPosition);
-//        if (numberPosition.getIndex() < text.length() 
-//            && text.charAt(numberPosition.getIndex()) === '\"') {
-//          parsePosition.setIndex(numberPosition.getIndex() + 1);
-//        } else {
-//          parsePosition.setIndex(numberPosition.getIndex());
-//        }
-//        return value;
-//      }
-//
-//      /**
-//       * Increases the index of <code>fieldPosition</code> to skip white spaces. 
-//       */
-//      private void skipWhiteSpaces(String text, ParsePosition fieldPosition) {
-//        while (fieldPosition.getIndex() < text.length()
-//            && Character.isWhitespace(text.charAt(fieldPosition.getIndex()))) {
-//          fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-//        }
-//      }
-//    }
+InchDecimalsFormat.prototype.parse = function(text, parsePosition) {
+  var numberPosition = new ParsePosition(parsePosition.getIndex());
+  this.skipWhiteSpaces(text, numberPosition);
+  // Parse inches
+  var inches = DecimalFormat.prototype.parse.call(this, text, numberPosition);
+  if (inches === null) {
+    parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+    return null;
+  }
+  var value = LengthUnit.inchToCentimeter(inches);
+  // Parse "
+  this.skipWhiteSpaces(text, numberPosition);
+  if (numberPosition.getIndex() < text.length 
+      && text.charAt(numberPosition.getIndex()) === '\"') {
+    parsePosition.setIndex(numberPosition.getIndex() + 1);
+  } else {
+    parsePosition.setIndex(numberPosition.getIndex());
+  }
+  return value;
+}
 
 /**
- * Returns <code>toLocaleString</code> fixed for environments where <code>options</code> 
- * are not supported (mainly Safari 8/9).
- * @param {number} number
- * @param {string} groupingSeparator
- * @param {string} decimalSeparator
- * @param {Object} options
- * @ignore
+ * Increases the index of <code>fieldPosition</code> to skip white spaces.
+ * @param {string} text
+ * @param {ParsePosition} fieldPosition
+ * @private 
  */
-function toLocaleStringUniversal(number, groupingSeparator, decimalSeparator, options) {
-  var formattedNumber = number.toLocaleString("en", options);
-  var decimalSeparatorIndex = formattedNumber.indexOf('.');
-  if (decimalSeparatorIndex === -1) {
-    decimalSeparatorIndex = formattedNumber.length;
+InchDecimalsFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
+  while (fieldPosition.getIndex() < text.length
+      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
+    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
   }
-  
-  if (options.maximumFractionDigits === 0) {
-    if (decimalSeparatorIndex < formattedNumber.length) {
-      // Remove last decimals
-      formattedNumber = Math.round(number).toString();
-      decimalSeparatorIndex = formattedNumber.length;
-    }
-  } else if (options.maximumFractionDigits < formattedNumber.length - decimalSeparatorIndex - 1) {
-    // Limit decimals to the required maximum using an integer with the right number of digits
-    formattedNumber = Math.round(number * Math.pow(10, options.maximumFractionDigits)).toString();
-    if (Math.abs(number) < 1) {
-      formattedNumber = number > 0 
-          ? '0.' + formattedNumber 
-          : '-0.' + formattedNumber.substring(1);
-    } else {
-      formattedNumber = formattedNumber.substring(0, decimalSeparatorIndex) + '.' + formattedNumber.substring(decimalSeparatorIndex);
-    }
-  }
-  
-  // Add a decimal separator if needed followed by the required number of zeros
-  if (options.minimumFractionDigits > 0) {
-    if (decimalSeparatorIndex === formattedNumber.length) {
-      formattedNumber += '.';
-    }
-    while (options.minimumFractionDigits > formattedNumber.length - decimalSeparatorIndex - 1) {
-      formattedNumber += '0';
-    }
-  }
-  
-  if (decimalSeparatorIndex > 3 && formattedNumber.indexOf(',') === -1) {
-    // Missing grouping separator
-    for (var groupingSeparatorIndex = decimalSeparatorIndex - 3; groupingSeparatorIndex > (number > 0 ? 0 : 1); groupingSeparatorIndex -= 3) {
-      formattedNumber = formattedNumber.substring(0, groupingSeparatorIndex) + ',' + formattedNumber.substring(groupingSeparatorIndex); 
-      decimalSeparatorIndex++;
-    }
-  } 
-  
-  return formattedNumber.replace(".", "#").replace(",", groupingSeparator).replace("#", decimalSeparator).replace(' ', '\u00a0');
 }

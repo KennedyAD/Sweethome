@@ -82,7 +82,7 @@ Label3D.prototype.update = function() {
       var font = fontStyle + " " + fontSize + "px " + fontName;
       Label3D.dummyContext.font = font;
       
-      var lines = text.split("\n");
+      var lines = text.replace(/\n*$/, "").split("\n");
       var lineWidths = new Array(lines.length);
       var textWidth = -Infinity;
       var baseLineShift = -descent + fontHeight * lines.length;

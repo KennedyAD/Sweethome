@@ -148,7 +148,7 @@ Node3D.prototype.removePropertyChangeListener = function(propertyName, listener)
 
 /**
  * Returns the property change listeners of this group.
- * @returns {Array}   
+ * @return {Array}   
  */
 Node3D.prototype.getPropertyChangeListeners = function() {
   if (this.propertyChangeSupport !== undefined) {
@@ -503,7 +503,7 @@ Group3D.prototype.removeChildrenListener = function(listener) {
 
 /**
  * Returns the children listeners of this group.
- * @returns {Array}   
+ * @return {Array}   
  */
 Group3D.prototype.getChildrenListeners = function() {
   if (this.childrenListeners !== undefined) {
@@ -749,7 +749,7 @@ Appearance3D.prototype.setName = function(name) {
 
 /**
  * Returns the name of this appearance. 
- * @returns {string}
+ * @return {string}
  */
 Appearance3D.prototype.getName = function() {
   return this.name;
@@ -880,7 +880,7 @@ Appearance3D.prototype.setTextureImage = function(textureImage) {
 
 /**
  * Returns the texture image of this appearance. 
- * @returns {Image}
+ * @return {Image}
  */
 Appearance3D.prototype.getTextureImage = function() {
   return this.textureImage;
@@ -1108,7 +1108,7 @@ function BoundingBox3D(lower, upper) {
 
 /**
  * Returns a copy of the lower point of this bounding box.
- * @returns {vec3}
+ * @return {vec3}
  */
 BoundingBox3D.prototype.getLower = function(p) {
   vec3.copy(p, this.lower);
@@ -1116,7 +1116,7 @@ BoundingBox3D.prototype.getLower = function(p) {
 
 /**
  * Returns a copy of the upper point of this bounding box.
- * @returns {vec3}
+ * @return {vec3}
  */
 BoundingBox3D.prototype.getUpper = function(p) {
   vec3.copy(p, this.upper);
@@ -1124,7 +1124,7 @@ BoundingBox3D.prototype.getUpper = function(p) {
 
 /**
  * Returns <code>true</code> if this bounding box is undefined.
- * @returns {boolean}
+ * @return {boolean}
  */
 BoundingBox3D.prototype.isEmpty = function() {
   return this.lower[0] == -Infinity

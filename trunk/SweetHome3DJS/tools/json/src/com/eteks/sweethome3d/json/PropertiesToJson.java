@@ -182,13 +182,11 @@ public class PropertiesToJson {
 
   private static void afterLoaded(Properties properties, String sourceRoot, String resourcesOutputDirectory, String propertyFileBaseName,
                                   String resourcesRelativeDirectory, boolean copyResources, boolean resourceNameFromFile, String language) throws IOException {
-    if ("LengthUnit".equals(propertyFileBaseName)) {
-      System.out.println("***** Adding extra keys for '" + language + "'");
-      properties.put("groupingSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getGroupingSeparator());
-      properties.put("decimalSeparator", new DecimalFormatSymbols(Locale.forLanguageTag(language)).getDecimalSeparator());
-    } else if ("package".equals(propertyFileBaseName)) {
+    if ("package".equals(propertyFileBaseName)) {
       for (Iterator<Entry<Object, Object>> it = properties.entrySet().iterator(); it.hasNext(); ) {
-        String key = (String)it.next().getKey();
+        Entry<Object, Object> entry = it.next();
+        String key = (String)entry.getKey();
+        String value = (String)entry.getValue();
         int acceleratorKeyIndex = key.indexOf(".AcceleratorKey");
         if (acceleratorKeyIndex >= 0
             && !Arrays.asList("HomePane.UNDO", "HomePane.REDO", "HomePane.DELETE",
@@ -196,6 +194,9 @@ public class PropertiesToJson {
                 contains(key.substring(0, acceleratorKeyIndex))) {
           // Keep only accelerators that won't clash with browser ones
           it.remove();
+        } else if (value.indexOf("/actions/") != -1) {
+          // Prefer SVG icons for the web
+          entry.setValue(value.replace(".png", ".svg"));
         }
       }
     } else {

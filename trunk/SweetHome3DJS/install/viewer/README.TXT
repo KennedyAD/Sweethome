@@ -1,4 +1,4 @@
-SWEET HOME 3D JS VIEWER v 6.5.2
+SWEET HOME 3D JS VIEWER v 6.6.2
 -------------------------------
 
 This archive contains files required to install Sweet Home 3D JS Viewer, a 

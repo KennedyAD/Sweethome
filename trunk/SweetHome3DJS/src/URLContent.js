@@ -136,6 +136,7 @@ URLContent.prototype.hashCode = function() {
     }, 0);
 }
 
+
 /**
  * An URL content read from a home stream.
  * @param {string} url  the URL from which this content will be read
@@ -151,6 +152,7 @@ HomeURLContent.prototype.constructor = HomeURLContent;
 
 HomeURLContent["__class"] = "com.eteks.sweethome3d.io.HomeURLContent";
 HomeURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
 
 /**
  * Content read from a URL with no dependency on other content when this URL is a JAR entry.
@@ -169,7 +171,72 @@ SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 
 /**
- * Utilities for requests about the system environment.
+ * Content read from a URL to a JS Blob
+ * @constructor
+ * @param {Blob} blob
+ * @author Louis Grignon
+ * @author Emmanuel Puybaret
+ */
+function BlobURLContent(blob) {
+  var url = URL.createObjectURL(blob);
+  URLContent.call(this, url);
+  /** @private */
+  this.blob = blob;
+  this.savedContent = null;
+}
+BlobURLContent.prototype = Object.create(URLContent.prototype);
+BlobURLContent.prototype.constructor = BlobURLContent;
+
+BlobURLContent["__class"] = "com.eteks.sweethome3d.tools.BlobURLContent";
+BlobURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+/**
+ * @return {Blob} blob content 
+ */
+BlobURLContent.prototype.getBlob = function() {
+  return this.blob;
+}
+
+/**
+ * Returns the content saved on server.
+ * @return {URLContent} content on server or <code>null</code> if not saved on server yet 
+ */
+BlobURLContent.prototype.getSavedContent = function() {
+  return this.savedContent;
+}
+
+/**
+ * Sets the content saved on server.
+ * @param {URLContent} savedContent content on server 
+ */
+BlobURLContent.prototype.setSavedContent = function(savedContent) {
+  this.savedContent = savedContent;
+}
+
+/**
+ * Loads a BlobURLContent from a JS image
+ * @param {HTMLImageElement} image the image to be used as content source
+ * @param {string} imageType resulting image blob mime type
+ * @param {function(BlobURLContent)} oncontentready callback called when content is ready, with content instance as only parameter
+ */
+BlobURLContent.fromImage = function(image, imageType, oncontentready) {
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  context.drawImage(image, 0, 0, image.width, image.height);
+  if (canvas.msToBlob) {
+    oncontentready(new BlobURLContent(canvas.msToBlob()));
+  } else {
+    canvas.toBlob(function (blob) {
+        oncontentready(new BlobURLContent(blob));
+      }, imageType, 1);
+  }
+}
+
+
+/**
+ * Utilities about the system environment.
  * @class
  * @ignore
  * @author Emmanuel Puybaret
@@ -255,9 +322,9 @@ ZIPTools.runningRequests = [];
 
 /**
  * Reads the ZIP data in the given URL.
- * @param url the URL of a zip file containing an OBJ entry that will be loaded
+ * @param {string} url the URL of a zip file containing an OBJ entry that will be loaded
  *            or an URL noted as jar:url!/objEntry where objEntry will be loaded.
- * @param synchronous optional parameter equal to false by default
+ * @param {boolean} [synchronous] optional parameter equal to false by default
  * @param {{zipReady, zipError, progression}} zipObserver An observer containing zipReady(zip), 
  *            zipError(error), progression(part, info, percentage) methods that
  *            will called at various phases.
@@ -274,6 +341,7 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
       var request = new XMLHttpRequest();
       request.open('GET', url, !synchronous);
       request.responseType = "arraybuffer";
+      request.withCredentials = true;
       request.overrideMimeType("application/octet-stream");
       request.addEventListener("readystatechange", 
           function(ev) {

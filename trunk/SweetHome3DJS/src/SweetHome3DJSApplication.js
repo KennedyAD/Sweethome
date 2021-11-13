@@ -21,10 +21,8 @@
 // Requires SweetHome3D.js
 // Requires HomeRecorder.js
 // Requires UserPreferences.js
-// Requires FurnitureCatalogListPanel.js
-// Requires PlanComponent.js
-// Requires HomeComponent3D.js
 // Requires HomePane.js
+// Requires JSViewFactory.js
 
 /**
  * A home recorder that is able to save the application homes incrementally by sending undoable edits 
@@ -33,6 +31,8 @@
  * @param {{readHomeURL: string,
  *          writeHomeEditsURL: string,
  *          closeHomeURL: string,
+ *          writeResourceURL: string,
+ *          readResourceURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
  *          trackedHomeProperties: string[],
@@ -46,6 +46,7 @@
  * @constructor
  * @author Renaud Pawlak
  * @author Emmanuel Puybaret
+ * @author Louis Grignon
  */
 function IncrementalHomeRecorder(application, configuration) {
   HomeRecorder.call(this);
@@ -67,13 +68,22 @@ IncrementalHomeRecorder.prototype.constructor = IncrementalHomeRecorder;
 
 /**
  * The home properties that are tracked by default by incremental recorders.
+ * @private
  */
 IncrementalHomeRecorder.DEFAULT_TRACKED_HOME_PROPERTIES = [
-            HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
-            HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
-            PlanController.SCALE_VISUAL_PROPERTY,
-            // supported built-in properties
-            'CAMERA', 'SELECTED_LEVEL'];
+  FurnitureTablePanel.EXPANDED_ROWS_VISUAL_PROPERTY,
+  HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, 
+  HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, 
+  HomePane.MAIN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY, 
+  HomePane.PLAN_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+  HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
+  PlanController.SCALE_VISUAL_PROPERTY,
+  // Supported built-in properties
+  "CAMERA", "STORED_CAMERAS", "SELECTED_LEVEL",
+  "FURNITURE_SORTED_PROPERTY", "FURNITURE_DESCENDING_SORTED", "FURNITURE_VISIBLE_PROPERTIES",
+  // HomeEnvironment properties
+  "OBSERVER_CAMERA_ELEVATION_ADJUSTED", "ALL_LEVELS_VISIBLE"
+  ];
 
 /**
  * Gets the home properties that are tracked and potentially written by this recorder.
@@ -103,8 +113,8 @@ IncrementalHomeRecorder.prototype.configure = function(configuration) {
 IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
   var recorder = this;
   var request = new XMLHttpRequest();
-  request.open('GET', this.configuration['pingURL'], true);
-  request.addEventListener('load', function(ev) {
+  request.open("GET", this.configuration["pingURL"], true);
+  request.addEventListener("load", function(ev) {
       if (request.readyState === XMLHttpRequest.DONE
           && request.status === 200) {
         if (!recorder.online) {
@@ -132,7 +142,7 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
           }, pingDelay);
       }
     });
-  request.addEventListener('error', function(ev) {
+  request.addEventListener("error", function(ev) {
       if (recorder.online) {
         if (recorder.configuration 
             && recorder.configuration.writingObserver 
@@ -152,7 +162,7 @@ IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
  * Reads a home with this recorder.
  * @param {string} homeName the home name on the server 
  *                          or the URL of the home if <code>readHomeURL</code> service is missing 
- * @param {homeLoaded, homeError, progression} observer  callbacks used to follow the reading of the home 
+ * @param {{homeLoaded: function, homeError: function, progression: function}} observer  callbacks used to follow the reading of the home 
  */
 IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
   if (this.configuration !== undefined
@@ -160,7 +170,7 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
     // Replace % sequence by %% except %s before formating readHomeURL with home name 
     var readHomeUrl = CoreTools.format(this.configuration.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
     if (readHomeUrl.indexOf("?") > 0) {
-      readHomeUrl += "&requestId=" + encodeURIComponent(UUID.randomUUID());
+      readHomeUrl += "&requestId=" + UUID.randomUUID();
     }
     homeName = readHomeUrl;
   }
@@ -231,7 +241,8 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
         if (ev.source === home.getTopCamera()) {
           fieldName = "topCamera";
         }
-        if (ev.source === home) {
+        if (ev.source === home
+            || ev.source === home.getEnvironment()) {
           if (recorder.getTrackedHomeProperties().indexOf(ev.getPropertyName()) !== -1) {
             fieldName = ev.getPropertyName();
           }
@@ -248,7 +259,12 @@ IncrementalHomeRecorder.prototype.addHome = function(home) {
     home.getTopCamera().addPropertyChangeListener(stateChangeTracker);
     var trackedHomeProperties = this.getTrackedHomeProperties();
     for (var i = 0; i < trackedHomeProperties.length; i++) {
-      home.addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
+      if (trackedHomeProperties[i] == "OBSERVER_CAMERA_ELEVATION_ADJUSTED"
+          || trackedHomeProperties[i] == "ALL_LEVELS_VISIBLE") {
+        home.getEnvironment().addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
+      } else {
+        home.addPropertyChangeListener(trackedHomeProperties[i], stateChangeTracker);
+      }
     }
 
     // Schedule first write if needed
@@ -277,21 +293,21 @@ IncrementalHomeRecorder.prototype.getAutoWriteDelay = function() {
  */
 IncrementalHomeRecorder.prototype.removeHome = function(home) {
   if (this.configuration !== undefined) {
-    if (this.configuration['closeHomeURL'] !== undefined) {
+    if (this.configuration["closeHomeURL"] !== undefined) {
       var closeHomeURL = CoreTools.format(this.configuration.closeHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(home.name));
       if (navigator.sendBeacon) {
         navigator.sendBeacon(closeHomeURL);
       } else {
         try {
           var request = new XMLHttpRequest();
-          request.open('GET', closeHomeURL, true); // Asynchronous call required during unload
+          request.open("GET", closeHomeURL, true); // Asynchronous call required during unload
           request.send();
         } catch (ex) {
           console.error(ex); 
         }
       }
     }
-    if (this.configuration['writeHomeEditsURL'] !== undefined) {
+    if (this.configuration["writeHomeEditsURL"] !== undefined) {
       var undoableEditListeners = this.homeData[home.editionId].undoableEditSupport.getUndoableEditListeners();
       for (var i = 0; i < undoableEditListeners.length; i++) {
         if (undoableEditListeners [i].source === this) {
@@ -300,6 +316,53 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
         }
       }
       delete this.homeData[home.editionId];
+    }
+  }
+}
+
+/**
+ * Saves recursively blob in savedObject and its dependent objects. 
+ * @param {string, string} savedObject current object in which blobs should be saved
+ * @param {function} serverErrorHandler error handler
+ * @private
+ */
+IncrementalHomeRecorder.prototype.saveBlobs = function(savedObject, serverErrorHandler) {
+  if (savedObject) {
+    if (savedObject.blob instanceof Blob
+        && savedObject.resourceFileName) {
+      var writeResourceURL = this.application.params.writeResourceURL;
+      var uploadUrl = CoreTools.format(writeResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(savedObject.resourceFileName));
+      var request = new XMLHttpRequest();
+      request.open("POST", uploadUrl, true);
+      request.addEventListener("load", function(ev) {
+          if (request.readyState === XMLHttpRequest.DONE) {
+            if (request.status === 200) {
+              delete savedObject.blob;
+              delete savedObject.resourceFileName;
+            } else {
+              serverErrorHandler(request.status, request.statusText);
+            }
+          }
+        });
+      var errorListener = function(ev) {
+          // There was an error connecting with the server: rollback and retry
+          serverErrorHandler(0, ev);
+        };      
+      request.addEventListener("error", errorListener);
+      request.addEventListener("timeout", errorListener);
+      request.send(savedObject.blob);
+    } else {
+      // Save recursively other map objects depending on savedObject
+      var propertyNames = Object.getOwnPropertyNames(savedObject);
+      for (var j = 0; j < propertyNames.length; j++) {
+        var propertyName = propertyNames[j];
+        if (propertyName != "_type") {
+          var propertyValue = savedObject[propertyName];
+          if (typeof propertyValue == "object") {
+            this.saveBlobs(propertyValue, serverErrorHandler);
+          }
+        }
+      }
     }
   }
 }
@@ -319,12 +382,22 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
   if (update !== null) {
     var serverErrorHandler = function(status, error) {
         recorder.rollbackUpdate(home, update, status, error);
-        // TODO define a retry delay?
         recorder.scheduleWrite(home, 10000);
       };
-    var request = new XMLHttpRequest();
-    request.open('POST', this.configuration['writeHomeEditsURL'], true);
-    request.addEventListener('load', function (ev) {
+
+    // 1. Save blobs if any
+    if (this.application.params.writeResourceURL 
+        && this.application.params.readResourceURL) {
+      for (var i = 0; i < update.edits.length; i++) {
+        this.saveBlobs(update.edits[i], serverErrorHandler);
+      }
+    }
+
+    // 2. Send edit
+    request = new XMLHttpRequest();
+    request.open("POST", this.configuration["writeHomeEditsURL"], true);
+    request.withCredentials = true;
+    request.addEventListener("load", function (ev) {
         if (request.readyState === XMLHttpRequest.DONE) {
           if (request.status === 200) {
             var result = JSON.parse(request.responseText);
@@ -340,16 +413,18 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
           }
         }
       });
-    request.addEventListener('error', function(ev) {
+    var errorListener = function(ev) {
         // There was an error connecting with the server: rollback and retry
         serverErrorHandler(0, ev);
-      });
+      };
+    request.addEventListener("error", errorListener);
+    request.addEventListener("timeout", errorListener);
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.send('home=' + encodeURIComponent(home.name) 
-        + '&editionId=' + home.editionId 
-        + '&updateId=' + update.id 
-        + '&version=' + this.application.getVersion()  
-        + '&edits=' + encodeURIComponent(JSON.stringify(update.edits)));
+    request.send("home=" + encodeURIComponent(home.name) 
+        + "&editionId=" + home.editionId 
+        + "&updateId=" + update.id 
+        + "&version=" + this.application.getVersion()  
+        + "&edits=" + encodeURIComponent(JSON.stringify(update.edits)));
   }
 }
 
@@ -381,11 +456,29 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
       var property = trackedHomeProperties[i];
       if (this.homeData[home.editionId].trackedStateChanges[property]) {
         switch (property) {
-          case 'CAMERA':
+          case "CAMERA":
             trackedStateChangeUndoableEdit.camera = home.getCamera();
             break;
-          case 'SELECTED_LEVEL':
+          case "STORED_CAMERAS":
+            trackedStateChangeUndoableEdit.storedCameras = home.getStoredCameras();
+            break;
+          case "SELECTED_LEVEL":
             trackedStateChangeUndoableEdit.selectedLevel = home.getSelectedLevel();
+            break;
+          case "FURNITURE_SORTED_PROPERTY":
+            trackedStateChangeUndoableEdit.furnitureSortedProperty = home.getFurnitureSortedProperty();
+            break;
+          case "FURNITURE_DESCENDING_SORTED":
+            trackedStateChangeUndoableEdit.furnitureDescendingSorted = home.isFurnitureDescendingSorted();
+            break;
+          case "FURNITURE_VISIBLE_PROPERTIES":
+            trackedStateChangeUndoableEdit.furnitureVisibleProperties = home.getFurnitureVisibleProperties();
+            break;
+          case "OBSERVER_CAMERA_ELEVATION_ADJUSTED":
+            trackedStateChangeUndoableEdit.observerCameraElevationAdjusted = home.getEnvironment().isObserverCameraElevationAdjusted();
+            break;
+          case "ALL_LEVELS_VISIBLE":
+            trackedStateChangeUndoableEdit.allLevelsVisible = home.getEnvironment().isAllLevelsVisible();
             break;
           default:
             // Non-builtin properties (may be user-defined)
@@ -463,15 +556,6 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
     processedEdit._action = "undo";
   }
   
-  // TODO use local storage
-  // if (this.homeData[home.editionId].editCounter === undefined) {
-  //   this.homeData[home.editionId].editCounter = 0;
-  // } else {
-  //   this.homeData[home.editionId].editCounter++;
-  // }
-  // var key = home.editionId + "/" + this.homeData[home.editionId].editCounter;
-  // localStorage.setItem(key, toJSON(o));
-  
   if (!this.queue) {
     this.queue = [];
   }
@@ -485,7 +569,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
 
 /** 
  * @param {Home} home
- * @return {home, id, edits}
+ * @return {{home: Home, id: UUID, edits: Object[]}}
  * @private 
  */
 IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
@@ -494,8 +578,10 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
     return null;
   }
   
-  // TODO use local storage
-  this.homeData[home.editionId].ongoingUpdate = { 'home': home, 'id': UUID.randomUUID(), 'edits': this.queue.slice(0) };
+  this.homeData[home.editionId].ongoingUpdate = { 
+	  "home": home, 
+      "id": UUID.randomUUID(), 
+      "edits": this.queue.slice(0)};
   if (this.configuration !== undefined 
       && this.configuration.writingObserver 
       && this.configuration.writingObserver.writeStarted) {
@@ -506,11 +592,10 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
 
 /** 
  * @param {Home} home
- * @param {home, id, edits} update
+ * @param {{home: Home, id: UUID, edits: Object[]}} update
  * @private 
  */
 IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
-  // TODO use local storage
   for (var i = 0; i < update.edits.length; i++) {
     if (this.queue[0] === update.edits[i]) {
       this.queue.shift();
@@ -535,7 +620,7 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
 
 /** 
  * @param {Home} home
- * @param {home, id, edits} update
+ * @param {{home: Home, id: UUID, edits: Object[]}} update
  * @param {number} status
  * @param {string} error
  * @private 
@@ -563,6 +648,28 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
   } else if (origin instanceof Big) {
     return {value: origin.toString(), 
             _type: "java.math.BigDecimal"};
+  } else if (origin instanceof BlobURLContent) {
+    if (origin.getSavedContent() != null) {
+      return this.substituteIdentifiableObjects(home, origin.getSavedContent(), newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+    } else {
+      // Prepare blob and resource file name used in saveBlobs 
+      var blob = origin.getBlob();
+      var extension = "dat";
+      if (blob.type == "image/png") {
+        extension = "png";
+      } else if (blob.type == "image/jpeg") {
+        extension = "jpg";
+      }
+      var resourceFileName = UUID.randomUUID() + '.' + extension;
+      var serverContent = new URLContent(
+          CoreTools.format(this.application.params.readResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(resourceFileName)));
+      origin.setSavedContent(serverContent);
+
+      var destination = this.substituteIdentifiableObjects(home, origin.getSavedContent(), newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+      destination.resourceFileName = resourceFileName;
+      destination.blob = blob;
+      return destination;
+    }
   } else if (origin == null || origin !== Object(origin) 
             || preservedTypes.some(function(preservedType) { return origin instanceof preservedType; })) {
     return origin;
@@ -582,6 +689,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
         && origin.constructor.__class != "com.eteks.sweethome3d.tools.URLContent") { // Don't write default class of content
       destination._type = origin.constructor.__class;
     }
+
     var propertyNames = Object.getOwnPropertyNames(origin);
     for (var j = 0; j < propertyNames.length; j++) {
       var propertyName = propertyNames[j];
@@ -596,6 +704,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
         }
       }
     }
+
     if (origin.id !== undefined) {
       return origin.id;
     } else {
@@ -607,14 +716,28 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
 
 /**
  * Defines <code>HomeApplication</code> implementation for JavaScript.
- * @param {{furnitureCatalogURLs: [string]
- *          furnitureResourcesURLBase: string
- *          texturesCatalogURLs: [string]
+ * @param {{furnitureCatalogURLs: string[],
+ *          furnitureResourcesURLBase: string,
+ *          texturesCatalogURLs: string[],
  *          texturesResourcesURLBase: string,
  *          readHomeURL: string,
  *          writeHomeEditsURL: string,
- *          closeHomeURL: string}} [params] the URLs of resources and services required on server 
- *                                                  (if undefined, will use local files for testing)
+ *          closeHomeURL: string,
+ *          writeResourceURL: string,
+ *          readResourceURL: string,
+ *          writePreferencesURL: string,
+ *          readPreferencesURL: string,
+ *          pingURL: string,
+ *          autoWriteDelay: number,
+ *          trackedHomeProperties: string[],
+ *          autoWriteTrackedStateChange: boolean,
+ *          writingObserver: {writeStarted: Function, 
+ *                            writeSucceeded: Function, 
+ *                            writeFailed: Function, 
+ *                            connectionFound: Function, 
+ *                            connectionLost: Function}}  [params] 
+ *              the URLs of resources and services required on server
+ *              (if undefined, will use local files for testing)
  * @constructor
  * @author Emmanuel Puybaret
  * @author Renaud Pawlak
@@ -640,7 +763,7 @@ SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
 SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
 
 SweetHome3DJSApplication.prototype.getVersion = function() {
-  return "6.5.2";
+  return "6.6.2";
 }
 
 SweetHome3DJSApplication.prototype.getHomeController = function(home) {
@@ -656,11 +779,11 @@ SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
 
 SweetHome3DJSApplication.prototype.getUserPreferences = function() {
   if (this.preferences == null) {
-    this.preferences = this.params !== undefined 
-      ? new DefaultUserPreferences(
-            this.params.furnitureCatalogURLs, this.params.furnitureResourcesURLBase, 
-            this.params.texturesCatalogURLs, this.params.texturesResourcesURLBase)
-      : new DefaultUserPreferences();
+    if (this.params === undefined) {
+      this.preferences = new DefaultUserPreferences();
+    } else {
+      this.preferences = new RecordedUserPreferences(this.params);
+    }
     this.preferences.setFurnitureViewedFromTop(true);
   }
   return this.preferences;
@@ -668,194 +791,7 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
 
 SweetHome3DJSApplication.prototype.getViewFactory = function() {
   if (this.viewFactory == null) {
-    var dummyDialogView = {
-        displayView: function(parent) { }
-      }; 
-    
-    // Creates a dummy color input to propose a minimal color change as editing view 
-    var displayColorPicker = function(defaultColor, changeListener) {
-        if (!OperatingSystem.isInternetExplorerOrLegacyEdge()) {
-          var div = document.createElement("div");
-          colorInput = document.createElement("input");
-          colorInput.type = "color";
-          colorInput.style.width = "1px";
-          colorInput.style.height = "1px";
-          div.appendChild(colorInput);
-          document.getElementById("home-plan").appendChild(div);
-          
-          var listener = function() {
-              colorInput.removeEventListener("change", listener); 
-              changeListener(ColorTools.hexadecimalStringToInteger(colorInput.value));
-              document.getElementById("home-plan").removeChild(div);
-            };
-          colorInput.value = defaultColor != null && defaultColor != 0
-             ? ColorTools.integerToHexadecimalString(defaultColor)
-             : "#010101"; // Color different from black required on some browsers
-          colorInput.addEventListener("change", listener);
-          setTimeout(function() {
-              colorInput.click();
-            }, 100);
-        }
-      };
-    
-    var application = this;
-    this.viewFactory = {
-        createFurnitureCatalogView: function(catalog, preferences, furnitureCatalogController) {
-          return new FurnitureCatalogListPanel("furniture-catalog", catalog, preferences, furnitureCatalogController);
-        },
-        createFurnitureView: function(home, preferences, furnitureController) {
-          return null;
-        },
-        createPlanView: function(home, preferences, planController) {
-          return new PlanComponent("home-plan", home, preferences, planController);
-        }, 
-        createView3D: function(home, preferences, homeController3D) {
-          return new HomeComponent3D("home-3D-view", home, preferences, null, homeController3D);
-        },
-        createHomeView: function(home, preferences, homeController) {
-          return new HomePane("home-pane", home, preferences, homeController);
-        }, 
-        createWizardView: function(preferences, wizardController) {
-          return dummyDialogView;
-        },
-        createBackgroundImageWizardStepsView: function(backgroundImage, preferences, backgroundImageWizardController) {
-          return null;
-        },
-        createImportedFurnitureWizardStepsView: function(piece, modelName, importHomePiece, preferences, importedFurnitureWizardController) {
-          return null;
-        },
-        createImportedTextureWizardStepsView: function(texture, textureName, preferences, importedTextureWizardController) {
-          return null;
-        },
-        createUserPreferencesView: function(preferences, userPreferencesController) {
-          return dummyDialogView;
-        },
-        createLevelView: function(preferences, levelController) {
-          return dummyDialogView;
-        },
-        createHomeFurnitureView: function(preferences,  homeFurnitureController) {
-          return {
-              displayView: function(parent) {
-                displayColorPicker(homeFurnitureController.getColor(),
-                    function(selectedColor) {
-                      homeFurnitureController.setPaint(RoomController.RoomPaint.COLORED);
-                      homeFurnitureController.setColor(selectedColor);
-                      homeFurnitureController.modifyFurniture();
-                    });
-              }
-            };
-        },
-        createWallView: function(preferences,  wallController) {
-          return {
-              displayView: function(parent) {
-                // Find which wall side is the closest to the pointer location
-                var home = wallController.home;
-                var planController = application.getHomeController(home).getPlanController();
-                var x = planController.getXLastMousePress(); 
-                var y = planController.getYLastMousePress();
-                var wall = home.getSelectedItems() [0];
-                var points = wall.getPoints();
-                var leftMinDistance = Number.MAX_VALUE;
-                for (var i = points.length / 2 - 1; i > 0; i--) {
-                  leftMinDistance = Math.min(leftMinDistance,
-                      java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i - 1][0], points[i - 1][1], x, y))
-                }
-                var rightMinDistance = Number.MAX_VALUE;
-                for (var i = points.length / 2; i < points.length - 1; i++) {
-                  rightMinDistance = Math.min(rightMinDistance,
-                      java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], x, y))
-                }
-                var leftSide = leftMinDistance < rightMinDistance;
-
-                displayColorPicker(leftSide ? wallController.getLeftSideColor() : wallController.getRightSideColor(),
-                    function(selectedColor) {
-                      if (leftSide) {
-                        wallController.setLeftSidePaint(WallController.WallPaint.COLORED);
-                        wallController.setLeftSideColor(selectedColor);
-                      } else {
-                        wallController.setRightSidePaint(WallController.WallPaint.COLORED);
-                        wallController.setRightSideColor(selectedColor);
-                      }
-                      wallController.modifyWalls();
-                    });
-              }
-            };
-        },
-        createRoomView: function(preferences, roomController) {
-          return {
-              displayView: function(parent) {
-                displayColorPicker(roomController.getFloorColor(),
-                    function(selectedColor) {
-                      roomController.setFloorPaint(RoomController.RoomPaint.COLORED);
-                      roomController.setFloorColor(selectedColor);
-                      roomController.modifyRooms();
-                    });
-              }
-            };
-        },
-        createPolylineView: function(preferences, polylineController) {
-          return {
-              displayView: function(parent) {
-                displayColorPicker(polylineController.getColor(),
-                    function(selectedColor) {
-                      polylineController.setColor(selectedColor);
-                      polylineController.modifyPolylines();
-                    });
-              }
-            };
-        },
-        createLabelView: function(modification, preferences, labelController) {
-          return {
-              displayView: function(parentView) {
-                var text = prompt(ResourceAction.getLocalizedLabelText(preferences, "LabelPanel", "textLabel.text"), 
-                    modification ? labelController.getText() :  "Text")
-                if (text != null) {
-                  labelController.setText(text);
-                  if (modification) {
-                    labelController.modifyLabels();
-                  } else {
-                    labelController.createLabel(); 
-                  }
-                }
-              }
-            };
-        },
-        createCompassView: function(preferences, compassController) {
-          return dummyDialogView;
-        },
-        createObserverCameraView: function(preferences, home3DAttributesController) {
-          return dummyDialogView;
-        },
-        createHome3DAttributesView: function(preferences, home3DAttributesController) {
-          return dummyDialogView;
-        },
-        createTextureChoiceView: function(preferences, textureChoiceController) {
-          return null;
-        },
-        createBaseboardChoiceView: function(preferences, baseboardChoiceController) {
-          return null;
-        },
-        createModelMaterialsView: function(preferences, modelMaterialsController) {
-          return null;
-        },
-        createPageSetupView: function(preferences, pageSetupController) {
-          return dummyDialogView;
-        },
-        createPrintPreviewView: function(home, preferences, homeController, printPreviewController) {
-          return dummyDialogView;
-        },
-        createPhotoView: function(home, preferences, photoController) {
-          return dummyDialogView;
-        },
-        createPhotosView: function(home, preferences, photosController) {
-          return dummyDialogView;
-        },
-        createVideoView: function(home, preferences, videoController) {
-          return dummyDialogView;
-        }
-      };
-    
-    this.viewFactory.constructor = { __interfaces: ["com.eteks.sweethome3d.viewcontroller.ViewFactory"] };
+    this.viewFactory = new JSViewFactory(this);
   }
   return this.viewFactory;
 }

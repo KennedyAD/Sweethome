@@ -68,6 +68,7 @@ import sun.misc.Unsafe;
 public class HomeEditsDeserializer {
   private Home                    home;
   private File                    homeFile;
+  private String                  readHomeRequestBase;
   private String                  baseUrl;
   private HomeController          homeController;
   private UserPreferences         preferences;
@@ -80,13 +81,23 @@ public class HomeEditsDeserializer {
    * @param baseUrl  the base URL (server) for the resources found within the home
    */
   public HomeEditsDeserializer(Home home, File homeFile, String baseUrl) {
-    this(home, homeFile, baseUrl, null, null);
+    this(home, homeFile, baseUrl, null);
+  }
+
+  public HomeEditsDeserializer(Home home, File homeFile, String baseUrl, String readHomeRequestBase) {
+    this(home, homeFile, baseUrl, readHomeRequestBase, null, null);
   }
 
   public HomeEditsDeserializer(Home home, File homeFile, String baseUrl,
                                UserPreferences preferences, HomeController homeController) {
+    this(home, homeFile, baseUrl, null, preferences, homeController);
+  }
+
+  public HomeEditsDeserializer(Home home, File homeFile, String baseUrl, String readHomeRequestBase,
+                               UserPreferences preferences, HomeController homeController) {
     this.home = home;
     this.homeFile = homeFile;
+    this.readHomeRequestBase = readHomeRequestBase;
     this.baseUrl = baseUrl;
     // User preferences are needed to decode default wall patterns
     this.preferences = preferences != null
@@ -97,6 +108,8 @@ public class HomeEditsDeserializer {
     } else {
       this.homeController = new HomeController(home, this.preferences, new NoOperationViewFactory());
     }
+    // Instantiate 3D controller to ensure its listeners added to home are called
+    this.homeController.getHomeController3D();
     this.homeObjects = new HashMap<String, HomeObject>();
     for (HomeObject homeObject : home.getHomeObjects()) {
       this.homeObjects.put(homeObject.getId(), homeObject);
@@ -205,9 +218,17 @@ public class HomeEditsDeserializer {
         String url = jsonObject.getString("url");
         try {
           if (SimpleURLContent.class.getName().equals(jsonObjectType)) {
-            value = new SimpleURLContent(new URL(url.contains("://")
-                ? url
-                : "jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
+            if (this.readHomeRequestBase != null && url.contains(this.readHomeRequestBase)) {
+              value = new SimpleURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
+            } else if (!url.contains("://")) {
+              // Prefer URLContent class to avoid saving content in SH3D file
+              // Requires that home is saved with ContentRecording.INCLUDE_TEMPORARY_CONTENT (like in HomeServerRecorder)
+              value = new URLContent(new URL(url.startsWith("jar:")
+                  ? "jar:" + this.baseUrl + url.substring(4)
+                  : url));
+            } else {
+              value = new SimpleURLContent(new URL(url));
+            }
           } else if (HomeURLContent.class.getName().equals(jsonObjectType)) {
             value = new HomeURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
           } else if (url.startsWith("jar:") && !url.contains("://")) {
