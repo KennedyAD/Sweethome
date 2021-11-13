@@ -134,8 +134,10 @@ HomeComponent3D.prototype.revalidate = function() {
   var canvas = this.canvas3D.getHTMLElement();
   var canvasBounds = canvas.getBoundingClientRect();
   navigationPanelDiv = document.getElementById(this.navigationPanelId);
-  navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
-  navigationPanelDiv.style.top = (canvasBounds.top + window.pageYOffset) + "px";
+  if (navigationPanelDiv.style !== undefined) {
+    navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
+    navigationPanelDiv.style.top = (canvasBounds.top + window.pageYOffset) + "px";
+  }
   this.canvas3D.updateViewportSize();
 }
 
