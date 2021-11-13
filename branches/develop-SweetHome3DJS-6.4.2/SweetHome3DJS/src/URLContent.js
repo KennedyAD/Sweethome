@@ -322,9 +322,9 @@ ZIPTools.runningRequests = [];
 
 /**
  * Reads the ZIP data in the given URL.
- * @param url the URL of a zip file containing an OBJ entry that will be loaded
+ * @param {string} url the URL of a zip file containing an OBJ entry that will be loaded
  *            or an URL noted as jar:url!/objEntry where objEntry will be loaded.
- * @param synchronous optional parameter equal to false by default
+ * @param {boolean} [synchronous] optional parameter equal to false by default
  * @param {{zipReady, zipError, progression}} zipObserver An observer containing zipReady(zip), 
  *            zipError(error), progression(part, info, percentage) methods that
  *            will called at various phases.
