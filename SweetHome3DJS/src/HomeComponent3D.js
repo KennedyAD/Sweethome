@@ -346,7 +346,7 @@ HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
       window.removeEventListener("mousemove", this.userActionsListener.windowMouseMoved);
       window.removeEventListener("mouseup", this.userActionsListener.windowMouseReleased);
     }
-    canvas3D.getHTMLElement().removeEventListener("contextmenu", userActionsListener.contextMenuDisplayed);
+    canvas3D.getHTMLElement().removeEventListener("contextmenu", this.userActionsListener.contextMenuDisplayed);
     canvas3D.getHTMLElement().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
     canvas3D.getHTMLElement().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
   }
