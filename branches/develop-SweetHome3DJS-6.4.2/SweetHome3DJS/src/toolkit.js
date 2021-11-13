@@ -1126,15 +1126,15 @@ if (!JSPopupMenu.globalCloserRegistered) {
 
 
 /**
- * The root class for component views.
+ * A spinner component with -+ buttons able to decrease / increase edtied value.
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} spanElement span element on which the spinner is installed
  * @param {{format?: Format, nullable?: boolean, value?: number, minimum?: number, maximum?: number, stepSize?: number}} [options]
  * - format: number format to be used for this input - default to DecimalFormat for current content
- * - nullable: false if null/undefined is not allowed - default true
+ * - nullable: false if null/undefined is not allowed - default false
  * - value: initial value,
- * - min: minimum number value,
- * - max: maximum number value,
+ * - minimum: minimum number value,
+ * - maximum: maximum number value,
  * - stepSize: step between values when increment / decrement using UI - default 1
  * @constructor
  * @extends JSComponent
@@ -1573,7 +1573,7 @@ JSSpinner.prototype.setEnabled = function(enabled) {
  * @param {UserPreferences} preferences the current user preferences
  * @param {HTMLElement} selectElement HTML element on which install this component
  * @param {{nullable?: boolean, value?: any, availableValues: (any)[], renderCell?: function(value: any, element: HTMLElement), selectionChanged: function(newValue: any)}} [options]
- * - nullable: false if null/undefined is not allowed - default true
+ * - nullable: false if null/undefined is not allowed - default false
  * - value: initial value - default undefined if nullable or first available value,
  * - availableValues: available values in this combo,
  * - renderCell: a function which builds displayed element for a given value - defaults to setting textContent to value.toString()
