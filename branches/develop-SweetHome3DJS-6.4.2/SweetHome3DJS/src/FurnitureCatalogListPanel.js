@@ -108,6 +108,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
       }
     });
   searchInput.addEventListener("focusin", function(ev) {
+      searchInput.classList.remove("partly-expanded");
       if (!searchInput.classList.contains("expanded")) {
         searchInput.classList.add("expanded");
         setTimeout(function() { 
@@ -124,6 +125,9 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   searchInput.addEventListener("focusout", function(ev) {
       if (searchInput.classList.contains("expanded")) {
         searchInput.classList.remove("expanded");
+        if (searchInput.value.trim() != "") {
+          searchInput.classList.add("partly-expanded");
+        }
       }
     });
   searchInput.addEventListener("keydown", function(ev) {

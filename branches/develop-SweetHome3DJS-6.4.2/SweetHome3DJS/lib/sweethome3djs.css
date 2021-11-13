@@ -490,6 +490,10 @@ label {
       width: calc(100% - 4px);
       transition: width 0.5s;
     }
+
+    #furniture-search-field.partly-expanded {
+      width: calc(25px + 1em);
+    }
   }
   
   @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
@@ -1397,7 +1401,6 @@ label {
 .label-dialog [data-name="rendering-3D-panel"] > div:nth-child(even) {
   text-align: right;
   margin-right: 0.2em;
-  margin-left: 2em;
   grid-column: 1;
 }
 
