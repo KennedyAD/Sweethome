@@ -48,16 +48,16 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   } else {
     this.canvas = document.createElement("canvas");
     this.canvas.setAttribute("id", containerOrCanvasId + ".canvas");
-    this.canvas.style.width = "100%"; //computedStyle.width;
-    this.canvas.style.height = "100%"; //computedStyle.height;
-    // TODO: loop over all the properties and inject them?
+    this.canvas.style.width = "100%"; // computedStyle.width;
+    this.canvas.style.height = "100%"; // computedStyle.height;
+    // TODO Loop over all the properties and inject them?
     this.canvas.style.backgroundColor = computedStyle.backgroundColor;
     this.canvas.style.color = computedStyle.color;
     this.canvas.style.font = computedStyle.font;
     this.scrollPane = document.createElement("div");
     this.scrollPane.setAttribute("id", containerOrCanvasId + ".scrollPane");
-    this.scrollPane.style.width = "100%"; //computedStyle.width;
-    this.scrollPane.style.height = "100%"; //computedStyle.height;
+    this.scrollPane.style.width = "100%"; // computedStyle.width;
+    this.scrollPane.style.height = "100%"; // computedStyle.height;
     if (this.container.style.overflow) {
       this.scrollPane.style.overflow = this.container.style.overflow;
     } else {
@@ -74,9 +74,9 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.scrollPane.style.position = "absolute";
     this.scrollPane.style.left = "0px";
     this.scrollPane.style.top = "0px";
-    this.scrollPane.onscroll = function() {
+    this.scrollPane.addEventListener("scroll", function(ev) {
         plan.repaint();
-      };
+      });
   }
 
   window.addEventListener("resize", function() {
@@ -169,7 +169,7 @@ PlanComponent.initStatics = function() {
   PlanComponent.ERROR_TEXTURE_IMAGE = null;
   PlanComponent.WAIT_TEXTURE_IMAGE = null;
   
-  // TODO: generic resolution support (see https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
+  // TODO Generic resolution support (see https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas)
   PlanComponent.HIDPI_SCALE_FACTOR = 2;
 
   PlanComponent.POINT_INDICATOR = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
@@ -403,10 +403,10 @@ PlanComponent.initStatics = function() {
   PlanComponent.LONG_TOUCH_DELAY = 200; // ms
   PlanComponent.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
   PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
+  PlanComponent.DOUBLE_TOUCH_DELAY = 500; // ms
 }
 
 PlanComponent.initStatics();
-
 
 /**
  * The circumstances under which the home items displayed by this component will be painted.
@@ -997,6 +997,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
   var mouseListener = {
       initialPointerLocation: null,
       lastPointerLocation: null,
+      touchEventType : false,
       pointerTouches : {},
       lastEventType : null,
       lastTargetTouches : [],
@@ -1008,8 +1009,11 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
       longTouch: null,
       longTouchWhenDragged: false,
       actionStartedInPlanComponent: false,
+      contextMenuEventType: false,
       mousePressed: function(ev) {
-        if (plan.isEnabled() && ev.button === 0) {
+        if (!mouseListener.touchEventType
+            && !mouseListener.contextMenuEventType
+            && plan.isEnabled() && ev.button === 0) {
           mouseListener.updateCoordinates(ev, "mousePressed");
           mouseListener.autoScroll = null;
           mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
@@ -1046,58 +1050,74 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         mouseListener.mousePressed(ev);
       },
       windowMouseMoved: function(ev) {
-        mouseListener.updateCoordinates(ev, "mouseMoved");
-        // Handle autoscroll
-        if (mouseListener.lastPointerLocation != null) {
-          if (mouseListener.autoScroll == null 
-              && !mouseListener.isInCanvas(ev)) {
-            mouseListener.autoScroll = setInterval(function() {
-                if (mouseListener.actionStartedInPlanComponent) {
-                  window.dispatchEvent(ev);
-                } else {
-                  clearInterval(mouseListener.autoScroll);
-                  mouseListener.autoScroll = null;
-                }
-              }, 10);
+        if (!mouseListener.touchEventType
+            && !mouseListener.contextMenuEventType) {
+          mouseListener.updateCoordinates(ev, "mouseMoved");
+          // Handle autoscroll
+          if (mouseListener.lastPointerLocation != null) {
+            if (mouseListener.autoScroll == null 
+                && !mouseListener.isInCanvas(ev)) {
+              mouseListener.autoScroll = setInterval(function() {
+                  if (mouseListener.actionStartedInPlanComponent) {
+                    // Dispatch a copy of event (IE doesn't support dispatching with the same event)
+                    var ev2 = document.createEvent("Event");
+                    ev2.initEvent("mousemove", true, true);
+                    ev2.clientX = ev.clientX;
+                    ev2.clientY = ev.clientY;
+                    window.dispatchEvent(ev2);
+                  } else {
+                    clearInterval(mouseListener.autoScroll);
+                    mouseListener.autoScroll = null;
+                  }
+                }, 10);
+            }
+            if (mouseListener.autoScroll != null 
+                && mouseListener.isInCanvas(ev)) {
+              clearInterval(mouseListener.autoScroll);
+              mouseListener.autoScroll = null;
+            }
+            mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
           }
-          if (mouseListener.autoScroll != null 
-              && mouseListener.isInCanvas(ev)) {
-            clearInterval(mouseListener.autoScroll);
-            mouseListener.autoScroll = null;
+          
+          if (mouseListener.initialPointerLocation != null 
+              && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
+                  && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+            mouseListener.initialPointerLocation = null;
           }
-          mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
-        }
-        
-        if (mouseListener.initialPointerLocation != null 
-            && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
-                && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
-          mouseListener.initialPointerLocation = null;
-        }
-        if (mouseListener.initialPointerLocation == null
-            && (ev.buttons === 0 && mouseListener.isInCanvas(ev) 
-                || mouseListener.actionStartedInPlanComponent)) {
-          if (plan.isEnabled()) { 
-            controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+          if (mouseListener.initialPointerLocation == null
+              && (ev.buttons === 0 && mouseListener.isInCanvas(ev) 
+                  || mouseListener.actionStartedInPlanComponent)) {
+            if (plan.isEnabled()) { 
+              controller.moveMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+            }
           }
         }
       }, 
       windowMouseReleased: function(ev) {
-        if (mouseListener.lastPointerLocation != null) {
-          // Stop autoscroll
-          if (mouseListener.autoScroll != null) {
-            clearInterval(mouseListener.autoScroll);
-            mouseListener.autoScroll = null;
+        if (!mouseListener.touchEventType) {
+          if (mouseListener.lastPointerLocation != null) {
+            // Stop autoscroll
+            if (mouseListener.autoScroll != null) {
+              clearInterval(mouseListener.autoScroll);
+              mouseListener.autoScroll = null;
+            }
+            
+            if (mouseListener.actionStartedInPlanComponent 
+                && plan.isEnabled() && ev.button === 0) {
+              if (mouseListener.contextMenuEventType) {
+                controller.releaseMouse(plan.convertXPixelToModel(mouseListener.initialPointerLocation[0]), 
+                    plan.convertYPixelToModel(mouseListener.initialPointerLocation[1]));
+              } else {
+                mouseListener.updateCoordinates(ev, "mouseReleased");
+                controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
+              }
+            }
+            mouseListener.initialPointerLocation = null;
+            mouseListener.lastPointerLocation = null;
+            mouseListener.actionStartedInPlanComponent = false;
           }
-          
-          if (mouseListener.actionStartedInPlanComponent 
-              && plan.isEnabled() && ev.button === 0) {
-            mouseListener.updateCoordinates(ev, "mouseReleased");
-            controller.releaseMouse(plan.convertXPixelToModel(ev.canvasX), plan.convertYPixelToModel(ev.canvasY));
-          }
-          mouseListener.initialPointerLocation = null;
-          mouseListener.lastPointerLocation = null;
-          mouseListener.actionStartedInPlanComponent = false;
-        }
+        } 
+        mouseListener.contextMenuEventType = false;
       },
       pointerPressed : function(ev) {
         if (ev.pointerType == "mouse") {
@@ -1131,12 +1151,21 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           mouseListener.touchEnded(ev);
         }
       },
-      contextMenu : function(ev){
-        ev.preventDefault();
+      contextMenuDisplayed : function(ev) {
+        mouseListener.contextMenuEventType = true;
       },
       touchStarted: function(ev) {
-        ev.preventDefault();
+        // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
+        // but track touch event types to avoid them to be managed also for mousedown and dblclick events
+        mouseListener.touchEventType = ev.pointerType === undefined;
         if (plan.isEnabled()) {
+          // Prevent default behavior to ensure a second touchstart event will be received 
+          // for double taps under iOS >= 15
+          ev.preventDefault(); 
+          if (document.activeElement != plan.container) {
+            // Request focus explicitly since default behavior is disabled
+            plan.container.focus();
+          } 
           mouseListener.updateCoordinates(ev, "touchStarted");
           mouseListener.autoScroll = null;
           if (mouseListener.longTouch != null) {
@@ -1144,21 +1173,21 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             mouseListener.longTouch = null;
             plan.stopLongTouchAnimation();
           }
-          
+
           if (ev.targetTouches.length === 1) {
             var clickCount = 1;
             if (mouseListener.initialPointerLocation != null
                 && mouseListener.distance(ev.canvasX, ev.canvasY,
-                      mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5
-                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= 500) { 
-              clickCount = 2;
-              mouseListener.firstTouchStartedTimeStamp = 0;
-              mouseListener.initialPointerLocation = null;
-            } else {
-              mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
-              mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
-            }
-            
+                	mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
+                && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_DELAY) { 
+                  clickCount = 2;
+                  mouseListener.firstTouchStartedTimeStamp = 0;
+                  mouseListener.initialPointerLocation = null;
+                } else {
+                  mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
+                  mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+                }
+                
             mouseListener.distanceLastPinch = null;
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
             mouseListener.actionStartedInPlanComponent = true;
@@ -1213,6 +1242,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           ev.stopPropagation();
           if (mouseListener.updateCoordinates(ev, "touchMoved")) {
             plan.stopIndicatorAnimation();            
+
             mouseListener.initialPointerLocation = null;
             
             if (ev.targetTouches.length == 1) {
@@ -1323,6 +1353,10 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
               }
             }
             
+            if (mouseListener.isLongTouch()) {
+              // Avoid firing contextmenu event
+              ev.preventDefault();
+            }
             plan.stopIndicatorAnimation();
             mouseListener.actionStartedInPlanComponent = false;
           } else if (ev.targetTouches.length == 1) {
@@ -1342,6 +1376,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
           plan.lastTouchX = undefined;
           plan.lastTouchY = undefined;
         }
+        // Reset mouseListener.touchEventType in windowMouseReleased call
       },
       copyPointerToTargetTouches : function(ev, touchEnded) {
         // Copy the IE and Edge pointer location to ev.targetTouches or ev.changedTouches
@@ -1475,7 +1510,6 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
     window.addEventListener("pointermove", mouseListener.windowPointerMoved);
     window.addEventListener("pointerup", mouseListener.windowPointerReleased);
-    this.canvas.addEventListener('contextmenu', mouseListener.contextMenu);
   } else {
     this.canvas.addEventListener("touchstart", mouseListener.touchStarted);
     this.canvas.addEventListener("touchmove", mouseListener.touchMoved);
@@ -1485,6 +1519,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
     window.addEventListener("mousemove", mouseListener.windowMouseMoved);
     window.addEventListener("mouseup", mouseListener.windowMouseReleased);
   }
+  this.canvas.addEventListener("contextmenu", mouseListener.contextMenuDisplayed);
   this.canvas.addEventListener("mousewheel", mouseListener.mouseWheelMoved);
   
   this.mouseListener = mouseListener;
@@ -1562,7 +1597,7 @@ PlanComponent.prototype.stopIndicatorAnimation = function() {
 }
 
 /**
- * Adds AWT focus listener to this component that calls back <code>controller</code>
+ * Adds focus listener to this component that calls back <code>controller</code>
  * escape method on focus lost event.
  * @param {PlanController} controller
  * @private
@@ -1949,7 +1984,7 @@ PlanComponent.prototype.getPlanBounds = function() {
 /**
  * Returns the collection of walls, furniture, rooms and dimension lines of the home
  * painted by this component wherever the level they belong to is selected or not.
- * @return {*[]}
+ * @return {Object[]}
  */
 PlanComponent.prototype.getPaintedItems = function() {
   return this.home.getSelectableViewableItems();
@@ -2129,7 +2164,7 @@ PlanComponent.prototype.addTextBounds = function(selectableClass, text, style, x
 PlanComponent.prototype.getTextBounds = function(text, style, x, y, angle) {
   var fontMetrics = this.getFontMetrics(this.getFont(), style);
   var textBounds = null;
-  var lines = text.split("\n");
+  var lines = text.replace(/\n*$/, "").split("\n");
   var g = this.getGraphics();
   if (g != null) {
     this.setRenderingHints(g);
@@ -2160,8 +2195,7 @@ PlanComponent.prototype.getTextBounds = function(text, style, x, y, angle) {
         [x + shiftX + textWidth, minY], 
         [x + shiftX + textWidth, maxY], 
         [x + shiftX, maxY]];
-  }
-  else {
+  } else {
     textBounds.add(textBounds.getX(), textBounds.getY() - textBounds.getHeight() * (lines.length - 1));
     var transform = new java.awt.geom.AffineTransform();
     transform.translate(x, y);
@@ -3026,7 +3060,7 @@ PlanComponent.prototype.getFurnitureOutlineColor = function() {
 /**
  * Paints rooms.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
@@ -3165,7 +3199,7 @@ PlanComponent.isTextureManagerAvailable = function() {
 /**
  * Paints rooms name and area.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
@@ -3227,7 +3261,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
     style = this.preferences.getDefaultTextStyle(selectableClass);
   }
   var fontMetrics = this.getFontMetrics(defaultFont, style);
-  var lines = text.split("\n");
+  var lines = text.replace(/\n*$/, "").split("\n");
   var lineWidths = new Array(lines.length);
   var textWidth = -3.4028235E38;
   for (var i = 0; i < lines.length; i++) {
@@ -3278,7 +3312,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
  * Paints the outline of rooms among <code>items</code> and indicators if
  * <code>items</code> contains only one room and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -3532,14 +3566,18 @@ PlanComponent.prototype.paintTextIndicators = function(g2D, selectableObject, li
 }
 
 /**
- * Returns the number of lines in the given <code>text</code>.
+ * Returns the number of lines in the given <code>text</code> ignoring trailing line returns.
  * @param {string} text
  * @return {number}
  * @private
  */
 PlanComponent.prototype.getLineCount = function(text) {
   var lineCount = 1;
-  for (var i = 0, n = text.length; i < n; i++) {
+  var i = text.length - 1;
+  while (i >= 0 && text.charAt(i) == '\n') {
+    i--;
+  }
+  for ( ; i >= 0; i--) {
     if (text.charAt(i) == '\n') {
       lineCount++;
     }
@@ -3550,7 +3588,7 @@ PlanComponent.prototype.getLineCount = function(text) {
 /**
  * Paints walls.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} backgroundColor
  * @param {string} foregroundColor
@@ -3617,7 +3655,7 @@ PlanComponent.prototype.fillAndDrawWallsArea = function(g2D, area, planScale, fi
  * Paints the outline of walls among <code>items</code> and a resize indicator if
  * <code>items</code> contains only one wall and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4254,7 +4292,7 @@ PlanComponent.prototype.paintFurnitureName = function(g2D, furniture, selectedIt
  * Paints the outline of furniture among <code>items</code> and indicators if
  * <code>items</code> contains only one piece and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4269,7 +4307,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
       java.awt.BasicStroke.CAP_BUTT, java.awt.BasicStroke.JOIN_MITER);
   
   var furniture = Home.getFurnitureSubList(items);
-  var newFurniture = [];
+  var paintedFurniture = [];
   var furnitureGroupsArea = null;
   var furnitureGroupsStroke = new java.awt.BasicStroke(15 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.JOIN_ROUND);
   var lastGroup = null;
@@ -4277,7 +4315,6 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
   var homeFurniture = this.home.getFurniture();
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture [i];
-    newFurniture.push(piece);
     if (piece.isVisible() 
         && this.isViewableAtSelectedLevel(piece)) {
       var homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
@@ -4300,6 +4337,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
         }
         lastGroup = homePieceOfFurniture;
       }
+      paintedFurniture.push(piece);
     }
   }
   if (furnitureGroupsArea != null) {
@@ -4310,7 +4348,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
     g2D.setAlpha(oldComposite);
   }
   
-  newFurniture.forEach(function(piece) {
+  paintedFurniture.forEach(function(piece) {
       var points = piece.getPoints();
       var pieceShape = ShapeTools.getShape(points, true, null);
       
@@ -4574,7 +4612,7 @@ PlanComponent.prototype.paintPieceOfFurnitureIndicators = function(g2D, piece, i
  * Paints polylines.
  * @param {Graphics2D} g2D
  * @param {Polyline[]} polylines
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {string|CanvasPattern} indicatorPaint
  * @param {number} planScale
@@ -4687,7 +4725,7 @@ PlanComponent.prototype.paintArrow = function(g2D, point, angle, arrowStyle, thi
  * Paints dimension lines.
  * @param {Graphics2D} g2D
  * @param {DimensionLine[]} dimensionLines
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4831,7 +4869,7 @@ PlanComponent.prototype.paintDimensionLineResizeIndicator = function(g2D, dimens
  * Paints home labels.
  * @param {Graphics2D} g2D
  * @param {Label[]} labels
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4906,7 +4944,7 @@ PlanComponent.prototype.paintLabels = function(g2D, labels, selectedItems, selec
 /**
  * Paints the compass.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
@@ -4931,7 +4969,7 @@ PlanComponent.prototype.paintCompass = function(g2D, selectedItems, planScale, f
 /**
  * Paints the outline of the compass when it's belongs to <code>items</code>.
  * @param {Graphics2D} g2D
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -5097,9 +5135,9 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
 
 /**
  * Returns the items viewed in the plan at the selected level.
- * @param {*[]} homeItems
- * @param {*[]} otherLevelItems
- * @return {*[]}
+ * @param {Object[]} homeItems
+ * @param {Object[]} otherLevelItems
+ * @return {Object[]}
  * @private
  */
 PlanComponent.prototype.getViewedItems = function(homeItems, otherLevelItems) {
@@ -5437,7 +5475,7 @@ PlanComponent.prototype.paintAngleFeedback = function(g2D, center, point1, point
 /**
  * Paints the observer camera at its current location, if home camera is the observer camera.
  * @param {Graphics2D} g2D
- * @param {*[]} selectedItems
+ * @param {Object[]} selectedItems
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.Stroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -5961,7 +5999,7 @@ PlanComponent.prototype.setAngleFeedback = function(xCenter, yCenter, x1, y1, x2
 /**
  * Sets the feedback of dragged items drawn during a drag and drop operation,
  * initiated from outside of plan view.
- * @param {*[]} draggedItems
+ * @param {Object[]} draggedItems
  */
 PlanComponent.prototype.setDraggedItemsFeedback = function(draggedItems) {
   this.draggedItemsFeedback = draggedItems;
@@ -5996,7 +6034,7 @@ PlanComponent.prototype.deleteFeedback = function() {
 
 /**
  * Returns <code>true</code>.
- * @param {*[]} items
+ * @param {Object[]} items
  * @param {number} x
  * @param {number} y
  * @return {boolean}
@@ -6159,10 +6197,13 @@ PlanComponent.PieceOfFurnitureModelIcon = function(piece, object3dFactory, waiti
         normalizedPiece.setAngle(0);
         if (waitingComponent !== null) {
           var updater = function() {
-              modelIcon.createIcon(object3dFactory.createObject3D(null, normalizedPiece, true), pieceWidth, pieceDepth, pieceHeight, iconSize, 
-                  function(icon) {
-                    modelIcon.setIcon(icon);
-                    waitingComponent.repaint();
+              object3dFactory.createObject3D(null, normalizedPiece,
+                  function(pieceNode) {
+                    modelIcon.createIcon(pieceNode, pieceWidth, pieceDepth, pieceHeight, iconSize, 
+                        function(icon) {
+                          modelIcon.setIcon(icon);
+                          waitingComponent.repaint();
+                        });
                   });
             };
           setTimeout(updater, 0);
@@ -6214,8 +6255,7 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     }
     canvas3D.setScene(sceneRoot);
     PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
-  }
-  else {
+  } else {
     if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getHTMLElement().width !== iconSize) {
       PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
       delete PlanComponent.PieceOfFurnitureModelIcon.canvas3D;

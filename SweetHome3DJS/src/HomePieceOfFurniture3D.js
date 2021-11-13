@@ -29,7 +29,7 @@
  * Creates the 3D piece matching the given home <code>piece</code>.
  * @param {HomePieceOfFurniture} piece
  * @param {Home} home
- * @param {boolean} waitModelAndTextureLoadingEnd
+ * @param {boolean|function} waitModelAndTextureLoadingEnd
  * @constructor
  * @extends Object3DBranch
  * @author Emmanuel Puybaret
@@ -83,24 +83,26 @@ HomePieceOfFurniture3D.prototype.loadPieceOfFurnitureModel = function(waitModelA
   transformGroup.setUserData(model);
   // Load piece real 3D model
   var piece3D = this;
-  ModelManager.getInstance().loadModel(model, waitModelAndTextureLoadingEnd, {
-      modelUpdated : function(modelRoot) {
-        piece3D.updateModelTransformations(modelRoot);
-
-        var modelRotation = piece.getModelRotation();
-        // Add piece model scene to a normalized transform group
-        var modelTransformGroup = ModelManager.getInstance().getNormalizedTransformGroup(
-            modelRoot, modelRotation, 1, piece.isModelCenteredAtOrigin());
-        // Store model rotation for possible future changes
-        modelTransformGroup.setUserData(modelRotation);
-        piece3D.updatePieceOfFurnitureModelNode(modelRoot, modelTransformGroup, waitModelAndTextureLoadingEnd);            
-      },        
-      modelError : function(ex) {
-        // In case of problem use a default red box
-        piece3D.updatePieceOfFurnitureModelNode(piece3D.getModelBox(vec3.fromValues(1, 0, 0)), 
-            new TransformGroup3D(), waitModelAndTextureLoadingEnd);            
-      }
-    });
+  ModelManager.getInstance().loadModel(model, 
+      typeof waitModelAndTextureLoadingEnd == "function" ? false : waitModelAndTextureLoadingEnd, 
+      {
+        modelUpdated : function(modelRoot) {
+          piece3D.updateModelTransformations(modelRoot);
+  
+          var modelRotation = piece.getModelRotation();
+          // Add piece model scene to a normalized transform group
+          var modelTransformGroup = ModelManager.getInstance().getNormalizedTransformGroup(
+              modelRoot, modelRotation, 1, piece.isModelCenteredAtOrigin());
+          // Store model rotation for possible future changes
+          modelTransformGroup.setUserData(modelRotation);
+          piece3D.updatePieceOfFurnitureModelNode(modelRoot, modelTransformGroup, waitModelAndTextureLoadingEnd);            
+        },        
+        modelError : function(ex) {
+          // In case of problem use a default red box
+          piece3D.updatePieceOfFurnitureModelNode(piece3D.getModelBox(vec3.fromValues(1, 0, 0)), 
+              new TransformGroup3D(), waitModelAndTextureLoadingEnd);            
+        }
+      });
 }
 
 /**
@@ -338,8 +340,14 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureModelNode = function(mode
     this.setBackFaceNormalFlip(this.getModelNode(), true);
   }
   // Update piece color, visibility and model mirror
+  this.modifiedTexturesCount = 0;
   this.updatePieceOfFurnitureColorAndTexture(waitTextureLoadingEnd);      
   this.updatePieceOfFurnitureVisibility();
+  // If no texture is customized, report loading end to waitTextureLoadingEnd
+  if (this.modifiedTexturesCount === 0 
+      && typeof waitTextureLoadingEnd == "function") {
+    waitTextureLoadingEnd(this);
+  }
 }
 
 /**
@@ -444,8 +452,9 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
           appearance.setTextureCoordinatesGeneration(this.getTextureCoordinates(appearance, texture, pieceSize, modelBounds));
           this.updateTextureTransform(appearance, texture, true);
           this.updateAppearanceMaterial(appearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, materialShininess);
-          TextureManager.getInstance().loadTexture(texture.getImage(), 0, 
-              waitTextureLoadingEnd, this.getTextureObserver(appearance, mirrored, backFaceShown));
+          TextureManager.getInstance().loadTexture(texture.getImage(), 0,
+              typeof waitTextureLoadingEnd == "function" ? false : waitTextureLoadingEnd,
+              this.getTextureObserver(appearance, mirrored, backFaceShown, waitTextureLoadingEnd));
         }
       } else if (materialModified) {
         var materialFound = false;
@@ -483,7 +492,8 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
               this.updateAppearanceMaterial(appearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, materialShininess);
               var materialTexture = material.getTexture();
               TextureManager.getInstance().loadTexture(materialTexture.getImage(), 0, 
-                  waitTextureLoadingEnd, this.getTextureObserver(appearance, mirrored, backFaceShown));
+                  typeof waitTextureLoadingEnd == "function" ? false : waitTextureLoadingEnd,
+                  this.getTextureObserver(appearance, mirrored, backFaceShown, waitTextureLoadingEnd));
             } else {
               this.restoreDefaultAppearance(appearance, material.getShininess());
             }
@@ -510,8 +520,9 @@ HomePieceOfFurniture3D.prototype.setColorAndTexture = function(node, color, text
  * Returns a texture observer that will update the given <code>appearance</code>.
  * @private
  */
-HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance, mirrored, backFaceShown) {
+HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance, mirrored, backFaceShown, waitTextureLoadingEnd) {
   var piece3D = this;
+  this.modifiedTexturesCount++;
   return {
       textureUpdated : function(textureImage) {
         if (TextureManager.getInstance().isTextureTransparent(textureImage)) {
@@ -528,6 +539,12 @@ HomePieceOfFurniture3D.prototype.getTextureObserver = function(appearance, mirro
         }
 
         piece3D.setCullFace(appearance, mirrored, backFaceShown);
+        
+        // If all customized textures are loaded, report loading end to waitTextureLoadingEnd
+        if (--piece3D.modifiedTexturesCount === 0 
+            && typeof waitTextureLoadingEnd == "function") {
+          waitTextureLoadingEnd(piece3D);
+        }
       },
       textureError : function(error) {
         return this.textureUpdated(TextureManager.getInstance().getErrorImage());
@@ -598,10 +615,15 @@ HomePieceOfFurniture3D.prototype.restoreDefaultAppearance = function(appearance,
     if (defaultAppearance.getAmbientColor() !== undefined) {
       appearance.setAmbientColor(defaultAppearance.getAmbientColor());
     }
-    if (defaultAppearance.getDiffuseColor() !== undefined && shininess !== null) {
+    if (defaultAppearance.getDiffuseColor() !== undefined) {
       appearance.setDiffuseColor(defaultAppearance.getDiffuseColor());
-      appearance.setSpecularColor(vec3.fromValues(shininess, shininess, shininess));
-      appearance.setShininess(shininess * 128);
+      if (shininess !== null) {
+        appearance.setSpecularColor(vec3.fromValues(shininess, shininess, shininess));
+        appearance.setShininess(shininess * 128);
+      } else {
+        appearance.setSpecularColor(defaultAppearance.getSpecularColor());
+        appearance.setShininess(defaultAppearance.getShininess());
+      }
     }
     if (defaultAppearance.getTransparency() !== undefined) {
       appearance.setTransparency(defaultAppearance.getTransparency());

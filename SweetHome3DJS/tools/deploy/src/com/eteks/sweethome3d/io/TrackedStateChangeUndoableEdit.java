@@ -19,6 +19,9 @@
  */
 package com.eteks.sweethome3d.io;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.undo.AbstractUndoableEdit;
@@ -26,6 +29,7 @@ import javax.swing.undo.CannotRedoException;
 
 import com.eteks.sweethome3d.model.Camera;
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.ObserverCamera;
 
@@ -43,11 +47,17 @@ import com.eteks.sweethome3d.model.ObserverCamera;
 @SuppressWarnings("serial")
 class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   private Home                home;
+  private Level               selectedLevel;
+  private List<Camera>        storedCameras;
+  private Camera              camera;
+  private List<String>        furnitureVisibleProperties;
+  private String              furnitureSortedProperty;
+  private Boolean             furnitureDescendingSorted;
+  private Map<String, String> homeProperties;
+  private Boolean             observerCameraElevationAdjusted;
+  private Boolean             allLevelsVisible;
   private Camera              topCamera;
   private ObserverCamera      observerCamera;
-  private Camera              camera;
-  private Level               selectedLevel;
-  private Map<String, String> homeProperties;
 
   private TrackedStateChangeUndoableEdit() {
   }
@@ -55,6 +65,44 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
   @Override
   public void redo() throws CannotRedoException {
     super.redo();
+    if (this.selectedLevel != null) {
+      this.home.setSelectedLevel(this.selectedLevel);
+    }
+    if (this.storedCameras != null) {
+      this.home.setStoredCameras(this.storedCameras);
+    }
+    if (this.camera != null) {
+      this.home.setCamera(this.camera);
+    }
+    if (this.furnitureVisibleProperties != null) {
+      List<HomePieceOfFurniture.SortableProperty> furnitureVisibleProperties = new ArrayList<HomePieceOfFurniture.SortableProperty>();
+      for (String furnitureVisibleProperty : this.furnitureVisibleProperties) {
+        try {
+          furnitureVisibleProperties.add(
+              HomePieceOfFurniture.SortableProperty.valueOf(furnitureVisibleProperty));
+        } catch (IllegalArgumentException ex) {
+          // Ignore malformed enum constants
+        }
+      }
+      this.home.setFurnitureVisibleProperties(furnitureVisibleProperties);
+    }
+    if (this.furnitureSortedProperty != null) {
+      this.home.setFurnitureSortedProperty(HomePieceOfFurniture.SortableProperty.valueOf(this.furnitureSortedProperty));
+    }
+    if (this.furnitureDescendingSorted != null) {
+      this.home.setFurnitureDescendingSorted(this.furnitureDescendingSorted);
+    }
+    if (this.homeProperties != null) {
+      for (Map.Entry<String, String> property : this.homeProperties.entrySet()) {
+        this.home.setProperty(property.getKey(), property.getValue());
+      }
+    }
+    if (this.observerCameraElevationAdjusted != null) {
+      home.getEnvironment().setObserverCameraElevationAdjusted(this.observerCameraElevationAdjusted);
+    }
+    if (this.allLevelsVisible!= null) {
+      home.getEnvironment().setAllLevelsVisible(this.allLevelsVisible);
+    }
     if (this.topCamera != null) {
       Camera topCamera = this.home.getTopCamera();
       topCamera.setCamera(this.topCamera);
@@ -66,17 +114,6 @@ class TrackedStateChangeUndoableEdit extends AbstractUndoableEdit {
       observerCamera.setCamera(this.observerCamera);
       observerCamera.setTime(this.observerCamera.getTime());
       observerCamera.setLens(this.observerCamera.getLens());
-    }
-    if (this.camera != null) {
-      this.home.setCamera(this.camera);
-    }
-    if (this.selectedLevel != null) {
-      this.home.setSelectedLevel(this.selectedLevel);
-    }
-    if (this.homeProperties != null) {
-      for (Map.Entry<String, String> property : this.homeProperties.entrySet()) {
-        this.home.setProperty(property.getKey(), property.getValue());
-      }
     }
   }
 }

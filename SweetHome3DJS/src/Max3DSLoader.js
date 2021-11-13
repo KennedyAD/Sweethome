@@ -445,11 +445,11 @@ Max3DSLoader.prototype.parseEntryScene = function(max3dsContent, max3dsEntryName
  * @param {Max3DSLoader.ChunksInputStream} input
  * @param {string} max3dsEntryName
  * @param {JSZip}  zip 
- * @param {Max3DSLoader.Mesh3DS []} meshes 
+ * @param {Array.<Max3DSLoader.Mesh3DS>} meshes 
  * @param {Object} meshesGroups
  * @param {Object} materials
  * @param {TransformGroup3D} root
- * @returns {number} master scale
+ * @return {number} master scale
  * @private
  */
 Max3DSLoader.prototype.parse3DSStream = function(input, max3dsEntryName, zip, meshes, meshesGroups, materials, root) {
@@ -504,9 +504,9 @@ Max3DSLoader.prototype.parse3DSStream = function(input, max3dsEntryName, zip, me
  * @param {Max3DSLoader.ChunksInputStream} input
  * @param {string} max3dsEntryName
  * @param {JSZip}  zip 
- * @param {Max3DSLoader.Mesh3DS []} meshes
+ * @param {Array.<Max3DSLoader.Mesh3DS>} meshes
  * @param {Object} materials
- * @returns {number} master scale
+ * @return {number} master scale
  * @private
  */
 Max3DSLoader.prototype.parseEditorData = function(input, max3dsEntryName, zip, meshes, materials) {
@@ -538,7 +538,7 @@ Max3DSLoader.prototype.parseEditorData = function(input, max3dsEntryName, zip, m
 /**
  * Parses named objects like mesh in the current chunk.
  * @param {Max3DSLoader.ChunksInputStream} input
- * @param {Max3DSLoader.Mesh3DS []} meshes 
+ * @param {Array.<Max3DSLoader.Mesh3DS>} meshes 
  * @param {Object} materials
  * @private
  */
@@ -797,7 +797,7 @@ Max3DSLoader.prototype.parseFacesData = function(input) {
  * @param {Max3DSLoader.ChunksInputStream} input
  * @param {string} max3dsEntryName
  * @param {JSZip}  zip 
- * @returns {Max3DSLoader.Material3DS}  
+ * @return {Max3DSLoader.Material3DS}  
  * @private
  */
 Max3DSLoader.prototype.parseMaterial = function(input, max3dsEntryName, zip) {
@@ -849,7 +849,7 @@ Max3DSLoader.prototype.parseMaterial = function(input, max3dsEntryName, zip) {
 /**
  * Returns the color read from the current chunk.  
  * @param {Max3DSLoader.ChunksInputStream} input
- * @returns {vec3}
+ * @return {vec3}
  * @private
  */
 Max3DSLoader.prototype.parseColor = function(input) {
@@ -898,7 +898,7 @@ Max3DSLoader.prototype.parseColor = function(input) {
 /**
  * Returns the percentage read from the current chunk.  
  * @param {Max3DSLoader.ChunksInputStream} input
- * @returns {number}
+ * @return {number}
  * @private
  */
 Max3DSLoader.prototype.parsePercentage = function(input) {
@@ -929,7 +929,7 @@ Max3DSLoader.prototype.parsePercentage = function(input) {
  * @param {Max3DSLoader.ChunksInputStream} input
  * @param {string} max3dsEntryName
  * @param {JSZip}  zip 
- * @returns {string}
+ * @return {string}
  * @private
  */
 Max3DSLoader.prototype.parseTextureMap = function(input, max3dsEntryName, zip) {
@@ -981,7 +981,7 @@ Max3DSLoader.prototype.getEntryNameIgnoreCase = function(zip, searchedEntryName)
 /**
  * Returns the matrix read from the current chunk.  
  * @param {Max3DSLoader.ChunksInputStream} input
- * @returns {mat4}
+ * @return {mat4}
  * @private
  */
 Max3DSLoader.prototype.parseMatrix = function(input) {
@@ -995,7 +995,7 @@ Max3DSLoader.prototype.parseMatrix = function(input) {
 /**
  * Returns the vector read from the current chunk.
  * @param {Max3DSLoader.ChunksInputStream} input
- * @returns {vec3}
+ * @return {vec3}
  * @private
  */
 Max3DSLoader.prototype.parseVector = function(input) {
@@ -1054,7 +1054,7 @@ Max3DSLoader.ChunksInputStream.prototype.read = function() {
 /**
  * Reads the next chunk id and length, pushes it in the stack and returns it.
  * <code>null</code> will be returned if the end of the stream is reached.
- * @returns {Max3DSLoader.Chunk3DS}
+ * @return {Max3DSLoader.Chunk3DS}
  * @private
  */
 Max3DSLoader.ChunksInputStream.prototype.readChunkHeader = function() {
@@ -1081,7 +1081,7 @@ Max3DSLoader.ChunksInputStream.prototype.releaseChunk = function() {
 
 /**
  * Returns <code>true</code> if the current chunk end was reached.
- * @returns {boolean}
+ * @return {boolean}
  * @private
  */
 Max3DSLoader.ChunksInputStream.prototype.isChunckEndReached = function() {
@@ -1223,9 +1223,9 @@ Max3DSLoader.ChunksInputStream.prototype.readString = function() {
 /**
  * Creates a 3DS mesh.
  * @param {string} name, 
- * @param {Point3f []} vertices
- * @param {TexCoord2f []} textureCoordinates
- * @param {Max3DSLoader.Face3DS []} faces
+ * @param {Point3f[]} vertices
+ * @param {TexCoord2f[]} textureCoordinates
+ * @param {Array.<Max3DSLoader.Face3DS>} faces
  * @param {number} color
  * @param {mat4} transform
  * @constructor

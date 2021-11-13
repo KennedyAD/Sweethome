@@ -27,33 +27,39 @@
  */
 var CoreTools = {};
 
+CoreTools.unavailableResources = [];
+
 /**
  * Loads a JSON resource from a url (synchronous).
  * @param url {string}  the url of the JSON resource to be loaded
- * @returns an object that corresponds to the loaded JSON
+ * @return an object that corresponds to the loaded JSON
  */
 CoreTools.loadJSON = function(url) {
-  try {
-    if (url.indexOf('/') !== 0 && url.indexOf('://') < 0) {
-      // Relative URLs based on scripts folder
-      url = ZIPTools.getScriptFolder() + url;
-    }
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, false);
-    // It is not allowed to change response type for a synchronous XHR
-    // xhr.responseType = 'json';
-    xhr.send();
-    return JSON.parse(xhr.responseText);
-  } catch (ex) {
-    return undefined;
+  if (url.indexOf('/') !== 0 && url.indexOf('://') < 0) {
+    // Relative URLs based on scripts folder
+    url = ZIPTools.getScriptFolder() + url;
   }
+  
+  if (CoreTools.unavailableResources.indexOf(url) < 0) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, false);
+      // It is not allowed to change response type for a synchronous XHR
+      // xhr.responseType = 'json';
+      xhr.send();
+      return JSON.parse(xhr.responseText);
+    } catch (ex) {
+      CoreTools.unavailableResources.push(url);
+    }
+  }
+  return undefined;
 }
 
 /**
  * Formats a string with the given <code>args</code>.
  * @param {string} formatString a string containing optional place holders (%s, %d)
- * @param {*[]|...*} args an array of arguments to be applied to formatString
- * @returns the formatted string
+ * @param {Object[]|...Object} args an array of arguments to be applied to formatString
+ * @return the formatted string
  */
 CoreTools.format = function(formatString, args) {
   if (args === undefined || args.length === 0) {
@@ -65,11 +71,20 @@ CoreTools.format = function(formatString, args) {
     var currentIndex = 0;
     var values = Array.isArray(args) ? args : Array.prototype.slice.call(arguments, 1);
     var currentValueIndex = 0;
+
+    placeHolders.lastIndex = 0;
     while ((matchResult = placeHolders.exec(formatString)) !== null) {
-      // TODO: support explicit position in place holders (%x$s)
       result += formatString.slice(currentIndex, placeHolders.lastIndex - matchResult[0].length);
+
+      var indexResult;
       if (matchResult[0] == "%%") {
         result += '%';
+      } else if ((indexResult = /%(\d+)\$s/g.exec(matchResult[0])) !== null) {
+        var valueIndex = parseInt(indexResult[1]) - 1;
+        result += values[valueIndex];
+      } else if ((indexResult = /%(\d+)\$d/g.exec(matchResult[0])) !== null) {
+        var valueIndex = parseInt(indexResult[1]) - 1;
+        result += values[valueIndex];
       } else if (currentValueIndex < values.length) {
         result += values[currentValueIndex];
         currentValueIndex++;
@@ -82,36 +97,52 @@ CoreTools.format = function(formatString, args) {
 }
 
 /**
- * Loads resource bundles for a given base URL and a given language.
- *
+ * Returns the given <code>string</code> without accents. For example, <code>éèâ</code> 
+ * returns <code>eea</code>.
+ * @param {string} a string containing accents
+ * @return the string with all the accentuated characters substituted with the corresponding 
+ *          un-accentuated characters  
+ */
+CoreTools.removeAccents = function(string) {
+  return string != null
+      ? (typeof string.normalize == "function" // Not available under IE 11 and Safari 8/9
+            ? string.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            : string.replace(/[áàâä]/g, "a").replace(/[éèêë]/g, "e").replace(/[íìîï]/g, "i").replace(/[óòôö]/g, "o").replace(/[úùûü]/g, "u"))
+      : string;
+}
+
+/**
+ * Returns resource bundles loaded from a given base URL and a given language.
  * @param baseURL the base URL of the localized resource to be loaded
  * @param language the language to be loaded (Java conventions)
- * @returns an array of bundle objects, starting with the most specific localization to the default
+ * @param {boolean} [noCache] force refresh content
+ * @return an array of bundle objects, starting with the most specific localization to the default
  */
-CoreTools.loadResourceBundles = function(baseURL, language) {
+CoreTools.loadResourceBundles = function(baseURL, language, noCache) {
+  var queryString = noCache ? "?requestId=" + UUID.randomUUID() : "";
+
   var resourceBundles = [];
   if (language) {
-    resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language + ".json"));
+    resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language + ".json" + queryString));
     if (language.indexOf("_") > 0) {
-      resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language.split("_")[0] + ".json"));
+      resourceBundles.push(CoreTools.loadJSON(baseURL + "_" + language.split("_")[0] + ".json" + queryString));
     }
   }
-  resourceBundles.push(CoreTools.loadJSON(baseURL + ".json"));
+
+  resourceBundles.push(CoreTools.loadJSON(baseURL + ".json" + queryString));
   return resourceBundles;  
 }
 
 /**
- * Gets a string from an array of resource bundles, starting with the first bundle. 
- * It returns the value associated with the given key, in the first bundle where it is found. 
- *
+ * Returns the string associated with the given key from an array of resource bundles, starting with the first bundle. 
  * @param resourceBundles {Object[]} an array of bundle objects to look up the key into.
  * @param key {string} the key to lookup
  * @param parameters {...*} parameters for the formatting of the key
- * @returns the value associated with the key (in the first bundle object that contains it)
+ * @return the value associated with the key (in the first bundle object that contains it)
  */
 CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
   for (var i = 0; i < resourceBundles.length; i++) {
-    if (resourceBundles[i] != null && resourceBundles[i][key]) {
+    if (resourceBundles[i] != null && resourceBundles[i][key] !== undefined) {
       return CoreTools.format.apply(null, [resourceBundles[i][key]].concat(Array.prototype.slice.call(arguments, 2)));
     }
   }
@@ -119,10 +150,9 @@ CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
 }
 
 /**
- * Gets all the keys from an array of resource bundles. 
- *
+ * Returns all the keys from an array of resource bundles. 
  * @param resourceBundles {Object[]} an array of bundle objects to look up the keys into.
- * @returns the list of keys found in the bundle
+ * @return the list of keys found in the bundle
  */
 CoreTools.getKeys = function(resourceBundles) {
   var keys = {};
@@ -135,10 +165,10 @@ CoreTools.getKeys = function(resourceBundles) {
 }
 
 /**
- * Gets an object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
+ * Returns the object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
  * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)
- * @returns {*} the value associated to the key (null if not found)
+ * @return {*} the value associated to the key (null if not found)
  */
 CoreTools.getFromMap = function(map, key) {
   if (typeof key === 'string') {
@@ -197,11 +227,11 @@ CoreTools.putToMap = function(map, key, value) {
 }
 
 /**
- * Removes an object from a map object. When the given key is a string, the map object directly holds the 
+ * Removes an object from a map object and returns it. When the given key is a string, the map object directly holds the 
  * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
  * @param map {Object} the object holding the map
  * @param key {string|*} the key to associate the value to (can be an object or a string)
- * @returns the removed value or <code>null</code> if not found
+ * @return the removed value or <code>null</code> if not found
  */
 CoreTools.removeFromMap = function(map, key) {
   if (typeof key === 'string') {
@@ -229,7 +259,7 @@ CoreTools.removeFromMap = function(map, key) {
 /**
  * Returns all the values put in a map object, as an array.
  * @param map {Object} the map containing the values
- * @returns {Array} the values (no specific order)
+ * @return {Array} the values (no specific order)
  */
 CoreTools.valuesFromMap = function(map) {
   var values = [];
@@ -257,16 +287,16 @@ CoreTools.sortArray = function(array, comparator) {
         return comparator.compare(e1,e2);
       });
   } else {
-   array.sort(comparator);  
+    array.sort(comparator);  
   }
 }
 
 /**
- * This utility function merges all the source object properties into the destination object.
+ * Returns a map containing all the source object properties merged into the destination object.
  * It has to be used in replacement of Object.assign that is not supported in IE.
  * @param {Object} destination
  * @param {Object} source
- * @returns {Object} the destination object
+ * @return {Object} the destination object
  */
 CoreTools.merge = function(destination, source) {
   for (var key in source) {
@@ -275,15 +305,41 @@ CoreTools.merge = function(destination, source) {
 }
 
 /**
- * This utility function returns the intersection between two arrays.
+ * Returns the intersection between two arrays.
  * @param {any[]} array1
  * @param {any[]} array2
- * @returns {any[]} an array container elements being both in array1 and array2
+ * @return {any[]} an array container elements being both in array1 and array2
  */
 CoreTools.intersection = function(array1, array2) {
   return array1.filter(function(n) {
       return array2.indexOf(n) !== -1;
     });  
+}
+
+/**
+ * Provides a list of available font names (asynchronously, see callback parameter).
+ * Internally uses a fixed list of standard Windows and macOS default fonts, and if FontFaceSet API is available, filter this list
+ * @param {function(string[])} onFontsListAvailable called back when list is available
+ */
+CoreTools.loadAvailableFontNames = function(onFontsListAvailable) {
+  if (document.fonts) {
+    var windowsFonts = ["Arial", "Arial Black", "Bahnschrift", "Calibri", "Cambria", "Cambria Math", "Candara", "Comic Sans MS", "Consolas", "Constantia", "Corbel", "Courier New", "Ebrima", "Franklin Gothic Medium", "Gabriola", "Gadugi", "Georgia", "HoloLens MDL2 Assets", "Impact", "Ink Free", "Javanese Text", "Leelawadee UI", "Lucida Console", "Lucida Sans Unicode", "Malgun Gothic", "Marlett", "Microsoft Himalaya", "Microsoft JhengHei", "Microsoft New Tai Lue", "Microsoft PhagsPa", "Microsoft Sans Serif", "Microsoft Tai Le", "Microsoft YaHei", "Microsoft Yi Baiti", "MingLiU-ExtB", "Mongolian Baiti", "MS Gothic", "MV Boli", "Myanmar Text", "Nirmala UI", "Palatino Linotype", "Segoe MDL2 Assets", "Segoe Print", "Segoe Script", "Segoe UI", "Segoe UI Historic", "Segoe UI Emoji", "Segoe UI Symbol", "SimSun", "Sitka", "Sylfaen", "Symbol", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana", "Webdings", "Wingdings", "Yu Gothic"];
+    var macosFonts = ["American Typewriter", "Andale Mono", "Arial", "Arial Black", "Arial Narrow", "Arial Rounded MT Bold", "Arial Unicode MS", "Avenir", "Avenir Next", "Avenir Next Condensed", "Baskerville", "Big Caslon", "Bodoni 72", "Bodoni 72 Oldstyle", "Bodoni 72 Smallcaps", "Bradley Hand", "Brush Script MT", "Chalkboard", "Chalkboard SE", "Chalkduster", "Charter", "Cochin", "Comic Sans MS", "Copperplate", "Courier", "Courier New", "Didot", "DIN Alternate", "DIN Condensed", "Futura", "Geneva", "Georgia", "Gill Sans", "Helvetica", "Helvetica Neue", "Herculanum", "Hoefler Text", "Impact", "Lucida Grande", "Luminari", "Marker Felt", "Menlo", "Microsoft Sans Serif", "Monaco", "Noteworthy", "Optima", "Palatino", "Papyrus", "Phosphate", "Rockwell", "Savoye LET", "SignPainter", "Skia", "Snell Roundhand", "Tahoma", "Times", "Times New Roman", "Trattatello", "Trebuchet MS", "Verdana", "Zapfino"];
+    document.fonts.ready.then(function() {
+        var availableFonts = [];
+        var allTestedFonts = windowsFonts.concat(macosFonts);
+        for (var i = 0; i < allTestedFonts.length; i++) {
+          var fontName = allTestedFonts[i];
+          if (availableFonts.indexOf(fontName) < 0 && document.fonts.check('12px "' + fontName + '"')) {
+            availableFonts.push(fontName);
+          }
+        }
+        onFontsListAvailable(availableFonts.sort());
+      });
+  } else {
+    var defaultFonts = ["Arial", "Verdana", "Helvetica", "Tahoma", "Trebuchet MS", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT"];
+    onFontsListAvailable(defaultFonts.sort());
+  }
 }
 
 
@@ -299,16 +355,16 @@ var ColorTools = {};
  * Converts a color given as an int to a CSS string representation. For instance, 0 will be converted to #000000.
  * Note that the alpha content is ignored.
  * @param {number} color
- * @returns {string} a CSS string
+ * @return {string} a CSS string
  */
 ColorTools.integerToHexadecimalString = function(color) {
-  return "#" + ("00000" + (color & 0xFFFFFF).toString(16)).slice(-6);
+  return "#" + ("00000" + (color & 0xFFFFFF).toString(16).toUpperCase()).slice(-6);
 }
 
 /**
  * Returns an hexadecimal color string from a computed style (no alpha).
  * @param {string} a style containing a color as rgb(...) or rgba(...)
- * @returns {string} the color as a string or an empty string if the given style was not parseable
+ * @return {string} the color as a string or an empty string if the given style was not parseable
  */
 ColorTools.styleToHexadecimalString = function(style) {
   var prefix = "rgb(";
@@ -327,7 +383,7 @@ ColorTools.styleToHexadecimalString = function(style) {
 /**
  * Returns a color from a computed style (no alpha).
  * @param {string} style a style containing a color as rgb(...) or rgba(...)
- * @returns {number} the color as an integer or -1 if the given style was not parseable
+ * @return {number} the color as an integer or -1 if the given style was not parseable
  */
 ColorTools.styleToInteger = function(style) {
   var prefix = "rgb(";
@@ -356,7 +412,7 @@ ColorTools.isTransparent = function(style) {
 /**
  * Returns a color from a color string (no alpha).
  * @param {string} colorString color string under the format #RRGGBB
- * @returns {number} the color as an integer or -1 if the given string was not parseable
+ * @return {number} the color as an integer or -1 if the given string was not parseable
  */
 ColorTools.hexadecimalStringToInteger = function(colorString) {
   if (colorString.indexOf("#") === 0 && (colorString.length === 7 || colorString.length === 9)) {
@@ -370,9 +426,72 @@ ColorTools.hexadecimalStringToInteger = function(colorString) {
  * Returns an rgba style color from an hexadecimal color string (no alpha).
  * @param {string} colorString color string under the format #RRGGBB
  * @param {number} the alpha component (between 0 and 1)
- * @returns {string} the color as an rgba description
+ * @return {string} the color as an rgba description
  */
 ColorTools.toRGBAStyle = function(colorString, alpha) {
   var c = ColorTools.hexadecimalStringToInteger(colorString);
   return "rgba(" + ((c & 0xFF0000) >> 16) + "," + ((c & 0xFF00) >> 8) + "," + (c & 0xFF) + "," + alpha + ")";
 }
+
+
+/**
+ * Utilities for images.
+ * @class
+ * @ignore
+ * @author Louis Grignon
+ */
+var ImageTools = {};
+
+/**
+ * @param {HTMLImageElement} image
+ * @return {boolean} true if image has alpha channel
+ */
+ImageTools.isImageWithAlpha = function(image) {
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  context.drawImage(image, 0, 0, image.width, image.height);
+  return ImageTools.isCanvasWithAlpha(canvas, context);
+}
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param {CanvasRenderingContext2D} [context] given canvas context. If not provided, canvas.getContext("2d") will be used
+ * @return {boolean} true if image has alpha channel
+ * @private
+ */
+ImageTools.isCanvasWithAlpha = function(canvas, context) {
+  context = context ? context : canvas.getContext("2d");
+  var data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  var hasAlphaPixels = false;
+  for (var i = 3, n = data.length; i < n; i += 4) {
+    if (data[i] < 255) {
+      hasAlphaPixels = true;
+      break;
+    }
+  }
+  return hasAlphaPixels;
+}
+
+/**
+ * @param {HTMLImageElement} image
+ * @param {number} targetWidth
+ * @param {number} targetHeight
+ * @param {function(HTMLImageElement)} onsuccess called when resize succeeded, with resized image as a parameter
+ * @param {string} [imageType] target image mime type, defaults to image/png
+ */
+ImageTools.resize = function(image, targetWidth, targetHeight, onsuccess, imageType) {
+  var canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  var canvasContext = canvas.getContext('2d');
+  canvasContext.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  var resizedImage = new Image();
+  resizedImage.addEventListener("load", function () {
+      onsuccess(resizedImage);
+    });
+  resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
+}
+

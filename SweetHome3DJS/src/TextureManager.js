@@ -176,6 +176,7 @@ TextureManager.prototype.loadTexture = function(content, angle, synchronous, tex
 TextureManager.prototype.load = function(url, synchronous, loadingTextureObserver) {
   loadingTextureObserver.progression(TextureManager.READING_TEXTURE, url, 0);
   var textureImage = new Image();
+  textureImage.crossOrigin = "anonymous";
   textureImage.url = url;
   var imageErrorListener = function(ev) {
       textureImage.removeEventListener("load", imageLoadingListener);

@@ -43,6 +43,7 @@ import javax.lang.model.type.TypeMirror;
 import org.jsweet.JSweetConfig;
 import org.jsweet.transpiler.extension.AnnotationManager;
 import org.jsweet.transpiler.extension.PrinterAdapter;
+import org.jsweet.transpiler.model.AssignmentElement;
 import org.jsweet.transpiler.model.CaseElement;
 import org.jsweet.transpiler.model.ExtendedElement;
 import org.jsweet.transpiler.model.IdentifierElement;
@@ -158,7 +159,34 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.mayImportLanguageLibrary()",
           "com.eteks.sweethome3d.viewcontroller.UserPreferencesController.importLanguageLibrary()",
           "com.eteks.sweethome3d.viewcontroller.ViewFactory.createHelpView(..)",
-          "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter");
+          "com.eteks.sweethome3d.viewcontroller.ViewFactoryAdapter",
+          // Ignore overridden property change support
+          "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController.propertyChangeSupport",
+          "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController.propertyChangeSupport",
+          "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController.propertyChangeSupport",
+          "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotoController.propertyChangeSupport",
+          "com.eteks.sweethome3d.viewcontroller.PhotoController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotoController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotosController.propertyChangeSupport",
+          "com.eteks.sweethome3d.viewcontroller.PhotosController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotosController.removePropertyChangeListener(..)");
+      addAnnotation("jsweet.lang.KeepUses",
+          "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotoController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotoController.removePropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotosController.addPropertyChangeListener(..)",
+          "com.eteks.sweethome3d.viewcontroller.PhotosController.removePropertyChangeListener(..)");
     }
 
     // Ignore some Java elements with a programmatic adapter
@@ -511,7 +539,18 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             print("undefined");
             return true;
         }
-      break;
+        break;
+      case "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController":
+      case "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController":
+      case "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController":
+      case "com.eteks.sweethome3d.viewcontroller.PhotoController":
+      case "com.eteks.sweethome3d.viewcontroller.PhotosController":
+        // Reuse propertyChangeSupport field defined in super class
+        if ("propertyChangeSupport".equals(variableAccess.getVariableName())) {
+          print(variableAccess.getTargetExpression()).print(".propertyChangeSupport");
+          return true;
+        }
+        break;
     }
     // Map *Property enums to strings
     if (variableAccess.getTargetElement().getKind() == ElementKind.ENUM
@@ -520,6 +559,26 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
       return true;
     }
     return super.substituteVariableAccess(variableAccess);
+  }
+
+  @Override
+  public boolean substituteAssignment(AssignmentElement assignment) {
+    if (assignment.getTypeAsElement().getSimpleName().toString().equals("PropertyChangeSupport")) {
+      switch (assignment.getTarget().getTargetElement().toString()) {
+        case "com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController":
+        case "com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController":
+        case "com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController":
+        case "com.eteks.sweethome3d.viewcontroller.PhotoController":
+        case "com.eteks.sweethome3d.viewcontroller.PhotosController":
+          // Ignore propertyChangeSupport field defined in sub class
+          if ("propertyChangeSupport".equals(assignment.getTarget().getVariableName())) {
+            print("/* Use propertyChangeSupport defined in super class */");
+            return true;
+          }
+          break;
+      }
+    }
+    return super.substituteAssignment(assignment);
   }
 
   @Override
@@ -651,10 +710,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
           || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PhotosController")
           || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.VideoController")
           || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.PageSetupController")
-          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController")
-          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController")
-          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController")
-          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.WizardController")) {
+          || type.getQualifiedName().contentEquals("com.eteks.sweethome3d.viewcontroller.ImportedFurnitureWizardController")) {
         newComment.append("\n");
         newComment.append("@ignore");
       }

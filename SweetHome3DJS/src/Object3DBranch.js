@@ -301,7 +301,6 @@ Object3DBranch.prototype.getAreaPoints = function (area, areaPoints, areaHoles, 
   }
   return areaPointsWithoutHoles;
 }
-
 /**
  * Returns <code>true</code> if the given arrays contain the same values. 
  * @private
