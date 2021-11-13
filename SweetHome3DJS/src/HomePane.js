@@ -1536,7 +1536,11 @@ HomePane.prototype.addOrientationChangeListener = function() {
           homePane.updateSplitters();
         }, 100);
     };
-  window.addEventListener("orientationchange", orientationListener);
+  window.addEventListener("resize", function(ev) {
+      if (window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+        orientationListener(ev);
+      }
+    });
 }
 
 /** 
