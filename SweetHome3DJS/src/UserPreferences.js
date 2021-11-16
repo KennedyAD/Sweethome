@@ -1942,10 +1942,9 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
  * @param {BlobURLContent} urlContent  blob content
  * @param {string} path unique file name of the written resource.
  * @param {function()} loadListener called when content is uploaded
- * @param {function()} errorListener called if error is detected
  * @private
  */
-RecordedUserPreferences.prototype.writeResource = function(urlContent, path, loadListener, errorListener) {
+RecordedUserPreferences.prototype.writeResource = function(urlContent, path, loadListener) {
   var uploadUrl = CoreTools.format(this.writeResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
   var request = new XMLHttpRequest();
   var preferences = this;
