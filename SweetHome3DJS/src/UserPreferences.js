@@ -1265,10 +1265,10 @@ DefaultPatternTexture.prototype.equals = function (obj) {
 function RecordedUserPreferences(configuration) {
   UserPreferences.call(this);
 
-  if (configuration !== undefined) {	
+  if (configuration !== undefined) {
     this.furnitureCatalogUrls = configuration.furnitureCatalogURLs;
     this.furnitureResourcesUrlBase = configuration.furnitureResourcesURLBase;
-	  this.texturesCatalogUrls = configuration.texturesCatalogURLs;
+    this.texturesCatalogUrls = configuration.texturesCatalogURLs;
     this.texturesResourcesUrlBase = configuration.texturesResourcesURLBase;
     this.writePreferencesUrl = configuration.writePreferencesURL;
     this.readPreferencesUrl = configuration.readPreferencesURL;
@@ -1743,7 +1743,7 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
       var request = new XMLHttpRequest();
       var querySeparator = this.writePreferencesUrl.indexOf('?') != -1 ? '&' : '?';
       var serverErrorHandler = function(status, error) {
-	      if (preferences.writingObserver !== undefined
+          if (preferences.writingObserver !== undefined
               && preferences.writingObserver.writeFailed) {
             preferences.writingObserver.writeFailed(properties, status, error);
           }
@@ -1760,7 +1760,7 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
               if (preferences.writingObserver !== undefined
                   && preferences.writingObserver.writeSucceeded) {
                 preferences.writingObserver.writeSucceeded(properties);
-              }	
+              }
               setTimeout(function() {
                   delete preferences.writingPreferences;
                 }, 500);
@@ -1957,10 +1957,10 @@ RecordedUserPreferences.prototype.writeResource = function(urlContent, path, ind
         setTimeout(function() {
             // Check it wasn't saved elsewhere
             if (urlContent.getSavedContent() === null) {
-        	  preferences.writeResource(urlContent, path, index, loadListener);
-        	} else {
+              preferences.writeResource(urlContent, path, index, loadListener);
+            } else {
               loadListener(urlContent, index);
-        	}
+            }
           }, 10000);
       }
     };
@@ -1971,7 +1971,7 @@ RecordedUserPreferences.prototype.writeResource = function(urlContent, path, ind
           if (preferences.writingObserver !== undefined
               && preferences.writingObserver.writeSucceeded) {
             preferences.writingObserver.writeSucceeded(urlContent.getBlob());
-          }	
+          }
           loadListener(urlContent, index);
         } else {
           serverErrorHandler(request.status, request.responseText);
