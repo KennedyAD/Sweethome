@@ -1901,23 +1901,23 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
                 var imageExtension = textureImage.getBlob().type == "image/png" ? "png" : "jpg";
                 textureImageFileName = resourceId + '.' + imageExtension;
                 this.uploadingBlobs[textureImage.getURL()] = textureImageFileName;
+                var loadListener = function(textureImage, textureIndex) {
+                    if (textureImage.getSavedContent() === null) {
+                      var textureImageFileName = preferences.uploadingBlobs[textureImage.getURL()];
+                      var savedContent = new URLContent(
+                          CoreTools.format(preferences.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
+                      textureImage.setSavedContent(savedContent);
+                    }
+                    delete preferences.uploadingBlobs[textureImage.getURL()];
+                    preferences.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, textureImage.getSavedContent().getURL());
+                  };
+                this.writeResource(textureImage, textureImageFileName, index, loadListener);
               }
-              savedContent = new URLContent(
-                  CoreTools.format(this.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
-              var loadListener = function(textureImage, ev) {
-                  var textureImageFileName = preferences.uploadingBlobs[textureImage.getURL()];
-                  var savedContent = new URLContent(
-                      CoreTools.format(preferences.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
-                  textureImage.setSavedContent(savedContent);
-                  delete preferences.uploadingBlobs[textureImage.getURL()];
-                };
-              this.writeResource(textureImage, textureImageFileName, loadListener);
-              // In case of error, preferences.uploadingBlobs won't be emptied provoking a new upload later by the caller
             } else {
               // Always update uploading blobs map because blob may have been saved elsewhere
               delete preferences.uploadingBlobs[textureImage.getURL()];
+              this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, savedContent.getURL());
             }
-            this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, savedContent.getURL());
           } else if (textureImage instanceof URLContent) {
             this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, textureImage.getURL());
           }
@@ -1940,11 +1940,12 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
 
 /**
  * @param {BlobURLContent} urlContent  blob content
- * @param {string} path unique file name of the written resource.
+ * @param {string} path unique file name of the written resource
+ * @param {number} index
  * @param {function()} loadListener called when content is uploaded
  * @private
  */
-RecordedUserPreferences.prototype.writeResource = function(urlContent, path, loadListener) {
+RecordedUserPreferences.prototype.writeResource = function(urlContent, path, index, loadListener) {
   var uploadUrl = CoreTools.format(this.writeResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
   var request = new XMLHttpRequest();
   var preferences = this;
@@ -1952,6 +1953,15 @@ RecordedUserPreferences.prototype.writeResource = function(urlContent, path, loa
       if (preferences.writingObserver !== undefined
           && preferences.writingObserver.writeFailed) {
         preferences.writingObserver.writeFailed(urlContent.getBlob(), status, error);
+        // In case of error, wait 10s before attempting a new upload
+        setTimeout(function() {
+            // Check it wasn't saved elsewhere
+            if (urlContent.getSavedContent() === null) {
+        	  preferences.writeResource(urlContent, path, index, loadListener);
+        	} else {
+              loadListener(urlContent, index);
+        	}
+          }, 10000);
       }
     };
   request.open("POST", uploadUrl, true);
@@ -1962,7 +1972,7 @@ RecordedUserPreferences.prototype.writeResource = function(urlContent, path, loa
               && preferences.writingObserver.writeSucceeded) {
             preferences.writingObserver.writeSucceeded(urlContent.getBlob());
           }	
-          loadListener(urlContent, ev);
+          loadListener(urlContent, index);
         } else {
           serverErrorHandler(request.status, request.responseText);
         }
