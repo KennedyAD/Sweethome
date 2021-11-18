@@ -130,7 +130,8 @@ UserPreferences.prototype.initSupportedLanguages = function(supportedLanguages) 
  * @private
  */
 UserPreferences.prototype.updateDefaultLocale = function() {
-  if (this.language.indexOf("_") !== -1) {
+  if (this.language.indexOf("_") !== -1
+      || this.defaultCountry == "") {
     Locale.setDefault(this.language);
   } else {
     Locale.setDefault(this.language + "_" + this.defaultCountry);
@@ -365,7 +366,7 @@ UserPreferences.prototype.getResourceBundles = function(resourceClass) {
       this.furnitureCatalogResourceBundles = CoreTools.loadResourceBundles("resources/DefaultFurnitureCatalog", Locale.getDefault());
     }
     return this.furnitureCatalogResourceBundles;
-  } else   if (resourceClass == "DefaultTexturesCatalog") {
+  } else if (resourceClass == "DefaultTexturesCatalog") {
     if (this.texturesCatalogResourceBundles.length == 0) {
       this.texturesCatalogResourceBundles = CoreTools.loadResourceBundles("resources/DefaultTexturesCatalog", Locale.getDefault());
     }
@@ -1251,6 +1252,7 @@ DefaultPatternTexture.prototype.equals = function (obj) {
  *          readPreferencesURL: string,
  *          writeResourceURL: number,
  *          readResourceURL: string,
+ *          userLanguage: string,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
  *                            writeFailed: Function, 
@@ -1276,9 +1278,16 @@ function RecordedUserPreferences(configuration) {
     this.readResourceUrl = configuration.readResourceURL;
     this.writingObserver = configuration.writingObserver;
   }
+  
+  var userLanguage;
+  if (configuration !== undefined && configuration.userLanguage !== undefined) {
+    userLanguage = configuration.userLanguage;
+  } else { 
+    userLanguage = getLanguage();
+  }
 
   var properties = this.getProperties();
-  this.updatePreferencesFromProperties(properties);
+  this.updatePreferencesFromProperties(properties, userLanguage);
   this.uploadingBlobs = {};
 }
 
@@ -1356,14 +1365,11 @@ RecordedUserPreferences.prototype.removeProperty = function(properties, property
 /**
  * Updates saved preferences from the given properties.
  * @param {string, string} properties 
+ * @param {string}         defaultUserLanguage
  * @private
  */
-RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(properties) {
-  var language = properties[RecordedUserPreferences.LANGUAGE];
-  if (language == null) {
-    language = "en";
-  }
-  this.setLanguage(language);
+RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(properties, defaultUserLanguage) {
+  this.setLanguage(this.getProperty(properties, RecordedUserPreferences.LANGUAGE, defaultUserLanguage));
 
   // Read default furniture and textures catalog
   this.setFurnitureCatalog(new FurnitureCatalog());
@@ -1386,7 +1392,7 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
   }
   this.setUnit(unit);
 
-  this.setCurrency(this.getProperty(properties, RecordedUserPreferences.CURRENCY), defaultPreferences.getCurrency());
+  this.setCurrency(this.getProperty(properties, RecordedUserPreferences.CURRENCY, defaultPreferences.getCurrency()));
   this.setValueAddedTaxEnabled(
       this.getProperty(properties, RecordedUserPreferences.VALUE_ADDED_TAX_ENABLED, 
           '' + defaultPreferences.isValueAddedTaxEnabled()) == 'true');
