@@ -494,4 +494,3 @@ ImageTools.resize = function(image, targetWidth, targetHeight, onsuccess, imageT
     });
   resizedImage.src = canvas.toDataURL(imageType ? imageType : 'image/png');
 }
-

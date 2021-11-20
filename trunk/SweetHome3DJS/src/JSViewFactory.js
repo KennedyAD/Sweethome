@@ -96,10 +96,10 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   var CANVAS_TOUCHABLE_AREA_RADIUS = 10;
 
   var imageErrorListener = function(error) {
-    console.warn("Error loading image: " + error);
-    alert(ResourceAction.getLocalizedLabelText(preferences, "BackgroundImageWizardStepsPanel",
-        "imageChoiceError"));
-  }
+      console.warn("Error loading image: " + error);
+      alert(ResourceAction.getLocalizedLabelText(preferences, "BackgroundImageWizardStepsPanel",
+          "imageChoiceError"));
+    };
 
   function BackgroundImageWizardStepsView() {
     JSComponent.call(this, preferences,
@@ -736,10 +736,10 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   var LARGE_IMAGE_MAX_PIXEL_COUNT = IMAGE_PREFERRED_MAX_SIZE * IMAGE_PREFERRED_MAX_SIZE;
 
   var imageErrorListener = function(error) {
-    console.warn("Error loading image: " + error);
-    alert(ResourceAction.getLocalizedLabelText(preferences, "ImportedTextureWizardStepsPanel",
-        "imageChoiceErrorLabel.text"));
-  }
+      console.warn("Error loading image: " + error);
+      alert(ResourceAction.getLocalizedLabelText(preferences, "ImportedTextureWizardStepsPanel",
+          "imageChoiceErrorLabel.text"));
+    };
 
   function ImportedTextureWizardStepsView() {
     JSComponent.call(this, preferences,
