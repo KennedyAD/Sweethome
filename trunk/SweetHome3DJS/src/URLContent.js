@@ -230,7 +230,7 @@ BlobURLContent.fromImage = function(image, imageType, oncontentready) {
   } else {
     canvas.toBlob(function (blob) {
         oncontentready(new BlobURLContent(blob));
-      }, imageType, 1);
+      }, imageType, 0.7);
   }
 }
 
