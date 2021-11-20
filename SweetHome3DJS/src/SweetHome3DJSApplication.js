@@ -579,7 +579,7 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
   }
   
   this.homeData[home.editionId].ongoingUpdate = { 
-	  "home": home, 
+	    "home": home, 
       "id": UUID.randomUUID(), 
       "edits": this.queue.slice(0)};
   if (this.configuration !== undefined 
@@ -601,7 +601,7 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
       this.queue.shift();
     } else {
       // This is really really bad and should never happen.
-      throw new Error("Unexpected error while saving.");
+      throw new Error("Unexpected error while saving");
     }
   }
   if (this.configuration !== undefined 
