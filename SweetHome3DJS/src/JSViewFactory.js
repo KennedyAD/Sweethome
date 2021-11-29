@@ -95,12 +95,6 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   var LARGE_IMAGE_MAX_PIXEL_COUNT = 8000000;
   var CANVAS_TOUCHABLE_AREA_RADIUS = 10;
 
-  var imageErrorListener = function(error) {
-      console.warn("Error loading image: " + error);
-      alert(ResourceAction.getLocalizedLabelText(preferences, "BackgroundImageWizardStepsPanel",
-          "imageChoiceError"));
-    };
-
   function BackgroundImageWizardStepsView() {
     JSComponent.call(this, preferences,
         '<div choiceStep>' +
@@ -167,7 +161,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         component.repaintOriginCanvas();
       });
     this.registerPropertyChangeListener(controller, "IMAGE", function(ev) {
-        component.updateImagePreviews();
+        component.updatePreviewComponentsImage();
       });
 
     this.updateImage(backgroundImage);
@@ -176,9 +170,9 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   BackgroundImageWizardStepsView.prototype.constructor = BackgroundImageWizardStepsView;
   
   BackgroundImageWizardStepsView.prototype.buildHtmlFromTemplate = function(templateHtml) {
-      return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replace(/\<br\>/g, " ");
-    }
-  
+    return JSComponent.prototype.buildHtmlFromTemplate.call(this, templateHtml).replace(/\<br\>/g, " ");
+  }
+
   /**
    * @private
    */
@@ -186,31 +180,37 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var component = this;
     component.imageChoiceStep = {
         panel: component.findElement("[choiceStep]"),
-        description: component.findElement("[choiceStep] [description]"),
-        selectButton: component.findElement("[choiceStep] [selectImage]"),
+        imageChoiceOrChangeLabel: component.findElement("[choiceStep] [description]"),
+        imageChoiceOrChangeButton: component.findElement("[choiceStep] [selectImage]"),
         imageChooser: component.findElement("[choiceStep] input[type='file']"),
         preview: component.findElement("[choiceStep] [preview] img"),
       };
-    component.registerEventListener(component.imageChoiceStep.selectButton, "click", function(ev) {
+    var imageErrorListener = function(error) {
+        console.warn("Error loading image: " + error);
+        component.controller.setImage(null);
+        component.setImageChoiceTexts();
+        component.updatePreviewComponentsImage();
+        alert(ResourceAction.getLocalizedLabelText(preferences, "BackgroundImageWizardStepsPanel",
+            "imageChoiceErrorLabel.text"));
+      };
+    component.registerEventListener(component.imageChoiceStep.imageChoiceOrChangeButton, "click", function(ev) {
         component.imageChoiceStep.imageChooser.click();
       });
     component.registerEventListener(component.imageChoiceStep.imageChooser, "input", function(ev) {
         var file = this.files[0];
-        if (!file) {
-          component.updateController(null);
+        if (file) {
+          var reader = new FileReader();
+          reader.addEventListener("load", function(ev) {
+              var image = new Image();
+              image.addEventListener("load", function(ev) {
+                  component.updateController(image, file);
+                });
+              image.addEventListener("error", imageErrorListener);
+              image.src = ev.target.result;
+            });
+          reader.addEventListener("error", imageErrorListener);
+          reader.readAsDataURL(file);
         }
-  
-        var reader = new FileReader();
-        reader.addEventListener("load", function(ev) {
-            var image = new Image();
-            image.addEventListener("load", function(ev) {
-                component.updateController(image);
-              });
-            image.addEventListener("error", imageErrorListener);
-            image.src = ev.target.result;
-          });
-        reader.addEventListener("error", imageErrorListener);
-        reader.readAsDataURL(file);
       });
   }
 
@@ -535,33 +535,37 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   }
 
   /**
-   * @param {"newImage"|"changeImage"} mode
+   * Sets the texts of label and button of image choice panel with change texts.
    * @private
    */
-  BackgroundImageWizardStepsView.prototype.setImageChoicePanelLabels = function (mode) {
-    if (mode == "changeImage") {
-      this.imageChoiceStep.description.innerHTML = this.getLocalizedLabelText(
-          "BackgroundImageWizardStepsPanel", "imageChangeLabel.text");
-      this.imageChoiceStep.selectButton.innerHTML = this.getLocalizedLabelText(
-          "BackgroundImageWizardStepsPanel", "imageChangeButton.text");
-    } else {
-      this.imageChoiceStep.description.innerHTML = this.getLocalizedLabelText(
-          "BackgroundImageWizardStepsPanel", "imageChoiceLabel.text");
-      this.imageChoiceStep.selectButton.innerHTML = this.getLocalizedLabelText(
-          "BackgroundImageWizardStepsPanel", "imageChoiceButton.text");
-    }
+  BackgroundImageWizardStepsView.prototype.setImageChangeTexts = function () {
+    this.imageChoiceStep.imageChoiceOrChangeLabel.innerHTML = this.getLocalizedLabelText(
+        "BackgroundImageWizardStepsPanel", "imageChangeLabel.text").replace(/\<br\>/g, " ");
+    this.imageChoiceStep.imageChoiceOrChangeButton.innerHTML = this.getLocalizedLabelText(
+        "BackgroundImageWizardStepsPanel", "imageChangeButton.text");
+  }
+
+  /**
+   * Sets the texts of label and button of image choice panel with choice texts.
+   * @private
+   */
+  BackgroundImageWizardStepsView.prototype.setImageChoiceTexts = function () {
+    this.imageChoiceStep.imageChoiceOrChangeLabel.innerHTML = this.getLocalizedLabelText(
+        "BackgroundImageWizardStepsPanel", "imageChoiceLabel.text").replace(/\<br\>/g, " ");
+    this.imageChoiceStep.imageChoiceOrChangeButton.innerHTML = this.getLocalizedLabelText(
+        "BackgroundImageWizardStepsPanel", "imageChoiceButton.text");
   }
 
   /**
    * @param {BackgroundImage} backgroundImage
    * @private
    */
-  BackgroundImageWizardStepsView.prototype.updateImage = function (backgroundImage) {
+  BackgroundImageWizardStepsView.prototype.updateImage = function(backgroundImage) {
     if (backgroundImage == null) {
-      this.setImageChoicePanelLabels("newImage");
-      this.updateImagePreviews();
+      this.setImageChoiceTexts();
+      this.updatePreviewComponentsImage();
     } else {
-      this.setImageChoicePanelLabels("changeImage");
+      this.setImageChangeTexts();
 
       // In Java's version: BackgroundImageWizardStepsPanel, image is updated in EDT (using invokeLater) when wizard view is initialized
       // here, if we setImage right away, wizard won't be initialized yet, and next state enabled value won't be refreshed properly
@@ -579,47 +583,51 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
 
   /**
    * @param {HTMLImageElement?} image
+   * @param {File} file
    * @private
    */
-  BackgroundImageWizardStepsView.prototype.updateController = function(image) {
+  BackgroundImageWizardStepsView.prototype.updateController = function(image, file) {
     var view = this;
     var controller = this.controller;
-
-    if (image != null) {
-      var imageType = ImageTools.isImageWithAlpha(image) ? "image/png" : "image/jpeg";
-      this.checkImageSize(image, imageType, function(image) {
-          BlobURLContent.fromImage(image, imageType, function (content) {
-              controller.setImage(content);
-              view.setImageChoicePanelLabels("changeImage");
-              var referenceBackgroundImage = controller.getReferenceBackgroundImage();
-              if (referenceBackgroundImage != null
-                  && referenceBackgroundImage.getScaleDistanceXStart() < image.width
-                  && referenceBackgroundImage.getScaleDistanceXEnd() < image.width
-                  && referenceBackgroundImage.getScaleDistanceYStart() < image.height
-                  && referenceBackgroundImage.getScaleDistanceYEnd() < image.height) {
-                // Initialize distance and origin with values of the reference image
-                controller.setScaleDistance(referenceBackgroundImage.getScaleDistance());
-                controller.setScaleDistancePoints(referenceBackgroundImage.getScaleDistanceXStart(),
-                    referenceBackgroundImage.getScaleDistanceYStart(),
-                    referenceBackgroundImage.getScaleDistanceXEnd(),
-                    referenceBackgroundImage.getScaleDistanceYEnd());
-                controller.setOrigin(referenceBackgroundImage.getXOrigin(), referenceBackgroundImage.getYOrigin());
-              } else {
-                // Initialize distance and origin with default values
-                controller.setScaleDistance(null);
-                var scaleDistanceXStart = image.width * 0.1;
-                var scaleDistanceYStart = image.height / 2;
-                var scaleDistanceXEnd = image.width * 0.9;
-                controller.setScaleDistancePoints(scaleDistanceXStart, scaleDistanceYStart,
-                    scaleDistanceXEnd, scaleDistanceYStart);
-                controller.setOrigin(0, 0);
-              }
-            });
-        });
-    } else {
-      controller.setImage(null);
-      imageErrorListener("Image is null");
-    }
+    var imageType = ImageTools.isImageWithAlpha(image) ? "image/png" : "image/jpeg";
+    this.checkImageSize(image, imageType, function(checkedImage) {
+        var contentReady = function(content) {
+            setTimeout(function() {
+                controller.setImage(content);
+                view.setImageChangeTexts();
+                var referenceBackgroundImage = controller.getReferenceBackgroundImage();
+                if (referenceBackgroundImage != null
+                    && referenceBackgroundImage.getScaleDistanceXStart() < checkedImage.width
+                    && referenceBackgroundImage.getScaleDistanceXEnd() < checkedImage.width
+                    && referenceBackgroundImage.getScaleDistanceYStart() < checkedImage.height
+                    && referenceBackgroundImage.getScaleDistanceYEnd() < checkedImage.height) {
+                  // Initialize distance and origin with values of the reference checkedImage
+                  controller.setScaleDistance(referenceBackgroundImage.getScaleDistance());
+                  controller.setScaleDistancePoints(referenceBackgroundImage.getScaleDistanceXStart(),
+                      referenceBackgroundImage.getScaleDistanceYStart(),
+                      referenceBackgroundImage.getScaleDistanceXEnd(),
+                      referenceBackgroundImage.getScaleDistanceYEnd());
+                  controller.setOrigin(referenceBackgroundImage.getXOrigin(), referenceBackgroundImage.getYOrigin());
+                } else {
+                  // Initialize distance and origin with default values
+                  controller.setScaleDistance(null);
+                  var scaleDistanceXStart = checkedImage.width * 0.1;
+                  var scaleDistanceYStart = checkedImage.height / 2;
+                  var scaleDistanceXEnd = checkedImage.width * 0.9;
+                  controller.setScaleDistancePoints(scaleDistanceXStart, scaleDistanceYStart,
+                      scaleDistanceXEnd, scaleDistanceYStart);
+                  controller.setOrigin(0, 0);
+                }
+              }, 100);
+          };
+        if (image === checkedImage
+            && (file.type == "image/jpeg" 
+               || file.type == "image/png")) {
+          contentReady(new BlobURLContent(file));
+        } else {
+          BlobURLContent.fromImage(checkedImage, imageType, contentReady);
+        }
+      });
   }
 
   /**
@@ -661,35 +669,34 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
   /**
    * @private
    */
-  BackgroundImageWizardStepsView.prototype.updateImagePreviews = function() {
+  BackgroundImageWizardStepsView.prototype.updatePreviewComponentsImage = function() {
     var component = this;
     var image = this.controller.getImage();
 
     delete this.imageChoiceStep.preview.src;
+    this.imageChoiceStep.preview.width = 0;
     delete this.scaleStep.preview.src;
     delete this.originStep.preview.src;
-    if (image == null) {
-      return;
+    if (image != null) {
+      TextureManager.getInstance().loadTexture(image, {
+          textureUpdated: function(image) {
+            component.imageChoiceStep.preview.src = image.src;
+            component.imageChoiceStep.preview.width = image.width;
+            component.selectedImage = image;
+            if (image.width > 400) {
+              component.scaleStep.preview.width = 400;
+              component.originStep.preview.width = 400;
+            }
+    
+            component.repaintScaleCanvas();
+            component.repaintOriginCanvas();
+          },
+          textureError: function(error) {
+            imageErrorListener(error);
+          }
+        });
     }
-
-    TextureManager.getInstance().loadTexture(image, {
-      textureUpdated: function(image) {
-        component.imageChoiceStep.preview.src = image.src;
-
-        component.selectedImage = image;
-        if (image.width > 400) {
-          component.scaleStep.preview.width = 400;
-          component.originStep.preview.width = 400;
-        }
-
-        component.repaintScaleCanvas();
-        component.repaintOriginCanvas();
-      },
-      textureError: function(error) {
-        imageErrorListener(error);
-      }
-    });
-  };
+  }
 
   /**
    * Changes displayed view based on current step.
@@ -734,12 +741,6 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   var LARGE_IMAGE_PIXEL_COUNT_THRESHOLD = 640 * 640;
   var IMAGE_PREFERRED_MAX_SIZE = 512;
   var LARGE_IMAGE_MAX_PIXEL_COUNT = IMAGE_PREFERRED_MAX_SIZE * IMAGE_PREFERRED_MAX_SIZE;
-
-  var imageErrorListener = function(error) {
-      console.warn("Error loading image: " + error);
-      alert(ResourceAction.getLocalizedLabelText(preferences, "ImportedTextureWizardStepsPanel",
-          "imageChoiceErrorLabel.text"));
-    };
 
   function ImportedTextureWizardStepsView() {
     JSComponent.call(this, preferences,
@@ -802,17 +803,13 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
    */
   ImportedTextureWizardStepsView.prototype.initComponents = function () {
     this.imageStepPanel = this.findElement("[imageStep]");
-    this.imageStepDescription = this.findElement("[imageStep] [description]");
-    this.changeImageButton = this.findElement("button[changeImage]");
+    this.imageChoiceOrChangeLabel = this.findElement("[imageStep] [description]");
+    this.imageChoiceOrChangeButton = this.findElement("button[changeImage]");
     this.imageChooserInput = this.findElement("input[type='file']");
     this.previewPanel = this.findElement("[preview]");
   
     if (texture == null) {
-      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceLabel.text").replace(/\<br\>/g, " ");
-      this.changeImageButton.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChoiceButton.text");
-    } else {
-      this.imageStepDescription.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeLabel.text").replace(/\<br\>/g, " ");
-      this.changeImageButton.innerHTML = this.getLocalizedLabelText("ImportedTextureWizardStepsPanel", "imageChangeButton.text");
+      this.setImageChoiceTexts();
     }
   
     this.attributesStepPanel = this.findElement("[attributesStep]");
@@ -849,36 +846,42 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         });
     
     var component = this;
-    this.registerEventListener(this.changeImageButton, "click", function(ev) {
+    var imageErrorListener = function(error) {
+        console.warn("Error loading image: " + error);
+        component.controller.setImage(null);
+        component.setImageChoiceTexts();
+        component.updatePreviewComponentsImage();
+        alert(ResourceAction.getLocalizedLabelText(preferences, "ImportedTextureWizardStepsPanel",
+            "imageChoiceErrorLabel.text"));
+      };
+    this.registerEventListener(this.imageChoiceOrChangeButton, "click", function(ev) {
         component.imageChooserInput.click();
       });  
     this.registerEventListener(this.imageChooserInput, "input", function(ev) {
         var file = component.imageChooserInput.files[0];
-        if (!file) {
-          component.updateController(null);
-        }
-        
-        var reader = new FileReader();
-        reader.addEventListener("load", function(ev) {
-            var image = new Image();
-            image.addEventListener("load", function(ev) {
-                component.updateController(image, file.name);
+        if (file) {
+          var reader = new FileReader();
+          reader.addEventListener("load", function(ev) {
+              var image = new Image();
+              image.addEventListener("load", function(ev) {
+                component.updateController(image, file);
               });
-            image.addEventListener("error", imageErrorListener);
-            image.src = ev.target.result;  
-          });
-        reader.addEventListener("error", imageErrorListener);
-        reader.readAsDataURL(file);
+              image.addEventListener("error", imageErrorListener);
+              image.src = ev.target.result;
+            });
+          reader.addEventListener("error", imageErrorListener);
+          reader.readAsDataURL(file);
+        }
       });
   
     this.registerPropertyChangeListener(controller, "IMAGE", function(ev) {
-        component.updateImagePreviews();
+        component.updatePreviewComponentsImage();
       });
     this.registerPropertyChangeListener(controller, "WIDTH", function(ev) {
-        component.updateImagePreviews();
+        component.updatePreviewComponentsImage();
       });
     this.registerPropertyChangeListener(controller, "HEIGHT", function(ev) {
-        component.updateImagePreviews();
+        component.updatePreviewComponentsImage();
       });
   
     var categories = preferences.getTexturesCatalog().getCategories();
@@ -953,62 +956,89 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
 
   /**
    * @param {HTMLImageElement?} image 
-   * @param {string|CatalogTexture} fileName
+   * @param {File|CatalogTexture} file
    * @private
    */
-  ImportedTextureWizardStepsView.prototype.updateController = function(image, fileName) {
+  ImportedTextureWizardStepsView.prototype.updateController = function(image, file) {
     var component = this;
     var controller = this.controller;
-    if (image != null) {
+    this.setImageChangeTexts();
+    if (file instanceof CatalogTexture) {
+      var catalogTexture = file;
+      setTimeout(function() {
+          controller.setImage(catalogTexture.getImage());
+          controller.setName(catalogTexture.getName());
+          controller.setCategory(catalogTexture.getCategory());
+          controller.setCreator(catalogTexture.getCreator());
+          controller.setWidth(catalogTexture.getWidth());
+          controller.setHeight(catalogTexture.getHeight());
+        }, 100);
+    } else { 
+      // File
       var textureName = "Texture";
-      var catalogTexture = undefined;
-      if (fileName instanceof CatalogTexture) {
-        catalogTexture = fileName;
-      } else { 
-        // String
-        if (fileName.lastIndexOf('.') > 0) {
-          var parts = fileName.split(/\/|\\|\./);
-          if (parts.length > 1) {
-            textureName = parts [parts.length - 2];
-          }
+      if (file.name.lastIndexOf('.') > 0) {
+        var parts = file.name.split(/\/|\\|\./);
+        if (parts.length > 1) {
+          textureName = parts [parts.length - 2];
         }
       }
       var imageType = ImageTools.isImageWithAlpha(image) ? "image/png" : "image/jpeg";
-      this.checkImageSize(image, imageType, function(image) {
-          BlobURLContent.fromImage(image, imageType, function(content) {
-              controller.setImage(content);
-              if (catalogTexture !== undefined) {
-                controller.setName(catalogTexture.getName());
-                controller.setCategory(catalogTexture.getCategory());
-                controller.setCreator(catalogTexture.getCreator());
-                controller.setWidth(catalogTexture.getWidth());
-                controller.setHeight(catalogTexture.getHeight());
-              } else {
-                controller.setName(textureName);
-                var categories = component.preferences.getTexturesCatalog().getCategories();
-                var userCategory = component.findUserCategory(categories) || component.userCategory;
-                controller.setCategory(userCategory);
-                controller.setCreator(null);
-                var defaultWidth = 20;
-                var lengthUnit = component.preferences.getLengthUnit();
-                if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_DECIMALS) {
-                  defaultWidth = LengthUnit.inchToCentimeter(8);
-                }
-                controller.setWidth(defaultWidth);
-                controller.setHeight(defaultWidth / image.width * image.height);
-              }
-            });
+      this.checkImageSize(image, imageType, function(checkedImage) {
+          var contentReady = function(content) {
+              setTimeout(function() {
+                  controller.setImage(content);
+                  controller.setName(textureName);
+                  var categories = component.preferences.getTexturesCatalog().getCategories();
+                  var userCategory = component.findUserCategory(categories) || component.userCategory;
+                  controller.setCategory(userCategory);
+                  controller.setCreator(null);
+                  var defaultWidth = 20;
+                  var lengthUnit = component.preferences.getLengthUnit();
+                  if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_DECIMALS) {
+                    defaultWidth = LengthUnit.inchToCentimeter(8);
+                  }
+                  controller.setWidth(defaultWidth);
+                  controller.setHeight(defaultWidth / checkedImage.width * checkedImage.height);
+                }, 100);
+            };
+          if (image === checkedImage
+              && (file.type == "image/jpeg" 
+                || file.type == "image/png")) {
+            contentReady(new BlobURLContent(file));
+          } else {
+            BlobURLContent.fromImage(checkedImage, imageType, contentReady);
+          }
         });
-    } else {
-      controller.setImage(null);
-      imageErrorListener("Image is null");
     }
+  }
+
+  /**
+   * Sets the texts of label and button of image choice panel with change texts.
+   * @private
+   */
+  ImportedTextureWizardStepsView.prototype.setImageChangeTexts = function() {
+    this.imageChoiceOrChangeLabel.innerHTML = this.getLocalizedLabelText(
+        "ImportedTextureWizardStepsPanel", "imageChangeLabel.text").replace(/\<br\>/g, " ");
+    this.imageChoiceOrChangeButton.innerHTML = this.getLocalizedLabelText(
+        "ImportedTextureWizardStepsPanel", "imageChangeButton.text");
+  }
+
+  /**
+   * Sets the texts of label and button of image choice panel with choice texts.
+   * @private
+   */
+  ImportedTextureWizardStepsView.prototype.setImageChoiceTexts = function() {
+    this.imageChoiceOrChangeLabel.innerHTML = this.getLocalizedLabelText(
+        "ImportedTextureWizardStepsPanel", "imageChoiceLabel.text").replace(/\<br\>/g, " ");
+    this.imageChoiceOrChangeButton.innerHTML = this.getLocalizedLabelText(
+        "ImportedTextureWizardStepsPanel", "imageChoiceButton.text");
   }
 
   /**
    * Returns user category if it exists among existing the given <code>categories</code>.
    * @param {TexturesCategory[]} categories 
    * @return {TexturesCategory | null} found user category, or null if not found
+   * @private
    */
   ImportedTextureWizardStepsView.prototype.findUserCategory = function(categories) {
     var categories = preferences.getTexturesCatalog().getCategories();
@@ -1057,8 +1087,8 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
             "@{ImportedTextureWizardStepsPanel.reduceImageSize.reduceSize}",
             resizeImage, // Confirm image resizing
             function() { // Original image 
-              imageReady(image); 
-            });
+                imageReady(image); 
+              });
         promptDialog.displayView();
       }
     }
@@ -1067,19 +1097,10 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
   /**
    * @private
    */
-  ImportedTextureWizardStepsView.prototype.updateImagePreviews = function() {
+  ImportedTextureWizardStepsView.prototype.updatePreviewComponentsImage = function() {
     this.previewPanel.innerHTML = "";
-    if (this.controller.getImage() == null) {
-      return;
-    }
-
-    var image;
-    if (this.controller.getImage() instanceof HTMLImageElement) {
-      image = this.controller.getImage().cloneNode(true);
-      delete image.width;
-      delete image.height;
-    } else {
-      image = new Image();
+    var image = new Image();
+    if (this.controller.getImage() !== null) {
       image.src = this.controller.getImage().getURL();
     }
     this.previewPanel.appendChild(image);

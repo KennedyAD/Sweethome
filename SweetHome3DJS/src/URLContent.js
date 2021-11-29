@@ -171,16 +171,15 @@ SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 
 /**
- * Content read from a URL to a JS Blob
+ * Content read from the URL of a Blob or File instance.
  * @constructor
- * @param {Blob} blob
+ * @param {Blob|File} blob
  * @author Louis Grignon
  * @author Emmanuel Puybaret
  */
 function BlobURLContent(blob) {
   var url = URL.createObjectURL(blob);
   URLContent.call(this, url);
-  /** @private */
   this.blob = blob;
   this.savedContent = null;
 }
@@ -191,7 +190,7 @@ BlobURLContent["__class"] = "com.eteks.sweethome3d.tools.BlobURLContent";
 BlobURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 /**
- * @return {Blob} blob content 
+ * @return {Blob|File} blob content 
  */
 BlobURLContent.prototype.getBlob = function() {
   return this.blob;
@@ -214,7 +213,7 @@ BlobURLContent.prototype.setSavedContent = function(savedContent) {
 }
 
 /**
- * Loads a BlobURLContent from a JS image
+ * Generates a BlobURLContent instance from an image.
  * @param {HTMLImageElement} image the image to be used as content source
  * @param {string} imageType resulting image blob mime type
  * @param {function(BlobURLContent)} oncontentready callback called when content is ready, with content instance as only parameter
