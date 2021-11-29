@@ -382,19 +382,18 @@ FurnitureTablePanel.prototype.renderNameCell = function(piece, cell) {
   cell.classList.add("main", "name");
   var iconElement = document.createElement("span");
   iconElement.setAttribute("icon", true);
-  if (piece instanceof HomeFurnitureGroup) {
-    iconElement.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/resources/groupIcon.png')";
-  } else {
-    TextureManager.getInstance().loadTexture(piece.getIcon(), 0, false,
-        {
-          textureUpdated : function(image) {
-            iconElement.appendChild(image.cloneNode());
-          },
-          textureError : function(error) {
-            return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-          }
-        });
-  }
+  var icon = piece instanceof HomeFurnitureGroup
+      ? new URLContent(ZIPTools.getScriptFolder() + "/resources/groupIcon.png")
+      : piece.getIcon();
+  TextureManager.getInstance().loadTexture(icon, 0, false,
+      {
+        textureUpdated : function(image) {
+          iconElement.appendChild(image.cloneNode());
+        },
+        textureError : function(error) {
+          return this.textureUpdated(TextureManager.getInstance().getErrorImage());
+        }
+      });
   cell.appendChild(iconElement);
 
   var nameElement = document.createElement("span");
