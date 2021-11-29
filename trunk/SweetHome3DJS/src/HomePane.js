@@ -1618,6 +1618,7 @@ HomePane.prototype.createToolBarButton = function(action, additionalClass) {
   var button = document.createElement("button");
   button.id = "toolbar-button-" + action.getValue(ResourceAction.RESOURCE_PREFIX);
   button.disabled = !action.isEnabled();
+  button.tabIndex = -1;
   // Modify action with a setAction method which is also invoked elsewhere 
   button.setAction = function(newAction) {
       button.action = newAction;
