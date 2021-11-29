@@ -1137,7 +1137,7 @@ label {
 .imported-texture-wizard [imageStep] [preview] img {
   object-fit: contain;
   width: 100%;
-  height: 100%;
+  height: auto;
 }
 
 .imported-texture-wizard [attributesStep] [form] {
@@ -1960,15 +1960,16 @@ label {
 
 .tree-table [cell] input[type="checkbox"] {
   cursor: pointer;
+  position: absolute;
+  top: 0em;
 }
 
 .tree-table [header] {
   display: inline-flex;
   flex-direction: row;
   background-color: #444444;
-  height: 1.8rem;
-  font-size: .9rem;
-  line-height: 1.4rem;
+  height: 1.7em;
+  font-size: 1.1em;
   min-width: 100%;
 }
 
@@ -1982,7 +1983,7 @@ label {
 .tree-table [body] {
   display: inline-flex;
   flex-direction: column;
-  height: calc(100% - 1.8rem);
+  height: calc(100% - 1.7em);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1992,6 +1993,9 @@ label {
   flex-direction: row;
   position: relative;
   min-width: 100%;
+  min-height: 1.5em;
+  height: 1.5em;
+  line-height: 1.15em;
 }
 
 .tree-table [header] [cell]:hover:not(.sort.descending),
@@ -2021,7 +2025,7 @@ label {
   content: '';
   background-image: url('resources/descending.png');
   position: absolute;
-  left: 1px;
+  left: 2px;
   top: calc(50% - 4.5px);
   width: 9px;
   height: 9px;
@@ -2036,7 +2040,6 @@ label {
   text-align: right;
 }
 
-.tree-table [row]:hover,
 .tree-table [row].selected {
   background-color: #BBDDFF;
 }
@@ -2065,7 +2068,7 @@ label {
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  vertical-align: middle;
+  vertical-align: bottom;
 }
 
 #furniture-view [cell].color,
@@ -2074,15 +2077,15 @@ label {
 }
 
 #furniture-view [cell].color div {
-  width: 1.2em;
-  height: 1.2em;
+  width: calc(1.1em - 2px);
+  height: calc(1.1em - 2px);
   border: solid 1px black;
   margin: auto;
 }
 
 #furniture-view [cell].texture div {
-  width: 1.2em;
-  height: 1.2em;
+  width: 1.1em;
+  height: 1.1em;
   margin: auto;
   background-size: contain;
   background-position: center;
