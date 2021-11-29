@@ -1283,7 +1283,7 @@ function RecordedUserPreferences(configuration) {
   if (configuration !== undefined && configuration.userLanguage !== undefined) {
     userLanguage = configuration.userLanguage;
   } else { 
-    userLanguage = getLanguage();
+    userLanguage = this.getLanguage();
   }
 
   var properties = this.getProperties();
