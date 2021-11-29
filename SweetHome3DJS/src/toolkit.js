@@ -1806,8 +1806,8 @@ JSTreeTable.prototype.setData = function(data) {
         expandedRowsValues: expandedRowsValues
       });
   }
-  this.generateTableRows();
 
+  this.generateTableRows();
   this.fireExpandedRowsChanged();
 }
 
@@ -1837,8 +1837,8 @@ JSTreeTable.prototype.setModel = function(model) {
  */
 JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
   this.selectedRowsValues = values;
-  this.generateTableRows();
   this.expandSelectedRows();
+  this.generateTableRows();
   this.scrollToSelectedRowsIfNotVisible();
 }
 
@@ -2153,6 +2153,7 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
       treeTable.registerEventListener(mainCell, "click", function(ev) {
           ev.stopImmediatePropagation();
           treeTable.expandOrCollapseRow(rowModel, mainCell.parentElement.classList.contains("collapsed"));
+          treeTable.generateTableRows();
           return false;
         });
 
@@ -2210,7 +2211,7 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
 JSTreeTable.prototype.expandOrCollapseRow = function(rowModel, expand) {
   var treeTable = this;
 
-  // TODO LOUIS test on touch device
+  // TODO Test on touch device
   if (treeTable.state.expandedRowsValues == null) {
     treeTable.state.expandedRowsValues = [];
   }
@@ -2222,7 +2223,6 @@ JSTreeTable.prototype.expandOrCollapseRow = function(rowModel, expand) {
       treeTable.state.expandedRowsValues.splice(index, 1);
     }
   }
-  this.generateTableRows();
   this.fireExpandedRowsChanged();
 }
 
