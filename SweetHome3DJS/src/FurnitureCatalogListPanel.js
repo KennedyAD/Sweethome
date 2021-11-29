@@ -86,7 +86,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
     categoryOption.text = catalog.getCategories()[i].getName();
     categorySelector.appendChild(categoryOption);    
   }
-  categorySelector.addEventListener("input", filterChangeHandler);
+  categorySelector.addEventListener("change", filterChangeHandler);
   categorySelector.addEventListener("mousemove", function(ev) { 
       furnitureCatalogListPanel.hideTooltip(); 
       ev.stopPropagation(); 
