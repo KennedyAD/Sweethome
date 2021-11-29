@@ -2174,15 +2174,17 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
       var row = this;
       var rowValue = row._model.value;
   
-      row.classList.add("selected");
-      var child = row;
-      while ((child = child.nextSibling) && child._model.indentation > row._model.indentation) {
-        child.classList.add("selected");
-      }
-  
       if (OperatingSystem.isMacOSX() ? ev.metaKey : ev.ctrlKey) {
-        treeTable.selectedRowsValues.push(rowValue);
+        var index = treeTable.selectedRowsValues.indexOf(rowValue);
+        if (index < 0) {
+          row.classList.add("selected");
+          treeTable.selectedRowsValues.push(rowValue);
+        } else {
+          row.classList.remove("selected");
+          treeTable.selectedRowsValues.splice(index, 1);
+        }
       } else {
+        row.classList.add("selected");
         treeTable.selectedRowsValues = [rowValue];
       }
       if (typeof treeTable.model.selectionChanged == "function") {
