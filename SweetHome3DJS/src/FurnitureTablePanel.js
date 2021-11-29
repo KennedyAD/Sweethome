@@ -454,6 +454,7 @@ FurnitureTablePanel.prototype.renderBooleanCell = function(value, cell, editEnab
   checkbox.type = "checkbox";
   checkbox.disabled = editEnabled !== true;
   checkbox.checked = value === true;
+  checkbox.tabIndex = -1;
   if (stateChanged !== undefined) {
     checkbox.addEventListener("click", function(ev) {
           stateChanged(checkbox.checked);
