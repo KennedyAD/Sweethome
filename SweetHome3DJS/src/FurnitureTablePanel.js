@@ -77,14 +77,17 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
   var updateData = function() {
       panel.updateData(home);
     };
+  var updatePieceData = function(ev) {
+      panel.updatePieceData(home, ev.getSource(), ev.getPropertyName());
+    };
   var furniture = home.getFurniture();
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture[i];
-    piece.addPropertyChangeListener(updateData);
+    piece.addPropertyChangeListener(updatePieceData);
     if (piece instanceof HomeFurnitureGroup) {
       var groupFurniture = piece.getAllFurniture();
       for (var j = 0; j < groupFurniture.length; j++) {
-        groupFurniture[j].addPropertyChangeListener(updateData);
+        groupFurniture[j].addPropertyChangeListener(updatePieceData);
       }
     }
   }
@@ -93,19 +96,19 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
       updateData(home);
       var piece = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        piece.addPropertyChangeListener(updateData);
+        piece.addPropertyChangeListener(updatePieceData);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].addPropertyChangeListener(updateData);
+            groupFurniture[j].addPropertyChangeListener(updatePieceData);
           }
         }
       } else {
-        piece.removePropertyChangeListener(updateData);
+        piece.removePropertyChangeListener(updatePieceData);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].removePropertyChangeListener(updateData);
+            groupFurniture[j].removePropertyChangeListener(updatePieceData);
           }
         }
       }
@@ -308,7 +311,7 @@ FurnitureTablePanel.prototype.createTableModel = function(home) {
 }
 
 /**
- * Refresh data list and updates UI.
+ * Refreshes data list and updates UI.
  * @param {Home} home
  * @private
  */
@@ -328,6 +331,55 @@ FurnitureTablePanel.prototype.updateData = function(home) {
     
   addToDataList(home.getFurniture(), dataList);
   this.treeTable.setData(dataList);
+}
+
+/**
+ * Refreshes data row matching the given piece and its parent groups.
+ * @param {Home} home
+ * @param {HomePieceOfFurniture} piece
+ * @param {string} [propertyName]
+ * @private
+ */
+FurnitureTablePanel.prototype.updatePieceData = function(home, piece, propertyName) {
+  this.treeTable.updateRowData(piece, propertyName);
+ 
+  var panel = this;
+  var updatePieceGroupsRowData = function(furniture, propertyName) {
+      for (var i = 0; i < furniture.length; i++) {
+        if (furniture[i] === piece) {
+          return true;
+        } else if (furniture[i] instanceof HomeFurnitureGroup) {
+          var parent = updatePieceGroupsRowData(furniture[i].getFurniture(), propertyName);
+          if (parent) {
+            panel.treeTable.updateRowData(furniture[i], propertyName);
+          }
+          return parent;
+        }
+      }
+      return false;
+    };
+  
+  if (propertyName === undefined) {
+    updatePieceGroupsRowData(home.getFurniture(), propertyName);
+  }
+  // Update row data depending on prices and VAT
+  if (propertyName == "PRICE"
+      || propertyName == "VALUE_ADDED_TAX_PERCENTAGE") {
+    updatePieceGroupsRowData(home.getFurniture(), propertyName);
+    this.treeTable.updateRowData(piece, "PRICE_VALUE_ADDED_TAX_INCLUDED");
+    updatePieceGroupsRowData(home.getFurniture(), "PRICE_VALUE_ADDED_TAX_INCLUDED");
+  }
+  if (propertyName == "VALUE_ADDED_TAX_PERCENTAGE") {
+    updatePieceGroupsRowData(home.getFurniture(), propertyName);
+    this.treeTable.updateRowData(piece, "VALUE_ADDED_TAX");
+    updatePieceGroupsRowData(home.getFurniture(), "VALUE_ADDED_TAX");
+  }
+  if (propertyName == "CURRENCY") {
+    this.treeTable.updateRowData(piece, "PRICE");
+    updatePieceGroupsRowData(home.getFurniture(), "PRICE");
+    this.treeTable.updateRowData(piece, "PRICE_VALUE_ADDED_TAX_INCLUDED");
+    updatePieceGroupsRowData(home.getFurniture(), "PRICE_VALUE_ADDED_TAX_INCLUDED");
+  }
 }
 
 /**
@@ -379,6 +431,9 @@ FurnitureTablePanel.prototype.renderSizeCellValue = function(value, cell) {
  * @private
  */
 FurnitureTablePanel.prototype.renderNameCell = function(piece, cell) {
+  while (cell.firstChild) {
+    cell.removeChild(cell.firstChild);
+  }
   cell.classList.add("main", "name");
   var iconElement = document.createElement("span");
   iconElement.setAttribute("icon", true);
@@ -407,6 +462,9 @@ FurnitureTablePanel.prototype.renderNameCell = function(piece, cell) {
  * @private
  */
 FurnitureTablePanel.prototype.renderColorCell = function(piece, cell) {
+  while (cell.firstChild) {
+    cell.removeChild(cell.firstChild);
+  }
   cell.classList.add("color");
   if (piece.getColor() != null) {
     var colorSquare = document.createElement("div");
@@ -423,6 +481,9 @@ FurnitureTablePanel.prototype.renderColorCell = function(piece, cell) {
  * @private
  */
 FurnitureTablePanel.prototype.renderTextureCell = function(piece, cell) {
+  while (cell.firstChild) {
+    cell.removeChild(cell.firstChild);
+  }
   cell.classList.add("texture");
   if (piece.getTexture() != null) {
     var previewSquare = document.createElement("div");
@@ -448,6 +509,9 @@ FurnitureTablePanel.prototype.renderTextureCell = function(piece, cell) {
  * @private
  */
 FurnitureTablePanel.prototype.renderBooleanCell = function(value, cell, editEnabled, stateChanged) {
+  while (cell.firstChild) {
+    cell.removeChild(cell.firstChild);
+  }
   cell.classList.add("boolean");
   var checkbox = document.createElement("input");
   checkbox.type = "checkbox";
@@ -582,7 +646,8 @@ FurnitureTablePanel.prototype.renderCell = function(piece, columnName, cell) {
     case "PRICE":
       return this.renderPriceCellValue(piece, piece.getPrice(), cell);
     case "VALUE_ADDED_TAX_PERCENTAGE":
-      return this.renderNumberCellValue(this.bigToNumber(piece.getValueAddedTaxPercentage()) * 100, cell);
+      return this.renderNumberCellValue(piece.getValueAddedTaxPercentage() !== null 
+          ? this.bigToNumber(piece.getValueAddedTaxPercentage()) * 100 : null, cell);
     case "VALUE_ADDED_TAX":
       return this.renderPriceCellValue(piece, piece.getValueAddedTax(), cell);
     case "PRICE_VALUE_ADDED_TAX_INCLUDED":
