@@ -1794,7 +1794,7 @@ JSTreeTable.prototype = Object.create(JSComponent.prototype);
 JSTreeTable.prototype.constructor = JSTreeTable;
 
 /**
- * Sets data and updatees rows in UI.
+ * Sets data and updates rows in UI.
  * @param {{value: any, children: {value, children}[] }[]} data
  */
 JSTreeTable.prototype.setData = function(data) {
@@ -1807,8 +1807,46 @@ JSTreeTable.prototype.setData = function(data) {
       });
   }
 
-  this.generateTableRows();
-  this.fireExpandedRowsChanged();
+  if (this.isDisplayed()) {
+    this.generateTableRows();
+    this.fireExpandedRowsChanged();
+  }
+}
+
+/**
+ * Updates in UI the data of the row matching the given value.
+ * @param {any} value
+ * @param {string} [columnName] name of the column which may have changed 
+ */
+JSTreeTable.prototype.updateRowData = function(value, columnName) {
+  if (this.isDisplayed()) {
+    if (!this.state.sort 
+        || this.state.sort.columnName == null
+        || (columnName !== undefined && this.state.sort.columnName != columnName)) {
+      var columnNames = this.getColumnNames();
+      var columnIndex = columnName !== undefined
+          ? columnNames.indexOf(columnName)
+          : 0;
+      if (columnIndex >= 0) {
+        var rows = this.bodyElement.children;
+        for (i = 0; i < rows.length; i++) {
+          var row = rows[i];
+          if (row._model.value === value) {
+            if (columnName !== undefined) {
+              this.model.renderCell(value, columnName, row.children[columnIndex]);
+            } else {
+              for (var j = 0; j < columnNames.length; j++) {
+                this.model.renderCell(value, columnNames[j], row.children[j]);
+              }
+            }
+            break;
+          }
+        }
+      }
+    } else {
+      this.generateTableRows();
+    }
+  }
 }
 
 /**
@@ -1828,36 +1866,107 @@ JSTreeTable.prototype.setModel = function(model) {
   this.updateState(model.initialState);
   this.columnsWidths = this.getColumnsWidthByName();
 
-  this.generateTableHeaders();
-  this.generateTableRows();
+  if (this.isDisplayed()) {
+    this.generateTableHeaders();
+    this.generateTableRows();
+  }
+}
+
+/**
+ * @private
+ */
+JSTreeTable.prototype.isDisplayed = function() {
+  return window.getComputedStyle(this.getHTMLElement()).display != "none";
 }
 
 /**
  * @param {any[]} values
  */
 JSTreeTable.prototype.setSelectedRowsByValue = function(values) {
-  this.selectedRowsValues = values;
-  this.expandSelectedRows();
-  this.generateTableRows();
-  this.scrollToSelectedRowsIfNotVisible();
+  this.selectedRowsValues = values.slice(0);
+  if (this.isDisplayed()) {
+    this.expandGroupOfSelectedRows(values);
+    var rows = this.bodyElement.children;
+    // Unselect all
+    for (var j = 0; j < rows.length; j++) {
+      var row = rows[j];
+      row._model.selected = false;
+      row.classList.remove("selected");
+    }
+    // Select values
+    for (var i = 0; i < values.length; i++) {
+      for (var j = 0; j < rows.length; j++) {
+        var row = rows[j];
+        if (row._model.value === values [i]) {
+          this.selectRowAt(j);
+          break;
+        }
+      }
+    }
+    this.scrollToSelectedRowsIfNotVisible();
+  }
 }
 
 /**
- * @return {HTMLElement[]}
+ * Selects the row at the given <code>index</code> and its children.
+ * @param {number} index
  * @private
  */
-JSTreeTable.prototype.getSelectedRows = function() {
-  return this.bodyElement.querySelectorAll(".selected");
+JSTreeTable.prototype.selectRowAt = function(index) {
+  var rows = this.bodyElement.children;
+  var row = rows[index];
+  row._model.selected = true;
+  row.classList.add("selected");
+  if (row._model.group
+      && row._model.collapsed === false) {
+    // Change children selection of expanded group
+    for (var i = index + 1; i < rows.length; i++) {
+      var childrenRow = rows[i];
+      if (childrenRow._model.parentGroup
+          && childrenRow._model.parentGroup.value === row._model.value) {
+        this.selectRowAt(i);
+      }
+    }
+  }
 }
-
+  
 /**
+ * Expands the parents of the given values when they are collapsed.
  * @private
  */
-JSTreeTable.prototype.expandSelectedRows = function() {
-  var selectedRows = this.getSelectedRows();
-  for (var i = 0; i < selectedRows.length; i++) {
-    if (selectedRows[i]._model.parentGroup) {
-      this.expandOrCollapseRow(selectedRows[i]._model.parentGroup, true);
+JSTreeTable.prototype.expandGroupOfSelectedRows = function(values) {
+  if (this.isDisplayed()) {
+    var rows = this.bodyElement.children;
+    for (var i = 0; i < values.length; i++) {
+      for (var j = 0; j < rows.length; j++) {
+        var row = rows[j];
+        if (row._model.value === values [i]) {
+          if (row._model.hidden) {
+            this.expandOrCollapseRow(row._model.parentGroup, true);
+            // Find parent group
+            for (var k = j - 1; k >= 0; k--) {
+              if (row._model.parentGroup.value === rows[k]._model.value) {
+                rows[k]._model.collapsed = false;
+                rows[k].classList.remove("collapsed");
+                // Make sibling rows visible
+                for (k++; k < rows.length; k++) {
+                  var childrenRow = rows[k];
+                  if (childrenRow._model.parentGroup
+                      && childrenRow._model.parentGroup.value === row._model.parentGroup.value) {
+                    childrenRow._model.hidden = false;
+                    childrenRow.style.display = "flex";
+                  }
+                }
+                if (row._model.parentGroup.parentGroup) {
+                  this.expandGroupOfSelectedRows([row._model.parentGroup.value]);
+                }
+                break;
+              } 
+            }
+          }
+          break;
+        }
+      }
     }
   }
 }
@@ -1867,8 +1976,7 @@ JSTreeTable.prototype.expandSelectedRows = function() {
  */
 JSTreeTable.prototype.scrollToSelectedRowsIfNotVisible = function() {
   var body = this.bodyElement;
-  var selectedRows = this.getSelectedRows();
-
+  var selectedRows = this.bodyElement.querySelectorAll(".selected");
   if (selectedRows.length > 0) {
     // If one selected row is visible, do not change scroll
     for (var i = 0; i < selectedRows.length; i++) {
@@ -1994,121 +2102,117 @@ JSTreeTable.prototype.generateTableHeaders = function() {
  * @private
  */
 JSTreeTable.prototype.generateTableRows = function() {
-  if (!this.data) {
-    return;
-  }
-
-  var treeTable = this;
-
-  var scrollTop = 0;
-  var body = this.bodyElement;
-  if (body) {
-    scrollTop = body.scrollTop;
-    body.parentElement.removeChild(body);
-  }
-  var body = this.bodyElement = document.createElement("div");
-  body.setAttribute("body", "true");
-
-  var columns = this.getColumns();
-  var columnNames = [];
-  for (var i = 0; i < columns.length; i++) {
-    columnNames.push(columns[i].name);
-  }
-
-  var comparator = this.getValueComparator();
-
-  // Generate simplified table model: a sorted list of items
-  var sortedList = this.data.sortedList = [];
-
-  /**
-   * @param {{value: any, children: any[]}[]} currentNodes
-   * @param {number} currentIndentation
-   * @return {Object[]} generated children items
-   */
-  var sortDataTree = function(currentNodes, currentIndentation, parentGroup) {
-      // Children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
-      var hideChildren = currentIndentation > 0;
-  
-      var sortedCurrentNodes = comparator != null
-          ? currentNodes.sort(function(leftNode, rightNode) {
-                return comparator(leftNode.value, rightNode.value);
-              })
-          : currentNodes;
-      var currentNodesItems = [];
-      for (var i = 0; i < sortedCurrentNodes.length; i++) {
-        var currentNode = sortedCurrentNodes[i];
-        var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
-        var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
-        var sortedListItem = {
-          value: currentNode.value,
-          indentation: currentIndentation,
-          group: false,
-          parentGroup: parentGroup,
-          selected: selected,
-          hidden: hideChildren,
-          collapsed: undefined,
-          childrenItems: undefined,
-          setCollapsed: function() {},
-          isInCollapsedGroup: function() {
-            var parent = this;
-            while ((parent = parent.parentGroup)) {
-              if (parent.collapsed === true) {
-                return true;
+  if (this.data
+      && !this.generatingTableRows) {
+    // Invoke later table update
+    this.generatingTableRows = true;
+    setTimeout(function(treeTable) {
+        var scrollTop = 0;
+        var body = treeTable.bodyElement;
+        if (body) {
+          scrollTop = body.scrollTop;
+          body.parentElement.removeChild(body);
+        }
+        var body = treeTable.bodyElement = document.createElement("div");
+        body.setAttribute("body", "true");
+      
+        // Generate simplified table model: a sorted list of items
+        var sortedList = treeTable.data.sortedList = [];
+        var comparator = treeTable.getValueComparator();
+      
+        /**
+         * @param {{value: any, children: any[]}[]} currentNodes
+         * @param {number} currentIndentation
+         * @param {any} [parentGroup]
+         * @return {Object[]} generated children items
+         */
+        var sortDataTree = function(currentNodes, currentIndentation, parentGroup) {
+            // Children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
+            var hideChildren = currentIndentation > 0;
+            var sortedCurrentNodes = comparator != null
+                ? currentNodes.sort(function(leftNode, rightNode) {
+                      return comparator(leftNode.value, rightNode.value);
+                    })
+                : currentNodes;
+            var currentNodesItems = [];
+            for (var i = 0; i < sortedCurrentNodes.length; i++) {
+              var currentNode = sortedCurrentNodes[i];
+              var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
+              var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
+              var sortedListItem = {
+                value: currentNode.value,
+                indentation: currentIndentation,
+                group: false,
+                parentGroup: parentGroup,
+                selected: selected,
+                hidden: hideChildren,
+                collapsed: undefined,
+                childrenItems: undefined,
+                setCollapsed: function() {},
+                isInCollapsedGroup: function() {
+                  var parent = this;
+                  while ((parent = parent.parentGroup)) {
+                    if (parent.collapsed === true) {
+                      return true;
+                    }
+                  }
+                  return false;
+                }
+              };
+              currentNodesItems.push(sortedListItem);
+              sortedList.push(sortedListItem);
+        
+              // Create node's children items
+              if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
+                sortedListItem.group = true;
+                sortedListItem.collapsed = true;
+                sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
+                sortedListItem.setCollapsed = (function(item) {
+                    return function(collapsed) {
+                      item.collapsed = collapsed;
+                      for (var i = 0; i < item.childrenItems.length; i++) {
+                        item.childrenItems[i].hidden = collapsed;
+                      }
+                    }
+                  })(sortedListItem);
               }
             }
-            return false;
-          }
-        };
-        currentNodesItems.push(sortedListItem);
-        sortedList.push(sortedListItem);
-  
-        // Create node's children items
-        if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
-          sortedListItem.group = true;
-          sortedListItem.collapsed = true;
-          sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
-          sortedListItem.setCollapsed = (function(item) {
-              return function(collapsed) {
-                item.collapsed = collapsed;
-                for (var i = 0; i < item.childrenItems.length; i++) {
-                  item.childrenItems[i].hidden = collapsed;
-                }
+        
+            return currentNodesItems;
+          };
+        sortDataTree(treeTable.data.slice(0), 0);
+      
+        // Synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
+        treeTable.updateExpandedRowsIndices();
+        if (treeTable.state.expandedRowsIndices && treeTable.state.expandedRowsIndices.length > 0) {
+          var expandedRowsValues = [];
+          for (var i = 0; i < treeTable.state.expandedRowsIndices.length; i++) {
+            var item = sortedList[treeTable.state.expandedRowsIndices[i]];
+            if (item) {
+              expandedRowsValues.push(item.value);
+              if (!item.isInCollapsedGroup()) {
+                item.setCollapsed(false);
               }
-            })(sortedListItem);
+            }
+          }
+          if (expandedRowsValues.length > 0) {
+            treeTable.state.expandedRowsValues = expandedRowsValues;
+          }
         }
-      }
-  
-      return currentNodesItems;
-    };
-  sortDataTree(this.data.slice(0), 0);
-
-  // Synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
-  this.updateExpandedRowsIndices();
-  if (this.state.expandedRowsIndices && this.state.expandedRowsIndices.length > 0) {
-    var expandedRowsValues = [];
-    for (var i = 0; i < this.state.expandedRowsIndices.length; i++) {
-      var item = sortedList[this.state.expandedRowsIndices[i]];
-      if (item) {
-        expandedRowsValues.push(item.value);
-        if (!item.isInCollapsedGroup()) {
-          item.setCollapsed(false);
+      
+        // Generate DOM for items
+        var columnNames = treeTable.getColumnNames();
+        for (var i = 0; i < sortedList.length; i++) {
+          var row = treeTable.generateRowElement(columnNames, i, sortedList[i]);
+          body.appendChild(row);
         }
-      }
-    }
-    if (expandedRowsValues.length > 0) {
-      this.state.expandedRowsValues = expandedRowsValues;
-    }
+      
+        treeTable.tableElement.appendChild(body);
+
+        body.scrollTop = scrollTop;
+        delete treeTable.generatingTableRows;
+      }, 0, this);
   }
-
-  // Generate DOM for items
-  for (var i = 0; i < sortedList.length; i++) {
-    var row = this.generateRowElement(columnNames, i, sortedList[i]);
-    body.appendChild(row);
-  }
-
-  this.tableElement.appendChild(body);
-
-  body.scrollTop = scrollTop;
 }
 
 /**
@@ -2136,8 +2240,8 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
     var columnName = columnNames[j];
     var cell = document.createElement("div");
     cell.setAttribute("cell", "true");
-    treeTable.model.renderCell(rowModel.value, columnName, cell);
-    cell.style.width = treeTable.getColumnWidth(columnName);
+    this.model.renderCell(rowModel.value, columnName, cell);
+    cell.style.width = this.getColumnWidth(columnName);
 
     if (mainCell == null || cell.classList.contains("main")) {
       mainCell = cell;
@@ -2150,10 +2254,28 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
     mainCell.classList.add("main");
     mainCell.style.paddingLeft = (15 + rowModel.indentation * 10) + "px";
     if (rowModel.group) {
-      treeTable.registerEventListener(mainCell, "click", function(ev) {
-          ev.stopImmediatePropagation();
-          treeTable.expandOrCollapseRow(rowModel, mainCell.parentElement.classList.contains("collapsed"));
-          treeTable.generateTableRows();
+      this.registerEventListener(mainCell, "click", function(ev) {
+          if (ev.clientX < 16) {
+            ev.stopImmediatePropagation();
+            var expanded = mainCell.parentElement.classList.contains("collapsed");
+            treeTable.expandOrCollapseRow(rowModel, expanded);
+            mainCell.parentElement._model.collapsed = !expanded;
+            if (expanded) {
+              mainCell.parentElement.classList.remove("collapsed");
+            } else {
+              mainCell.parentElement.classList.add("collapsed");
+            }
+            var rows = treeTable.bodyElement.children;
+            for (var i = 0; i < rows.length; i++) {
+              var row = rows[i];
+              var rowCollapsed = rows[i]._model.isInCollapsedGroup();
+              if (expanded && rows[i]._model.hidden !== rowCollapsed) {
+                rows[i].classList.add("selected");
+              }
+              rows[i]._model.hidden = rowCollapsed;
+              rows[i].style.display = rowCollapsed ? "none" : "flex";
+            }
+          }
           return false;
         });
 
@@ -2169,9 +2291,8 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
   if (rowModel.selected) {
     row.classList.add("selected");
   }
-  row._model = rowModel;
 
-  treeTable.registerEventListener(row, "click", function(ev) {
+  this.registerEventListener(row, "click", function(ev) {
       var row = this;
       var rowValue = row._model.value;
   
@@ -2192,7 +2313,7 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
         treeTable.model.selectionChanged(treeTable.selectedRowsValues);
       }
     });
-  treeTable.registerEventListener(row, "dblclick", function(ev) {
+  this.registerEventListener(row, "dblclick", function(ev) {
       if (typeof treeTable.model.rowDoubleClicked == "function") {
         var row = this;
         var rowValue = row._model.value;
@@ -2200,6 +2321,7 @@ JSTreeTable.prototype.generateRowElement = function(columnNames, rowIndex, rowMo
       }
     });
 
+  row._model = rowModel;
   return row;
 }
 
@@ -2215,15 +2337,18 @@ JSTreeTable.prototype.expandOrCollapseRow = function(rowModel, expand) {
   if (treeTable.state.expandedRowsValues == null) {
     treeTable.state.expandedRowsValues = [];
   }
+  var index = treeTable.state.expandedRowsValues.indexOf(rowModel.value);
   if (expand) {
-    treeTable.state.expandedRowsValues.push(rowModel.value);
+    if (index < 0) {
+      treeTable.state.expandedRowsValues.push(rowModel.value);
+      this.fireExpandedRowsChanged();
+    }
   } else {
-    var index = treeTable.state.expandedRowsValues.indexOf(rowModel.value);
-    if (index > -1) {
+    if (index >= 0) {
       treeTable.state.expandedRowsValues.splice(index, 1);
+      this.fireExpandedRowsChanged();
     }
   }
-  this.fireExpandedRowsChanged();
 }
 
 /**
@@ -2258,6 +2383,19 @@ JSTreeTable.prototype.getColumns = function() {
 }
 
 /**
+ * Returns the names of the columns displayed in this table.
+ * @return {string[]} 
+ * @private
+ */
+JSTreeTable.prototype.getColumnNames = function() {
+  var columnNames = new Array(this.model.columns.length);
+  for (var i = 0; i < columnNames.length; i++) {
+    columnNames[i] = this.model.columns[i].name;
+  }
+  return columnNames;
+}
+
+/**
  * @return {{[name: string]: string}}
  * @see getColumnWidth(name)
  * @private
@@ -2272,3 +2410,4 @@ JSTreeTable.prototype.getColumnsWidthByName = function() {
   }
   return widths;
 }
+
