@@ -170,7 +170,22 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
     // Replace % sequence by %% except %s before formating readHomeURL with home name 
     var readHomeUrl = CoreTools.format(this.configuration.readHomeURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(homeName));
     if (readHomeUrl.indexOf("?") > 0) {
-      readHomeUrl += "&requestId=" + UUID.randomUUID();
+      // Create an edition id stored in read home once loaded
+      var editionId = HomeObject.createId("home");
+      readHomeUrl += "&editionId=" + editionId;
+      var originalObserver = observer;
+      var observer = {
+          homeLoaded: function(home) {
+            home.editionId = editionId;
+            originalObserver.homeLoaded(home);
+          },
+          homeError: function(err) {
+            originalObserver.homeError(err);
+          },
+          progression: function(part, info, percentage) {
+            originalObserver.progression(part, info, percentage);
+          }
+        };
     }
     homeName = readHomeUrl;
   }
@@ -197,8 +212,10 @@ IncrementalHomeRecorder.prototype.checkPoint = function(home) {
 IncrementalHomeRecorder.prototype.addHome = function(home) {
   if (this.configuration !== undefined
       && this.configuration.writeHomeEditsURL !== undefined) {
-    // Add an edition id to home to manage additional data required for the recorder
-    home.editionId = HomeObject.createId("home");
+    if (home.editionId === undefined) {
+      // Add an edition id to home to manage additional data required for the recorder
+      home.editionId = HomeObject.createId("home");
+    }
     this.homeData[home.editionId] = {};
     
     this.checkPoint(home);
