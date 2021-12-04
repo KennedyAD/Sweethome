@@ -1759,7 +1759,7 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
               preferences.writePreferences(properties);
             }, 10000);
         };
-      request.open("POST", this.writePreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), true);
+      request.open("POST", this.writePreferencesUrl + querySeparator + "updateId=" + UUID.randomUUID(), true);
       request.addEventListener('load', function (ev) {
           if (request.readyState === XMLHttpRequest.DONE) {
             if (request.status === 200) {
