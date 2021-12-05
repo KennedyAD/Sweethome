@@ -171,9 +171,10 @@ SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 
 /**
- * Content read from the URL of a Blob or File instance.
+ * Content read from the URL of a <code>Blob</code> instance.
+ * Note that this class may also handle a <code>File</code> instance which is a sub type of <code>Blob</code>.
  * @constructor
- * @param {Blob|File} blob
+ * @param {Blob} blob 
  * @author Louis Grignon
  * @author Emmanuel Puybaret
  */
@@ -190,7 +191,8 @@ BlobURLContent["__class"] = "com.eteks.sweethome3d.tools.BlobURLContent";
 BlobURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 /**
- * @return {Blob|File} blob content 
+ * Returns the blob stored by this content.
+ * @return {Blob} blob content 
  */
 BlobURLContent.prototype.getBlob = function() {
   return this.blob;
