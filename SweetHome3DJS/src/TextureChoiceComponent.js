@@ -343,6 +343,14 @@ JSTextureDialog.prototype.selectTexture = function(texture) {
     if (texture instanceof CatalogTexture) {
       var catalogTextureItem = this.getCatalogTextureItem(texture);
       catalogTextureItem.classList.add("selected");
+      var catalogList = this.catalogList;
+      setTimeout(function() {
+          var textureItemTop = catalogTextureItem.offsetTop - catalogList.offsetTop;
+          var textureItemBottom = textureItemTop + catalogTextureItem.clientHeight;
+          if (textureItemTop < catalogList.scrollTop || textureItemBottom > (catalogList.scrollTop + catalogList.clientHeight)) {
+            catalogList.scrollTop = textureItemTop - catalogList.offsetTop;
+          }
+        }, 10);
       this.selectedTexturePreview.style.backgroundImage = "url('" + catalogTextureItem.querySelector("img").src + "')";
       modifyTextureEnabled = texture != null && texture.isModifiable();
     } else {
