@@ -3612,7 +3612,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
                 var dashOffset = controller.getDashOffset() != null ? controller.getDashOffset() : 0;
                 g2D.setStroke(ShapeTools.getStroke(12, Polyline.CapStyle.BUTT, Polyline.JoinStyle.MITER,
                     dashPattern, dashOffset));
-                g2D.draw(new java.awt.geom.Line2D.Float(20, canvas.height / 2, canvas.width - 20, canvas.height / 2));
+                g2D.draw(new java.awt.geom.Line2D.Float(20, canvas.height / 2, canvas.width - 60, canvas.height / 2));
               }
       
               itemElement.appendChild(canvas);
