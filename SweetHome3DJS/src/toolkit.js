@@ -1975,21 +1975,20 @@ JSTreeTable.prototype.expandGroupOfSelectedRows = function(values) {
  * @private
  */
 JSTreeTable.prototype.scrollToSelectedRowsIfNotVisible = function() {
-  var body = this.bodyElement;
   var selectedRows = this.bodyElement.querySelectorAll(".selected");
   if (selectedRows.length > 0) {
     // If one selected row is visible, do not change scroll
     for (var i = 0; i < selectedRows.length; i++) {
       var selectedRow = selectedRows[i];
-      var rowYTop = selectedRow.offsetTop - body.offsetTop;
+      var rowYTop = selectedRow.offsetTop - this.bodyElement.offsetTop;
       var rowYBottom = rowYTop + selectedRow.height;
-      if (rowYTop >= body.scrollTop && rowYTop <= (body.scrollTop + body.clientHeight)
-        || rowYBottom >= body.scrollTop && rowYBottom <= (body.scrollTop + body.clientHeight)) {
+      if (rowYTop >= this.bodyElement.scrollTop && rowYTop <= (this.bodyElement.scrollTop + this.bodyElement.clientHeight)
+        || rowYBottom >= this.bodyElement.scrollTop && rowYBottom <= (this.bodyElement.scrollTop + this.bodyElement.clientHeight)) {
         return;
       }
     }
 
-    body.scrollTop = selectedRows[0].offsetTop - body.offsetTop;
+    this.bodyElement.scrollTop = selectedRows[0].offsetTop - this.bodyElement.offsetTop;
   }
 }
 
@@ -2102,116 +2101,125 @@ JSTreeTable.prototype.generateTableHeaders = function() {
  * @private
  */
 JSTreeTable.prototype.generateTableRows = function() {
-  if (this.data
-      && !this.generatingTableRows) {
-    // Invoke later table update
-    this.generatingTableRows = true;
-    setTimeout(function(treeTable) {
-        var scrollTop = 0;
-        var body = treeTable.bodyElement;
-        if (body) {
-          scrollTop = body.scrollTop;
-          body.parentElement.removeChild(body);
-        }
-        var body = treeTable.bodyElement = document.createElement("div");
-        body.setAttribute("body", "true");
+  var treeTable = this;
+  var tableRowsGenerator = function() {
+      var scrollTop = 0;
+      var body = treeTable.bodyElement;
+      if (body) {
+        scrollTop = body.scrollTop;
+        body.parentElement.removeChild(body);
+      }
+      var body = treeTable.bodyElement = document.createElement("div");
+      body.setAttribute("body", "true");
+    
+      // Generate simplified table model: a sorted list of items
+      var sortedList = treeTable.data.sortedList = [];
+      var comparator = treeTable.getValueComparator();
+    
+      /**
+       * @param {{value: any, children: any[]}[]} currentNodes
+       * @param {number} currentIndentation
+       * @param {any} [parentGroup]
+       * @return {Object[]} generated children items
+       */
+      var sortDataTree = function(currentNodes, currentIndentation, parentGroup) {
+          // Children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
+          var hideChildren = currentIndentation > 0;
+          var sortedCurrentNodes = comparator != null
+              ? currentNodes.sort(function(leftNode, rightNode) {
+                    return comparator(leftNode.value, rightNode.value);
+                  })
+              : currentNodes;
+          var currentNodesItems = [];
+          for (var i = 0; i < sortedCurrentNodes.length; i++) {
+            var currentNode = sortedCurrentNodes[i];
+            var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
+            var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
+            var sortedListItem = {
+              value: currentNode.value,
+              indentation: currentIndentation,
+              group: false,
+              parentGroup: parentGroup,
+              selected: selected,
+              hidden: hideChildren,
+              collapsed: undefined,
+              childrenItems: undefined,
+              setCollapsed: function() {},
+              isInCollapsedGroup: function() {
+                var parent = this;
+                while ((parent = parent.parentGroup)) {
+                  if (parent.collapsed === true) {
+                    return true;
+                  }
+                }
+                return false;
+              }
+            };
+            currentNodesItems.push(sortedListItem);
+            sortedList.push(sortedListItem);
       
-        // Generate simplified table model: a sorted list of items
-        var sortedList = treeTable.data.sortedList = [];
-        var comparator = treeTable.getValueComparator();
-      
-        /**
-         * @param {{value: any, children: any[]}[]} currentNodes
-         * @param {number} currentIndentation
-         * @param {any} [parentGroup]
-         * @return {Object[]} generated children items
-         */
-        var sortDataTree = function(currentNodes, currentIndentation, parentGroup) {
-            // Children nodes are hidden by default, and will be flagged as visible with setCollapsed, see below
-            var hideChildren = currentIndentation > 0;
-            var sortedCurrentNodes = comparator != null
-                ? currentNodes.sort(function(leftNode, rightNode) {
-                      return comparator(leftNode.value, rightNode.value);
-                    })
-                : currentNodes;
-            var currentNodesItems = [];
-            for (var i = 0; i < sortedCurrentNodes.length; i++) {
-              var currentNode = sortedCurrentNodes[i];
-              var currentNodeSelected = treeTable.selectedRowsValues.indexOf(currentNode.value) > -1;
-              var selected = (parentGroup && parentGroup.selected) || currentNodeSelected;
-              var sortedListItem = {
-                value: currentNode.value,
-                indentation: currentIndentation,
-                group: false,
-                parentGroup: parentGroup,
-                selected: selected,
-                hidden: hideChildren,
-                collapsed: undefined,
-                childrenItems: undefined,
-                setCollapsed: function() {},
-                isInCollapsedGroup: function() {
-                  var parent = this;
-                  while ((parent = parent.parentGroup)) {
-                    if (parent.collapsed === true) {
-                      return true;
+            // Create node's children items
+            if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
+              sortedListItem.group = true;
+              sortedListItem.collapsed = true;
+              sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
+              sortedListItem.setCollapsed = (function(item) {
+                  return function(collapsed) {
+                    item.collapsed = collapsed;
+                    for (var i = 0; i < item.childrenItems.length; i++) {
+                      item.childrenItems[i].hidden = collapsed;
                     }
                   }
-                  return false;
-                }
-              };
-              currentNodesItems.push(sortedListItem);
-              sortedList.push(sortedListItem);
-        
-              // Create node's children items
-              if (Array.isArray(currentNode.children) && currentNode.children.length > 0) {
-                sortedListItem.group = true;
-                sortedListItem.collapsed = true;
-                sortedListItem.childrenItems = sortDataTree(currentNode.children, currentIndentation + 1, sortedListItem);
-                sortedListItem.setCollapsed = (function(item) {
-                    return function(collapsed) {
-                      item.collapsed = collapsed;
-                      for (var i = 0; i < item.childrenItems.length; i++) {
-                        item.childrenItems[i].hidden = collapsed;
-                      }
-                    }
-                  })(sortedListItem);
-              }
-            }
-        
-            return currentNodesItems;
-          };
-        sortDataTree(treeTable.data.slice(0), 0);
-      
-        // Synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
-        treeTable.updateExpandedRowsIndices();
-        if (treeTable.state.expandedRowsIndices && treeTable.state.expandedRowsIndices.length > 0) {
-          var expandedRowsValues = [];
-          for (var i = 0; i < treeTable.state.expandedRowsIndices.length; i++) {
-            var item = sortedList[treeTable.state.expandedRowsIndices[i]];
-            if (item) {
-              expandedRowsValues.push(item.value);
-              if (!item.isInCollapsedGroup()) {
-                item.setCollapsed(false);
-              }
+                })(sortedListItem);
             }
           }
-          if (expandedRowsValues.length > 0) {
-            treeTable.state.expandedRowsValues = expandedRowsValues;
+      
+          return currentNodesItems;
+        };
+      sortDataTree(treeTable.data.slice(0), 0);
+    
+      // Synchronize expandedRowsIndices/expandedRowsValues & flag groups as expanded, and children as visible
+      treeTable.updateExpandedRowsIndices();
+      if (treeTable.state.expandedRowsIndices && treeTable.state.expandedRowsIndices.length > 0) {
+        var expandedRowsValues = [];
+        for (var i = 0; i < treeTable.state.expandedRowsIndices.length; i++) {
+          var item = sortedList[treeTable.state.expandedRowsIndices[i]];
+          if (item) {
+            expandedRowsValues.push(item.value);
+            if (!item.isInCollapsedGroup()) {
+              item.setCollapsed(false);
+            }
           }
         }
-      
-        // Generate DOM for items
-        var columnNames = treeTable.getColumnNames();
-        for (var i = 0; i < sortedList.length; i++) {
-          var row = treeTable.generateRowElement(columnNames, i, sortedList[i]);
-          body.appendChild(row);
+        if (expandedRowsValues.length > 0) {
+          treeTable.state.expandedRowsValues = expandedRowsValues;
         }
-      
-        treeTable.tableElement.appendChild(body);
-
-        body.scrollTop = scrollTop;
-        delete treeTable.generatingTableRows;
-      }, 0, this);
+      }
+    
+      // Generate DOM for items
+      var columnNames = treeTable.getColumnNames();
+      for (var i = 0; i < sortedList.length; i++) {
+        var row = treeTable.generateRowElement(columnNames, i, sortedList[i]);
+        body.appendChild(row);
+      }
+    
+      treeTable.tableElement.appendChild(body);
+  
+      body.scrollTop = scrollTop;
+      delete treeTable.generatingTableRows;
+    };
+    
+  if (this.data) {
+    if (treeTable.bodyElement) {
+      if (!this.generatingTableRows) {
+        // Invoke later table update
+        this.generatingTableRows = true;
+        setTimeout(tableRowsGenerator, 0);
+      }
+    } else {
+      // Ensure body element exists
+      tableRowsGenerator();
+    }
   }
 }
 
