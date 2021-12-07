@@ -1641,7 +1641,8 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
       var url = patterns[i].getImage().getURL();
       patternsTexturesByURL[url] = patterns[i];
     }
-    dialog.patternComboBox = new JSComboBox(preferences, dialog.getElement("new-wall-pattern-select"), 
+    newWallPatternSelect.classList.add("wall-pattern-combo-box");
+    dialog.patternComboBox = new JSComboBox(preferences, newWallPatternSelect, 
         {
           availableValues: Object.keys(patternsTexturesByURL),
           renderCell: function(patternURL, patternItemElement) {
@@ -2888,7 +2889,9 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         var url = patterns[i].getImage().getURL();
         patternsTexturesByURL[url] = patterns[i];
       }
-      var patternComboBox = new JSComboBox(this.preferences, dialog.getElement("pattern-select"), 
+      var patternSelect = dialog.getElement("pattern-select");
+      patternSelect.classList.add("wall-pattern-combo-box");
+      var patternComboBox = new JSComboBox(this.preferences, patternSelect, 
           {
             nullable: controller.getPattern() != null,
             availableValues: Object.keys(patternsTexturesByURL),
@@ -3468,8 +3471,8 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
               var canvas = document.createElement("canvas");
               canvas.width = 200;
               canvas.height = 50;
-              canvas.style.height = "1em";
               canvas.style.maxWidth = "100%";
+              canvas.style.height = "1em";
               if (arrowStyle != null) {
                 var g2D = new Graphics2D(canvas);
                 g2D.scale(canvas.width / iconWidth, canvas.width / iconWidth);
@@ -3548,8 +3551,8 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
               var canvas = document.createElement("canvas");
               canvas.width = 100;
               canvas.height = 40;
-              canvas.style.height = "1em";
               canvas.style.maxWidth = "100%";
+              canvas.style.height = "1em";
               if (joinStyle != null) {
                 var g2D = new Graphics2D(canvas);
                 g2D.setStroke(ShapeTools.getStroke(8, Polyline.CapStyle.BUTT, joinStyle, null, 0));
@@ -3599,7 +3602,6 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
               var canvas = document.createElement("canvas");
               canvas.width = 500;
               canvas.height = 100;
-              canvas.style.width = "5em";
               canvas.style.maxWidth = "100%";
               canvas.style.height = "1em";
               var dashPattern = dashStyle != null && dashStyle != Polyline.DashStyle.CUSTOMIZED 
@@ -3610,7 +3612,7 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
                 var dashOffset = controller.getDashOffset() != null ? controller.getDashOffset() : 0;
                 g2D.setStroke(ShapeTools.getStroke(12, Polyline.CapStyle.BUTT, Polyline.JoinStyle.MITER,
                     dashPattern, dashOffset));
-                g2D.draw(new java.awt.geom.Line2D.Float(20, canvas.height / 2, canvas.width - 80, canvas.height / 2));
+                g2D.draw(new java.awt.geom.Line2D.Float(20, canvas.height / 2, canvas.width - 20, canvas.height / 2));
               }
       
               itemElement.appendChild(canvas);

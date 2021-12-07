@@ -891,7 +891,7 @@ label {
 }
 
 .dialog-body div.card .label-cell,
-.dialog-body .label-input-grid .label-cell{
+.dialog-body .label-input-grid .label-cell {
   text-align: right;
   white-space: nowrap;
   line-height: 1.5rem;
@@ -1610,11 +1610,14 @@ label {
 
 .combo-box button > .preview {
   border: solid 1px black;
-  width: 60%;
-  height: 90%;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
+}
+
+.wall-pattern-combo-box button > .preview {
+  width: 60%;
+  height: 90%;
 }
 
 .combo-box .selection-panel {
@@ -1637,7 +1640,7 @@ label {
 }
 
 .combo-box .selection-panel > div:hover {
-  background-color: rgb(220, 220, 220);
+  background-color: #DDDDDD;
 }
 
 /*
@@ -1697,10 +1700,13 @@ label {
   display: none;
 }
 
-.texture-chooser-dialog .texture-catalog-list .item:hover,
-.texture-chooser-dialog .texture-catalog-list .item.selected {
-  background-color: rgba(200, 200, 200, 0.5);
+.texture-chooser-dialog .texture-catalog-list .item:hover {
+  background-color: #DDDDDD;
   cursor: pointer;
+}
+
+.texture-chooser-dialog .texture-catalog-list .item.selected {
+  background-color: #BBDDFF;
 }
 
 .texture-chooser-dialog .texture-catalog-list .item img {
@@ -1891,9 +1897,12 @@ label {
   box-sizing: border-box;
 }
 
-.model-materials-chooser-dialog [data-name="materials-list"] > div:hover,
-.model-materials-chooser-dialog [data-name="materials-list"] > div.selected {
+.model-materials-chooser-dialog [data-name="materials-list"] > div:hover {
   background-color: #DDDDDD;
+}
+
+.model-materials-chooser-dialog [data-name="materials-list"] > div.selected {
+  background-color: #BBDDFF;
 }
 
 .model-materials-chooser-dialog [data-name="materials-list"] div.icon {

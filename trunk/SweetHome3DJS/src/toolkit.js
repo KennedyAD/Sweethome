@@ -1980,10 +1980,9 @@ JSTreeTable.prototype.scrollToSelectedRowsIfNotVisible = function() {
     // If one selected row is visible, do not change scroll
     for (var i = 0; i < selectedRows.length; i++) {
       var selectedRow = selectedRows[i];
-      var rowYTop = selectedRow.offsetTop - this.bodyElement.offsetTop;
-      var rowYBottom = rowYTop + selectedRow.height;
-      if (rowYTop >= this.bodyElement.scrollTop && rowYTop <= (this.bodyElement.scrollTop + this.bodyElement.clientHeight)
-        || rowYBottom >= this.bodyElement.scrollTop && rowYBottom <= (this.bodyElement.scrollTop + this.bodyElement.clientHeight)) {
+      var rowTop = selectedRow.offsetTop - this.bodyElement.offsetTop;
+      var rowBottom = rowTop + selectedRow.clientHeight;
+      if (rowTop >= this.bodyElement.scrollTop && rowBottom <= (this.bodyElement.scrollTop + this.bodyElement.clientHeight)) {
         return;
       }
     }
