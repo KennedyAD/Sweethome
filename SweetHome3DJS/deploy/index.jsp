@@ -1290,12 +1290,14 @@ body {
     </div>
     <div data-name="color-button"></div>
     
+    <div></div>
     <div>
       <label>
         <input type="checkbox" name="visible-in-3D-checkbox" />
         @{PolylinePanel.visibleIn3DViewCheckBox.text}
       </label>
     </div>
+    <div></div>
   </div>
 </div>
 
