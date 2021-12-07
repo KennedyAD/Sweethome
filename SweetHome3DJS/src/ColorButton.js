@@ -209,19 +209,20 @@ JSColorChooser.prototype.createPickerColorTiles = function() {
  */
 JSColorChooser.prototype.initCustomColorEditor = function() {
   var colorChooser = this;
+  var colorInput = null;
   if (!OperatingSystem.isInternetExplorerOrLegacyEdge()) {
     // Display browser color picker for clicks on custom editor preview 
-    var colorInput = document.createElement("input");
+    colorInput = document.createElement("input");
     colorInput.type = "color";
     colorInput.classList.add("color-input");
     this.customColorEditorPreview.appendChild(colorInput);
     var colorChangeListener = function(ev) {
         colorChooser.customColorEditorPreview.style.backgroundColor = colorInput.value;
-        colorChooser.customColorEditorInput.value = colorInput.value.substring(1);
+        colorChooser.customColorEditorInput.value = colorInput.value.substring(1).toUpperCase();
         colorChooser.color = ColorTools.hexadecimalStringToInteger(colorInput.value);
       };
     colorInput.value = "#010101"; // Color different from black required on some browsers
-    this.registerEventListener(colorInput, "change", colorChangeListener);
+    this.registerEventListener(colorInput, "input", colorChangeListener);
   }
   
   this.registerEventListener(this.customColorEditorInput, "input", function(ev) {
@@ -229,6 +230,9 @@ JSColorChooser.prototype.initCustomColorEditor = function() {
       if (colorHex.match(/#[0-9a-fA-F]{3,6}/)) {
         colorChooser.customColorEditorPreview.style.backgroundColor = colorHex;
         colorChooser.color = ColorTools.hexadecimalStringToInteger(colorHex);
+        if (colorInput != null) {
+          colorInput.value = colorHex;
+        }
       }
     });
 }
@@ -278,8 +282,12 @@ JSColorChooser.prototype.selectColorTile = function(tileElement) {
     }
   }
   this.color = this.getTileColor(tileElement);
-  this.customColorEditorInput.value = ColorTools.integerToHexadecimalString(this.color).substring(1);
+  var colorHex = ColorTools.integerToHexadecimalString(this.color);
+  this.customColorEditorInput.value = colorHex.substring(1);
   this.customColorEditorPreview.style.backgroundColor = this.customColorEditorInput.value;
+  if (this.findElement(".color-input") != null) {
+    this.findElement(".color-input").value = colorHex;
+  }
 }
 
 /**
