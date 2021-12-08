@@ -77,17 +77,17 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
   var updateData = function() {
       panel.updateData(home);
     };
-  var updatePieceData = function(ev) {
-      panel.updatePieceData(home, ev.getSource(), ev.getPropertyName());
+  var updatePieceOfFurnitureData = function(ev) {
+      panel.updatePieceOfFurnitureData(home, ev.getSource(), ev.getPropertyName());
     };
   var furniture = home.getFurniture();
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture[i];
-    piece.addPropertyChangeListener(updatePieceData);
+    piece.addPropertyChangeListener(updatePieceOfFurnitureData);
     if (piece instanceof HomeFurnitureGroup) {
       var groupFurniture = piece.getAllFurniture();
       for (var j = 0; j < groupFurniture.length; j++) {
-        groupFurniture[j].addPropertyChangeListener(updatePieceData);
+        groupFurniture[j].addPropertyChangeListener(updatePieceOfFurnitureData);
       }
     }
   }
@@ -96,19 +96,19 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
       updateData(home);
       var piece = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        piece.addPropertyChangeListener(updatePieceData);
+        piece.addPropertyChangeListener(updatePieceOfFurnitureData);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].addPropertyChangeListener(updatePieceData);
+            groupFurniture[j].addPropertyChangeListener(updatePieceOfFurnitureData);
           }
         }
       } else {
-        piece.removePropertyChangeListener(updatePieceData);
+        piece.removePropertyChangeListener(updatePieceOfFurnitureData);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].removePropertyChangeListener(updatePieceData);
+            groupFurniture[j].removePropertyChangeListener(updatePieceOfFurnitureData);
           }
         }
       }
@@ -334,13 +334,13 @@ FurnitureTablePanel.prototype.updateData = function(home) {
 }
 
 /**
- * Refreshes data row matching the given piece and its parent groups.
+ * Refreshes data row matching the given piece of furniture and its parent groups.
  * @param {Home} home
  * @param {HomePieceOfFurniture} piece
  * @param {string} [propertyName]
  * @private
  */
-FurnitureTablePanel.prototype.updatePieceData = function(home, piece, propertyName) {
+FurnitureTablePanel.prototype.updatePieceOfFurnitureData = function(home, piece, propertyName) {
   this.treeTable.updateRowData(piece, propertyName);
  
   var panel = this;
