@@ -216,6 +216,14 @@ body {
     display: none;
   }
 
+  #home-plan:focus { 
+    outline: none; 
+  }
+
+  #home-3D-view:focus { 
+    outline: none; 
+  }
+  
   @media (orientation: portrait), (max-aspect-ratio: 5/4) {
 
     #plan-3D-view-pane {
