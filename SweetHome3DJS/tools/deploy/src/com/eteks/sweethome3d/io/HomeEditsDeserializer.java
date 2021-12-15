@@ -374,7 +374,7 @@ public class HomeEditsDeserializer {
   }
 
   private <T> T defaultFillInstance(Class<?> type, T instance, JSONObject jsonObject, boolean undo) throws ReflectiveOperationException {
-    for(Field field : getDeclaredFields(type)) {
+    for (Field field : getDeclaredFields(type)) {
       if (Home.class.isAssignableFrom(field.getType())) {
         field.set(instance, this.home);
       } else if (PlanController.class.isAssignableFrom(field.getType())) {
