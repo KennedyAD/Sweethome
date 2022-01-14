@@ -642,7 +642,6 @@ Max3DSLoader.prototype.parseMeshData = function(input, name, materials) {
  */
 Max3DSLoader.prototype.parseKeyFramerData = function(input, meshesGroups, root) {
   var transformGroups = [];
-  var transformGroupNodeIds = [];
   var currentTransformGroup = null;
   while (!input.isChunckEndReached()) {
     switch (input.readChunkHeader().id) {
@@ -653,12 +652,8 @@ Max3DSLoader.prototype.parseKeyFramerData = function(input, meshesGroups, root) 
         var rotationAngle = 0;
         var rotationAxis = null;
         var scale = null;
-        var nodeId = -1;
         while (!input.isChunckEndReached()) {
           switch (input.readChunkHeader().id) {
-            case Max3DSLoader.NODE_ID :
-              nodeId = input.readLittleEndianShort();
-              break;
             case Max3DSLoader.NODE_HIERARCHY :
               var meshName = input.readString();
               meshGroup = "$$$DUMMY" != meshName;
@@ -669,19 +664,11 @@ Max3DSLoader.prototype.parseKeyFramerData = function(input, meshesGroups, root) 
               if (parentId === -1) {
                 root.addChild(transformGroup);
               } else {
-                var found = false;
-                for (var i = 0; i < transformGroupNodeIds.length; i++) {
-                  if (parentId === transformGroupNodeIds [i]) {
-                    transformGroups [i].addChild(transformGroup);  
-                    found = true;
-                    break;
-                  }
-                }
-                if (!found) {
+                if (parentId > transformGroups.length - 1) {
                   throw new IncorrectFormat3DException("Inconsistent nodes hierarchy");
                 }
+                transformGroups [parentId].addChild(transformGroup);                  
               }
-              transformGroupNodeIds.push(nodeId);
               transformGroups.push(transformGroup);
               if (meshGroup) {
                 // Store group parent of mesh 

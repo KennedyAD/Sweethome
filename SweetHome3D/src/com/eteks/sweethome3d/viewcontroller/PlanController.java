@@ -6010,7 +6010,7 @@ public class PlanController extends FurnitureController implements Controller {
   }
 
   /**
-   * Adds <code>newPolylines</code> to home and posts an undoable new polyline line operation.
+   * Add <code>newPolylines</code> to home and post an undoable new polyline line operation.
    */
   public void addPolylines(List<Polyline> polylines) {
     final Polyline [] newPolylines = polylines.toArray(new Polyline [polylines.size()]);

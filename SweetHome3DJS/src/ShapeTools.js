@@ -23,7 +23,6 @@
 
 /**
  * Gathers some useful tools for shapes.
- * @class
  * @author Emmanuel Puybaret
  */
 var ShapeTools = {
