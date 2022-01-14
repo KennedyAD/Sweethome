@@ -1625,7 +1625,13 @@ HomePane.prototype.createToolBarButton = function(action, additionalClass) {
       if (!icon) {
         icon = newAction.getValue(AbstractAction.SMALL_ICON);
       }
-      button.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/"+ icon + "')";
+
+      var iconURL = icon;
+      if (iconURL.indexOf('http://') !== 0 && iconURL.indexOf('https://') !== 0) {
+        iconURL = ZIPTools.getScriptFolder() + "/"+ icon;
+      }
+
+      button.style.backgroundImage = "url('" + iconURL + "')";
       button.style.backgroundPosition = "center";
       button.style.backgroundRepeat = "no-repeat";
       var shortDescription = newAction.getValue(AbstractAction.SHORT_DESCRIPTION);

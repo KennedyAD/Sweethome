@@ -195,16 +195,16 @@ button:disabled {
   background-position: center center;
 }
 
-#home-pane-toolbar .toolbar-button-group:first-child {
+#home-pane-toolbar > .toolbar-button-group:first-child {
   display: none;
 }
 
-#home-pane-toolbar .toolbar-button-group:first-child button {
+#home-pane-toolbar > .toolbar-button-group:first-child button {
   background-size: 85%;
 }
 
 @media (hover: none), (pointer: coarse) {
-  #home-pane-toolbar .toolbar-button-group:first-child {
+  #home-pane-toolbar > .toolbar-button-group:first-child {
     display: initial;
   }
 }
@@ -282,7 +282,7 @@ button:disabled {
     border-right: 1px dotted rgba(0, 0, 0, 0.6);
   }
   
-  #home-pane-toolbar .toolbar-button-group:last-child {
+  #home-pane-toolbar > .toolbar-button-group:last-child {
     border-right: none;
     flex-grow: 1;
     padding-right: 0;
