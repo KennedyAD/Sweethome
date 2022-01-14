@@ -108,7 +108,7 @@ IncrementalHomeRecorder.prototype.configure = function(configuration) {
  * Checks if the server is available by calling the <code>pingURL</code> service in 
  * recorder configuration every <code>pingDelay</code> milliseconds. 
  * @param {number} pingDelay
- * @private 
+ * @protected 
  */
 IncrementalHomeRecorder.prototype.checkServer = function(pingDelay) {
   var recorder = this;
@@ -447,7 +447,7 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
 
 /**   
  * @param {Home} home
- * @private 
+ * @protected 
  */
 IncrementalHomeRecorder.prototype.hasEdits = function(home) {
   return (this.queue !== undefined && this.queue.length > 0) 
@@ -459,14 +459,14 @@ IncrementalHomeRecorder.prototype.hasEdits = function(home) {
 /** 
  * @param {Home} home
  * @param {boolean} [force]
- * @private 
+ * @protected 
  */
 IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) {
   if (this.homeData[home.editionId].trackedStateChanges !== undefined 
       && (force 
           || (this.configuration 
               && this.configuration.autoWriteTrackedStateChange))) {    
-    var trackedStateChangeUndoableEdit = { _type: 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit' };
+    var trackedStateChangeUndoableEdit = { _type: IncrementalHomeRecorder.TRACKED_STATE_CHANGE_CLASSNAME };
 
     var trackedHomeProperties = this.getTrackedHomeProperties();
     for (var i = 0; i < trackedHomeProperties.length; i++) {
@@ -523,7 +523,7 @@ IncrementalHomeRecorder.prototype.addTrackedStateChange = function(home, force) 
 /** 
  * @param {Home} home
  * @param {number} [delay]
- * @private 
+ * @protected 
  */
 IncrementalHomeRecorder.prototype.scheduleWrite = function(home, delay) {
   if (delay === undefined) {
@@ -578,7 +578,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   }
   this.queue.push(processedEdit);
   
-  if (edit._type != 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit') {
+  if (edit._type != IncrementalHomeRecorder.TRACKED_STATE_CHANGE_CLASSNAME) {
     // Update objects state 
     this.checkPoint(home);
   }
@@ -587,7 +587,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
 /** 
  * @param {Home} home
  * @return {{home: Home, id: UUID, edits: Object[]}}
- * @private 
+ * @protected 
  */
 IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
   if (this.homeData[home.editionId].ongoingUpdate !== undefined) {
@@ -640,7 +640,7 @@ IncrementalHomeRecorder.prototype.commitUpdate = function(home, update) {
  * @param {{home: Home, id: UUID, edits: Object[]}} update
  * @param {number} status
  * @param {string} error
- * @private 
+ * @protected 
  */
 IncrementalHomeRecorder.prototype.rollbackUpdate = function(home, update, status, error) {
   if (this.configuration !== undefined 

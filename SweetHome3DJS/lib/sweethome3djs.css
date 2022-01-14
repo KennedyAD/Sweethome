@@ -195,16 +195,16 @@ button:disabled {
   background-position: center center;
 }
 
-#home-pane-toolbar .toolbar-button-group:first-child {
+#home-pane-toolbar > .toolbar-button-group:first-child {
   display: none;
 }
 
-#home-pane-toolbar .toolbar-button-group:first-child button {
+#home-pane-toolbar > .toolbar-button-group:first-child button {
   background-size: 85%;
 }
 
 @media (hover: none), (pointer: coarse) {
-  #home-pane-toolbar .toolbar-button-group:first-child {
+  #home-pane-toolbar > .toolbar-button-group:first-child {
     display: initial;
   }
 }
@@ -222,7 +222,7 @@ button:disabled {
   padding-bottom: 1px;
 } 
 
-#home-pane-toolbar .toolbar-button-group {
+#home-pane-toolbar > .toolbar-button-group {
   display: inline-block;
   margin-top: 1px;
 }
@@ -276,13 +276,13 @@ button:disabled {
     display: flex;
   }
   
-  #home-pane-toolbar .toolbar-button-group {
+  #home-pane-toolbar > .toolbar-button-group {
     padding-right: 8px;
     margin-right: 8px;
     border-right: 1px dotted rgba(0, 0, 0, 0.6);
   }
   
-  #home-pane-toolbar .toolbar-button-group:last-child {
+  #home-pane-toolbar > .toolbar-button-group:last-child {
     border-right: none;
     flex-grow: 1;
     padding-right: 0;
@@ -296,7 +296,7 @@ button:disabled {
     width: 24px;
   }
 
-  #home-pane-toolbar .toolbar-button-group {
+  #home-pane-toolbar > .toolbar-button-group {
     margin-right: 4px;
   }
 
@@ -316,7 +316,7 @@ button:disabled {
   }
   
   @media (min-width: 800px) {
-    #home-pane-toolbar .toolbar-button-group {
+    #home-pane-toolbar > .toolbar-button-group {
       padding-right: 6px;
       margin-right: 6px;
     }
