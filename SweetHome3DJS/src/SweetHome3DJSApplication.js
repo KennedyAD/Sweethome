@@ -456,6 +456,8 @@ IncrementalHomeRecorder.prototype.hasEdits = function(home) {
           && this.homeData[home.editionId].trackedStateChanges !== undefined);
 }
 
+IncrementalHomeRecorder.TRACKED_STATE_CHANGE_CLASSNAME = 'com.eteks.sweethome3d.io.TrackedStateChangeUndoableEdit';
+
 /** 
  * @param {Home} home
  * @param {boolean} [force]
