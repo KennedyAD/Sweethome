@@ -234,6 +234,14 @@ function HTMLCanvas3D(canvasId, offscreen) {
 
   this.canvasNeededRepaint = false;
   this.pickingFrameBufferNeededRepaint = true;
+  
+  this.errorTexture = this.gl.createTexture();
+  this.gl.bindTexture(this.gl.TEXTURE_2D, this.errorTexture);
+  var redPixel = new Uint8Array([255, 0, 0, 255]);
+  this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, redPixel);
+  this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+  this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+  this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 }
 
 HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT = 16;
@@ -914,20 +922,26 @@ HTMLCanvas3D.prototype.prepareTexture = function(textureImage) {
   }
   // Create texture
   var texture = this.gl.createTexture();
-  texture.image = textureImage;
-  if (textureImage.width !== 0) {
-    this.bindTextureAndRepaint(texture, true);
-  } else {
-    var canvas3D = this;
-    // If texture image isn't loaded yet, add a listener to follow its loading
-    var loadListener = function() {
+  if (texture !== null) {
+    texture.image = textureImage;
+    if (textureImage.width !== 0) {
+      this.bindTextureAndRepaint(texture, true);
+    } else {
+      var canvas3D = this;
+      // If texture image isn't loaded yet, add a listener to follow its loading
+      var loadListener = function() {
         textureImage.removeEventListener("load", loadListener);
         canvas3D.bindTextureAndRepaint(texture, false);
       };
-    textureImage.addEventListener("load", loadListener);
+      textureImage.addEventListener("load", loadListener);
+    }
+    this.textures.push(texture);
+    return texture;
+  } else {
+    // Environment is probably missing resources
+    console.error("Can't create texture");
+    return this.errorTexture;
   }
-  this.textures.push(texture);
-  return texture;
 }
 
 HTMLCanvas3D.resizeTransparentTextures = true;
@@ -1096,6 +1110,7 @@ HTMLCanvas3D.prototype.drawScene = function() {
       if ((geometry.transparency === undefined
               || geometry.transparency === 1)
           && (geometry.texture === undefined
+              || geometry.texture.image === undefined
               || !geometry.texture.image.transparent)) {
         this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
       } else if (geometry.transparency > 0) {
@@ -1226,7 +1241,8 @@ HTMLCanvas3D.prototype.drawGeometry = function(geometry, viewPlatformInvertedTra
   vec3.set(this.geometryDiffuseColor, 1, 1, 1);
   if (textureEnabled 
       && geometry.texture !== undefined
-      && geometry.texture.image.bound) {
+      && (geometry.texture.image === undefined
+          || geometry.texture.image.bound)) {
     this.gl.activeTexture(this.gl.TEXTURE0);
     if (geometry.textureCoordinatesGeneration) {
       this.gl.uniform4fv(this.shaderProgram.planeS, geometry.textureCoordinatesGeneration.planeS);
@@ -1382,6 +1398,7 @@ HTMLCanvas3D.prototype.isTextureLoadingCompleted = function(geometries) {
   for (var i = 0; i < geometries.length; i++) {
     var texture = geometries [i].texture;
     if (texture !== undefined 
+        && texture.image !== undefined
         && !texture.image.bound) {
       return false;
     }
