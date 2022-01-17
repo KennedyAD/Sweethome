@@ -410,32 +410,37 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
 /** 
  * @private 
  */
-FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) {
-  this.toolTipDiv.style.left = ev.clientX + 10;
-  this.toolTipDiv.style.top = ev.clientY + 10;
-  this.toolTipDiv.style.display = "block";
-  this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(pieceContainer.pieceOfFurniture);
-  var icon = this.toolTipDiv.querySelector("img");
-  icon.src = pieceContainer.querySelector("img.furniture-icon").src;
-  var toolTipBounds = this.toolTipDiv.getBoundingClientRect();
-  if (toolTipBounds.x < 0) {
-    this.toolTipDiv.style.left = ev.clientX + 10 - toolTipBounds.x;
-  }
-  if (toolTipBounds.y < 0) {
-    this.toolTipDiv.style.left = ev.clientY + 10 - toolTipBounds.y;
-  }
-  if (toolTipBounds.x + toolTipBounds.width > window.innerWidth) {
-    this.toolTipDiv.style.left = ev.clientX + 10 - (toolTipBounds.x + toolTipBounds.width - window.innerWidth);
-  }
-  if (toolTipBounds.y + toolTipBounds.height > window.innerHeight) {
-    this.toolTipDiv.style.top = ev.clientY + 10 - (toolTipBounds.y + toolTipBounds.height - window.innerHeight);
+FurnitureCatalogListPanel.prototype.showTooltip = function(pieceContainer, ev) {
+  var pieceIcon = pieceContainer.querySelector("img.furniture-icon");
+  if (pieceIcon !== null) {
+    this.toolTipDiv.style.left = ev.clientX + 10;
+    this.toolTipDiv.style.top = ev.clientY + 10;
+    this.toolTipDiv.style.display = "block";
+    this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(pieceContainer.pieceOfFurniture);
+    var icon = this.toolTipDiv.querySelector("img");
+    icon.src = pieceIcon.src;
+    var toolTipBounds = this.toolTipDiv.getBoundingClientRect();
+    if (toolTipBounds.x < 0) {
+      this.toolTipDiv.style.left = ev.clientX + 10 - toolTipBounds.x;
+    }
+    if (toolTipBounds.y < 0) {
+      this.toolTipDiv.style.left = ev.clientY + 10 - toolTipBounds.y;
+    }
+    if (toolTipBounds.x + toolTipBounds.width > window.innerWidth) {
+      this.toolTipDiv.style.left = ev.clientX + 10 - (toolTipBounds.x + toolTipBounds.width - window.innerWidth);
+    }
+    if (toolTipBounds.y + toolTipBounds.height > window.innerHeight) {
+      this.toolTipDiv.style.top = ev.clientY + 10 - (toolTipBounds.y + toolTipBounds.height - window.innerHeight);
+    }
+  } else {
+    this.hideTooltip();
   }
 }
 
 /**
  * @private 
  */
-FurnitureCatalogListPanel.prototype.hideTooltip = function () {
+FurnitureCatalogListPanel.prototype.hideTooltip = function() {
   if (this.hideTooltipTimeOut) {
     clearTimeout(this.hideTooltipTimeOut);
     this.hideTooltipTimeOut = undefined;
@@ -485,4 +490,3 @@ FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(piec
   tipText += "</center>";
   return tipText;
 } 
-
