@@ -660,7 +660,9 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
           || "AREA_X_OFFSET" == propertyName 
           || "AREA_Y_OFFSET" == propertyName 
           || "AREA_STYLE" == propertyName 
-          || "AREA_ANGLE" == propertyName) {
+          || "AREA_ANGLE" == propertyName
+          || "FLOOR_VISIBLE" == propertyName
+          || "CEILING_VISIBLE" == propertyName) {
         plan.sortedLevelRooms = null;
         plan.otherLevelsRoomAreaCache = null;
         plan.otherLevelsRoomsCache = null;
@@ -3080,10 +3082,11 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
           if (room1.isFloorVisible() === room2.isFloorVisible() 
               && room1.isCeilingVisible() === room2.isCeilingVisible()) {
             return 0;
-          } else if (!room2.isFloorVisible() || room2.isCeilingVisible()) {
-            return 1;
-          } else {
+          } else if (!room1.isFloorVisible() && !room1.isCeilingVisible()
+                     || room1.isFloorVisible() && room2.isCeilingVisible()) {
             return -1;
+          } else {
+            return 1;
           }
         }
       });
