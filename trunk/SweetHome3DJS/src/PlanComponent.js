@@ -293,20 +293,39 @@ PlanComponent.initStatics = function() {
   PlanComponent.CAMERA_ELEVATION_INDICATOR.lineTo(0, 3.5);
   PlanComponent.CAMERA_ELEVATION_INDICATOR.lineTo(1.2, 0.5);
   
+  var cameraHumanBodyAreaPath = new java.awt.geom.GeneralPath();
+  cameraHumanBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.5, -0.425, 1.0, 0.85), false);
+  cameraHumanBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.5, -0.3, 0.24, 0.6), false);
+  cameraHumanBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(0.26, -0.3, 0.24, 0.6), false);
+  PlanComponent.CAMERA_HUMAN_BODY = new java.awt.geom.Area(cameraHumanBodyAreaPath);
+  
+  var cameraHumanHeadAreaPath = new java.awt.geom.GeneralPath();
+  cameraHumanHeadAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.18, -0.45, 0.36, 1.0), false);
+  cameraHumanHeadAreaPath.moveTo(-0.04, 0.55);
+  cameraHumanHeadAreaPath.lineTo(0, 0.65);
+  cameraHumanHeadAreaPath.lineTo(0.04, 0.55);
+  cameraHumanHeadAreaPath.closePath();
+  PlanComponent.CAMERA_HUMAN_HEAD = new java.awt.geom.Area(cameraHumanHeadAreaPath);
+  
   var cameraBodyAreaPath = new java.awt.geom.GeneralPath();
-  cameraBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.5, -0.425, 1.0, 0.85), false);
-  cameraBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.5, -0.3, 0.24, 0.6), false);
-  cameraBodyAreaPath.append(new java.awt.geom.Ellipse2D.Float(0.26, -0.3, 0.24, 0.6), false);
+  cameraBodyAreaPath.moveTo(0.5, 0.3); 
+  cameraBodyAreaPath.lineTo(0.45, 0.35);
+  cameraBodyAreaPath.lineTo(0.2, 0.35);
+  cameraBodyAreaPath.lineTo(0.2, 0.5);
+  cameraBodyAreaPath.lineTo(-0.2, 0.5);
+  cameraBodyAreaPath.lineTo(-0.2, 0.35);
+  cameraBodyAreaPath.lineTo(-0.3, 0.35);
+  cameraBodyAreaPath.lineTo(-0.35, 0.5);
+  cameraBodyAreaPath.lineTo(-0.5, 0.3);
+  cameraBodyAreaPath.lineTo(-0.5, -0.45);
+  cameraBodyAreaPath.lineTo(-0.45, -0.5);
+  cameraBodyAreaPath.lineTo(0.45, -0.5);
+  cameraBodyAreaPath.lineTo(0.5, -0.45);
+  cameraBodyAreaPath.closePath();
   PlanComponent.CAMERA_BODY = new java.awt.geom.Area(cameraBodyAreaPath);
-  
-  var cameraHeadAreaPath = new java.awt.geom.GeneralPath();
-  cameraHeadAreaPath.append(new java.awt.geom.Ellipse2D.Float(-0.18, -0.45, 0.36, 1.0), false);
-  cameraHeadAreaPath.moveTo(-0.04, 0.55);
-  cameraHeadAreaPath.lineTo(0, 0.65);
-  cameraHeadAreaPath.lineTo(0.04, 0.55);
-  cameraHeadAreaPath.closePath();
-  PlanComponent.CAMERA_HEAD = new java.awt.geom.Area(cameraHeadAreaPath);
-  
+
+  PlanComponent.CAMERA_BUTTON = new java.awt.geom.Ellipse2D.Float(-0.37, -0.2, 0.15, 0.32);
+
   PlanComponent.DIMENSION_LINE_END = new java.awt.geom.GeneralPath();
   PlanComponent.DIMENSION_LINE_END.moveTo(-5, 5);
   PlanComponent.DIMENSION_LINE_END.lineTo(5, -5);
@@ -5498,10 +5517,9 @@ PlanComponent.prototype.paintCamera = function(g2D, selectedItems, selectionOutl
     var yScale = java.awt.geom.Point2D.distance(points[0][0], points[0][1], points[3][0], points[3][1]);
     var xScale = java.awt.geom.Point2D.distance(points[0][0], points[0][1], points[1][0], points[1][1]);
     var cameraTransform = java.awt.geom.AffineTransform.getScaleInstance(xScale, yScale);
-    var scaledCameraBody = 
-        new java.awt.geom.Area(PlanComponent.CAMERA_BODY).createTransformedArea(cameraTransform);
-    var scaledCameraHead = 
-        new java.awt.geom.Area(PlanComponent.CAMERA_HEAD).createTransformedArea(cameraTransform);
+    var cameraScale = camera.getPlanScale();
+    var scaledCameraBody = new java.awt.geom.Area(cameraScale <= 1 ? PlanComponent.CAMERA_HUMAN_BODY : PlanComponent.CAMERA_BODY).createTransformedArea(cameraTransform);
+    var scaledCameraHead = new java.awt.geom.Area(cameraScale <= 1 ? PlanComponent.CAMERA_HUMAN_HEAD : PlanComponent.CAMERA_BUTTON).createTransformedArea(cameraTransform);
     
     g2D.setPaint(backgroundColor);
     g2D.fill(scaledCameraBody);
