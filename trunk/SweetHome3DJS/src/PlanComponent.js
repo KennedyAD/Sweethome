@@ -689,7 +689,8 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       } else if (plan.preferences.isRoomFloorColoredOrTextured() 
                  && ("FLOOR_COLOR" == propertyName 
                      || "FLOOR_TEXTURE" == propertyName 
-                     || "FLOOR_VISIBLE" == propertyName)) {
+                     || "FLOOR_VISIBLE" == propertyName
+                     || "FLOOR_TEXTURE_FITTING" == propertyName)) {
         plan.repaint();
       }
     };
@@ -3154,20 +3155,29 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
                   progression: function() { }
                 });
             }
-            var textureWidth = floorTexture.getWidth();
-            var textureHeight = floorTexture.getHeight();
-            if (textureWidth === -1 || textureHeight === -1) {
-              textureWidth = 100;
-              textureHeight = 100;
+            if (room.isFloorTextureFitting()) {
+              var min = room.getBoundsMinimumCoordinates();
+              var max = room.getBoundsMaximumCoordinates();
+              textureScaleX = (max[0] - min[0]) / textureImage.width;
+              textureScaleY = (max[1] - min[1]) / textureImage.height;
+              textureOffsetX = min[0] / textureScaleX;
+              textureOffsetY = min[1] / textureScaleY;
+            } else {
+              var textureWidth = floorTexture.getWidth();
+              var textureHeight = floorTexture.getHeight();
+              if (textureWidth === -1 || textureHeight === -1) {
+                textureWidth = 100;
+                textureHeight = 100;
+              }
+              var textureScale = floorTexture.getScale();
+              textureScaleX = (textureWidth * textureScale) / textureImage.width;
+              textureScaleY = (textureHeight * textureScale) / textureImage.height;
+              textureAngle = floorTexture.getAngle();
+              var cosAngle = Math.cos(textureAngle);
+              var sinAngle = Math.sin(textureAngle);
+              textureOffsetX = (floorTexture.getXOffset() * textureImage.width * cosAngle - floorTexture.getYOffset() * textureImage.height * sinAngle);
+              textureOffsetY = (-floorTexture.getXOffset() * textureImage.width * sinAngle - floorTexture.getYOffset() * textureImage.height * cosAngle);
             }
-            var textureScale = floorTexture.getScale();
-            textureScaleX = (textureWidth * textureScale) / textureImage.width;
-            textureScaleY = (textureHeight * textureScale) / textureImage.height;
-            textureAngle = floorTexture.getAngle();
-            var cosAngle = Math.cos(textureAngle);
-            var sinAngle = Math.sin(textureAngle);
-            textureOffsetX = (floorTexture.getXOffset() * textureImage.width * cosAngle - floorTexture.getYOffset() * textureImage.height * sinAngle);
-            textureOffsetY = (-floorTexture.getXOffset() * textureImage.width * sinAngle - floorTexture.getYOffset() * textureImage.height * cosAngle);
             g2D.setPaint(g2D.createPattern(textureImage));
           }
         }

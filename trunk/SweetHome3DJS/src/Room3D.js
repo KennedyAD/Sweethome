@@ -469,30 +469,59 @@ Room3D.prototype.computeRoomBorderGeometry = function(geometryRooms, geometryHol
   if (texture != null) {
     var textureCoords = new Array(vertexCount);
     i = 0;
-    for (var index = 0; index < geometryRooms.length; index++) {
-      var geometryPoints = geometryRooms[index];
-      for (var j = 0; j < geometryPoints.length; j++) {
-        textureCoords[i++] = vec2.fromValues(0, roomLevel.getFloorThickness());
-        textureCoords[i++] = vec2.fromValues(0, 0);
-        var nextPoint = j < geometryPoints.length - 1 
-            ? j + 1 
-            : 0;
-        var textureCoord = java.awt.geom.Point2D.distance(geometryPoints[j][0], geometryPoints[j][1], geometryPoints[nextPoint][0], geometryPoints[nextPoint][1]);
-        textureCoords[i++] = vec2.fromValues(textureCoord, 0);
-        textureCoords[i++] = vec2.fromValues(textureCoord, roomLevel.getFloorThickness());
+    var room = this.getUserData();
+    if (room.isFloorTextureFitting()) {
+      for (var index = 0; index < geometryRooms.length; index++) {
+        var geometryPoints = geometryRooms[index];
+        for (var j = 0; j < geometryPoints.length; j++) {
+          textureCoords [i++] =
+          textureCoords [i++] = vec2.fromValues(geometryPoints [j][0], -geometryPoints [j][1]);
+          var nextPoint = j < geometryPoints.length - 1
+              ? j + 1
+              : 0;
+          textureCoords [i++] =
+          textureCoords [i++] = vec2.fromValues(geometryPoints [nextPoint][0], -geometryPoints [nextPoint][1]);
+        }
       }
-    }
-    for (var index = 0; index < geometryHoles.length; index++) {
-      var geometryHole = geometryHoles[index];
-      for (var j = 0; j < geometryHole.length; j++) {
-        textureCoords[i++] = vec2.fromValues(0, 0);
-        var nextPoint = j < geometryHole.length - 1 
-            ? j + 1 
-            : 0;
-        var textureCoord = java.awt.geom.Point2D.distance(geometryHole[j][0], geometryHole[j][1], geometryHole[nextPoint][0], geometryHole[nextPoint][1]);
-        textureCoords[i++] = vec2.fromValues(textureCoord, 0);
-        textureCoords[i++] = vec2.fromValues(textureCoord, roomLevel.getFloorThickness());
-        textureCoords[i++] = vec2.fromValues(0, roomLevel.getFloorThickness());
+      for (var index = 0; index < geometryHoles.length; index++) {
+        var geometryHole = geometryHoles[index];
+        for (var j = 0; j < geometryHole.length; j++) {
+          textureCoords [i] = vec2.fromValues(geometryHole [j][0], -geometryHole [j][1]);
+          var nextPoint = j < geometryHole.length - 1
+              ? j + 1
+              : 0;
+          textureCoords [i + 1] = vec2.fromValues(geometryHole [nextPoint][0], -geometryHole [nextPoint][1]);
+          textureCoords [i + 2] = textureCoords [i + 1];
+          textureCoords [i + 3] = textureCoords [i];
+          i += 4;
+        }
+      }
+    } else {
+      for (var index = 0; index < geometryRooms.length; index++) {
+        var geometryPoints = geometryRooms[index];
+        for (var j = 0; j < geometryPoints.length; j++) {
+          textureCoords[i++] = vec2.fromValues(0, roomLevel.getFloorThickness());
+          textureCoords[i++] = vec2.fromValues(0, 0);
+          var nextPoint = j < geometryPoints.length - 1 
+              ? j + 1 
+              : 0;
+          var textureCoord = java.awt.geom.Point2D.distance(geometryPoints[j][0], geometryPoints[j][1], geometryPoints[nextPoint][0], geometryPoints[nextPoint][1]);
+          textureCoords[i++] = vec2.fromValues(textureCoord, 0);
+          textureCoords[i++] = vec2.fromValues(textureCoord, roomLevel.getFloorThickness());
+        }
+      }
+      for (var index = 0; index < geometryHoles.length; index++) {
+        var geometryHole = geometryHoles[index];
+        for (var j = 0; j < geometryHole.length; j++) {
+          textureCoords[i++] = vec2.fromValues(0, 0);
+          var nextPoint = j < geometryHole.length - 1 
+              ? j + 1 
+              : 0;
+          var textureCoord = java.awt.geom.Point2D.distance(geometryHole[j][0], geometryHole[j][1], geometryHole[nextPoint][0], geometryHole[nextPoint][1]);
+          textureCoords[i++] = vec2.fromValues(textureCoord, 0);
+          textureCoords[i++] = vec2.fromValues(textureCoord, roomLevel.getFloorThickness());
+          textureCoords[i++] = vec2.fromValues(0, roomLevel.getFloorThickness());
+        }
       }
     }
     geometryInfo.setTextureCoordinates(textureCoords);
@@ -573,60 +602,95 @@ Room3D.prototype.getRoomHeightAt = function (x, y) {
       (roomLevel == null ? this.home.getWallHeight() : roomLevel.getHeight());
   var levels = this.home.getLevels();
   if (roomLevel == null || this.isLastLevel(roomLevel, levels)) {
-    var closestWall = null;
-    var closestWallPoints = null;
-    var closestIndex = -1;
     var walls = this.home.getWalls();
-    for (var index = 0; index < walls.length; index++) {
-      var wall = walls[index];
-      if ((wall.getLevel() === null || wall.getLevel().isViewable()) 
-          && wall.isAtLevel(roomLevel)) {
-        var points = wall.getPoints();
-        for (var i = 0; i < points.length; i++) {
-          var distanceToWallPoint = java.awt.geom.Point2D.distanceSq(points[i][0], points[i][1], x, y);
-          if (distanceToWallPoint < smallestDistance) {
-            closestWall = wall;
-            closestWallPoints = points;
-            closestIndex = i;
-            smallestDistance = distanceToWallPoint;
+    if (room.isCeilingFlat()) {
+      // Search the highest wall at last level
+      var roomHeightSet = false;
+      for (var index = 0; index < walls.length; index++) {
+        var wall = walls[index];
+        if ((wall.getLevel() === null || wall.getLevel().isViewable())
+            && wall.isAtLevel(roomLevel)) {
+          if (wall.getHeight() !== null) {
+            var wallHeight = wall.getHeight();
+            if (wall.getLevel() !== null) {
+              wallHeight += wall.getLevel().getElevation();
+            }
+            if (roomHeightSet) {
+              roomHeight = Math.max(roomHeight, wallHeight);
+            } else {
+              roomHeight = wallHeight;
+              roomHeightSet = true;
+            }
+          }
+          if (wall.getHeightAtEnd() !== null) {
+            var wallHeightAtEnd = wall.getHeightAtEnd();
+            if (wall.getLevel() !== null) {
+              wallHeightAtEnd += wall.getLevel().getElevation();
+            }
+            if (roomHeightSet) {
+              roomHeight = Math.max(roomHeight, wallHeightAtEnd);
+            } else {
+              roomHeight = wallHeightAtEnd;
+              roomHeightSet = true;
+            }
           }
         }
       }
-    }
-    
-    if (closestWall != null) {
-      roomHeight = closestWall.getLevel() == null ? 0 : closestWall.getLevel().getElevation();
-      var wallHeightAtStart = closestWall.getHeight();
-      if (closestIndex === 0 || closestIndex === closestWallPoints.length - 1) {
-        roomHeight += wallHeightAtStart != null 
-            ? wallHeightAtStart 
-            : this.home.getWallHeight();
-      } else {
-        if (closestWall.isTrapezoidal()) {
-          var arcExtent = closestWall.getArcExtent();
-          if (arcExtent == null 
-              || arcExtent === 0 
-              || closestIndex === Math.floor(closestWallPoints.length / 2) 
-              || closestIndex === Math.floor(closestWallPoints.length / 2) - 1) {
-            roomHeight += closestWall.getHeightAtEnd();
-          } else {
-            var xArcCircleCenter = closestWall.getXArcCircleCenter();
-            var yArcCircleCenter = closestWall.getYArcCircleCenter();
-            var xClosestPoint = closestWallPoints[closestIndex][0];
-            var yClosestPoint = closestWallPoints[closestIndex][1];
-            var centerToClosestPointDistance = java.awt.geom.Point2D.distance(xArcCircleCenter, yArcCircleCenter, xClosestPoint, yClosestPoint);
-            var xStart = closestWall.getXStart();
-            var yStart = closestWall.getYStart();
-            var centerToStartPointDistance = java.awt.geom.Point2D.distance(xArcCircleCenter, yArcCircleCenter, xStart, yStart);
-            var scalarProduct = (xClosestPoint - xArcCircleCenter) * (xStart - xArcCircleCenter) 
-                + (yClosestPoint - yArcCircleCenter) * (yStart - yArcCircleCenter);
-            scalarProduct /= (centerToClosestPointDistance * centerToStartPointDistance);
-            var arcExtentToClosestWallPoint = Math.acos(scalarProduct) * (arcExtent > 0 ? 1 : (arcExtent < 0 ? -1 : 0));;
-            roomHeight += wallHeightAtStart 
-                + (closestWall.getHeightAtEnd() - wallHeightAtStart) * arcExtentToClosestWallPoint / arcExtent;
+    } else {
+      var closestWall = null;
+      var closestWallPoints = null;
+      var closestIndex = -1;
+      for (var index = 0; index < walls.length; index++) {
+        var wall = walls[index];
+        if ((wall.getLevel() === null || wall.getLevel().isViewable()) 
+            && wall.isAtLevel(roomLevel)) {
+          var points = wall.getPoints();
+          for (var i = 0; i < points.length; i++) {
+            var distanceToWallPoint = java.awt.geom.Point2D.distanceSq(points[i][0], points[i][1], x, y);
+            if (distanceToWallPoint < smallestDistance) {
+              closestWall = wall;
+              closestWallPoints = points;
+              closestIndex = i;
+              smallestDistance = distanceToWallPoint;
+            }
           }
+        }
+      }
+      
+      if (closestWall != null) {
+        roomHeight = closestWall.getLevel() == null ? 0 : closestWall.getLevel().getElevation();
+        var wallHeightAtStart = closestWall.getHeight();
+        if (closestIndex === 0 || closestIndex === closestWallPoints.length - 1) {
+          roomHeight += wallHeightAtStart != null 
+              ? wallHeightAtStart 
+              : this.home.getWallHeight();
         } else {
-          roomHeight += (wallHeightAtStart != null ? wallHeightAtStart : this.home.getWallHeight());
+          if (closestWall.isTrapezoidal()) {
+            var arcExtent = closestWall.getArcExtent();
+            if (arcExtent == null 
+                || arcExtent === 0 
+                || closestIndex === Math.floor(closestWallPoints.length / 2) 
+                || closestIndex === Math.floor(closestWallPoints.length / 2) - 1) {
+              roomHeight += closestWall.getHeightAtEnd();
+            } else {
+              var xArcCircleCenter = closestWall.getXArcCircleCenter();
+              var yArcCircleCenter = closestWall.getYArcCircleCenter();
+              var xClosestPoint = closestWallPoints[closestIndex][0];
+              var yClosestPoint = closestWallPoints[closestIndex][1];
+              var centerToClosestPointDistance = java.awt.geom.Point2D.distance(xArcCircleCenter, yArcCircleCenter, xClosestPoint, yClosestPoint);
+              var xStart = closestWall.getXStart();
+              var yStart = closestWall.getYStart();
+              var centerToStartPointDistance = java.awt.geom.Point2D.distance(xArcCircleCenter, yArcCircleCenter, xStart, yStart);
+              var scalarProduct = (xClosestPoint - xArcCircleCenter) * (xStart - xArcCircleCenter) 
+                  + (yClosestPoint - yArcCircleCenter) * (yStart - yArcCircleCenter);
+              scalarProduct /= (centerToClosestPointDistance * centerToStartPointDistance);
+              var arcExtentToClosestWallPoint = Math.acos(scalarProduct) * (arcExtent > 0 ? 1 : (arcExtent < 0 ? -1 : 0));;
+              roomHeight += wallHeightAtStart 
+                  + (closestWall.getHeightAtEnd() - wallHeightAtStart) * arcExtentToClosestWallPoint / arcExtent;
+            }
+          } else {
+            roomHeight += (wallHeightAtStart != null ? wallHeightAtStart : this.home.getWallHeight());
+          }
         }
       }
     }
@@ -654,10 +718,10 @@ Room3D.prototype.updateRoomAppearance = function(waitTextureLoadingEnd) {
   var room = this.getUserData();
   var ignoreFloorTransparency = room.getLevel() == null || room.getLevel().getElevation() <= 0;
   this.updateRoomPartAppearance(this.getChild(Room3D.FLOOR_PART).getAppearance(), 
-      room.getFloorTexture(), waitTextureLoadingEnd, room.getFloorColor(), room.getFloorShininess(), room.isFloorVisible(), ignoreFloorTransparency);
+      room.getFloorTexture(), waitTextureLoadingEnd, room.getFloorColor(), room.getFloorShininess(), room.isFloorVisible(), ignoreFloorTransparency, true);
   var ignoreCeillingTransparency = room.getLevel() == null;
   this.updateRoomPartAppearance(this.getChild(Room3D.CEILING_PART).getAppearance(), 
-      room.getCeilingTexture(), waitTextureLoadingEnd, room.getCeilingColor(), room.getCeilingShininess(), room.isCeilingVisible(), ignoreCeillingTransparency);
+      room.getCeilingTexture(), waitTextureLoadingEnd, room.getCeilingColor(), room.getCeilingShininess(), room.isCeilingVisible(), ignoreCeillingTransparency, false);
 }
 
 /**
@@ -669,15 +733,21 @@ Room3D.prototype.updateRoomAppearance = function(waitTextureLoadingEnd) {
  * @param {number} shininess
  * @param {boolean} visible
  * @param {boolean} ignoreTransparency
+ * @param {boolean} floor
  * @private
  */
-Room3D.prototype.updateRoomPartAppearance = function(roomPartAppearance, roomPartTexture, waitTextureLoadingEnd, roomPartColor, shininess, visible, ignoreTransparency) {
+Room3D.prototype.updateRoomPartAppearance = function(roomPartAppearance, roomPartTexture, waitTextureLoadingEnd, roomPartColor, shininess, visible, ignoreTransparency, floor) {
   if (roomPartTexture == null) {
     this.updateAppearanceMaterial(roomPartAppearance, roomPartColor, roomPartColor, shininess);
     roomPartAppearance.setTextureImage(null);
   } else {
     this.updateAppearanceMaterial(roomPartAppearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, shininess);
-    this.updateTextureTransform(roomPartAppearance, roomPartTexture, true);
+    var room = this.getUserData();
+    if (floor && room.isFloorTextureFitting()) {
+      this.updateTextureTransformFittingArea(roomPartAppearance, roomPartTexture, room.getPoints());
+    } else {
+      this.updateTextureTransform(roomPartAppearance, roomPartTexture, true);
+    }
     TextureManager.getInstance().loadTexture(roomPartTexture.getImage(), waitTextureLoadingEnd, {
         textureUpdated : function(texture) {
           roomPartAppearance.setTextureImage(texture);
