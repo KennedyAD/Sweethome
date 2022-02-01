@@ -1015,6 +1015,13 @@ body {
           <div data-name="floor-texture-component"></div>
     
           <div class="whole-line">
+            <label>
+              <input type="checkbox" name="floor-texture-fitting-checkbox" />
+              @{RoomPanel.floorTextureFittingCheckBox.text}
+            </label>
+          </div>
+
+          <div class="whole-line">
             <hr />
           </div>
 
@@ -1057,6 +1064,13 @@ body {
             </label>
           </div>
           <div data-name="ceiling-texture-component"></div>
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="ceiling-flat-checkbox" />
+              @{RoomPanel.ceilingFlatCheckBox.text}
+            </label>
+          </div>
 
           <div class="whole-line">
             <hr />
@@ -1102,6 +1116,10 @@ body {
           </div>
           <div data-name="wall-sides-texture-component"></div>
 
+          <div class="whole-line">
+            <label>&nbsp;</label>
+          </div>
+          
           <div class="whole-line">
             <hr />
           </div>

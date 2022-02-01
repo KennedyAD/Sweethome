@@ -108,6 +108,35 @@ Object3DBranch.prototype.updateTextureTransform = function(appearance, texture, 
 }
 
 /**
+ * Updates the texture transformation of an appearance to fit the surface matching <code>areaPoints</code>.
+ * @param {Appearance3D} appearance
+ * @param {HomeTexture} texture
+ * @param {Array} areaPoints
+ */
+Object3DBranch.prototype.updateTextureTransformFittingArea = function(appearance, texture, areaPoints) {
+  var minX = Number.POSITIVE_INFINITY;
+  var minY = Number.POSITIVE_INFINITY;
+  var maxX = Number.NEGATIVE_INFINITY;
+  var maxY = Number.NEGATIVE_INFINITY;
+  for (var i = 0; i < areaPoints.length; i++) {
+    minX = Math.min(minX, areaPoints [i][0]);
+    minY = Math.min(minY, areaPoints [i][1]);
+    maxX = Math.max(maxX, areaPoints [i][0]);
+    maxY = Math.max(maxY, areaPoints [i][1]);
+  }
+  if (maxX - minX <= 0 || maxY - minY <= 0) {
+    this.updateTextureTransform(appearance, texture, true);
+  }
+
+  var translation = mat3.create();
+  mat3.fromTranslation(translation, vec2.fromValues(-minX, minY));
+  var transform = mat3.create();
+  mat3.scale(transform, transform, vec2.fromValues(1 / (maxX - minX),  1 / (maxY - minY)));
+  mat3.mul(transform, transform, translation);
+  appearance.setTextureTransform(transform);
+}
+
+/**
  * Returns the list of polygons points matching the given <code>area</code> with detailed information in
  * <code>areaPoints</code> and <code>areaHoles</code> if they exists.
  * @param {Area} area
