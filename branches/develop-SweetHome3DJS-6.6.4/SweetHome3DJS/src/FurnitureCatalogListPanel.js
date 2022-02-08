@@ -416,7 +416,9 @@ FurnitureCatalogListPanel.prototype.showTooltip = function (pieceContainer, ev) 
   this.toolTipDiv.style.display = "block";
   this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(pieceContainer.pieceOfFurniture);
   var icon = this.toolTipDiv.querySelector("img");
-  icon.src = pieceContainer.querySelector("img.furniture-icon").src;
+  if (icon) {
+    icon.src = pieceContainer.querySelector("img.furniture-icon").src;
+  }
   var toolTipBounds = this.toolTipDiv.getBoundingClientRect();
   if (toolTipBounds.x < 0) {
     this.toolTipDiv.style.left = ev.clientX + 10 - toolTipBounds.x;

@@ -1627,7 +1627,7 @@ HomePane.prototype.createToolBarButton = function(action, additionalClass) {
         icon = newAction.getValue(AbstractAction.SMALL_ICON);
       }
       var iconURL = icon;
-      if (iconURL.indexOf('http://') !== 0 && iconURL.indexOf('https://') !== 0) {
+      if (iconURL.indexOf('http://') !== 0 && iconURL.indexOf('https://') !== 0 && iconURL.indexOf('data:') !== 0) {
         iconURL = ZIPTools.getScriptFolder() + "/"+ icon;
       }
 
