@@ -598,6 +598,14 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
         }
       });
   }
+  var furnitureChangeListenerRemover = function(piece) {
+      piece.removePropertyChangeListener(furnitureChangeListener);
+      plan.removeTopViewIconFromCache(piece);
+      if (piece instanceof HomeDoorOrWindow
+          && plan.doorOrWindowWallThicknessAreasCache != null) {
+        CoreTools.removeFromMap(plan.doorOrWindowWallThicknessAreasCache, piece);
+      }
+    };
   home.addFurnitureListener(function(ev) {
       var piece = ev.getItem();
       if (ev.getType() === CollectionEvent.Type.ADD) {
@@ -608,15 +616,10 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
             });
         }
       } else if (ev.getType() === CollectionEvent.Type.DELETE) {
-        piece.removePropertyChangeListener(furnitureChangeListener);
-        plan.removeTopViewIconFromCache(piece);
-        if (piece instanceof HomeDoorOrWindow
-            && plan.doorOrWindowWallThicknessAreasCache != null) {
-          CoreTools.removeFromMap(plan.doorOrWindowWallThicknessAreasCache, piece);
-        }
+        furnitureChangeListenerRemover(piece);
         if (piece instanceof HomeFurnitureGroup) {
           piece.getAllFurniture().forEach(function(childPiece) {
-              childPiece.removePropertyChangeListener(furnitureChangeListener);
+              furnitureChangeListenerRemover(childPiece);
             });
         }
       }
