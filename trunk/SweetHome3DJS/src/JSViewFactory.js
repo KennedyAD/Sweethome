@@ -1263,8 +1263,8 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         }
       }
 
-      var selected = languageCode == controller.getLanguage();
-      var languageOption = JSComponent.createOptionElement(languageCode, languageDisplayName, selected);
+      var selected = supportedLanguages[i] == controller.getLanguage();
+      var languageOption = JSComponent.createOptionElement(supportedLanguages[i], languageDisplayName, selected);
       dialog.languageSelect.appendChild(languageOption);
     }
   } else {
