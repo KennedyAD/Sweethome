@@ -439,7 +439,6 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send("home=" + encodeURIComponent(home.name) 
         + "&editionId=" + home.editionId 
-        + "&updateId=" + update.id 
         + "&version=" + this.application.getVersion()  
         + "&edits=" + encodeURIComponent(JSON.stringify(update.edits)));
   }
@@ -572,6 +571,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   if (undoAction) {
     processedEdit._action = "undo";
   }
+  processedEdit._undoableEditId = UUID.randomUUID();
   
   if (!this.queue) {
     this.queue = [];
