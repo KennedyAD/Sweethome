@@ -2618,6 +2618,8 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 }
 
 JSViewFactory.prototype.createWallView = function(preferences, controller) {
+  var application = this.application;
+
   var initStartAndEndPointsPanel = function(dialog) {
     var maximumLength = preferences.getLengthUnit().getMaximumLength();
 
