@@ -597,7 +597,6 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
   
   this.homeData[home.editionId].ongoingUpdate = { 
       "home": home, 
-      "id": UUID.randomUUID(), 
       "edits": this.queue.slice(0)};
   if (this.configuration !== undefined 
       && this.configuration.writingObserver 

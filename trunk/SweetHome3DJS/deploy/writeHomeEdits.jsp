@@ -57,12 +57,8 @@
          if (lastUndoableEditId != null) {
            int i = jsonEditsArray.length();
            // Remove already applied undoable edits from the current request 
-           while (--i >= 0) {
-             org.json.JSONObject jsonObject = jsonEditsArray.getJSONObject(i);
-             if (jsonObject.has("_undoableEditId")
-                 && lastUndoableEditId.equals(jsonObject.getString("_undoableEditId"))) {
-               break;
-             }
+           while (--i >= 0
+                  && !lastUndoableEditId.equals(jsonEditsArray.getJSONObject(i).getString("_undoableEditId"))) {
            }
            while (i >= 0) {
              jsonEditsArray.remove(i--);
@@ -78,12 +74,8 @@
            recorder.writeHome(homeFile, 0);
              
            // Store the id of the last undoableEdit 
-           if (jsonEditsArray.getJSONObject(jsonEditsArray.length() - 1).has("_undoableEditId")) {
-             request.getSession().setAttribute("lastUndoableEditId", 
-                 jsonEditsArray.getJSONObject(jsonEditsArray.length() - 1).getString("_undoableEditId"));
-           } else {
-             request.getSession().removeAttribute("lastUndoableEditId");
-           }
+           request.getSession().setAttribute("lastUndoableEditId", 
+               jsonEditsArray.getJSONObject(jsonEditsArray.length() - 1).getString("_undoableEditId"));
          }
        }
 %>
