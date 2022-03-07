@@ -53,7 +53,7 @@
        synchronized (homeFile.getCanonicalPath().intern()) {
          org.json.JSONArray jsonEditsArray = new org.json.JSONArray(jsonEdits);
          count = jsonEditsArray.length();
-         String lastUndoableEditId = (String)request.getSession().getAttribute("lastUndoableEditId");
+         String lastUndoableEditId = (String)request.getSession().getAttribute("lastUndoableEditId_" + homeName);
          if (lastUndoableEditId != null) {
            int i = jsonEditsArray.length();
            // Remove already applied undoable edits from the current request 
@@ -74,7 +74,7 @@
            recorder.writeHome(homeFile, 0);
              
            // Store the id of the last undoableEdit 
-           request.getSession().setAttribute("lastUndoableEditId", 
+           request.getSession().setAttribute("lastUndoableEditId_" + homeName, 
                jsonEditsArray.getJSONObject(jsonEditsArray.length() - 1).getString("_undoableEditId"));
          }
        }
