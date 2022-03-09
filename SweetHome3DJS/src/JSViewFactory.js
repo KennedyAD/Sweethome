@@ -1836,7 +1836,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
       controller.setFloorThickness(floorThicknessInput.getValue());
     });
   dialog.registerPropertyChangeListener(controller, "FLOOR_THICKNESS", function(ev) {
-      floorThicknessInput.setValue(getNewValue());
+      floorThicknessInput.setValue(ev.getNewValue());
     });
   dialog.floorThicknessInput = floorThicknessInput;
   setFloorThicknessEnabled(controller);
