@@ -3146,8 +3146,6 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       var paintChangeListener = function() {
           floorColorRadioButton.checked = controller.getFloorPaint() == RoomController.RoomPaint.COLORED;
           floorTextureRadioButton.checked = controller.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
-          dialog.floorTextureFittingCheckBox.disabled = controller.getFloorPaint() != RoomController.RoomPaint.TEXTURED
-             && controller.getFloorPaint() != null;
         };
       dialog.registerPropertyChangeListener(controller, "FLOOR_PAINT", paintChangeListener);
   
@@ -3157,20 +3155,6 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       dialog.getElement("floor-color-button").style.display = floorPaintDisplay;
       dialog.getElement("floor-texture-component").style.display = floorPaintDisplay;
   
-      // FLOOR_TEXTURE_FITTING
-      dialog.floorTextureFittingCheckBox = dialog.getElement("floor-texture-fitting-checkbox");
-      dialog.floorTextureFittingCheckBox.checked = controller.getFloorTextureFitting();
-      dialog.floorTextureFittingCheckBox.disabled = controller.getFloorPaint() != RoomController.RoomPaint.TEXTURED
-          && controller.getFloorPaint() != null;
-      dialog.floorTextureFittingCheckBox.parentElement.style.display = 
-          controller.isPropertyEditable("FLOOR_TEXTURE_FITTING") ? "initial" : "none";
-      dialog.registerEventListener(dialog.floorTextureFittingCheckBox, "change", function(ev) {
-          controller.setFloorTextureFitting(dialog.floorTextureFittingCheckBox.checked);
-        });
-      dialog.registerPropertyChangeListener(controller, "FLOOR_TEXTURE_FITTING", function(ev) {
-          dialog.floorTextureFittingCheckBox.checked = controller.getFloorTextureFitting(ev);
-        });
-      
       paintChangeListener();
       
       // FLOOR_SHININESS
