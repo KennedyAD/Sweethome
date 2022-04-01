@@ -440,15 +440,21 @@ FurnitureTablePanel.prototype.renderNameCell = function(piece, cell) {
   var icon = piece instanceof HomeFurnitureGroup
       ? new URLContent(ZIPTools.getScriptFolder() + "/resources/groupIcon.png")
       : piece.getIcon();
-  TextureManager.getInstance().loadTexture(icon, 0, false,
-      {
-        textureUpdated : function(image) {
-          iconElement.appendChild(image.cloneNode());
-        },
-        textureError : function(error) {
-          return this.textureUpdated(TextureManager.getInstance().getErrorImage());
-        }
-      });
+  if (icon != null) {
+    TextureManager.getInstance().loadTexture(icon, 0, false,
+        {
+          textureUpdated : function(image) {
+            iconElement.appendChild(image.cloneNode());
+          },
+          textureError : function(error) {
+            return this.textureUpdated(TextureManager.getInstance().getErrorImage());
+          }
+        });
+  } else {
+    var emptyImage = document.createElement("img");
+    emptyImage.width = 15;
+    iconElement.appendChild(emptyImage);
+  }
   cell.appendChild(iconElement);
 
   var nameElement = document.createElement("span");
