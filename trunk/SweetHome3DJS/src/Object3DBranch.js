@@ -112,8 +112,9 @@ Object3DBranch.prototype.updateTextureTransform = function(appearance, texture, 
  * @param {Appearance3D} appearance
  * @param {HomeTexture} texture
  * @param {Array} areaPoints
+ * @param {boolean} invertY
  */
-Object3DBranch.prototype.updateTextureTransformFittingArea = function(appearance, texture, areaPoints) {
+Object3DBranch.prototype.updateTextureTransformFittingArea = function(appearance, texture, areaPoints, invertY) {
   var minX = Number.POSITIVE_INFINITY;
   var minY = Number.POSITIVE_INFINITY;
   var maxX = Number.NEGATIVE_INFINITY;
@@ -129,7 +130,7 @@ Object3DBranch.prototype.updateTextureTransformFittingArea = function(appearance
   }
 
   var translation = mat3.create();
-  mat3.fromTranslation(translation, vec2.fromValues(-minX, minY));
+  mat3.fromTranslation(translation, vec2.fromValues(-minX, invertY ? minY : -minY));
   var transform = mat3.create();
   mat3.scale(transform, transform, vec2.fromValues(1 / (maxX - minX),  1 / (maxY - minY)));
   mat3.mul(transform, transform, translation);

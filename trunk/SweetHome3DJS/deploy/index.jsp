@@ -1015,10 +1015,7 @@ body {
           <div data-name="floor-texture-component"></div>
     
           <div class="whole-line">
-            <label>
-              <input type="checkbox" name="floor-texture-fitting-checkbox" />
-              @{RoomPanel.floorTextureFittingCheckBox.text}
-            </label>
+            <label>&nbsp;</label>
           </div>
 
           <div class="whole-line">

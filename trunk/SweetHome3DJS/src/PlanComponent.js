@@ -3158,7 +3158,7 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
                   progression: function() { }
                 });
             }
-            if (room.isFloorTextureFitting()) {
+            if (room.getFloorTexture().isFittingArea()) {
               var min = room.getBoundsMinimumCoordinates();
               var max = room.getBoundsMaximumCoordinates();
               textureScaleX = (max[0] - min[0]) / textureImage.width;

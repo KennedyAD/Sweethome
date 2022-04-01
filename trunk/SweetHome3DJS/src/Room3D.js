@@ -469,8 +469,7 @@ Room3D.prototype.computeRoomBorderGeometry = function(geometryRooms, geometryHol
   if (texture != null) {
     var textureCoords = new Array(vertexCount);
     i = 0;
-    var room = this.getUserData();
-    if (room.isFloorTextureFitting()) {
+    if (texture.isFittingArea()) {
       for (var index = 0; index < geometryRooms.length; index++) {
         var geometryPoints = geometryRooms[index];
         for (var j = 0; j < geometryPoints.length; j++) {
@@ -743,8 +742,8 @@ Room3D.prototype.updateRoomPartAppearance = function(roomPartAppearance, roomPar
   } else {
     this.updateAppearanceMaterial(roomPartAppearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, shininess);
     var room = this.getUserData();
-    if (floor && room.isFloorTextureFitting()) {
-      this.updateTextureTransformFittingArea(roomPartAppearance, roomPartTexture, room.getPoints());
+    if (roomPartTexture.isFittingArea()) {
+      this.updateTextureTransformFittingArea(roomPartAppearance, roomPartTexture, room.getPoints(), floor);
     } else {
       this.updateTextureTransform(roomPartAppearance, roomPartTexture, true);
     }
