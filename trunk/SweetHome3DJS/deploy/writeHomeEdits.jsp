@@ -35,13 +35,14 @@
      File   homeFile = new File(homesFolder, homeName + ".sh3d");
 
      // Retrieve home file copy stored in session attribute
-     File referenceCopy = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
-     String readHomeRequest = "readHome.jsp?home=";
+     File referenceCopy = (File)session.getAttribute(homeFile.getCanonicalPath());
+     String readHomeRequestBase = request.getContextPath() + "/readHome.jsp?home=";
+     String readResourceRequestBase = request.getContextPath() + "/userResources/";
      if (referenceCopy != null
          || !homeFile.exists()
          || !HomeServerRecorder.isFileWithContent(homeFile)) {
        // Get preferences stored as an application attribute
-       UserPreferences serverUserPreferences = (UserPreferences)getServletContext().getAttribute("serverUserPreferences");
+       UserPreferences serverUserPreferences = (UserPreferences)application.getAttribute("serverUserPreferences");
        if (serverUserPreferences == null) {
          serverUserPreferences = new ServerUserPreferences(
              new URL [] {new URL(serverBaseUrl, "lib/resources/DefaultFurnitureCatalog.json")}, serverBaseUrl,
@@ -53,7 +54,7 @@
        synchronized (homeFile.getCanonicalPath().intern()) {
          org.json.JSONArray jsonEditsArray = new org.json.JSONArray(jsonEdits);
          count = jsonEditsArray.length();
-         String lastUndoableEditId = (String)request.getSession().getAttribute("lastUndoableEditId_" + homeName);
+         String lastUndoableEditId = (String)getServletContext().getAttribute("lastUndoableEditId_" + homeName);
          if (lastUndoableEditId != null) {
            int i = jsonEditsArray.length();
            // Remove already applied undoable edits from the current request 
@@ -67,14 +68,15 @@
            
          if (jsonEditsArray.length() > 0) {
            HomeServerRecorder recorder = new HomeServerRecorder(homeFile, serverUserPreferences);
-           HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, serverBaseUrl.toString(), readHomeRequest);
+           HomeEditsDeserializer deserializer = new HomeEditsDeserializer(recorder.getHome(), referenceCopy, 
+               serverBaseUrl.toString(), readHomeRequestBase, readResourceRequestBase);
            List<UndoableEdit> edits = deserializer.deserializeEdits(
                jsonEditsArray.length() == count ? jsonEdits : jsonEditsArray.toString());
            deserializer.applyEdits(edits);
            recorder.writeHome(homeFile, 0);
              
            // Store the id of the last undoableEdit 
-           request.getSession().setAttribute("lastUndoableEditId_" + homeName, 
+           application.setAttribute("lastUndoableEditId_" + homeName, 
                jsonEditsArray.getJSONObject(jsonEditsArray.length() - 1).getString("_undoableEditId"));
          }
        }
