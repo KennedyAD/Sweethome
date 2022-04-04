@@ -70,7 +70,6 @@ public class HomeEditsDeserializer {
   private File                    homeFile;
   private String                  baseUrl;
   private String                  readHomeRequestBase;
-  private String                  readResourceRequestBase;
   private HomeController          homeController;
   private UserPreferences         preferences;
   private Map<String, HomeObject> homeObjects;
@@ -89,10 +88,6 @@ public class HomeEditsDeserializer {
     this(home, homeFile, baseUrl, readHomeRequestBase, null, null);
   }
 
-  public HomeEditsDeserializer(Home home, File homeFile, String baseUrl, String readHomeRequestBase, String readResourceRequestBase) {
-    this(home, homeFile, baseUrl, readHomeRequestBase, readResourceRequestBase, null, null);
-  }
-
   public HomeEditsDeserializer(Home home, File homeFile, String baseUrl,
                                UserPreferences preferences, HomeController homeController) {
     this(home, homeFile, baseUrl, null, preferences, homeController);
@@ -100,17 +95,10 @@ public class HomeEditsDeserializer {
 
   public HomeEditsDeserializer(Home home, File homeFile, String baseUrl, String readHomeRequestBase,
                                UserPreferences preferences, HomeController homeController) {
-    this(home, homeFile, baseUrl, readHomeRequestBase, null, preferences, homeController);
-  }
-
-  public HomeEditsDeserializer(Home home, File homeFile, String baseUrl,
-                               String readHomeRequestBase, String readResourceRequestBase,
-                               UserPreferences preferences, HomeController homeController) {
     this.home = home;
     this.homeFile = homeFile;
     this.baseUrl = baseUrl;
     this.readHomeRequestBase = readHomeRequestBase;
-    this.readResourceRequestBase = readResourceRequestBase;
     // User preferences are needed to decode default wall patterns
     this.preferences = preferences != null
         ? preferences
@@ -232,7 +220,7 @@ public class HomeEditsDeserializer {
           if (SimpleURLContent.class.getName().equals(jsonObjectType)) {
             if (this.readHomeRequestBase != null && url.contains(this.readHomeRequestBase)) {
               value = new SimpleURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
-            } else if (this.readResourceRequestBase != null && url.contains(this.readResourceRequestBase)) {
+            } else if (url.startsWith("jar:" + this.baseUrl)) {
               // Prefer URLContent class to avoid saving content in SH3D file
               // Requires that home is saved with ContentRecording.INCLUDE_TEMPORARY_CONTENT (like in HomeServerRecorder)
               value = new URLContent(new URL(url));
@@ -240,7 +228,7 @@ public class HomeEditsDeserializer {
               // Prefer URLContent class to avoid saving content in SH3D file
               value = new URLContent(new URL(url.startsWith("jar:")
                   ? "jar:" + this.baseUrl + url.substring(4)
-                  : url));
+                  : this.baseUrl + url));
             } else {
               value = new SimpleURLContent(new URL(url));
             }
