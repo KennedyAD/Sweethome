@@ -38,11 +38,11 @@
          Path referenceCopy = Files.createTempFile("open-", ".sh3d");
          Files.copy(homeFile.toPath(), referenceCopy, StandardCopyOption.REPLACE_EXISTING);
     
-         File previousOpenedFile = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());
+         File previousOpenedFile = (File)session.getAttribute(homeFile.getCanonicalPath());
          if (previousOpenedFile != null) {
            previousOpenedFile.delete();
          }
-         request.getSession().setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
+         session.setAttribute(homeFile.getCanonicalPath(), referenceCopy.toFile());
          homeFile = referenceCopy.toFile();
          // Temporary file deleted when user calls closeHome.jsp
        }
