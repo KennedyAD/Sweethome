@@ -27,11 +27,11 @@
      File   homeFile = new File(homesFolder, homeName + ".sh3d");
 
      // Retrieve home file copy stored in session attribute
-     File referenceCopy = (File)request.getSession().getAttribute(homeFile.getCanonicalPath());     
+     File referenceCopy = (File)session.getAttribute(homeFile.getCanonicalPath());     
 
      if (referenceCopy != null) {
        referenceCopy.delete();
-       request.getSession().removeAttribute(homeFile.getCanonicalPath());     
+       session.removeAttribute(homeFile.getCanonicalPath());     
      } 
 %>
 Closed <%= homeName %>.
