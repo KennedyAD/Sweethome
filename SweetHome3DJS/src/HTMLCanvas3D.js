@@ -764,7 +764,7 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
   geometry.transparency = nodeAppearance.getTransparency() != null 
       ? 1 - nodeAppearance.getTransparency()
       : 1;
-      geometry.visible = nodeAppearance.isVisible();
+  geometry.visible = nodeAppearance.isVisible();
       
   var geometries = background ? backgroundGeometries : sceneGeometries;
   geometries.push(geometry);
@@ -1550,7 +1550,8 @@ HTMLCanvas3D.prototype.getClosestShapeAt = function(x, y) {
     var geometryColor = vec3.create();
     for (var i = 0; i < this.sceneGeometries.length; i++) {
       var geometry = this.sceneGeometries [i];
-      if (geometry.node.isPickable()) {
+      if (geometry.visible
+          && geometry.node.isPickable()) {
         var defaultColor = geometry.diffuseColor;
         // Change diffuse color by geometry index
         vec3.set(geometryColor, 
