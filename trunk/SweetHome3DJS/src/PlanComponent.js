@@ -1205,13 +1205,13 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                 && mouseListener.distance(ev.canvasX, ev.canvasY,
                 	mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
                 && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_DELAY) { 
-                  clickCount = 2;
-                  mouseListener.firstTouchStartedTimeStamp = 0;
-                  mouseListener.initialPointerLocation = null;
-                } else {
-                  mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
-                  mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
-                }
+              clickCount = 2;
+              mouseListener.firstTouchStartedTimeStamp = 0;
+              mouseListener.initialPointerLocation = null;
+            } else {
+              mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
+              mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+            }
                 
             mouseListener.distanceLastPinch = null;
             mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
