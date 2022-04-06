@@ -41,72 +41,80 @@ function ModelManager() {
 }
 
 /**
+ * Special shapes prefix;
+ */
+ModelManager.SPECIAL_SHAPE_PREFIX = "sweethome3d_";
+/**
  * <code>Shape3D</code> name prefix for window pane shapes. 
  */
-ModelManager.WINDOW_PANE_SHAPE_PREFIX = "sweethome3d_window_pane";
+ModelManager.WINDOW_PANE_SHAPE_PREFIX = ModelManager.SPECIAL_SHAPE_PREFIX + "window_pane";
 /**
  * <code>Shape3D</code> name prefix for mirror shapes. 
  */
-ModelManager.MIRROR_SHAPE_PREFIX = "sweethome3d_window_mirror";
+ModelManager.MIRROR_SHAPE_PREFIX = ModelManager.SPECIAL_SHAPE_PREFIX + "window_mirror";
 /**
  * <code>Shape3D</code> name prefix for lights. 
  */
-ModelManager.LIGHT_SHAPE_PREFIX = "sweethome3d_light";
+ModelManager.LIGHT_SHAPE_PREFIX = ModelManager.SPECIAL_SHAPE_PREFIX + "light";
 /**
  * <code>Node</code> user data prefix for mannequin parts.
  */
-ModelManager.MANNEQUIN_ABDOMEN_PREFIX        = "sweethome3d_mannequin_abdomen";
-ModelManager.MANNEQUIN_CHEST_PREFIX          = "sweethome3d_mannequin_chest";
-ModelManager.MANNEQUIN_PELVIS_PREFIX         = "sweethome3d_mannequin_pelvis";
-ModelManager.MANNEQUIN_NECK_PREFIX           = "sweethome3d_mannequin_neck";
-ModelManager.MANNEQUIN_HEAD_PREFIX           = "sweethome3d_mannequin_head";
-ModelManager.MANNEQUIN_LEFT_SHOULDER_PREFIX  = "sweethome3d_mannequin_left_shoulder";
-ModelManager.MANNEQUIN_LEFT_ARM_PREFIX       = "sweethome3d_mannequin_left_arm";
-ModelManager.MANNEQUIN_LEFT_ELBOW_PREFIX     = "sweethome3d_mannequin_left_elbow";
-ModelManager.MANNEQUIN_LEFT_FOREARM_PREFIX   = "sweethome3d_mannequin_left_forearm";
-ModelManager.MANNEQUIN_LEFT_WRIST_PREFIX     = "sweethome3d_mannequin_left_wrist";
-ModelManager.MANNEQUIN_LEFT_HAND_PREFIX      = "sweethome3d_mannequin_left_hand";
-ModelManager.MANNEQUIN_LEFT_HIP_PREFIX       = "sweethome3d_mannequin_left_hip";
-ModelManager.MANNEQUIN_LEFT_THIGH_PREFIX     = "sweethome3d_mannequin_left_thigh";
-ModelManager.MANNEQUIN_LEFT_KNEE_PREFIX      = "sweethome3d_mannequin_left_knee";
-ModelManager.MANNEQUIN_LEFT_LEG_PREFIX       = "sweethome3d_mannequin_left_leg";
-ModelManager.MANNEQUIN_LEFT_ANKLE_PREFIX     = "sweethome3d_mannequin_left_ankle";
-ModelManager.MANNEQUIN_LEFT_FOOT_PREFIX      = "sweethome3d_mannequin_left_foot";
-ModelManager.MANNEQUIN_RIGHT_SHOULDER_PREFIX = "sweethome3d_mannequin_right_shoulder";
-ModelManager.MANNEQUIN_RIGHT_ARM_PREFIX      = "sweethome3d_mannequin_right_arm";
-ModelManager.MANNEQUIN_RIGHT_ELBOW_PREFIX    = "sweethome3d_mannequin_right_elbow";
-ModelManager.MANNEQUIN_RIGHT_FOREARM_PREFIX  = "sweethome3d_mannequin_right_forearm";
-ModelManager.MANNEQUIN_RIGHT_WRIST_PREFIX    = "sweethome3d_mannequin_right_wrist";
-ModelManager.MANNEQUIN_RIGHT_HAND_PREFIX     = "sweethome3d_mannequin_right_hand";
-ModelManager.MANNEQUIN_RIGHT_HIP_PREFIX      = "sweethome3d_mannequin_right_hip";
-ModelManager.MANNEQUIN_RIGHT_THIGH_PREFIX    = "sweethome3d_mannequin_right_thigh";
-ModelManager.MANNEQUIN_RIGHT_KNEE_PREFIX     = "sweethome3d_mannequin_right_knee";
-ModelManager.MANNEQUIN_RIGHT_LEG_PREFIX      = "sweethome3d_mannequin_right_leg";
-ModelManager.MANNEQUIN_RIGHT_ANKLE_PREFIX    = "sweethome3d_mannequin_right_ankle";
-ModelManager.MANNEQUIN_RIGHT_FOOT_PREFIX     = "sweethome3d_mannequin_right_foot";
+ModelManager.MANNEQUIN_ABDOMEN_PREFIX        = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_abdomen";
+ModelManager.MANNEQUIN_CHEST_PREFIX          = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_chest";
+ModelManager.MANNEQUIN_PELVIS_PREFIX         = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_pelvis";
+ModelManager.MANNEQUIN_NECK_PREFIX           = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_neck";
+ModelManager.MANNEQUIN_HEAD_PREFIX           = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_head";
+ModelManager.MANNEQUIN_LEFT_SHOULDER_PREFIX  = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_shoulder";
+ModelManager.MANNEQUIN_LEFT_ARM_PREFIX       = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_arm";
+ModelManager.MANNEQUIN_LEFT_ELBOW_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_elbow";
+ModelManager.MANNEQUIN_LEFT_FOREARM_PREFIX   = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_forearm";
+ModelManager.MANNEQUIN_LEFT_WRIST_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_wrist";
+ModelManager.MANNEQUIN_LEFT_HAND_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_hand";
+ModelManager.MANNEQUIN_LEFT_HIP_PREFIX       = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_hip";
+ModelManager.MANNEQUIN_LEFT_THIGH_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_thigh";
+ModelManager.MANNEQUIN_LEFT_KNEE_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_knee";
+ModelManager.MANNEQUIN_LEFT_LEG_PREFIX       = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_leg";
+ModelManager.MANNEQUIN_LEFT_ANKLE_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_ankle";
+ModelManager.MANNEQUIN_LEFT_FOOT_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_left_foot";
+ModelManager.MANNEQUIN_RIGHT_SHOULDER_PREFIX = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_shoulder";
+ModelManager.MANNEQUIN_RIGHT_ARM_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_arm";
+ModelManager.MANNEQUIN_RIGHT_ELBOW_PREFIX    = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_elbow";
+ModelManager.MANNEQUIN_RIGHT_FOREARM_PREFIX  = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_forearm";
+ModelManager.MANNEQUIN_RIGHT_WRIST_PREFIX    = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_wrist";
+ModelManager.MANNEQUIN_RIGHT_HAND_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_hand";
+ModelManager.MANNEQUIN_RIGHT_HIP_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_hip";
+ModelManager.MANNEQUIN_RIGHT_THIGH_PREFIX    = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_thigh";
+ModelManager.MANNEQUIN_RIGHT_KNEE_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_knee";
+ModelManager.MANNEQUIN_RIGHT_LEG_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_leg";
+ModelManager.MANNEQUIN_RIGHT_ANKLE_PREFIX    = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_ankle";
+ModelManager.MANNEQUIN_RIGHT_FOOT_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_right_foot";
 
-ModelManager.MANNEQUIN_ABDOMEN_CHEST_PREFIX  = "sweethome3d_mannequin_abdomen_chest";
-ModelManager.MANNEQUIN_ABDOMEN_PELVIS_PREFIX = "sweethome3d_mannequin_abdomen_pelvis";
+ModelManager.MANNEQUIN_ABDOMEN_CHEST_PREFIX  = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_abdomen_chest";
+ModelManager.MANNEQUIN_ABDOMEN_PELVIS_PREFIX = ModelManager.SPECIAL_SHAPE_PREFIX + "mannequin_abdomen_pelvis";
 /**
  * <code>Node</code> user data prefix for ball / rotating  joints.
  */
-ModelManager.BALL_PREFIX                 = "sweethome3d_ball_";
-ModelManager.ARM_ON_BALL_PREFIX          = "sweethome3d_arm_on_ball_";
+ModelManager.BALL_PREFIX                 = ModelManager.SPECIAL_SHAPE_PREFIX + "ball_";
+ModelManager.ARM_ON_BALL_PREFIX          = ModelManager.SPECIAL_SHAPE_PREFIX + "arm_on_ball_";
 /**
  * <code>Node</code> user data prefix for hinge / rotating opening joints.
  */
-ModelManager.HINGE_PREFIX                = "sweethome3d_hinge_";
-ModelManager.OPENING_ON_HINGE_PREFIX     = "sweethome3d_opening_on_hinge_";
+ModelManager.HINGE_PREFIX                = ModelManager.SPECIAL_SHAPE_PREFIX + "hinge_";
+ModelManager.OPENING_ON_HINGE_PREFIX     = ModelManager.SPECIAL_SHAPE_PREFIX + "opening_on_hinge_";
 ModelManager.WINDOW_PANE_ON_HINGE_PREFIX = ModelManager.WINDOW_PANE_SHAPE_PREFIX + "_on_hinge_";
 ModelManager.MIRROR_ON_HINGE_PREFIX      = ModelManager.MIRROR_SHAPE_PREFIX + "_on_hinge_";
 /**
  * <code>Node</code> user data prefix for rail / sliding opening joints.
  */
-ModelManager.UNIQUE_RAIL_PREFIX          = "sweethome3d_unique_rail";
-ModelManager.RAIL_PREFIX                 = "sweethome3d_rail_";
-ModelManager.OPENING_ON_RAIL_PREFIX      = "sweethome3d_opening_on_rail_";
+ModelManager.UNIQUE_RAIL_PREFIX          = ModelManager.SPECIAL_SHAPE_PREFIX + "unique_rail";
+ModelManager.RAIL_PREFIX                 = ModelManager.SPECIAL_SHAPE_PREFIX + "rail_";
+ModelManager.OPENING_ON_RAIL_PREFIX      = ModelManager.SPECIAL_SHAPE_PREFIX + "opening_on_rail_";
 ModelManager.WINDOW_PANE_ON_RAIL_PREFIX  = ModelManager.WINDOW_PANE_SHAPE_PREFIX + "_on_rail_";
 ModelManager.MIRROR_ON_RAIL_PREFIX       = ModelManager.MIRROR_SHAPE_PREFIX + "_on_rail_";
+/**
+ * <code>Node</code> user data separator for sub transformations.
+ */
+ModelManager.SUB_TRANSFORMATION_SEPARATOR = "_and_";
 /**
  * Deformable group suffix.
  */
@@ -803,6 +811,11 @@ ModelManager.prototype.updateDeformableModelHierarchy = function(group) {
     this.updateSimpleDeformableModelHierarchy(group, null, ModelManager.BALL_PREFIX, ModelManager.ARM_ON_BALL_PREFIX, null, null);
     // Reorganize sliding openings
     this.updateSimpleDeformableModelHierarchy(group, ModelManager.UNIQUE_RAIL_PREFIX, ModelManager.RAIL_PREFIX, ModelManager.OPENING_ON_RAIL_PREFIX, ModelManager.MIRROR_ON_RAIL_PREFIX);
+    // Reorganize sub hierarchies
+    var movedNodes = [];
+    while (this.updateDeformableModelSubTransformedHierarchy(group, group, [ModelManager.HINGE_PREFIX, ModelManager.BALL_PREFIX, ModelManager.RAIL_PREFIX],
+        [ModelManager.OPENING_ON_HINGE_PREFIX, ModelManager.ARM_ON_BALL_PREFIX, ModelManager.OPENING_ON_RAIL_PREFIX], movedNodes)) {
+    }
   }
 }
 
@@ -923,8 +936,100 @@ ModelManager.prototype.createPickableTransformGroup = function(deformableGroupPr
 }
 
 /**
- * Return <code>true</code> if the given <code>node</code> or its children contains at least a deformable group.
+ * Updates the first node found in the given <code>group</code> which specifies a transformation
+ * which should depend on another transformed node.
+ * @param {Group3D} group
+ * @param {Node3D}  node  
+ * @param {Array}   referenceNodePrefixes
+ * @param {Array}   subTransformationOpeningPrefixes
+ * @param {Array}   movedNodes
+ * @return {boolean} <code>true</code> if such a node was found and attached to another transformation
+ * @private
+ */
+ModelManager.prototype.updateDeformableModelSubTransformedHierarchy = function(group, node, referenceNodePrefixes, subTransformationOpeningPrefixes,
+                                                                               movedNodes) {
+  if (group !== node
+      && movedNodes.indexOf(node) < 0) {
+    var name = node.getName();
+    if (name !== null) {
+      for (var i = 0; i < referenceNodePrefixes.length; i++) {
+        var prefix = referenceNodePrefixes [i];
+        if (name.indexOf(prefix) === 0) {
+          var index = name.indexOf(ModelManager.SUB_TRANSFORMATION_SEPARATOR);
+          if (index > 0) {
+            for (var j = 0; j < subTransformationOpeningPrefixes.length; j++) {
+              var subTransformationIndex = name.indexOf(subTransformationOpeningPrefixes [j], index + ModelManager.SUB_TRANSFORMATION_SEPARATOR.length);
+              if (subTransformationIndex >= 0) {
+                if (movedNodes.indexOf(node) < 0) {
+                  movedNodes.push(node); 
+                }
+                var referenceNode = node.getParent();
+                var parent = referenceNode.getParent();
+                var nodeIndex = parent.getChildren().indexOf(referenceNode);
+                var pickableGroup = parent.getChild(++nodeIndex);
+                while (!(pickableGroup instanceof TransformGroup3D)) {
+                  pickableGroup = parent.getChild(++nodeIndex);
+                }
+                var lastDigitIndex = subTransformationIndex + subTransformationOpeningPrefixes [j].length;
+                while (lastDigitIndex < name.length && name.charAt(lastDigitIndex) >= '0' && name.charAt(lastDigitIndex) <= '9') {
+                  lastDigitIndex++;
+                }
+                // Remove node and its sibling group and attach it to parent transformation
+                if (this.attachNodesToPickableTransformGroup(group,
+                      referenceNodePrefixes [j] + name.substring(subTransformationIndex + subTransformationOpeningPrefixes [j].length, lastDigitIndex),
+                      [referenceNode, pickableGroup])) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (node instanceof Group3D) {
+    var children = node.getChildren();
+    for (var i = children.length - 1; i >= 0; i--) {
+      if (this.updateDeformableModelSubTransformedHierarchy(group, children [i], referenceNodePrefixes, subTransformationOpeningPrefixes, movedNodes)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * @param {Node3D} node  the root of a model
+ * @param {string} groupPrefix
+ * @param {Array}  movedNodes
+ * @return {boolean}
+ * @private
+ */
+ModelManager.prototype.attachNodesToPickableTransformGroup = function(node, groupPrefix, movedNodes) {
+  if (node instanceof TransformGroup3D
+      && (groupPrefix + ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) == node.getName()) {
+    var group = node;
+    for (var i = 0; i < movedNodes.length; i++) {
+      var movedNode = movedNodes [i];
+      movedNode.getParent().removeChild(movedNode);
+      group.addChild(movedNode);
+    }
+    return true;
+  } else if (node instanceof Group3D) {
+    var children = node.getChildren();
+    for (var i = 0; i < children.length; i++) {
+      if (this.attachNodesToPickableTransformGroup(children [i], groupPrefix, movedNodes)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Returns <code>true</code> if the given <code>node</code> or its children contains at least a deformable group.
+ * @param {Node3D} node  the root of a model
+ * @return {boolean}
  */
 ModelManager.prototype.containsDeformableNode = function(node) {
   if (node instanceof TransformGroup3D
@@ -944,8 +1049,9 @@ ModelManager.prototype.containsDeformableNode = function(node) {
 }
 
 /**
- * Return <code>true</code> if the given <code>node</code> or its children contains is a deformed transformed group.
+ * Returns <code>true</code> if the given <code>node</code> or its children contains is a deformed transformed group.
  * @param {Node3D} node  a node
+ * @return {boolean}
  * @private
  */
 ModelManager.prototype.isDeformed = function(node) {

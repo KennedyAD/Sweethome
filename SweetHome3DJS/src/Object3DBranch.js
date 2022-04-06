@@ -108,6 +108,36 @@ Object3DBranch.prototype.updateTextureTransform = function(appearance, texture, 
 }
 
 /**
+ * Updates the texture transformation of an appearance to fit the surface matching <code>areaPoints</code>.
+ * @param {Appearance3D} appearance
+ * @param {HomeTexture} texture
+ * @param {Array} areaPoints
+ * @param {boolean} invertY
+ */
+Object3DBranch.prototype.updateTextureTransformFittingArea = function(appearance, texture, areaPoints, invertY) {
+  var minX = Number.POSITIVE_INFINITY;
+  var minY = Number.POSITIVE_INFINITY;
+  var maxX = Number.NEGATIVE_INFINITY;
+  var maxY = Number.NEGATIVE_INFINITY;
+  for (var i = 0; i < areaPoints.length; i++) {
+    minX = Math.min(minX, areaPoints [i][0]);
+    minY = Math.min(minY, areaPoints [i][1]);
+    maxX = Math.max(maxX, areaPoints [i][0]);
+    maxY = Math.max(maxY, areaPoints [i][1]);
+  }
+  if (maxX - minX <= 0 || maxY - minY <= 0) {
+    this.updateTextureTransform(appearance, texture, true);
+  }
+
+  var translation = mat3.create();
+  mat3.fromTranslation(translation, vec2.fromValues(-minX, invertY ? minY : -minY));
+  var transform = mat3.create();
+  mat3.scale(transform, transform, vec2.fromValues(1 / (maxX - minX),  1 / (maxY - minY)));
+  mat3.mul(transform, transform, translation);
+  appearance.setTextureTransform(transform);
+}
+
+/**
  * Returns the list of polygons points matching the given <code>area</code> with detailed information in
  * <code>areaPoints</code> and <code>areaHoles</code> if they exists.
  * @param {Area} area
@@ -301,17 +331,24 @@ Object3DBranch.prototype.getAreaPoints = function (area, areaPoints, areaHoles, 
   }
   return areaPointsWithoutHoles;
 }
+
 /**
  * Returns <code>true</code> if the given arrays contain the same values. 
  * @private
  */
 Object3DBranch.areModelRotationsEqual = function(rotation1, rotation2) {
-  for (var i = 0; i < rotation1.length; i++) {
-    for (var j = 0; j < rotation2.length; j++) {
-      if (rotation1[i][j] !== rotation2 [i][j]) {
-        return false;
+  if (rotation1 === rotation2) {
+    return true;
+  } else if (rotation1 == null || rotation2 == null) {
+    return false;
+  } else {
+    for (var i = 0; i < rotation1.length; i++) {
+      for (var j = 0; j < rotation2.length; j++) {
+        if (rotation1[i][j] !== rotation2 [i][j]) {
+          return false;
+        }
       }
     }
+    return true;
   }
-  return true;
 }

@@ -1263,8 +1263,8 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         }
       }
 
-      var selected = languageCode == controller.getLanguage();
-      var languageOption = JSComponent.createOptionElement(languageCode, languageDisplayName, selected);
+      var selected = supportedLanguages[i] == controller.getLanguage();
+      var languageOption = JSComponent.createOptionElement(supportedLanguages[i], languageDisplayName, selected);
       dialog.languageSelect.appendChild(languageOption);
     }
   } else {
@@ -1836,7 +1836,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
       controller.setFloorThickness(floorThicknessInput.getValue());
     });
   dialog.registerPropertyChangeListener(controller, "FLOOR_THICKNESS", function(ev) {
-      floorThicknessInput.setValue(getNewValue());
+      floorThicknessInput.setValue(ev.getNewValue());
     });
   dialog.floorThicknessInput = floorThicknessInput;
   setFloorThicknessEnabled(controller);
@@ -2750,27 +2750,6 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     };
 
   var initLeftAndRightSidesPanels = function(dialog) {
-    // Find which wall side is the closest to the pointer location
-    var home = controller.home;
-    var planController = application.getHomeController(home).getPlanController();
-    var x = planController.getXLastMousePress();
-    var y = planController.getYLastMousePress();
-    var wall = home.getSelectedItems()[0];
-    var points = wall.getPoints();
-    var leftMinDistance = Number.MAX_VALUE;
-    for (var i = points.length / 2 - 1; i > 0; i--) {
-      leftMinDistance = Math.min(leftMinDistance,
-          java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i - 1][0], points[i - 1][1], x, y))
-    }
-    var rightMinDistance = Number.MAX_VALUE;
-    for (var i = points.length / 2; i < points.length - 1; i++) {
-      rightMinDistance = Math.min(rightMinDistance,
-          java.awt.geom.Line2D.ptLineDistSq(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1], x, y))
-    }
-    var leftSide = leftMinDistance < rightMinDistance;
-
-    dialog.findElement(leftSide ? ".column1" : ".column2").classList.add("selected");
-
     var leftSideColorRadioButton = dialog.findElement("[name='left-side-color-and-texture-choice'][value='COLORED']");
     var leftSideTextureRadioButton = dialog.findElement("[name='left-side-color-and-texture-choice'][value='TEXTURED']");
     var rightSideColorRadioButton = dialog.findElement("[name='right-side-color-and-texture-choice'][value='COLORED']");
@@ -2788,11 +2767,11 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     updateLeftSidePaint();
     updateRightSidePaint();
     dialog.registerPropertyChangeListener(controller, "LEFT_SIDE_PAINT", function() {
-      updateLeftSidePaint();
-    });
+        updateLeftSidePaint();
+      });
     dialog.registerPropertyChangeListener(controller, "RIGHT_SIDE_PAINT", function() {
-      updateRightSidePaint();
-    });
+        updateRightSidePaint();
+      });
 
     // Colors
     dialog.leftSideColorButton = new ColorButton(preferences,  
@@ -3170,7 +3149,6 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           floorColorRadioButton.checked = controller.getFloorPaint() == RoomController.RoomPaint.COLORED;
           floorTextureRadioButton.checked = controller.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
         };
-      paintChangeListener();
       dialog.registerPropertyChangeListener(controller, "FLOOR_PAINT", paintChangeListener);
   
       var floorPaintDisplay = controller.isPropertyEditable("FLOOR_PAINT") ? "initial" : "none";
@@ -3179,6 +3157,8 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       dialog.getElement("floor-color-button").style.display = floorPaintDisplay;
       dialog.getElement("floor-texture-component").style.display = floorPaintDisplay;
   
+      paintChangeListener();
+      
       // FLOOR_SHININESS
       var shininessRadioButtons = dialog.findElements("[name='floor-shininess-choice']");
       dialog.registerEventListener(shininessRadioButtons, "change", function() {
@@ -3262,6 +3242,18 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       var ceilingShininessDisplay = controller.isPropertyEditable("CEILING_SHININESS") ? "initial" : "none";
       shininessRadioButtons[0].parentElement.parentElement = ceilingShininessDisplay;
+
+      // CEILING_FLAT
+      dialog.ceilingFlatCheckBox = dialog.getElement("ceiling-flat-checkbox");
+      dialog.ceilingFlatCheckBox.checked = controller.getCeilingFlat();
+      dialog.ceilingFlatCheckBox.parentElement.style.display = 
+          controller.isPropertyEditable("CEILING_FLAT") ? "initial" : "none";
+      dialog.registerEventListener(dialog.ceilingFlatCheckBox, "change", function(ev) {
+          controller.setCeilingFlat(dialog.ceilingFlatCheckBox.checked);
+        });
+      dialog.registerPropertyChangeListener(controller, "CEILING_FLAT", function(ev) {
+          dialog.ceilingFlatCheckBox.checked = controller.getCeilingFlat(ev);
+        });
     };
 
   var selectSplitSurroundingWallsAtFirstChange = function(dialog) {

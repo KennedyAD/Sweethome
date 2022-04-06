@@ -68,8 +68,8 @@ import sun.misc.Unsafe;
 public class HomeEditsDeserializer {
   private Home                    home;
   private File                    homeFile;
-  private String                  readHomeRequestBase;
   private String                  baseUrl;
+  private String                  readHomeRequestBase;
   private HomeController          homeController;
   private UserPreferences         preferences;
   private Map<String, HomeObject> homeObjects;
@@ -97,8 +97,8 @@ public class HomeEditsDeserializer {
                                UserPreferences preferences, HomeController homeController) {
     this.home = home;
     this.homeFile = homeFile;
-    this.readHomeRequestBase = readHomeRequestBase;
     this.baseUrl = baseUrl;
+    this.readHomeRequestBase = readHomeRequestBase;
     // User preferences are needed to decode default wall patterns
     this.preferences = preferences != null
         ? preferences
@@ -220,12 +220,15 @@ public class HomeEditsDeserializer {
           if (SimpleURLContent.class.getName().equals(jsonObjectType)) {
             if (this.readHomeRequestBase != null && url.contains(this.readHomeRequestBase)) {
               value = new SimpleURLContent(new URL("jar:" + this.homeFile.toURI().toURL() + url.substring(url.indexOf("!/"))));
-            } else if (!url.contains("://")) {
+            } else if (url.startsWith("jar:" + this.baseUrl)) {
               // Prefer URLContent class to avoid saving content in SH3D file
               // Requires that home is saved with ContentRecording.INCLUDE_TEMPORARY_CONTENT (like in HomeServerRecorder)
+              value = new URLContent(new URL(url));
+            } else if (!url.contains("://")) {
+              // Prefer URLContent class to avoid saving content in SH3D file
               value = new URLContent(new URL(url.startsWith("jar:")
                   ? "jar:" + this.baseUrl + url.substring(4)
-                  : url));
+                  : this.baseUrl + url));
             } else {
               value = new SimpleURLContent(new URL(url));
             }

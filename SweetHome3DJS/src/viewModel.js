@@ -81,7 +81,7 @@ function viewModelInOverlay(modelUrl, modelRotation) {
         canvas.modelPreviewComponent = new ModelPreviewComponent("canvas3D", true);
       }
       var modelPreviewComponent = canvas.modelPreviewComponent;
-      var modelRotationMatrix = undefined;
+      var modelRotationMatrix = null;
       if (modelRotation) {
         var values = modelRotation.split(/\s+/);
         modelRotationMatrix = [[parseFloat(values [0]), parseFloat(values [1]), parseFloat(values [2])], 

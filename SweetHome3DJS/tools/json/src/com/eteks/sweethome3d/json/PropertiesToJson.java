@@ -32,12 +32,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -59,7 +57,8 @@ public class PropertiesToJson {
     String[] supportedLanguages = {"", "bg", "cs", "de", "el", "en_AU", "en_CA", "en_US", "es", "fr", "it", "ja", "hu", "nl",
         "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"};
 
-    if (args.length >= 5) {
+    if (args.length >= 5
+        && new File(args [1]).isFile()) {
       String sourceRoot = args [0];
       String sourcePropertyFile = args [1];
       boolean resourceNameFromFile = true;

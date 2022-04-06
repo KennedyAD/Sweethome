@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- build.xml
 
-     Sweet Home 3D JS, Copyright (c) 2016-2021 Emmanuel PUYBARET / eTeks <info@eteks.com>. 
+     Sweet Home 3D JS, Copyright (c) 2016-2022 Emmanuel PUYBARET / eTeks <info@eteks.com>. 
      
      Ant build file. Available targets :
      - viewerLibraries         : Generates JavaScript libraries required for the viewer project
@@ -15,7 +15,7 @@
 -->
 <project basedir="." default="viewerBuild" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="6.6.4"/>
+  <property name="version" value="7.0"/>
 
   <!-- The version of JSweet transpiler (use version 3.1.0 to compile with Java 11) -->
   <property name="jsweet-version" value="3.2.0-SNAPSHOT"/>
