@@ -170,6 +170,9 @@ function JSModelMaterialsSelectorDialog(preferences, controller) {
                     var selectedColor = selectedMaterial.getColor();
                     if (selectedColor == null) {
                       selectedColor = defaultMaterial.getColor();
+                      if (selectedColor == null) {
+                        selectedColor = 0xFF000000;
+                      }
                     }
                     selectedColor &= 0x00FFFFFF;
                     var red   = (selectedColor >> 16) & 0xFF;
@@ -563,9 +566,10 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
         if (shininess != null) {
           dialog.shininessSlider.value = shininess * 128;
         } else {
-          dialog.shininessSlider.value = defaultMaterial.getShininess() * 128;
+          dialog.shininessSlider.value = defaultMaterial.getShininess() != null
+              ? defaultMaterial.getShininess() * 128
+              : 0;
         }
-  
       }
       dialog.enableComponents();
     });

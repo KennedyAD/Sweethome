@@ -612,23 +612,28 @@ DAEHandler.prototype.handleEffectElementsEnd = function(name, parent) {
     var appearance = this.effectAppearances [this.effectId];
     if (transparencyValue > 0) {
       appearance.setTransparency(transparencyValue); // 0 means opaque 
-    } else {
-      // Set default color if it doesn't exist yet
-      var black = vec3.fromValues(0., 0., 0.);
+    }
+    // Set default color if it doesn't exist yet
+    var defaultColor = this.transparentColor != null
+        ? vec3.fromValues(this.transparentColor [0], this.transparentColor [1], this.transparentColor [2])
+        : vec3.fromValues(0., 0., 0.);
+    if (!appearance.getAmbientColor()
+        && !appearance.getDiffuseColor()
+        && !appearance.getSpecularColor()) {
       if (!appearance.getAmbientColor()) {
-        appearance.setAmbientColor(black);
+        appearance.setAmbientColor(defaultColor);
       }
       if (!appearance.getDiffuseColor()) {
-        appearance.setDiffuseColor(black);
+        appearance.setDiffuseColor(defaultColor);
       }
       if (!appearance.getSpecularColor()) {
-        appearance.setSpecularColor(black);
+        appearance.setSpecularColor(defaultColor);
       }
       if (!appearance.getShininess()) {
         appearance.setShininess(1);
       }
       // TODO Ignore coloring attributes ?
-      // appearance.setColoringAttributes(black);      
+      // appearance.setColoringAttributes(defaultColor);      
     }
     this.transparentColor = null;
     this.transparency = null;

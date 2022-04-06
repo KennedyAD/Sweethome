@@ -1562,13 +1562,13 @@ RecordedUserPreferences.prototype.updateDefaultCatalogs = function() {
   }
 
   // Add default pieces
-  var defaultFurnitureCatalog = typeof DefaultFurnitureCatalog === "function"
+  var resourceFurnitureCatalog = typeof DefaultFurnitureCatalog === "function"
       ? (Array.isArray(this.furnitureCatalogUrls)
-          ? new DefaultFurnitureCatalog(this.furnitureCatalogUrls, this.furnitureResourcesUrlBase)
+          ? this.readFurnitureCatalogFromResource(this.furnitureCatalogUrls, this.furnitureResourcesUrlBase)
           : new DefaultFurnitureCatalog(this))
       : new FurnitureCatalog();
-  for (var i = 0; i < defaultFurnitureCatalog.getCategories().length; i++) {
-    var category = defaultFurnitureCatalog.getCategory(i);
+  for (var i = 0; i < resourceFurnitureCatalog.getCategories().length; i++) {
+    var category = resourceFurnitureCatalog.getCategory(i);
     for (var j = 0; j < category.getFurniture().length; j++) {
       var piece = category.getPieceOfFurniture(j);
       furnitureCatalog.add(category, piece);
@@ -1587,19 +1587,39 @@ RecordedUserPreferences.prototype.updateDefaultCatalogs = function() {
     }
   }
   // Add default textures
-  var defaultTexturesCatalog = typeof DefaultTexturesCatalog === "function"
+  var resourceTexturesCatalog = typeof DefaultTexturesCatalog === "function"
       ? (Array.isArray(this.texturesCatalogUrls)
-          ? new DefaultTexturesCatalog(this.texturesCatalogUrls, this.texturesResourcesUrlBase)
+          ? this.readTexturesCatalogFromResource(this.texturesCatalogUrls, this.texturesResourcesUrlBase)
           : new DefaultTexturesCatalog(this))
       : new TexturesCatalog();
 
-  for (var i = 0; i < defaultTexturesCatalog.getCategories().length; i++) {
-    var category = defaultTexturesCatalog.getCategory(i);
+  for (var i = 0; i < resourceTexturesCatalog.getCategories().length; i++) {
+    var category = resourceTexturesCatalog.getCategory(i);
     for (var j = 0; j < category.getTextures().length; j++) {
       var texture = category.getTexture(j);
       texturesCatalog.add(category, texture);
     }
   }
+}
+
+/**
+ * Returns the furniture catalog contained from the given resources.
+ * @param {Array} furnitureCatalogUrls
+ * @param {String} furnitureResourcesUrlBase
+ * @protected
+ */
+RecordedUserPreferences.prototype.readFurnitureCatalogFromResource = function(furnitureCatalogUrls, furnitureResourcesUrlBase) {
+  return new DefaultFurnitureCatalog(furnitureCatalogUrls, furnitureResourcesUrlBase);
+}
+
+/**
+ * Returns the textures catalog contained from the the given resources.
+ * @param {Array} texturesCatalogUrls
+ * @param {String} texturesResourcesUrlBase
+ * @protected
+ */
+RecordedUserPreferences.prototype.readTexturesCatalogFromResource = function(texturesCatalogUrls, texturesResourcesUrlBase) {
+  return new DefaultTexturesCatalog(texturesCatalogUrls, texturesResourcesUrlBase);
 }
 
 /**

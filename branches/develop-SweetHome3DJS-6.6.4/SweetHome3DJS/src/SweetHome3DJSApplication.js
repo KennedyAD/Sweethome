@@ -1,7 +1,7 @@
 /*
  * SweetHome3DJSApplication.js
  *
- * Sweet Home 3D, Copyright (c) 2021 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2022 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -439,7 +439,6 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send("home=" + encodeURIComponent(home.name) 
         + "&editionId=" + home.editionId 
-        + "&updateId=" + update.id 
         + "&version=" + this.application.getVersion()  
         + "&edits=" + encodeURIComponent(JSON.stringify(update.edits)));
   }
@@ -574,6 +573,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   if (undoAction) {
     processedEdit._action = "undo";
   }
+  processedEdit._undoableEditId = UUID.randomUUID();
   
   if (!this.queue) {
     this.queue = [];
@@ -599,7 +599,6 @@ IncrementalHomeRecorder.prototype.beginUpdate = function(home) {
   
   this.homeData[home.editionId].ongoingUpdate = { 
       "home": home, 
-      "id": UUID.randomUUID(), 
       "edits": this.queue.slice(0)};
   if (this.configuration !== undefined 
       && this.configuration.writingObserver 
@@ -783,7 +782,7 @@ SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
 SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
 
 SweetHome3DJSApplication.prototype.getVersion = function() {
-  return "6.6.4";
+  return "7.0";
 }
 
 SweetHome3DJSApplication.prototype.getHomeController = function(home) {

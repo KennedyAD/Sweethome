@@ -303,7 +303,7 @@ TextureManager.prototype.getWaitImage = function() {
  * @private
  */
 TextureManager.prototype.getColoredImage = function(color) {
-  // Create on the fly a red image of 2x2 pixels
+  // Create on the fly an image of 2x2 pixels
   var canvas = document.createElement('canvas');
   canvas.width = 2;
   canvas.height = 2;
