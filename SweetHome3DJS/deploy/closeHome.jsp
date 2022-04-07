@@ -1,4 +1,4 @@
-1<%--
+<%--
    closeHome.jsp 
    
    Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
