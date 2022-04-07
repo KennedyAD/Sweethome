@@ -53,7 +53,7 @@
        synchronized (homeFile.getCanonicalPath().intern()) {
          org.json.JSONArray jsonEditsArray = new org.json.JSONArray(jsonEdits);
          count = jsonEditsArray.length();
-         String lastUndoableEditId = (String)getServletContext().getAttribute("lastUndoableEditId_" + homeName);
+         String lastUndoableEditId = (String)application.getAttribute("lastUndoableEditId_" + homeName);
          if (lastUndoableEditId != null) {
            int i = jsonEditsArray.length();
            // Remove already applied undoable edits from the current request 
