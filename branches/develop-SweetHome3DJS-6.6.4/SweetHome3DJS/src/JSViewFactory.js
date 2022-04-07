@@ -2618,8 +2618,6 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
 }
 
 JSViewFactory.prototype.createWallView = function(preferences, controller) {
-  var application = this.application;
-
   var initStartAndEndPointsPanel = function(dialog) {
     var maximumLength = preferences.getLengthUnit().getMaximumLength();
 
@@ -2767,11 +2765,11 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     updateLeftSidePaint();
     updateRightSidePaint();
     dialog.registerPropertyChangeListener(controller, "LEFT_SIDE_PAINT", function() {
-        updateLeftSidePaint();
-      });
+      updateLeftSidePaint();
+    });
     dialog.registerPropertyChangeListener(controller, "RIGHT_SIDE_PAINT", function() {
-        updateRightSidePaint();
-      });
+      updateRightSidePaint();
+    });
 
     // Colors
     dialog.leftSideColorButton = new ColorButton(preferences,  
@@ -3149,6 +3147,7 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
           floorColorRadioButton.checked = controller.getFloorPaint() == RoomController.RoomPaint.COLORED;
           floorTextureRadioButton.checked = controller.getFloorPaint() == RoomController.RoomPaint.TEXTURED;
         };
+      paintChangeListener();
       dialog.registerPropertyChangeListener(controller, "FLOOR_PAINT", paintChangeListener);
   
       var floorPaintDisplay = controller.isPropertyEditable("FLOOR_PAINT") ? "initial" : "none";
@@ -3157,8 +3156,6 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
       dialog.getElement("floor-color-button").style.display = floorPaintDisplay;
       dialog.getElement("floor-texture-component").style.display = floorPaintDisplay;
   
-      paintChangeListener();
-      
       // FLOOR_SHININESS
       var shininessRadioButtons = dialog.findElements("[name='floor-shininess-choice']");
       dialog.registerEventListener(shininessRadioButtons, "change", function() {
@@ -3242,18 +3239,6 @@ JSViewFactory.prototype.createRoomView = function(preferences, controller) {
   
       var ceilingShininessDisplay = controller.isPropertyEditable("CEILING_SHININESS") ? "initial" : "none";
       shininessRadioButtons[0].parentElement.parentElement = ceilingShininessDisplay;
-
-      // CEILING_FLAT
-      dialog.ceilingFlatCheckBox = dialog.getElement("ceiling-flat-checkbox");
-      dialog.ceilingFlatCheckBox.checked = controller.getCeilingFlat();
-      dialog.ceilingFlatCheckBox.parentElement.style.display = 
-          controller.isPropertyEditable("CEILING_FLAT") ? "initial" : "none";
-      dialog.registerEventListener(dialog.ceilingFlatCheckBox, "change", function(ev) {
-          controller.setCeilingFlat(dialog.ceilingFlatCheckBox.checked);
-        });
-      dialog.registerPropertyChangeListener(controller, "CEILING_FLAT", function(ev) {
-          dialog.ceilingFlatCheckBox.checked = controller.getCeilingFlat(ev);
-        });
     };
 
   var selectSplitSurroundingWallsAtFirstChange = function(dialog) {
