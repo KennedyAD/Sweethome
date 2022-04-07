@@ -692,8 +692,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       } else if (plan.preferences.isRoomFloorColoredOrTextured() 
                  && ("FLOOR_COLOR" == propertyName 
                      || "FLOOR_TEXTURE" == propertyName 
-                     || "FLOOR_VISIBLE" == propertyName
-                     || "FLOOR_TEXTURE_FITTING" == propertyName)) {
+                     || "FLOOR_VISIBLE" == propertyName)) {
         plan.repaint();
       }
     };

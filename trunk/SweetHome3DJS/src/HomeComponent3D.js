@@ -1821,7 +1821,6 @@ HomeComponent3D.prototype.addRoomListener = function(group) {
       if ("FLOOR_COLOR" == propertyName
           || "FLOOR_TEXTURE" == propertyName
           || "FLOOR_SHININESS" == propertyName
-          || "FLOOR_TEXTURE_FITTING" == propertyName
           || "CEILING_COLOR" == propertyName
           || "CEILING_TEXTURE" == propertyName
           || "CEILING_SHININESS" == propertyName
