@@ -255,8 +255,8 @@ Shape3D.prototype.removeGeometry = function(index) {
 Shape3D.prototype.getBounds = function() {
   if (this.geometries.length === 0) {
     return new BoundingBox3D(
-        vec3.fromValues(-Infinity, -Infinity, -Infinity), 
-        vec3.fromValues(Infinity, Infinity, Infinity));
+        vec3.fromValues(Infinity, Infinity, Infinity), 
+        vec3.fromValues(-Infinity, -Infinity, -Infinity));
   } else if (this.bounds === null) {
     // Recompute bounds
     var lower = vec3.fromValues(Infinity, Infinity, Infinity);
@@ -1127,12 +1127,12 @@ BoundingBox3D.prototype.getUpper = function(p) {
  * @return {boolean}
  */
 BoundingBox3D.prototype.isEmpty = function() {
-  return this.lower[0] == -Infinity
-      && this.lower[1] == -Infinity
-      && this.lower[2] == -Infinity
-      && this.upper[0] == Infinity
-      && this.upper[1] == Infinity
-      && this.upper[2] == Infinity;
+  return this.lower[0] === Infinity
+      && this.lower[1] === Infinity
+      && this.lower[2] === Infinity
+      && this.upper[0] === -Infinity
+      && this.upper[1] === -Infinity
+      && this.upper[2] === -Infinity;
 }
 
 /** 
@@ -1140,34 +1140,24 @@ BoundingBox3D.prototype.isEmpty = function() {
  * @param {BoundingBox3D|vec3} bounds
  */
 BoundingBox3D.prototype.combine = function(bounds) {
-  if (this.isEmpty()) {
-    this.lower[0] = bounds.lower[0];
-    this.lower[1] = bounds.lower[1];
-    this.lower[2] = bounds.lower[2];
-    this.upper[0] = bounds.upper[0];
-    this.upper[1] = bounds.upper[1];
-    this.upper[2] = bounds.upper[2];
-  }
   if (bounds instanceof BoundingBox3D) {
-    if (!bounds.isEmpty()) {
-      if (this.lower[0] > bounds.lower[0]) {
-        this.lower[0] = bounds.lower[0];
-      }
-      if (this.lower[1] > bounds.lower[1]) {
-        this.lower[1] = bounds.lower[1];
-      }
-      if (this.lower[2] > bounds.lower[2]) {
-        this.lower[2] = bounds.lower[2];
-      }
-      if (this.upper[0] < bounds.upper[0]) {
-        this.upper[0] = bounds.upper[0];
-      }
-      if (this.upper[1] < bounds.upper[1]) {
-        this.upper[1] = bounds.upper[1];
-      }
-      if (this.upper[2] < bounds.upper[2]) {
-        this.upper[2] = bounds.upper[2];
-      }
+    if (this.lower[0] > bounds.lower[0]) {
+      this.lower[0] = bounds.lower[0];
+    }
+    if (this.lower[1] > bounds.lower[1]) {
+      this.lower[1] = bounds.lower[1];
+    }
+    if (this.lower[2] > bounds.lower[2]) {
+      this.lower[2] = bounds.lower[2];
+    }
+    if (this.upper[0] < bounds.upper[0]) {
+      this.upper[0] = bounds.upper[0];
+    }
+    if (this.upper[1] < bounds.upper[1]) {
+      this.upper[1] = bounds.upper[1];
+    }
+    if (this.upper[2] < bounds.upper[2]) {
+      this.upper[2] = bounds.upper[2];
     }
   } else {
     var point = bounds;
