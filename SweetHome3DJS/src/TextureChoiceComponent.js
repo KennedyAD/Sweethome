@@ -285,9 +285,6 @@ JSTextureDialog.prototype.getSelectedTexture = function() {
       this.selectedTextureModel.yOffset,
       this.selectedTextureModel.angleInRadians,
       this.selectedTextureModel.scale,
-      this.controller.getTexture() instanceof HomeTexture 
-          ? this.controller.getTexture().isFittingArea()
-          : false,
       true);
 }
 
