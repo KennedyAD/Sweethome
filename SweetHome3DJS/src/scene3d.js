@@ -1140,42 +1140,24 @@ BoundingBox3D.prototype.isEmpty = function() {
  * @param {BoundingBox3D|vec3} bounds
  */
 BoundingBox3D.prototype.combine = function(bounds) {
-  if (this.isEmpty()) {
-    if (bounds instanceof BoundingBox3D) {
+  if (bounds instanceof BoundingBox3D) {
+    if (this.lower[0] > bounds.lower[0]) {
       this.lower[0] = bounds.lower[0];
-      this.lower[1] = bounds.lower[1];
-      this.lower[2] = bounds.lower[2];
-      this.upper[0] = bounds.upper[0];
-      this.upper[1] = bounds.upper[1];
-      this.upper[2] = bounds.upper[2];
-    } else {
-      this.lower[0] = point[0];
-      this.lower[1] = point[1];
-      this.lower[2] = point[2];
-      this.upper[0] = point[0];
-      this.upper[1] = point[1];
-      this.upper[2] = point[2];
     }
-  } else if (bounds instanceof BoundingBox3D) {
-    if (!bounds.isEmpty()) {
-      if (this.lower[0] > bounds.lower[0]) {
-        this.lower[0] = bounds.lower[0];
-      }
-      if (this.lower[1] > bounds.lower[1]) {
-        this.lower[1] = bounds.lower[1];
-      }
-      if (this.lower[2] > bounds.lower[2]) {
-        this.lower[2] = bounds.lower[2];
-      }
-      if (this.upper[0] < bounds.upper[0]) {
-        this.upper[0] = bounds.upper[0];
-      }
-      if (this.upper[1] < bounds.upper[1]) {
-        this.upper[1] = bounds.upper[1];
-      }
-      if (this.upper[2] < bounds.upper[2]) {
-        this.upper[2] = bounds.upper[2];
-      }
+    if (this.lower[1] > bounds.lower[1]) {
+      this.lower[1] = bounds.lower[1];
+    }
+    if (this.lower[2] > bounds.lower[2]) {
+      this.lower[2] = bounds.lower[2];
+    }
+    if (this.upper[0] < bounds.upper[0]) {
+      this.upper[0] = bounds.upper[0];
+    }
+    if (this.upper[1] < bounds.upper[1]) {
+      this.upper[1] = bounds.upper[1];
+    }
+    if (this.upper[2] < bounds.upper[2]) {
+      this.upper[2] = bounds.upper[2];
     }
   } else {
     var point = bounds;
