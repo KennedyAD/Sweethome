@@ -658,9 +658,7 @@ ModelManager.prototype.load = function(content, synchronous, modelObserver) {
       modelLoaderIndex : 0,
       modelLoaded : function(model) {
         var bounds = modelManager.getBounds(model);
-        var lower = vec3.create();
-        bounds.getLower(lower);
-        if (lower [0] !== Infinity) {
+        if (!bounds.isEmpty()) {
           modelManager.updateWindowPanesTransparency(model);
           modelManager.updateDeformableModelHierarchy(model);
           modelManager.replaceMultipleSharedShapes(model);
