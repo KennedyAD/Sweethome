@@ -71,6 +71,7 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
   this.labelListener = null;
   this.labelChangeListener = null;
   this.approximateHomeBoundsCache = null;
+  this.homeHeightCache = null;
   this.createComponent3D(canvasId, preferences, controller);
 }
 
@@ -428,18 +429,23 @@ HomeComponent3D.prototype.updateView = function(camera) {
         frontClipDistance = Math.max(frontClipDistance, 0.1 * distanceToClosestBoxSide);
       }
     }
-    var canvasBounds = this.canvas3D.getHTMLElement().getBoundingClientRect();
-    if (camera.getZ() > 0 && canvasBounds.width !== 0 && canvasBounds.height !== 0) {
-      var halfVerticalFieldOfView = Math.atan(Math.tan(fieldOfView / 2) * canvasBounds.height / canvasBounds.width);
-      var fieldOfViewBottomAngle = camera.getPitch() + halfVerticalFieldOfView;
-      // If the horizon is above the frustrum bottom, take into account the distance to the ground 
-      if (fieldOfViewBottomAngle > 0) {
-        var distanceToGroundAtFieldOfViewBottomAngle = (camera.getZ() / Math.sin(fieldOfViewBottomAngle));
-        frontClipDistance = Math.min(frontClipDistance, 0.35 * distanceToGroundAtFieldOfViewBottomAngle);
-        if (frontClipDistance * frontBackDistanceRatio < distanceToGroundAtFieldOfViewBottomAngle) {
-          // Ensure the ground is always visible at the back clip distance
-          frontClipDistance = distanceToGroundAtFieldOfViewBottomAngle / frontBackDistanceRatio;
-        }
+  } else {
+    var homeHeight = this.getHomeHeight();
+    if (camera.getZ() > homeHeight) {
+      frontClipDistance = Math.max(frontClipDistance, (camera.getZ() - homeHeight) / 10);
+    }
+  }    
+  var canvasBounds = this.canvas3D.getHTMLElement().getBoundingClientRect();
+  if (camera.getZ() > 0 && canvasBounds.width !== 0 && canvasBounds.height !== 0) {
+    var halfVerticalFieldOfView = Math.atan(Math.tan(fieldOfView / 2) * canvasBounds.height / canvasBounds.width);
+    var fieldOfViewBottomAngle = camera.getPitch() + halfVerticalFieldOfView;
+    // If the horizon is above the frustrum bottom, take into account the distance to the ground 
+    if (fieldOfViewBottomAngle > 0) {
+      var distanceToGroundAtFieldOfViewBottomAngle = (camera.getZ() / Math.sin(fieldOfViewBottomAngle));
+      frontClipDistance = Math.min(frontClipDistance, 0.35 * distanceToGroundAtFieldOfViewBottomAngle);
+      if (frontClipDistance * frontBackDistanceRatio < distanceToGroundAtFieldOfViewBottomAngle) {
+        // Ensure the ground is always visible at the back clip distance
+        frontClipDistance = distanceToGroundAtFieldOfViewBottomAngle / frontBackDistanceRatio;
       }
     }
   }
@@ -662,6 +668,69 @@ HomeComponent3D.prototype.getDistanceToLine = function (point, point1, point2) {
   var crossProduct = vec3.create();
   vec3.cross(crossProduct, lineDirection, vector);
   return vec3.length(crossProduct) / vec3.length(lineDirection);
+}
+
+/**
+ * Returns quickly computed height of the home.
+ * @private
+ */
+HomeComponent3D.prototype.getHomeHeight = function() {
+  if (this.homeHeightCache === null) {
+    var homeHeight = 0;
+    var furniture = this.home.getFurniture();
+    for (var i = 0; i < furniture.length; i++) {
+      var piece = furniture[i];
+      if (piece.isVisible()
+          && (piece.getLevel() == null
+              || piece.getLevel().isViewable())) {
+        homeHeight = Math.max(homeHeight, piece.getGroundElevation() + piece.getHeight());
+      }
+    }
+    var walls = this.home.getWalls();
+    for (var i = 0; i < walls.length; i++) {
+      var wall = walls[i];
+      if (wall.getLevel() == null
+          || wall.getLevel().isViewable()) {
+        var wallElevation = wall.getLevel() != null ? wall.getLevel().getElevation() : 0;
+        if (wall.getHeight() != null) {
+          homeHeight = Math.max(homeHeight, wallElevation + wall.getHeight());
+          if (wall.getHeightAtEnd() != null) {
+            homeHeight = Math.max(homeHeight, wallElevation + wall.getHeightAtEnd());
+          }
+        } else {
+          homeHeight = Math.max(homeHeight, wallElevation + this.home.getWallHeight());
+        }
+      }
+    }
+    var rooms = this.home.getRooms();
+    for (var i = 0; i < rooms.length; i++) {
+      var room = rooms[i];
+      if (room.getLevel() != null
+          && room.getLevel().isViewable()) {
+        homeHeight = Math.max(homeHeight, room.getLevel().getElevation());
+      }
+    }
+    var polylines = this.home.getPolylines();
+    for (var i = 0; i < polylines.length; i++) {
+      var polyline = polylines[i];
+      if ((polyline.getLevel() == null
+          || polyline.getLevel().isViewable())
+          && polyline.isVisibleIn3D()) {
+        homeHeight = Math.max(homeHeight, polyline.getGroundElevation());
+      }
+    }
+    var labels = this.home.getLabels();
+    for (var i = 0; i < labels.length; i++) {
+      var label = labels[i];
+      if ((label.getLevel() == null
+            || label.getLevel().isViewable())
+          && label.getPitch() != null) {
+        homeHeight = Math.max(homeHeight, label.getGroundElevation());
+      }
+    }
+    this.homeHeightCache = homeHeight;
+  }
+  return this.homeHeightCache;
 }
 
 /**
@@ -1725,7 +1794,8 @@ HomeComponent3D.prototype.addFurnitureListener = function(group) {
       } else if (component3D.containsStaircases(piece)) {
         component3D.updateObjects(component3D.home.getRooms());
       } else {
-        approximateHomeBoundsCache = null;
+        component3D.approximateHomeBoundsCache = null;
+        component3D.homeHeightCache = null;
       }
       component3D.groundChangeListener(null);
     };
@@ -2098,6 +2168,7 @@ HomeComponent3D.prototype.updateObjects = function(objects) {
         }, 0, this);
   }
   this.approximateHomeBoundsCache = null;
+  this.homeHeightCache = null;
 }
 
 /**
