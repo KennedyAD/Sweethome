@@ -129,12 +129,12 @@ function JSModelMaterialsSelectorDialog(preferences, controller) {
 
   var dialog = this;
   if (this.materialsList.size() > 0) {
-    this.materialsList.selectAt(0);
+    this.materialsList.addSelectionInterval(0, 0);
   } else {
     // Add a listener that will select first row as soon as the list contains some data
     var selectFirstMaterialOnContentAvailable = function() {
         if (dialog.materialsList.size() > 0) {
-          dialog.materialsList.selectAt(0);
+          dialog.materialsList.addSelectionInterval(0, 0);
           dialog.materialsList.removeListDataListener(selectFirstMaterialOnContentAvailable);
         }
       };
@@ -478,11 +478,27 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
         materialsList.selectionListeners.push(listener);
       },
       /**
-       * @param {number} index
+       * @param {number} index1
+       * @param {number} index2
        */
-      selectAt: function(index) {
-        materialsList.element.children[index].classList.add("selected");
+      addSelectionInterval: function(index1, index2) {
+        for (var i = index1; i <= index2; i++) {
+          materialsList.element.children[i].classList.add("selected");
+        }
         materialsList.fireSelectionChanged();
+      },
+      /**
+       * @param {number} index1
+       * @param {number} index2
+       */
+      removeSelectionInterval: function(index1, index2) {
+        for (var i = index1; i <= index2; i++) {
+          materialsList.element.children[i].classList.remove("selected");
+        }
+        materialsList.fireSelectionChanged();
+      },
+      clearSelection: function() {
+        materialsList.removeSelectionInterval(0, materialsList.size() - 1);
       },
       selectItem: function(item) {
         item.classList.add("selected");
@@ -607,6 +623,39 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
           previewPanel.style.visibility = "hidden";
         }
       });
+  
+  var mousePressed = function(ev) {
+      var pickedMaterial = dialog.previewComponent.getPickedMaterial();
+      if (pickedMaterial != null) {
+        for (var i = 0, n = dialog.materialsList.size(); i < n; i++) {
+          var material = dialog.materialsList.getDefaultMaterialAt(i);
+          if (material.getName() !== null
+              && material.getName() == pickedMaterial.getName()) {
+            var multiSelection = OperatingSystem.isMacOSX() ? ev.metaKey : ev.ctrlKey;
+            if (multiSelection) {
+              var selectedIndices = dialog.materialsList.getSelectedIndices();
+              if (selectedIndices.indexOf(i) >= 0) {
+                dialog.materialsList.removeSelectionInterval(i, i);
+              } else {
+                dialog.materialsList.addSelectionInterval(i, i);
+              }
+            } else {
+              dialog.materialsList.clearSelection();
+              dialog.materialsList.addSelectionInterval(i, i);
+            }
+          }
+        }
+      }
+    };
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+      && window.PointerEvent) {
+    // Multi touch support for IE and Edge
+    dialog.previewComponent.getHTMLElement().addEventListener("pointerdown", mousePressed);
+    dialog.previewComponent.getHTMLElement().addEventListener("mousedown", mousePressed);
+  } else {
+    dialog.previewComponent.getHTMLElement().addEventListener("touchstart", mousePressed);
+    dialog.previewComponent.getHTMLElement().addEventListener("mousedown", mousePressed);
+  }
 }
 
 

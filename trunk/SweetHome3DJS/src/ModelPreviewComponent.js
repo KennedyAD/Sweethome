@@ -33,6 +33,7 @@
  */
 function ModelPreviewComponent(canvasId, pitchAndScaleChangeSupported) {
   this.canvas3D = new HTMLCanvas3D(canvasId);
+  this.pickedMaterial = null;
   this.setDefaultTransform();
   
   if (pitchAndScaleChangeSupported) {
@@ -66,6 +67,7 @@ function ModelPreviewComponent(canvasId, pitchAndScaleChangeSupported) {
           userActionsListener.buttonPressed = ev.button;
           userActionsListener.mousePressedInCanvas = true;
           previewComponent.stopRotationAnimation();
+          userActionsListener.updatePickedMaterial(ev.clientX, ev.clientY);
           ev.stopPropagation();
         },
         windowMouseMoved : function(ev) {
@@ -116,6 +118,7 @@ function ModelPreviewComponent(canvasId, pitchAndScaleChangeSupported) {
             userActionsListener.buttonPressed = 0;
             userActionsListener.xLastMove = ev.targetTouches [0].pageX;
             userActionsListener.yLastMove = ev.targetTouches [0].pageY;
+            userActionsListener.updatePickedMaterial(ev.targetTouches [0].pageX, ev.targetTouches [0].pageY);
           } else if (ev.targetTouches.length == 2) {
             userActionsListener.distanceLastPinch = userActionsListener.distance(
                 ev.targetTouches [0], ev.targetTouches [1]);
@@ -165,6 +168,16 @@ function ModelPreviewComponent(canvasId, pitchAndScaleChangeSupported) {
         visibilityChanged : function(ev) {
           if (document.visibilityState == "hidden") {
             previewComponent.stopRotationAnimation();
+          }
+        },
+        updatePickedMaterial : function(x, y) {
+          previewComponent.pickedMaterial = null;
+          if (previewComponent.getModelNode() !== null) {
+            var shape = previewComponent.canvas3D.getClosestShapeAt(x, y);
+            var materials = ModelManager.getInstance().getMaterials(shape);
+            if (materials.length > 0) {
+              previewComponent.pickedMaterial = materials [0];
+            }
           }
         }
       };
@@ -367,6 +380,13 @@ ModelPreviewComponent.prototype.setModelTranformations = function(transformation
     this.previewedPiece.setModelTransformations(transformations);
     this.getModelNode().update();
   }
+}
+
+/**
+ * Returns the material of the shape last picked by the user.
+ */
+ModelPreviewComponent.prototype.getPickedMaterial = function() {
+  return this.pickedMaterial;
 }
 
 /**
