@@ -2837,6 +2837,7 @@ PlanComponent.prototype.getMainGridSize = function(gridScale) {
   var mainGridSizes;
   var lengthUnit = this.preferences.getLengthUnit();
   if (lengthUnit === LengthUnit.INCH 
+      || lengthUnit === LengthUnit.INCH_FRACTION 
       || lengthUnit === LengthUnit.INCH_DECIMALS) {
     var oneFoot = 2.54 * 12;
     mainGridSizes = [oneFoot, 3 * oneFoot, 6 * oneFoot, 
@@ -2862,6 +2863,7 @@ PlanComponent.prototype.getGridSize = function(gridScale) {
   var gridSizes;
   var lengthUnit = this.preferences.getLengthUnit();
   if (lengthUnit === LengthUnit.INCH 
+      || lengthUnit === LengthUnit.INCH_FRACTION 
       || lengthUnit === LengthUnit.INCH_DECIMALS) {
     var oneFoot = 2.54 * 12;
     gridSizes = [2.54, 5.08, 7.62, 15.24, oneFoot, 3 * oneFoot, 6 * oneFoot, 

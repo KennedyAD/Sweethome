@@ -373,7 +373,7 @@ LengthUnit.METER.unitToCentimeter = function(length) {
 
 
 /**
- * Foot/Inch unit followed by fractions.
+ * Foot/Inch unit followed by fraction.
  */
 LengthUnit.INCH = {
     formatLocale : null
@@ -409,7 +409,7 @@ LengthUnit.INCH.checkLocaleChange = function() {
     var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
     this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
     var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
-    this.lengthFormat = new InchFormat(footInchSeparator);
+    this.lengthFormat = new InchFractionFormat(true, footInchSeparator);
     var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0", squareFootUnit);
   }
@@ -443,6 +443,80 @@ LengthUnit.INCH.centimeterToUnit = function(length) {
 }
 
 LengthUnit.INCH.unitToCentimeter = function(length) {
+  return LengthUnit.inchToCentimeter(length);
+}
+
+
+
+/**
+ * Inch unit followed by fraction.
+ * @since 7.0
+ */
+LengthUnit.INCH_FRACTION = {
+    formatLocale : null
+};
+
+LengthUnit.INCH_FRACTION.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
+LengthUnit.INCH_FRACTION.getFormatWithUnit = function() {
+  this.checkLocaleChange();
+  return this.lengthFormat;
+}
+
+LengthUnit.INCH_FRACTION.getFormat = function() {
+  return this.getFormatWithUnit();
+}
+
+LengthUnit.INCH_FRACTION.getAreaFormatWithUnit = function() {
+  this.checkLocaleChange();
+  return this.areaFormatWithUnit;
+}
+
+LengthUnit.INCH_FRACTION.getName = function() {
+  this.checkLocaleChange();
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
+}
+
+LengthUnit.INCH_FRACTION.checkLocaleChange = function() {
+  // Instantiate format if locale changed
+  if (Locale.getDefault() != this.formatLocale) {
+    this.formatLocale = Locale.getDefault();
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
+    var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
+    this.lengthFormat = new InchFractionFormat(false, footInchSeparator);
+    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0", squareFootUnit);
+  }
+}
+
+LengthUnit.INCH_FRACTION.getMagnetizedLength = function(length, maxDelta) {
+  return LengthUnit.getMagnetizedInchLength(length, maxDelta);
+}
+
+LengthUnit.INCH_FRACTION.getMinimumLength = function() {        
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
+LengthUnit.INCH_FRACTION.getMaximumLength = function() {
+  return LengthUnit.inchToCentimeter(99974.4); // 3280 ft
+}
+
+LengthUnit.INCH_FRACTION.getMaximumElevation = function() {
+  return this.getMaximumLength() / 10;
+}
+
+LengthUnit.INCH_FRACTION.getStepSize = function() {
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
+LengthUnit.INCH_FRACTION.centimeterToUnit = function(length) {
+  return LengthUnit.centimeterToInch(length);
+}
+
+LengthUnit.INCH_FRACTION.unitToCentimeter = function(length) {
   return LengthUnit.inchToCentimeter(length);
 }
 
@@ -570,28 +644,40 @@ SquareMeterAreaFormatWithUnit.prototype.format = function(number) {
   return formattedNumber + (this.squareMeterUnit ? " " + this.squareMeterUnit : "");
 }
 
-var inchFractionCharacters = ['\u215b',   // 1/8
-                              '\u00bc',   // 1/4  
-                              '\u215c',   // 3/8
-                              '\u00bd',   // 1/2
-                              '\u215d',   // 5/8
-                              '\u00be',   // 3/4
-                              '\u215e'];  // 7/8        
 
 /** 
+ * A decimal format for inch lengths with fraction.
+ * @param {boolean} footInch
+ * @param {string} footInchSeparator
  * @constructor
  * @extends DecimalFormat
  * @private 
  */
-function InchFormat(footInchSeparator) {
+function InchFractionFormat(footInch, footInchSeparator) {
   DecimalFormat.call(this, "0.###");
   this.setGroupingUsed(true);
+  this.footInch = footInch;
   this.footInchSeparator = footInchSeparator;
 }
-InchFormat.prototype = Object.create(DecimalFormat.prototype);
-InchFormat.prototype.constructor = InchFormat;
+InchFractionFormat.prototype = Object.create(DecimalFormat.prototype);
+InchFractionFormat.prototype.constructor = InchFractionFormat;
 
-InchFormat.prototype.format = function(number) {
+InchFractionFormat.INCH_FRACTION_CHARACTERS = ['\u215b',   // 1/8
+                                               '\u00bc',   // 1/4  
+                                               '\u215c',   // 3/8
+                                               '\u00bd',   // 1/2
+                                               '\u215d',   // 5/8
+                                               '\u00be',   // 3/4
+                                               '\u215e'];  // 7/8        
+InchFractionFormat.INCH_FRACTION_STRINGS = ["1/8",
+                                            "1/4",  
+                                            "3/8",
+                                            "1/2",
+                                            "5/8",
+                                            "3/4",
+                                            "7/8"];     
+
+InchFractionFormat.prototype.format = function(number) {
   var absoluteValue = Math.abs(number);
   var feet = Math.floor(LengthUnit.centimeterToFoot(absoluteValue));              
   var remainingInches = LengthUnit.centimeterToInch(absoluteValue - LengthUnit.footToCentimeter(feet));
@@ -607,33 +693,38 @@ InchFormat.prototype.format = function(number) {
     var integerPart = Math.floor(remainingInches);
     var fractionPart = remainingInches - integerPart;
     var eighth = Math.round(fractionPart * 8); 
-    result += feetString;
-    if (eighth === 0 || eighth === 8) {
-      result += "'";
-      result += Math.round(remainingInches * 8) / 8;
-      result += "\"";
+    if (this.footInch) {
+      result += feetString;
+      if (eighth === 0 || eighth === 8) {
+        result += "'";
+        result += Math.round(remainingInches * 8) / 8;
+      } else {
+        result += "'";
+        result += integerPart;
+        result += InchFractionFormat.INCH_FRACTION_CHARACTERS[eighth - 1];
+      }
     } else {
+      if (eighth === 0 || eighth === 8) {
+        result += feet * 12 + Math.round(remainingInches * 8) / 8;
+      } else {
+        result += feet * 12 + integerPart;
+        result += InchFractionFormat.INCH_FRACTION_CHARACTERS[eighth - 1];
+      }
+    }
+    result += "\"";
+  } else {
+    if (this.footInch) {
+      result += feetString;
       result += "'";
-      result += integerPart;
-      result += inchFractionCharacters[eighth - 1];
+    } else {
+      result += DecimalFormat.prototype.format.call(this, feet * 12);
       result += "\"";
     }
-  } else {
-    result += feetString;
-    result += "'";
   }
   return result;
 }
 
-var inchFractionStrings = ["1/8",
-                           "1/4",  
-                           "3/8",
-                           "1/2",
-                           "5/8",
-                           "3/4",
-                           "7/8"];     
-
-InchFormat.prototype.parse = function(text, parsePosition) {
+InchFractionFormat.prototype.parse = function(text, parsePosition) {
   var value = 0;
   var numberPosition = new ParsePosition(parsePosition.getIndex());
   this.skipWhiteSpaces(text, numberPosition);
@@ -715,9 +806,9 @@ InchFormat.prototype.parse = function(text, parsePosition) {
   var fractionString = text.length - numberPosition.getIndex() >= 3 
       ? text.substring(numberPosition.getIndex(), numberPosition.getIndex() + 3)
       : null;
-  for (var i = 0; i < inchFractionCharacters.length; i++) {
-    if (inchFractionCharacters [i] === fractionChar
-        || inchFractionStrings [i] == fractionString) {
+  for (var i = 0; i < InchFractionFormat.INCH_FRACTION_CHARACTERS.length; i++) {
+    if (InchFractionFormat.INCH_FRACTION_CHARACTERS [i] === fractionChar
+        || InchFractionFormat.INCH_FRACTION_STRINGS [i] == fractionString) {
       // Check no decimal fraction was specified
       var lastDecimalSeparatorIndex = text.lastIndexOf(this.decimalSeparator, 
           numberPosition.getIndex() - 1);
@@ -730,7 +821,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
           value += LengthUnit.inchToCentimeter((i + 1) / 8);
         }
         parsePosition.setIndex(numberPosition.getIndex() 
-            + (inchFractionCharacters [i] === fractionChar ? 1 : 3));
+            + (InchFractionFormat.INCH_FRACTION_CHARACTERS [i] === fractionChar ? 1 : 3));
         this.skipWhiteSpaces(text, parsePosition);
         if (parsePosition.getIndex() < text.length
             && text.charAt(parsePosition.getIndex()) === '\"') {
@@ -751,7 +842,7 @@ InchFormat.prototype.parse = function(text, parsePosition) {
  * @param {ParsePosition} fieldPosition
  * @private 
  */
-InchFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
+InchFractionFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
   while (fieldPosition.getIndex() < text.length
       && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
     fieldPosition.setIndex(fieldPosition.getIndex() + 1);

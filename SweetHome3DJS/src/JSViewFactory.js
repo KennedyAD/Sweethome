@@ -994,7 +994,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
                   controller.setCreator(null);
                   var defaultWidth = 20;
                   var lengthUnit = component.preferences.getLengthUnit();
-                  if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_DECIMALS) {
+                  if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_FRACTION || lengthUnit == LengthUnit.INCH_DECIMALS) {
                     defaultWidth = LengthUnit.inchToCentimeter(8);
                   }
                   controller.setWidth(defaultWidth);
@@ -1290,6 +1290,10 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         JSComponent.createOptionElement("INCH", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.inch.text"),
             controller.getUnit() == LengthUnit.INCH));
+    dialog.unitSelect.appendChild(
+        JSComponent.createOptionElement("INCH_FRACTION", 
+            preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.inchFraction.text"),
+            controller.getUnit() == LengthUnit.INCH_FRACTION));
     dialog.unitSelect.appendChild(
         JSComponent.createOptionElement("INCH_DECIMALS", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.inchDecimals.text"),
@@ -1705,8 +1709,8 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   }
 
   var updateSpinnerStepsAndLength = function(spinner, centimeterStepSize, inchStepSize) {
-      if (controller.getUnit() == LengthUnit.INCH || controller.getUnit() == LengthUnit.INCH_DECIMALS) {
-        spinner.setStepSize(LengthUnit.inchToCentimeter(inchStepSize));
+      if (controller.getUnit() == LengthUnit.INCH || controller.getUnit() == LengthUnit.INCH_FRACTION || controller.getUnit() == LengthUnit.INCH_DECIMALS) {
+        spinner.setStepSize(inchStepSize);
       } else {
         spinner.setStepSize(centimeterStepSize);
       }
@@ -1718,9 +1722,9 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
     };
 
   var updateStepsAndLength = function() {
-      updateSpinnerStepsAndLength(dialog.newWallThicknessInput, 0.5, 0.125);
-      updateSpinnerStepsAndLength(dialog.newWallHeightInput, 10, 2);
-      updateSpinnerStepsAndLength(dialog.newFloorThicknessInput, 0.5, 0.125);
+      updateSpinnerStepsAndLength(dialog.newWallThicknessInput, LengthUnit.CENTIMETER.getStepSize(), LengthUnit.INCH.getStepSize());
+      updateSpinnerStepsAndLength(dialog.newWallHeightInput, LengthUnit.CENTIMETER.getStepSize() * 20, LengthUnit.INCH.getStepSize() * 16);
+      updateSpinnerStepsAndLength(dialog.newFloorThicknessInput, LengthUnit.CENTIMETER.getStepSize(), LengthUnit.INCH.getStepSize());
     };
 
   updateStepsAndLength();
