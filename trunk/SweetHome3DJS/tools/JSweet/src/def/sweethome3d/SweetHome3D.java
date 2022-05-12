@@ -531,7 +531,7 @@ class UserPreferences {
    * @since 4.4
    */
   public native void setRecentTextures(List<URLContent> recentTextures);
-  
+
 }
 
 class URLContent {
@@ -551,6 +551,7 @@ class LengthUnit {
     public static LengthUnit CENTIMETER;
     public static LengthUnit METER;
     public static LengthUnit INCH;
+    public static LengthUnit INCH_FRACTION;
     public static LengthUnit INCH_DECIMALS;
 
     public native static float centimeterToInch(float length);
@@ -574,6 +575,8 @@ class LengthUnit {
     public native float getMinimumLength();
 
     public native float getMaximumLength();
+
+    public native float getStepSize();
 
     public native float getMaximumElevation();
 
