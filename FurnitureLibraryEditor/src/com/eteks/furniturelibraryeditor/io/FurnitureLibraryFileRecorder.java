@@ -608,6 +608,9 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       if (!"1 0 0 0 1 0 0 0 1".equals(modelRotationString)) {
         writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION, i, modelRotationString);
       }
+      if (piece.getModelFlags() != 0) {
+        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MODEL_FLAGS, i, piece.getModelFlags());
+      }
       if (piece.getStaircaseCutOutShape() != null) {
         writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE, i, piece.getStaircaseCutOutShape());
       }
