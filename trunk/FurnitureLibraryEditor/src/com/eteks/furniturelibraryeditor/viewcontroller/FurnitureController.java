@@ -45,6 +45,7 @@ import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.FurnitureCatalog;
 import com.eteks.sweethome3d.model.FurnitureCategory;
+import com.eteks.sweethome3d.model.PieceOfFurniture;
 import com.eteks.sweethome3d.model.Sash;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.Controller;
@@ -62,7 +63,8 @@ public class FurnitureController implements Controller {
   public enum Property {ID, NAME, DESCRIPTION, INFORMATION, TAGS, GRADE, CREATION_DATE, CATEGORY, MODEL, ICON,
       WIDTH, DEPTH,  HEIGHT, ELEVATION, MOVABLE, RESIZABLE, DEFORMABLE, TEXTURABLE,
       DOOR_OR_WINDOW, DOOR_OR_WINDOW_CUT_OUT_SHAPE, STAIRCASE, STAIRCASE_CUT_OUT_SHAPE,
-      MODEL_ROTATION, MODEL_SIZE, CREATOR, PROPORTIONAL, BACK_FACE_SHOWN, PRICE, VALUE_ADDED_TAX_PERCENTAGE}
+      MODEL_ROTATION, MODEL_SIZE, CREATOR, PROPORTIONAL, BACK_FACE_SHOWN, EDGE_COLOR_MATERIAL_HIDDEN,
+      PRICE, VALUE_ADDED_TAX_PERCENTAGE}
 
   private static final Map<String, Property> PROPERTIES_MAP = new HashMap<String, Property>();
 
@@ -129,6 +131,7 @@ public class FurnitureController implements Controller {
   private Boolean           staircase;
   private String            staircaseCutOutShape;
   private Boolean           backFaceShown;
+  private Boolean           edgeColorMaterialHidden;
   private Long              modelSize;
   private Boolean           resizable;
   private Boolean           deformable;
@@ -308,11 +311,12 @@ public class FurnitureController implements Controller {
       setDoorOrWindowCutOutShape(null);
       setStaircase(null);
       setStaircaseCutOutShape(null);
-      setBackFaceShown(null);
       setResizable(null);
       setDeformable(null);
       setTexturable(null);
       setModelRotation(null);
+      setBackFaceShown(null);
+      setEdgeColorMaterialHidden(null);
       setCreator(null);
       setPrice(null);
       setValueAddedTaxPercentage(null);
@@ -320,12 +324,12 @@ public class FurnitureController implements Controller {
     } else {
       CatalogPieceOfFurniture firstPiece = this.modifiedFurniture.get(0);
 
-      setBackFaceShown(false);
       if (this.modifiedFurniture.size() == 1) {
         setIcon(firstPiece.getIcon());
         setModel(firstPiece.getModel());
         setModelSize(firstPiece.getModelSize());
         this.editableProperties.add(Property.BACK_FACE_SHOWN);
+        this.editableProperties.add(Property.EDGE_COLOR_MATERIAL_HIDDEN);
       } else {
         setIcon(null);
         setModel((Content)null);
@@ -571,6 +575,24 @@ public class FurnitureController implements Controller {
         }
       }
       setModelRotation(modelRotation);
+
+      Boolean backFaceShown = firstPiece.isBackFaceShown();
+      for (int i = 1; i < this.modifiedFurniture.size(); i++) {
+        if (backFaceShown.booleanValue() != this.modifiedFurniture.get(i).isBackFaceShown()) {
+          backFaceShown = null;
+          break;
+        }
+      }
+      setBackFaceShown(backFaceShown);
+
+      Boolean edgeColorMaterialHidden = (firstPiece.getModelFlags() & PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL) != 0;
+      for (int i = 1; i < this.modifiedFurniture.size(); i++) {
+        if (edgeColorMaterialHidden.booleanValue() != ((this.modifiedFurniture.get(i).getModelFlags() & PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL) != 0)) {
+          edgeColorMaterialHidden = null;
+          break;
+        }
+      }
+      setEdgeColorMaterialHidden(edgeColorMaterialHidden);
 
       String creator = firstPiece.getCreator();
       if (creator != null) {
@@ -1117,24 +1139,6 @@ public class FurnitureController implements Controller {
   }
 
   /**
-   * Sets whether the back face of the furniture model should be shown or not.
-   */
-  public void setBackFaceShown(Boolean backFaceShown) {
-    if (backFaceShown != this.backFaceShown) {
-      Boolean oldBackFaceShown = this.backFaceShown;
-      this.backFaceShown = backFaceShown;
-      this.propertyChangeSupport.firePropertyChange(Property.BACK_FACE_SHOWN.name(), oldBackFaceShown, backFaceShown);
-    }
-  }
-
-  /**
-   * Returns whether the back face of the furniture model should be shown or not.
-   */
-  public Boolean getBackFaceShown() {
-    return this.backFaceShown;
-  }
-
-  /**
    * Sets whether furniture model can be resized or not.
    */
   public void setResizable(Boolean resizable) {
@@ -1204,6 +1208,42 @@ public class FurnitureController implements Controller {
    */
   public float [][] getModelRotation() {
     return this.modelRotation;
+  }
+
+  /**
+   * Sets whether the back face of the furniture model should be shown or not.
+   */
+  public void setBackFaceShown(Boolean backFaceShown) {
+    if (backFaceShown != this.backFaceShown) {
+      Boolean oldBackFaceShown = this.backFaceShown;
+      this.backFaceShown = backFaceShown;
+      this.propertyChangeSupport.firePropertyChange(Property.BACK_FACE_SHOWN.name(), oldBackFaceShown, backFaceShown);
+    }
+  }
+
+  /**
+   * Returns whether the back face of the furniture model should be shown or not.
+   */
+  public Boolean getBackFaceShown() {
+    return this.backFaceShown;
+  }
+
+  /**
+   * Sets whether edge color materials should be hidden or not.
+   */
+  public void setEdgeColorMaterialHidden(Boolean edgeColorMaterialHidden) {
+    if (edgeColorMaterialHidden != this.edgeColorMaterialHidden) {
+      Boolean oldEdgeColorMaterialHidden = this.edgeColorMaterialHidden;
+      this.edgeColorMaterialHidden = edgeColorMaterialHidden;
+      this.propertyChangeSupport.firePropertyChange(Property.EDGE_COLOR_MATERIAL_HIDDEN.name(), oldEdgeColorMaterialHidden, edgeColorMaterialHidden);
+    }
+  }
+
+  /**
+   * Returns whether edge color materials should be hidden or not.
+   */
+  public Boolean getEdgeColorMaterialHidden() {
+    return this.edgeColorMaterialHidden;
   }
 
   /**
@@ -1288,6 +1328,8 @@ public class FurnitureController implements Controller {
       Boolean staircase = getStaircase();
       String staircaseCutOutShape = getStaircaseCutOutShape();
       float [][] modelRotation = getModelRotation();
+      Boolean backFaceShown = getBackFaceShown();
+      Boolean edgeColorMaterialHidden = getEdgeColorMaterialHidden();
       Long modelSize = getModelSize();
       String creator = getCreator();
       BigDecimal price = getPrice();
@@ -1317,11 +1359,11 @@ public class FurnitureController implements Controller {
         float pieceElevation = piece.getElevation();
         boolean pieceMovable = piece.isMovable();
         float [][] pieceModelRotation = piece.getModelRotation();
+        int pieceModelFlags = piece.getModelFlags();
         String pieceDoorOrWindowCutOutShape = piece instanceof CatalogDoorOrWindow
             ? ((CatalogDoorOrWindow)piece).getCutOutShape()
             : null;
         String pieceStaircaseCutOutShape = piece.getStaircaseCutOutShape();
-        boolean pieceBackFaceShown = piece.isBackFaceShown();
         Long pieceModelSize = piece.getModelSize();
         String pieceCreator = piece.getCreator();
         boolean pieceResizable = piece.isResizable();
@@ -1387,6 +1429,14 @@ public class FurnitureController implements Controller {
         }
         if (modelRotation != null || piecesCount == 1) {
           pieceModelRotation = modelRotation;
+        }
+        if (backFaceShown != null) {
+          pieceModelFlags = (pieceModelFlags & ~PieceOfFurniture.SHOW_BACK_FACE)
+              | (backFaceShown ? PieceOfFurniture.SHOW_BACK_FACE : 0);
+        }
+        if (edgeColorMaterialHidden != null) {
+          pieceModelFlags = (pieceModelFlags & ~PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL)
+              | (edgeColorMaterialHidden ? PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL : 0);
         }
         if (pieceDoorOrWindowCutOutShape != null || piecesCount == 1) {
           pieceDoorOrWindowCutOutShape = doorOrWindowCutOutShape;
@@ -1479,7 +1529,7 @@ public class FurnitureController implements Controller {
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
               pieceDoorOrWindowCutOutShape, opening.getWallThickness(), opening.getWallDistance(),
               opening.isWallCutOutOnBothSides(), opening.isWidthDepthDeformable(), opening.getSashes(),
-              pieceModelRotation, pieceBackFaceShown, pieceModelSize,
+              pieceModelRotation, pieceModelFlags, pieceModelSize,
               pieceCreator, pieceResizable, pieceDeformable, pieceTexturable,
               piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
         } else if (piece instanceof CatalogLight) {
@@ -1489,7 +1539,7 @@ public class FurnitureController implements Controller {
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
               light.getLightSources(), pieceStaircaseCutOutShape,
-              pieceModelRotation, pieceBackFaceShown, pieceModelSize,
+              pieceModelRotation, pieceModelFlags, pieceModelSize,
               pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, piece.isHorizontallyRotatable(),
               piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
         } else {
@@ -1499,7 +1549,7 @@ public class FurnitureController implements Controller {
                 pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
                 pieceElevation, pieceDropOnTopElevation, pieceMovable,
                 pieceDoorOrWindowCutOutShape, 1, 0, true, true, new Sash [0],
-                pieceModelRotation, pieceBackFaceShown, pieceModelSize,
+                pieceModelRotation, pieceModelFlags, pieceModelSize,
                 pieceCreator, pieceResizable, pieceDeformable, pieceTexturable,
                 piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
           } else {
@@ -1507,7 +1557,7 @@ public class FurnitureController implements Controller {
                 pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
                 pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
                 pieceElevation, pieceDropOnTopElevation, pieceMovable,
-                pieceStaircaseCutOutShape, pieceModelRotation, pieceBackFaceShown, pieceModelSize,
+                pieceStaircaseCutOutShape, pieceModelRotation, pieceModelFlags, pieceModelSize,
                 pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, piece.isHorizontallyRotatable(),
                 piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
           }

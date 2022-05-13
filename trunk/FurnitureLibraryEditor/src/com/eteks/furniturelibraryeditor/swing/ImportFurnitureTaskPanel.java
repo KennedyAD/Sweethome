@@ -47,6 +47,8 @@ import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.FurnitureCatalog;
 import com.eteks.sweethome3d.model.FurnitureCategory;
+import com.eteks.sweethome3d.model.HomeMaterial;
+import com.eteks.sweethome3d.model.PieceOfFurniture;
 import com.eteks.sweethome3d.swing.ModelPreviewComponent;
 import com.eteks.sweethome3d.swing.ThreadedTaskPanel;
 import com.eteks.sweethome3d.tools.TemporaryURLContent;
@@ -92,9 +94,10 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
     try {
       String modelName = "model";
       final AtomicReference<BranchGroup> modelNode = new AtomicReference<BranchGroup>();
+      ModelManager modelManager = ModelManager.getInstance();
       try {
         // Load model without ModelManager cache in case its content changed
-        modelNode.set(ModelManager.getInstance().loadModel(model));
+        modelNode.set(modelManager.loadModel(model));
       } catch (IOException ex) {
         // modelNode not set
       }
@@ -115,7 +118,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
           modelName = modelName.substring(0, dotIndex);
         }
         // Load copied content in current thread using cache to make it accessible by preview components without waiting in EDT
-        ModelManager.getInstance().loadModel(model, true, new ModelManager.ModelObserver() {
+        modelManager.loadModel(model, true, new ModelManager.ModelObserver() {
             public void modelUpdated(BranchGroup modelRoot) {
             }
 
@@ -148,7 +151,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
                     + URLEncoder.encode(entryName, "UTF-8").replace("+", "%20").replace("%2F", "/"));
                 final Content entryContent = new TemporaryURLContent(entryUrl);
                 // Load content using cache to make it accessible by preview components without waiting in EDT
-                ModelManager.getInstance().loadModel(entryContent, true, new ModelManager.ModelObserver() {
+                modelManager.loadModel(entryContent, true, new ModelManager.ModelObserver() {
                     public void modelUpdated(BranchGroup modelRoot) {
                       modelNode.set(modelRoot);
                     }
@@ -191,12 +194,21 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
         return null;
       }
 
-      Vector3f size = ModelManager.getInstance().getSize(modelNode.get());
+      Vector3f size = modelManager.getSize(modelNode.get());
+      HomeMaterial [] modelMaterials = modelManager.getMaterials(modelNode.get());
+      boolean edgeColorMaterialHidden = false;
+      for (HomeMaterial material : modelMaterials) {
+        if (material.getName().startsWith(ModelManager.EDGE_COLOR_MATERIAL_PREFIX)) {
+          edgeColorMaterialHidden = true;
+        }
+      }
       // Generate icon image
       final Content previewModel = pieceModel;
+      final int modelFlags = edgeColorMaterialHidden ? PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL : 0;
       EventQueue.invokeAndWait(new Runnable() {
           public void run() {
             iconPreviewComponent.setModel(previewModel);
+            iconPreviewComponent.setModelFlags(modelFlags);
           }
         });
       Thread.sleep(this.firstRendering ? 1000 : 100);
@@ -226,8 +238,8 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
 
       CatalogPieceOfFurniture piece = new CatalogPieceOfFurniture(key,
           getPieceOfFurnitureName(modelName), null, null, new String [0], null, null, iconContent.get(), null, pieceModel,
-          size.x, size.z, size.y, 0f, 1f, true, null, null, false, pieceModel.getSize(),
-          this.preferences.getDefaultCreator(), true, true, true, true, null, null, null);
+          size.x, size.z, size.y, 0f, 1f, true, null, null, modelFlags, pieceModel.getSize(),
+          this.preferences.getDefaultCreator(), true, true, true, true, null, null, null, null);
       FurnitureCategory defaultCategory = new FurnitureCategory(
           this.preferences.getLocalizedString(ImportFurnitureTaskPanel.class, "defaultCategory"));
       new FurnitureCatalog().add(defaultCategory , piece);

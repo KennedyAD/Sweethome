@@ -90,6 +90,7 @@ import com.eteks.sweethome3d.model.Camera;
 import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.FurnitureCategory;
+import com.eteks.sweethome3d.model.HomeMaterial;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.swing.AutoCommitSpinner;
@@ -154,6 +155,7 @@ public class FurniturePanel extends JPanel implements DialogView {
   private JLabel                    staircaseCutOutShapeLabel;
   private JTextField                staircaseCutOutShapeTextField;
   private NullableCheckBox          backFaceShownCheckBox;
+  private NullableCheckBox          edgeColorMaterialHiddenCheckBox;
   private NullableCheckBox          resizableCheckBox;
   private NullableCheckBox          deformableCheckBox;
   private NullableCheckBox          texturableCheckBox;
@@ -1010,6 +1012,49 @@ public class FurniturePanel extends JPanel implements DialogView {
         });
     }
 
+    if (this.controller.isPropertyEditable(FurnitureController.Property.EDGE_COLOR_MATERIAL_HIDDEN)) {
+      // Create edge color hidden check box bound to EDGE_COLOR_MATERIAL_HIDDEN controller property
+      this.edgeColorMaterialHiddenCheckBox = new NullableCheckBox(SwingTools.getLocalizedLabelText(preferences,
+          FurniturePanel.class, "edgeColorMaterialHiddenCheckBox.text"));
+      this.edgeColorMaterialHiddenCheckBox.setNullable(controller.getEdgeColorMaterialHidden() == null);
+      this.edgeColorMaterialHiddenCheckBox.setValue(controller.getEdgeColorMaterialHidden());
+      final PropertyChangeListener edgeColorMaterialHiddenChangeListener = new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent ev) {
+          edgeColorMaterialHiddenCheckBox.setNullable(ev.getNewValue() == null);
+          edgeColorMaterialHiddenCheckBox.setValue((Boolean)ev.getNewValue());
+        }
+      };
+      controller.addPropertyChangeListener(FurnitureController.Property.EDGE_COLOR_MATERIAL_HIDDEN, edgeColorMaterialHiddenChangeListener);
+      this.edgeColorMaterialHiddenCheckBox.addChangeListener(new ChangeListener() {
+          public void stateChanged(ChangeEvent ev) {
+            controller.removePropertyChangeListener(FurnitureController.Property.EDGE_COLOR_MATERIAL_HIDDEN, edgeColorMaterialHiddenChangeListener);
+            controller.setEdgeColorMaterialHidden(edgeColorMaterialHiddenCheckBox.getValue());
+            resetIcon(false);
+            controller.addPropertyChangeListener(FurnitureController.Property.EDGE_COLOR_MATERIAL_HIDDEN, edgeColorMaterialHiddenChangeListener);
+          }
+        });
+
+      PropertyChangeListener modelChangeListener = new PropertyChangeListener () {
+        public void propertyChange(PropertyChangeEvent ev) {
+          ModelManager.getInstance().loadModel(controller.getModel(), new ModelManager.ModelObserver() {
+              public void modelUpdated(BranchGroup modelRoot) {
+                edgeColorMaterialHiddenCheckBox.setVisible(false);
+                for (HomeMaterial material : ModelManager.getInstance().getMaterials(modelRoot)) {
+                  if (material.getName().startsWith(ModelManager.EDGE_COLOR_MATERIAL_PREFIX)) {
+                    edgeColorMaterialHiddenCheckBox.setVisible(true);
+                  }
+                }
+              }
+
+              public void modelError(Exception ex) {
+              }
+            });
+        }
+      };
+      controller.addPropertyChangeListener(FurnitureController.Property.MODEL, modelChangeListener);
+      modelChangeListener.propertyChange(null);
+    }
+
     if (this.controller.isPropertyEditable(FurnitureController.Property.RESIZABLE)) {
       // Create resizable check box bound to RESIZABLE controller property
       this.resizableCheckBox = new NullableCheckBox(SwingTools.getLocalizedLabelText(preferences,
@@ -1338,6 +1383,10 @@ public class FurniturePanel extends JPanel implements DialogView {
         this.backFaceShownCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             FurniturePanel.class, "backFaceShownCheckBox.mnemonic")).getKeyCode());
       }
+      if (this.edgeColorMaterialHiddenCheckBox != null) {
+        this.edgeColorMaterialHiddenCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurniturePanel.class, "edgeColorMaterialHiddenCheckBox.mnemonic")).getKeyCode());
+      }
       if (this.resizableCheckBox != null) {
         this.resizableCheckBox.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             FurniturePanel.class, "resizableCheckBox.mnemonic")).getKeyCode());
@@ -1549,6 +1598,11 @@ public class FurniturePanel extends JPanel implements DialogView {
           1, 11, 2, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.NONE, componentInsets, 0, 0));
     }
+    if (this.controller.isPropertyEditable(FurnitureController.Property.EDGE_COLOR_MATERIAL_HIDDEN)) {
+      add(this.edgeColorMaterialHiddenCheckBox, new GridBagConstraints(
+          4, 11, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, componentInsets, 0, 0));
+    }
     if (this.controller.isPropertyEditable(FurnitureController.Property.DOOR_OR_WINDOW)) {
       add(this.doorOrWindowCheckBox, new GridBagConstraints(
           1, 12, 1, 1, 0, 0, GridBagConstraints.LINE_START,
@@ -1602,27 +1656,6 @@ public class FurniturePanel extends JPanel implements DialogView {
     final Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
     if (SwingTools.showConfirmDialog((JComponent)parentView,
             this, this.dialogTitle, this.nameTextField) == JOptionPane.OK_OPTION) {
-      if (this.controller.getBackFaceShown() != null
-          && this.controller.getBackFaceShown()) {
-        JRootPane rootPane = SwingUtilities.getRootPane((JComponent)parentView);
-        Cursor defaultCursor = rootPane.getCursor();
-        try {
-          rootPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          // Generate a modified model with back face (modifying the model is required because this information isn't stored in a SH3F file)
-          HomePieceOfFurniture3D piece3D = new HomePieceOfFurniture3D(new HomePieceOfFurniture(
-              new CatalogPieceOfFurniture(this.controller.getName(), null,
-                  this.controller.getModel(), this.controller.getWidth(), this.controller.getDepth(), this.controller.getHeight(),
-                  0, false, null, null, this.controller.getBackFaceShown(), 0, false)), null, true, true);
-          this.controller.setModel(ImportFurnitureTaskPanel.copyToTemporaryOBJContent(piece3D, this.controller.getModel()));
-        } catch (IOException e) {
-          JOptionPane.showMessageDialog(rootPane,
-              preferences.getLocalizedString(FurniturePanel.class, "backFaceShownError"),
-              preferences.getLocalizedString(FurniturePanel.class, "errorTitle"),
-              JOptionPane.ERROR_MESSAGE);
-        } finally {
-          rootPane.setCursor(defaultCursor);
-        }
-      }
       this.controller.modifyFurniture();
     }
     if (focusOwner != null) {
@@ -1647,10 +1680,13 @@ public class FurniturePanel extends JPanel implements DialogView {
         addModelListener(controller, preferences);
         addSizeListeners(controller);
         addRotationListener(controller);
-        addBackFaceShownListener(controller);
+        addModelFlagsListener(controller);
         setBackground(UIManager.getColor("window"));
         if (controller.getModel() != null) {
-          setModel(controller.getModel(), controller.getModelRotation(),
+          setModel(controller.getModel(),
+              controller.getBackFaceShown() != null ? controller.getBackFaceShown() : false,
+              controller.getEdgeColorMaterialHidden() != null ? controller.getEdgeColorMaterialHidden() : false,
+              controller.getModelRotation(),
               controller.getWidth(), controller.getDepth(), controller.getHeight(), preferences);
         } else {
           setModel(null);
@@ -1755,15 +1791,23 @@ public class FurniturePanel extends JPanel implements DialogView {
     }
 
     /**
-     * Adds listeners to <code>controller</code> to update the face culling of the piece model
+     * Adds listeners to <code>controller</code> to update the face and color edge culling of the piece model
      * displayed by this component.
      */
-    private void addBackFaceShownListener(final FurnitureController controller) {
+    private void addModelFlagsListener(final FurnitureController controller) {
       controller.addPropertyChangeListener(FurnitureController.Property.BACK_FACE_SHOWN,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
               if (controller.getBackFaceShown() != null) {
                 setBackFaceShown(controller.getBackFaceShown());
+              }
+            }
+          });
+      controller.addPropertyChangeListener(FurnitureController.Property.EDGE_COLOR_MATERIAL_HIDDEN,
+          new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent ev) {
+              if (controller.getEdgeColorMaterialHidden() != null) {
+                setEdgeColorMaterialHidden(controller.getEdgeColorMaterialHidden());
               }
             }
           });
@@ -1778,7 +1822,10 @@ public class FurniturePanel extends JPanel implements DialogView {
       controller.addPropertyChangeListener(FurnitureController.Property.MODEL,
           new PropertyChangeListener () {
             public void propertyChange(PropertyChangeEvent ev) {
-              setModel(controller.getModel(), controller.getModelRotation(),
+              setModel(controller.getModel(),
+                  controller.getBackFaceShown() != null ? controller.getBackFaceShown() : false,
+                  controller.getEdgeColorMaterialHidden() != null ? controller.getEdgeColorMaterialHidden() : false,
+                  controller.getModelRotation(),
                   controller.getWidth(), controller.getDepth(), controller.getHeight(), preferences);
             }
           });
@@ -1787,8 +1834,8 @@ public class FurniturePanel extends JPanel implements DialogView {
     /**
      * Sets the 3D model viewed by this model
      */
-    public void setModel(final Content model, final float [][] modelRotation,
-                         final Float width, final Float depth, final Float height,
+    public void setModel(final Content model, final boolean backFaceShown, final boolean edgeColorMaterialHidden,
+                         final float [][] modelRotation, final Float width, final Float depth, final Float height,
                          final UserPreferences preferences) {
       if (model == null) {
         setModel(null);
@@ -1798,6 +1845,8 @@ public class FurniturePanel extends JPanel implements DialogView {
               setModel(model);
               if (width != null && depth != null && height != null) {
                 setModelRotationAndSize(modelRotation, width, depth, height);
+                setBackFaceShown(backFaceShown);
+                setEdgeColorMaterialHidden(edgeColorMaterialHidden);
               }
             }
 
