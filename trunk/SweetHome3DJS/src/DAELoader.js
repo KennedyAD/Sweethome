@@ -632,8 +632,10 @@ DAEHandler.prototype.handleEffectElementsEnd = function(name, parent) {
       if (!appearance.getShininess()) {
         appearance.setShininess(1);
       }
-      // TODO Ignore coloring attributes ?
-      // appearance.setColoringAttributes(defaultColor);      
+      if ("constant" == name) {
+        // Set illumination to 0 for coloring attributes effect
+        this.effectAppearances [this.effectId].setIllumination(0);
+      }
     }
     this.transparentColor = null;
     this.transparency = null;
@@ -648,10 +650,10 @@ DAEHandler.prototype.handleEffectElementsEnd = function(name, parent) {
           this.effectAppearances [this.effectId].setEmissiveColor(vec3.fromValues(
               this.floats [0], this.floats [1], this.floats [2]));
         } else { // inConstant
-          // TODO Ignore coloring attributes ?
-          // this.effectAppearances [this.effectId].setColoringAttributes(vec3.fromValues(this.floats [0], this.floats [1], this.floats [2]));
           this.effectAppearances [this.effectId].setDiffuseColor(vec3.fromValues(
               this.floats [0], this.floats [1], this.floats [2])); 
+          // Set illumination to 0 for coloring attributes effect
+          this.effectAppearances [this.effectId].setIllumination(0);
         }
       } else if ("ambient" == parent) {
         this.effectAppearances [this.effectId].setAmbientColor(vec3.fromValues(
@@ -659,8 +661,6 @@ DAEHandler.prototype.handleEffectElementsEnd = function(name, parent) {
       } else if ("diffuse" == parent) {
         this.effectAppearances [this.effectId].setDiffuseColor(vec3.fromValues(
             this.floats [0], this.floats [1], this.floats [2])); // this.floats [3]
-        // TODO Always set coloring attributes in case geometries don't contain normals
-        // this.effectAppearances [this.effectId].setColoringAttributes(vec3.fromValues(this.floats [0], this.floats [1], this.floats [2]));
       } else if ("specular" == parent) {
         this.effectAppearances [this.effectId].setSpecularColor(vec3.fromValues(
             this.floats [0], this.floats [1], this.floats [2]));
