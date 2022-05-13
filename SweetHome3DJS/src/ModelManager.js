@@ -120,6 +120,8 @@ ModelManager.SUB_TRANSFORMATION_SEPARATOR = "_and_";
  */
 ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX = "_transformation";
 
+ModelManager.EDGE_COLOR_MATERIAL_PREFIX = "edge_color";
+
 // Singleton
 ModelManager.instance = null;
 
@@ -1075,15 +1077,21 @@ ModelManager.prototype.isDeformed = function(node) {
  * Returns the materials used by the children shapes of the given <code>node</code>,
  * attributing their <code>creator</code> to them.
  * @param {Node3D} node
+ * @param {boolean} ignoreEdgeColorMaterial
  * @param {string} [creator]
  */
-ModelManager.prototype.getMaterials = function(node, creator) {
+ModelManager.prototype.getMaterials = function(node, ignoreEdgeColorMaterial, creator) {
   if (creator === undefined) {
-    creator = null;
+    if (ignoreEdgeColorMaterial === undefined) {
+      ignoreEdgeColorMaterial = false;
+      creator = null;
+    } else {
+      creator = ignoreEdgeColorMaterial;
+    }
   }
 
   var appearances = [];
-  this.searchAppearances(node, appearances);
+  this.searchAppearances(node, ignoreEdgeColorMaterial, appearances);
   var materials = [];
   for (var i = 0; i < appearances.length; i++) {
     var appearance = appearances[i];
@@ -1147,22 +1155,25 @@ ModelManager.prototype.getMaterials = function(node, creator) {
 }
 
 /**
- * @param {Node3D} node
- * @param {Array} appearances
+ * @param {Node3D}  node
+ * @param {boolean} ignoreEdgeColorMaterial
+ * @param {Array}   appearances
  * @private
  */
-ModelManager.prototype.searchAppearances = function(node, appearances) {
+ModelManager.prototype.searchAppearances = function(node, ignoreEdgeColorMaterial, appearances) {
   if (node instanceof Group3D) {
     var children = node.getChildren();
     for (var i = 0; i < children.length; i++) {
-      this.searchAppearances(children [i], appearances);
+      this.searchAppearances(children [i], ignoreEdgeColorMaterial, appearances);
     }
   } else if (node instanceof Link3D) {
-    this.searchAppearances(node.getSharedGroup(), appearances);
+    this.searchAppearances(node.getSharedGroup(), ignoreEdgeColorMaterial, appearances);
   } else if (node instanceof Shape3D) {
     var appearance = node.getAppearance();
     if (appearance !== null 
-        && appearances.indexOf(appearance) == -1) {
+        && (!ignoreEdgeColorMaterial
+            || !(appearance.getName().indexOf(ModelManager.EDGE_COLOR_MATERIAL_PREFIX) === 0))
+        && appearances.indexOf(appearance) === -1) {
       appearances.push(appearance);
     }
   }

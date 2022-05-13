@@ -1747,7 +1747,7 @@ HomeComponent3D.prototype.addFurnitureListener = function(group) {
           || "MODEL" == propertyName
           || "MODEL_ROTATION" == propertyName
           || "MODEL_MIRRORED" == propertyName
-          || "BACK_FACE_SHOWN" == propertyName
+          || "MODEL_FLAGS" == propertyName
           || "MODEL_TRANSFORMATIONS" == propertyName
           || "STAIRCASE_CUT_OUT_SHAPE" == propertyName
           || "VISIBLE" == propertyName

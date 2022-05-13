@@ -247,7 +247,7 @@ ModelPreviewComponent.prototype.updateViewPlatformTransform = function() {
 /**
  * Loads and displays the given 3D model.
  * @param {URLContent} model a content with a URL pointing to a 3D model to parse and view
- * @param {boolean} [backFaceShown] if <code>true</code>, displays opposite faces
+ * @param {boolean|Number} [modelFlags] if <code>true</code>, displays opposite faces
  * @param {Array} modelRotation  a 3x3 array describing how to transform the 3D model
  * @param {number} [width] optional width of the model
  * @param {number} [depth] optional width of the model
@@ -255,7 +255,7 @@ ModelPreviewComponent.prototype.updateViewPlatformTransform = function() {
  * @param onerror       callback called in case of error while reading the model
  * @param onprogression callback to follow the reading of the model
  */
-ModelPreviewComponent.prototype.setModel = function(model, backFaceShown, modelRotation,
+ModelPreviewComponent.prototype.setModel = function(model, modelFlags, modelRotation,
                                                     width, depth, height,
                                                     onerror, onprogression) {
   if (depth === undefined 
@@ -265,8 +265,8 @@ ModelPreviewComponent.prototype.setModel = function(model, backFaceShown, modelR
     // Only model, modelRotation, onerror, onprogression parameters
     onprogression = width;
     onerror = modelRotation;
-    modelRotation = backFaceShown;
-    backFaceShown = false;
+    modelRotation = modelFlags;
+    modelFlags = 0;
     width = -1;
     depth = -1;
     height = -1;
@@ -291,10 +291,13 @@ ModelPreviewComponent.prototype.setModel = function(model, backFaceShown, modelR
               
               var modelTransformGroup;
               if (typeof HomePieceOfFurniture !== "undefined") {
+                if (typeof modelFlags === "boolean") {
+                  modelFlags = modelFlags ? PieceOfFurniture.SHOW_BACK_FACE : 0;
+                }
                 previewComponent.previewedPiece = new HomePieceOfFurniture(
                     new CatalogPieceOfFurniture(null, null, model,
-                        size[0], size[2], size[1], 0, false, null, null, modelRotation, backFaceShown, 
-                        null, null, 0, false));
+                        size[0], size[2], size[1], 0, false, null, null, 
+                        modelRotation, modelFlags, null, null, 0, 0, 1, false));
                 previewComponent.previewedPiece.setX(0);
                 previewComponent.previewedPiece.setY(0);
                 previewComponent.previewedPiece.setElevation(-previewComponent.previewedPiece.getHeight() / 2);
@@ -306,7 +309,7 @@ ModelPreviewComponent.prototype.setModel = function(model, backFaceShown, modelR
                 var piece3D = new HomePieceOfFurniture3D(previewComponent.previewedPiece, null, true);
                 modelTransformGroup.addChild(piece3D);
               } else {
-                var modelTransform = modelRotation   
+                var modelTransform = modelRotation 
                     ? modelManager.getRotationTransformation(modelRotation)  
                     : mat4.create();
                 mat4.scale(modelTransform, modelTransform, vec3.fromValues(scaleFactor, scaleFactor, scaleFactor));

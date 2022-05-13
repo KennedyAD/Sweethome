@@ -253,7 +253,8 @@ JSModelMaterialsSelectorDialog.prototype.initMaterialsList = function() {
   ModelManager.getInstance().loadModel(controller.getModel(), true, 
       {
         modelUpdated : function(modelRoot) {
-          defaultMaterials = ModelManager.getInstance().getMaterials(modelRoot, controller.getModelCreator());
+          defaultMaterials = ModelManager.getInstance().getMaterials(
+              modelRoot, (controller.getModelFlags() & PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL) != 0, controller.getModelCreator());
           if (materials != null) {
             // Keep only materials that are defined in default materials set
             // (the list can be different if the model loader interprets differently a 3D model file
@@ -611,7 +612,7 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
         modelUpdated : function(modelRoot) {
           var materialsList = dialog.materialsList;
           previewComponent.setModel(
-              controller.getModel(), controller.isBackFaceShown(), controller.getModelRotation(),
+              controller.getModel(), controller.getModelFlags(), controller.getModelRotation(),
               controller.getModelWidth(), controller.getModelDepth(), controller.getModelHeight());
           previewComponent.setModelMaterials(materialsList.getMaterials());
           previewComponent.setModelTranformations(controller.getModelTransformations());

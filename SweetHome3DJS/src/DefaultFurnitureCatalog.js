@@ -253,7 +253,11 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
   var doorOrWindow = this.parseBoolean(CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW, index)));
   var staircaseCutOutShape = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE, index), null);
   var modelRotation = this.getModelRotation(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION, index));
-  
+  var modelFlagsString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL_FLAGS, index), null);
+  var modelFlags = 0;
+  if (modelFlagsString != null) {
+    modelFlags = parseInt(modelFlagsString);
+  }
   var modelSizeString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL_SIZE, index), null);
   var modelSize = null;
   if (modelSizeString != null) {
@@ -293,18 +297,18 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
     return new CatalogDoorOrWindow(id, name, description, information, tags, creationDate, grade, 
         icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
         doorOrWindowCutOutShape, wallThicknessPercentage, wallDistancePercentage, wallCutOutOnBothSides, widthDepthDeformable, sashes, 
-        modelRotation, false, modelSize, creator, resizable, deformable, texturable, price, valueAddedTaxPercentage, currency, additionalProperties);
+        modelRotation, modelFlags, modelSize, creator, resizable, deformable, texturable, price, valueAddedTaxPercentage, currency, additionalProperties);
   } else {
     var lightSources = this.getLightSources(resource, index, width, depth, height);
     if (lightSources != null) {
       return new CatalogLight(id, name, description, information, tags, creationDate, grade, 
           icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
-          lightSources, staircaseCutOutShape, modelRotation, false, modelSize, creator, 
+          lightSources, staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
           resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, additionalProperties);
     } else {
       return new CatalogPieceOfFurniture(id, name, description, information, tags, creationDate, grade, 
           icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
-          staircaseCutOutShape, modelRotation, false, modelSize, creator, 
+          staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
           resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, additionalProperties);
     }
   }
