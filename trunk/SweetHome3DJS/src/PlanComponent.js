@@ -517,7 +517,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       if (plan.furnitureTopViewIconKeys != null 
           && ("MODEL" == ev.getPropertyName() 
               || "MODEL_ROTATION" == ev.getPropertyName() 
-              || "BACK_FACE_SHOWN" == ev.getPropertyName() 
+              || "MODEL_FLAGS" == ev.getPropertyName() 
               || "MODEL_TRANSFORMATIONS" == ev.getPropertyName() 
               || "ROLL" == ev.getPropertyName() 
               || "PITCH" == ev.getPropertyName() 

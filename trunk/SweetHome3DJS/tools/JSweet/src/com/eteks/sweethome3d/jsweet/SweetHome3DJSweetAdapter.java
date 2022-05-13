@@ -203,12 +203,16 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             return Action.ADD;
           } else if (element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
               .getQualifiedName().toString().equals("com.eteks.sweethome3d.model.CatalogPieceOfFurniture")) {
-            // Only keep the private constructor of CatalogPieceOfFurniture and its 4 public
+            // Only keep the private constructor of CatalogPieceOfFurniture and the public
             // constructors used to create pieces available from version 5.3
+            // (except the one with 18 parameters where backFaceShown boolean 12th parameter was replaced by modelFlags int parameter)
             ExecutableElement c = (ExecutableElement) element;
             if (!element.getModifiers().contains(Modifier.PRIVATE)) {
-              if (c.getParameters().size() != 16 && c.getParameters().size() != 26 && c.getParameters().size() != 28
-                  && c.getParameters().size() != 29) {
+              if (c.getParameters().size() != 16
+                  && c.getParameters().size() != 26
+                  && c.getParameters().size() != 28
+                  && c.getParameters().size() != 29
+                  && (c.getParameters().size() != 18 || types().isSameType(c.getParameters().get(11).asType(), util().getType(boolean.class)))) {
                 return Action.ADD;
               }
             }
