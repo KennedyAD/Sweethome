@@ -422,6 +422,9 @@ public class NoOperationViewFactory implements ViewFactory {
     public void setToolTipEditedProperties(PlanController.EditableProperty[] toolTipEditedProperties, Object[] toolTipPropertyValues, float x, float y) {
     }
 
+    public void setToolTipEditedPropertyValue(PlanController.EditableProperty toolTipEditedProperty, Object toolTipPropertyValue) {
+    }
+
     public void deleteToolTipFeedback() {
     }
 
