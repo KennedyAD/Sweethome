@@ -84,6 +84,19 @@ LengthUnit.getMagnetizedInchLength = function(length, maxDelta) {
 }
 
 /**
+ * Increases the index of <code>fieldPosition</code> to skip white spaces.
+ * @param {string} text
+ * @param {ParsePosition} fieldPosition
+ * @private 
+ */
+LengthUnit.skipWhiteSpaces = function(text, fieldPosition) {
+  while (fieldPosition.getIndex() < text.length
+      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
+    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
+  }
+}
+
+/**
  * @param {number} length
  * Returns the <code>length</code> given in centimeters converted to inches.
  */
@@ -848,7 +861,7 @@ InchFractionFormat.prototype.format = function(number) {
 InchFractionFormat.prototype.parse = function(text, parsePosition) {
   var value = 0;
   var numberPosition = new ParsePosition(parsePosition.getIndex());
-  this.skipWhiteSpaces(text, numberPosition);
+  LengthUnit.skipWhiteSpaces(text, numberPosition);
   var footNumberFormat = NumberFormat.getIntegerInstance();
   // Parse feet
   var quoteIndex = text.indexOf('\'', parsePosition.getIndex());
@@ -861,17 +874,17 @@ InchFractionFormat.prototype.parse = function(text, parsePosition) {
       parsePosition.setErrorIndex(numberPosition.getErrorIndex());
       return null;
     }
-    this.skipWhiteSpaces(text, numberPosition);
+    LengthUnit.skipWhiteSpaces(text, numberPosition);
     if (numberPosition.getIndex() === quoteIndex) {
       value = LengthUnit.footToCentimeter(feet);
       footValue = true;
       numberPosition = new ParsePosition(quoteIndex + 1);
-      this.skipWhiteSpaces(text, numberPosition);
+      LengthUnit.skipWhiteSpaces(text, numberPosition);
       // Test optional foot inch separator
       if (numberPosition.getIndex() < text.length
           && this.footInchSeparator.indexOf(text.charAt(numberPosition.getIndex())) >= 0) {
         numberPosition.setIndex(numberPosition.getIndex() + 1);
-        this.skipWhiteSpaces(text, numberPosition);
+        LengthUnit.skipWhiteSpaces(text, numberPosition);
       }
       if (numberPosition.getIndex() === text.length) {
         parsePosition.setIndex(text.length);
@@ -913,7 +926,7 @@ InchFractionFormat.prototype.parse = function(text, parsePosition) {
     value += LengthUnit.inchToCentimeter(inches);
   }
   // Parse fraction
-  this.skipWhiteSpaces(text, numberPosition);
+  LengthUnit.skipWhiteSpaces(text, numberPosition);
   if (numberPosition.getIndex() === text.length) {
     parsePosition.setIndex(text.length);
     return value;
@@ -943,7 +956,7 @@ InchFractionFormat.prototype.parse = function(text, parsePosition) {
         }
         parsePosition.setIndex(numberPosition.getIndex() 
             + (InchFractionFormat.INCH_FRACTION_CHARACTERS [i] === fractionChar ? 1 : 3));
-        this.skipWhiteSpaces(text, parsePosition);
+        LengthUnit.skipWhiteSpaces(text, parsePosition);
         if (parsePosition.getIndex() < text.length
             && text.charAt(parsePosition.getIndex()) === '\"') {
           parsePosition.setIndex(parsePosition.getIndex() + 1);
@@ -955,19 +968,6 @@ InchFractionFormat.prototype.parse = function(text, parsePosition) {
   
   parsePosition.setIndex(numberPosition.getIndex());
   return value;
-}
-
-/**
- * Increases the index of <code>fieldPosition</code> to skip white spaces.
- * @param {string} text
- * @param {ParsePosition} fieldPosition
- * @private 
- */
-InchFractionFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
-  while (fieldPosition.getIndex() < text.length
-      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
-    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-  }
 }
 
 /** 
@@ -1008,7 +1008,7 @@ InchDecimalsFormat.prototype.format = function(number) {
 
 InchDecimalsFormat.prototype.parse = function(text, parsePosition) {
   var numberPosition = new ParsePosition(parsePosition.getIndex());
-  this.skipWhiteSpaces(text, numberPosition);
+  LengthUnit.skipWhiteSpaces(text, numberPosition);
   // Parse inches
   var inches = DecimalFormat.prototype.parse.call(this, text, numberPosition);
   if (inches === null) {
@@ -1017,7 +1017,7 @@ InchDecimalsFormat.prototype.parse = function(text, parsePosition) {
   }
   var value = LengthUnit.inchToCentimeter(inches);
   // Parse "
-  this.skipWhiteSpaces(text, numberPosition);
+  LengthUnit.skipWhiteSpaces(text, numberPosition);
   if (numberPosition.getIndex() < text.length 
       && text.charAt(numberPosition.getIndex()) === '\"') {
     parsePosition.setIndex(numberPosition.getIndex() + 1);
@@ -1025,19 +1025,6 @@ InchDecimalsFormat.prototype.parse = function(text, parsePosition) {
     parsePosition.setIndex(numberPosition.getIndex());
   }
   return value;
-}
-
-/**
- * Increases the index of <code>fieldPosition</code> to skip white spaces.
- * @param {string} text
- * @param {ParsePosition} fieldPosition
- * @private 
- */
-InchDecimalsFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
-  while (fieldPosition.getIndex() < text.length
-      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
-    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-  }
 }
 
 /** 
@@ -1060,7 +1047,7 @@ FootDecimalsFormat.prototype.format = function(number) {
 
 FootDecimalsFormat.prototype.parse = function(text, parsePosition) {
   var numberPosition = new ParsePosition(parsePosition.getIndex());
-  this.skipWhiteSpaces(text, numberPosition);
+  LengthUnit.skipWhiteSpaces(text, numberPosition);
   // Parse inches
   var inches = DecimalFormat.prototype.parse.call(this, text, numberPosition);
   if (inches === null) {
@@ -1069,7 +1056,7 @@ FootDecimalsFormat.prototype.parse = function(text, parsePosition) {
   }
   var value = LengthUnit.footToCentimeter(inches);
   // Parse "
-  this.skipWhiteSpaces(text, numberPosition);
+  LengthUnit.skipWhiteSpaces(text, numberPosition);
   if (numberPosition.getIndex() < text.length 
       && text.charAt(numberPosition.getIndex()) === '\"') {
     parsePosition.setIndex(numberPosition.getIndex() + 1);
@@ -1077,17 +1064,4 @@ FootDecimalsFormat.prototype.parse = function(text, parsePosition) {
     parsePosition.setIndex(numberPosition.getIndex());
   }
   return value;
-}
-
-/**
- * Increases the index of <code>fieldPosition</code> to skip white spaces.
- * @param {string} text
- * @param {ParsePosition} fieldPosition
- * @private 
- */
-FootDecimalsFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
-  while (fieldPosition.getIndex() < text.length
-      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
-    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
-  }
 }
