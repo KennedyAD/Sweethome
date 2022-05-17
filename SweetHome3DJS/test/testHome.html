@@ -484,6 +484,24 @@ function testLengthUnit() {
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-0.125)));
   assertEquals("Wrong conversion", "-1'",
       LengthUnit.INCH.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-12)));
+  assertEquals("Wrong conversion", "11\"",
+      LengthUnit.INCH_FRACTION.getFormat().format(LengthUnit.inchToCentimeter(11)));
+  assertEquals("Wrong conversion", "23\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12)));
+  assertEquals("Wrong conversion", "23\u215b\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
+  assertEquals("Wrong conversion", "-23\u215b\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-(11 + 12 + 0.125))));
+  assertEquals("Wrong conversion", "-11\u215b\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-(11 + 0.125))));
+  assertEquals("Wrong conversion", "-0\u215b\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-0.125)));
+  assertEquals("Wrong conversion", "-12\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-12)));
+  assertEquals("Wrong conversion", "-12\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-12 - 0.05)));
+  assertEquals("Wrong conversion", "-12\"",
+      LengthUnit.INCH_FRACTION.getFormatWithUnit().format(LengthUnit.inchToCentimeter(-12 + 0.05)));
 
   // Test formats with unit
   assertEquals("Wrong conversion", "102 cm", LengthUnit.CENTIMETER.getFormatWithUnit().format(102));
@@ -522,6 +540,12 @@ function testLengthUnit() {
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(11 + 12 + 0.125)));
   assertEquals("Wrong conversion", "0,05\"",
       LengthUnit.INCH_DECIMALS.getFormatWithUnit().format(LengthUnit.inchToCentimeter(0.05)));
+  assertEquals("Wrong conversion", "11",
+      LengthUnit.FOOT_DECIMALS.getFormat().format(LengthUnit.footToCentimeter(11)));
+  assertEquals("Wrong conversion", "11\'",
+      LengthUnit.FOOT_DECIMALS.getFormatWithUnit().format(LengthUnit.footToCentimeter(11)));
+  assertEquals("Wrong conversion", "23,125\'",
+      LengthUnit.FOOT_DECIMALS.getFormatWithUnit().format(LengthUnit.footToCentimeter(11 + 12 + 0.125)));
   
   assertEquals("Wrong conversion", "95 ft²", LengthUnit.INCH.getAreaFormatWithUnit().format(87795.82347779837));
   
@@ -533,6 +557,10 @@ function testLengthUnit() {
       LengthUnit.INCH_DECIMALS.getFormat().parseObject("0,125"), 1E-10);
   assertEquals("Wrong conversion",  LengthUnit.inchToCentimeter(0.125),
       LengthUnit.INCH_DECIMALS.getFormat().parseObject("0,125\""), 1E-10);
+  assertEquals("Wrong conversion",  LengthUnit.inchToCentimeter(0.125),
+      LengthUnit.FOOT_DECIMALS.getFormat().parseObject("0,0104167"), 1E-5);
+  assertEquals("Wrong conversion",  LengthUnit.inchToCentimeter(0.125),
+      LengthUnit.FOOT_DECIMALS.getFormat().parseObject("0,0104167\'"), 1E-5);
   assertEquals("Wrong conversion",  LengthUnit.inchToCentimeter(11),
       LengthUnit.INCH.getFormat().parseObject("0'11\""), 1E-10);
   assertEquals("Wrong conversion",  LengthUnit.inchToCentimeter(10 + 12),

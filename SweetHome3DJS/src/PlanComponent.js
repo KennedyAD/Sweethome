@@ -2836,15 +2836,12 @@ PlanComponent.prototype.getGridColor = function() {
 PlanComponent.prototype.getMainGridSize = function(gridScale) {
   var mainGridSizes;
   var lengthUnit = this.preferences.getLengthUnit();
-  if (lengthUnit === LengthUnit.INCH 
-      || lengthUnit === LengthUnit.INCH_FRACTION 
-      || lengthUnit === LengthUnit.INCH_DECIMALS) {
+  if (lengthUnit.isMetric()) {
+    mainGridSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
+  } else {
     var oneFoot = 2.54 * 12;
     mainGridSizes = [oneFoot, 3 * oneFoot, 6 * oneFoot, 
                      12 * oneFoot, 24 * oneFoot, 48 * oneFoot, 96 * oneFoot, 192 * oneFoot, 384 * oneFoot];
-  }
-  else {
-    mainGridSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
   }
   var mainGridSize = mainGridSizes[0];
   for (var i = 1; i < mainGridSizes.length && mainGridSize * gridScale < 50; i++) {
@@ -2862,15 +2859,12 @@ PlanComponent.prototype.getMainGridSize = function(gridScale) {
 PlanComponent.prototype.getGridSize = function(gridScale) {
   var gridSizes;
   var lengthUnit = this.preferences.getLengthUnit();
-  if (lengthUnit === LengthUnit.INCH 
-      || lengthUnit === LengthUnit.INCH_FRACTION 
-      || lengthUnit === LengthUnit.INCH_DECIMALS) {
+  if (lengthUnit.isMetric()) {
+    gridSizes = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
+  } else {
     var oneFoot = 2.54 * 12;
     gridSizes = [2.54, 5.08, 7.62, 15.24, oneFoot, 3 * oneFoot, 6 * oneFoot, 
                  12 * oneFoot, 24 * oneFoot, 48 * oneFoot, 96 * oneFoot, 192 * oneFoot, 384 * oneFoot];
-  }
-  else {
-    gridSizes = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
   }
   var gridSize = gridSizes[0];
   for (var i = 1; i < gridSizes.length && gridSize * gridScale < 10; i++) {

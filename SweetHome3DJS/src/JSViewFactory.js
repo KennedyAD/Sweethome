@@ -992,11 +992,8 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
                   var userCategory = component.findUserCategory(categories) || component.userCategory;
                   controller.setCategory(userCategory);
                   controller.setCreator(null);
-                  var defaultWidth = 20;
-                  var lengthUnit = component.preferences.getLengthUnit();
-                  if (lengthUnit == LengthUnit.INCH || lengthUnit == LengthUnit.INCH_FRACTION || lengthUnit == LengthUnit.INCH_DECIMALS) {
-                    defaultWidth = LengthUnit.inchToCentimeter(8);
-                  }
+                  var defaultWidth = component.preferences.getLengthUnit().isMetric() 
+                      ? 20 : LengthUnit.inchToCentimeter(8);
                   controller.setWidth(defaultWidth);
                   controller.setHeight(defaultWidth / checkedImage.width * checkedImage.height);
                 }, 100);
@@ -1298,6 +1295,10 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
         JSComponent.createOptionElement("INCH_DECIMALS", 
             preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.inchDecimals.text"),
             controller.getUnit() == LengthUnit.INCH_DECIMALS));
+    dialog.unitSelect.appendChild(
+        JSComponent.createOptionElement("FOOT_DECIMALS", 
+            preferences.getLocalizedString("UserPreferencesPanel", "unitComboBox.footDecimals.text"),
+            controller.getUnit() == LengthUnit.FOOT_DECIMALS));
 
     dialog.registerEventListener(dialog.unitSelect, "change", function(ev) {
         var selectedUnitOption = dialog.unitSelect.options[dialog.unitSelect.selectedIndex];
@@ -1709,10 +1710,10 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   }
 
   var updateSpinnerStepsAndLength = function(spinner, centimeterStepSize, inchStepSize) {
-      if (controller.getUnit() == LengthUnit.INCH || controller.getUnit() == LengthUnit.INCH_FRACTION || controller.getUnit() == LengthUnit.INCH_DECIMALS) {
-        spinner.setStepSize(inchStepSize);
-      } else {
+      if (controller.getUnit().isMetric()) {
         spinner.setStepSize(centimeterStepSize);
+      } else {
+        spinner.setStepSize(inchStepSize);
       }
       spinner.setMinimum(controller.getUnit().getMinimumLength());
       if (spinner.getMinimum() > spinner.getValue()) {

@@ -136,7 +136,7 @@ LengthUnit.nameOf = function(unit) {
 /**
  * Gets a LengthUnit by its enum name
  * <br/>
- * <b>WARNING</b> enum name (CENTIMETERS, MILLIMETERS, ..) is different from unit's name (cm, mm, ..)
+ * <b>WARNING</b> enum name (CENTIMETER, MILLIMETER, ..) is different from unit's name (cm, mm, ..)
  * @param {string} unitEnumName
  * @return {LengthUnit}
  */
@@ -219,6 +219,13 @@ LengthUnit.MILLIMETER.unitToCentimeter = function(length) {
   return length / 10.;
 }
  
+/**
+ * @since 7.0
+ */
+LengthUnit.MILLIMETER.isMetric = function() {
+  return true;
+}
+
 
 /**
  * Centimeter unit.
@@ -297,6 +304,14 @@ LengthUnit.CENTIMETER.unitToCentimeter = function(length) {
 } 
 
 /**
+ * @since 7.0
+ */
+LengthUnit.CENTIMETER.isMetric = function() {
+  return true;
+}
+
+
+/**
  * Meter unit.
  */
 LengthUnit.METER = {
@@ -369,6 +384,13 @@ LengthUnit.METER.centimeterToUnit = function(length) {
 
 LengthUnit.METER.unitToCentimeter = function(length) {
   return length * 100;
+}
+
+/**
+ * @since 7.0
+ */
+LengthUnit.METER.isMetric = function() {
+  return true;
 }
 
 
@@ -446,6 +468,12 @@ LengthUnit.INCH.unitToCentimeter = function(length) {
   return LengthUnit.inchToCentimeter(length);
 }
 
+/**
+ * @since 7.0
+ */
+LengthUnit.INCH.isMetric = function() {
+  return false;
+}
 
 
 /**
@@ -520,6 +548,13 @@ LengthUnit.INCH_FRACTION.unitToCentimeter = function(length) {
   return LengthUnit.inchToCentimeter(length);
 }
 
+/**
+ * @since 7.0
+ */
+LengthUnit.INCH_FRACTION.isMetric = function() {
+  return false;
+}
+
 
 /**
  * Inch unit with decimals.
@@ -589,12 +624,98 @@ LengthUnit.INCH_DECIMALS.getStepSize = function() {
 }
 
 LengthUnit.INCH_DECIMALS.centimeterToUnit = function(length) {
-  return centimeterToInch(length);
+  return LengthUnit.centimeterToInch(length);
 }
 
 LengthUnit.INCH_DECIMALS.unitToCentimeter = function(length) {
   return LengthUnit.inchToCentimeter(length);
 }
+
+/**
+ * @since 7.0
+ */
+LengthUnit.INCH_DECIMALS.isMetric = function() {
+  return false;
+}
+
+
+/**
+ * Inch unit with decimals.
+ * @since 7.0
+ */
+LengthUnit.FOOT_DECIMALS = {
+    formatLocale : null
+};
+
+LengthUnit.FOOT_DECIMALS.name = function() {
+  return LengthUnit.nameOf(this);
+}
+
+LengthUnit.FOOT_DECIMALS.getFormatWithUnit = function() {
+  this.checkLocaleChange();
+  return this.lengthFormatWithUnit;
+}
+
+LengthUnit.FOOT_DECIMALS.getFormat = function() {
+  this.checkLocaleChange();
+  return this.lengthFormat;
+}
+
+LengthUnit.FOOT_DECIMALS.getAreaFormatWithUnit = function() {
+  this.checkLocaleChange();
+  return this.areaFormatWithUnit;
+}
+
+LengthUnit.FOOT_DECIMALS.getName = function() {
+  this.checkLocaleChange();
+  return this.unitName; // Use unitName rather than name field to avoid clashes with name() method
+}
+  
+LengthUnit.FOOT_DECIMALS.checkLocaleChange = function() {  
+  // Instantiate format if locale changed
+  if (Locale.getDefault() != this.formatLocale) {
+    this.formatLocale = Locale.getDefault();
+    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
+    this.unitName = CoreTools.getStringFromKey(resource, "footUnit");
+    this.lengthFormat = new FootDecimalsFormat("0.###");
+    this.lengthFormatWithUnit = new FootDecimalsFormat("0.###", "\'"); 
+    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0.##", squareFootUnit);
+  }
+}
+  
+LengthUnit.FOOT_DECIMALS.getMagnetizedLength = function(length, maxDelta) {
+  return LengthUnit.getMagnetizedInchLength(length, maxDelta);
+}
+
+LengthUnit.FOOT_DECIMALS.getMinimumLength = function() {        
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
+LengthUnit.FOOT_DECIMALS.getMaximumLength = function() {
+  return LengthUnit.footToCentimeter(3280); 
+}
+
+LengthUnit.FOOT_DECIMALS.getMaximumElevation = function() {
+  return this.getMaximumLength() / 10;
+}
+
+LengthUnit.FOOT_DECIMALS.getStepSize = function() {
+  return LengthUnit.inchToCentimeter(0.125);
+}
+
+LengthUnit.FOOT_DECIMALS.centimeterToUnit = function(length) {
+  return LengthUnit.centimeterToFoot(length);
+}
+
+LengthUnit.FOOT_DECIMALS.unitToCentimeter = function(length) {
+  return LengthUnit.footToCentimeter(length);
+}
+
+LengthUnit.FOOT_DECIMALS.isMetric = function() {
+  return false;
+}
+
 
 // Specific format classes for lengths
 
@@ -913,6 +1034,58 @@ InchDecimalsFormat.prototype.parse = function(text, parsePosition) {
  * @private 
  */
 InchDecimalsFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
+  while (fieldPosition.getIndex() < text.length
+      && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
+    fieldPosition.setIndex(fieldPosition.getIndex() + 1);
+  }
+}
+
+/** 
+ * @constructor
+ * @extends DecimalFormat
+ * @private 
+ */
+function FootDecimalsFormat(pattern, unit) {
+  DecimalFormat.call(this, pattern);
+  this.setGroupingUsed(true);
+  this.unit = unit;
+}
+FootDecimalsFormat.prototype = Object.create(DecimalFormat.prototype);
+FootDecimalsFormat.prototype.constructor = FootDecimalsFormat;
+
+FootDecimalsFormat.prototype.format = function(number) {
+  var formattedNumber = DecimalFormat.prototype.format.call(this, LengthUnit.centimeterToFoot(number));
+  return formattedNumber + (this.unit ? this.unit : "");
+}
+
+FootDecimalsFormat.prototype.parse = function(text, parsePosition) {
+  var numberPosition = new ParsePosition(parsePosition.getIndex());
+  this.skipWhiteSpaces(text, numberPosition);
+  // Parse inches
+  var inches = DecimalFormat.prototype.parse.call(this, text, numberPosition);
+  if (inches === null) {
+    parsePosition.setErrorIndex(numberPosition.getErrorIndex());
+    return null;
+  }
+  var value = LengthUnit.footToCentimeter(inches);
+  // Parse "
+  this.skipWhiteSpaces(text, numberPosition);
+  if (numberPosition.getIndex() < text.length 
+      && text.charAt(numberPosition.getIndex()) === '\"') {
+    parsePosition.setIndex(numberPosition.getIndex() + 1);
+  } else {
+    parsePosition.setIndex(numberPosition.getIndex());
+  }
+  return value;
+}
+
+/**
+ * Increases the index of <code>fieldPosition</code> to skip white spaces.
+ * @param {string} text
+ * @param {ParsePosition} fieldPosition
+ * @private 
+ */
+FootDecimalsFormat.prototype.skipWhiteSpaces = function(text, fieldPosition) {
   while (fieldPosition.getIndex() < text.length
       && /\s/.test(text.charAt(fieldPosition.getIndex()))) {
     fieldPosition.setIndex(fieldPosition.getIndex() + 1);
