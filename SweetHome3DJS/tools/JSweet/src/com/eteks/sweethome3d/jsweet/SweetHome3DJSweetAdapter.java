@@ -252,19 +252,20 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
 
     // Manage content without contentContext
     addAnnotation(
-        "@Replace('if (contentFile == null) { "
+        "@Replace('var contentFile = attributes[attributeName];"
+        + "        if (contentFile === undefined) { "
         + "          return null;"
         + "        } else if (contentFile.indexOf('://') >= 0) {"
         + "          return new URLContent(contentFile);"
         + "        } else { "
         + "          return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); "
         + "        }')",
-        "com.eteks.sweethome3d.io.HomeXMLHandler.parseContent(java.lang.String,java.lang.String,boolean)");
+        "com.eteks.sweethome3d.io.HomeXMLHandler.parseContent(..)");
     // Store home structure if set in the XML file
     addAnnotation(
         "@Replace('{{ body }}{{ baseIndent }}"
         + "        if (attributes['structure']) { "
-        + "          home['structure'] = this.parseContent(attributes['structure'], null, false); "
+        + "          home['structure'] = this.parseContent(this.homeElementName, attributes, 'structure'); "
         + "        }')",
         "com.eteks.sweethome3d.io.HomeXMLHandler.setHomeAttributes(..)");
     // WARNING: this constructor delegates to an erased constructor, so we need to replace its implementation
