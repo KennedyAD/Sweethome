@@ -756,8 +756,10 @@ Room3D.prototype.updateRoomPartAppearance = function(roomPartAppearance, roomPar
         }
       });
   }
-  if (!ignoreTransparency) {
-    var upperRoomsAlpha = this.home.getEnvironment().getWallsAlpha();
+  var upperRoomsAlpha = this.home.getEnvironment().getWallsAlpha();
+  if (ignoreTransparency || upperRoomsAlpha === 0) {
+    roomPartAppearance.setTransparency(0);
+  } else {
     roomPartAppearance.setTransparency(upperRoomsAlpha);
   }
   roomPartAppearance.setVisible(visible);
