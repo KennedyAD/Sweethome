@@ -1048,17 +1048,17 @@ FootDecimalsFormat.prototype.format = function(number) {
 FootDecimalsFormat.prototype.parse = function(text, parsePosition) {
   var numberPosition = new ParsePosition(parsePosition.getIndex());
   LengthUnit.skipWhiteSpaces(text, numberPosition);
-  // Parse inches
-  var inches = DecimalFormat.prototype.parse.call(this, text, numberPosition);
-  if (inches === null) {
+  // Parse feet
+  var feet = DecimalFormat.prototype.parse.call(this, text, numberPosition);
+  if (feet === null) {
     parsePosition.setErrorIndex(numberPosition.getErrorIndex());
     return null;
   }
-  var value = LengthUnit.footToCentimeter(inches);
-  // Parse "
+  var value = LengthUnit.footToCentimeter(feet);
+  // Parse '
   LengthUnit.skipWhiteSpaces(text, numberPosition);
   if (numberPosition.getIndex() < text.length 
-      && text.charAt(numberPosition.getIndex()) === '\"') {
+      && text.charAt(numberPosition.getIndex()) === '\'') {
     parsePosition.setIndex(numberPosition.getIndex() + 1);
   } else {
     parsePosition.setIndex(numberPosition.getIndex());
