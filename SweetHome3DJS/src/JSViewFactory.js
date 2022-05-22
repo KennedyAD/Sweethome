@@ -2481,7 +2481,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
                       modelManager.containsNode(modelRoot, ModelManager.MANNEQUIN_ABDOMEN_PREFIX)
                           ? "mannequinTransformationsButton.text"
                           : "modelTransformationsButton.text");
-                  modelTransformationsButton.parentElement.style.display = "initial";
+                  modelTransformationsButton.parentElement.style.display = "block";
                   dialog.registerEventListener(modelTransformationsButton, "click", function(ev) {
                       dialog.displayModelTransformationsView(dialog.getUserPreferences(), dialog.controller);
                     });
