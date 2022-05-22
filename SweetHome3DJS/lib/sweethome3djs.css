@@ -1856,8 +1856,8 @@ label {
 
 .model-transformations-chooser-dialog  #model-preview-canvas {
   border: 1px lightgray solid;
-  width: 400px;
-  height: 400px;
+  width: 350px;
+  height: 350px;
 }
   
 .model-materials-chooser-dialog [data-name="preview-panel"] {
