@@ -2696,8 +2696,8 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     dialog.getHTMLElement().classList.add("model-transformations-chooser-dialog");
 
     var previewCanvas = dialog.findElement("#model-preview-canvas");
-    previewCanvas.width = 400;
-    previewCanvas.height = 400;
+    previewCanvas.width = 350;
+    previewCanvas.height = 350;
     
     var modelMaterialsController = controller.getModelMaterialsController();
     dialog.previewComponent = new ModelPreviewComponent(previewCanvas, true, true);
