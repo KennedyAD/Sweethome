@@ -62,14 +62,14 @@ Node3D.BUILDING_MODEL = "Building model";
 Node3D.BINDING_MODEL = "Binding model";
 
 Node3D.prototype.setCapability = function(capability) {
-  if (this.capability === undefined) {
-    this.capability = 0;
+  if (this.capabilities === undefined) {
+    this.capabilities = 0;
   }
   this.capabilities |= capability;
 }
 
 Node3D.prototype.getCapability = function(capability) {
-  if (this.capability === undefined) {
+  if (this.capabilities === undefined) {
     return false;
   } else {
     return (this.capabilities & capability) !== 0;
@@ -172,6 +172,18 @@ Node3D.prototype.isPickable = function() {
 
 Node3D.prototype.clone = function() {
   var clone = new Node3D();
+  this.cloneNodeAttributes(clone);
+  return clone;
+}
+
+/**
+ * @package
+ * @ignore
+ */
+Node3D.prototype.cloneNodeAttributes = function(clone) {
+  if (this.capabilities !== undefined) {
+    clone.capabilities = this.capabilities;
+  }
   if (this.userData !== undefined) {
     clone.userData = this.userData;
   }
@@ -181,9 +193,7 @@ Node3D.prototype.clone = function() {
   if (this.pickable !== undefined) {
     clone.pickable = this.pickable;
   }
-  return clone;
 }
-
 
 /**
  * Creates a 3D shape.
@@ -291,12 +301,7 @@ Shape3D.prototype.setAppearance = function(appearance) {
 
 Shape3D.prototype.clone = function() {
   var clone = new Shape3D(null, this.appearance);
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   clone.geometries = this.geometries;
   clone.bounds = this.bounds;
   return clone;
@@ -323,12 +328,7 @@ Background3D.prototype.getGeometry = function() {
 
 Background3D.prototype.clone = function() {
   var clone = new Background3D(this.geometry);
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -374,12 +374,7 @@ AmbientLight3D.prototype.constructor = AmbientLight3D;
 
 AmbientLight3D.prototype.clone = function() {
   var clone = new AmbientLight3D(this.color);
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -403,12 +398,7 @@ DirectionalLight3D.prototype.getDirection = function() {
 
 DirectionalLight3D.prototype.clone = function() {
   var clone = new DirectionalLight3D(this.color, this.direction);
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -514,7 +504,7 @@ Group3D.prototype.getChildrenListeners = function() {
 } 
 
 Group3D.prototype.setPickable = function(pickable) {
-  Node3D.prototype.setPickable(this, pickable);
+  Node3D.prototype.setPickable.call(this, pickable);
   for (var i = 0; i < this.children.length; i++) {
     this.children [i].setPickable(pickable);
   }
@@ -522,12 +512,7 @@ Group3D.prototype.setPickable = function(pickable) {
 
 Group3D.prototype.clone = function() {
   var clone = new Group3D();
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -552,12 +537,7 @@ BranchGroup3D.prototype.detach = function() {
 
 BranchGroup3D.prototype.clone = function() {
   var clone = new BranchGroup3D();
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -576,12 +556,7 @@ SharedGroup3D.prototype.constructor = SharedGroup3D;
 
 SharedGroup3D.prototype.clone = function() {
   var clone = new SharedGroup3D();
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -608,18 +583,13 @@ Link3D.prototype.setSharedGroup = function(sharedGroup) {
 }
 
 Link3D.prototype.setPickable = function(pickable) {
-  Node3D.prototype.setPickable(this, pickable);
+  Node3D.prototype.setPickable.call(this, pickable);
   this.sharedGroup.setPickable(pickable);
 }
 
 Link3D.prototype.clone = function() {
   var clone = new Link3D(this.sharedGroup);
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 
@@ -694,12 +664,7 @@ TransformGroup3D.isIdentity = function(transform) {
 
 TransformGroup3D.prototype.clone = function() {
   var clone = new TransformGroup3D(this.transform);
-  if (this.userData !== undefined) {
-    clone.userData = this.userData;
-  }
-  if (this.name !== undefined) {
-    clone.name = this.name;
-  }
+  this.cloneNodeAttributes(clone);
   return clone;
 }
 

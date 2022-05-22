@@ -469,15 +469,11 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
         // Add listener to update the scene when transformation changes
         node.addPropertyChangeListener("TRANSFORM",
             {
-              canvas3D : canvas3D, 
               propertyChange : function(ev) {
-                var oldInvert = mat4.invert(mat4.create(), ev.getOldValue());
-                mat4.mul(parentTransforms, parentTransforms, oldInvert);
-                mat4.mul(parentTransforms, parentTransforms, ev.getNewValue());
                 var children = node.getChildren();
                 for (var i = 0; i < children.length; i++) {
                   canvas3D.updateChildrenTransformation(children [i], background ? backgroundGeometries : sceneGeometries, 
-                      parentLinks, lights, parentTransforms);
+                      parentLinks, lights, canvas3D.getTransformFromRoot(node));
                 }
                 canvas3D.repaint();
               }
@@ -493,9 +489,8 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
       // Add listener to group to update the scene when children change
       node.addChildrenListener(
           {  
-            canvas3D : canvas3D, 
             childAdded : function(ev) {
-              canvas3D.prepareScene(ev.child, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, parentTransforms);
+              canvas3D.prepareScene(ev.child, sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, lights, canvas3D.getTransformFromRoot(node));
               canvas3D.repaint();
             },
             childRemoved : function(ev) {
@@ -533,7 +528,6 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
     if (node.getCapability(Shape3D.ALLOW_GEOMETRY_WRITE)) {
       node.addPropertyChangeListener("GEOMETRY",
           {
-            canvas3D : canvas3D,
             propertyChange : function(ev) {
               if (ev.getOldValue()) {
                 removedGeometry = ev.getOldValue();
@@ -567,7 +561,6 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
     if (nodeAppearance !== HTMLCanvas3D.DEFAULT_APPEARANCE) {
       nodeAppearance.addPropertyChangeListener(
           {
-            canvas3D : canvas3D, 
             propertyChange : function(ev) {
               var geometries = background ? backgroundGeometries : sceneGeometries;
               for (var i = 0; i < geometries.length; i++) {
@@ -650,6 +643,26 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
           }
         });
   }
+}
+
+/**
+ * Returns the transformation matrix from root to the given <code>node</code>.
+ * @param {Node3D} node
+ * @returns {mat4}
+ * @private
+ */
+HTMLCanvas3D.prototype.getTransformFromRoot = function(node) {
+  var transform = mat4.create();
+  if (node instanceof TransformGroup3D) {
+    node.getTransform(transform);
+  }
+  if (node !== null) {
+    var nodeParent = node.getParent();
+    if (nodeParent instanceof Group3D) {
+      mat4.mul(transform, this.getTransformFromRoot(nodeParent), transform);
+    }
+  }
+  return transform;
 }
 
 /**
