@@ -2450,6 +2450,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
           stepSize: this.preferences.getLengthUnit().getStepSize()
         });
     var keepProportionsCheckBox = this.getElement("keep-proportions-checkbox");
+    var modelTransformationsButton = this.getElement("model-transformations-button");
 
     // 1) Adjust visibility
     var widthDisplay = this.controller.isPropertyEditable("WIDTH") ? "initial" : "none";
@@ -2464,6 +2465,34 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     heightLabel.style.display = heightDisplay;
     heightInput.parentElement.style.display = heightDisplay;
     keepProportionsCheckBox.parentElement.style.display = keepProportionsDisplay;
+    modelTransformationsButton.parentElement.style.display = "none";
+    
+    if (this.controller.isPropertyEditable("MODEL_TRANSFORMATIONS")
+        && modelTransformationsButton != null) {
+      var modelMaterialsController = controller.getModelMaterialsController();
+      if (modelMaterialsController !== null && modelMaterialsController.getModel() !== null) {
+        ModelManager.getInstance().loadModel(modelMaterialsController.getModel(),
+            {
+              modelUpdated : function(modelRoot) {
+                var modelManager = ModelManager.getInstance();
+                if (modelManager.containsDeformableNode(modelRoot)) {
+                  // Make button visible only if model contains some deformable nodes
+                  modelTransformationsButton.innerHTML = dialog.getLocalizedLabelText("HomeFurniturePanel", 
+                      modelManager.containsNode(modelRoot, ModelManager.MANNEQUIN_ABDOMEN_PREFIX)
+                          ? "mannequinTransformationsButton.text"
+                          : "modelTransformationsButton.text");
+                  modelTransformationsButton.parentElement.style.display = "initial";
+                  dialog.registerEventListener(modelTransformationsButton, "click", function(ev) {
+                      dialog.displayModelTransformationsView(dialog.getUserPreferences(), dialog.controller);
+                    });
+                }
+              },
+              modelError : function(ex) {
+                // Ignore missing models
+              }
+            });
+      }
+    }
     
     // 2) Set values
     widthInput.setValue(this.controller.getWidth());
@@ -2532,10 +2561,10 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     // Add a listener that enables / disables size fields depending on furniture
     // resizable and deformable
     this.registerPropertyChangeListener(this.controller, "RESIZABLE", function(ev) {
-        dalog.updateSizeComponents();
+        dialog.updateSizeComponents();
       });
     this.registerPropertyChangeListener(this.controller, "DEFORMABLE", function(ev) {
-        dalog.updateSizeComponents();
+        dialog.updateSizeComponents();
       });
   };
 
@@ -2587,7 +2616,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       
       this.updateShininessRadioButtons(controller);
     }
-  }
+  };
 
   /**
    * @private
@@ -2617,6 +2646,87 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         this.shininessPanel.shinyRadioButton.checked = false;
       }
     }
+  };
+
+  /**
+   * @private
+   */
+  HomeFurnitureDialog.prototype.displayModelTransformationsView = function(preferences, controller) {
+    var view = controller.getView();
+    var html = 
+      '<div data-name="label-panel">' +
+      '  <span>@{ModelTransformationsPanel.transformationsLabel.text}</span><br/>' +
+      '</div>' +
+      '<div data-name="preview-panel">' +
+      '  <canvas id="model-preview-canvas"></canvas>' +
+      '</div>' + 
+      '<div data-name="edit-panel">' +
+      '  <div>' +
+      '    <button name="reset-transformations-button">@{ModelTransformationsPanel.resetTransformationsButton.text}</button>' +
+      '    <button name="view-from-front-button">@{ModelTransformationsPanel.viewFromFrontButton.text}</button>' +
+      '    <button name="view-from-side-button">@{ModelTransformationsPanel.viewFromSideButton.text}</button>' +
+      '    <button name="view-from-top-button">@{ModelTransformationsPanel.viewFromTopButton.text}</button>' +
+      '  </div>' +
+      '</div>';
+    var dialog = new JSDialog(preferences, 
+        preferences.getLocalizedString("ModelTransformationsPanel", "modelTransformations.title"),
+        html, 
+        {
+          size: "medium",
+          applier: function() {
+            var modelX = dialog.previewComponent.getModelX();
+            var modelY = dialog.previewComponent.getModelY();
+            var pieceX = (controller.getX()
+                + modelX * Math.cos(controller.getAngle()) - modelY * Math.sin(controller.getAngle()));
+            var pieceY = (controller.getY()
+                + modelX * Math.sin(controller.getAngle()) + modelY * Math.cos(controller.getAngle()));
+            var pieceElevation = controller.getElevation()
+                + dialog.previewComponent.getModelElevation() + controller.getHeight() / 2;
+            var modelTransformations = dialog.previewComponent.getModelTransformations();
+            controller.setModelTransformations(modelTransformations !== null ? modelTransformations : [],
+                pieceX, pieceY, pieceElevation,
+                dialog.previewComponent.getModelWidth(),
+                dialog.previewComponent.getModelDepth(),
+                dialog.previewComponent.getModelHeight());
+          },
+          disposer: function() {            
+          }
+        });
+
+    dialog.getHTMLElement().classList.add("model-transformations-chooser-dialog");
+
+    var previewCanvas = dialog.findElement("#model-preview-canvas");
+    previewCanvas.width = 400;
+    previewCanvas.height = 400;
+    
+    var modelMaterialsController = controller.getModelMaterialsController();
+    dialog.previewComponent = new ModelPreviewComponent(previewCanvas, true, true);
+    dialog.previewComponent.setModel(modelMaterialsController.getModel(), modelMaterialsController.getModelFlags(), modelMaterialsController.getModelRotation(),
+        modelMaterialsController.getModelWidth(), modelMaterialsController.getModelDepth(), modelMaterialsController.getModelHeight());
+    dialog.previewComponent.setModelMaterials(modelMaterialsController.getMaterials());
+    dialog.previewComponent.setModelTransformations(controller.getModelTransformations());
+    
+    var resetTransformationsButton = dialog.getElement("reset-transformations-button");
+    dialog.registerEventListener(resetTransformationsButton, "click", function(ev) {
+        dialog.previewComponent.resetModelTransformations();
+      });
+    var viewFromFrontButton = dialog.getElement("view-from-front-button");
+    dialog.registerEventListener(viewFromFrontButton, "click", function(ev) {
+        dialog.previewComponent.setViewYaw(0);
+        dialog.previewComponent.setViewPitch(0);
+      });
+    var viewFromSideButton = dialog.getElement("view-from-side-button");
+    dialog.registerEventListener(viewFromSideButton, "click", function(ev) {
+        dialog.previewComponent.setViewYaw(Math.PI / 2);
+        dialog.previewComponent.setViewPitch(0);
+      });
+    var viewFromTopButton = dialog.getElement("view-from-top-button");
+    dialog.registerEventListener(viewFromTopButton, "click", function(ev) {
+        dialog.previewComponent.setViewYaw(0);
+        dialog.previewComponent.setViewPitch(-Math.PI / 2);
+      });
+
+    dialog.displayView();
   };
 
   return new HomeFurnitureDialog();

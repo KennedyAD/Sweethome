@@ -79,32 +79,32 @@ function JSModelMaterialsSelectorDialog(preferences, controller) {
   this.controller = controller;
 
   var html = 
-    '  <div data-name="preview-panel">' +
-    '    <span>@{ModelMaterialsComponent.previewLabel.text}</span><br/>' +
-    '    <canvas id="model-preview-canvas"></canvas>' +
-    '  </div>' + 
-    '  <div data-name="edit-panel">' +
-    '    <div>' +
-    '      <span>@{ModelMaterialsComponent.materialsLabel.text}</span>' +
-    '      <div data-name="materials-list">' +
-    '      </div>' +
+    '<div data-name="preview-panel">' +
+    '  <span>@{ModelMaterialsComponent.previewLabel.text}</span><br/>' +
+    '  <canvas id="model-preview-canvas"></canvas>' +
+    '</div>' + 
+    '<div data-name="edit-panel">' +
+    '  <div>' +
+    '    <span>@{ModelMaterialsComponent.materialsLabel.text}</span>' +
+    '    <div data-name="materials-list">' +
     '    </div>' +
-    '    <div class="color-texture-shininess-panel">' +
-    '      <span>@{ModelMaterialsComponent.colorAndTextureLabel.text}</span><br/>' +
-    '      <div class="label-input-grid">' +
-    '        <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="DEFAULT">@{ModelMaterialsComponent.defaultColorAndTextureRadioButton.text}</label>' +
-    '        <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="INVISIBLE">@{ModelMaterialsComponent.invisibleRadioButton.text}</label>' +
-    '        <label><input type="radio" name="color-and-texture-checkbox" value="COLOR">@{ModelMaterialsComponent.colorRadioButton.text}</label>' +
-    '        <span data-name="color-button"></span>' +
-    '        <label><input type="radio" name="color-and-texture-checkbox" value="TEXTURE">@{ModelMaterialsComponent.textureRadioButton.text}</label>' +
-    '        <span data-name="texture-component"></span>' +
-    '      </div>' +
-    '      <br />' +
-    '      <span>@{ModelMaterialsComponent.shininessLabel.text}</span><br/>' +
-    '      <input type="range" name="shininess-slider" min="0" max="128" list="model-materials-shininess-list" /> ' +
-    '      <datalist id="model-materials-shininess-list"></datalist> ' +
-    '      <div class="slider-labels"><div>@{ModelMaterialsComponent.mattLabel.text}</div><div>@{ModelMaterialsComponent.shinyLabel.text}</div></div>' +
+    '  </div>' +
+    '  <div class="color-texture-shininess-panel">' +
+    '    <span>@{ModelMaterialsComponent.colorAndTextureLabel.text}</span><br/>' +
+    '    <div class="label-input-grid">' +
+    '      <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="DEFAULT">@{ModelMaterialsComponent.defaultColorAndTextureRadioButton.text}</label>' +
+    '      <label class="whole-line"><input type="radio" name="color-and-texture-checkbox" value="INVISIBLE">@{ModelMaterialsComponent.invisibleRadioButton.text}</label>' +
+    '      <label><input type="radio" name="color-and-texture-checkbox" value="COLOR">@{ModelMaterialsComponent.colorRadioButton.text}</label>' +
+    '      <span data-name="color-button"></span>' +
+    '      <label><input type="radio" name="color-and-texture-checkbox" value="TEXTURE">@{ModelMaterialsComponent.textureRadioButton.text}</label>' +
+    '      <span data-name="texture-component"></span>' +
     '    </div>' +
+    '    <br />' +
+    '    <span>@{ModelMaterialsComponent.shininessLabel.text}</span><br/>' +
+    '    <input type="range" name="shininess-slider" min="0" max="128" list="model-materials-shininess-list" /> ' +
+    '    <datalist id="model-materials-shininess-list"></datalist> ' +
+    '    <div class="slider-labels"><div>@{ModelMaterialsComponent.mattLabel.text}</div><div>@{ModelMaterialsComponent.shinyLabel.text}</div></div>' +
+    '  </div>' +
     '</div>';
 
   JSDialog.call(this, preferences, "@{HomeFurnitureController.modelMaterialsTitle}", html, 
@@ -615,7 +615,7 @@ JSModelMaterialsSelectorDialog.prototype.initPreviewPanel = function() {
               controller.getModel(), controller.getModelFlags(), controller.getModelRotation(),
               controller.getModelWidth(), controller.getModelDepth(), controller.getModelHeight());
           previewComponent.setModelMaterials(materialsList.getMaterials());
-          previewComponent.setModelTranformations(controller.getModelTransformations());
+          previewComponent.setModelTransformations(controller.getModelTransformations());
           materialsList.addListDataListener(function() {
               previewComponent.setModelMaterials(materialsList.getMaterials());
             });

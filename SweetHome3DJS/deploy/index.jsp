@@ -530,6 +530,10 @@ body {
             <input type="checkbox" name="keep-proportions-checkbox" />
             <span>@{ImportedFurnitureWizardStepsPanel.keepProportionsCheckBox.text}</span>
           </label>
+          
+          <div class="whole-line" style="text-align: center">
+            <button name="model-transformations-button">@{HomeFurniturePanel.modelTransformationsButton.text}</button>
+          </div>
         </div>
         
         <br />
