@@ -664,6 +664,7 @@ ModelManager.prototype.load = function(content, synchronous, modelObserver) {
           modelManager.updateWindowPanesTransparency(model);
           modelManager.updateDeformableModelHierarchy(model);
           modelManager.replaceMultipleSharedShapes(model);
+          model.setUserData(content);
           modelObserver.modelLoaded(model);
         } else if (++this.modelLoaderIndex < modelManager.modelLoaders.length) {
           modelManager.modelLoaders [this.modelLoaderIndex].load(contentUrl, synchronous, this);
@@ -810,7 +811,7 @@ ModelManager.prototype.updateDeformableModelHierarchy = function(group) {
     this.updateSimpleDeformableModelHierarchy(group, null, ModelManager.HINGE_PREFIX, ModelManager.OPENING_ON_HINGE_PREFIX, ModelManager.WINDOW_PANE_ON_HINGE_PREFIX, ModelManager.MIRROR_ON_HINGE_PREFIX);
     this.updateSimpleDeformableModelHierarchy(group, null, ModelManager.BALL_PREFIX, ModelManager.ARM_ON_BALL_PREFIX, null, null);
     // Reorganize sliding openings
-    this.updateSimpleDeformableModelHierarchy(group, ModelManager.UNIQUE_RAIL_PREFIX, ModelManager.RAIL_PREFIX, ModelManager.OPENING_ON_RAIL_PREFIX, ModelManager.MIRROR_ON_RAIL_PREFIX);
+    this.updateSimpleDeformableModelHierarchy(group, ModelManager.UNIQUE_RAIL_PREFIX, ModelManager.RAIL_PREFIX, ModelManager.OPENING_ON_RAIL_PREFIX, ModelManager.WINDOW_PANE_ON_RAIL_PREFIX, ModelManager.MIRROR_ON_RAIL_PREFIX);
     // Reorganize sub hierarchies
     var movedNodes = [];
     while (this.updateDeformableModelSubTransformedHierarchy(group, group, [ModelManager.HINGE_PREFIX, ModelManager.BALL_PREFIX, ModelManager.RAIL_PREFIX],

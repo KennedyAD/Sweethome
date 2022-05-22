@@ -1826,7 +1826,8 @@ label {
   vertical-align: middle;
 }
 
-.model-materials-chooser-dialog .dialog-body {
+.model-materials-chooser-dialog .dialog-body,
+.model-transformations-chooser-dialog .dialog-body {
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex;
@@ -1841,7 +1842,9 @@ label {
 .model-materials-chooser-dialog #model-preview-canvas,
 .model-materials-chooser-dialog [data-name="materials-list"],
 .model-materials-chooser-dialog .label-input-grid,
-.model-materials-chooser-dialog input[type="range"] {
+.model-materials-chooser-dialog input[type="range"],
+.model-transformations-chooser-dialog  #model-preview-canvas,
+.model-transformations-chooser-dialog  [data-name="edit-panel"] {
   margin-top: 5px;
 }
 
@@ -1850,9 +1853,21 @@ label {
   width: 250px;
   height: 250px;
 }
+
+.model-transformations-chooser-dialog  #model-preview-canvas {
+  border: 1px lightgray solid;
+  width: 400px;
+  height: 400px;
+}
   
 .model-materials-chooser-dialog [data-name="preview-panel"] {
   flex-shrink: 1;
+  margin-right: 1rem;
+  margin-top: 5px;
+}
+
+.model-transformations-chooser-dialog  [data-name="preview-panel"] {
+  flex-grow: 1;
   margin-right: 1rem;
   margin-top: 5px;
 }
@@ -1864,7 +1879,8 @@ label {
   flex-grow: 1;
 }
 
-.model-materials-chooser-dialog [data-name="edit-panel"] > :first-child {
+.model-materials-chooser-dialog [data-name="edit-panel"] > :first-child,
+.model-transformations-chooser-dialog [data-name="edit-panel"] > :first-child {
   flex-grow: 1;
   margin-right: .8em;
   display: flex;
@@ -1941,6 +1957,10 @@ label {
 .slider-labels > :last-child {
   position: absolute;
   right: 0;
+}
+
+.model-transformations-chooser-dialog button {
+  margin-bottom: 5px;
 }
 
 /*
