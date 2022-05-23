@@ -58,7 +58,7 @@ public class PropertiesToJson {
         "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"};
 
     if (args.length >= 5
-        && new File(args [1]).isFile()) {
+        && new File(args [0] + "/" + args [1]).isFile()) {
       String sourceRoot = args [0];
       String sourcePropertyFile = args [1];
       boolean resourceNameFromFile = true;
