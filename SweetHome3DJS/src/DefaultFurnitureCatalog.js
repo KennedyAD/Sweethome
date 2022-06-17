@@ -300,10 +300,13 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
         modelRotation, modelFlags, modelSize, creator, resizable, deformable, texturable, price, valueAddedTaxPercentage, currency, additionalProperties);
   } else {
     var lightSources = this.getLightSources(resource, index, width, depth, height);
-    if (lightSources != null) {
+    var lightSourceMaterialNamesString = this.getOptionalString(
+        resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME, index), null);
+    var lightSourceMaterialNames = lightSourceMaterialNamesString != null ? lightSourceMaterialNamesString.split(" ") : null;
+    if (lightSources != null || lightSourceMaterialNames != null) {
       return new CatalogLight(id, name, description, information, tags, creationDate, grade, 
           icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
-          lightSources, staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
+          lightSources, lightSourceMaterialNames, staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
           resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, additionalProperties);
     } else {
       return new CatalogPieceOfFurniture(id, name, description, information, tags, creationDate, grade, 
@@ -936,6 +939,10 @@ DefaultFurnitureCatalog.PropertyKey = {
    * The key for the diameter(s) of light sources in a light (optional).
    */
   LIGHT_SOURCE_DIAMETER: "lightSourceDiameter",
+  /**
+   * The key for the material name(s) of light source shapes in the 3D model of a light (optional).
+   */
+  LIGHT_SOURCE_MATERIAL_NAME: "lightSourceMaterialName",
   /**
    * The key for the shape used to cut out upper levels when they intersect with a piece   
    * like a staircase (optional). This shape should be defined with the syntax of 

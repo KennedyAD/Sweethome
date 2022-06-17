@@ -222,7 +222,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             // Only keep the public constructors of CatalogLight available from version 5.5
             // (CatalogLight class didn't exist in SweetHome3DJS 1.2)
             ExecutableElement c = (ExecutableElement) element;
-            if (c.getParameters().size() != 29 && c.getParameters().size() != 30) {
+            if (c.getParameters().size() != 29 && c.getParameters().size() != 30 && c.getParameters().size() != 31) {
               return Action.ADD;
             }
           } else if (element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
