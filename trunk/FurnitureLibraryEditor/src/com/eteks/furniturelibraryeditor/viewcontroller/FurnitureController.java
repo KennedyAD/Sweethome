@@ -1538,7 +1538,7 @@ public class FurnitureController implements Controller {
               pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
-              light.getLightSources(), pieceStaircaseCutOutShape,
+              light.getLightSources(), light.getLightSourceMaterialNames(), pieceStaircaseCutOutShape,
               pieceModelRotation, pieceModelFlags, pieceModelSize,
               pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, piece.isHorizontallyRotatable(),
               piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);

@@ -596,6 +596,10 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
           writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR, i, lightSourceColor);
           writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER, i, lightSourceDiameter);
         }
+        String [] lightSourceMaterialNames = light.getLightSourceMaterialNames();
+        if (lightSourceMaterialNames.length > 0) {
+          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME, i, lightSourceMaterialNames);
+        }
       }
       if (piece.getElevation() > 0) {
         writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.ELEVATION, i, piece.getElevation());
