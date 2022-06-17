@@ -369,31 +369,39 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             return true;
           }
           break;
+        case "java.util.Collections":
+          switch (invocation.getMethodName()) {
+            case "synchronizedMap":
+            case "synchronizedList":
+              printArgList(invocation.getArguments());
+              return true;
+          }
+          break;
         case "java.util.TreeMap":
           switch (invocation.getMethodName()) {
-          case "lastKey":
-            printMacroName(invocation.getMethodName());
-            print("(function(map) {"
-                + "  return map.entries[map.entries.length - 1].key;"
-                + "})(").print(invocation.getTargetExpression()).print(")");
-            return true;
-          case "put":
-            printMacroName(invocation.getMethodName());
-            print("(function (m, k, v) {"
-                + "if (m.entries == null) m.entries = [];"
-                + "for (var i = 0; i < m.entries.length; i++)"
-                + "  if (m.entries[i].key.equals != null"
-                + "        && m.entries[i].key.equals(k)"
-                + "      || m.entries[i].key === k) {"
-                + "     var pv = m.entries[i].value;"
-                + "     m.entries[i].value = v;"
-                + "     return pv;"
-                + "   }"
-                + "m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } });"
-                + "m.entries.sort(function(e1, e2) { return (e1.key.compareTo != null) ? e1.key.compareTo(e2) : (e1.key - e2.key); });"
-                + "return null;"
-                + "})(").print(invocation.getTargetExpression()).print(",").printArgList(invocation.getArguments()).print(")");
-            return true;
+            case "lastKey":
+              printMacroName(invocation.getMethodName());
+              print("(function(map) {"
+                  + "  return map.entries[map.entries.length - 1].key;"
+                  + "})(").print(invocation.getTargetExpression()).print(")");
+              return true;
+            case "put":
+              printMacroName(invocation.getMethodName());
+              print("(function (m, k, v) {"
+                  + "if (m.entries == null) m.entries = [];"
+                  + "for (var i = 0; i < m.entries.length; i++)"
+                  + "  if (m.entries[i].key.equals != null"
+                  + "        && m.entries[i].key.equals(k)"
+                  + "      || m.entries[i].key === k) {"
+                  + "     var pv = m.entries[i].value;"
+                  + "     m.entries[i].value = v;"
+                  + "     return pv;"
+                  + "   }"
+                  + "m.entries.push({ key: k, value: v, getKey: function () { return this.key; }, getValue: function () { return this.value; } });"
+                  + "m.entries.sort(function(e1, e2) { return (e1.key.compareTo != null) ? e1.key.compareTo(e2) : (e1.key - e2.key); });"
+                  + "return null;"
+                  + "})(").print(invocation.getTargetExpression()).print(",").printArgList(invocation.getArguments()).print(")");
+              return true;
           }
           break;
         case "java.util.UUID":
