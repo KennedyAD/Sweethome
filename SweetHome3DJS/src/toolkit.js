@@ -2103,13 +2103,12 @@ JSTreeTable.prototype.generateTableRows = function() {
   var treeTable = this;
   var tableRowsGenerator = function() {
       var scrollTop = 0;
-      var body = treeTable.bodyElement;
-      if (body) {
-        scrollTop = body.scrollTop;
-        body.parentElement.removeChild(body);
+      if (treeTable.bodyElement) {
+        scrollTop = treeTable.bodyElement.scrollTop;
+        treeTable.bodyElement.parentElement.removeChild(treeTable.bodyElement);
       }
-      var body = treeTable.bodyElement = document.createElement("div");
-      body.setAttribute("body", "true");
+      treeTable.bodyElement = document.createElement("div");
+      treeTable.bodyElement.setAttribute("body", "true");
     
       // Generate simplified table model: a sorted list of items
       var sortedList = treeTable.data.sortedList = [];
@@ -2199,12 +2198,12 @@ JSTreeTable.prototype.generateTableRows = function() {
       var columnNames = treeTable.getColumnNames();
       for (var i = 0; i < sortedList.length; i++) {
         var row = treeTable.generateRowElement(columnNames, i, sortedList[i]);
-        body.appendChild(row);
+        treeTable.bodyElement.appendChild(row);
       }
     
-      treeTable.tableElement.appendChild(body);
+      treeTable.tableElement.appendChild(treeTable.bodyElement);
   
-      body.scrollTop = scrollTop;
+      treeTable.bodyElement.scrollTop = scrollTop;
       delete treeTable.generatingTableRows;
     };
     

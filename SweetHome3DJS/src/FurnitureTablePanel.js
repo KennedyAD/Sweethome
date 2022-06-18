@@ -63,7 +63,7 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
   var treeTable = this.treeTable;
   home.addSelectionListener({
       selectionChanged: function (ev) {
-        treeTable.setSelectedRowsByValue(home.getSelectedItems())
+        treeTable.setSelectedRowsByValue(home.getSelectedItems());
       }
     });
 
