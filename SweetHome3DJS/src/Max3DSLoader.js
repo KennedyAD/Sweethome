@@ -453,9 +453,8 @@ Max3DSLoader.prototype.parseEntryScene = function(max3dsContent, max3dsEntryName
  * @private
  */
 Max3DSLoader.prototype.parse3DSStream = function(input, max3dsEntryName, zip, meshes, meshesGroups, materials, root) {
+  var masterScale = 1;
   try {
-    masterScale = 1;
-    
     var magicNumberRead = false; 
     switch (input.readChunkHeader().id) {
       case Max3DSLoader.M3DMAGIC :
