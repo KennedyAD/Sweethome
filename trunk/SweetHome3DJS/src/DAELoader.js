@@ -132,9 +132,6 @@ function DAEHandler(sceneRoot, daeEntryName) {
   this.geometryVertexOffset = 0;
   this.geometryNormalOffset = 0;
   this.geometryTextureCoordinatesOffset = 0;
-  this.materialInstanceTarget = null;
-  this.materialInstanceSymbol = null;
-  this.materialInstanceBoundToVertexInput = false;
   this.axis = null;
   this.meterScale = 1.;
   this.floatValue = 0.;
@@ -376,12 +373,46 @@ DAEHandler.prototype.startElement = function(uri, localName, name, attributes) {
         });
     }
   } else if ("instance_material" == name && this.parentGroups.length > 0) {
-    this.materialInstanceTarget = attributes.getValue("target");
-    this.materialInstanceSymbol = attributes.getValue("symbol");
-    this.materialInstanceBoundToVertexInput = false;
-  } else if ("bind_vertex_input" == name
-             && "TEXCOORD" == attributes.getValue("input_semantic")) {
-    this.materialInstanceBoundToVertexInput = true;
+    var materialInstanceTarget = attributes.getValue("target");
+    if (materialInstanceTarget.indexOf("#") == 0) {
+      var materialInstanceAnchor = materialInstanceTarget.substring(1);
+      var materialInstanceSymbol = attributes.getValue("symbol");
+      var group = this.parentGroups [this.parentGroups.length - 1];
+      var handler = this;
+      this.postProcessingBinders.push(function() {
+          var appearance = handler.effectAppearances [handler.materialEffects [materialInstanceAnchor]];
+          var updateShapeAppearance = function(node, appearance, forceUpdate) {
+              if (node instanceof Group3D) {
+                var updated = false;
+                var children = node.getChildren();
+                for (var i = 0; i < children.length; i++) {
+                  updated |= updateShapeAppearance(children[i], appearance, forceUpdate);
+                }
+                return updated;
+              } else if (node instanceof Link3D) {
+                return updateShapeAppearance(node.getSharedGroup(), appearance, forceUpdate);
+              } else if (node instanceof Shape3D) {
+                var geometries = forceUpdate
+                    ? node.getGeometries()
+                    : handler.appearanceGeometries [materialInstanceSymbol];
+                if (geometries !== undefined) {
+                  for (var i = 0; i < geometries.length; i++) {
+                    if (geometries [i] === node.getGeometries() [0]) {
+                      node.setAppearance(appearance);
+                      return true;
+                    }
+                  }
+                }
+              }
+              return false;
+            };
+            
+          if (!updateShapeAppearance(group, appearance, false)) {
+            updateShapeAppearance(group, appearance, true);
+          }
+          appearance.setName(handler.materialNames [materialInstanceAnchor]);
+        });
+    }
   } else if ("instance_visual_scene" == name) {
     var visualSceneInstanceUrl = attributes.getValue("url");
     if (visualSceneInstanceUrl.indexOf("#") === 0) {
@@ -454,48 +485,6 @@ DAEHandler.prototype.endElement = function(uri, localName, name) {
     this.handleGeometryElementsEnd(name, parent);
   } else if ("controller" == name) {
     this.controllerId = null;
-  } else if ("instance_material" == name && this.parentGroups.length > 0) {
-    if (this.materialInstanceTarget.indexOf("#") == 0) {
-      var materialInstanceAnchor = this.materialInstanceTarget.substring(1);
-      var materialInstanceSymbol = this.materialInstanceSymbol;
-      var materialInstanceBoundToVertexInput = this.materialInstanceBoundToVertexInput;
-      var group = this.parentGroups [this.parentGroups.length - 1];
-      var handler = this;
-      this.postProcessingBinders.push(function() {
-          var appearance = handler.effectAppearances [handler.materialEffects [materialInstanceAnchor]];
-          var updateShapeAppearance = function(node, appearance, forceUpdate) {
-              if (node instanceof Group3D) {
-                var updated = false;
-                var children = node.getChildren();
-                for (var i = 0; i < children.length; i++) {
-                  updated |= updateShapeAppearance(children[i], appearance, forceUpdate);
-                }
-                return updated;
-              } else if (node instanceof Link3D) {
-                return updateShapeAppearance(node.getSharedGroup(), appearance, forceUpdate);
-              } else if (node instanceof Shape3D) {
-                var geometries = forceUpdate
-                    ? node.getGeometries()
-                    : handler.appearanceGeometries [materialInstanceSymbol];
-                if (geometries !== undefined) {
-                  for (var i = 0; i < geometries.length; i++) {
-                    if (geometries [i] === node.getGeometries() [0]) {
-                      node.setAppearance(appearance);
-                      return true;
-                    }
-                  }
-                }
-              }
-              return false;
-            };
-            
-          if (!updateShapeAppearance(group, appearance, false)
-              && materialInstanceBoundToVertexInput) {
-            updateShapeAppearance(group, appearance, true);
-          }
-          appearance.setName(handler.materialNames [materialInstanceAnchor]);
-        });
-    }
   } else if ("visual_scene" == name
           || "node" == name
           || "node" == parent && "instance_geometry" == name) {
