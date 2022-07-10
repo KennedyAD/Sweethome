@@ -553,7 +553,8 @@ class LengthUnit {
     public static LengthUnit INCH;
     public static LengthUnit INCH_FRACTION;
     public static LengthUnit INCH_DECIMALS;
-
+    public static LengthUnit FOOT_DECIMALS;
+ 
     public native static float centimeterToInch(float length);
 
     public native static float centimeterToFoot(float length);
