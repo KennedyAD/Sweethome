@@ -254,12 +254,12 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
 
     var zoomInButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_IN", true);
     var zoomOutButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_OUT", true);
-    component.scaleStep.previewZoomIn.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    component.scaleStep.previewZoomIn.style.backgroundImage = "url('" + zoomInButtonAction.getURL(AbstractAction.SMALL_ICON) + "')";
     component.registerEventListener(component.scaleStep.previewZoomIn, "click", function(ev) {
         component.scaleStep.preview.width *= 2;
         component.repaintScaleCanvas();
       });
-    component.scaleStep.previewZoomOut.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    component.scaleStep.previewZoomOut.style.backgroundImage = "url('" + zoomOutButtonAction.getURL(AbstractAction.SMALL_ICON) + "')";
     component.registerEventListener(component.scaleStep.previewZoomOut, "click", function(ev) {
         component.scaleStep.preview.width /= 2;
         component.repaintScaleCanvas();
@@ -453,12 +453,12 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
 
     var zoomInButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_IN", true);
     var zoomOutButtonAction = new ResourceAction(preferences, "BackgroundImageWizardStepsPanel", "ZOOM_OUT", true);
-    this.originStep.previewZoomIn.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/" + zoomInButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    this.originStep.previewZoomIn.style.backgroundImage = "url('" + zoomInButtonAction.getURL(AbstractAction.SMALL_ICON) + "')";
     this.registerEventListener(this.originStep.previewZoomIn, "click", function(ev) {
         component.originStep.preview.width *= 2;
         component.repaintOriginCanvas();
       });
-    this.originStep.previewZoomOut.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/" + zoomOutButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+    this.originStep.previewZoomOut.style.backgroundImage = "url('" + zoomOutButtonAction.getURL(AbstractAction.SMALL_ICON) + "')";
     this.registerEventListener(this.originStep.previewZoomOut, "click", function(ev) {
         component.originStep.preview.width /= 2;
         component.repaintOriginCanvas();
@@ -1870,7 +1870,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
   var increaseElevationButtonAction = new ResourceAction(preferences, "LevelPanel", "INCREASE_ELEVATION_INDEX", true);
   var decreaseElevationButtonAction = new ResourceAction(preferences, "LevelPanel", "DECREASE_ELEVATION_INDEX", true);
   dialog.increaseElevationButton = dialog.getElement("increase-elevation-index-button");
-  dialog.increaseElevationButton.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/" + increaseElevationButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+  dialog.increaseElevationButton.style.backgroundImage = "url('" + increaseElevationButtonAction.getURL(AbstractAction.SMALL_ICON) + "')";
   dialog.increaseElevationButton.style.display = elevationButtonsDisplay;
   dialog.registerEventListener(dialog.increaseElevationButton, "click", function(ev) {
       controller.setElevationIndex(controller.getElevationIndex() + 1);
@@ -1878,7 +1878,7 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
     });
 
   dialog.decreaseElevationButton = dialog.getElement("decrease-elevation-index-button");
-  dialog.decreaseElevationButton.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/" + decreaseElevationButtonAction.getValue(AbstractAction.SMALL_ICON) + "')";
+  dialog.decreaseElevationButton.style.backgroundImage = "url('" + decreaseElevationButtonAction.getURL(AbstractAction.SMALL_ICON) + "')";
   dialog.decreaseElevationButton.style.display = elevationButtonsDisplay;
   dialog.registerEventListener(dialog.decreaseElevationButton, "click", function(ev) {
       controller.setElevationIndex(controller.getElevationIndex() - 1);

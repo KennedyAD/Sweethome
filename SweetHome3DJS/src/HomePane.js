@@ -70,9 +70,9 @@ function HomePane(containerId, home, preferences, controller) {
         // Search action matching shortcut and call its actionPerformed method
         for (var actionType in homePane.actionMap) {
           var action = homePane.actionMap [actionType];
-          if (action.isEnabled()
+          if (action instanceof AbstractAction
+              && action.isEnabled()
               && action.getValue(AbstractAction.ACCELERATOR_KEY) == keyStroke) {
-            // TODO Allow only action with a button at screen ?
             action.actionPerformed();
             ev.stopPropagation();
             return;
@@ -465,10 +465,11 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
   this.createAction(ActionType.ABOUT, preferences, controller, "about");
 
   // Additional action for application popup menu 
-  var showApplicationMenuAction = new AbstractAction();
-  showApplicationMenuAction.putValue(AbstractAction.NAME, "SHOW_APPLICATION_MENU");
-  showApplicationMenuAction.putValue(ResourceAction.RESOURCE_PREFIX, "SHOW_APPLICATION_MENU");
-  showApplicationMenuAction.putValue(ResourceAction.TOOL_BAR_ICON, "menu.png");
+  var showApplicationMenuAction = new ResourceAction(preferences, "HomePane", "SHOW_APPLICATION_MENU", true);
+  if (showApplicationMenuAction.getValue(AbstractAction.SMALL_ICON) == null) {
+    showApplicationMenuAction.putValue(AbstractAction.NAME, "SHOW_APPLICATION_MENU");
+    showApplicationMenuAction.putValue(AbstractAction.SMALL_ICON, "menu.png");
+  }
   var homePane = this; 
   showApplicationMenuAction.actionPerformed = function(ev) {
       ev.stopPropagation();
@@ -1622,11 +1623,11 @@ HomePane.prototype.createToolBarButton = function(action, additionalClass) {
   // Modify action with a setAction method which is also invoked elsewhere 
   button.setAction = function(newAction) {
       button.action = newAction;
-      var icon = newAction.getValue(ResourceAction.TOOL_BAR_ICON);
-      if (!icon) {
-        icon = newAction.getValue(AbstractAction.SMALL_ICON);
+      var iconUrl = newAction.getURL(ResourceAction.TOOL_BAR_ICON);
+      if (!iconUrl) {
+        iconUrl = newAction.getURL(AbstractAction.SMALL_ICON);
       }
-      button.style.backgroundImage = "url('" + ZIPTools.getScriptFolder() + "/"+ icon + "')";
+      button.style.backgroundImage = "url('" + iconUrl + "')";
       button.style.backgroundPosition = "center";
       button.style.backgroundRepeat = "no-repeat";
       var shortDescription = newAction.getValue(AbstractAction.SHORT_DESCRIPTION);
@@ -1993,21 +1994,22 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
       }
     };
   
-  var escapeAction = new AbstractAction();
-  escapeAction.actionPerformed = function() {
-     if (!mouseListener.escaped) {
-       if (mouseListener.previousView != null) {
-         if (mouseListener.previousView === homePane.controller.getPlanController().getView()) {
-           homePane.controller.getPlanController().stopDraggedItems();
+  var escapeAction = {
+    actionPerformed: function() {
+       if (!mouseListener.escaped) {
+         if (mouseListener.previousView != null) {
+           if (mouseListener.previousView === homePane.controller.getPlanController().getView()) {
+             homePane.controller.getPlanController().stopDraggedItems();
+           }
+           if (mouseListener.previousCursor != null && typeof mouseListener.previousView.setCursor === "function") {
+             mouseListener.previousView.setCursor(mouseListener.previousCursor);
+           }
          }
-         if (mouseListener.previousCursor != null && typeof mouseListener.previousView.setCursor === "function") {
-           mouseListener.previousView.setCursor(mouseListener.previousCursor);
+         mouseListener.escaped = true;
+         if (mouseListener.draggedImage != null) {
+           document.body.removeChild(mouseListener.draggedImage);
+           mouseListener.draggedImage = null;
          }
-       }
-       mouseListener.escaped = true;
-       if (mouseListener.draggedImage != null) {
-         document.body.removeChild(mouseListener.draggedImage);
-         mouseListener.draggedImage = null;
        }
      }
    };

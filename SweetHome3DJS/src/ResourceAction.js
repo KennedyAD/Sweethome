@@ -1,7 +1,7 @@
 /*
  * ResourceAction.js
  *
- * Sweet Home 3D, Copyright (c) 2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2020-2022 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 // Requires graphics2d.js
 // Requires UserPreferences.js
+// Requires URLContent.js
 
 /**
  * Creates an action with properties retrieved from a resource bundle
@@ -27,7 +28,7 @@
  * @param {UserPreferences} preferences   user preferences used to retrieve localized description of the action
  * @param {Object} resourceClass the class used as a context to retrieve localized properties of the action
  * @param {string} actionPrefix  prefix used in resource bundle to search action properties
- * @param {boolean} enabled <code>true</code> if the action should be enabled at creation
+ * @param {boolean} [enabled] <code>true</code> if the action should be enabled at creation
  * @param {Object} controller the controller object holding the method to invoke 
  * @param {string} controllerMethod the controller method to invoke
  * @param {Object[]} parameters action parameters
@@ -169,6 +170,18 @@ ResourceAction.getLocalizedLabelText = function(preferences, resourceClass, reso
     }
   }
   return localizedString;
+}
+
+/**
+ * Returns the URL of the given key for a key matching a URL like an icon.
+ * @param {string} propertyKey
+ */
+ResourceAction.prototype.getURL = function(propertyKey) {
+  var url = this.getValue(propertyKey);
+  if (url != null && url.indexOf("://") === -1) {
+    url = ZIPTools.getScriptFolder() + "/"+ url;
+  }
+  return url;
 }
 
 /**
