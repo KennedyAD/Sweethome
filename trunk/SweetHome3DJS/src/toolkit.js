@@ -631,7 +631,9 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     var icon = new Image();
     icon.crossOrigin = "anonymous";
     imageContainer.appendChild(icon);
-    icon.src = ZIPTools.getScriptFolder() + "/" + stepIcon;
+    icon.src = stepIcon.indexOf("://") === -1 
+        ?  ZIPTools.getScriptFolder() + "/" + stepIcon 
+        : stepIcon;
   }
 }
 
@@ -1005,11 +1007,8 @@ JSPopupMenu.Builder.prototype.addMenuItem = function(actionOrIconPathOrLabel, it
       return this;
     }
 
+    iconPath = action.getURL(AbstractAction.SMALL_ICON);
     label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
-    var icon = action.getValue(AbstractAction.SMALL_ICON);
-    if (icon != null) {
-      iconPath = ZIPTools.getScriptFolder() + "/" + icon;
-    }
 
     if (action.getValue(ResourceAction.TOGGLE_BUTTON_GROUP)) {
       selected = action.getValue(AbstractAction.SELECTED_KEY);
@@ -1058,12 +1057,7 @@ JSPopupMenu.Builder.prototype.addSubMenu = function(action, buildSubMenu) {
   // Do no show item if action is disabled
   if (action.isEnabled()) {
     var label = action.getValue(ResourceAction.POPUP) || action.getValue(AbstractAction.NAME);
-    var icon = action.getValue(AbstractAction.SMALL_ICON);
-    var iconPath = null;
-    if (icon != null) {
-      iconPath = ZIPTools.getScriptFolder() + "/" + icon;
-    }
-  
+    var iconPath = action.getURL(AbstractAction.SMALL_ICON);
     var subMenuBuilder = new JSPopupMenu.Builder();
     buildSubMenu(subMenuBuilder);
     var subItems = subMenuBuilder.items;
