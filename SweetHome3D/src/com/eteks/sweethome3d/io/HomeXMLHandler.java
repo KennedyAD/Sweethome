@@ -295,7 +295,8 @@ import com.eteks.sweethome3d.tools.URLContent;
  *       y CDATA #REQUIRED
  *       z CDATA #REQUIRED
  *       color CDATA #REQUIRED
- *       diameter CDATA #IMPLIED>
+ *       diameter CDATA #IMPLIED
+ *       materialName #IMPLIED>
  *
  * &lt;!ELEMENT lightSourceMaterial EMPTY>
  * &lt;!ATTLIST lightSourceMaterial
