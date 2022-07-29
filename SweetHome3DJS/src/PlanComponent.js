@@ -3181,7 +3181,7 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
         }
       }
       
-      var oldComposite = plan.setTransparency(g2D, 0.75);
+      var oldComposite = plan.setTransparency(g2D, room.isFloorVisible() ? 0.75 : 0.5);
       var transform = null;
       if (floorTexture != null) {
         g2D.scale(textureScaleX, textureScaleY);
