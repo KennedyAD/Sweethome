@@ -963,15 +963,15 @@ HTMLCanvas3D.resizeTransparentTextures = true;
  * @private
  */
 HTMLCanvas3D.prototype.bindTextureAndRepaint = function(texture, bindOnly) {
-  if ((!Appearance3D.isPowerOfTwo(texture.image.width) || !Appearance3D.isPowerOfTwo(texture.image.height)) 
+  if ((!Appearance3D.isPowerOfTwo(texture.image.naturalWidth) || !Appearance3D.isPowerOfTwo(texture.image.naturalHeight)) 
       && (!texture.image.transparent || HTMLCanvas3D.resizeTransparentTextures)) {
     // From https://www.khronos.org/webgl/wiki/WebGL_and_OpenGL_Differences#Non-Power_of_Two_Texture_Support
     // Scale up the texture image to the next highest power of two dimensions
     var canvas = document.createElement("canvas");
-    canvas.width = Appearance3D.getNextHighestPowerOfTwo(texture.image.width);
-    canvas.height = Appearance3D.getNextHighestPowerOfTwo(texture.image.height);
+    canvas.width = Appearance3D.getNextHighestPowerOfTwo(texture.image.naturalWidth);
+    canvas.height = Appearance3D.getNextHighestPowerOfTwo(texture.image.naturalHeight);
     var context = canvas.getContext("2d");
-    context.drawImage(texture.image, 0, 0, texture.image.width, texture.image.height, 0, 0, canvas.width, canvas.height);
+    context.drawImage(texture.image, 0, 0, texture.image.naturalWidth, texture.image.naturalHeight, 0, 0, canvas.width, canvas.height);
 
     var image = new Image();
     image.crossOrigin = "anonymous";
@@ -1005,7 +1005,7 @@ HTMLCanvas3D.prototype.bindTexture = function(texture) {
   this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
   this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, texture.image);
   this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-  if (Appearance3D.isPowerOfTwo(texture.image.width) && Appearance3D.isPowerOfTwo(texture.image.height)) {
+  if (Appearance3D.isPowerOfTwo(texture.image.naturalWidth) && Appearance3D.isPowerOfTwo(texture.image.naturalHeight)) {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST);
     this.gl.generateMipmap(this.gl.TEXTURE_2D);
   } else {
