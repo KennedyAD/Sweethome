@@ -3156,8 +3156,8 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
             if (room.getFloorTexture().isFittingArea()) {
               var min = room.getBoundsMinimumCoordinates();
               var max = room.getBoundsMaximumCoordinates();
-              textureScaleX = (max[0] - min[0]) / textureImage.width;
-              textureScaleY = (max[1] - min[1]) / textureImage.height;
+              textureScaleX = (max[0] - min[0]) / textureImage.naturalWidth;
+              textureScaleY = (max[1] - min[1]) / textureImage.naturalHeight;
               textureOffsetX = min[0] / textureScaleX;
               textureOffsetY = min[1] / textureScaleY;
             } else {
@@ -3168,13 +3168,13 @@ PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, for
                 textureHeight = 100;
               }
               var textureScale = floorTexture.getScale();
-              textureScaleX = (textureWidth * textureScale) / textureImage.width;
-              textureScaleY = (textureHeight * textureScale) / textureImage.height;
+              textureScaleX = (textureWidth * textureScale) / textureImage.naturalWidth;
+              textureScaleY = (textureHeight * textureScale) / textureImage.naturalHeight;
               textureAngle = floorTexture.getAngle();
               var cosAngle = Math.cos(textureAngle);
               var sinAngle = Math.sin(textureAngle);
-              textureOffsetX = (floorTexture.getXOffset() * textureImage.width * cosAngle - floorTexture.getYOffset() * textureImage.height * sinAngle);
-              textureOffsetY = (-floorTexture.getXOffset() * textureImage.width * sinAngle - floorTexture.getYOffset() * textureImage.height * cosAngle);
+              textureOffsetX = (floorTexture.getXOffset() * textureImage.naturalWidth * cosAngle - floorTexture.getYOffset() * textureImage.height * sinAngle);
+              textureOffsetY = (-floorTexture.getXOffset() * textureImage.naturalWidth * sinAngle - floorTexture.getYOffset() * textureImage.height * cosAngle);
             }
             g2D.setPaint(g2D.createPattern(textureImage));
           }
@@ -3950,16 +3950,16 @@ PlanComponent.prototype.getItemsArea = function(items) {
  */
 PlanComponent.prototype.makePatternImage = function(image, foregroundColor, backgroundColor) {
   var canvas = document.createElement("canvas");
-  canvas.width = image.width;
-  canvas.height = image.height;
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
   var context = canvas.getContext("2d");
   context.fillStyle = "#FFFFFF";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.drawImage(image, 0, 0);
-  var imageData = context.getImageData(0, 0, image.width, image.height).data;
+  var imageData = context.getImageData(0, 0, image.naturalWidth, image.height).data;
   var bgColor = ColorTools.hexadecimalStringToInteger(backgroundColor);
   var fgColor = ColorTools.hexadecimalStringToInteger(foregroundColor);
-  var updatedImageData = context.createImageData(image.width, image.height);
+  var updatedImageData = context.createImageData(image.naturalWidth, image.height);
   for (var i = 0; i < imageData.length; i += 4) {
     updatedImageData.data[i + 3] = 0xFF;
     if (imageData[i] === 0xFF && imageData[i + 1] === 0xFF && imageData[i + 2] === 0xFF) {
@@ -4455,9 +4455,9 @@ PlanComponent.prototype.paintPieceOfFurnitureIcon = function(g2D, piece, icon, p
   // Fill piece area
   g2D.setPaint(backgroundColor);
   g2D.fill(pieceShape2D);
-  //let previousClip : java.awt.Shape = g2D.getClip();
+  var previousClip = g2D.getClip();
   // Clip icon drawing into piece shape
-  // g2D.clip(pieceShape2D);
+  g2D.clip(pieceShape2D);
   var previousTransform = g2D.getTransform();
   // Translate to piece center
   var bounds = pieceShape2D.getBounds2D();
@@ -4476,10 +4476,10 @@ PlanComponent.prototype.paintPieceOfFurnitureIcon = function(g2D, piece, icon, p
     g2D.scale(iconScale, iconScale);
   }
   // Paint piece icon
-  icon.paintIcon(g2D, -icon.getIconWidth() / 2, -icon.getIconHeight() / 2);
+  icon.paintIcon(g2D, -icon.getIconWidth() / 2 | 0, -icon.getIconHeight() / 2 | 0);
   // Revert g2D transformation to previous value
   g2D.setTransform(previousTransform);
-  // g2D.setClip(previousClip);
+  g2D.setClip(previousClip);
 }
 
 /**
@@ -6129,14 +6129,14 @@ PlanComponent.PieceOfFurnitureTopViewIcon = function(image) {
  * @ignore
  */
 PlanComponent.PieceOfFurnitureTopViewIcon.prototype.getIconWidth = function() {
-  return this.image.width;
+  return this.image.naturalWidth;
 }
 
 /**
  * @ignore
  */
 PlanComponent.PieceOfFurnitureTopViewIcon.prototype.getIconHeight = function() {
-  return this.image.height;
+  return this.image.naturalHeight;
 }
 
 /**

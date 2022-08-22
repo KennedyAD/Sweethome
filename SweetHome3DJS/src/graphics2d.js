@@ -141,7 +141,7 @@ Graphics2D.prototype.drawImageWithSize = function(img, x, y, width, height, bgco
  * @return {java.awt.Shape} the clip as a shape
  */
 Graphics2D.prototype.getClip = function() {
-  return this._clip;
+  return this.clipZone !== undefined ? this.clipZone : null;
 }
 
 /**
@@ -149,10 +149,12 @@ Graphics2D.prototype.getClip = function() {
  * @param {java.awt.Shape} clip the clip as a shape
  */
 Graphics2D.prototype.setClip = function(clip) {
-  this._clip = clip;
+  if (this.clipZone !== undefined) {
+    this.context.restore();
+    delete this.clipZone;
+  }
   if (clip != null) {
-    this.createPathFromShape(clip);
-    this.context.clip();
+    this.clip(clip);
   }
 }
 
@@ -161,7 +163,11 @@ Graphics2D.prototype.setClip = function(clip) {
  * @param {java.awt.Shape} clip the added clip as a shape
  */
 Graphics2D.prototype.clip = function(clip) {
-  this._clip = clip;
+  if (this.clipZone === undefined) {
+    // Save current clipping zone
+    this.context.save();
+  }
+  this.clipZone = clip;
   if (clip != null) {
     this.createPathFromShape(clip);
     this.context.clip();
