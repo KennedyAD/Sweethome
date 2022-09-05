@@ -61,7 +61,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   var searchInput = document.createElement("input");
   this.searchInput = searchInput;
   var filterChangeHandler = function() {
-      var valueToSearch = CoreTools.removeAccents(searchInput.value.trim());
+      var valueToSearch = CoreTools.removeAccents(searchInput.value.trim()).replace(/[.*+?^${}()|[\]\\]/g, ' ');
       furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
           if (valueToSearch == "") {
             return true;
