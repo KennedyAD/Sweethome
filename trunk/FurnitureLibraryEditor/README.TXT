@@ -45,6 +45,12 @@ text field the option:
 -Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/i586 
 or -Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/amd64
 according to your system and its architecture.
+If you use Java 16 or above, you should add also the following VM arguments 
+to run the program:
+--add-opens=java.desktop/java.awt=ALL-UNNAMED
+--add-opens=java.desktop/sun.awt=ALL-UNNAMED
+--add-opens=java.desktop/com.apple.eio=ALL-UNNAMED
+--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED
 
 If you want to build Furniture Library Editor with Ant, please install last JDK 5 or greater and 
 Ant available at http://ant.apache.org/, and run ant command in the directory where
@@ -57,4 +63,4 @@ Read LICENSE.TXT file for more details about licenses applicable to this softwar
 and included materials developed by third parties.
     
     
-Copyright (c) 2010-2022 Emmanuel Puybaret / eTeks. Distributed under GNU General Public License    
+Copyright (c) 2010-2023 Emmanuel Puybaret / eTeks. Distributed under GNU General Public License    
