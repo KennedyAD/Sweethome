@@ -11,7 +11,7 @@
 # This means that you can use it for any purpose you see fit, even commercially,
 # with no requirements.
 #
-mtllib sinkCabinet.mtl
+mtllib sinkCabinet2.mtl
 o GC_100L.003_Cube.002
 v -28.446 13.475 -28.316
 v -28.446 13.475 -27.316
@@ -6059,7 +6059,7 @@ v -0.103 65.122 4.483
 v -0.015 65.092 4.523
 v -0.063 65.092 4.513
 v -0.11 65.092 4.498
-usemtl metal
+usemtl sink
 s 1
 f 2789 2790 2793 2792
 f 2790 2791 2794 2793
