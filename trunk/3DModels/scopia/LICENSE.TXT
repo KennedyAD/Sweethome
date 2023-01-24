@@ -22,9 +22,10 @@ Under the following terms:
 	Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es)
 
 
-(C) Copyrights 2014-2020 Emmanuel PUYBARET / eTeks <info@eteks.com> and Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
+(C) Copyrights 2014-2023 Emmanuel PUYBARET / eTeks <info@eteks.com> and Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
 
 for the icons and the 265 following models:
+- adjustable-hospital-bed
 - air-mattress
 - antenna-whites
 - aquarium
@@ -134,7 +135,6 @@ for the icons and the 265 following models:
 - hedge
 - hedgeTextured
 - high-hedge
-- hospital-bed
 - indoor-bike
 - induction-cooker-2-zones
 - induction-cooker-4-zones
@@ -161,7 +161,7 @@ for the icons and the 265 following models:
 - marteau
 - meuleuse-electrique
 - mezzanine-bed
-- mocassin
+- mocassinSeparated
 - montre
 - montre-with-pose
 - mower
@@ -231,7 +231,7 @@ for the icons and the 265 following models:
 - small-urinal
 - smart-car
 - smoke-detector
-- sneakers
+- sneakersSeparated
 - spiceTower
 - square-RJ-45
 - square-antenna
@@ -287,11 +287,11 @@ for the icons and the 265 following models:
 - window_4x3
 - window_4x3_arched
 - window_4x5
-- woman_shoes
+- womanShoesSeparated
 - wood_logs
 - yamaha-yzr-r6			
 
 
-(C) Copyrights 2006-2020 Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
+(C) Copyrights 2006-2023 Scopia Visual Interfaces Systems, s.l. (http://www.scopia.es) 
 
 for all the other models
