@@ -142,9 +142,9 @@ for the icons and the 265 following models:
 - intercom
 - intercom_with_screen
 - internal-unity-air-conditioning
-- iron-railing-1
-- iron-railing-2
-- iron-railing-3
+- iron-railing-separated-hooks-1
+- iron-railing-separated-hooks-2
+- iron-railing-separated-hooks-3
 - islandBath
 - jacuzzi
 - japanese_style_screen
