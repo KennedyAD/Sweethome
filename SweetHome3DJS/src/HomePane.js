@@ -1495,6 +1495,9 @@ HomePane.prototype.updateSplitter = function(splitter) {
       },
       windowResized: function(ev) {
         var splitterPosition = window.getComputedStyle(splitter.element)[positionStyleProperty];
+        if (splitterPosition == null) {
+          splitterPosition = "0px";
+        }
         splitterPosition = splitterPosition.substring(0, splitterPosition.length - 2);
         if (splitterPosition > offsetParent[dimensionProperty] - splitter.element[dimensionProperty]) {
           mouseListener.setSplitterPosition(offsetParent[dimensionProperty] - splitter.element[dimensionProperty]);
