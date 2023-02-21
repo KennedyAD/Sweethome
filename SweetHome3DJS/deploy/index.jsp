@@ -397,6 +397,13 @@ body {
       </div>
 
       <div class="label-cell">
+        <div data-name="description-label">@{HomeFurniturePanel.descriptionLabel.text}</div>
+      </div>
+      <div>
+        <input name="description-input" size="50" type="text" />
+      </div>
+      
+      <div class="label-cell">
         <div data-name="price-label">@{HomeFurniturePanel.priceLabel.text}</div>
       </div>
       <div>

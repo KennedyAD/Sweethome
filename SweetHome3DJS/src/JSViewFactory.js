@@ -1993,6 +1993,8 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var nameLabel = this.getElement("name-label");
     var nameInput = this.getElement("name-input");
     var nameVisibleCheckBox = this.getElement("name-visible-checkbox");
+    var descriptionLabel = this.getElement("description-label");
+    var descriptionInput = this.getElement("description-input");
     var priceLabel = this.getElement("price-label");
     var priceInput = new JSSpinner(this.preferences, this.getElement("price-input"), 
         {
@@ -2013,6 +2015,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     // 1) Adjust visibility
     var nameDisplay = this.controller.isPropertyEditable("NAME") ? "initial" : "none";
     var nameVisibleDisplay = this.controller.isPropertyEditable("NAME_VISIBLE") ? "initial" : "none";
+    var descriptionDisplay = this.controller.isPropertyEditable("DESCRIPTION") ? "initial" : "none";
     var priceDisplay = this.controller.isPropertyEditable("PRICE") ? "inline-block" : "none";
     var vatDisplay = this.controller.isPropertyEditable("VALUE_ADDED_TAX_PERCENTAGE") ? "inline-block" : "none";
 
@@ -2021,8 +2024,15 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     
     nameVisibleCheckBox.parentElement.style.display = nameVisibleDisplay;
     
+    descriptionLabel.style.display = descriptionDisplay;
+    descriptionInput.style.display = descriptionDisplay;
+    descriptionLabel.parentElement.style.display = descriptionDisplay; 
+    descriptionInput.parentElement.style.display = descriptionDisplay;
+    
     priceLabel.style.display = priceDisplay;
     priceInput.style.display = priceDisplay;
+    priceLabel.parentElement.style.display = priceDisplay; 
+    priceInput.parentElement.style.display = priceDisplay;
 
     valueAddedTaxPercentageInput.getHTMLElement().previousElementSibling.style.display = vatDisplay;
     valueAddedTaxPercentageInput.style.display = vatDisplay;
@@ -2030,6 +2040,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     // 2) Set values
     nameInput.value = controller.getName() != null ? controller.getName() : "";
     nameVisibleCheckBox.checked = this.controller.getNameVisible();
+    descriptionInput.value = controller.getDescription() != null ? controller.getDescription() : "";
     priceInput.setValue(this.controller.getPrice());
     if (this.controller.getValueAddedTaxPercentage()) {
       valueAddedTaxPercentageInput.setValue(this.controller.getValueAddedTaxPercentage() * 100);
@@ -2041,6 +2052,9 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       });
     this.registerPropertyChangeListener(this.controller, "NAME_VISIBLE", function(ev) {
         nameVisibleCheckBox.checked = controller.getNameVisible();
+      });
+    this.registerPropertyChangeListener(this.controller, "DESCRIPTION", function(ev) {
+        descriptionInput.value = controller.getDescription() != null ? controller.getDescription() : "";
       });
     this.registerPropertyChangeListener(this.controller, "PRICE", function(ev) {
         priceInput.setValue(controller.getPrice());
@@ -2064,6 +2078,14 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
       });
     this.registerEventListener(nameVisibleCheckBox, "change", function(ev) {
         controller.setNameVisible(nameVisibleCheckBox.checked);
+      });
+    this.registerEventListener(descriptionInput, "input", function(ev) {
+        var description = descriptionInput.value;
+        if (description.trim().length == 0) {
+          controller.setDescription(null);
+        } else {
+          controller.setDescription(description);
+        }
       });
     this.registerEventListener(priceInput, "input", function(ev) {
         controller.setPrice(priceInput.getValue() != null  
