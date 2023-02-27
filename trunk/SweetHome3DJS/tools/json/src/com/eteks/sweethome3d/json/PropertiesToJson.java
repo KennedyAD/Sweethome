@@ -55,7 +55,7 @@ import org.json.JSONObject;
 public class PropertiesToJson {
   public static void main(String[] args) throws IOException {
     String[] supportedLanguages = {"", "bg", "cs", "de", "el", "en_AU", "en_CA", "en_US", "es", "fr", "it", "ja", "hu", "nl",
-        "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"};
+        "pl", "pt", "pt_BR", "ru", "sv", "vi", "zh_CN", "zh_TW"};
 
     if (args.length >= 5
         && new File(args [0] + "/" + args [1]).isFile()) {
