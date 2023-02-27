@@ -1249,6 +1249,7 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
                                "nl": "Nederlands",
                                "pl": "Polski",
                                "pt": "Português",
+                               "pt-BR": "Português (Brasil)",
                                "ru": "Русский",
                                "sv": "Svenska",
                                "vi": "Tiếng Việt",
