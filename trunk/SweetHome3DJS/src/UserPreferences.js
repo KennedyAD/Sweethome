@@ -78,7 +78,7 @@ function UserPreferences() {
   this.ignoredActionTips = {};
 }
 
-UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es", "fr", "it", "ja", "hu", "nl", "pl", "pt", "ru", "sv", "vi", "zh_CN", "zh_TW"];
+UserPreferences.DEFAULT_SUPPORTED_LANGUAGES = ["bg", "cs", "de", "el", "en", "es", "fr", "it", "ja", "hu", "nl", "pl", "pt", "pt_BR", "ru", "sv", "vi", "zh_CN", "zh_TW"];
 
 UserPreferences.DEFAULT_TEXT_STYLE = new TextStyle(18);
 UserPreferences.DEFAULT_ROOM_TEXT_STYLE = new TextStyle(24);
