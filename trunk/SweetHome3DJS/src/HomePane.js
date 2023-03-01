@@ -50,6 +50,7 @@ function HomePane(containerId, home, preferences, controller) {
   this.addLevelVisibilityListener(home);
   this.addUserPreferencesListener(preferences);
   this.addPlanControllerListener(controller.getPlanController());
+  this.addFocusListener();
   this.createToolBar(home, preferences);
   this.createPopupMenus(home, preferences);
   this.initSplitters();
@@ -90,14 +91,8 @@ function HomePane(containerId, home, preferences, controller) {
       }
     }, true);
 
-  var planComponent = controller.getPlanController().getView(); 
- 
-  // TODO Manage focus once furniture view will exist
-  setTimeout(function() {
-      controller.focusedViewChanged(planComponent);
-    });
-
   // Restore viewport position if it exists
+  var planComponent = controller.getPlanController().getView(); 
   var viewportX = home.getNumericProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
   var viewportY = home.getNumericProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
   if (viewportX != null && viewportY != null) {
@@ -114,7 +109,7 @@ function HomePane(containerId, home, preferences, controller) {
   homePane.levelSelector = document.getElementById("level-selector");
 
   var updateLevels = function() {
-	    if (homePane.levelSelector) {
+      if (homePane.levelSelector) {
         homePane.levelSelector.innerHTML = "";
         if (home.getLevels().length < 2) {
           homePane.levelSelector.style.display = "none";
@@ -130,7 +125,7 @@ function HomePane(containerId, home, preferences, controller) {
           }
           homePane.levelSelector.style.display = "inline";
         }
-	    }
+      }
     };
   updateLevels();
   if (homePane.levelSelector) {
@@ -718,6 +713,32 @@ HomePane.prototype.addPlanControllerListener = function(planController) {
   });
 }
   
+/**
+ * Adds a focus change listener to report to controller focus changes.
+ * @private
+ */
+HomePane.prototype.addFocusListener = function() {
+  var homePane = this; 
+  this.getHTMLElement().addEventListener("focusin", function(ev) {
+      var focusableViews = [homePane.controller.getFurnitureCatalogController().getView(),
+                            homePane.controller.getFurnitureController().getView(),
+                            homePane.controller.getPlanController().getView(),
+                            homePane.controller.getHomeController3D().getView()];
+      for (var i = 0; i < focusableViews.length; i++) {
+        for (var element = ev.target; element !== null; element = element.parentElement) {
+          if (element === focusableViews [i].getHTMLElement()) {
+            homePane.controller.focusedViewChanged(focusableViews [i]);
+            return;
+          }
+        }
+      }
+      homePane.controller.focusedViewChanged(null);
+    });
+  this.getHTMLElement().addEventListener("focusout", function(ev) {
+      homePane.controller.focusedViewChanged(null);
+	});
+}
+
 /**
  * Adds the given action to <code>menu</code>.
  * @param {string|HomeView.ActionType} actionType
