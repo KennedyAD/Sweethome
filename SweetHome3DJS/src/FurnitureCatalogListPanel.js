@@ -137,6 +137,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
         ev.initEvent("input", true, true);
         searchInput.dispatchEvent(ev);
       }
+      ev.stopPropagation();
     });
   filteringDiv.appendChild(searchInput);
   

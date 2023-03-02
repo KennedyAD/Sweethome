@@ -89,7 +89,7 @@ function HomePane(containerId, home, preferences, controller) {
           ev.stopPropagation();
         }
       }
-    }, true);
+    }, false);
 
   // Restore viewport position if it exists
   var planComponent = controller.getPlanController().getView(); 

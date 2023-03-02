@@ -1788,10 +1788,10 @@ PlanComponent.prototype.installDefaultKeyboardActions = function() {
   }
   this.container.addEventListener("keydown", function(ev) { 
       return plan.callAction(ev, "keydown"); 
-    }, true);
+    }, false);
   this.container.addEventListener("keyup", function(ev) { 
       return plan.callAction(ev, "keyup"); 
-    }, true);
+    }, false);
 }
 
 /**

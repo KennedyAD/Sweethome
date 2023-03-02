@@ -149,7 +149,7 @@ JSComponent.prototype.registerEventListener = function(elements, eventName, list
   }
   for (var i = 0; i < elements.length; i++) {
     var element = elements[i];
-    element.addEventListener(eventName, listener, true);
+    element.addEventListener(eventName, listener, false);
   }
   this.listeners.push(
       {
