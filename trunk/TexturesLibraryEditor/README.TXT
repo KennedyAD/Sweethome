@@ -1,18 +1,18 @@
-TEXTURES LIBRARY EDITOR v 1.8
+TEXTURES LIBRARY EDITOR v 1.9
 -----------------------------
 
 This archive contains source code of the Textures Library Editor for Sweet Home 3D.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_1_8/TexturesLibraryEditor TexturesLibraryEditor
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_1_9/TexturesLibraryEditor TexturesLibraryEditor
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code from 
-http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-6.6-src.zip 
+http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-7.1-src.zip 
 or with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_6_6/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_7_1/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
@@ -36,6 +36,12 @@ with Eclipse, please follow the next steps:
 
 You may execute com.eteks.textureslibraryeditor.TexturesLibraryEditor 
 application included in this archive, with the Eclipse Run menu.
+If you use Java 16 or above, you should add also the following VM arguments 
+to run the program:
+--add-opens=java.desktop/java.awt=ALL-UNNAMED
+--add-opens=java.desktop/sun.awt=ALL-UNNAMED
+--add-opens=java.desktop/com.apple.eio=ALL-UNNAMED
+--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED
 
 If you want to build Textures Library Editor with Ant, please install last JDK 5 or greater and 
 Ant available at http://ant.apache.org/, and run ant command in the directory where
@@ -48,4 +54,4 @@ Read LICENSE.TXT file for more details about licenses applicable to this softwar
 and included materials developed by third parties.
     
     
-Copyright (c) 2012-2021 Emmanuel Puybaret / eTeks. Distributed under GNU General Public License
+Copyright (c) 2012-2023 Emmanuel Puybaret / eTeks. Distributed under GNU General Public License

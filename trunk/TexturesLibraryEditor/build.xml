@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- build.xml
 
-     Textures Library Editor, Copyright (c) 2012-2021 Emmanuel PUYBARET / eTeks <info@eteks.com>
+     Textures Library Editor, Copyright (c) 2012-2023 Emmanuel PUYBARET / eTeks <info@eteks.com>
      
      Ant build file. Available targets :
      - texturesLibraryEditor              : Builds TexturesLibraryEditor.jar file in build directory
@@ -10,7 +10,7 @@
 -->
 <project basedir="." default="texturesLibraryEditorJarExecutable" name="TexturesLibraryEditor">
   <!-- The current version of the Textures Library Editor -->
-  <property name="version" value="1.8"/>
+  <property name="version" value="1.9"/>
 
   <!-- Java source and target compatiblity (Java 9 and higher doesn't support 1.5) -->
   <condition property="classSource" value="1.5" else="1.7">
@@ -138,6 +138,7 @@
          and other DLLs and jars -->
     <jar destfile="TexturesLibraryEditor-${version}.jar">
       <manifest>
+      	<attribute name="Add-opens" value="java.desktop/java.awt java.desktop/sun.awt java.desktop/com.apple.eio java.desktop/com.apple.eawt"/>
         <attribute name="Main-Class" value="com.eteks.textureslibraryeditor.TexturesLibraryEditorBootstrap"/>
       </manifest>
       <zipfileset src="build/TexturesLibraryEditor.jar"/>
