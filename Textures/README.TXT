@@ -1,4 +1,4 @@
-LIBRARY OF TEXTURES FOR SWEET HOME 3D v 1.2
+LIBRARY OF TEXTURES FOR SWEET HOME 3D v 1.3
 -------------------------------------------
 
 This archive contains a SH3T file that describes a set of additional Textures for Sweet Home 3D, 
@@ -17,8 +17,8 @@ localized in the following languages:
 + Italian
 + Japanese
 + Polish
++ Portuguese
 - Portuguese (Brazilian)
-+ Portuguese (Portugal)
 + Russian
 + Spanish
 + Swedish
@@ -27,7 +27,7 @@ localized in the following languages:
 
 (the minus sign preceding a language indicates that the SH3T file might be incomplete or in the process of being translated) 
 
-Sweet Home 3D is available at http://sweethome3d.sourceforge.net and should be installed first 
+Sweet Home 3D is available at http://www.sweethome3d.com and should be installed first 
 to be able to use the SH3T file of this archive.
 
 
@@ -38,7 +38,7 @@ Double-click on the SH3T file to install it or choose "Furniture > Import textur
 from the menu of Sweet Home 3D.
 This will copy the SH3T file in the textures plug-in folder of Sweet Home 3D. 
 The location of this folder depends on your system:
-- under Windows Vista/7/8, this folder is 
+- under Windows Vista/7/8/10/11, this folder is 
     C:\Users\user\AppData\Roaming\eTeks\Sweet Home 3D\textures,
 - under Windows XP and previous versions of Windows, this folder is 
     C:\Documents and Settings\user\Application Data\eTeks\Sweet Home 3D\textures,
@@ -60,4 +60,4 @@ For your information, a SH3T file is a ZIP file containing some image files and 
 Read LICENSE.TXT file for more details about licenses applicable to the textures contained in the SH3T file.
 
     
-(C) 2014-2017 Emmanuel Puybaret / eTeks and others     
+(C) 2014-2023 Emmanuel Puybaret / eTeks and others     
