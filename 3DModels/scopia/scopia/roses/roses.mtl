@@ -1,0 +1,43 @@
+# Blender 3.3.1 MTL File: 'roses-jar.blend'
+# www.blender.org
+
+newmtl Jar
+Ns 20
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.119469 0.119469 0.119469
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Rose
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.015267 0.015267 0.015267
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd rose_petal.jpg
+
+newmtl Leaves
+Ns 10
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.038168 0.038168 0.038168
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 2
+map_Kd textureLeaves.png
+
+newmtl Stem
+Ns 5
+Ka 0.141263 0.174647 0.102242
+Kd 0.141263 0.174647 0.102242
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

@@ -1,0 +1,62 @@
+# hotDog.mtl
+#
+# Created by erickfree
+# https://blendswap.com/blend/23962
+# Modified by Emmanuel Puybaret / eTeks to reduce vertices count and texture image size
+#
+# This file is distributed under CC-0 Creative Commons Zero (Public Domain) license:
+# See http://creativecommons.org/choose/zero/
+# This means that you can use it for any purpose you see fit, even commercially,
+# with no requirements.
+
+newmtl Mostaza
+Ns 50
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.515872 0.043681
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Mayonesa
+Ns 50
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 0.747158 0.197200
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Pan1
+Ns 15
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.455039 0.056677
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Pan1Texture.jpg
+
+newmtl Pan2
+Ns 15
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.455039 0.056677
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Pan2Texture.jpg
+
+newmtl Salchicha
+Ns 25
+Ka 1.000000 1.000000 1.000000
+Kd 0.799103 0.088655 0.018500
+Ks 0.2 0.2 0.2
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

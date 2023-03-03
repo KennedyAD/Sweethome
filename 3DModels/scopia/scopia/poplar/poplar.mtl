@@ -1,0 +1,24 @@
+# Blender MTL File: 'LittleTree2NoEditable.blend'
+# Material Count: 2
+
+newmtl Leaves
+Ns 25
+Ka 0.253261 0.800000 0.101059
+Kd 0.253261 0.800000 0.101059
+Ks 0.082677 0.082677 0.082677
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd poplarTexture.jpg
+
+newmtl Trunk
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.165695 0.131855 0.102557
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd poplarTexture.jpg

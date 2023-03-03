@@ -1,0 +1,17 @@
+# chair3.mtl
+#
+# Created by MatBot
+# https://blendswap.com/blend/26127
+#
+# This file is distributed underCC-BY Creative Commons Attribution 3.0 Unported license 
+# see http://creativecommons.org/licenses/by/3.0/
+
+newmtl silla-verde
+Ns 15
+Ka 0.27 0.44 0.29
+Kd 0.27 0.44 0.29
+Ks 0.2 0.2 0.2
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

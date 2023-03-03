@@ -1,0 +1,27 @@
+# modernToilet.mtl
+#
+# Created by starapple
+# https://blendswap.com/blend/23871
+#
+# This file is distributed under CC-BY Creative Commons Attribution 3.0 Unported license 
+# see http://creativecommons.org/licenses/by/3.0/
+
+newmtl plastic_plastic
+Ns 30
+Ka 1.000000 1.000000 1.000000
+Kd 0.9 0.9 0.9
+Ks 0.3 0.3 0.3
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl porcelain
+Ns 90
+Ka 1.000000 1.000000 1.000000
+Kd 0.95 0.95 0.95
+Ks 0.400000 0.400000 0.400000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

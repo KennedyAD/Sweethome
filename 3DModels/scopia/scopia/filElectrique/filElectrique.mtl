@@ -1,0 +1,12 @@
+# Blender MTL File: 'poteau-en-bois-baked.blend'
+# Material Count: 1
+
+newmtl Wire
+Ns 5
+Ka 0.012806 0.012806 0.012806
+Kd 0.012806 0.012806 0.012806
+Ks 0.068182 0.068182 0.068182
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

@@ -1,0 +1,175 @@
+# Blender MTL File: 'spiceTower.blend'
+# Material Count: 16
+
+newmtl basePlastic
+Ns 10
+Ka 0.8 0.8 0.8
+Kd 0.035832 0.035832 0.035832
+Ks 0.079365 0.079365 0.079365
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl basil
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd basilTexture128.jpg
+
+newmtl bayLeaf
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd bayLeafTexture128.jpg
+
+newmtl cilantro
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd cilantroTexture128.jpg
+
+newmtl cinnamon
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd cinnamonTexture128.jpg
+
+newmtl curry
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd curryTexture128.jpg
+
+newmtl fennel
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd fennelTexture128.jpg
+
+newmtl ginger
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd gingerTexture128.jpg
+
+newmtl glass
+Ns 120
+Ka 0.8 0.8 0.8
+Kd 0.744714 0.771181 0.800000
+Ks 0.722222 0.722222 0.722222
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.4
+illum 9
+
+newmtl himalayanSugar
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd himalayanSugarTexture128.jpg
+
+newmtl metalChrome
+Ns 100
+Ka 0.8 0.8 0.8
+Kd 0.371238 0.371238 0.371238
+Ks 0.8 0.8 0.8
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl metalChromeTops
+Ns 100
+Ka 0.8 0.8 0.8
+Kd 0.371238 0.371238 0.371238
+Ks 0.8 0.8 0.8
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Kd spicerTop.jpg
+
+newmtl redpepper
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd redPepperTexture128.jpg
+
+newmtl roseMary
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd rosemaryTexture128.jpg
+
+newmtl thyme
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd thymeTexture128.jpg
+
+newmtl wasabi
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd wasabiTexture128.jpg

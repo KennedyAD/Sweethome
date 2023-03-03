@@ -1,0 +1,24 @@
+# Blender MTL File: 'BasicTree3NoEditable.blend'
+# Material Count: 2
+
+newmtl Trunk
+Ns 5
+Ka 0.800000 0.800000 0.800000
+Kd 0.161462 0.135267 0.040387
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd ficusTreeTexture.jpg
+
+newmtl Leaves
+Ns 25
+Ka 0.800000 0.800000 0.800000
+Kd 0.800000 0.800000 0.800000
+Ks 0.051181 0.051181 0.051181
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ficusTreeTexture.jpg
