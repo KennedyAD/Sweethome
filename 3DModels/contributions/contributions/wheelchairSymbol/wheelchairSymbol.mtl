@@ -1,0 +1,25 @@
+# wheelchairSymbol.mtl Produced by Blender
+#
+# Created by Emmanuel Puybaret / eTeks for Sweet Home 3D
+#
+# This file is distributed under Free Art License, see http://artlibre.org/licence/lal/en for more informations
+# and under CC-BY Creative Commons Attribution 3.0 Unported license, see http://creativecommons.org/licenses/by/3.0/
+# at your choice
+#
+# Material Count: 2
+
+newmtl Circle
+Ns 1
+Ka 0 0 0
+Kd 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl Symbol
+Ns 1
+Ka 0 0 0
+Kd 0 0 0
+Ks 0 0 0
+d 1
+illum 1

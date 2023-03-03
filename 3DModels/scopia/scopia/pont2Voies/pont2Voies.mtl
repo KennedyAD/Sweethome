@@ -1,0 +1,162 @@
+# Blender MTL File: 'roads-with-final-lines.blend'
+# Material Count: 15
+
+newmtl rightContinuousLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl rightT3Line
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl leftContinuousLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl leftT3Line
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl rightRailing
+Ns 10
+Ka 0.5 0.5 0.5
+Kd 0.15 0.21 0.38
+Ks 0.082888 0.082888 0.082888
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl leftRailing
+Ns 10
+Ka 0.5 0.5 0.5
+Kd 0.15 0.21 0.38
+Ks 0.082888 0.082888 0.082888
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl rightBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl leftBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl cement
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.02 0.02 0.02
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ciment.jpg
+
+newmtl centralContinuousLine
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl centralT1Line
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl centralT3Line
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl road
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg
+
+newmtl rightSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl leftSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg

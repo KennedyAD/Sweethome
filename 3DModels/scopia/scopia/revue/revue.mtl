@@ -1,0 +1,12 @@
+# Blender 3.3.1 MTL File: 'Revue.blend'
+# www.blender.org
+
+newmtl Revue
+Ns 20
+Ka 0.8 0.8 0.8
+Ks 0.030973 0.030973 0.030973
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureRevue.jpg

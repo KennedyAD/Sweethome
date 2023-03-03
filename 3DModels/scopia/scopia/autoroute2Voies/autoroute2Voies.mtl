@@ -1,0 +1,145 @@
+# Blender MTL File: 'roads-with-final-lines.blend'
+# Material Count: 14
+
+newmtl emergencyLane
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg
+
+newmtl leftShoulder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg
+
+newmtl centralContinuousLine
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl centralT1Line
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl centralT3Line
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl rightContinuousLine
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl rightT4Line
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl leftContinuousLine
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl leftT3Line
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.013369 0.013369 0.013369
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl rightPoles
+Ns 120
+Ka 0.5 0.5 0.5
+Kd 0.5 0.5 0.5
+Ks 0.211230 0.211230 0.211230
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl leftPoles
+Ns 120
+Ka 0.5 0.5 0.5
+Kd 0.5 0.5 0.5
+Ks 0.211230 0.211230 0.211230
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl rightSecurityRail
+Ns 120
+Ka 0.5 0.5 0.5
+Kd 0.5 0.5 0.5
+Ks 0.211230 0.211230 0.211230
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl leftSecurityRail
+Ns 120
+Ka 0.5 0.5 0.5
+Kd 0.5 0.5 0.5
+Ks 0.211230 0.211230 0.211230
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl road
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg

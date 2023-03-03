@@ -1,0 +1,156 @@
+# Blender MTL File: 'roads-with-final-lines.blend'
+# Material Count: 14
+
+newmtl 15DegRightLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl 15DegLeftLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl 15DegRightBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 15DegLeftBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 15DegRoad
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg
+
+newmtl 15DegRightSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 15DegLeftSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 75DegRightLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl 75DegLeftLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl 75DegRightBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 75DegLeftBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 75DegRoad
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg
+
+newmtl 75DegRightSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl 75DegLeftSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
