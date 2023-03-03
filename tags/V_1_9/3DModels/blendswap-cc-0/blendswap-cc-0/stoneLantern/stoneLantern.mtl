@@ -1,0 +1,13 @@
+# Blender MTL File: 'stone_lantern.blend'
+# Material Count: 1
+
+newmtl stone
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.570471 0.570471 0.570471
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd 1K-cave_rock_1-diffuse.jpg

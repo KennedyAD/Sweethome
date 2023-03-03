@@ -1,0 +1,33 @@
+# Blender 3.3.1 MTL File: 'boston-fern-v2.blend'
+# www.blender.org
+
+newmtl Flowerpot
+Ns 2
+Ka 0.500000 0.27 0.13
+Kd 0.500000 0.27 0.13
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Leaf
+Ns 15
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.172566 0.172566 0.172566
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 2
+map_Kd texture.png
+
+newmtl Soil
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd soil.jpg

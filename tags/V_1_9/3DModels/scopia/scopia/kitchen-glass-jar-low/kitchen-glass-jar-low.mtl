@@ -1,0 +1,34 @@
+# Blender 3.3.1 MTL File: 'kitchen-glass-jar.blend'
+# www.blender.org
+
+newmtl GlassJar
+Ns 120
+Ka 0.843492 0.843492 0.843492
+Kd 0.843492 0.843492 0.843492
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.7
+illum 9
+
+newmtl Sugar
+Ns 20
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd sugarTexture.jpg
+
+newmtl WoodenTop
+Ns 2
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd texture.jpg

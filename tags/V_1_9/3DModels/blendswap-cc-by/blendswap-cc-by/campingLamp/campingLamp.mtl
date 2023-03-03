@@ -1,0 +1,47 @@
+# campingLamp.mtl
+#
+# Created by bloknayrb
+# https://blendswap.com/blend/26172
+#
+# This file is distributed under CC-BY Creative Commons Attribution 3.0 Unported license 
+# see http://creativecommons.org/licenses/by/3.0/
+
+newmtl Frosted_Glass
+Ns 80
+Ka 1.000000 1.000000 1.000000
+Kd 0.9 0.9 0.9
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.9
+illum 2
+
+newmtl Lamp_Green
+Ns 5
+Ka 0.11 0.16 0.13
+Kd 0.11 0.16 0.13
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl Lamp_Handle
+Ns 2
+Ka 1.000000 1.000000 1.000000
+Kd 0.003629 0.003629 0.003629
+Ks 0.02 0.02  0.02
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Reflector
+Ns 128
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3

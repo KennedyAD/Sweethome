@@ -1,0 +1,22 @@
+# Blender MTL File: 'kayak and rowboat.blend'
+# Material Count: 2
+
+newmtl green_trim
+Ns 50
+Ka 1.000000 1.000000 1.000000
+Kd 0.005791 0.218471 0.036284
+Ks 0.3 0.3 0.3
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl white
+Ns 50
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.3 0.3 0.3
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

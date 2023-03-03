@@ -1,0 +1,50 @@
+# largeFridge.mtl
+#
+# Created by Vladoffsky
+# http://www.blendswap.com/blends/view/87216
+# Modified by Emmanuel Puybaret / eTeks to reduce vertices count
+#
+# This file is distributed under CC-0 Creative Commons Zero (Public Domain) license:
+# See http://creativecommons.org/choose/zero/
+# This means that you can use it for any purpose you see fit, even commercially,
+# with no requirements.
+
+newmtl base
+Ns 2
+Ka 0.1 0.1 0.1
+Kd 0.1 0.1 0.1
+Ks 0 0 0
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl black
+Ns 20
+Ka 0.01 0.01 0.01
+Kd 0.01 0.01 0.01
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl metal
+Ns 70
+Ka 0.6 0.6 0.61
+Kd 0.6 0.6 0.61
+Ks 0.7 0.7 0.7
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl waterDispenser
+Ns 30
+Ka 0.2 0.2 0.2
+Kd 0.2 0.2 0.2
+Ks 0.5 0.5 0.5
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

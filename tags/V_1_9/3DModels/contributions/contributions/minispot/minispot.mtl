@@ -1,0 +1,24 @@
+# minispot.mtl
+#
+# Sweet Home 3D, Copyright (c) 2022 Emmanuel PUYBARET / eTeks <info@eteks.com>
+#
+# This file is distributed under Free Art License, see http://artlibre.org/licence/lal/en for more informations
+# and under CC-BY Creative Commons Attribution 3.0 Unported license, see http://creativecommons.org/licenses/by/3.0/
+# at your choice
+#
+newmtl border
+Ns 92
+Ka 0.6 0.6 0.6
+Kd 0.6 0.6 0.6
+Ks 0.466822 0.466822 0.466822
+d 1.000000
+illum 2
+
+newmtl spot
+Ns 20
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.330097 0.330097 0.330097
+d 1.000000
+illum 2
+map_Kd minispot.jpg
