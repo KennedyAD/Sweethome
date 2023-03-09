@@ -65,7 +65,7 @@ CoreTools.format = function(formatString, args) {
   if (args === undefined || args.length === 0) {
     return formatString;
   } else {
-    var placeHolders = /%%|%s|%d|%\d+\$s|%\d+\$d/g;
+    var placeHolders = /%%|%08X|%s|%d|%\d+\$s|%\d+\$d/g;
     var matchResult;
     var result = "";
     var currentIndex = 0;
@@ -79,6 +79,16 @@ CoreTools.format = function(formatString, args) {
       var indexResult;
       if (matchResult[0] == "%%") {
         result += '%';
+      } if (matchResult[0] == "%08X") {
+        var n = values[0];
+        if (n < 0) {
+          n = 0xFFFFFFFF + n + 1;
+        }
+        var s = n.toString(16).toUpperCase();
+        for (var i = 8 - s.length; i > 0; i--) {
+          result += "0";
+        } 
+        result += s;
       } else if ((indexResult = /%(\d+)\$s/g.exec(matchResult[0])) !== null) {
         var valueIndex = parseInt(indexResult[1]) - 1;
         result += values[valueIndex];

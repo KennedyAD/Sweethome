@@ -266,6 +266,34 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
   }
 }
 
+
+/**
+ * Creates an instance of a string buffer in which characters can be added.
+ * Adapted from java.io.StringWriter
+ * @constructor
+ * @ignore
+ */
+function StringWriter() {
+  this.buffer = ""
+}
+
+/**
+ * Appends the given string to the buffer.
+ * @param {string} string
+ */
+StringWriter.prototype.write = function(string) {
+  return this.buffer += string;
+}
+
+/**
+ * Returns the string stored in buffer.
+ * @return {string} string
+ */
+StringWriter.prototype.toString = function(string) {
+  return this.buffer;
+}
+
+
 /**
  * Format is a base class for formatting locale-sensitive
  * information such as dates, messages, and numbers.

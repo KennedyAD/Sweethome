@@ -462,7 +462,6 @@ ModelManager.prototype.getPieceOFFurnitureNormalizedModelTransformation = ModelM
  *            with <code>model<code> being an instance of <code>Node3D</code>, 
  *            <code>error</code>, <code>part</code>, <code>info</code> strings 
  *            and <code>percentage</code> a number.
-
  */
 ModelManager.prototype.loadModel = function(content, synchronous, modelObserver) {
   if (modelObserver === undefined) {
