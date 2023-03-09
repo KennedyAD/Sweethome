@@ -151,6 +151,13 @@ class PropertyChangeSupport {
 }
 
 /**
+ * A bridge to the JavaScript implementation of StringWriter.
+ */
+class StringWriter {
+  public native void write(String string);
+}
+
+/**
  * A bridge to the JavaScript implementation of UUID.
  */
 class UUID {
