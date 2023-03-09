@@ -1250,7 +1250,7 @@ DefaultPatternTexture.prototype.equals = function (obj) {
  *          texturesResourcesURLBase: string,
  *          writePreferencesURL: string,
  *          readPreferencesURL: string,
- *          writeResourceURL: number,
+ *          writeResourceURL: string,
  *          readResourceURL: string,
  *          userLanguage: string,
  *          writingObserver: {writeStarted: Function, 
