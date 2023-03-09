@@ -38,9 +38,12 @@ HomeRecorder.PARSING_HOME = "Parsing home";
  * Reads a home instance from its <code>url</code>.
  * @param url  URL of the read home
  * @param {{homeLoaded: function, homeError: function, progression: function}} observer  The callbacks used to follow the reading of the home 
+          (only <code>homeLoaded</code> is mandatory)
  */
 HomeRecorder.prototype.readHome = function(url, observer) {
-  observer.progression(HomeRecorder.READING_HOME, url, 0);
+  if (observer.progression !== undefined) {
+    observer.progression(HomeRecorder.READING_HOME, url, 0);
+  }
   // XML entry where home data is stored is Home.xml, except if url starts with jar: to specify another entry name 
   var homeEntryName = "Home.xml";
   if (url.indexOf("jar:") === 0) {
@@ -82,9 +85,11 @@ HomeRecorder.prototype.readHome = function(url, observer) {
  */
 HomeRecorder.prototype.parseHomeXMLEntry = function(homeXmlEntry, zip, zipUrl, observer) {
   var xmlContent = homeXmlEntry.asText();
-  observer.progression(HomeRecorder.READING_HOME, homeXmlEntry.name, 1);
+  if (observer.progression !== undefined) {
+    observer.progression(HomeRecorder.READING_HOME, homeXmlEntry.name, 1);
   
-  observer.progression(HomeRecorder.PARSING_HOME, homeXmlEntry.name, 0);
+    observer.progression(HomeRecorder.PARSING_HOME, homeXmlEntry.name, 0);
+  }
   
   var handler = this.getHomeXMLHandler();
   // The handler needs the zip URL for creating the right content URL (see HomeXMLHandler#parseContent)
@@ -96,10 +101,14 @@ HomeRecorder.prototype.parseHomeXMLEntry = function(homeXmlEntry, zip, zipUrl, o
     saxParser.parseString(xmlContent);
     observer.homeLoaded(handler.getHome());
   } catch (ex) {
-    observer.homeError(ex);
+    if (observer.homeError !== undefined) {
+      observer.homeError(ex);
+    }
   }
   
-  observer.progression(HomeRecorder.PARSING_HOME, homeXmlEntry.name, 1);
+  if (observer.progression !== undefined) {
+    observer.progression(HomeRecorder.PARSING_HOME, homeXmlEntry.name, 1);
+  }
 }
 
 /**
