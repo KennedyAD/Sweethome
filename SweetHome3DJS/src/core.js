@@ -271,7 +271,6 @@ PropertyChangeSupport.prototype.firePropertyChange = function(propertyName, oldV
  * Creates an instance of a string buffer in which characters can be added.
  * Adapted from java.io.StringWriter
  * @constructor
- * @ignore
  */
 function StringWriter() {
   this.buffer = ""
