@@ -1218,6 +1218,7 @@ function testHomeModifications() {
     },
     function() {
       var piece = home.getSelectedItems() [0];
+      planView.getHTMLElement().focus();
       homeController.delete();
       assertEquals("Selection not empty", 0, home.getSelectedItems().length); 
     },
