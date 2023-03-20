@@ -1202,7 +1202,7 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
             var clickCount = 1;
             if (mouseListener.initialPointerLocation != null
                 && mouseListener.distance(ev.canvasX, ev.canvasY,
-                	mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
+                    mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
                 && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_DELAY) { 
               clickCount = 2;
               mouseListener.firstTouchStartedTimeStamp = 0;

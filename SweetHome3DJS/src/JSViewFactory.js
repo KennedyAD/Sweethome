@@ -2246,7 +2246,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     var verticalRotationLabel = this.getElement("vertical-rotation-label");
     var horizontalRotationLabel = this.getElement("horizontal-rotation-label");
     var furnitureOrientationImage = this.getElement("furniture-orientation-image");
-	  furnitureOrientationImage.innerHTML = "<img src='" + ZIPTools.getScriptFolder() + "/resources/furnitureOrientation.png' />";
+    furnitureOrientationImage.innerHTML = "<img src='" + ZIPTools.getScriptFolder() + "/resources/furnitureOrientation.png' />";
 
     // 1) Adjust visibility
     var angleDisplay = this.controller.isPropertyEditable("ANGLE_IN_DEGREES") || this.controller.isPropertyEditable("ANGLE") ? "initial" : "none";
