@@ -736,7 +736,7 @@ HomePane.prototype.addFocusListener = function() {
     });
   this.getHTMLElement().addEventListener("focusout", function(ev) {
       homePane.controller.focusedViewChanged(null);
-	});
+    });
 }
 
 /**
