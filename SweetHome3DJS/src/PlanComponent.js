@@ -32,6 +32,14 @@
  * @author Renaud Pawlak
  */
 function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, controller) {
+  this.home = home;
+  this.preferences = preferences;
+  if (controller == null) {
+    controller = object3dFactory;
+    object3dFactory = new Object3DBranchFactory();
+  }  
+  this.object3dFactory = object3dFactory;
+  
   var plan = this;
   this.pointerType = View.PointerType.MOUSE; 
   this.canvasNeededRepaint = false;
@@ -50,7 +58,6 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.canvas.setAttribute("id", containerOrCanvasId + ".canvas");
     this.canvas.style.width = "100%"; // computedStyle.width;
     this.canvas.style.height = "100%"; // computedStyle.height;
-    // TODO Loop over all the properties and inject them?
     this.canvas.style.backgroundColor = computedStyle.backgroundColor;
     this.canvas.style.color = computedStyle.color;
     this.canvas.style.font = computedStyle.font;
@@ -79,9 +86,10 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
       });
   }
 
-  window.addEventListener("resize", function() {
+  this.windowResizeListener = function() {
       plan.revalidate();
-    });
+    };
+  window.addEventListener("resize", this.windowResizeListener);
   this.tooltip = document.createElement("div");
   this.tooltip.style.position = "absolute";
   this.tooltip.style.visibility = "hidden";
@@ -120,13 +128,6 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.backgroundPainted = true;
   this.planBoundsCacheValid = false;
   
-  this.home = home;
-  this.preferences = preferences;
-  if (controller == null) {
-    controller = object3dFactory;
-    object3dFactory = new Object3DBranchFactory();
-  }
-  this.object3dFactory = object3dFactory;
   this.setOpaque(true);
   this.addModelListeners(home, preferences, controller);
   if (controller != null) {
@@ -149,6 +150,8 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.patternImagesCache = {};
   
   this.setScale(0.5);
+  
+  setTimeout(this.windowResizeListener);
 }
 
 PlanComponent["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.PlanView", "com.eteks.sweethome3d.viewcontroller.View", "com.eteks.sweethome3d.viewcontroller.ExportableView", "com.eteks.sweethome3d.viewcontroller.TransferableView"];
@@ -847,15 +850,15 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       plan.repaint();
     });
   
-  var preferencesListener = new PlanComponent.UserPreferencesChangeListener(this);
-  preferences.addPropertyChangeListener("UNIT", preferencesListener);
-  preferences.addPropertyChangeListener("LANGUAGE", preferencesListener);
-  preferences.addPropertyChangeListener("GRID_VISIBLE", preferencesListener);
-  preferences.addPropertyChangeListener("DEFAULT_FONT_NAME", preferencesListener);
-  preferences.addPropertyChangeListener("FURNITURE_VIEWED_FROM_TOP", preferencesListener);
-  preferences.addPropertyChangeListener("FURNITURE_MODEL_ICON_SIZE", preferencesListener);
-  preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", preferencesListener);
-  preferences.addPropertyChangeListener("WALL_PATTERN", preferencesListener);
+  this.preferencesListener = new PlanComponent.UserPreferencesChangeListener(this);
+  preferences.addPropertyChangeListener("UNIT", this.preferencesListener);
+  preferences.addPropertyChangeListener("LANGUAGE", this.preferencesListener);
+  preferences.addPropertyChangeListener("GRID_VISIBLE", this.preferencesListener);
+  preferences.addPropertyChangeListener("DEFAULT_FONT_NAME", this.preferencesListener);
+  preferences.addPropertyChangeListener("FURNITURE_VIEWED_FROM_TOP", this.preferencesListener);
+  preferences.addPropertyChangeListener("FURNITURE_MODEL_ICON_SIZE", this.preferencesListener);
+  preferences.addPropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", this.preferencesListener);
+  preferences.addPropertyChangeListener("WALL_PATTERN", this.preferencesListener);
 }
 
 /**
@@ -1628,11 +1631,12 @@ PlanComponent.prototype.stopIndicatorAnimation = function() {
  */
 PlanComponent.prototype.addFocusListener = function(controller) {
   var plan = this;
-  this.container.addEventListener("focusout", function() {
+  this.focusOutListener = function() {
       plan.mouseListener.lastPointerLocation = null;
       plan.mouseListener.actionStartedInPlanComponent = false;
       controller.escape();
-    });
+    };
+  this.container.addEventListener("focusout", this.focusOutListener);
 }
 
 /**
@@ -1786,12 +1790,14 @@ PlanComponent.prototype.installDefaultKeyboardActions = function() {
       "control shift released ALT": "ACTIVATE_ALIGNMENT"
     });
   }
-  this.container.addEventListener("keydown", function(ev) { 
+  this.keyDownListener = function(ev) { 
       return plan.callAction(ev, "keydown"); 
-    }, false);
-  this.container.addEventListener("keyup", function(ev) { 
+    };
+  this.container.addEventListener("keydown", this.keyDownListener, false);
+  this.keyUpListener = function(ev) { 
       return plan.callAction(ev, "keyup"); 
-    }, false);
+    };
+  this.container.addEventListener("keyup", this.keyUpListener, false);
 }
 
 /**
@@ -6096,6 +6102,38 @@ PlanComponent.prototype.getPieceOfFurnitureSizeInPlan = function(piece) {
  */
 PlanComponent.prototype.isFurnitureSizeInPlanSupported = function() {
   return PlanComponent.WEBGL_AVAILABLE;
+}
+
+/**
+ * Removes components added to this pane and their listeners.
+ */
+PlanComponent.prototype.dispose = function() {
+  this.container.removeEventListener("keydown", this.keyDownListener, false);
+  this.container.removeEventListener("keyup", this.keyUpListener, false);
+  this.container.removeEventListener("focusout", this.focusOutListener);
+  if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+      && window.PointerEvent) {
+    window.removeEventListener("pointermove", this.mouseListener.windowPointerMoved);
+    window.removeEventListener("pointerup", this.mouseListener.windowPointerReleased);
+  } else {
+    window.removeEventListener("mousemove", this.mouseListener.windowMouseMoved);
+    window.removeEventListener("mouseup", this.mouseListener.windowMouseReleased);
+  }
+  document.body.removeChild(this.touchOverlay);
+  document.body.removeChild(this.tooltip);
+  window.removeEventListener("resize", this.windowResizeListener);
+  if (this.scrollPane != null) {
+    this.container.removeChild(this.canvas);
+    this.container.removeChild(this.scrollPane);	
+  }
+  this.preferences.removePropertyChangeListener("UNIT", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("LANGUAGE", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("GRID_VISIBLE", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("DEFAULT_FONT_NAME", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("FURNITURE_VIEWED_FROM_TOP", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("FURNITURE_MODEL_ICON_SIZE", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("ROOM_FLOOR_COLORED_OR_TEXTURED", this.preferencesListener);
+  this.preferences.removePropertyChangeListener("WALL_PATTERN", this.preferencesListener);
 }
 
 /**

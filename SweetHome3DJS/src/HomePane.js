@@ -60,7 +60,7 @@ function HomePane(containerId, home, preferences, controller) {
   
   // Keyboard accelerators management
   var homePane = this;
-  document.addEventListener("keydown", function(ev) {
+  this.keydownListener = function(ev) {
       if (JSDialog.getTopMostDialog() !== null) {
         // ignore keystrokes when dialog is displayed
         return;
@@ -89,7 +89,8 @@ function HomePane(containerId, home, preferences, controller) {
           ev.stopPropagation();
         }
       }
-    }, false);
+    };
+  document.addEventListener("keydown", this.keydownListener, false);
 
   // Restore viewport position if it exists
   var planComponent = controller.getPlanController().getView(); 
@@ -106,9 +107,8 @@ function HomePane(containerId, home, preferences, controller) {
     });
 
   // Create level selector
-  homePane.levelSelector = document.getElementById("level-selector");
-
-  var updateLevels = function() {
+  this.levelSelector = document.getElementById("level-selector");
+  var levelsChangeListener = function() {
       if (homePane.levelSelector) {
         homePane.levelSelector.innerHTML = "";
         if (home.getLevels().length < 2) {
@@ -127,21 +127,20 @@ function HomePane(containerId, home, preferences, controller) {
         }
       }
     };
-  updateLevels();
-  if (homePane.levelSelector) {
-    homePane.levelSelector.addEventListener("change", function(ev) {
+  levelsChangeListener();
+  if (this.levelSelector) {
+	this.levelSelectorChangeListener = function(ev) {
         controller.getPlanController().setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
-        updateLevels();
-      });
+        levelsChangeListener();
+      };
+    this.levelSelector.addEventListener("change", this.levelSelectorChangeListener);
   }
-  home.addPropertyChangeListener("SELECTED_LEVEL", function() {
-      updateLevels();
-    });
+  home.addPropertyChangeListener("SELECTED_LEVEL", levelsChangeListener);
   var levelChangeListener = function(ev) {
       if ("NAME" == ev.getPropertyName()
           || "ELEVATION" == ev.getPropertyName()
           || "ELEVATION_INDEX" == ev.getPropertyName()) {
-        updateLevels();
+        levelsChangeListener();
       }
     };
   var levels = home.getLevels();
@@ -154,7 +153,7 @@ function HomePane(containerId, home, preferences, controller) {
       } else if (ev.getType() === CollectionEvent.Type.DELETE) {
         ev.getItem().removePropertyChangeListener(levelChangeListener);
       }
-      updateLevels();
+      levelsChangeListener();
     });
 }
 HomePane["__class"] = "HomePane";
@@ -633,9 +632,9 @@ HomePane.prototype.addLevelVisibilityListener = function(home) {
  * @private
  */
 HomePane.prototype.addUserPreferencesListener = function(preferences) {
-  var listener = new HomePane.UserPreferencesChangeListener(this);
-  preferences.addPropertyChangeListener("CURRENCY", listener);
-  preferences.addPropertyChangeListener("VALUE_ADDED_TAX_ENABLED", listener);
+  this.preferencesChangeListener = new HomePane.UserPreferencesChangeListener(this);
+  preferences.addPropertyChangeListener("CURRENCY", this.preferencesChangeListener);
+  preferences.addPropertyChangeListener("VALUE_ADDED_TAX_ENABLED", this.preferencesChangeListener);
 }
 
 /**
@@ -702,15 +701,15 @@ HomePane.prototype.initActions = function(preferences) {
 HomePane.prototype.addPlanControllerListener = function(planController) {
   var homePane = this;
   planController.addPropertyChangeListener("MODE", function(ev) {
-    var mode = planController.getMode();
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.SELECT, mode == PlanController.Mode.SELECTION);
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.PAN, mode == PlanController.Mode.PANNING);
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_WALLS, mode == PlanController.Mode.WALL_CREATION);
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_ROOMS, mode == PlanController.Mode.ROOM_CREATION);
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_POLYLINES, mode == PlanController.Mode.POLYLINE_CREATION);
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_DIMENSION_LINES, mode == PlanController.Mode.DIMENSION_LINE_CREATION);
-    homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_LABELS, mode == PlanController.Mode.LABEL_CREATION);
-  });
+      var mode = planController.getMode();
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.SELECT, mode == PlanController.Mode.SELECTION);
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.PAN, mode == PlanController.Mode.PANNING);
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_WALLS, mode == PlanController.Mode.WALL_CREATION);
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_ROOMS, mode == PlanController.Mode.ROOM_CREATION);
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_POLYLINES, mode == PlanController.Mode.POLYLINE_CREATION);
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_DIMENSION_LINES, mode == PlanController.Mode.DIMENSION_LINE_CREATION);
+      homePane.setToggleButtonModelSelected(HomeView.ActionType.CREATE_LABELS, mode == PlanController.Mode.LABEL_CREATION);
+    });
 }
   
 /**
@@ -719,7 +718,7 @@ HomePane.prototype.addPlanControllerListener = function(planController) {
  */
 HomePane.prototype.addFocusListener = function() {
   var homePane = this; 
-  this.getHTMLElement().addEventListener("focusin", function(ev) {
+  this.focusListener = function(ev) {
       var focusableViews = [homePane.controller.getFurnitureCatalogController().getView(),
                             homePane.controller.getFurnitureController().getView(),
                             homePane.controller.getPlanController().getView(),
@@ -732,7 +731,8 @@ HomePane.prototype.addFocusListener = function() {
           }
         }
       }
-    });
+    };
+  this.getHTMLElement().addEventListener("focusin", this.focusListener);
 }
 
 /**
@@ -840,37 +840,37 @@ HomePane.MagnetismChangeListener.prototype.propertyChange = function(ev) {
 HomePane.prototype.createBoldStyleAction = function(actionType, home, preferences, controller, method) {
   var action = this.createAction(actionType, preferences, controller, method);
   home.addSelectionListener({
-        selectionChanged: function(ev) {
-          // Find if selected items are all bold or not
-          var selectionBoldStyle = null;
-          var selectedItems = home.getSelectedItems();
-          for (var i = 0; i < selectedItems.length; i++) {
-            item = selectedItems [i];
-            var bold;
-            if (item instanceof Label) {
-              bold = this.isItemTextBold("Label", item.getStyle());
-            } else if (item instanceof HomePieceOfFurniture
-                && item.isVisible()) {
-              bold = this.isItemTextBold("HomePieceOfFurniture", item.getNameStyle());
-            } else if (item instanceof Room) {
-              bold = this.isItemTextBold("Room", item.getNameStyle());
-              if (bold != this.isItemTextBold("Room", item.getAreaStyle())) {
-                bold = null;
-              }
-            } else if (item instanceof DimensionLine) {
-              bold = this.isItemTextBold("DimensionLine", item.getLengthStyle());
-            } else {
-              continue;
+      selectionChanged: function(ev) {
+        // Find if selected items are all bold or not
+        var selectionBoldStyle = null;
+        var selectedItems = home.getSelectedItems();
+        for (var i = 0; i < selectedItems.length; i++) {
+          item = selectedItems [i];
+          var bold;
+          if (item instanceof Label) {
+            bold = this.isItemTextBold("Label", item.getStyle());
+          } else if (item instanceof HomePieceOfFurniture
+              && item.isVisible()) {
+            bold = this.isItemTextBold("HomePieceOfFurniture", item.getNameStyle());
+          } else if (item instanceof Room) {
+            bold = this.isItemTextBold("Room", item.getNameStyle());
+            if (bold != this.isItemTextBold("Room", item.getAreaStyle())) {
+              bold = null;
             }
-            if (selectionBoldStyle == null) {
-              selectionBoldStyle = bold;
-            } else if (bold == null || selectionBoldStyle != bold) {
-              selectionBoldStyle = null;
-              break;
-            }
+          } else if (item instanceof DimensionLine) {
+            bold = this.isItemTextBold("DimensionLine", item.getLengthStyle());
+          } else {
+            continue;
           }
-          action.putValue(AbstractAction.SELECTED_KEY, selectionBoldStyle != null && selectionBoldStyle);
-        },
+          if (selectionBoldStyle == null) {
+            selectionBoldStyle = bold;
+          } else if (bold == null || selectionBoldStyle != bold) {
+            selectionBoldStyle = null;
+            break;
+          }
+        }
+        action.putValue(AbstractAction.SELECTED_KEY, selectionBoldStyle != null && selectionBoldStyle);
+      },
       isItemTextBold: function(itemClass, textStyle) {
         if (textStyle == null) {
           textStyle = preferences.getDefaultTextStyle(itemClass);
@@ -882,7 +882,7 @@ HomePane.prototype.createBoldStyleAction = function(actionType, home, preference
 }
 
 /**
- * Creates an action that is selected when all the text of the
+ * Creates an action which is selected when all the text of the
  * selected items in <code>home</code> use italic style.
  * @param {HomeView.ActionType} actionType
  * @param {Home} home
@@ -895,38 +895,38 @@ HomePane.prototype.createBoldStyleAction = function(actionType, home, preference
 HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, preferences, controller, method) {
   var action = this.createAction(actionType, preferences, controller, method);
   home.addSelectionListener({
-        selectionChanged: function(ev) {
-          // Find if selected items are all italic or not
-          var selectionItalicStyle = null;
-          var selectedItems = home.getSelectedItems();
-          for (var i = 0; i < selectedItems.length; i++) {
-            item = selectedItems [i];
-            var italic;
-            if (item instanceof Label) {
-              italic = this.isItemTextItalic("Label", item.getStyle());
-            } else if (item instanceof HomePieceOfFurniture
-                && item.isVisible()) {
-              italic = this.isItemTextItalic("HomePieceOfFurniture", item.getNameStyle());
-            } else if (item instanceof Room) {
-              italic = this.isItemTextItalic("Room", item.getNameStyle());
-              if (italic != this.isItemTextItalic("Room", item.getAreaStyle())) {
-                italic = null;
-              }
-            } else if (item instanceof DimensionLine) {
-              italic = this.isItemTextItalic("DimensionLine", item.getLengthStyle());
-            } else {
-              continue;
+      selectionChanged: function(ev) {
+        // Find if selected items are all italic or not
+        var selectionItalicStyle = null;
+        var selectedItems = home.getSelectedItems();
+        for (var i = 0; i < selectedItems.length; i++) {
+          item = selectedItems [i];
+          var italic;
+          if (item instanceof Label) {
+            italic = this.isItemTextItalic("Label", item.getStyle());
+          } else if (item instanceof HomePieceOfFurniture
+                     && item.isVisible()) {
+            italic = this.isItemTextItalic("HomePieceOfFurniture", item.getNameStyle());
+          } else if (item instanceof Room) {
+            italic = this.isItemTextItalic("Room", item.getNameStyle());
+            if (italic != this.isItemTextItalic("Room", item.getAreaStyle())) {
+              italic = null;
             }
-            if (selectionItalicStyle == null) {
-              selectionItalicStyle = italic;
-            } else if (italic == null || selectionItalicStyle != italic) {
-              selectionItalicStyle = null;
-              break;
-            }
+          } else if (item instanceof DimensionLine) {
+            italic = this.isItemTextItalic("DimensionLine", item.getLengthStyle());
+          } else {
+            continue;
           }
-          action.putValue(AbstractAction.SELECTED_KEY, selectionItalicStyle != null && selectionItalicStyle);
-        },
-        isItemTextItalic: function(itemClass, textStyle) {
+          if (selectionItalicStyle == null) {
+            selectionItalicStyle = italic;
+          } else if (italic == null || selectionItalicStyle != italic) {
+            selectionItalicStyle = null;
+            break;
+          }
+        }
+        action.putValue(AbstractAction.SELECTED_KEY, selectionItalicStyle != null && selectionItalicStyle);
+      },
+      isItemTextItalic: function(itemClass, textStyle) {
         if (textStyle == null) {
           textStyle = preferences.getDefaultTextStyle(itemClass);
         }
@@ -945,6 +945,7 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
  */
 HomePane.prototype.createToolBar = function(home, preferences) {
   var toolBar = document.getElementById("home-pane-toolbar"); 
+  this.toolBarDefaultChildren = Array.prototype.slice.call(toolBar.children);
 
   this.addActionToToolBar("SHOW_APPLICATION_MENU", toolBar);
   this.showApplicationMenuButton = toolBar.children[toolBar.children.length - 1].lastChild; 
@@ -1017,9 +1018,9 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
   if (this.showApplicationMenuButton == null
       || !window.matchMedia("(hover: none), (pointer: coarse)").matches) {
     // Catalog view popup menu
-    var catalogView = this.controller.getFurnitureCatalogController().getView();
-    if (catalogView != null) {
-      new JSPopupMenu(this.preferences, catalogView.getHTMLElement(), 
+    var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
+    if (furnitureCatalogView != null) {
+      this.furnitureCatalogPopupMenu = new JSPopupMenu(preferences, furnitureCatalogView.getHTMLElement(), 
           function(builder) {
             homePane.addActionToMenu(ActionType.ADD_HOME_FURNITURE, builder);
             homePane.addActionToMenu(ActionType.ADD_FURNITURE_TO_GROUP, builder);
@@ -1029,7 +1030,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
     var furnitureView = this.controller.getFurnitureController().getView();
     // Furniture view popup menu
     if (furnitureView != null) {
-      new JSPopupMenu(this.preferences, furnitureView.getHTMLElement(), 
+      this.furniturePopupMenu = new JSPopupMenu(preferences, furnitureView.getHTMLElement(), 
           function(builder) {
             homePane.addActionToMenu(ActionType.CUT, builder);
             homePane.addActionToMenu(ActionType.COPY, builder);
@@ -1145,7 +1146,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
     // Plan view popup menu
     var planView = this.controller.getPlanController().getView();
     if (planView != null) {
-      new JSPopupMenu(this.preferences, planView.getHTMLElement(),
+      this.planPopupMenu = new JSPopupMenu(preferences, planView.getHTMLElement(),
           function(builder) {
             homePane.addActionToMenu(ActionType.UNDO, builder);
             homePane.addActionToMenu(ActionType.REDO, builder);
@@ -1196,7 +1197,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
     // 3D view popup menu
     var view3D = this.controller.getHomeController3D().getView();
     if (view3D != null) {
-      new JSPopupMenu(this.preferences, view3D.getHTMLElement(), 
+      this.view3DPopupMenu = new JSPopupMenu(preferences, view3D.getHTMLElement(), 
           function(builder) {
             homePane.addActionToMenu(ActionType.VIEW_FROM_TOP, builder);
             homePane.addActionToMenu(ActionType.VIEW_FROM_OBSERVER, builder);
@@ -1230,7 +1231,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
     }
   } else {
     // Menu button popup menu
-    new JSPopupMenu(this.preferences, this.showApplicationMenuButton, 
+    new JSPopupMenu(preferences, this.showApplicationMenuButton, 
         function(builder) {
           homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
           homePane.addActionToMenu(ActionType.CUT, builder);
@@ -1323,7 +1324,7 @@ HomePane.prototype.initSplitters = function() {
   var home = this.home;
   var controller = this.controller;
 
-  var catalogView = controller.getFurnitureCatalogController().getView();
+  var furnitureCatalogView = controller.getFurnitureCatalogController().getView();
   var furnitureView = controller.getFurnitureController().getView();
   var planView = controller.getPlanController().getView();
   var view3D = controller.getHomeController3D().getView();
@@ -1365,10 +1366,10 @@ HomePane.prototype.initSplitters = function() {
   this.catalogFurnitureSplitter = {
       element: catalogFurnitureSplitterElement,
       homePropertyName: HomePane.CATALOG_PANE_DIVIDER_LOCATION_VISUAL_PROPERTY,
-      firstGroupElement: catalogView.getHTMLElement(),
+      firstGroupElement: furnitureCatalogView.getHTMLElement(),
       secondGroupElement: furnitureView.getHTMLElement(),
       isDisplayed: function() {
-        return catalogFurnitureSplitterElement && catalogFurnitureSplitterElement.clientWidth > 0 && catalogView != null && furnitureView != null;
+        return catalogFurnitureSplitterElement && catalogFurnitureSplitterElement.clientWidth > 0 && furnitureCatalogView != null && furnitureView != null;
       }
     };
 
@@ -1381,10 +1382,10 @@ HomePane.prototype.initSplitters = function() {
 HomePane.prototype.updateSplitters = function() {
   var planView = this.controller.getPlanController().getView();
   var view3D = this.controller.getHomeController3D().getView();
-  var catalogView = this.controller.getFurnitureCatalogController().getView();
+  var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   // Plan 3D view splitter inverts its group depending on orientation
-  if (catalogView !== null 
-      && catalogView.getHTMLElement().getBoundingClientRect().top > view3D.getHTMLElement().getBoundingClientRect().top + 10) {
+  if (furnitureCatalogView !== null 
+      && furnitureCatalogView.getHTMLElement().getBoundingClientRect().top > view3D.getHTMLElement().getBoundingClientRect().top + 10) {
     this.plan3DViewSplitter.firstGroupElement = view3D.getHTMLElement();
     this.plan3DViewSplitter.secondGroupElement = planView.getHTMLElement();
   } else {
@@ -1434,6 +1435,7 @@ HomePane.prototype.updateSplitter = function(splitter) {
     splitter.element.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);
     splitter.element.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
     window.removeEventListener("resize", splitter.mouseListener.windowResized);
+    delete splitter.mouseListener;
   }
 
   splitter.element.classList.remove("horizontal");
@@ -1557,11 +1559,12 @@ HomePane.prototype.addOrientationChangeListener = function() {
           homePane.updateSplitters();
         }, 100);
     };
-  window.addEventListener("resize", function(ev) {
+  this.resizeListener = function(ev) {
       if (window.matchMedia("(hover: none), (pointer: coarse)").matches) {
         orientationListener(ev);
       }
-    });
+    };
+  window.addEventListener("resize", this.resizeListener);
 }
 
 /** 
@@ -1738,23 +1741,23 @@ HomePane.prototype.setNameAndShortDescription = function(actionType, name) {
  * @param {boolean} enabled
  */
 HomePane.prototype.setTransferEnabled = function(enabled) {
-  var catalogView = this.controller.getFurnitureCatalogController().getView();
+  var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   var furnitureView = this.controller.getFurnitureController().getView();
   var planView = this.controller.getPlanController().getView();
   if (enabled) {
-    if (catalogView != null) {
+    if (furnitureCatalogView != null) {
       if (this.furnitureCatalogDragAndDropListener == null) {
         this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
       }
       
-      var pieceContainers = catalogView.getHTMLElement().querySelectorAll(".furniture");
+      var pieceContainers = furnitureCatalogView.getHTMLElement().querySelectorAll(".furniture");
       if (OperatingSystem.isInternetExplorerOrLegacyEdge()
           && window.PointerEvent) {
         // Multi touch support for IE and Edge
         for (i = 0; i < pieceContainers.length; i++) {
           pieceContainers[i].addEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);
         }
-        catalogView.getHTMLElement().addEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        furnitureCatalogView.getHTMLElement().addEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
         // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
         window.addEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
         window.addEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
@@ -1764,21 +1767,21 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
         }
         window.addEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         window.addEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
-        catalogView.getHTMLElement().addEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        furnitureCatalogView.getHTMLElement().addEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
         window.addEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         window.addEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
       }
-      catalogView.getHTMLElement().addEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
+      furnitureCatalogView.getHTMLElement().addEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
     }
   } else {
-    if (catalogView != null) {
-      var pieceContainers = catalogView.getHTMLElement().querySelectorAll(".furniture");
+    if (furnitureCatalogView != null) {
+      var pieceContainers = furnitureCatalogView.getHTMLElement().querySelectorAll(".furniture");
       if (OperatingSystem.isInternetExplorerOrLegacyEdge()
           && window.PointerEvent) {
         for (i = 0; i < pieceContainers.length; i++) {
           pieceContainers[i].removeEventListener("pointerdown", this.furnitureCatalogDragAndDropListener.pointerPressed);            
         }
-        catalogView.getHTMLElement().removeEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        furnitureCatalogView.getHTMLElement().removeEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
         // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
         window.removeEventListener("pointermove", this.furnitureCatalogDragAndDropListener.windowPointerMoved);
         window.removeEventListener("pointerup", this.furnitureCatalogDragAndDropListener.windowPointerReleased);
@@ -1788,11 +1791,11 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
         }
         window.removeEventListener("touchmove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         window.removeEventListener("touchend", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
-        catalogView.getHTMLElement().removeEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
+        furnitureCatalogView.getHTMLElement().removeEventListener("mousedown", this.furnitureCatalogDragAndDropListener.mousePressed);
         window.removeEventListener("mousemove", this.furnitureCatalogDragAndDropListener.mouseDragged);
         window.removeEventListener("mouseup", this.furnitureCatalogDragAndDropListener.windowMouseReleased);
       }
-      catalogView.getHTMLElement().removeEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
+      furnitureCatalogView.getHTMLElement().removeEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
     }
   }
   this.transferHandlerEnabled = enabled;
@@ -2457,4 +2460,69 @@ HomePane.prototype.getClipboardItems = function() {
  */
 HomePane.prototype.invokeLater = function(runnable) {
   setTimeout(runnable);
+}
+
+/**
+ * Removes components added to this pane and their listeners.
+ */
+HomePane.prototype.dispose = function() {
+  this.setTransferEnabled(false);
+  
+  var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
+  var furnitureView = this.controller.getFurnitureController().getView();
+  var planView = this.controller.getPlanController().getView();
+  var view3D = this.controller.getHomeController3D().getView();
+  if (view3D != null) {
+    view3D.dispose();	
+  }
+  if (planView != null) {
+    planView.dispose();	
+  }
+  if (furnitureView != null) {
+    furnitureView.dispose();	
+  }
+  if (furnitureCatalogView != null) {
+    furnitureCatalogView.dispose();	
+  }
+  
+  if (this.view3DPopupMenu != null) {
+    document.body.removeChild(this.view3DPopupMenu.getHTMLElement());
+  }
+  if (this.planPopupMenu != null) {
+    document.body.removeChild(this.planPopupMenu.getHTMLElement());
+  }
+  if (this.furniturePopupMenu != null) {
+    document.body.removeChild(this.furniturePopupMenu.getHTMLElement());
+  }
+  if (this.furnitureCatalogPopupMenu != null) {
+    document.body.removeChild(this.furnitureCatalogPopupMenu.getHTMLElement());
+  }
+  
+  if (this.levelSelector) {
+    while (this.levelSelector.children.length > 0) {
+      this.levelSelector.removeChild(this.levelSelector.children[0]);
+    }
+    this.levelSelector.removeEventListener("change", this.levelSelectorChangeListener);
+  }
+  
+  document.removeEventListener("keydown", this.keydownListener);
+  
+  window.removeEventListener("resize", this.resizeListener);
+  var splitters = [this.catalogFurnitureSplitter, this.furniturePlanSplitter, this.plan3DViewSplitter];
+  for (var i = 0; i < splitters.length; i++) {
+    var splitter = splitters [i];
+    splitter.element.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);	
+    splitter.element.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
+    window.removeEventListener("resize", splitter.mouseListener.windowResized);	
+  }
+  var toolBar = document.getElementById("home-pane-toolbar");
+  var toolBarChildren = toolBar.children;
+  for (var i = toolBarChildren.length - 1; i >= 0; i--) {
+	if (this.toolBarDefaultChildren.indexOf(toolBarChildren [i]) < 0) {
+      toolBar.removeChild(toolBarChildren [i]);	
+	}
+  } 
+  this.getHTMLElement().removeEventListener("focusin", this.focusListener);
+  this.preferences.removePropertyChangeListener("VALUE_ADDED_TAX_ENABLED", this.preferencesChangeListener);
+  this.preferences.removePropertyChangeListener("CURRENCY", this.preferencesChangeListener);
 }

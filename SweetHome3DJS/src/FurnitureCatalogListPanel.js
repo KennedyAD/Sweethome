@@ -58,6 +58,7 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.container.insertBefore(filteringDiv, furnitureCatalogList);
 
   var categorySelector = document.createElement("select");
+  this.categorySelector = categorySelector;
   var searchInput = document.createElement("input");
   this.searchInput = searchInput;
   var filterChangeHandler = function() {
@@ -183,14 +184,14 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
      furnitureCatalogListPanel.hideTooltip();
    });
   
-  preferences.addPropertyChangeListener("LANGUAGE", function(ev) {
+  this.languageChangeListener = function(ev) {
       var searchInput = document.getElementById("furniture-search-field");
       searchInput.placeholder = ResourceAction.getLocalizedLabelText(preferences, "FurnitureCatalogListPanel", "searchLabel.text").replace(":", "");
-      var categorySelector = document.getElementById("furniture-category-select");
       var noCategory = preferences.getLocalizedString("FurnitureCatalogListPanel", "categoryFilterComboBox.noCategory");
       noCategoryOption.value = 
       noCategoryOption.text = noCategory;
-    });
+    };
+  preferences.addPropertyChangeListener("LANGUAGE", this.languageChangeListener);
   catalog.addFurnitureListener(function(ev) {
       var category = ev.getItem().getCategory();
       var categories = catalog.getCategories();
@@ -294,7 +295,7 @@ FurnitureCatalogListPanel.prototype.filterCatalog = function(categoryIndex, piec
 /**
  * @private
  */
-FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
+FurnitureCatalogListPanel.prototype.clearFurnitureCatalog = function(catalog) {
   var furnitureCatalogList = this.container.getElementsByClassName("furniture-catalog-list") [0];
   var children = furnitureCatalogList.getElementsByClassName("furniture-category-label");
   for (var i = children.length - 1; i >= 0; i--) {
@@ -308,7 +309,15 @@ FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
   for (var i = children.length - 1; i >= 0; i--) {
     furnitureCatalogList.removeChild(children[i]);
   }
+}
   
+/**
+ * @private
+ */
+FurnitureCatalogListPanel.prototype.resetFurnitureCatalog = function(catalog) {
+  this.clearFurnitureCatalog();
+  
+  var furnitureCatalogList = this.container.getElementsByClassName("furniture-catalog-list") [0];
   for (var i = 0; i < catalog.getCategoriesCount() ; i++) {
     var category = catalog.getCategories()[i];
     var categoryLabel = document.createElement("div");
@@ -491,3 +500,13 @@ FurnitureCatalogListPanel.prototype.createCatalogItemTooltipText = function(piec
   tipText += "</center>";
   return tipText;
 } 
+
+/** 
+ * Removes components added to this panel and their listeners.
+ */
+FurnitureCatalogListPanel.prototype.dispose = function() {
+  this.preferences.removePropertyChangeListener("LANGUAGE", this.languageChangeListener);
+  this.clearFurnitureCatalog();
+  this.container.removeChild(document.getElementById("furniture-filter"));
+  this.toolTipDiv.parentElement.removeChild(this.toolTipDiv);	
+}
