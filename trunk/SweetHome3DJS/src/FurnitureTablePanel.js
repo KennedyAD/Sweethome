@@ -67,62 +67,62 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
       }
     });
 
-  var updateModel = function() {
+  var homePropertyChangeListener = function() {
       treeTable.setModel(panel.createTableModel(home));
     };
-  home.addPropertyChangeListener("FURNITURE_SORTED_PROPERTY", updateModel);
-  home.addPropertyChangeListener("FURNITURE_DESCENDING_SORTED", updateModel);
-  home.addPropertyChangeListener("FURNITURE_VISIBLE_PROPERTIES", updateModel);
+  home.addPropertyChangeListener("FURNITURE_SORTED_PROPERTY", homePropertyChangeListener);
+  home.addPropertyChangeListener("FURNITURE_DESCENDING_SORTED", homePropertyChangeListener);
+  home.addPropertyChangeListener("FURNITURE_VISIBLE_PROPERTIES", homePropertyChangeListener);
 
-  var updateData = function() {
-      panel.updateData(home);
-    };
-  var updatePieceOfFurnitureData = function(ev) {
+  var pieceOfFurnitureChangeListener = function(ev) {
       panel.updatePieceOfFurnitureData(home, ev.getSource(), ev.getPropertyName());
     };
   var furniture = home.getFurniture();
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture[i];
-    piece.addPropertyChangeListener(updatePieceOfFurnitureData);
+    piece.addPropertyChangeListener(pieceOfFurnitureChangeListener);
     if (piece instanceof HomeFurnitureGroup) {
       var groupFurniture = piece.getAllFurniture();
       for (var j = 0; j < groupFurniture.length; j++) {
-        groupFurniture[j].addPropertyChangeListener(updatePieceOfFurnitureData);
+        groupFurniture[j].addPropertyChangeListener(pieceOfFurnitureChangeListener);
       }
     }
   }
 
   home.addFurnitureListener(function(ev) {
-      updateData(home);
+      panel.updateData(home);
       var piece = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        piece.addPropertyChangeListener(updatePieceOfFurnitureData);
+        piece.addPropertyChangeListener(pieceOfFurnitureChangeListener);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].addPropertyChangeListener(updatePieceOfFurnitureData);
+            groupFurniture[j].addPropertyChangeListener(pieceOfFurnitureChangeListener);
           }
         }
       } else {
-        piece.removePropertyChangeListener(updatePieceOfFurnitureData);
+        piece.removePropertyChangeListener(pieceOfFurnitureChangeListener);
         if (piece instanceof HomeFurnitureGroup) {
           var groupFurniture = piece.getAllFurniture();
           for (var j = 0; j < groupFurniture.length; j++) {
-            groupFurniture[j].removePropertyChangeListener(updatePieceOfFurnitureData);
+            groupFurniture[j].removePropertyChangeListener(pieceOfFurnitureChangeListener);
           }
         }
       }
     });
 
+  var levelChangeListener = function() {
+      panel.updateData(home);
+    };
   var levels = home.getLevels();
   for (var i = 0; i < levels.length; i++) {
-    levels[i].addPropertyChangeListener(updateData);
+    levels[i].addPropertyChangeListener(levelChangeListener);
   }
   home.addLevelsListener(function(ev) {
       if (ev.getType() == CollectionEvent.Type.ADD) {
-        ev.getItem().addPropertyChangeListener(updateData);
+        ev.getItem().addPropertyChangeListener(levelChangeListener);
       } else {
-        ev.getItem().removePropertyChangeListener(updateData);
+        ev.getItem().removePropertyChangeListener(levelChangeListener);
       }
     });
 }
@@ -133,11 +133,12 @@ FurnitureTablePanel.prototype.addHomeListeners = function(home) {
  */
 FurnitureTablePanel.prototype.addUserPreferencesListeners = function(home) {
   var panel = this;
-  this.preferences.addPropertyChangeListener(function(ev) {
+  this.preferencesListener = function(ev) {
       if (ev.getPropertyName() == "UNIT" || ev.getPropertyName() == "LANGUAGE") {
         panel.treeTable.setModel(panel.createTableModel(home));
       }
-    });
+    };
+  this.preferences.addPropertyChangeListener(this.preferencesListener);
 }
 
 /**
@@ -300,7 +301,7 @@ FurnitureTablePanel.prototype.createTableModel = function(home) {
         }
       },
       initialState: {
-        visibleColumnNames: home.getFurnitureVisibleProperties(),
+        visibleColumnNames: visibleProperties,
         sort: {
           columnName: home.getFurnitureSortedProperty(),
           direction: home.isFurnitureDescendingSorted() ? "desc" : "asc"
@@ -676,4 +677,12 @@ FurnitureTablePanel.prototype.storeExpandedRows = function(expandedRowsIndices, 
   if (home.getProperty(FurnitureTablePanel.EXPANDED_ROWS_VISUAL_PROPERTY) != null || propertyValue.length > 0) {
     controller.setHomeProperty(FurnitureTablePanel.EXPANDED_ROWS_VISUAL_PROPERTY, propertyValue);
   }
+}
+
+/** 
+ * Removes components added to this panel and their listeners.
+ */
+FurnitureTablePanel.prototype.dispose = function() {
+  this.treeTable.dispose();
+  this.preferences.removePropertyChangeListener(this.preferencesListener);
 }

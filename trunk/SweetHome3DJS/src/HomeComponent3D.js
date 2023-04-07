@@ -42,6 +42,7 @@
  */
 function HomeComponent3D(canvasId, home, preferences, object3dFactory, controller) {
   this.home = home;
+  this.preferences = preferences;
   this.object3dFactory = object3dFactory !== null 
       ? object3dFactory
       : new Object3DBranchFactory();
@@ -49,7 +50,8 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
   this.homeObjects3D = [];
   this.sceneLights = [];
   this.camera = null;
-  this.windowSizeListener = null;
+  this.windowResizeListener = null;
+  this.preferencesChangeListener = null;
   // Listeners bound to home that updates 3D scene objects
   this.cameraChangeListener = null;
   this.homeCameraListener = null;
@@ -86,12 +88,11 @@ HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, co
     if (preferences !== null) {
       this.navigationPanelId = this.createNavigationPanel(this.home, preferences, controller);
       this.setNavigationPanelVisible(preferences.isNavigationPanelVisible());
-      this.revalidate();
       var component3D = this;
-      preferences.addPropertyChangeListener("NAVIGATION_PANEL_VISIBLE",
-          function(ev) {
-            component3D.setNavigationPanelVisible(ev.getNewValue());
-          });
+      this.preferencesChangeListener = function(ev) {
+          component3D.setNavigationPanelVisible(ev.getNewValue());
+        };
+      preferences.addPropertyChangeListener("NAVIGATION_PANEL_VISIBLE", this.preferencesChangeListener);
     }
     this.createActions(controller);
     this.installKeyboardActions();
@@ -172,10 +173,10 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     navigationPanelDiv = document.createElement("div");
     navigationPanelDiv.setAttribute("id", "div" + Math.floor(Math.random() * 1E10));
     navigationPanelDiv.style.position = "absolute";
-    var canvas = this.canvas3D.getHTMLElement();
-    window.addEventListener("resize", function(ev) {
+    this.windowResizeListener = function(ev) {
         component3D.revalidate();
-      });
+      };
+    window.addEventListener("resize", this.windowResizeListener);
     // Search the first existing zIndex among parents
     var parentZIndex = 0;
     for (var element = this.canvas3D.getHTMLElement();  
@@ -273,6 +274,9 @@ HomeComponent3D.prototype.getSimulatedKeyElements = function(element) {
 HomeComponent3D.prototype.setNavigationPanelVisible = function(visible) {
   if (this.navigationPanelId != null) {
     document.getElementById(this.navigationPanelId).style.visibility = visible ? "visible" : "hidden";
+    if (visible) {
+      this.revalidate();
+    }
   }
 }
 
@@ -362,7 +366,8 @@ HomeComponent3D.prototype.dispose = function() {
   this.removeHomeListeners();
   this.removeMouseListeners(this.canvas3D);
   if (this.navigationPanelId != null) {
-    window.removeEventListener("resize", this.windowSizeListener);
+    this.preferences.removePropertyChangeListener("NAVIGATION_PANEL_VISIBLE", this.preferencesChangeListener);
+    window.removeEventListener("resize", this.windowResizeListener);
     var simulatedKeys = this.getSimulatedKeyElements(document.getElementsByTagName("body") [0]);
     for (var i = 0; i < simulatedKeys.length; i++) {
       simulatedKeys [i].removeEventListener("mousedown", this.simulatedElementMousePressedListener);

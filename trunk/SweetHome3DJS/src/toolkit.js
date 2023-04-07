@@ -2411,3 +2411,10 @@ JSTreeTable.prototype.getColumnsWidthByName = function() {
   return widths;
 }
 
+/** 
+ * Removes components added to this panel and their listeners.
+ */
+JSTreeTable.prototype.dispose = function() {
+  this.unregisterEventListeners();
+  this.container.removeChild(this.tableElement);
+}
