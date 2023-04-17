@@ -185,7 +185,7 @@ DefaultTexturesCatalog.prototype.readTexturesCategory = function(resource, index
   } else {
     url = contentFile;
   }
-  var content = new URLContent(url);
+  var content = URLContent.fromURL(url);
   return content;
 }
 

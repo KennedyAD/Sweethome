@@ -1965,6 +1965,28 @@ label {
   margin-bottom: 5px;
 }
 
+.open-dialog .home-list {
+  overflow: auto;
+  height: 5em;
+  background-color: #FFFFFFFF;
+  border: solid thin gray;
+  margin-top: 0.4em;
+}
+
+.open-dialog .home-list .item {
+  margin: 0.1em;
+  white-space: nowrap;
+}
+
+.open-dialog .home-list .item:hover {
+  background-color: #DDDDDD;
+  cursor: pointer;
+}
+
+.open-dialog .home-list .item.selected {
+  background-color: #BBDDFF;
+}
+
 /*
  * Tree table
  */

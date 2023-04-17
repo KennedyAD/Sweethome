@@ -1252,13 +1252,17 @@ DefaultPatternTexture.prototype.equals = function (obj) {
  *          readPreferencesURL: string,
  *          writeResourceURL: string,
  *          readResourceURL: string,
+ *          writePreferencesResourceURL: string,
+ *          readPreferencesUResourceRL: string,
  *          userLanguage: string,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
  *                            writeFailed: Function, 
  *                            connectionFound: Function, 
  *                            connectionLost: Function}
- *         }} [configuration] preferences configuration
+ *         }} [configuration] preferences configuration.
+ *              If configuration.writePreferencesResourceURL / configuration.readPreferencesUResourceRL is missing,
+ *              configuration.writeResourceURL / configuration.readResourceURL will be used.
  * @constructor
  * @extends UserPreferences
  * @author Louis Grignon
@@ -1274,8 +1278,10 @@ function RecordedUserPreferences(configuration) {
     this.texturesResourcesUrlBase = configuration.texturesResourcesURLBase;
     this.writePreferencesUrl = configuration.writePreferencesURL;
     this.readPreferencesUrl = configuration.readPreferencesURL;
-    this.writeResourceUrl = configuration.writeResourceURL;
-    this.readResourceUrl = configuration.readResourceURL;
+    this.writeResourceUrl = configuration.writePreferencesResourceURL !== undefined 
+        ? configuration.writePreferencesResourceURL : configuration.writeResourceURL;
+    this.readResourceUrl = configuration.readPreferencesResourceURL !== undefined 
+        ? configuration.readPreferencesResourceURL : configuration.readResourceURL;
     this.writingObserver = configuration.writingObserver;
   }
   
@@ -1525,20 +1531,46 @@ RecordedUserPreferences.prototype.getProperties = function() {
  */
 RecordedUserPreferences.prototype.readPreferences = function(properties) {
   try {
-    var responseText = null;
-    var request = new XMLHttpRequest();
-    var querySeparator = this.readPreferencesUrl.indexOf('?') != -1 ? '&' : '?';
-    request.open("GET", this.readPreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), false); // TODO Avoid sync
-    request.addEventListener("load", function() {
-        responseText = request.responseText;
-      });
-    request.send();
-
-    if (responseText) {
-      var preferencesData = JSON.parse(responseText);
-      for (var i in preferencesData) {
-        properties [i] = preferencesData [i];
-      }
+    var updateJsonPreferences = function(jsonPreferences) {
+        if (jsonPreferences != null) {
+          var preferencesData = JSON.parse(jsonPreferences);
+          for (var i in preferencesData) {
+            properties [i] = preferencesData [i];
+          }
+        } 
+      };
+      
+    if (this.readPreferencesUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
+      var key = this.readPreferencesUrl.substring(LocalStorageURLContent.LOCAL_STORAGE_PREFIX.length);
+      updateJsonPreferences(localStorage.getItem(key));
+    } else if (this.readPreferencesUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
+      var preferences = this;
+      new IndexedDBURLContent(this.readPreferencesUrl).getBlob({
+          blobReady: function(blob) {
+            var reader = new FileReader();
+            reader.addEventListener("load", function() {
+                updateJsonPreferences(reader.result);
+                preferences.updatePreferencesFromProperties(preferences.getProperties(), preferences.getLanguage());
+              });
+            reader.readAsText(blob);
+          },
+          blobError : function(status, error) {
+            if (status != -1) {
+              console.log("Can't read preferences from indexedDB " + status + " " + error);
+            }
+          }
+        });
+    } else {
+      var request = new XMLHttpRequest();
+      var querySeparator = this.readPreferencesUrl.indexOf('?') != -1 ? '&' : '?';
+      request.open("GET", this.readPreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), false); // TODO Avoid sync
+      request.addEventListener("load", function() {
+          if (request.readyState === XMLHttpRequest.DONE
+              && request.status === 200) {
+            updateJsonPreferences(request.responseText);
+          }
+        });
+      request.send();
     }
   } catch (ex) {
     // Proceed anyway
@@ -1623,7 +1655,7 @@ RecordedUserPreferences.prototype.readTexturesCatalogFromResource = function(tex
 }
 
 /**
- * Read modifiable textures catalog from preferences.
+ * Reads modifiable textures catalog from preferences.
  * @param {string, string} properties 
  * @private
  */
@@ -1650,7 +1682,7 @@ RecordedUserPreferences.prototype.readModifiableTexture = function(properties, i
     // Return null if key textureName# doesn't exist
     return null;
   }
-  var image = new URLContent(this.getProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, ""));
+  var image = URLContent.fromURL(this.getProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, ""));
   var width = parseFloat(this.getProperty(properties, RecordedUserPreferences.TEXTURE_WIDTH + index, "0.1"));
   var height = parseFloat(this.getProperty(properties, RecordedUserPreferences.TEXTURE_HEIGHT + index, "0.1"));
   var creator = this.getProperty(properties, RecordedUserPreferences.TEXTURE_CREATOR + index, null);
@@ -1766,9 +1798,16 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
     } else {
       this.writingPreferences = true;
       var jsonPreferences = JSON.stringify(properties);
-      var request = new XMLHttpRequest();
-      var querySeparator = this.writePreferencesUrl.indexOf('?') != -1 ? '&' : '?';
-      var serverErrorHandler = function(status, error) {
+      var successHandler = function() {
+          if (preferences.writingObserver !== undefined
+                && preferences.writingObserver.writeSucceeded) {
+              preferences.writingObserver.writeSucceeded(properties);
+          }
+          setTimeout(function() {
+              delete preferences.writingPreferences;
+            }, 500);
+        };
+      var errorHandler = function(status, error) {
           if (preferences.writingObserver !== undefined
               && preferences.writingObserver.writeFailed) {
             preferences.writingObserver.writeFailed(properties, status, error);
@@ -1779,28 +1818,48 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
               preferences.writePreferences(properties);
             }, 10000);
         };
-      request.open("POST", this.writePreferencesUrl + querySeparator + "updateId=" + UUID.randomUUID(), true);
-      request.addEventListener('load', function (ev) {
-          if (request.readyState === XMLHttpRequest.DONE) {
-            if (request.status === 200) {
-              if (preferences.writingObserver !== undefined
-                  && preferences.writingObserver.writeSucceeded) {
-                preferences.writingObserver.writeSucceeded(properties);
-              }
-              setTimeout(function() {
-                  delete preferences.writingPreferences;
-                }, 500);
-            } else {
-              serverErrorHandler(request.status, request.responseText);
+        
+      if (this.writePreferencesUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
+        try {
+          var key = this.writePreferencesUrl.substring(LocalStorageURLContent.LOCAL_STORAGE_PREFIX.length);
+          localStorage.setItem(key, jsonPreferences);
+          successHandler();
+          delete preferences.writingPreferences;
+        } catch (ex) {
+          errorHandler(0, ex);
+        }
+      } else if (this.writePreferencesUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
+        var preferencesContent = new BlobURLContent(new Blob([jsonPreferences], { type: 'application/json' }));
+        preferencesContent.writeBlob(this.writePreferencesUrl, "", {
+            blobSaved: function(content, name) {
+              URL.revokeObjectURL(preferencesContent.getURL());
+              successHandler();
+            },
+            blobError : function(status, error) {
+              URL.revokeObjectURL(preferencesContent.getURL());
+              errorHandler(status, error);
             }
-          }
-        });
-      var errorListener = function(ev) {
-          serverErrorHandler(0, ev);
-        };
-      request.addEventListener("error", errorListener);
-      request.addEventListener("timeout", errorListener);
-      request.send(jsonPreferences);
+         });
+      } else {
+        var request = new XMLHttpRequest();
+        var querySeparator = this.writePreferencesUrl.indexOf('?') != -1 ? '&' : '?';
+        request.open("POST", this.writePreferencesUrl + querySeparator + "updateId=" + UUID.randomUUID(), true);
+        request.addEventListener('load', function (ev) {
+            if (request.readyState === XMLHttpRequest.DONE) {
+              if (request.status === 200) {
+                successHandler();
+              } else {
+                errorHandler(request.status, request.responseText);
+              }
+            }
+          });
+        var errorListener = function(ev) {
+            errorHandler(0, "Can't post " + preferences.writePreferencesUrl);
+          };
+        request.addEventListener("error", errorListener);
+        request.addEventListener("timeout", errorListener);
+        request.send(jsonPreferences);
+      }
     }
   }
 }
@@ -1918,26 +1977,35 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
             this.removeProperty(properties, RecordedUserPreferences.TEXTURE_CREATOR + index);
           }
   
-          if (textureImage instanceof BlobURLContent) {
+          if (textureImage instanceof LocalURLContent
+              && (!(textureImage instanceof LocalStorageURLContent)
+                  || this.writeResourceUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0)
+              && (!(textureImage instanceof IndexedDBURLContent)
+                  || this.writeResourceUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0)) {
             var savedContent = textureImage.getSavedContent();
             if (savedContent === null) {
               var textureImageFileName = this.uploadingBlobs[textureImage.getURL()];
               if (textureImageFileName === undefined) {
-                var resourceId = UUID.randomUUID();
-                var imageExtension = textureImage.getBlob().type == "image/png" ? "png" : "jpg";
-                textureImageFileName = resourceId + '.' + imageExtension;
-                this.uploadingBlobs[textureImage.getURL()] = textureImageFileName;
-                var loadListener = function(textureImage, textureIndex) {
-                    if (textureImage.getSavedContent() === null) {
-                      var textureImageFileName = preferences.uploadingBlobs[textureImage.getURL()];
-                      var savedContent = new URLContent(
-                          CoreTools.format(preferences.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(textureImageFileName)));
-                      textureImage.setSavedContent(savedContent);
+                textureImage.getBlob({
+                    blobReady: function(blob) {
+                      textureImageFileName = UUID.randomUUID();
+                      preferences.uploadingBlobs[textureImage.getURL()] = textureImageFileName;
+                      var imageExtension = blob.type == "image/png" ? ".png" : ".jpg";
+                      var loadListener = function(textureImage, fileName, textureIndex) {
+                          if (textureImage.getSavedContent() === null) {
+                            var savedContent = URLContent.fromURL(
+                                CoreTools.format(preferences.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(fileName)));
+                            textureImage.setSavedContent(savedContent);
+                          }
+                          delete preferences.uploadingBlobs[textureImage.getURL()];
+                          preferences.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + textureIndex, textureImage.getSavedContent().getURL());
+                        };
+                      preferences.writeResource(textureImage, textureImageFileName + imageExtension, index, loadListener);
+                    },
+                    blobError: function(status, error) {
+                      contentsObserver.resourcesError(status, error);
                     }
-                    delete preferences.uploadingBlobs[textureImage.getURL()];
-                    preferences.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, textureImage.getSavedContent().getURL());
-                  };
-                this.writeResource(textureImage, textureImageFileName, index, loadListener);
+                });    
               }
             } else {
               // Always update uploading blobs map because blob may have been saved elsewhere
@@ -1972,42 +2040,29 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
  * @private
  */
 RecordedUserPreferences.prototype.writeResource = function(urlContent, path, index, loadListener) {
-  var uploadUrl = CoreTools.format(this.writeResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(path));
-  var request = new XMLHttpRequest();
   var preferences = this;
-  var serverErrorHandler = function(status, error) {
-      if (preferences.writingObserver !== undefined
-          && preferences.writingObserver.writeFailed) {
-        preferences.writingObserver.writeFailed(urlContent.getBlob(), status, error);
-        // In case of error, wait 10s before attempting a new upload
-        setTimeout(function() {
-            // Check it wasn't saved elsewhere
-            if (urlContent.getSavedContent() === null) {
-              preferences.writeResource(urlContent, path, index, loadListener);
-            } else {
-              loadListener(urlContent, index);
-            }
-          }, 10000);
-      }
-    };
-  request.open("POST", uploadUrl, true);
-  request.addEventListener('load', function (ev) {
-      if (request.readyState === XMLHttpRequest.DONE) {
-        if (request.status === 200) {
-          if (preferences.writingObserver !== undefined
-              && preferences.writingObserver.writeSucceeded) {
-            preferences.writingObserver.writeSucceeded(urlContent.getBlob());
-          }
-          loadListener(urlContent, index);
-        } else {
-          serverErrorHandler(request.status, request.responseText);
+  urlContent.writeBlob(this.writeResourceUrl, path, {
+      blobSaved: function(content, name) {
+        if (preferences.writingObserver !== undefined
+            && preferences.writingObserver.writeSucceeded) {
+          preferences.writingObserver.writeSucceeded(content.getBlob());
+        }
+        loadListener(content, path, index);
+      },
+      blobError : function(status, error) {
+         if (preferences.writingObserver !== undefined
+              && preferences.writingObserver.writeFailed) {
+           preferences.writingObserver.writeFailed(urlContent.getBlob(), status, error);
+           // In case of error, wait 10s before attempting a new upload
+           setTimeout(function() {
+               // Check it wasn't saved elsewhere
+               if (urlContent.getSavedContent() === null) {
+                 preferences.writeResource(urlContent, path, index, loadListener);
+               } else {
+                 loadListener(urlContent, index);
+               }
+             }, 10000);
         }
       }
     });
-  var errorListener = function(ev) {
-      serverErrorHandler(0, ev);
-    };
-  request.addEventListener("error", errorListener);
-  request.addEventListener("timeout", errorListener);
-  request.send(urlContent.getBlob());
 }

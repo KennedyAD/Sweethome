@@ -468,6 +468,7 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
     modelObserver = synchronous;
     synchronous = false;
   }
+  var modelManager = this;
   var contentUrl = content.getURL();
   if (contentUrl in this.loadedModelNodes) {
     // Notify cached model to observer with a clone of the model
@@ -476,7 +477,6 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
       modelObserver.modelUpdated(this.cloneNode(model));
     }
   } else if (synchronous) {
-    var modelManager = this;
     this.load(content, synchronous, {
         modelLoaded : function(loadedModel) {
           modelManager.loadedModelNodes [contentUrl] = loadedModel;
@@ -506,7 +506,6 @@ ModelManager.prototype.loadModel = function(content, synchronous, modelObserver)
       observers.push(modelObserver);
       this.loadingModelObservers [contentUrl] = observers;
       
-      var modelManager = this;
       this.load(content, synchronous, {
           modelLoaded : function(loadedModel) {
             modelManager.loadedModelNodes [contentUrl] = loadedModel;
@@ -633,7 +632,7 @@ ModelManager.prototype.cloneNode = function(node, clonedSharedGroups) {
 }
 
 /**
- * Returns the node loaded synchronously from <code>content</code> with supported loaders.
+ * Loads the node from <code>content</code> with supported loaders.
  * @param {URLContent} content an object containing a model
  * @param {boolean} [synchronous] optional parameter equal to false by default
  * @param {{modelLoaded, modelError, progression}} modelObserver  
@@ -642,6 +641,12 @@ ModelManager.prototype.cloneNode = function(node, clonedSharedGroups) {
  * @private
  */
 ModelManager.prototype.load = function(content, synchronous, modelObserver) {
+  if (modelObserver === undefined) {
+    // 2 parameters (content, modelObserver)
+    modelObserver = synchronous;
+    synchronous = false;
+  }
+
   var contentUrl = content.getURL();
   if (!this.modelLoaders) {
     // As model loaders are reentrant, use the same loaders for multiple loading

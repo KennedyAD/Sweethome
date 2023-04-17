@@ -51,7 +51,7 @@ function HomePane(containerId, home, preferences, controller) {
   this.addUserPreferencesListener(preferences);
   this.addPlanControllerListener(controller.getPlanController());
   this.addFocusListener();
-  this.createToolBar(home, preferences);
+  this.createToolBar(home, preferences, controller);
   this.createPopupMenus(home, preferences);
   this.initSplitters();
   this.addOrientationChangeListener();
@@ -129,7 +129,7 @@ function HomePane(containerId, home, preferences, controller) {
     };
   levelsChangeListener();
   if (this.levelSelector) {
-	this.levelSelectorChangeListener = function(ev) {
+    this.levelSelectorChangeListener = function(ev) {
         controller.getPlanController().setSelectedLevel(home.getLevels()[parseInt(ev.target.value)]);
         levelsChangeListener();
       };
@@ -940,10 +940,11 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
  * Returns the tool bar displayed in this pane.
  * @param {Home} home
  * @param {UserPreferences} preferences
+ * @param {HomeController} controller
  * @return {Object}
  * @private
  */
-HomePane.prototype.createToolBar = function(home, preferences) {
+HomePane.prototype.createToolBar = function(home, preferences, controller) {
   var toolBar = document.getElementById("home-pane-toolbar"); 
   this.toolBarDefaultChildren = Array.prototype.slice.call(toolBar.children);
 
@@ -951,9 +952,17 @@ HomePane.prototype.createToolBar = function(home, preferences) {
   this.showApplicationMenuButton = toolBar.children[toolBar.children.length - 1].lastChild; 
   this.addSeparator(toolBar);
 
-  this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
-  this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
-  this.addSeparator(toolBar);
+  if (toolBar.classList.contains("direct-saving")) {
+    this.addActionToToolBar(HomeView.ActionType.NEW_HOME, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.OPEN, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.SAVE, toolBar);
+    this.addActionToToolBar(HomeView.ActionType.SAVE_AS, toolBar);
+    this.addSeparator(toolBar); 
+  } else {
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
+    this.addSeparator(toolBar);
+  }
 
   this.addActionToToolBar(HomeView.ActionType.UNDO, toolBar); 
   this.addActionToToolBar(HomeView.ActionType.REDO, toolBar); 
@@ -998,6 +1007,12 @@ HomePane.prototype.createToolBar = function(home, preferences) {
   this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
   this.addSeparator(toolBar);
+
+  if (toolBar.classList.contains("direct-saving")) {
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
+    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
+    this.addSeparator(toolBar);
+  }
 
   this.addActionToToolBar(HomeView.ActionType.PREFERENCES, toolBar); 
 
@@ -1634,7 +1649,7 @@ HomePane.prototype.addActionToToolBar = function(actionType, toolBar, additional
 /**
  * Returns a button configured from the given <code>action</code>.
  * @param {HomeView.ResourceAction} action
- * @param {string} additionalClass additional CSS class
+ * @param {string} [additionalClass] additional CSS class
  * @return {HTMLButton} 
  * @private
  */
@@ -2473,16 +2488,16 @@ HomePane.prototype.dispose = function() {
   var planView = this.controller.getPlanController().getView();
   var view3D = this.controller.getHomeController3D().getView();
   if (view3D != null) {
-    view3D.dispose();	
+    view3D.dispose();
   }
   if (planView != null) {
-    planView.dispose();	
+    planView.dispose();
   }
   if (furnitureView != null) {
-    furnitureView.dispose();	
+    furnitureView.dispose();
   }
   if (furnitureCatalogView != null) {
-    furnitureCatalogView.dispose();	
+    furnitureCatalogView.dispose();
   }
   
   if (this.view3DPopupMenu != null) {
@@ -2511,16 +2526,16 @@ HomePane.prototype.dispose = function() {
   var splitters = [this.catalogFurnitureSplitter, this.furniturePlanSplitter, this.plan3DViewSplitter];
   for (var i = 0; i < splitters.length; i++) {
     var splitter = splitters [i];
-    splitter.element.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);	
+    splitter.element.removeEventListener("mousedown", splitter.mouseListener.mousePressed, true);
     splitter.element.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
-    window.removeEventListener("resize", splitter.mouseListener.windowResized);	
+    window.removeEventListener("resize", splitter.mouseListener.windowResized);
   }
   var toolBar = document.getElementById("home-pane-toolbar");
   var toolBarChildren = toolBar.children;
   for (var i = toolBarChildren.length - 1; i >= 0; i--) {
-	if (this.toolBarDefaultChildren.indexOf(toolBarChildren [i]) < 0) {
-      toolBar.removeChild(toolBarChildren [i]);	
-	}
+    if (this.toolBarDefaultChildren.indexOf(toolBarChildren [i]) < 0) {
+      toolBar.removeChild(toolBarChildren [i]);
+    }
   } 
   this.getHTMLElement().removeEventListener("focusin", this.focusListener);
   this.preferences.removePropertyChangeListener("VALUE_ADDED_TAX_ENABLED", this.preferencesChangeListener);

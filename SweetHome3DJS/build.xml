@@ -244,6 +244,8 @@
         <file name="TextureChoiceComponent.js"/>
         <file name="ModelMaterialsComponent.js"/>
         <file name="JSViewFactory.js"/>
+      	<file name="DirectHomeRecorder.js"/>
+        <file name="IncrementalHomeRecorder.js"/>
         <file name="SweetHome3DJSApplication.js"/>
       </filelist>
     </concat>

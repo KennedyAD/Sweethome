@@ -185,8 +185,8 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         imageChooser: component.findElement("[choiceStep] input[type='file']"),
         preview: component.findElement("[choiceStep] [preview] img"),
       };
-    var imageErrorListener = function(error) {
-        console.warn("Error loading image: " + error);
+    var imageErrorListener = function(ev) {
+        console.warn("Error loading image: " + ev);
         component.controller.setImage(null);
         component.setImageChoiceTexts();
         component.updatePreviewComponentsImage();
@@ -623,7 +623,7 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         if (image === checkedImage
             && (file.type == "image/jpeg" 
                || file.type == "image/png")) {
-          contentReady(new BlobURLContent(file));
+          contentReady(BlobURLContent.fromBlob(file));
         } else {
           BlobURLContent.fromImage(checkedImage, imageType, contentReady);
         }
@@ -846,8 +846,8 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         });
     
     var component = this;
-    var imageErrorListener = function(error) {
-        console.warn("Error loading image: " + error);
+    var imageErrorListener = function(ev) {
+        console.warn("Error loading image: " + ev);
         component.controller.setImage(null);
         component.setImageChoiceTexts();
         component.updatePreviewComponentsImage();
@@ -1001,7 +1001,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
           if (image === checkedImage
               && (file.type == "image/jpeg" 
                 || file.type == "image/png")) {
-            contentReady(new BlobURLContent(file));
+            contentReady(BlobURLContent.fromBlob(file));
           } else {
             BlobURLContent.fromImage(checkedImage, imageType, contentReady);
           }
@@ -1098,7 +1098,11 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.previewPanel.innerHTML = "";
     var image = new Image();
     if (this.controller.getImage() !== null) {
-      image.src = this.controller.getImage().getURL();
+      this.controller.getImage().getStreamURL({
+          urlReady: function(url) {
+            image.src = url;   
+          }
+        });
     }
     this.previewPanel.appendChild(image);
     

@@ -531,18 +531,21 @@ class UserPreferences {
    * @since 4.4
    */
   public native void setRecentTextures(List<URLContent> recentTextures);
-
 }
 
 class URLContent {
   public URLContent(String content) {
   }
+
   public native String getURL();
+
+  public static native URLContent fromURL(String url);
 }
 
 class HomeURLContent {
   public HomeURLContent(String content) {
   }
+
   public native String getURL();
 }
 
@@ -554,7 +557,7 @@ class LengthUnit {
     public static LengthUnit INCH_FRACTION;
     public static LengthUnit INCH_DECIMALS;
     public static LengthUnit FOOT_DECIMALS;
- 
+
     public native static float centimeterToInch(float length);
 
     public native static float centimeterToFoot(float length);
