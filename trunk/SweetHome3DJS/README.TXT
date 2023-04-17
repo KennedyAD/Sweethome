@@ -32,8 +32,8 @@ The "viewerLibraries" target will create missing JavaScript code in lib/generate
 for Sweet Home 3D JS Viewer and required to run the HTML files found in the test directory 
 of this archive with any compatible browser (except for test/testHome.html). 
 The "applicationLibraries" target will create missing JavaScript code in lib/generated 
-for Sweet Home 3D JS Editor and required to run the test/testHome.html found  
-in this archive with any compatible browser. 
+for Sweet Home 3D JS Editor and required to run test/testHome.html and test/testIndexedDB.html 
+found in this archive with any compatible browser.  
 
 The default target provided by build.xml Ant file concatenates .js files by license type, 
 minifies them, and generates in install subdirectory a SweetHome3DJSViewer ZIP file 

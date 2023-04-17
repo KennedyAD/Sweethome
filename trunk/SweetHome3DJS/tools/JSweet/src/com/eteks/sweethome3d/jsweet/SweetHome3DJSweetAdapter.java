@@ -270,7 +270,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         + "        if (contentFile === undefined) { "
         + "          return null;"
         + "        } else if (contentFile.indexOf('://') >= 0) {"
-        + "          return new URLContent(contentFile);"
+        + "          return URLContent.fromURL(contentFile);"
         + "        } else { "
         + "          return new HomeURLContent('jar:' + this['homeUrl'] + '!/' + contentFile); "
         + "        }')",

@@ -36,7 +36,7 @@ HomeRecorder.PARSING_HOME = "Parsing home";
 
 /**
  * Reads a home instance from its <code>url</code>.
- * @param url  URL of the read home
+ * @param {string} url  URL of the read home
  * @param {{homeLoaded: function, homeError: function, progression: function}} observer  The callbacks used to follow the reading of the home 
           (only <code>homeLoaded</code> is mandatory)
  */
@@ -114,10 +114,9 @@ HomeRecorder.prototype.parseHomeXMLEntry = function(homeXmlEntry, zip, zipUrl, o
 /**
  * Returns a SAX XML handler able to interpret the information contained in the 
  * <code>Home.xml</code> entry.
+ * @return {HomeXMLHandler}
  * @protected 
  */
 HomeRecorder.prototype.getHomeXMLHandler = function() {
   return new HomeXMLHandler();
 }
-
-

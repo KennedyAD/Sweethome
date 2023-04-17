@@ -130,8 +130,16 @@ function JSTextureDialog(preferences, controller) {
       var textureCategory = catalogTexture.getCategory();
       var catalogTextureItem = document.createElement("div");
       catalogTextureItem.classList.add("item");
-      catalogTextureItem.innerHTML = '<img src="' + catalogTexture.getImage().getURL() + '" />' 
-          + textureCategory.getName() + " - " + catalogTexture.getName();
+      catalogTexture.getImage().getStreamURL({
+          urlReady: function(streamUrl) {
+            catalogTextureItem.innerHTML = '<img src="' + streamUrl + '" />' 
+              + textureCategory.getName() + " - " + catalogTexture.getName();
+          },
+          urlError: function(url) {
+            catalogTextureItem.innerHTML = '<img/>' 
+              + textureCategory.getName() + " - " + catalogTexture.getName();
+          }
+        });
       catalogTextureItem._catalogTexture = catalogTexture;
       return catalogTextureItem;
     };
@@ -297,6 +305,7 @@ JSTextureDialog.prototype.getSelectedTexture = function() {
  */
 JSTextureDialog.prototype.setSelectedTexture = function(texture) {
   if (texture != null) {
+    this.selectedTextureModel.texture = texture;
     this.selectedTextureModel.xOffset = texture.getXOffset();
     this.selectedTextureModel.yOffset = texture.getYOffset();
     this.selectedTextureModel.angleInRadians = texture.getAngle();
@@ -307,14 +316,14 @@ JSTextureDialog.prototype.setSelectedTexture = function(texture) {
     this.angleInput.setValue(Math.toDegrees(this.selectedTextureModel.angleInRadians));
     this.scaleInput.setValue(this.selectedTextureModel.scale * 100);
   
-    // Resolve texture from URL
-    var textureUrl = texture.getImage().getURL();
+    // Search texture in catalog
+    var textureContent = texture.getImage();
     var textureCategories = this.getUserPreferences().getTexturesCatalog().getCategories();
     var catalogTexture = null;
     for (var i = 0; i < textureCategories.length && catalogTexture === null; i++) {
       var categoryTextures = textureCategories[i].getTextures();
       for (var j = 0; j < categoryTextures.length; j++) {
-        if (textureUrl == categoryTextures[j].getImage().getURL()) {
+        if (textureContent.equals(categoryTextures[j].getImage())) {
           catalogTexture = categoryTextures[j];
           break;
         }
@@ -397,11 +406,11 @@ JSTextureDialog.prototype.updateTextureTransform = function() {
  */
 JSTextureDialog.prototype.getCatalogTextureItem = function(catalogTexture) {
   if (catalogTexture != null) {
-    var requestedImageUrl = catalogTexture.getImage().getURL();
+    var catalogContent = catalogTexture.getImage();
     for (var i = 0; i < this.texturesCatalogItems.length; i++) {
       var item = this.texturesCatalogItems[i];
-      var itemImageUrl = this.getCatalogTextureFromItem(item).getImage().getURL();
-      if (requestedImageUrl == itemImageUrl) {
+      var itemContent = this.getCatalogTextureFromItem(item).getImage();
+      if (catalogContent.equals(itemContent)) {
         return item;
       }
     }

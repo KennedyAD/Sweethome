@@ -363,7 +363,7 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
   if (contentFile.indexOf("!/") >= 0 && contentFile.indexOf("jar:") !== 0) {
     url = "jar:" + url;
   }
-  var content = new URLContent(url);
+  var content = URLContent.fromURL(url);
   return content;
 }
 

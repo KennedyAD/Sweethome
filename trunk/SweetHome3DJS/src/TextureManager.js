@@ -83,81 +83,91 @@ TextureManager.prototype.loadTexture = function(content, angle, synchronous, tex
     textureObserver = synchronous;
     synchronous = false;
   }
+  if (synchronous 
+      && !content.isStreamURLReady()) {
+    throw new IllegalStateException("Can't run synchronously with unavailable URL");
+  }    
+  var textureManager = this;
   var contentUrl = content.getURL();
-  if (contentUrl in this.loadedTextureImages) {
-    if (textureObserver.textureUpdated !== undefined) {
-      textureObserver.textureUpdated(this.loadedTextureImages [contentUrl]);
-    }
-  } else if (synchronous) {
-    var textureManager = this;
-    this.load(contentUrl, synchronous, {
-        textureLoaded : function(textureImage) {
-          // Note that angle is managed with appearance#setTextureTransform
-          textureManager.loadedTextureImages [contentUrl] = textureImage;
+  content.getStreamURL({
+      urlReady: function(streamUrl) {
+        if (contentUrl in textureManager.loadedTextureImages) {
           if (textureObserver.textureUpdated !== undefined) {
-            textureObserver.textureUpdated(textureImage);
+            textureObserver.textureUpdated(textureManager.loadedTextureImages [contentUrl]);
           }
-        },
-        textureError : function(error) {
-          if (textureObserver.textureError !== undefined) {
-            textureObserver.textureError(error);
-          }
-        },
-        progression : function(part, info, percentage) {
-          if (textureObserver.progression !== undefined) {
-            textureObserver.progression(part, info, percentage);
+        } else if (synchronous) {
+          textureManager.load(streamUrl, synchronous, {
+              textureLoaded : function(textureImage) {
+                // Note that angle is managed with appearance#setTextureTransform
+                textureManager.loadedTextureImages [contentUrl] = textureImage;
+                if (textureObserver.textureUpdated !== undefined) {
+                  textureObserver.textureUpdated(textureImage);
+                }
+              },
+              textureError : function(error) {
+                if (textureObserver.textureError !== undefined) {
+                  textureObserver.textureError(error);
+                }
+              },
+              progression : function(part, info, percentage) {
+                if (textureObserver.progression !== undefined) {
+                  textureObserver.progression(part, info, percentage);
+                }
+              }
+            });
+        } else {
+          if (contentUrl in textureManager.loadingTextureObservers) {
+            // If observers list exists, content texture is already being loaded
+            // register observer for future notification
+            textureManager.loadingTextureObservers [contentUrl].push(textureObserver);
+          } else {
+            // Create a list of observers that will be notified once texture model is loaded
+            var observers = [];
+            observers.push(textureObserver);
+            textureManager.loadingTextureObservers [contentUrl] = observers;
+            textureManager.load(streamUrl, synchronous, {
+                textureLoaded : function(textureImage) {
+                  var observers = textureManager.loadingTextureObservers [contentUrl];
+                  if (observers) {
+                    delete textureManager.loadingTextureObservers [contentUrl];
+                    // Note that angle is managed with appearance#setTextureTransform
+                    textureManager.loadedTextureImages [contentUrl] = textureImage;
+                    for (var i = 0; i < observers.length; i++) {
+                      if (observers [i].textureUpdated !== undefined) {
+                        observers [i].textureUpdated(textureImage);
+                      }
+                    }
+                  }
+                },
+                textureError : function(error) {
+                  var observers = textureManager.loadingTextureObservers [contentUrl];
+                  if (observers) {
+                    delete textureManager.loadingTextureObservers [contentUrl];
+                    for (var i = 0; i < observers.length; i++) {
+                      if (observers [i].textureError !== undefined) {
+                        observers [i].textureError(error);
+                      }
+                    }
+                  }
+                },
+                progression : function(part, info, percentage) {
+                  var observers = textureManager.loadingTextureObservers [contentUrl];
+                  if (observers) {
+                    for (var i = 0; i < observers.length; i++) {
+                      if (observers [i].progression !== undefined) {
+                        observers [i].progression(part, info, percentage);
+                      }
+                    } 
+                  }
+                }
+              });
           }
         }
-      });
-  } else {
-    if (contentUrl in this.loadingTextureObservers) {
-      // If observers list exists, content texture is already being loaded
-      // register observer for future notification
-      this.loadingTextureObservers [contentUrl].push(textureObserver);
-    } else {
-      // Create a list of observers that will be notified once texture model is loaded
-      var observers = [];
-      observers.push(textureObserver);
-      this.loadingTextureObservers [contentUrl] = observers;
-      var textureManager = this;
-      this.load(contentUrl, synchronous, {
-          textureLoaded : function(textureImage) {
-            var observers = textureManager.loadingTextureObservers [contentUrl];
-            if (observers) {
-              delete textureManager.loadingTextureObservers [contentUrl];
-              // Note that angle is managed with appearance#setTextureTransform
-              textureManager.loadedTextureImages [contentUrl] = textureImage;
-              for (var i = 0; i < observers.length; i++) {
-                if (observers [i].textureUpdated !== undefined) {
-                  observers [i].textureUpdated(textureImage);
-                }
-              }
-            }
-          },
-          textureError : function(error) {
-            var observers = textureManager.loadingTextureObservers [contentUrl];
-            if (observers) {
-              delete textureManager.loadingTextureObservers [contentUrl];
-              for (var i = 0; i < observers.length; i++) {
-                if (observers [i].textureError !== undefined) {
-                  observers [i].textureError(error);
-                }
-              }
-            }
-          },
-          progression : function(part, info, percentage) {
-            var observers = textureManager.loadingTextureObservers [contentUrl];
-            if (observers) {
-              for (var i = 0; i < observers.length; i++) {
-                if (observers [i].progression !== undefined) {
-                  observers [i].progression(part, info, percentage);
-                }
-              } 
-            }
-          }
-        });
-    }
-  }
+      },
+      urlError: function(status, error) {
+        textureObserver.textureError(status);
+      }    
+    });
 }
 
 /**

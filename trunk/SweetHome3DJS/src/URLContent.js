@@ -25,17 +25,40 @@
  * @author Emmanuel Puybaret
  */
 function URLContent(url) {
-  this.url = url;
+  this.url = url;  
 }
 
 URLContent["__class"] = "com.eteks.sweethome3d.tools.URLContent";
 URLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
+URLContent.urlContents = {};
+
+/**
+ * Returns an instance of <code>URLContent</code> matching the given <code>url</code>.
+ * @param {string} url
+ * @return {URLContent}
+ */
+URLContent.fromURL = function(url) {
+  var urlContent = URLContent.urlContents [url];
+  if (urlContent == null) {
+    if (url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
+      urlContent = new LocalStorageURLContent(url);
+    } else if (url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
+      urlContent = new IndexedDBURLContent(url);
+    } else {
+      urlContent = new URLContent(url);
+    }
+    // Keep content in cache
+    URLContent.urlContents [url] = urlContent;
+  }
+  return urlContent;
+}
+
 /**
  * Returns the URL of this content.
  * @return {string}
  */
-URLContent.prototype.getURL = function() {
+URLContent.prototype.getURL = function(observer) {
   var httpsSchemeIndex = this.url.indexOf("https://");
   var httpSchemeIndex = this.url.indexOf("http://");
   if (httpsSchemeIndex !== -1
@@ -70,6 +93,22 @@ URLContent.prototype.getURL = function() {
   } 
   
   return this.url;
+}
+
+/**
+ * Retrieves asynchronously an URL of this content usable for JavaScript functions with URL paramater.
+ * @param  {{urlReady: function, urlError: function}} observer optional observer 
+      which <code>urlReady</code> function will be called asynchronously once URL is available. 
+ */
+URLContent.prototype.getStreamURL = function(observer) {
+  observer.urlReady(this.getURL());
+}
+
+/**
+ * Returns <code>true</code> if this content URL is available to be read. 
+ */
+URLContent.prototype.isStreamURLReady = function() {
+  return true;
 }
 
 /**
@@ -118,8 +157,7 @@ URLContent.prototype.equals = function(obj) {
   if (obj === this) {
     return true;
   } else if (obj instanceof URLContent) {
-    var urlContent = obj;
-    return urlContent.url == this.url;
+    return obj.url == this.url;
   } else {
     return false;
   }
@@ -171,6 +209,206 @@ SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
 
 /**
+ * Content read from local data. 
+ * Abstract base class for blobs, files, local storage and indexedDB content.
+ * @constructor
+ * @author Emmanuel Puybaret
+ */
+function LocalURLContent(url) {
+  URLContent.call(this, url);
+  this.savedContent = null;
+}
+LocalURLContent.prototype = Object.create(URLContent.prototype);
+LocalURLContent.prototype.constructor = LocalURLContent;
+
+/**
+ * Returns the content saved on server.
+ * @return {URLContent} content on server or <code>null</code> if not saved on server yet 
+ */
+LocalURLContent.prototype.getSavedContent = function() {
+  return this.savedContent;
+}
+
+/**
+ * Sets the content saved on server.
+ * @param {URLContent} savedContent content on server 
+ */
+LocalURLContent.prototype.setSavedContent = function(savedContent) {
+  this.savedContent = savedContent;
+}
+
+/**
+ * Retrieves asynchronously an URL of this content usable for JavaScript functions with URL paramater.
+ * @param  {{urlReady: function, urlError: function}} observer optional observer 
+      which <code>urlReady</code> function will be called asynchronously once URL is available. 
+ */
+LocalURLContent.prototype.getStreamURL = function(observer) {
+  throw new UnsupportedOperationException("LocalURLContent abstract class");
+}
+
+/**
+ * Returns the blob stored by this content, possibly asynchronously if <code>observer</code> parameter is given.
+ * @param  {{blobReady: function, blobError: function}} [observer] optional observer 
+      which blobReady function will be called asynchronously once blob is available. 
+ * @return {Blob} blob content 
+ */
+LocalURLContent.prototype.getBlob = function(observer) {
+  throw new UnsupportedOperationException("LocalURLContent abstract class");
+}
+
+/**
+ * Writes the blob bound to this content with the request matching <code>writeBlobUrl</code>.
+ * @param {string} writeBlobUrl the URL used to save the blob (containing possibly %s which will be replaced by <code>blobName</code>)
+ * @param {string} blobName the name or path used to save the blob
+ * @param {blobSaved: function(LocalURLContent, blobName)
+           blobError: function} observer called when content is saved or if writing fails
+ * @return {abort: function} an object containing <code>abort</code> method to abort the write operation
+ */
+LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer) { 
+  var content = this;
+  var abortableOperations = [];
+  this.getBlob({
+      blobReady: function(blob) {
+        var url = CoreTools.format(writeBlobUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(blobName));
+        if (url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
+          var path = url.substring(url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) + LocalStorageURLContent.LOCAL_STORAGE_PREFIX.length);
+          var storageKey = decodeURIComponent(path.indexOf('?') > 0 ? path.substring(0, path.indexOf('?')) : path);
+          return LocalURLContent.convertBlobToBase64(blob, function(data) {
+              try {
+                localStorage.setItem(storageKey, data);
+                observer.blobSaved(content, blobName);
+              } catch (ex) {
+                if (observer.blobError !== undefined) {
+                  observer.blobError(0, ex);
+                }
+              }
+            });
+        } else if (url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
+          // Parse URL of the form indexeddb://database/objectstore?keyPathField=name&contentField=content&dateField=date&name=key
+          var databaseNameIndex = url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) + IndexedDBURLContent.INDEXED_DB_PREFIX.length;
+          var slashIndex = url.indexOf('/', databaseNameIndex);
+          var questionMarkIndex = url.indexOf('?', slashIndex + 1);
+          var databaseName = url.substring(databaseNameIndex, slashIndex);
+          var objectStore = url.substring(slashIndex + 1, questionMarkIndex);
+          var fields = url.substring(questionMarkIndex + 1).split('&');
+          var key = "";
+          var keyPathField = "";
+          var contentField = "";
+          var dateField = "";
+          for (var i = 0; i < fields.length; i++) {
+            var value = fields [i].substring(fields [i].indexOf('=') + 1);
+            switch (fields [i].substring(0, fields [i].indexOf('='))) {
+              case "keyPathField": 
+                keyPathField = value; 
+                break;
+              case "contentField": 
+                contentField = value; 
+                break;
+              case "dateField" : 
+                dateField = value; 
+                break;
+            }
+          }
+          // Parse a second time fields in case key value is cited before keyPathField
+          for (var i = 0; i < fields.length; i++) {
+            if (keyPathField === fields [i].substring(0, fields [i].indexOf('='))) {
+              key = decodeURIComponent(fields [i].substring(fields [i].indexOf('=') + 1));
+            }
+          }
+          var request = indexedDB.open(databaseName, 1);
+          request.addEventListener("upgradeneeded", function(ev) { 
+              var database = ev.target.result; 
+              database.createObjectStore(objectStore, {keyPath: keyPathField});
+            });
+          request.addEventListener("error", function(ev) { 
+                if (observer.blobError !== undefined) {
+                  observer.blobError(ev.target.errorCode, "Can't connect to database " + databaseName);
+                }
+            });
+          request.addEventListener("success", function(ev) {  
+              var database = ev.target.result; 
+              try {
+                var transaction = database.transaction(objectStore, 'readwrite');
+                var store = transaction.objectStore(objectStore);
+                var storedResource = {};
+                storedResource [keyPathField] = key;
+                storedResource [contentField] = blob;
+                storedResource [dateField] = Date.now();
+                var query = store.put(storedResource);
+                query.addEventListener("error", function(ev) { 
+                    if (observer.blobError !== undefined) {
+                      observer.blobError(ev.target.errorCode, "Can't store item in " + objectStore);
+                    }
+                  }); 
+                query.addEventListener("success", function(ev) {
+                    observer.blobSaved(content, blobName);
+                  }); 
+                transaction.addEventListener("complete", function(ev) { 
+                    database.close(); 
+                  }); 
+                abortableOperations.push(transaction);
+              } catch (ex) {
+                if (observer.blobError !== undefined) {
+                  observer.blobError(ex, "");
+                }
+              }
+            });
+        } else {
+          var request = new XMLHttpRequest();
+          request.open("POST", url, true);
+          request.addEventListener('load', function (ev) {
+              if (request.readyState === XMLHttpRequest.DONE) {
+                if (request.status === 200) {
+                  observer.blobSaved(content, blobName);
+                } else if (observer.blobError !== undefined) {
+                  observer.blobError(request.status, request.responseText);
+                }
+              }
+            });
+          var errorListener = function(ev) {
+              if (observer.blobError !== undefined) {
+                observer.blobError(0, "Can't post " + url);
+              }
+            };
+          request.addEventListener("error", errorListener);
+          request.addEventListener("timeout", errorListener);
+          request.send(blob);
+          abortableOperations.push(request);
+        }
+      },
+      blobError: function(status, error) {
+         if (observer.blobError !== undefined) {
+          observer.blobError(status, error);
+        }
+      }
+    });
+    
+  return {
+      abort: function() {
+        for (var i = 0; i < abortableOperations.length; i++) {
+          abortableOperations [i].abort();
+        }
+      }
+    };
+}
+
+/**
+ * @param {Blob} blob
+ * @param {function} observer
+ * @return {abort: function} an object containing <code>abort</code> method to abort the conversion
+ * @private
+ */
+LocalURLContent.convertBlobToBase64 = function(blob, observer) {
+  var reader = new FileReader();
+  reader.addEventListener("load", function() {
+      observer(reader.result);
+    });
+  reader.readAsDataURL(blob);
+  return reader;
+}
+
+
+/**
  * Content read from the URL of a <code>Blob</code> instance.
  * Note that this class may also handle a <code>File</code> instance which is a sub type of <code>Blob</code>.
  * @constructor
@@ -179,60 +417,293 @@ SimpleURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
  * @author Emmanuel Puybaret
  */
 function BlobURLContent(blob) {
-  var url = URL.createObjectURL(blob);
-  URLContent.call(this, url);
+  LocalURLContent.call(this, URL.createObjectURL(blob));
   this.blob = blob;
-  this.savedContent = null;
 }
-BlobURLContent.prototype = Object.create(URLContent.prototype);
+BlobURLContent.prototype = Object.create(LocalURLContent.prototype);
 BlobURLContent.prototype.constructor = BlobURLContent;
 
 BlobURLContent["__class"] = "com.eteks.sweethome3d.tools.BlobURLContent";
 BlobURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
 
-/**
- * Returns the blob stored by this content.
- * @return {Blob} blob content 
- */
-BlobURLContent.prototype.getBlob = function() {
-  return this.blob;
-}
+BlobURLContent.BLOB_PREFIX = "blob:";
 
 /**
- * Returns the content saved on server.
- * @return {URLContent} content on server or <code>null</code> if not saved on server yet 
+ * Returns an instance of <code>BlobURLContent</code> for the given <code>blob</code>.
+ * @param {Blob} blob
+ * @return {BlobURLContent}
  */
-BlobURLContent.prototype.getSavedContent = function() {
-  return this.savedContent;
-}
-
-/**
- * Sets the content saved on server.
- * @param {URLContent} savedContent content on server 
- */
-BlobURLContent.prototype.setSavedContent = function(savedContent) {
-  this.savedContent = savedContent;
+BlobURLContent.fromBlob = function(blob) { 
+  // Check blob content is in cache
+  for (var i in URLContent.urlContents) {
+    if (URLContent.urlContents [i] instanceof BlobURLContent
+        && URLContent.urlContents [i].blob === blob) {
+      return URLContent.urlContents [i];
+    }
+  }
+  var content = new BlobURLContent(blob);
+  URLContent.urlContents [content.getURL()] = content;
+  return content;
 }
 
 /**
  * Generates a BlobURLContent instance from an image.
  * @param {HTMLImageElement} image the image to be used as content source
  * @param {string} imageType resulting image blob mime type
- * @param {function(BlobURLContent)} oncontentready callback called when content is ready, with content instance as only parameter
+ * @param {function(BlobURLContent)} observer callback called when content is ready, with content instance as only parameter
  */
-BlobURLContent.fromImage = function(image, imageType, oncontentready) {
+BlobURLContent.fromImage = function(image, imageType, observer) {
   var canvas = document.createElement("canvas");
   var context = canvas.getContext("2d");
   canvas.width = image.width;
   canvas.height = image.height;
   context.drawImage(image, 0, 0, image.width, image.height);
   if (canvas.msToBlob) {
-    oncontentready(new BlobURLContent(canvas.msToBlob()));
+    observer(BlobURLContent.fromBlob(canvas.msToBlob()));
   } else {
     canvas.toBlob(function (blob) {
-        oncontentready(new BlobURLContent(blob));
+        observer(BlobURLContent.fromBlob(blob));
       }, imageType, 0.7);
   }
+}
+
+/**
+ * Retrieves asynchronously an URL of this content usable for JavaScript functions with URL paramater.
+ * @param  {{urlReady: function, urlError: function}} observer optional observer 
+      which <code>urlReady</code> function will be called asynchronously once URL is available. 
+ */
+BlobURLContent.prototype.getStreamURL = function(observer) {
+  observer.urlReady(this.getURL());
+}
+
+/**
+ * Returns the blob stored by this content, possibly asynchronously if <code>observer</code> parameter is given.
+ * @param  {{blobReady: function, blobError: function}} [observer] optional observer 
+      which blobReady function will be called asynchronously once blob is available. 
+ * @return {Blob} blob content 
+ */
+BlobURLContent.prototype.getBlob = function(observer) {
+  if (observer !== undefined) {
+    observer.blobReady(this.blob);
+  }
+  return this.blob;
+}
+
+
+/**
+ * Content read from local storage stored in a blob encoded in Base 64.
+ * @constructor
+ * @param {string} url an URL of the form <code>localstorage://key</code> 
+       where <code>key</code> is the key of the blob to read from local storage
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+function LocalStorageURLContent(url) {
+  LocalURLContent.call(this, url);
+  this.blob = null;
+  this.blobUrl = null;
+}
+LocalStorageURLContent.prototype = Object.create(LocalURLContent.prototype);
+LocalStorageURLContent.prototype.constructor = LocalStorageURLContent;
+
+LocalStorageURLContent["__class"] = "com.eteks.sweethome3d.tools.LocalStorageURLContent";
+LocalStorageURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+LocalStorageURLContent.LOCAL_STORAGE_PREFIX = "localstorage://";
+
+/**
+ * Retrieves asynchronously an URL of this content usable for JavaScript functions with URL paramater.
+ * @param  {{urlReady: function, urlError: function}} observer optional observer 
+      which <code>urlReady</code> function will be called asynchronously once URL is available. 
+ */
+LocalStorageURLContent.prototype.getStreamURL = function(observer) {
+  if (this.blobUrl == null) {
+    var urlContent = this;
+    this.getBlob({
+        blobReady: function(blob) {
+          observer.urlReady(urlContent.blobUrl);
+        },
+        blobError: function(status, error) {
+          if (observer.urlError !== undefined) {
+            observer.urlError(status, error);
+          }
+        }
+      });
+  } else {
+    observer.urlReady(this.blobUrl);
+  }
+}
+
+/**
+ * Returns the blob stored by this content.
+ * @param  {{blobReady: function, blobError: function}} [observer] optional observer 
+      which blobReady function will be called asynchronously once blob is available. 
+ * @return {Blob} blob content 
+ */
+LocalStorageURLContent.prototype.getBlob = function(observer) {
+  if (this.blob == null) {
+    var url = this.getURL();
+    if (url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
+      var path = url.substring(url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) + LocalStorageURLContent.LOCAL_STORAGE_PREFIX.length);
+      var key = decodeURIComponent(path.indexOf('?') > 0 ? path.substring(0, path.indexOf('?')) : path);
+      var data = localStorage.getItem(key);
+      if (data != null) {
+        var contentType = data.substring("data:".length, data.indexOf(';'));
+        var chars = atob(data.substring(data.indexOf(',') + 1));
+        var numbers = new Array(chars.length);
+        for (var i = 0; i < numbers.length; i++) {
+          numbers[i] = chars.charCodeAt(i);
+        }
+        var byteArray = new Uint8Array(numbers);
+        this.blob = new Blob([byteArray], {type: contentType});
+        this.blobUrl = URL.createObjectURL(this.blob);
+      } else {
+        if (observer.urlError !== undefined) {
+          observer.urlError(1, "No key '" + key + "' in localStorage");
+        }
+      }
+    } else {
+      if (observer.urlError !== undefined) {
+        observer.urlError(1, url + " not a local storage url");
+      }
+    }
+  }
+  if (observer !== undefined
+      && observer.blobReady !== undefined
+      && this.blob != null) {
+    observer.blobReady(this.blob);
+  }
+  return this.blob;
+}
+
+
+/**
+ * Content read from IndexedDB stored in a blob.
+ * @constructor
+ * @param {string} url an URL of the form <code>indexeddb://database/objectstore/field?keyPathField=key</code> 
+       where <code>database</code> is the database name, <code>objectstore</code> the object store where 
+       the blob is stored in the given <code>field</code> and <code>key</code> the key value  
+       of <code>keyPathField</code> used to select the blob. If the database doesn't exist, it will be 
+       created with a keyPath equal to <code>keyPathField</code>.
+ * @ignore
+ * @author Emmanuel Puybaret
+ */
+function IndexedDBURLContent(url) {
+  LocalURLContent.call(this, url);
+  this.blob = null;
+  this.blobUrl = null;
+}
+IndexedDBURLContent.prototype = Object.create(LocalURLContent.prototype);
+IndexedDBURLContent.prototype.constructor = IndexedDBURLContent;
+
+IndexedDBURLContent["__class"] = "com.eteks.sweethome3d.tools.IndexedDBURLContent";
+IndexedDBURLContent["__interfaces"] = ["com.eteks.sweethome3d.model.Content"];
+
+IndexedDBURLContent.INDEXED_DB_PREFIX = "indexeddb://";
+
+/**
+ * Retrieves asynchronously an URL of this content usable for JavaScript functions with URL paramater.
+ * @param  {{urlReady: function, urlError: function}} observer optional observer 
+      which <code>urlReady</code> function will be called asynchronously once URL is available. 
+ */
+IndexedDBURLContent.prototype.getStreamURL = function(observer) {
+  if (this.blobUrl == null) {
+    var urlContent = this;
+    this.getBlob({
+        blobReady: function(blob) {
+          observer.urlReady(urlContent.blobUrl);
+        },
+        blobError: function(status, error) {
+          if (observer.urlError !== undefined) {
+            observer.urlError(status, error);
+          }
+        }
+      });
+  } else {
+    observer.urlReady(this.blobUrl);
+  }
+}
+
+/**
+ * Returns the blob stored by this content, reading it asynchronously.
+ * @param  {{blobReady: function, blobError: function}} [observer] optional observer 
+      which blobReady function will be called asynchronously if blob is not available yet. 
+ * @return {Blob} blob content or <code>null</code> if blob wasn't read yet
+ */
+IndexedDBURLContent.prototype.getBlob = function(observer) {
+  if (observer !== undefined) {
+    if (this.blob != null) {
+      observer.blobReady(this.blob);
+    } else {
+      var url = this.getURL();
+      if (url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) >= 0) {
+         // Parse URL of the form indexeddb://database/objectstore/field?keyPathField=key
+        var databaseNameIndex = url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) + IndexedDBURLContent.INDEXED_DB_PREFIX.length;
+        var firstPathSlashIndex = url.indexOf('/', databaseNameIndex);
+        var secondPathSlashIndex = url.indexOf('/', firstPathSlashIndex + 1);
+        var questionMarkIndex = url.indexOf('?', secondPathSlashIndex + 1);
+        var equalIndex = url.indexOf('=', questionMarkIndex + 1);
+        var ampersandIndex = url.indexOf('&', equalIndex + 1);
+        var databaseName = url.substring(databaseNameIndex, firstPathSlashIndex);
+        var objectStore = url.substring(firstPathSlashIndex + 1, secondPathSlashIndex);
+        var field = url.substring(secondPathSlashIndex + 1, questionMarkIndex);
+        var keyPathField = url.substring(questionMarkIndex + 1, equalIndex);
+        var key = decodeURIComponent(url.substring(equalIndex + 1, ampersandIndex > 0 ? ampersandIndex : url.length));
+        var request = indexedDB.open(databaseName, 1);
+        var urlContent = this;
+        request.addEventListener("upgradeneeded", function(ev) { 
+            var database = ev.target.result; 
+            database.createObjectStore(objectStore, {keyPath: keyPathField});
+          });
+        request.addEventListener("error", function(ev) { 
+            if (observer.blobError !== undefined) {
+              observer.blobError(ev.target.errorCode, "Can't connect to database " + databaseName);
+            }
+          });
+        request.addEventListener("success", function(ev) {  
+            var database = ev.target.result; 
+            try {
+              var transaction = database.transaction(objectStore, 'readonly'); 
+              var store = transaction.objectStore(objectStore); 
+              var query = store.get(key); 
+              query.addEventListener("error", function(ev) { 
+                  if (observer.blobError !== undefined) {
+                    observer.blobError(ev.target.errorCode, "Can't query in " + objectStore);
+                  }
+                }); 
+              query.addEventListener("success", function(ev) {
+                  if (ev.target.result !== undefined) {
+                    urlContent.blob = ev.target.result [field];
+                    urlContent.blobUrl = URL.createObjectURL(urlContent.blob)
+                    if (observer.blobReady !== undefined) {
+                      observer.blobReady(urlContent.blob);
+                    }
+                  } else if (observer.blobError !== undefined) {
+                    observer.blobError(-1, "Blob with key " + key + " not found");
+                  }
+                }); 
+              transaction.addEventListener("complete", function(ev) { 
+                  database.close(); 
+                }); 
+            } catch (ex) {
+              if (observer.blobError !== undefined) {
+                observer.blobError(ex, "");
+              }
+            }
+          });
+      } else if (observer.urlError !== undefined) {
+        observer.urlError(1, url + " not an indexedDB url");
+      }
+    }
+  }
+  return this.blob;
+}
+
+/**
+ * Returns <code>true</code> if this content URL is available. 
+ */
+IndexedDBURLContent.prototype.isStreamURLReady = function() {
+  return this.blobUrl != null;
 }
 
 
@@ -338,47 +809,61 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
   if (url in ZIPTools.openedZips) {
     zipObserver.zipReady(ZIPTools.openedZips [url]); 
   } else {
-    try {
-      var request = new XMLHttpRequest();
-      request.open('GET', url, !synchronous);
-      request.responseType = "arraybuffer";
-      request.withCredentials = true;
-      request.overrideMimeType("application/octet-stream");
-      request.addEventListener("readystatechange", 
-          function(ev) {
-            if (request.readyState === XMLHttpRequest.DONE) {
-              if ((request.status === 200 || request.status === 0)
-                  && request.response != null) {
-                try {
-                  ZIPTools.runningRequests.splice(ZIPTools.runningRequests.indexOf(request), 1);
-                  var zip = new JSZip(request.response);
-                  ZIPTools.openedZips [url] = zip;
-                  zipObserver.zipReady(ZIPTools.openedZips [url]); 
-                } catch (ex) {
-                  zipObserver.zipError(ex);
-                }
-              } else {
-                // Report error for requests that weren't aborted
-                var index = ZIPTools.runningRequests.indexOf(request);              
-                if (index >= 0) {
-                  ZIPTools.runningRequests.splice(index, 1);                
-                  zipObserver.zipError(new Error(request.status + " while requesting " + url)); 
-                }
-              }
-            }
-          });
-      request.addEventListener("progress", 
-          function(ev) {
-            if (ev.lengthComputable
-                && zipObserver.progression !== undefined) {
-              zipObserver.progression(ZIPTools.READING, url, ev.loaded / ev.total);
-            }
-          });
-      request.send();
-      ZIPTools.runningRequests.push(request);
-    } catch (ex) {
-      zipObserver.zipError(ex);
-    }
+    var urlContent = URLContent.fromURL(url);
+    if (synchronous 
+        && !urlContent.isStreamURLReady()) {
+      throw new IllegalStateException("Can't run synchronously with unavailable URL");
+    }    
+    urlContent.getStreamURL({
+        urlReady: function(streamUrl) {
+          try {
+            var request = new XMLHttpRequest();
+            request.open('GET', streamUrl, !synchronous);
+            request.responseType = "arraybuffer";
+            request.withCredentials = true;
+            request.overrideMimeType("application/octet-stream");
+            request.addEventListener("readystatechange", 
+                function(ev) {
+                  if (request.readyState === XMLHttpRequest.DONE) {
+                    if ((request.status === 200 || request.status === 0)
+                        && request.response != null) {
+                      try {
+                        ZIPTools.runningRequests.splice(ZIPTools.runningRequests.indexOf(request), 1);
+                        var zip = new JSZip(request.response);
+                        ZIPTools.openedZips [url] = zip;
+                        zipObserver.zipReady(ZIPTools.openedZips [url]); 
+                      } catch (ex) {
+                        zipObserver.zipError(ex);
+                      }
+                    } else {
+                      // Report error for requests that weren't aborted
+                      var index = ZIPTools.runningRequests.indexOf(request);              
+                      if (index >= 0) {
+                        ZIPTools.runningRequests.splice(index, 1);                
+                        zipObserver.zipError(new Error(request.status + " while requesting " + url)); 
+                      }
+                    }
+                  }
+                });
+            request.addEventListener("progress", 
+                function(ev) {
+                  if (ev.lengthComputable
+                      && zipObserver.progression !== undefined) {
+                    zipObserver.progression(ZIPTools.READING, url, ev.loaded / ev.total);
+                  }
+                });
+            request.send();
+            ZIPTools.runningRequests.push(request);
+          } catch (ex) {
+            zipObserver.zipError(ex);
+          }
+        },
+      urlError: function(status, error) {
+        if (zipObserver.zipError !== undefined) {
+          zipObserver.zipError(error);
+        }
+      }    
+    });
   }
 }
 
