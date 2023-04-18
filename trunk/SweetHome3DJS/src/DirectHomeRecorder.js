@@ -442,7 +442,7 @@ DirectHomeRecorder.prototype.deleteHome = function(homeName, observer) {
           try {
             var transaction = database.transaction(objectStore, 'readwrite'); 
             var store = transaction.objectStore(objectStore);
-            var query = store.delete(key); 
+            var query = store["delete"](key); 
             query.addEventListener("error", function(ev) { 
                 if (observer.homeError !== undefined) {
                   observer.homeError(ev.target.errorCode, "Can't delete in " + objectStore);
