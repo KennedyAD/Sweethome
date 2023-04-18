@@ -196,8 +196,8 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     component.registerEventListener(component.imageChoiceStep.imageChoiceOrChangeButton, "click", function(ev) {
         component.imageChoiceStep.imageChooser.click();
       });
-    component.registerEventListener(component.imageChoiceStep.imageChooser, "input", function(ev) {
-        var file = this.files[0];
+      
+    var importImage = function(file) {
         if (file) {
           var reader = new FileReader();
           reader.addEventListener("load", function(ev) {
@@ -211,6 +211,16 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
           reader.addEventListener("error", imageErrorListener);
           reader.readAsDataURL(file);
         }
+      };
+    component.registerEventListener(component.imageChoiceStep.imageChooser, "input", function(ev) {
+        importImage(this.files[0]);
+      });
+    component.registerEventListener(component.imageChoiceStep.preview, "drop", function(ev) {
+	    ev.preventDefault();
+	    importImage(ev.dataTransfer.files[0]);
+      });
+    component.registerEventListener(component.imageChoiceStep.preview, "dragover", function(ev) {
+	    ev.preventDefault();
       });
   }
 
@@ -752,6 +762,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         '    <input type="file" accept="image/*" style="display: none" /> ' +
         '  </div>' +
         '  <div preview>' +
+        '    <img>' +
         '  </div>' +
         '</div>' +
         '<div attributesStep>' +
@@ -857,8 +868,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.registerEventListener(this.imageChoiceOrChangeButton, "click", function(ev) {
         component.imageChooserInput.click();
       });  
-    this.registerEventListener(this.imageChooserInput, "input", function(ev) {
-        var file = component.imageChooserInput.files[0];
+    var importImage = function(file) {
         if (file) {
           var reader = new FileReader();
           reader.addEventListener("load", function(ev) {
@@ -872,6 +882,16 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
           reader.addEventListener("error", imageErrorListener);
           reader.readAsDataURL(file);
         }
+      };
+    this.registerEventListener(this.imageChooserInput, "input", function(ev) {
+        importImage(this.files[0]);
+      });
+    this.registerEventListener(this.previewPanel, "drop", function(ev) {
+	    ev.preventDefault();
+	    importImage(ev.dataTransfer.files[0]);
+      });
+    this.registerEventListener(this.previewPanel, "dragover", function(ev) {
+	    ev.preventDefault();
       });
   
     this.registerPropertyChangeListener(controller, "IMAGE", function(ev) {
