@@ -1843,12 +1843,13 @@ public class FurniturePanel extends JPanel implements DialogView {
     }
     if (this.controller.isPropertyEditable(FurnitureController.Property.ADDITIONAL_PROPERTIES)) {
       add(this.additionalPropertiesLabel, new GridBagConstraints(
-          1, 15, 3, 1, 0, 0, OperatingSystem.isMacOSX() ? GridBagConstraints.NORTHWEST : GridBagConstraints.NORTHEAST,
+          1, 15, 3, 1, 0, 0, GridBagConstraints.NORTHWEST,
           GridBagConstraints.NONE, labelInsets, 0, 0));
       JScrollPane propertiesTableScrollPane = SwingTools.createScrollPane(this.additionalPropertiesTable);
       propertiesTableScrollPane.setPreferredSize(new Dimension(
           Math.round(250 * SwingTools.getResolutionScale()),
-          this.additionalPropertiesTable.getTableHeader().getPreferredSize().height + this.additionalPropertiesTable.getRowHeight() * 6 + 3));
+          this.additionalPropertiesTable.getTableHeader().getPreferredSize().height + 3
+          + this.additionalPropertiesTable.getRowHeight() * Math.min(6, this.additionalPropertiesTable.getRowCount())));
       add(propertiesTableScrollPane, new GridBagConstraints(
           1, 16, 4, 1, 0, 0, GridBagConstraints.CENTER,
           GridBagConstraints.BOTH, componentInsets, 0, 0));
