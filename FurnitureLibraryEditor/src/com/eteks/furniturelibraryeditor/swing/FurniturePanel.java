@@ -22,18 +22,19 @@ package com.eteks.furniturelibraryeditor.swing;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.KeyboardFocusManager;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -43,6 +44,8 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,25 +54,33 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Transform3D;
+import javax.swing.AbstractAction;
 import javax.swing.ComboBoxEditor;
+import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
@@ -77,29 +88,37 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import javax.vecmath.Matrix3f;
 
 import org.apache.batik.parser.AWTPathProducer;
 import org.apache.batik.parser.ParseException;
 import org.apache.batik.parser.PathParser;
 
+import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
 import com.eteks.furniturelibraryeditor.viewcontroller.FurnitureController;
-import com.eteks.sweethome3d.j3d.HomePieceOfFurniture3D;
+import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
 import com.eteks.sweethome3d.j3d.ModelManager;
 import com.eteks.sweethome3d.model.Camera;
-import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.FurnitureCategory;
 import com.eteks.sweethome3d.model.HomeMaterial;
-import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.swing.AutoCommitSpinner;
+import com.eteks.sweethome3d.swing.IconManager;
 import com.eteks.sweethome3d.swing.ModelPreviewComponent;
 import com.eteks.sweethome3d.swing.NullableCheckBox;
 import com.eteks.sweethome3d.swing.NullableSpinner;
 import com.eteks.sweethome3d.swing.ResourceAction;
 import com.eteks.sweethome3d.swing.SwingTools;
 import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.tools.TemporaryURLContent;
+import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
 import com.eteks.sweethome3d.viewcontroller.View;
@@ -110,7 +129,6 @@ import com.eteks.sweethome3d.viewcontroller.View;
  */
 public class FurniturePanel extends JPanel implements DialogView {
   private final FurnitureController controller;
-  private final UserPreferences     preferences;
   private JLabel                    idLabel;
   private JTextField                idTextField;
   private JLabel                    nameLabel;
@@ -163,6 +181,8 @@ public class FurniturePanel extends JPanel implements DialogView {
   private JSpinner                  priceSpinner;
   private JLabel                    valueAddedTaxPercentageLabel;
   private JSpinner                  valueAddedTaxPercentageSpinner;
+  private JLabel                    additionalPropertiesLabel;
+  private JTable                    additionalPropertiesTable;
   private String                    dialogTitle;
 
   /**
@@ -174,7 +194,6 @@ public class FurniturePanel extends JPanel implements DialogView {
   public FurniturePanel(UserPreferences preferences,
                         FurnitureController controller) {
     super(new GridBagLayout());
-    this.preferences = preferences;
     this.controller = controller;
     createComponents(preferences, controller);
     setMnemonics(preferences);
@@ -561,7 +580,7 @@ public class FurniturePanel extends JPanel implements DialogView {
       this.gradeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
           FurniturePanel.class, "gradeLabel.text", unitName));
       final NullableSpinner.NullableSpinnerNumberModel gradeSpinnerModel =
-          new NullableSpinner.NullableSpinnerNumberModel(0, 0f, 1f, 0.1f);
+          new NullableSpinner.NullableSpinnerNumberModel(0, 0f, 100f, 0.1f);
       this.gradeSpinner = new AutoCommitSpinner(gradeSpinnerModel);
       final PropertyChangeListener gradeChangeListener = new PropertyChangeListener() {
           public void propertyChange(PropertyChangeEvent ev) {
@@ -852,6 +871,10 @@ public class FurniturePanel extends JPanel implements DialogView {
               doorOrWindowCustomizedCutOutShapeTextField.setEnabled(Boolean.TRUE.equals(doorOrWindowCheckBox.getValue())
                   && controller.getDoorOrWindowCutOutShape() != null);
             }
+            if (additionalPropertiesTable != null) {
+              additionalPropertiesTable.removeEditor();
+              additionalPropertiesTable.repaint();
+            }
             controller.addPropertyChangeListener(FurnitureController.Property.DOOR_OR_WINDOW, doorOrWindowChangeListener);
           }
         });
@@ -1121,8 +1144,11 @@ public class FurniturePanel extends JPanel implements DialogView {
         });
     }
 
-    if (this.controller.isPropertyEditable(FurnitureController.Property.ICON)) {
+    if (this.controller.isPropertyEditable(FurnitureController.Property.MODEL)
+        || this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)) {
       this.iconComponent = new IconPreviewComponent(controller, preferences);
+    }
+    if (this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)) {
       this.turnLeftButton = new JButton(new ResourceAction(preferences, FurniturePanel.class, "TURN_LEFT", true) {
           @Override
           public void actionPerformed(ActionEvent ev) {
@@ -1232,6 +1258,172 @@ public class FurniturePanel extends JPanel implements DialogView {
         });
     }
 
+    if (controller.isPropertyEditable(FurnitureController.Property.ADDITIONAL_PROPERTIES)) {
+      this.additionalPropertiesLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+          FurniturePanel.class, "additionalPropertiesLabel.text"));
+      final PropertiesTableModel propertiesTableModel = new PropertiesTableModel(controller.getAdditionalProperties(), controller, preferences);
+      this.additionalPropertiesTable = new JTable(propertiesTableModel);
+      this.additionalPropertiesTable.getTableHeader().setReorderingAllowed(false);
+      this.additionalPropertiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      float resolutionScale = SwingTools.getResolutionScale();
+      if (resolutionScale != 1) {
+        // Adapt row height to specified resolution scale
+        this.additionalPropertiesTable.setRowHeight(Math.round(this.additionalPropertiesTable.getRowHeight() * resolutionScale));
+      }
+      // Set column widths
+      this.additionalPropertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+      TableColumnModel columnModel = this.additionalPropertiesTable.getColumnModel();
+      int [] columnMinWidths = {100, 150};
+      Font defaultFont = new DefaultTableCellRenderer().getFont();
+      int charWidth;
+      if (defaultFont != null) {
+        charWidth = getFontMetrics(defaultFont).getWidths() ['A'];
+      } else {
+        charWidth = 10;
+      }
+      for (int i = 0; i < columnMinWidths.length; i++) {
+        columnModel.getColumn(i).setPreferredWidth(columnMinWidths [i] * charWidth);
+      }
+
+      columnModel.getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+          @Override
+          public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            JComponent label = (JComponent)super.getTableCellRendererComponent(
+                table, ((FurnitureProperty)value).getName(), isSelected, hasFocus, row, column);
+            label.setEnabled(table.isCellEditable(row, 1));
+            return label;
+          }
+        });
+
+      final TableCellRenderer textRenderer = additionalPropertiesTable.getDefaultRenderer(String.class);
+      final JButton modifyContentButton = new JButton(SwingTools.getLocalizedLabelText(preferences, FurniturePanel.class, "modifyContentButton.text"));
+      modifyContentButton.setPreferredSize(new Dimension(modifyContentButton.getPreferredSize().width + additionalPropertiesTable.getRowHeight(), additionalPropertiesTable.getRowHeight() - 2));
+      final JPanel buttonPanel = new JPanel(new GridBagLayout());
+      buttonPanel.setBackground(((JComponent)textRenderer).getBackground());
+      buttonPanel.add(modifyContentButton, new GridBagConstraints(
+          0, 0, 1, 1, 1, 1, GridBagConstraints.CENTER,
+          GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+      TableCellRenderer valueCellRenderer = new TableCellRenderer() {
+          public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            FurnitureProperty property = (FurnitureProperty)propertiesTableModel.getValueAt(row, 0);
+            if (property.getType() == FurnitureProperty.Type.CONTENT) {
+              if (value != null) {
+                try {
+                  modifyContentButton.setIcon(IconManager.getInstance().getIcon(new URLContent(new URL((String)value)),
+                      additionalPropertiesTable.getRowHeight() - 4, additionalPropertiesTable));
+                } catch (MalformedURLException e) {
+                  modifyContentButton.setIcon(null);
+                }
+              } else {
+                modifyContentButton.setIcon(null);
+              }
+              return buttonPanel;
+            } else {
+              JComponent label = (JComponent)textRenderer.getTableCellRendererComponent(
+                  table, value, isSelected, hasFocus, row, column);
+              label.setEnabled(table.isCellEditable(row, 1));
+              return label;
+            }
+          }
+        };
+      columnModel.getColumn(1).setCellRenderer(valueCellRenderer);
+      final JTextField editorTextField = new JTextField();
+      Object tabId = UUID.randomUUID();
+      // Manage tab
+      editorTextField.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke("pressed TAB"), tabId);
+      editorTextField.getActionMap().put(tabId, new AbstractAction() {
+          public void actionPerformed(ActionEvent ev) {
+            int row = (additionalPropertiesTable.getEditingRow() + 1) % additionalPropertiesTable.getRowCount();
+            for ( ; (!additionalPropertiesTable.isCellEditable(row, 1)
+                      || ((FurnitureProperty)additionalPropertiesTable.getValueAt(row, 0)).getType() == FurnitureProperty.Type.CONTENT)
+                    && row != additionalPropertiesTable.getEditingRow();
+              row = (row + 1) % additionalPropertiesTable.getRowCount()) {
+            }
+            if (row != additionalPropertiesTable.getEditingRow()) {
+              additionalPropertiesTable.setRowSelectionInterval(row, row);
+              additionalPropertiesTable.scrollRectToVisible(additionalPropertiesTable.getCellRect(row, 1, true));
+              additionalPropertiesTable.editCellAt(row, 1);
+              additionalPropertiesTable.getEditorComponent().requestFocusInWindow();
+            }
+          }
+        });
+
+      DefaultCellEditor propertyCellEditor = new DefaultCellEditor(editorTextField) {
+          private DocumentListener documentListener;
+          @Override
+          public Component getTableCellEditorComponent(final JTable table, Object value, boolean isSelected, final int row, final int column) {
+            FurnitureProperty property = (FurnitureProperty)propertiesTableModel.getValueAt(row, 0);
+            if (property.getType() == FurnitureProperty.Type.CONTENT) {
+              // Manage button click
+              EventQueue.invokeLater(new Runnable() {
+                  public void run() {
+                    String image = controller.getContentManager().showOpenDialog(FurniturePanel.
+                        this, preferences.getLocalizedString(FurniturePanel.class, "selectContent.title"),
+                        ContentManager.ContentType.IMAGE);
+                    table.editingCanceled(null);
+                    if (image != null) {
+                      try {
+                        TemporaryURLContent imageContent = TemporaryURLContent.copyToTemporaryURLContent(new URLContent(new File(image).toURI().toURL()));
+                        table.setValueAt(imageContent.getURL().toString(), row, column);
+                      } catch (IOException ex) {
+                        ex.printStackTrace();
+                      }
+                    }
+                  }
+                });
+              return new JPanel();
+            } else {
+              // Add a listener to commit the editor value while user types a text
+              this.documentListener = new DocumentListener() {
+                public void changedUpdate(final DocumentEvent ev) {
+                  table.setValueAt(editorTextField.getText(), row, column);
+                }
+
+                public void removeUpdate(DocumentEvent ev) {
+                  changedUpdate(ev);
+                }
+
+                public void insertUpdate(DocumentEvent ev) {
+                  changedUpdate(ev);
+                }
+              };
+              editorTextField.getDocument().addDocumentListener(this.documentListener);
+              return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+            }
+          }
+
+          @Override
+          public boolean stopCellEditing() {
+            editorTextField.getDocument().removeDocumentListener(this.documentListener);
+            return super.stopCellEditing();
+          }
+
+          @Override
+          public void cancelCellEditing() {
+            editorTextField.getDocument().removeDocumentListener(this.documentListener);
+            super.cancelCellEditing();
+          }
+        };
+      propertyCellEditor.setClickCountToStart(1);
+      columnModel.getColumn(1).setCellEditor(propertyCellEditor);
+
+      final PropertyChangeListener propertiesChangeListener = new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent ev) {
+            propertiesTableModel.setFurnitureProperties(controller.getAdditionalProperties());
+          }
+        };
+      controller.addPropertyChangeListener(FurnitureController.Property.ADDITIONAL_PROPERTIES, propertiesChangeListener);
+      propertiesTableModel.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent ev) {
+              controller.removePropertyChangeListener(FurnitureController.Property.ADDITIONAL_PROPERTIES, propertiesChangeListener);
+              controller.setAdditionalProperties(propertiesTableModel.getAdditionalProperties());
+              controller.addPropertyChangeListener(FurnitureController.Property.ADDITIONAL_PROPERTIES, propertiesChangeListener);
+            }
+          });
+    }
+
     this.dialogTitle = preferences.getLocalizedString(FurniturePanel.class, "homeFurniture.title");
   }
 
@@ -1267,15 +1459,16 @@ public class FurniturePanel extends JPanel implements DialogView {
    * Resets the model icon.
    */
   private void resetIcon(boolean resetView) {
-    if (this.controller.isPropertyEditable(FurnitureController.Property.ICON)) {
-      try {
-        if (resetView) {
-          this.iconComponent.resetView();
-        }
-        this.controller.setIcon(this.iconComponent.getIcon(400));
-      } catch (IOException ex) {
-        ex.printStackTrace();
+    try {
+      if (resetView) {
+        this.iconComponent.resetView();
       }
+      if (this.controller.isPropertyEditable(FurnitureController.Property.ICON)
+          && this.iconComponent != null) {
+        this.controller.setIcon(this.iconComponent.getIcon(400));
+      }
+    } catch (IOException ex) {
+      ex.printStackTrace();
     }
   }
 
@@ -1412,7 +1605,8 @@ public class FurniturePanel extends JPanel implements DialogView {
     int gap = Math.round(5 * SwingTools.getResolutionScale());
     Insets labelInsets = new Insets(0, 0, gap, gap);
     Insets componentInsets = new Insets(0, 0, gap, 0);
-    if (this.controller.isPropertyEditable(FurnitureController.Property.ICON)) {
+    if (this.controller.isPropertyEditable(FurnitureController.Property.MODEL)
+        || this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)) {
       JPanel iconPanel = new JPanel(new GridBagLayout());
       // Add dummy labels with a vertical weight of 1 at top and bottom of iconPanel
       // to keep iconComponent and rotationButtonsPanel in the middle
@@ -1458,7 +1652,7 @@ public class FurniturePanel extends JPanel implements DialogView {
           GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
 
       add(iconPanel, new GridBagConstraints(
-          0, 0, 1, 16, 0, 0, GridBagConstraints.CENTER,
+          0, 0, 1, 17, 0, 0, GridBagConstraints.CENTER,
           GridBagConstraints.BOTH, new Insets(0, 0, 0, 3 * gap), 0, 0));
     }
     if (this.controller.isPropertyEditable(FurnitureController.Property.ID)) {
@@ -1647,19 +1841,151 @@ public class FurniturePanel extends JPanel implements DialogView {
           4, 14, 1, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.NONE, componentInsets, 0, 0));
     }
+    if (this.controller.isPropertyEditable(FurnitureController.Property.ADDITIONAL_PROPERTIES)) {
+      add(this.additionalPropertiesLabel, new GridBagConstraints(
+          1, 15, 3, 1, 0, 0, OperatingSystem.isMacOSX() ? GridBagConstraints.NORTHWEST : GridBagConstraints.NORTHEAST,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      JScrollPane propertiesTableScrollPane = SwingTools.createScrollPane(this.additionalPropertiesTable);
+      propertiesTableScrollPane.setPreferredSize(new Dimension(
+          Math.round(250 * SwingTools.getResolutionScale()),
+          this.additionalPropertiesTable.getTableHeader().getPreferredSize().height + this.additionalPropertiesTable.getRowHeight() * 6 + 3));
+      add(propertiesTableScrollPane, new GridBagConstraints(
+          1, 16, 4, 1, 0, 0, GridBagConstraints.CENTER,
+          GridBagConstraints.BOTH, componentInsets, 0, 0));
+    }
   }
 
   /**
    * Displays this panel in a modal dialog box.
    */
   public void displayView(View parentView) {
-    final Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-    if (SwingTools.showConfirmDialog((JComponent)parentView,
-            this, this.dialogTitle, this.nameTextField) == JOptionPane.OK_OPTION) {
-      this.controller.modifyFurniture();
+    final JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+    final JDialog dialog = optionPane.createDialog((JComponent)parentView, this.dialogTitle);
+    dialog.applyComponentOrientation(((JComponent)parentView).getComponentOrientation());
+    // Add a listener that transfers focus to focusedComponent when dialog is shown
+    dialog.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentShown(ComponentEvent ev) {
+          nameTextField.requestFocusInWindow();
+          dialog.removeComponentListener(this);
+        }
+      });
+
+    dialog.setVisible(true);
+    // Keep dialog visible as long as the dialog contains invalid data
+    boolean invalidData;
+    do {
+      invalidData = false;
+      if (optionPane.getValue().equals(JOptionPane.OK_OPTION)) {
+        try {
+          this.controller.modifyFurniture();
+        } catch (final IllegalStateException ex) {
+          invalidData = true;
+          dialog.addComponentListener(new ComponentAdapter() {
+              @Override
+              public void componentShown(ComponentEvent ev) {
+                SwingTools.showMessageDialog(optionPane, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                dialog.removeComponentListener(this);
+              }
+            });
+          dialog.setVisible(true);
+        }
+      }
+    } while (invalidData);
+  }
+
+  /**
+   * Table model showing the name and value of additional properties.
+   */
+  private static class PropertiesTableModel extends AbstractTableModel {
+    private Map<FurnitureProperty, String> additionalProperties;
+    private List<FurnitureProperty>        keys;
+    private FurnitureController            controller;
+    private String []                      columnNames;
+
+    private PropertiesTableModel(Map<FurnitureProperty, String> additionalProperties,
+                                 FurnitureController controller, UserPreferences preferences) {
+      this.controller = controller;
+      this.additionalProperties = new LinkedHashMap<FurnitureProperty, String>(additionalProperties);
+      this.keys = new ArrayList<FurnitureProperty>(additionalProperties.keySet());
+      this.columnNames = new String [] {
+          preferences.getLocalizedString(FurniturePanel.class,"additionalProperties.nameColumn"),
+          preferences.getLocalizedString(FurniturePanel.class,"additionalProperties.valueColumn")};
     }
-    if (focusOwner != null) {
-      focusOwner.requestFocusInWindow();
+
+    public int getRowCount() {
+      return this.additionalProperties.size();
+    }
+
+    public int getColumnCount() {
+      return this.columnNames.length;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+      return this.columnNames [column];
+    }
+
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      FurnitureProperty property = this.keys.get(rowIndex);
+      switch (columnIndex) {
+        case 0:
+          return property;
+        case 1:
+          return this.additionalProperties.get(property);
+        default:
+          throw new IllegalArgumentException();
+      }
+    }
+
+    @Override
+    public void setValueAt(Object value, int rowIndex, int columnIndex) {
+      FurnitureProperty property = this.keys.get(rowIndex);
+      if (columnIndex == 1) {
+        this.additionalProperties.put(property, value != null && ((String)value).length() > 0 ? (String)value : null);
+        fireTableCellUpdated(rowIndex, columnIndex);
+      }
+    }
+
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      if (columnIndex == 1) {
+        FurnitureProperty property = this.keys.get(rowIndex);
+        if (property.getDefaultPropertyKeyName() != null) {
+          switch (DefaultFurnitureCatalog.PropertyKey.valueOf(property.getDefaultPropertyKeyName())) {
+            case DOOR_OR_WINDOW_SASH_X_AXIS:
+            case DOOR_OR_WINDOW_SASH_Y_AXIS:
+            case DOOR_OR_WINDOW_SASH_WIDTH:
+            case DOOR_OR_WINDOW_SASH_START_ANGLE:
+            case DOOR_OR_WINDOW_SASH_END_ANGLE:
+            case DOOR_OR_WINDOW_WALL_THICKNESS:
+            case DOOR_OR_WINDOW_WALL_DISTANCE:
+            case DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES:
+            case DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE:
+              return controller.getDoorOrWindow();
+            case LIGHT_SOURCE_X:
+            case LIGHT_SOURCE_Y:
+            case LIGHT_SOURCE_Z:
+            case LIGHT_SOURCE_COLOR:
+            case LIGHT_SOURCE_DIAMETER:
+            case LIGHT_SOURCE_MATERIAL_NAME:
+            case HORIZONTALLY_ROTATABLE:
+              return !controller.getDoorOrWindow();
+          }
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    public Map<FurnitureProperty, String> getAdditionalProperties() {
+      return new LinkedHashMap<FurnitureProperty, String>(this.additionalProperties);
+    }
+
+    public void setFurnitureProperties(Map<FurnitureProperty, String> additionalProperties) {
+      this.additionalProperties = new LinkedHashMap<FurnitureProperty, String>(additionalProperties);
+      this.keys = new ArrayList<FurnitureProperty>(additionalProperties.keySet());
+      fireTableDataChanged();
     }
   }
 
@@ -1702,7 +2028,8 @@ public class FurniturePanel extends JPanel implements DialogView {
 
           @Override
           public void mouseReleased(MouseEvent ev) {
-            if (this.mousePressedInIcon) {
+            if (controller.isPropertyEditable(FurnitureController.Property.ICON)
+                && this.mousePressedInIcon) {
               this.mousePressedInIcon = false;
               // Change icon when mouse is released after a change in the component
               try {

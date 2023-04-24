@@ -21,8 +21,11 @@ package com.eteks.furniturelibraryeditor.viewcontroller;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
+import java.util.Collection;
 
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
+import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.UserPreferencesController;
 import com.eteks.sweethome3d.viewcontroller.ViewFactory;
@@ -36,17 +39,18 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
    * The properties that may be edited by the view associated to this controller.
    */
   public enum Property {DEFAULT_CREATOR, OFFLINE_FURNITURE_LIBRARY, FURNITURE_RESOURCES_LOCAL_DIRECTORY,
-      FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME}
+      FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME, FURNITURE_PROPERTIES}
 
   private final FurnitureLibraryUserPreferences preferences;
   private final PropertyChangeSupport   propertyChangeSupport;
 
-  private String    defaultCreator;
-  private boolean   offlineFurnitureLibrary;
-  private String    furnitureResourcesLocalDirectory;
-  private String    furnitureResourcesRemoteUrlBase;
-  private boolean   furnitureIdEditable;
-  private boolean   contentMatchingFurnitureName;
+  private String               defaultCreator;
+  private boolean              offlineFurnitureLibrary;
+  private String               furnitureResourcesLocalDirectory;
+  private String               furnitureResourcesRemoteUrlBase;
+  private boolean              furnitureIdEditable;
+  private boolean              contentMatchingFurnitureName;
+  private FurnitureProperty [] furnitureProperties;
 
   public FurnitureLibraryUserPreferencesController(FurnitureLibraryUserPreferences preferences,
                                                    ViewFactory viewFactory,
@@ -54,6 +58,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     super(preferences, viewFactory, contentManager);
     this.preferences = preferences;
     this.propertyChangeSupport = new PropertyChangeSupport(this);
+    this.furnitureProperties = new FurnitureProperty [0];
     updateFurnitureLibraryProperties();
   }
 
@@ -81,6 +86,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     setFurnitureResourcesRemoteURLBase(this.preferences.getFurnitureResourcesRemoteURLBase());
     setFurnitureIdEditable(this.preferences.isFurnitureIdEditable());
     setContentMatchingFurnitureName(this.preferences.isContentMatchingFurnitureName());
+    setFurnitureProperties(this.preferences.getFurnitureProperties());
   }
 
   @Override
@@ -98,7 +104,8 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     return this.preferences.isOnlineFurnitureLibrarySupported()
         || property == Property.DEFAULT_CREATOR
         || property == Property.FURNITURE_ID_EDITABLE
-        || property == Property.CONTENT_MATCHING_FURNITURE_NAME;
+        || property == Property.CONTENT_MATCHING_FURNITURE_NAME
+        || property == Property.FURNITURE_PROPERTIES;
   }
 
   /**
@@ -113,7 +120,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
    */
   public void setDefaultCreator(String defaultCreator) {
     if (defaultCreator != this.defaultCreator
-        || defaultCreator != null && !defaultCreator.equals(this.defaultCreator)) {
+        && (defaultCreator == null || !defaultCreator.equals(this.defaultCreator))) {
       String oldDefaultCreator = this.defaultCreator;
       this.defaultCreator = defaultCreator;
       this.propertyChangeSupport.firePropertyChange(Property.DEFAULT_CREATOR.toString(), oldDefaultCreator, defaultCreator);
@@ -154,7 +161,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
    */
   public void setFurnitureResourcesLocalDirectory(String furnitureResourcesLocalDirectory) {
     if (furnitureResourcesLocalDirectory != this.furnitureResourcesLocalDirectory
-        || furnitureResourcesLocalDirectory != null && !furnitureResourcesLocalDirectory.equals(this.furnitureResourcesLocalDirectory)) {
+        && (furnitureResourcesLocalDirectory == null || !furnitureResourcesLocalDirectory.equals(this.furnitureResourcesLocalDirectory))) {
       String oldValue = this.furnitureResourcesLocalDirectory;
       this.furnitureResourcesLocalDirectory = furnitureResourcesLocalDirectory;
       this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_RESOURCES_LOCAL_DIRECTORY.toString(),
@@ -176,7 +183,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
    */
   public void setFurnitureResourcesRemoteURLBase(String furnitureResourcesRemoteUrlBase) {
     if (furnitureResourcesRemoteUrlBase != this.furnitureResourcesRemoteUrlBase
-        || furnitureResourcesRemoteUrlBase != null && !furnitureResourcesRemoteUrlBase.equals(this.furnitureResourcesRemoteUrlBase)) {
+        && (furnitureResourcesRemoteUrlBase == null || !furnitureResourcesRemoteUrlBase.equals(this.furnitureResourcesRemoteUrlBase))) {
       Object oldValue = this.furnitureResourcesRemoteUrlBase;
       this.furnitureResourcesRemoteUrlBase = furnitureResourcesRemoteUrlBase;
       this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_RESOURCES_REMOTE_URL_BASE.toString(),
@@ -222,6 +229,25 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   }
 
   /**
+   * Returns the furniture properties which can be edited and displayed.
+   */
+  public FurnitureProperty [] getFurnitureProperties() {
+    return this.furnitureProperties.clone();
+  }
+
+  /**
+   * Sets the furniture properties which can be edited and displayed.
+   */
+  public void setFurnitureProperties(FurnitureProperty [] furnitureProperties) {
+    if (furnitureProperties != this.furnitureProperties) {
+      Object oldFurnitureProperties = this.furnitureProperties.clone();
+      this.furnitureProperties = furnitureProperties.clone();
+      this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_PROPERTIES.toString(),
+          oldFurnitureProperties, furnitureProperties);
+    }
+  }
+
+  /**
    * Updates user preferences and saves them.
    */
   @Override
@@ -235,5 +261,6 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     }
     this.preferences.setFurnitureIdEditable(isFurnitureIdEditable());
     this.preferences.setContentMatchingFurnitureName(isContentMatchingFurnitureName());
+    this.preferences.setFurnitureProperties(getFurnitureProperties());
   }
 }

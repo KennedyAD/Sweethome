@@ -23,12 +23,21 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.Format;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,14 +48,22 @@ import java.util.TreeSet;
 
 import com.eteks.furniturelibraryeditor.model.FurnitureLibrary;
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
+import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
+import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
 import com.eteks.sweethome3d.model.CatalogDoorOrWindow;
 import com.eteks.sweethome3d.model.CatalogLight;
 import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.Content;
+import com.eteks.sweethome3d.model.DoorOrWindow;
 import com.eteks.sweethome3d.model.FurnitureCatalog;
 import com.eteks.sweethome3d.model.FurnitureCategory;
+import com.eteks.sweethome3d.model.LengthUnit;
+import com.eteks.sweethome3d.model.Light;
+import com.eteks.sweethome3d.model.LightSource;
 import com.eteks.sweethome3d.model.PieceOfFurniture;
 import com.eteks.sweethome3d.model.Sash;
+import com.eteks.sweethome3d.tools.TemporaryURLContent;
+import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.Controller;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
@@ -64,37 +81,7 @@ public class FurnitureController implements Controller {
       WIDTH, DEPTH,  HEIGHT, ELEVATION, MOVABLE, RESIZABLE, DEFORMABLE, TEXTURABLE,
       DOOR_OR_WINDOW, DOOR_OR_WINDOW_CUT_OUT_SHAPE, STAIRCASE, STAIRCASE_CUT_OUT_SHAPE,
       MODEL_ROTATION, MODEL_SIZE, CREATOR, PROPORTIONAL, BACK_FACE_SHOWN, EDGE_COLOR_MATERIAL_HIDDEN,
-      PRICE, VALUE_ADDED_TAX_PERCENTAGE}
-
-  private static final Map<String, Property> PROPERTIES_MAP = new HashMap<String, Property>();
-
-  static {
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_ID_PROPERTY, Property.ID);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_NAME_PROPERTY, Property.NAME);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_DESCRIPTION_PROPERTY, Property.DESCRIPTION);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_INFORMATION_PROPERTY, Property.INFORMATION);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_TAGS_PROPERTY, Property.TAGS);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_GRADE_PROPERTY, Property.GRADE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_CREATION_DATE_PROPERTY, Property.CREATION_DATE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_CATEGORY_PROPERTY, Property.CATEGORY);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_CREATOR_PROPERTY, Property.CREATOR);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_MODEL_PROPERTY, Property.MODEL);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_ICON_PROPERTY, Property.ICON);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_WIDTH_PROPERTY, Property.WIDTH);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_DEPTH_PROPERTY, Property.DEPTH);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_HEIGHT_PROPERTY, Property.HEIGHT);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_ELEVATION_PROPERTY, Property.ELEVATION);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_MOVABLE_PROPERTY, Property.MOVABLE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_DEFORMABLE_PROPERTY, Property.DEFORMABLE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_RESIZABLE_PROPERTY, Property.RESIZABLE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_TEXTURABLE_PROPERTY, Property.TEXTURABLE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_DOOR_OR_WINDOW_PROPERTY, Property.DOOR_OR_WINDOW);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_DOOR_OR_WINDOW_CUT_OUT_SHAPE_PROPERTY, Property.DOOR_OR_WINDOW_CUT_OUT_SHAPE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_STAIRCASE_CUT_OUT_SHAPE_PROPERTY, Property.STAIRCASE_CUT_OUT_SHAPE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_MODEL_ROTATION_PROPERTY, Property.MODEL_ROTATION);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_PRICE_PROPERTY, Property.PRICE);
-    PROPERTIES_MAP.put(FurnitureLibrary.FURNITURE_VALUE_ADDED_TAX_PERCENTAGE_PROPERTY, Property.VALUE_ADDED_TAX_PERCENTAGE);
-  }
+      PRICE, VALUE_ADDED_TAX_PERCENTAGE, ADDITIONAL_PROPERTIES}
 
   private static final String DEFAULT_CUT_OUT_SHAPE = "M0,0 v1 h1 v-1 z";
 
@@ -108,40 +95,41 @@ public class FurnitureController implements Controller {
   private final PropertyChangeSupport           propertyChangeSupport;
   private DialogView                            homeFurnitureView;
 
-  private String            id;
-  private String            name;
-  private String            description;
-  private String            information;
-  private String []         tags;
-  private Long              creationDate;
-  private Float             grade;
-  private FurnitureCategory category;
-  private Content           model;
-  private Content           icon;
-  private Float             width;
-  private Float             proportionalWidth;
-  private Float             depth;
-  private Float             proportionalDepth;
-  private Float             height;
-  private Float             proportionalHeight;
-  private Float             elevation;
-  private Boolean           movable;
-  private Boolean           doorOrWindow;
-  private String            doorOrWindowCutOutShape;
-  private Boolean           staircase;
-  private String            staircaseCutOutShape;
-  private Boolean           backFaceShown;
-  private Boolean           edgeColorMaterialHidden;
-  private Long              modelSize;
-  private Boolean           resizable;
-  private Boolean           deformable;
-  private Boolean           texturable;
-  private float [][]        modelRotation;
-  private String            creator;
-  private BigDecimal        price;
-  private BigDecimal        valueAddedTaxPercentage;
+  private String              id;
+  private String              name;
+  private String              description;
+  private String              information;
+  private String []           tags;
+  private Long                creationDate;
+  private Float               grade;
+  private FurnitureCategory   category;
+  private Content             model;
+  private Content             icon;
+  private Float               width;
+  private Float               proportionalWidth;
+  private Float               depth;
+  private Float               proportionalDepth;
+  private Float               height;
+  private Float               proportionalHeight;
+  private Float               elevation;
+  private Boolean             movable;
+  private Boolean             doorOrWindow;
+  private String              doorOrWindowCutOutShape;
+  private Boolean             staircase;
+  private String              staircaseCutOutShape;
+  private Boolean             backFaceShown;
+  private Boolean             edgeColorMaterialHidden;
+  private Long                modelSize;
+  private Boolean             resizable;
+  private Boolean             deformable;
+  private Boolean             texturable;
+  private float [][]          modelRotation;
+  private String              creator;
+  private BigDecimal          price;
+  private BigDecimal          valueAddedTaxPercentage;
+  private Map<FurnitureProperty, String> additionalProperties;
 
-  private boolean           proportional;
+  private boolean             proportional;
 
   private PropertyChangeListener widthChangeListener;
   private PropertyChangeListener depthChangeListener;
@@ -165,11 +153,13 @@ public class FurnitureController implements Controller {
     this.propertyChangeSupport = new PropertyChangeSupport(this);
 
     this.editableProperties = new HashSet<Property>();
-    for (String editedProperty : preferences.getEditedProperties()) {
-      this.editableProperties.add(PROPERTIES_MAP.get(editedProperty));
-    }
-    if (preferences.isFurnitureIdEditable()) {
-      this.editableProperties.add(PROPERTIES_MAP.get(FurnitureLibrary.FURNITURE_ID_PROPERTY));
+    for (FurnitureProperty property : preferences.getFurnitureProperties()) {
+      if (property.isModifiable() && property.getDefaultPropertyKeyName() != null) {
+        try {
+          this.editableProperties.add(Property.valueOf(property.getDefaultPropertyKeyName()));
+        } catch (IllegalArgumentException ex) {
+        }
+      }
     }
 
     setProportional(modifiedFurniture.size() == 1);
@@ -281,13 +271,18 @@ public class FurnitureController implements Controller {
    */
   public boolean isPropertyEditable(Property property) {
     if (this.modifiedFurniture.size() == 1) {
-      return this.editableProperties.contains(property);
+      if (property == Property.ADDITIONAL_PROPERTIES) {
+        return getAdditionalProperties().size() > 0;
+      } else {
+        return this.editableProperties.contains(property);
+      }
     } else {
       return this.editableProperties.contains(property)
           && property != Property.ID
           && property != Property.MODEL
           && property != Property.ICON
-          && property != Property.DOOR_OR_WINDOW_CUT_OUT_SHAPE;
+          && property != Property.DOOR_OR_WINDOW_CUT_OUT_SHAPE
+          && property != Property.ADDITIONAL_PROPERTIES;
     }
   }
 
@@ -299,6 +294,10 @@ public class FurnitureController implements Controller {
       setId(null); // Nothing to edit
       setName(null);
       setDescription(null);
+      setInformation(null);
+      setTags(null);
+      setCreationDate(null);
+      setGrade(null);
       setCategory(null);
       setModel((Content)null);
       setIcon(null);
@@ -308,18 +307,19 @@ public class FurnitureController implements Controller {
       setElevation(null);
       setMovable(null);
       setDoorOrWindow(null);
-      setDoorOrWindowCutOutShape(null);
-      setStaircase(null);
-      setStaircaseCutOutShape(null);
       setResizable(null);
       setDeformable(null);
       setTexturable(null);
+      setDoorOrWindowCutOutShape(null);
+      setStaircase(null);
+      setStaircaseCutOutShape(null);
       setModelRotation(null);
       setBackFaceShown(null);
       setEdgeColorMaterialHidden(null);
       setCreator(null);
       setPrice(null);
       setValueAddedTaxPercentage(null);
+      setAdditionalProperties(Collections.<FurnitureProperty, String> emptyMap());
       this.editableProperties.remove(Property.PROPORTIONAL);
     } else {
       CatalogPieceOfFurniture firstPiece = this.modifiedFurniture.get(0);
@@ -328,13 +328,222 @@ public class FurnitureController implements Controller {
         setIcon(firstPiece.getIcon());
         setModel(firstPiece.getModel());
         setModelSize(firstPiece.getModelSize());
+        this.editableProperties.add(Property.ICON);
         this.editableProperties.add(Property.BACK_FACE_SHOWN);
         this.editableProperties.add(Property.EDGE_COLOR_MATERIAL_HIDDEN);
+
+        Map<FurnitureProperty, String> additionalProperties = new LinkedHashMap<FurnitureProperty, String>();
+        NumberFormat decimalFormat = new DecimalFormat("0.##", new DecimalFormatSymbols(Locale.US));
+        Format lengthFormat = this.preferences.getLengthUnit().getFormat();
+        for (FurnitureProperty property : this.preferences.getFurnitureProperties()) {
+          if (property.isModifiable()) {
+            if (property.getDefaultPropertyKeyName() != null) {
+              // Keep in additional properties map only the properties which are not handled with dedicated fields in the view
+              String propertyValue = null;
+              switch (DefaultFurnitureCatalog.PropertyKey.valueOf(property.getDefaultPropertyKeyName())) {
+                case ICON:
+                  // If icon property is modifiable, let user modify it with additional properties
+                  this.editableProperties.remove(Property.ICON);
+                  if (firstPiece.getIcon() != null) {
+                    propertyValue = ((URLContent)firstPiece.getIcon()).getURL().toString();
+                  }
+                  break;
+                case PLAN_ICON:
+                  if (firstPiece.getPlanIcon() != null) {
+                    propertyValue = ((URLContent)firstPiece.getPlanIcon()).getURL().toString();
+                  }
+                  break;
+                case DROP_ON_TOP_ELEVATION:
+                  if (Math.abs(firstPiece.getDropOnTopElevation() - 1f) > 1E-6f) {
+                    propertyValue = lengthFormat.format(firstPiece.getDropOnTopElevation() * firstPiece.getHeight());
+                  }
+                  break;
+                case DOOR_OR_WINDOW_WALL_THICKNESS:
+                  if (firstPiece.isDoorOrWindow() && ((CatalogDoorOrWindow)firstPiece).getWallThickness() != 1) {
+                    propertyValue = lengthFormat.format(((DoorOrWindow)firstPiece).getWallThickness() * firstPiece.getDepth());
+                  }
+                  break;
+                case DOOR_OR_WINDOW_WALL_DISTANCE:
+                  if (firstPiece.isDoorOrWindow() && ((CatalogDoorOrWindow)firstPiece).getWallDistance() != 0) {
+                    propertyValue = lengthFormat.format(((DoorOrWindow)firstPiece).getWallDistance() * firstPiece.getDepth());
+                  }
+                  break;
+                case DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES:
+                  if (firstPiece.isDoorOrWindow()) {
+                    propertyValue = String.valueOf(((DoorOrWindow)firstPiece).isWallCutOutOnBothSides());
+                  }
+                  break;
+                case DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE:
+                  if (firstPiece.isDoorOrWindow()) {
+                    propertyValue = String.valueOf(((DoorOrWindow)firstPiece).isWidthDepthDeformable());
+                  }
+                  break;
+                case DOOR_OR_WINDOW_SASH_X_AXIS:
+                  if (firstPiece.isDoorOrWindow() && ((DoorOrWindow)firstPiece).getSashes().length > 0) {
+                    Sash [] sashes = ((DoorOrWindow)firstPiece).getSashes();
+                    propertyValue = "";
+                    for (int sashIndex = 0; sashIndex < sashes.length; sashIndex++) {
+                      if (sashIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += lengthFormat.format(sashes [sashIndex].getXAxis() * firstPiece.getWidth());
+                    }
+                  }
+                  break;
+                case DOOR_OR_WINDOW_SASH_Y_AXIS:
+                  if (firstPiece.isDoorOrWindow() && ((DoorOrWindow)firstPiece).getSashes().length > 0) {
+                    Sash [] sashes = ((DoorOrWindow)firstPiece).getSashes();
+                    propertyValue = "";
+                    for (int sashIndex = 0; sashIndex < sashes.length; sashIndex++) {
+                      if (sashIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += lengthFormat.format(sashes [sashIndex].getYAxis() * firstPiece.getDepth());
+                    }
+                  }
+                  break;
+                case DOOR_OR_WINDOW_SASH_WIDTH:
+                  if (firstPiece.isDoorOrWindow() && ((DoorOrWindow)firstPiece).getSashes().length > 0) {
+                    Sash [] sashes = ((DoorOrWindow)firstPiece).getSashes();
+                    propertyValue = "";
+                    for (int sashIndex = 0; sashIndex < sashes.length; sashIndex++) {
+                      if (sashIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += lengthFormat.format(sashes [sashIndex].getWidth() * firstPiece.getWidth());
+                    }
+                  }
+                  break;
+                case DOOR_OR_WINDOW_SASH_START_ANGLE:
+                  if (firstPiece.isDoorOrWindow() && ((DoorOrWindow)firstPiece).getSashes().length > 0) {
+                    Sash [] sashes = ((DoorOrWindow)firstPiece).getSashes();
+                    propertyValue = "";
+                    for (int sashIndex = 0; sashIndex < sashes.length; sashIndex++) {
+                      if (sashIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += decimalFormat.format(Math.toDegrees(sashes [sashIndex].getStartAngle()));
+                    }
+                  }
+                  break;
+                case DOOR_OR_WINDOW_SASH_END_ANGLE:
+                  if (firstPiece.isDoorOrWindow() && ((DoorOrWindow)firstPiece).getSashes().length > 0) {
+                    Sash [] sashes = ((DoorOrWindow)firstPiece).getSashes();
+                    propertyValue = "";
+                    for (int sashIndex = 0; sashIndex < sashes.length; sashIndex++) {
+                      if (sashIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += decimalFormat.format(Math.toDegrees(sashes [sashIndex].getEndAngle()));
+                    }
+                  }
+                  break;
+                case LIGHT_SOURCE_X:
+                  if (firstPiece instanceof Light && ((Light)firstPiece).getLightSources().length > 0) {
+                    LightSource [] lightSources = ((Light)firstPiece).getLightSources();
+                    propertyValue = "";
+                    for (int lightIndex = 0; lightIndex < lightSources.length; lightIndex++) {
+                      if (lightIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += lengthFormat.format(lightSources [lightIndex].getX() * firstPiece.getWidth());
+                    }
+                  }
+                  break;
+                case LIGHT_SOURCE_Y:
+                  if (firstPiece instanceof Light && ((Light)firstPiece).getLightSources().length > 0) {
+                    LightSource [] lightSources = ((Light)firstPiece).getLightSources();
+                    propertyValue = "";
+                    for (int lightIndex = 0; lightIndex < lightSources.length; lightIndex++) {
+                      if (lightIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += lengthFormat.format(lightSources [lightIndex].getY() * firstPiece.getDepth());
+                    }
+                  }
+                  break;
+                case LIGHT_SOURCE_Z:
+                  if (firstPiece instanceof Light && ((Light)firstPiece).getLightSources().length > 0) {
+                    LightSource [] lightSources = ((Light)firstPiece).getLightSources();
+                    propertyValue = "";
+                    for (int lightIndex = 0; lightIndex < lightSources.length; lightIndex++) {
+                      if (lightIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += lengthFormat.format(lightSources [lightIndex].getZ() * firstPiece.getHeight());
+                    }
+                  }
+                  break;
+                case LIGHT_SOURCE_COLOR:
+                  if (firstPiece instanceof Light && ((Light)firstPiece).getLightSources().length > 0) {
+                    LightSource [] lightSources = ((Light)firstPiece).getLightSources();
+                    propertyValue = "";
+                    for (int lightIndex = 0; lightIndex < lightSources.length; lightIndex++) {
+                      if (lightIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      propertyValue += "#" + String.format("%06X", lightSources [lightIndex].getColor());
+                    }
+                  }
+                  break;
+                case LIGHT_SOURCE_DIAMETER:
+                  if (firstPiece instanceof Light && ((Light)firstPiece).getLightSources().length > 0) {
+                    LightSource [] lightSources = ((Light)firstPiece).getLightSources();
+                    for (int lightIndex = 0; lightIndex < lightSources.length; lightIndex++) {
+                      if (lightIndex > 0) {
+                        propertyValue += " ";
+                      }
+                      if (lightSources [lightIndex].getDiameter() != null) {
+                        if (propertyValue == null) {
+                          propertyValue = "";
+                        }
+                        propertyValue += lengthFormat.format(lightSources [lightIndex].getDiameter() * firstPiece.getWidth());
+                      }
+                    }
+                  }
+                  break;
+                case LIGHT_SOURCE_MATERIAL_NAME:
+                  if (firstPiece instanceof Light) {
+                    String materialNames = Arrays.toString(((Light)firstPiece).getLightSourceMaterialNames());
+                    propertyValue = materialNames.substring(1, materialNames.length() - 1); // Remove brackets
+                  }
+                  break;
+                case HORIZONTALLY_ROTATABLE:
+                  propertyValue = String.valueOf(firstPiece.isHorizontallyRotatable());
+                  break;
+                case CURRENCY:
+                  propertyValue = firstPiece.getCurrency();
+                  break;
+                default:
+                  continue;
+              }
+              additionalProperties.put(property, propertyValue);
+            } else if (property.getType() == FurnitureProperty.Type.NUMBER) {
+              String propertyValue = firstPiece.getProperty(property.getName());
+              if (propertyValue != null) {
+                try {
+                  // Format number value in user notation
+                  propertyValue = NumberFormat.getNumberInstance().format(Float.parseFloat(propertyValue));
+                } catch (NumberFormatException ex) {
+                }
+              }
+              additionalProperties.put(property, propertyValue);
+            } else {
+              additionalProperties.put(property, firstPiece.getProperty(property.getName()));
+            }
+          } else if (DefaultFurnitureCatalog.PropertyKey.MODEL_FLAGS.name().equals(property.getDefaultPropertyKeyName())) {
+            this.editableProperties.remove(Property.BACK_FACE_SHOWN);
+            this.editableProperties.remove(Property.EDGE_COLOR_MATERIAL_HIDDEN);
+          }
+        }
+        setAdditionalProperties(additionalProperties);
       } else {
         setIcon(null);
         setModel((Content)null);
         setModelSize(null);
         this.editableProperties.remove(Property.BACK_FACE_SHOWN);
+        this.editableProperties.remove(Property.EDGE_COLOR_MATERIAL_HIDDEN);
+        setAdditionalProperties(Collections.<FurnitureProperty, String> emptyMap());
       }
 
       // Search the common properties among selected furniture
@@ -1301,6 +1510,25 @@ public class FurnitureController implements Controller {
   }
 
   /**
+   * Sets additional edited properties.
+   */
+  public void setAdditionalProperties(Map<FurnitureProperty, String> additionalProperties) {
+    if (additionalProperties != this.additionalProperties
+        && (additionalProperties == null || !additionalProperties.equals(this.additionalProperties))) {
+      Map<FurnitureProperty, String> oldAdditionalProperties = this.additionalProperties != null ? Collections.unmodifiableMap(this.additionalProperties) : null;
+      this.additionalProperties = Collections.unmodifiableMap(additionalProperties);
+      this.propertyChangeSupport.firePropertyChange(Property.ADDITIONAL_PROPERTIES.name(), oldAdditionalProperties, additionalProperties);
+    }
+  }
+
+  /**
+   * Returns additional edited properties.
+   */
+  public Map<FurnitureProperty, String> getAdditionalProperties() {
+    return Collections.unmodifiableMap(this.additionalProperties);
+  }
+
+  /**
    * Controls the modification of selected furniture in the edited home.
    */
   public void modifyFurniture() {
@@ -1334,6 +1562,7 @@ public class FurnitureController implements Controller {
       String creator = getCreator();
       BigDecimal price = getPrice();
       BigDecimal valueAddedTaxPercentage = getValueAddedTaxPercentage();
+      Map<FurnitureProperty, String> additionalProperties = new HashMap<FurnitureProperty, String>(getAdditionalProperties());
       boolean defaultFurnitureLanguage = FurnitureLibrary.DEFAULT_LANGUAGE.equals(this.furnitureLanguageController.getFurnitureLangauge());
 
       // Apply modification
@@ -1351,11 +1580,9 @@ public class FurnitureController implements Controller {
         FurnitureCategory pieceCategory = piece.getCategory();
         Content pieceModel = piece.getModel();
         Content pieceIcon = piece.getIcon();
-        Content piecePlanIcon = piece.getPlanIcon();
         float pieceWidth = piece.getWidth();
         float pieceDepth = piece.getDepth();
         float pieceHeight = piece.getHeight();
-        float pieceDropOnTopElevation = piece.getDropOnTopElevation();
         float pieceElevation = piece.getElevation();
         boolean pieceMovable = piece.isMovable();
         float [][] pieceModelRotation = piece.getModelRotation();
@@ -1371,17 +1598,285 @@ public class FurnitureController implements Controller {
         boolean pieceTexturable = piece.isTexturable();
         BigDecimal piecePrice = piece.getPrice();
         BigDecimal pieceValueAddedTaxPercentage = piece.getValueAddedTaxPercentage();
-        String pieceCurrency = piece.getCurrency();
         Collection<String> propertyNames = piece.getPropertyNames();
         Map<String, String> pieceProperties;
         if (propertyNames.isEmpty()) {
-          pieceProperties = Collections.emptyMap();
+          pieceProperties = new HashMap<String, String>();
         } else {
           pieceProperties = new HashMap<String, String>(propertyNames.size());
           for (String propertyName : propertyNames) {
             pieceProperties.put(propertyName, piece.getProperty(propertyName));
           }
         }
+
+        // Update additional properties stored as fields
+          String iconString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.ICON.getKeyPrefix()));
+        if (iconString != null) {
+          try {
+            URL url = new URL(iconString);
+            pieceIcon = new URLContent(url).equals(piece.getIcon())
+                ? piece.getIcon()
+                : new TemporaryURLContent(url);
+          } catch (MalformedURLException ex) {
+            throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.ICON.getKeyPrefix() + " : Invalid URL", ex);
+          }
+        } else if (icon != null) {
+          pieceIcon = icon;
+        }
+        Content piecePlanIcon = piece.getPlanIcon();
+        String planIconString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON.getKeyPrefix()));
+        if (planIconString != null) {
+          try {
+            URL url = new URL(planIconString);
+            piecePlanIcon = new URLContent(url).equals(piece.getPlanIcon())
+                ? piece.getPlanIcon()
+                : new TemporaryURLContent(url);
+          } catch (MalformedURLException ex) {
+            throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON.getKeyPrefix() + " : Invalid URL", ex);
+          }
+        }
+        Format lengthFormat = this.preferences.getLengthUnit().getFormat();
+        float pieceDropOnTopElevation = piece.getDropOnTopElevation();
+        String dropOnTopElevationString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION.getKeyPrefix()));
+        if (dropOnTopElevationString != null) {
+          try {
+            pieceDropOnTopElevation = ((Number)lengthFormat.parseObject(dropOnTopElevationString)).floatValue() / pieceHeight;
+          } catch (ParseException ex) {
+            throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION.getKeyPrefix() + " : Invalid number : must a decimal number in " + preferences.getLengthUnit().getName(), ex);
+          }
+        }
+        boolean horizontallyRotatable = piece.isHorizontallyRotatable();
+        String horizontallyRotatableString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.HORIZONTALLY_ROTATABLE.getKeyPrefix()));
+        if (horizontallyRotatableString != null) {
+          horizontallyRotatable = Boolean.parseBoolean(horizontallyRotatableString);
+        }
+        String pieceCurrency = piece.getCurrency();
+        String currency = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.CURRENCY.getKeyPrefix()));
+        if (currency != null) {
+          try {
+            Currency.getInstance(currency);
+            pieceCurrency = currency;
+          } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.CURRENCY.getKeyPrefix() + " : Invalid currency code", ex);
+          }
+        }
+        // Update door or window properties
+        String wallThicknessString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS.getKeyPrefix()));
+        String wallDistanceString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE.getKeyPrefix()));
+        String wallCutOutOnBothSidesString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES.getKeyPrefix()));
+        String widthDepthDeformableString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE.getKeyPrefix()));
+        String sashXAxesString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS.getKeyPrefix()));
+        String sashYAxesString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS.getKeyPrefix()));
+        String sashWidthsString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH.getKeyPrefix()));
+        String sashStartAnglesString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE.getKeyPrefix()));
+        String sashEndAnglesString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE.getKeyPrefix()));
+        float doorOrWindowWallThickness = 0;
+        float doorOrWindowWallDistance = 0;
+        boolean doorOrWindowWallCutOutOnBothSides = false;
+        boolean doorOrWindowWidthDepthDeformable = false;
+        Sash [] doorOrWindowSashes = null;
+        boolean lengthUnitWithFraction = this.preferences.getLengthUnit() == LengthUnit.INCH || this.preferences.getLengthUnit() == LengthUnit.INCH_FRACTION;
+        String lengthsArraySeparator = lengthUnitWithFraction ? "\" " : " ";
+        if (doorOrWindow != null
+            && doorOrWindow) {
+          if (wallThicknessString != null) {
+            try {
+              doorOrWindowWallThickness = ((Number)lengthFormat.parseObject(wallThicknessString)).floatValue() / depth;
+            } catch (ParseException ex) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS.getKeyPrefix() + " : Invalid decimal number in " + preferences.getLengthUnit().getName(), ex);
+            }
+          }
+          if (wallDistanceString != null) {
+            try {
+              doorOrWindowWallDistance = ((Number)lengthFormat.parseObject(wallDistanceString)).floatValue() / depth;
+            } catch (ParseException ex) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE.getKeyPrefix() + " : Invalid decimal number in " + preferences.getLengthUnit().getName(), ex);
+            }
+          }
+          if (wallCutOutOnBothSidesString != null) {
+            doorOrWindowWallCutOutOnBothSides = Boolean.parseBoolean(wallCutOutOnBothSidesString);
+          } else if (piece instanceof CatalogDoorOrWindow) {
+            doorOrWindowWallCutOutOnBothSides = ((CatalogDoorOrWindow)piece).isWallCutOutOnBothSides();
+          }
+          if (widthDepthDeformableString != null) {
+            doorOrWindowWidthDepthDeformable = Boolean.parseBoolean(widthDepthDeformableString);
+          } else if (piece instanceof CatalogDoorOrWindow) {
+            doorOrWindowWidthDepthDeformable = ((CatalogDoorOrWindow)piece).isWidthDepthDeformable();
+          }
+          if (sashXAxesString != null) {
+            String [] sashXAxes = sashXAxesString.split(lengthsArraySeparator);
+            // If doorOrWindowHingesX#i key exists the 4 other keys with the same count of numbers must exist too
+            String [] sashYAxes;
+            if (sashYAxesString == null || (sashYAxes = sashYAxesString.split(lengthsArraySeparator)).length != sashXAxes.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS.getKeyPrefix() + " : Expected " + sashXAxes.length + " values");
+            }
+            String [] sashWidths;
+            if (sashWidthsString == null || (sashWidths = sashWidthsString.split(lengthsArraySeparator)).length != sashXAxes.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH.getKeyPrefix() + " : Expected " + sashXAxes.length + " values");
+            }
+            String [] sashStartAngles;
+            if (sashStartAnglesString == null || (sashStartAngles = sashStartAnglesString.split(" ")).length != sashXAxes.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE.getKeyPrefix() + " : Expected " + sashXAxes.length + " values");
+            }
+            String [] sashEndAngles;
+            if (sashEndAnglesString == null || (sashEndAngles = sashEndAnglesString.split(" ")).length != sashXAxes.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE.getKeyPrefix() + " : Expected " + sashXAxes.length + " values");
+            }
+
+            doorOrWindowSashes = new Sash [sashXAxes.length];
+            for (int i = 0; i < sashXAxes.length; i++) {
+              Float sashXAxis;
+              try {
+                sashXAxis = ((Number)lengthFormat.parseObject(sashXAxes [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              Float sashYAxis;
+              try {
+                sashYAxis = ((Number)lengthFormat.parseObject(sashYAxes [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              Float sashWidth;
+              try {
+                sashWidth = ((Number)lengthFormat.parseObject(sashWidths [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              Float sashStartAngle;
+              try {
+                sashStartAngle = ((Number)NumberFormat.getNumberInstance().parse(sashStartAngles [i])).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE.getKeyPrefix() + " : Invalid list of decimal numbers in °", ex);
+              }
+              Float sashEndAngle;
+              try {
+                sashEndAngle = ((Number)NumberFormat.getNumberInstance().parse(sashEndAngles [i])).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE.getKeyPrefix() + " : Invalid list of decimal numbers in °", ex);
+              }
+              // Create the matching sash, converting cm to percentage of width or depth, and degrees to radians
+              doorOrWindowSashes [i] = new Sash(sashXAxis / pieceWidth, sashYAxis / pieceDepth, sashWidth / pieceWidth,
+                  (float)Math.toRadians(sashStartAngle), (float)Math.toRadians(sashEndAngle));
+            }
+          } else if (piece instanceof CatalogDoorOrWindow) {
+            doorOrWindowSashes = ((CatalogDoorOrWindow)piece).getSashes();
+          }
+        } else if (piece instanceof CatalogDoorOrWindow) {
+          doorOrWindowWallThickness = ((CatalogDoorOrWindow)piece).getWallThickness();
+          doorOrWindowWallDistance = ((CatalogDoorOrWindow)piece).getWallDistance();
+          doorOrWindowWallCutOutOnBothSides = ((CatalogDoorOrWindow)piece).isWallCutOutOnBothSides();
+          doorOrWindowWidthDepthDeformable = ((CatalogDoorOrWindow)piece).isWidthDepthDeformable();
+          doorOrWindowSashes = ((CatalogDoorOrWindow)piece).getSashes();
+        }
+        LightSource [] lightSources = null;
+        String [] lightSourceMaterialNames = null;
+        String lightSourceXString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X.getKeyPrefix()));
+        String lightSourceYString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y.getKeyPrefix()));
+        String lightSourceZString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z.getKeyPrefix()));
+        String lightSourceColorsString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR.getKeyPrefix()));
+        String lightSourceDiametersString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER.getKeyPrefix()));
+        String lightSourceMaterialNamesString = additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME.getKeyPrefix()));
+        if (doorOrWindow != null
+            && !doorOrWindow) {
+          if (lightSourceXString != null) {
+            String [] lightSourceX = lightSourceXString.split(lengthsArraySeparator);
+            // If lightSourceX#i key exists the 3 other keys with the same count of numbers must exist too
+            String [] lightSourceY;
+            if (lightSourceYString == null || (lightSourceY = lightSourceYString.split(lengthsArraySeparator)).length != lightSourceX.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y.getKeyPrefix() + " : Expected " + lightSourceX.length + " values");
+            }
+            String [] lightSourceZ;
+            if (lightSourceZString == null || (lightSourceZ = lightSourceZString.split(lengthsArraySeparator)).length != lightSourceX.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z.getKeyPrefix() + " : Expected " + lightSourceX.length + " values");
+            }
+            String [] lightSourceColors;
+            if (lightSourceColorsString == null || (lightSourceColors = lightSourceColorsString.split(" ")).length != lightSourceX.length) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR.getKeyPrefix() + " : Expected " + lightSourceX.length + " values");
+            }
+            String [] lightSourceDiameters;
+            if (lightSourceDiametersString != null) {
+              lightSourceDiameters = lightSourceDiametersString.split(lengthsArraySeparator);
+              if (lightSourceDiameters.length != lightSourceX.length) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER.getKeyPrefix() + " : Expected " + lightSourceX.length + " values");
+              }
+            } else {
+              lightSourceDiameters = null;
+            }
+
+            lightSources = new LightSource [lightSourceX.length];
+            for (int i = 0; i < lightSourceX.length; i++) {
+              float x;
+              try {
+                x = ((Number)lengthFormat.parseObject(lightSourceX [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              float y;
+              try {
+                y = ((Number)lengthFormat.parseObject(lightSourceY [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              float z;
+              try {
+                z = ((Number)lengthFormat.parseObject(lightSourceZ [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              int color;
+              try {
+                if (lightSourceColors [i].startsWith("#")) {
+                  color = Integer.parseInt(lightSourceColors [i].substring(1), 16);
+                } else {
+                  color = Integer.parseInt(lightSourceColors [i]);
+                }
+              } catch (NumberFormatException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR.getKeyPrefix() + " : Invalid list of color integers", ex);
+              }
+              float diameter = 0;
+              try {
+                if (lightSourceDiameters != null) {
+                  diameter = ((Number)lengthFormat.parseObject(lightSourceDiameters [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
+                }
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+              }
+              // Create the matching light source, converting cm to percentage of width, depth and height
+              lightSources [i] = new LightSource(x / pieceWidth, y / pieceDepth, z / pieceHeight, color,
+                  lightSourceDiameters != null
+                      ? diameter / pieceWidth
+                      : null);
+            }
+          } else if (piece instanceof CatalogLight) {
+            lightSources = ((CatalogLight)piece).getLightSources();
+          }
+
+          if (lightSourceMaterialNamesString != null) {
+            lightSourceMaterialNames = lightSourceMaterialNamesString != null ? lightSourceMaterialNamesString.split(" ") : null;
+          } else if (piece instanceof CatalogLight) {
+            lightSourceMaterialNames = ((CatalogLight)piece).getLightSourceMaterialNames();
+          }
+        } else if (piece instanceof CatalogLight) {
+          lightSources = ((CatalogLight)piece).getLightSources();
+          lightSourceMaterialNames = ((CatalogLight)piece).getLightSourceMaterialNames();
+        }
+
+        for (Map.Entry<FurnitureProperty, String> entry : additionalProperties.entrySet()) {
+          if (entry.getKey().getType() == FurnitureProperty.Type.NUMBER
+              && entry.getValue() != null) {
+            float number;
+            try {
+              number = ((Number)NumberFormat.getNumberInstance().parse(entry.getValue())).floatValue();
+            } catch (ParseException ex) {
+              throw new IllegalStateException(entry.getKey().getName() + " : Invalid number", ex);
+            }
+            pieceProperties.put(entry.getKey().getName(), String.valueOf(number));
+          } else {
+            pieceProperties.put(entry.getKey().getName(), entry.getValue());
+          }
+        }
+
         // Retrieve localized data
         Map<String, Object> localizedNames = new HashMap<String, Object>();
         retrieveLocalizedData(piece, localizedNames, FurnitureLibrary.FURNITURE_NAME_PROPERTY);
@@ -1397,9 +1892,6 @@ public class FurnitureController implements Controller {
         // Update mandatory not localizable data
         if (model != null) {
           pieceModel = model;
-        }
-        if (icon != null) {
-          pieceIcon = icon;
         }
         if (width != null) {
           pieceWidth = width;
@@ -1522,45 +2014,42 @@ public class FurnitureController implements Controller {
         CatalogPieceOfFurniture updatedPiece;
         if (piece instanceof CatalogDoorOrWindow
             && (doorOrWindow == null || doorOrWindow)) {
-          CatalogDoorOrWindow opening = (CatalogDoorOrWindow)piece;
           updatedPiece = new CatalogDoorOrWindow(pieceId, pieceName, pieceDescription,
               pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
-              pieceDoorOrWindowCutOutShape, opening.getWallThickness(), opening.getWallDistance(),
-              opening.isWallCutOutOnBothSides(), opening.isWidthDepthDeformable(), opening.getSashes(),
+              pieceDoorOrWindowCutOutShape, doorOrWindowWallThickness, doorOrWindowWallDistance,
+              doorOrWindowWallCutOutOnBothSides, doorOrWindowWidthDepthDeformable, doorOrWindowSashes,
               pieceModelRotation, pieceModelFlags, pieceModelSize,
               pieceCreator, pieceResizable, pieceDeformable, pieceTexturable,
               piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
-        } else if (piece instanceof CatalogLight) {
-          CatalogLight light = (CatalogLight)piece;
+        } else if (piece instanceof CatalogLight
+                   || lightSources != null || lightSourceMaterialNames != null) {
           updatedPiece = new CatalogLight(pieceId, pieceName, pieceDescription,
               pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
-              light.getLightSources(), light.getLightSourceMaterialNames(), pieceStaircaseCutOutShape,
+              lightSources, lightSourceMaterialNames, pieceStaircaseCutOutShape,
               pieceModelRotation, pieceModelFlags, pieceModelSize,
-              pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, piece.isHorizontallyRotatable(),
+              pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, horizontallyRotatable,
+              piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
+        } else if (doorOrWindow != null && doorOrWindow) {
+          updatedPiece = new CatalogDoorOrWindow(pieceId, pieceName, pieceDescription,
+              pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
+              pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
+              pieceElevation, pieceDropOnTopElevation, pieceMovable,
+              pieceDoorOrWindowCutOutShape, 1, 0, true, true, new Sash [0],
+              pieceModelRotation, pieceModelFlags, pieceModelSize,
+              pieceCreator, pieceResizable, pieceDeformable, pieceTexturable,
               piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
         } else {
-          if (doorOrWindow != null && doorOrWindow) {
-            updatedPiece = new CatalogDoorOrWindow(pieceId, pieceName, pieceDescription,
-                pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
-                pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
-                pieceElevation, pieceDropOnTopElevation, pieceMovable,
-                pieceDoorOrWindowCutOutShape, 1, 0, true, true, new Sash [0],
-                pieceModelRotation, pieceModelFlags, pieceModelSize,
-                pieceCreator, pieceResizable, pieceDeformable, pieceTexturable,
-                piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
-          } else {
-            updatedPiece = new CatalogPieceOfFurniture(pieceId, pieceName, pieceDescription,
-                pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
-                pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
-                pieceElevation, pieceDropOnTopElevation, pieceMovable,
-                pieceStaircaseCutOutShape, pieceModelRotation, pieceModelFlags, pieceModelSize,
-                pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, piece.isHorizontallyRotatable(),
-                piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
-          }
+          updatedPiece = new CatalogPieceOfFurniture(pieceId, pieceName, pieceDescription,
+              pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
+              pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
+              pieceElevation, pieceDropOnTopElevation, pieceMovable,
+              pieceStaircaseCutOutShape, pieceModelRotation, pieceModelFlags, pieceModelSize,
+              pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, horizontallyRotatable,
+              piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties);
         }
         new FurnitureCatalog().add(pieceCategory, updatedPiece);
         this.furnitureLibrary.addPieceOfFurniture(updatedPiece, index);
