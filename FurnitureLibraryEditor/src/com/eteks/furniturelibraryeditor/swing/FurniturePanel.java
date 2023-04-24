@@ -1145,9 +1145,11 @@ public class FurniturePanel extends JPanel implements DialogView {
     }
 
     if (this.controller.isPropertyEditable(FurnitureController.Property.MODEL)
-        || this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)) {
+        || this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)
+        || this.controller.isPropertyEditable(FurnitureController.Property.ICON)) {
       this.iconComponent = new IconPreviewComponent(controller, preferences);
     }
+
     if (this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)) {
       this.turnLeftButton = new JButton(new ResourceAction(preferences, FurniturePanel.class, "TURN_LEFT", true) {
           @Override
@@ -1606,7 +1608,8 @@ public class FurniturePanel extends JPanel implements DialogView {
     Insets labelInsets = new Insets(0, 0, gap, gap);
     Insets componentInsets = new Insets(0, 0, gap, 0);
     if (this.controller.isPropertyEditable(FurnitureController.Property.MODEL)
-        || this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)) {
+        || this.controller.isPropertyEditable(FurnitureController.Property.MODEL_ROTATION)
+        || this.controller.isPropertyEditable(FurnitureController.Property.ICON)) {
       JPanel iconPanel = new JPanel(new GridBagLayout());
       // Add dummy labels with a vertical weight of 1 at top and bottom of iconPanel
       // to keep iconComponent and rotationButtonsPanel in the middle

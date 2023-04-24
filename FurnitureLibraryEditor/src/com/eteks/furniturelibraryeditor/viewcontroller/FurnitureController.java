@@ -281,6 +281,7 @@ public class FurnitureController implements Controller {
           && property != Property.ID
           && property != Property.MODEL
           && property != Property.ICON
+          && property != Property.MODEL_ROTATION
           && property != Property.DOOR_OR_WINDOW_CUT_OUT_SHAPE
           && property != Property.ADDITIONAL_PROPERTIES;
     }
