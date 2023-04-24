@@ -20,11 +20,14 @@
 package com.eteks.furniturelibraryeditor.io;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
+import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Library;
 import com.eteks.sweethome3d.model.RecorderException;
@@ -42,6 +45,11 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
   private static final String FURNITURE_RESOURCES_REMOTE_URL_BASE   = "furnitureResourcesRemoteUrlBase";
   private static final String FURNITURE_ID_EDITABLE                 = "furnitureIdEditable";
   private static final String CONTENT_MATCHING_FURNITURE_NAME       = "contentMatchingFurnitureName";
+
+  private static final String FURNITURE_PROPERTY_NAME               = "furniturePropertyName#";
+  private static final String FURNITURE_PROPERTY_TYPE               = "furniturePropertyType#";
+  private static final String FURNITURE_PROPERTY_MODIFIABLE         = "furniturePropertyModifiable#";
+  private static final String FURNITURE_PROPERTY_DISPLAYED          = "furniturePropertyDisplayed#";
 
   /**
    * Creates user preferences read from Java preferences.
@@ -61,6 +69,40 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
     }
     setFurnitureIdEditable(preferences.getBoolean(FURNITURE_ID_EDITABLE, isFurnitureIdEditable()));
     setContentMatchingFurnitureName(preferences.getBoolean(CONTENT_MATCHING_FURNITURE_NAME, isContentMatchingFurnitureName()));
+
+    // Read furniture properties
+    FurnitureProperty [] defaultProperties = getFurnitureProperties();
+    List<FurnitureProperty> furnitureProperties = new ArrayList<FurnitureProperty>(Arrays.asList(defaultProperties));
+    for (int i = 1; true; i++) {
+      String name = preferences.get(FURNITURE_PROPERTY_NAME + i, null);
+      if (name == null) {
+        break; // Last property
+      }
+      int j = 0;
+      for ( ; j < defaultProperties.length; j++) {
+        FurnitureProperty property = defaultProperties [j];
+        if (name.equals(property.getName())) {
+          property = property.deriveModifiableProperty(preferences.getBoolean(FURNITURE_PROPERTY_MODIFIABLE + i, false))
+              .deriveDisplayedProperty(preferences.getBoolean(FURNITURE_PROPERTY_DISPLAYED + i, false));
+          furnitureProperties.set(j, property);
+          break;
+        }
+      }
+      if (j == defaultProperties.length) {
+        // Not a default property
+        String type = preferences.get(FURNITURE_PROPERTY_TYPE + i, null);
+        FurnitureProperty.Type propertyType;
+        try {
+          propertyType = type != null ? FurnitureProperty.Type.valueOf(type) : null;
+        } catch (IllegalArgumentException e) {
+          propertyType = null;
+        }
+        furnitureProperties.add(new FurnitureProperty(name, propertyType)
+            .deriveModifiableProperty(preferences.getBoolean(FURNITURE_PROPERTY_MODIFIABLE + i, true))
+            .deriveDisplayedProperty(preferences.getBoolean(FURNITURE_PROPERTY_DISPLAYED + i, true)));
+      }
+    }
+    setFurnitureProperties(furnitureProperties.toArray(new FurnitureProperty [furnitureProperties.size()]));
   }
 
   @Override
@@ -86,6 +128,29 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
     }
     preferences.putBoolean(FURNITURE_ID_EDITABLE, isFurnitureIdEditable());
     preferences.putBoolean(CONTENT_MATCHING_FURNITURE_NAME, isContentMatchingFurnitureName());
+
+    FurnitureProperty [] furnitureProperties = getFurnitureProperties();
+    int i = 1;
+    for ( ; i <= furnitureProperties.length; i++) {
+      FurnitureProperty property = furnitureProperties [i - 1];
+      preferences.put(FURNITURE_PROPERTY_NAME + i, property.getName());
+      if (property.getDefaultPropertyKeyName() == null) {
+        if (property.getType() != null) {
+          preferences.put(FURNITURE_PROPERTY_TYPE + i, property.getType().name());
+        } else {
+          preferences.remove(FURNITURE_PROPERTY_TYPE + i);
+        }
+      }
+      preferences.putBoolean(FURNITURE_PROPERTY_MODIFIABLE + i, property.isModifiable());
+      preferences.putBoolean(FURNITURE_PROPERTY_DISPLAYED + i, property.isDisplayed());
+    }
+    // Remove obsolete keys
+    for ( ; preferences.get(FURNITURE_PROPERTY_NAME + i, null) != null; i++) {
+      preferences.remove(FURNITURE_PROPERTY_NAME + i);
+      preferences.remove(FURNITURE_PROPERTY_TYPE + i);
+      preferences.remove(FURNITURE_PROPERTY_MODIFIABLE + i);
+      preferences.remove(FURNITURE_PROPERTY_DISPLAYED + i);
+    }
 
     try {
       // Write preferences

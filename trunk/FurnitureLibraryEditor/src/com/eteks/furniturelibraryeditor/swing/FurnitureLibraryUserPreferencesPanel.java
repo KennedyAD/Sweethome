@@ -19,25 +19,51 @@
  */
 package com.eteks.furniturelibraryeditor.swing;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
+import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
 import com.eteks.furniturelibraryeditor.viewcontroller.FurnitureLibraryUserPreferencesController;
+import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
+import com.eteks.sweethome3d.io.DefaultFurnitureCatalog.PropertyKey;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.swing.SwingTools;
 import com.eteks.sweethome3d.swing.UserPreferencesPanel;
@@ -62,6 +88,10 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
   private JLabel       contentMatchingFurnitureNameLabel;
   private JRadioButton contentMatchingFurnitureNameRadioButton;
   private JRadioButton contentMatchingImportedFileRadioButton;
+  private JLabel       furniturePropertiesLabel;
+  private JTable       furniturePropertiesTable;
+  private JButton      addPropertyButton;
+  private JButton      removePropertyButton;
 
   public FurnitureLibraryUserPreferencesPanel(UserPreferences preferences,
                                               FurnitureLibraryUserPreferencesController controller) {
@@ -77,7 +107,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
   /**
    * Creates and initializes components and their models.
    */
-  private void createComponents(UserPreferences preferences,
+  private void createComponents(final UserPreferences preferences,
                                 final FurnitureLibraryUserPreferencesController controller) {
     abstract class DocumentChangeListener implements DocumentListener {
       public void insertUpdate(DocumentEvent ev) {
@@ -214,7 +244,18 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
 
       ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
           public void itemStateChanged(ItemEvent ev) {
-            controller.setFurnitureIdEditable(furnitureIdEditableRadioButton.isSelected());
+            boolean idEditable = furnitureIdEditableRadioButton.isSelected();
+            controller.setFurnitureIdEditable(idEditable);
+            FurnitureProperty [] furnitureProperties = controller.getFurnitureProperties();
+            for (int i = 0; i < furnitureProperties.length; i++) {
+              FurnitureProperty property = furnitureProperties [i];
+              if (DefaultFurnitureCatalog.PropertyKey.ID.name().equals(property.getDefaultPropertyKeyName())) {
+                furnitureProperties [i] = new FurnitureProperty(property.getName(), property.getType(), property.getDefaultPropertyKeyName(),
+                    idEditable, idEditable, property.isDisplayable(), property.isDisplayed());
+                break;
+              }
+            }
+            controller.setFurnitureProperties(furnitureProperties);
           }
         };
       this.furnitureIdEditableRadioButton.addItemListener(furnitureCatalogViewChangeListener);
@@ -255,6 +296,153 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
             }
           });
     }
+
+    if (controller.isPropertyEditable(FurnitureLibraryUserPreferencesController.Property.FURNITURE_PROPERTIES)) {
+      this.furniturePropertiesLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "furniturePropertiesLabel.text"));
+      final FurniturePropertiesTableModel furniturePropertiesTableModel = new FurniturePropertiesTableModel(controller.getFurnitureProperties(), preferences);
+      this.furniturePropertiesTable = new JTable(furniturePropertiesTableModel);
+      this.furniturePropertiesTable.getTableHeader().setReorderingAllowed(false);
+      float resolutionScale = SwingTools.getResolutionScale();
+      if (resolutionScale != 1) {
+        // Adapt row height to specified resolution scale
+        this.furniturePropertiesTable.setRowHeight(Math.round(this.furniturePropertiesTable.getRowHeight() * resolutionScale));
+      }
+      // Set column widths
+      this.furniturePropertiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+      TableColumnModel columnModel = this.furniturePropertiesTable.getColumnModel();
+      int [] columnMinWidths = {50, 15, 15};
+      Font defaultFont = new DefaultTableCellRenderer().getFont();
+      int charWidth;
+      if (defaultFont != null) {
+        charWidth = getFontMetrics(defaultFont).getWidths() ['A'];
+      } else {
+        charWidth = 10;
+      }
+      for (int i = 0; i < columnMinWidths.length; i++) {
+        columnModel.getColumn(i).setPreferredWidth(columnMinWidths [i] * charWidth);
+      }
+
+      // Display second and third column as a check box
+      TableCellRenderer checkBoxCellRenderer = new TableCellRenderer() {
+          private TableCellRenderer booleanRenderer = furniturePropertiesTable.getDefaultRenderer(Boolean.class);
+
+          public Component getTableCellRendererComponent(JTable table,
+               Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component checkBox = this.booleanRenderer.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+            checkBox.setEnabled(table.isCellEditable(row, column));
+            return checkBox;
+          }
+        };
+      columnModel.getColumn(1).setCellRenderer(checkBoxCellRenderer);
+      columnModel.getColumn(1).setCellEditor(this.furniturePropertiesTable.getDefaultEditor(Boolean.class));
+      columnModel.getColumn(2).setCellRenderer(checkBoxCellRenderer);
+      columnModel.getColumn(2).setCellEditor(this.furniturePropertiesTable.getDefaultEditor(Boolean.class));
+
+      final PropertyChangeListener furniturePropertiesChangeListener = new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent ev) {
+            furniturePropertiesTableModel.setFurnitureProperties(controller.getFurnitureProperties());
+          }
+        };
+      controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_PROPERTIES,
+          furniturePropertiesChangeListener);
+      furniturePropertiesTableModel.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent ev) {
+              controller.removePropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_PROPERTIES, furniturePropertiesChangeListener);
+              controller.setFurnitureProperties(furniturePropertiesTableModel.getFurnitureProperties());
+              controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_PROPERTIES, furniturePropertiesChangeListener);
+            }
+          });
+
+      this.addPropertyButton = new JButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "addPropertyButton.text"));
+      this.addPropertyButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            String title = SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addProperty.title");
+            // Prepare input panel
+            JLabel nameLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addProperty.nameLabel.text"));
+            JTextField nameTextField = new JTextField(20);
+            JLabel typeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addProperty.typeLabel.text"));
+            List<FurnitureProperty.Type> types = new ArrayList<FurnitureProperty.Type>(Arrays.asList(
+                FurnitureProperty.Type.STRING,
+                FurnitureProperty.Type.BOOLEAN,
+                FurnitureProperty.Type.NUMBER));
+            types.add(0, null);
+            JComboBox typeComboBox = new JComboBox(types.toArray());
+            typeComboBox.setMaximumRowCount(types.size());
+            typeComboBox.setRenderer(new DefaultListCellRenderer() {
+                public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                  if (value == null) {
+                    value = preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class, "propertyType.ANY.text");
+                  } else {
+                    value = preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class, "propertyType." +  ((FurnitureProperty.Type)value).name() + ".text");
+                  }
+                  return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                }
+              });
+            JPanel inputPanel = new JPanel(new GridBagLayout());
+            inputPanel.add(nameLabel, new GridBagConstraints(
+                0, 0, 1, 1, 0, 0, OperatingSystem.isMacOSX() ? GridBagConstraints.LINE_END : GridBagConstraints.LINE_START,
+                GridBagConstraints.NONE, new Insets(0, 0, 5, 5), 0, 0));
+            inputPanel.add(nameTextField, new GridBagConstraints(
+                1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.NONE, new Insets(0, 0, 5, 0), 0, 0));
+            inputPanel.add(typeLabel, new GridBagConstraints(
+                0, 1, 1, 1, 0, 0, OperatingSystem.isMacOSX() ? GridBagConstraints.LINE_END : GridBagConstraints.LINE_START,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 5), 0, 0));
+            inputPanel.add(typeComboBox, new GridBagConstraints(
+                1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+                GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+            if (SwingTools.showConfirmDialog(FurnitureLibraryUserPreferencesPanel.this, inputPanel, title, nameTextField) == JOptionPane.OK_OPTION) {
+              if (!"".equals(nameTextField.getText())) {
+                for (DefaultFurnitureCatalog.PropertyKey defaultProperty : DefaultFurnitureCatalog.PropertyKey.values()) {
+                  if (defaultProperty.getKeyPrefix().equals(nameTextField.getText())) {
+                    title = SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addExistingProperty.title");
+                    String message = SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addExistingProperty.message");
+                    JOptionPane.showMessageDialog(FurnitureLibraryUserPreferencesPanel.this, message, title, JOptionPane.ERROR_MESSAGE);
+                    return;
+                  }
+                }
+                ArrayList<FurnitureProperty> furnitureProperties = new ArrayList<FurnitureProperty>(Arrays.asList(controller.getFurnitureProperties()));
+                furnitureProperties.add(new FurnitureProperty(nameTextField.getText(), (FurnitureProperty.Type)typeComboBox.getSelectedItem()));
+                controller.setFurnitureProperties(furnitureProperties.toArray(new FurnitureProperty [furnitureProperties.size()]));
+                furniturePropertiesTable.setRowSelectionInterval(furnitureProperties.size() - 1, furnitureProperties.size() - 1);
+                furniturePropertiesTable.scrollRectToVisible(furniturePropertiesTable.getCellRect(furnitureProperties.size() - 1, 0, true));
+              }
+            }
+          }
+        });
+      this.removePropertyButton = new JButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "removePropertyButton.text"));
+      this.removePropertyButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            ArrayList<FurnitureProperty> furnitureProperties = new ArrayList<FurnitureProperty>(Arrays.asList(controller.getFurnitureProperties()));
+            int [] selectedRows = furniturePropertiesTable.getSelectedRows();
+            for (int i = selectedRows.length - 1; i >= 0; i--) {
+              if (furnitureProperties.get(selectedRows[i]).getDefaultPropertyKeyName() == null) {
+                furnitureProperties.remove(selectedRows[i]);
+              }
+            }
+            controller.setFurnitureProperties(furnitureProperties.toArray(new FurnitureProperty [furnitureProperties.size()]));
+            furniturePropertiesTable.clearSelection();
+          }
+        });
+      this.removePropertyButton.setEnabled(false);
+      this.furniturePropertiesTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+          public void valueChanged(ListSelectionEvent ev) {
+            ArrayList<FurnitureProperty> furnitureProperties = new ArrayList<FurnitureProperty>(Arrays.asList(controller.getFurnitureProperties()));
+            int [] selectedRows = furniturePropertiesTable.getSelectedRows();
+            for (int i = selectedRows.length - 1; i >= 0; i--) {
+              if (furnitureProperties.get(selectedRows[i]).getDefaultPropertyKeyName() == null) {
+                removePropertyButton.setEnabled(true);
+                return;
+              }
+            }
+            removePropertyButton.setEnabled(false);
+          }
+        });
+    }
   }
 
   /**
@@ -292,6 +480,12 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
             FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.mnemonic")).getKeyCode());
         this.contentMatchingImportedFileRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             FurnitureLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.mnemonic")).getKeyCode());
+      }
+      if (this.addPropertyButton != null) {
+        this.addPropertyButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "addPropertyButton.mnemonic")).getKeyCode());
+        this.removePropertyButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "removePropertyButton.mnemonic")).getKeyCode());;
       }
     }
   }
@@ -362,7 +556,145 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
           GridBagConstraints.NONE, componentInsets, 0, 0));
       add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
           1, 106, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, componentInsets, 0, 0));
+    }
+    if (this.furniturePropertiesTable != null) {
+      add(this.furniturePropertiesLabel, new GridBagConstraints(
+          0, 107, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      JPanel furniturePropertiesPanel = new JPanel(new GridBagLayout());
+      JScrollPane furniturePropertiesScrollPane = SwingTools.createScrollPane(this.furniturePropertiesTable);
+      furniturePropertiesScrollPane.setPreferredSize(new Dimension(
+          Math.round(400 * SwingTools.getResolutionScale()),
+          this.furniturePropertiesTable.getTableHeader().getPreferredSize().height + this.furniturePropertiesTable.getRowHeight() * 10 + 3));
+      furniturePropertiesPanel.add(furniturePropertiesScrollPane, new GridBagConstraints(
+          0, 0, 1, 2, 0, 0, GridBagConstraints.CENTER,
+          GridBagConstraints.BOTH, componentInsets, 0, 0));
+      furniturePropertiesPanel.add(this.addPropertyButton, new GridBagConstraints(
+          1, 0, 1, 1, 0, 0.5, GridBagConstraints.SOUTH,
+          GridBagConstraints.HORIZONTAL, componentInsets, 0, 0));
+      furniturePropertiesPanel.add(this.removePropertyButton, new GridBagConstraints(
+          1, 1, 1, 1, 0, 0.5, GridBagConstraints.NORTH,
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+      add(furniturePropertiesPanel, new GridBagConstraints(
+          0, 108, 3, 1, 0, 0, GridBagConstraints.NORTH,
           GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+    }
+  }
+
+  /**
+   * Table model showing the name of furniture properties.
+   */
+  private class FurniturePropertiesTableModel extends AbstractTableModel {
+    private FurnitureProperty [] furnitureProperties;
+    private String []            columnNames;
+
+    private FurniturePropertiesTableModel(FurnitureProperty [] furnitureProperties,
+                                          UserPreferences preferences) {
+      this.furnitureProperties = furnitureProperties;
+      this.columnNames = new String [] {
+          preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class,"furnitureProperties.nameColumn"),
+          preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class,"furnitureProperties.modifiableColumn"),
+          preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class,"furnitureProperties.displayedColumn")};
+    }
+
+    public int getRowCount() {
+      return this.furnitureProperties.length;
+    }
+
+    public int getColumnCount() {
+      return columnNames.length;
+    }
+
+    @Override
+    public String getColumnName(int column) {
+      return columnNames [column];
+    }
+
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      FurnitureProperty property = this.furnitureProperties [rowIndex];
+      switch (columnIndex) {
+        case 0:
+          return property.getName();
+        case 1:
+          return property.isModifiable();
+        case 2:
+          return property.isDisplayed();
+        default:
+          throw new IllegalArgumentException();
+      }
+    }
+
+    @Override
+    public void setValueAt(Object value, int rowIndex, int columnIndex) {
+      FurnitureProperty property = this.furnitureProperties [rowIndex];
+      switch (columnIndex) {
+        case 1:
+          Boolean modifiable = (Boolean)value;
+          this.furnitureProperties [rowIndex] = property.deriveModifiableProperty(modifiable);
+          fireTableCellUpdated(rowIndex, columnIndex);
+          if (property.getDefaultPropertyKeyName() != null) {
+            // Update modifiable state of bound properties
+            PropertyKey defaultProperty = DefaultFurnitureCatalog.PropertyKey.valueOf(property.getDefaultPropertyKeyName());
+            switch (defaultProperty) {
+              case DOOR_OR_WINDOW_SASH_X_AXIS:
+              case DOOR_OR_WINDOW_SASH_Y_AXIS:
+              case DOOR_OR_WINDOW_SASH_WIDTH:
+              case DOOR_OR_WINDOW_SASH_START_ANGLE:
+              case DOOR_OR_WINDOW_SASH_END_ANGLE:
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH);
+                break;
+              case LIGHT_SOURCE_X:
+              case LIGHT_SOURCE_Y:
+              case LIGHT_SOURCE_Z:
+              case LIGHT_SOURCE_COLOR:
+              case LIGHT_SOURCE_DIAMETER:
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z);
+                setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR);
+                if (!modifiable && defaultProperty != DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER) {
+                  setValueAt(modifiable, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER);
+                }
+            }
+          }
+          break;
+        case 2:
+          this.furnitureProperties [rowIndex] = property.deriveDisplayedProperty((Boolean)value);
+          fireTableCellUpdated(rowIndex, columnIndex);
+          break;
+      }
+    }
+
+    public void setValueAt(boolean modifiable, DefaultFurnitureCatalog.PropertyKey propertyKey) {
+      for (int row = 0; row < this.furnitureProperties.length; row++) {
+        FurnitureProperty property = this.furnitureProperties [row];
+        if (property.getDefaultPropertyKeyName() != null
+            && propertyKey == DefaultFurnitureCatalog.PropertyKey.valueOf(property.getDefaultPropertyKeyName())) {
+          this.furnitureProperties [row] = property.deriveModifiableProperty(modifiable);
+          fireTableCellUpdated(row, 1);
+          break;
+        }
+      }
+    }
+
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      FurnitureProperty property = this.furnitureProperties [rowIndex];
+      return columnIndex == 1 && property.isEditable() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName())
+          || columnIndex == 2 && property.isDisplayable() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName());
+    }
+
+    public FurnitureProperty [] getFurnitureProperties() {
+      return this.furnitureProperties;
+    }
+
+    public void setFurnitureProperties(FurnitureProperty [] furnitureProperties) {
+      this.furnitureProperties = furnitureProperties;
+      fireTableDataChanged();
     }
   }
 }

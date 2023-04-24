@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
 import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.CollectionChangeSupport;
 import com.eteks.sweethome3d.model.CollectionEvent;
@@ -43,40 +44,40 @@ import com.eteks.sweethome3d.model.UserPreferences;
  */
 public class FurnitureLibrary implements Library {
   /**
-   * The properties of this library that may change. <code>PropertyChangeListener</code>s added 
+   * The properties of this library that may change. <code>PropertyChangeListener</code>s added
    * to a library will be notified under a property name equal to the name value of one these properties.
    */
   public enum Property {LOCATION, ID, NAME, MODIFIED, DESCRIPTION, VERSION, LICENSE, PROVIDER, LOCALIZED_DATA};
-  
+
   public static final String DEFAULT_LANGUAGE = "";
 
-  public static final String FURNITURE_ID_PROPERTY                           = "ID";
-  public static final String FURNITURE_NAME_PROPERTY                         = "NAME";
-  public static final String FURNITURE_DESCRIPTION_PROPERTY                  = "DESCRIPTION";
-  public static final String FURNITURE_INFORMATION_PROPERTY                  = "INFORMATION";
-  public static final String FURNITURE_TAGS_PROPERTY                         = "TAGS";
-  public static final String FURNITURE_CREATION_DATE_PROPERTY                = "CREATION_DATE";
-  public static final String FURNITURE_GRADE_PROPERTY                        = "GRADE";
-  public static final String FURNITURE_CATEGORY_PROPERTY                     = "CATEGORY";
-  public static final String FURNITURE_CREATOR_PROPERTY                      = "CREATOR";
-  public static final String FURNITURE_PRICE_PROPERTY                        = "PRICE";
-  public static final String FURNITURE_VALUE_ADDED_TAX_PERCENTAGE_PROPERTY   = "VALUE_ADDED_TAX_PERCENTAGE";
-  public static final String FURNITURE_MODEL_PROPERTY                        = "MODEL";
-  public static final String FURNITURE_ICON_PROPERTY                         = "ICON";
-  public static final String FURNITURE_PLAN_ICON_PROPERTY                    = "PLAN_ICON";
-  public static final String FURNITURE_WIDTH_PROPERTY                        = "WIDTH";
-  public static final String FURNITURE_DEPTH_PROPERTY                        = "DEPTH";
-  public static final String FURNITURE_HEIGHT_PROPERTY                       = "HEIGHT";
-  public static final String FURNITURE_MOVABLE_PROPERTY                      = "MOVABLE";
-  public static final String FURNITURE_DOOR_OR_WINDOW_PROPERTY               = "DOOR_OR_WINDOW";
-  public static final String FURNITURE_DOOR_OR_WINDOW_CUT_OUT_SHAPE_PROPERTY = "DOOR_OR_WINDOW_CUT_OUT_SHAPE";
-  public static final String FURNITURE_STAIRCASE_CUT_OUT_SHAPE_PROPERTY      = "STAIRCASE_CUT_OUT_SHAPE";
-  public static final String FURNITURE_ELEVATION_PROPERTY                    = "ELEVATION";
-  public static final String FURNITURE_MODEL_ROTATION_PROPERTY               = "MODEL_ROTATION";
-  public static final String FURNITURE_RESIZABLE_PROPERTY                    = "RESIZABLE";
-  public static final String FURNITURE_DEFORMABLE_PROPERTY                   = "DEFORMABLE";
-  public static final String FURNITURE_TEXTURABLE_PROPERTY                   = "TEXTURABLE";
-  
+  public static final String FURNITURE_ID_PROPERTY                           = DefaultFurnitureCatalog.PropertyKey.ID.name();
+  public static final String FURNITURE_NAME_PROPERTY                         = DefaultFurnitureCatalog.PropertyKey.NAME.name();
+  public static final String FURNITURE_DESCRIPTION_PROPERTY                  = DefaultFurnitureCatalog.PropertyKey.DESCRIPTION.name();
+  public static final String FURNITURE_INFORMATION_PROPERTY                  = DefaultFurnitureCatalog.PropertyKey.INFORMATION.name();
+  public static final String FURNITURE_TAGS_PROPERTY                         = DefaultFurnitureCatalog.PropertyKey.TAGS.name();
+  public static final String FURNITURE_CREATION_DATE_PROPERTY                = DefaultFurnitureCatalog.PropertyKey.CREATION_DATE.name();
+  public static final String FURNITURE_GRADE_PROPERTY                        = DefaultFurnitureCatalog.PropertyKey.GRADE.name();
+  public static final String FURNITURE_CATEGORY_PROPERTY                     = DefaultFurnitureCatalog.PropertyKey.CATEGORY.name();
+  public static final String FURNITURE_CREATOR_PROPERTY                      = DefaultFurnitureCatalog.PropertyKey.CREATOR.name();
+  public static final String FURNITURE_PRICE_PROPERTY                        = DefaultFurnitureCatalog.PropertyKey.PRICE.name();
+  public static final String FURNITURE_VALUE_ADDED_TAX_PERCENTAGE_PROPERTY   = DefaultFurnitureCatalog.PropertyKey.VALUE_ADDED_TAX_PERCENTAGE.name();
+  public static final String FURNITURE_MODEL_PROPERTY                        = DefaultFurnitureCatalog.PropertyKey.MODEL.name();
+  public static final String FURNITURE_ICON_PROPERTY                         = DefaultFurnitureCatalog.PropertyKey.ICON.name();
+  public static final String FURNITURE_PLAN_ICON_PROPERTY                    = DefaultFurnitureCatalog.PropertyKey.PLAN_ICON.name();
+  public static final String FURNITURE_WIDTH_PROPERTY                        = DefaultFurnitureCatalog.PropertyKey.WIDTH.name();
+  public static final String FURNITURE_DEPTH_PROPERTY                        = DefaultFurnitureCatalog.PropertyKey.DEPTH.name();
+  public static final String FURNITURE_HEIGHT_PROPERTY                       = DefaultFurnitureCatalog.PropertyKey.HEIGHT.name();
+  public static final String FURNITURE_MOVABLE_PROPERTY                      = DefaultFurnitureCatalog.PropertyKey.MOVABLE.name();
+  public static final String FURNITURE_DOOR_OR_WINDOW_PROPERTY               = DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW.name();
+  public static final String FURNITURE_DOOR_OR_WINDOW_CUT_OUT_SHAPE_PROPERTY = DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_CUT_OUT_SHAPE.name();
+  public static final String FURNITURE_STAIRCASE_CUT_OUT_SHAPE_PROPERTY      = DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE.name();
+  public static final String FURNITURE_ELEVATION_PROPERTY                    = DefaultFurnitureCatalog.PropertyKey.ELEVATION.name();
+  public static final String FURNITURE_MODEL_ROTATION_PROPERTY               = DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION.name();
+  public static final String FURNITURE_RESIZABLE_PROPERTY                    = DefaultFurnitureCatalog.PropertyKey.RESIZABLE.name();
+  public static final String FURNITURE_DEFORMABLE_PROPERTY                   = DefaultFurnitureCatalog.PropertyKey.DEFORMABLE.name();
+  public static final String FURNITURE_TEXTURABLE_PROPERTY                   = DefaultFurnitureCatalog.PropertyKey.TEXTURABLE.name();
+
   private final PropertyChangeSupport                                    propertyChangeSupport;
   private List<CatalogPieceOfFurniture>                                  furniture;
   private Map<String, CatalogPieceOfFurniture>                           furnitureByIds;
@@ -90,13 +91,13 @@ public class FurnitureLibrary implements Library {
   private String    name;
   private String    description;
   private String    version;
-  private String    license; 
+  private String    license;
   private String    provider;
-  
+
   public FurnitureLibrary() {
     this.furniture = new ArrayList<CatalogPieceOfFurniture>();
     this.furnitureByIds = new HashMap<String, CatalogPieceOfFurniture>();
-    // Use IdentityHashMap to ignore equality between two CatalogPieceOfFurniture instances with same name 
+    // Use IdentityHashMap to ignore equality between two CatalogPieceOfFurniture instances with same name
     this.furnitureLocalizedData = new IdentityHashMap<CatalogPieceOfFurniture, Map<String, Map<String, Object>>>();
     this.supportedLanguages = new HashSet<String>();
     this.supportedLanguages.add(DEFAULT_LANGUAGE);
@@ -133,7 +134,7 @@ public class FurnitureLibrary implements Library {
   }
 
   /**
-   * Returns an unmodifiable list of the furniture managed by this library. 
+   * Returns an unmodifiable list of the furniture managed by this library.
    */
   public List<CatalogPieceOfFurniture> getFurniture() {
     this.noRequestSinceLastChange = false;
@@ -212,19 +213,19 @@ public class FurnitureLibrary implements Library {
     }
     return -1;
   }
-  
+
   /**
    * Returns the first piece of furniture with the given ID or <code>null</code>.
    */
   public CatalogPieceOfFurniture getPieceOfFurniture(String pieceId) {
     return this.furnitureByIds.get(pieceId);
   }
-  
+
   /**
    * Sets localized data of a piece of furniture and fires a <code>PropertyChangeEvent</code>.
    */
   public void setPieceOfFurnitureLocalizedData(CatalogPieceOfFurniture piece, String language,
-                                               String propertyKey, 
+                                               String propertyKey,
                                                Object propertyValue) {
     Map<String, Map<String, Object>> pieceLocalizedData = this.furnitureLocalizedData.get(piece);
     if (pieceLocalizedData == null) {
@@ -237,7 +238,7 @@ public class FurnitureLibrary implements Library {
       pieceLocalizedData.put(language, pieceData);
       this.supportedLanguages.add(language);
     }
-    
+
     Object oldPropertyValue = pieceData.get(propertyKey);
     if (oldPropertyValue != propertyValue
         || propertyValue != null && !propertyValue.equals(oldPropertyValue)) {
@@ -245,7 +246,7 @@ public class FurnitureLibrary implements Library {
       this.propertyChangeSupport.firePropertyChange(Property.LOCALIZED_DATA.name(), oldPropertyValue, propertyValue);
     }
   }
-  
+
   /**
    * Returns a localized data of a piece of furniture or <code>null</code> if it doesn't exist.
    */
@@ -253,11 +254,11 @@ public class FurnitureLibrary implements Library {
                                                  String propertyKey) {
     return getPieceOfFurnitureLocalizedData(piece, language, propertyKey, null);
   }
-  
+
   /**
    * Returns a localized data of a piece of furniture or <code>defaultValue</code> if it doesn't exist.
    */
-  public Object getPieceOfFurnitureLocalizedData(CatalogPieceOfFurniture piece, 
+  public Object getPieceOfFurnitureLocalizedData(CatalogPieceOfFurniture piece,
                                                  String language,
                                                  String propertyKey,
                                                  Object defaultValue) {
@@ -273,7 +274,7 @@ public class FurnitureLibrary implements Library {
     }
     return defaultValue;
   }
-  
+
   /**
    * Returns an unmodifiable list of the languages supported by this library.
    * This list is built from the localized data set on furniture.
@@ -307,17 +308,17 @@ public class FurnitureLibrary implements Library {
   public boolean isModified() {
     return this.modified;
   }
-  
+
   /**
    * Sets whether the library is modified or not, and fires a <code>PropertyChangeEvent</code>.
    */
   public void setModified(boolean modified) {
     if (modified != this.modified) {
-      this.modified = modified; 
+      this.modified = modified;
       this.propertyChangeSupport.firePropertyChange(Property.MODIFIED.toString(), !modified, modified);
     }
   }
-  
+
   /**
    * Returns the id of this library.
    */

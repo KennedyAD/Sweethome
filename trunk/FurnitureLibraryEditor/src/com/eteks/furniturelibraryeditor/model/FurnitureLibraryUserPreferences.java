@@ -21,7 +21,11 @@ package com.eteks.furniturelibraryeditor.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.UserPreferences;
 
@@ -34,17 +38,18 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
    * The properties of user preferences that may change. <code>PropertyChangeListener</code>s added
    * to user preferences will be notified under a property name equal to the string value of one these properties.
    */
-  public enum Property {DEFAULT_CREATOR, OFFLINE_FURNITURE_LIBRARY, FURNITURE_RESOURCES_LOCAL_DIRECTORY,
+  public enum Property {FURNITURE_PROPERTIES, DEFAULT_CREATOR, OFFLINE_FURNITURE_LIBRARY, FURNITURE_RESOURCES_LOCAL_DIRECTORY,
                         FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME}
 
   private final PropertyChangeSupport propertyChangeSupport;
-  private String [] editedProperties;
-  private String    defaultCreator;
-  private boolean   offlineFurnitureLibrary;
-  private String    furnitureResourcesLocalDirectory;
-  private String    furnitureResourcesRemoteUrlBase;
-  private boolean   furnitureIdEditable;
-  private boolean   contentMatchingFurnitureName;
+  private String []                   editedProperties;
+  private FurnitureProperty []        furnitureProperties;
+  private String                      defaultCreator;
+  private boolean                     offlineFurnitureLibrary;
+  private String                      furnitureResourcesLocalDirectory;
+  private String                      furnitureResourcesRemoteUrlBase;
+  private boolean                     furnitureIdEditable;
+  private boolean                     contentMatchingFurnitureName;
 
   public FurnitureLibraryUserPreferences() {
     this.propertyChangeSupport = new PropertyChangeSupport(this);
@@ -120,10 +125,201 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
   }
 
   /**
-   * Returns the list of properties that the user may display and edit with the editor.
+   * Returns the default list of Sweet Home 3D properties that the user may display and edit with the editor.
    */
   public String [] getEditedProperties() {
     return this.editedProperties;
+  }
+
+  /**
+   * Returns the available furniture properties.
+   */
+  public FurnitureProperty [] getFurnitureProperties() {
+    if (this.furnitureProperties == null) {
+      // Build furniture properties list on the fly from edited properties
+      List<FurnitureProperty> furnitureProperties = new ArrayList<FurnitureProperty>();
+      String [] modifiableProperties = getEditedProperties().clone();
+      Arrays.sort(modifiableProperties);
+
+      // Default properties listed in the order they should appear in furniture table
+      DefaultFurnitureCatalog.PropertyKey [] defaultProperties = {
+          DefaultFurnitureCatalog.PropertyKey.ID,
+          DefaultFurnitureCatalog.PropertyKey.ICON,
+          DefaultFurnitureCatalog.PropertyKey.PLAN_ICON,
+          DefaultFurnitureCatalog.PropertyKey.MODEL,
+          DefaultFurnitureCatalog.PropertyKey.NAME,
+          DefaultFurnitureCatalog.PropertyKey.DESCRIPTION,
+          DefaultFurnitureCatalog.PropertyKey.INFORMATION,
+          DefaultFurnitureCatalog.PropertyKey.TAGS,
+          DefaultFurnitureCatalog.PropertyKey.CATEGORY,
+          DefaultFurnitureCatalog.PropertyKey.CREATOR,
+          DefaultFurnitureCatalog.PropertyKey.CREATION_DATE,
+          DefaultFurnitureCatalog.PropertyKey.MODEL_SIZE,
+          DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION,
+          DefaultFurnitureCatalog.PropertyKey.MODEL_FLAGS,
+          DefaultFurnitureCatalog.PropertyKey.HORIZONTALLY_ROTATABLE,
+          DefaultFurnitureCatalog.PropertyKey.GRADE,
+          DefaultFurnitureCatalog.PropertyKey.WIDTH,
+          DefaultFurnitureCatalog.PropertyKey.DEPTH,
+          DefaultFurnitureCatalog.PropertyKey.HEIGHT,
+          DefaultFurnitureCatalog.PropertyKey.ELEVATION,
+          DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION,
+          DefaultFurnitureCatalog.PropertyKey.MOVABLE,
+          DefaultFurnitureCatalog.PropertyKey.RESIZABLE,
+          DefaultFurnitureCatalog.PropertyKey.DEFORMABLE,
+          DefaultFurnitureCatalog.PropertyKey.TEXTURABLE,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_CUT_OUT_SHAPE,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE,
+          DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE,
+          DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X,
+          DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y,
+          DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z,
+          DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR,
+          DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER,
+          DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME,
+          DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE,
+          DefaultFurnitureCatalog.PropertyKey.PRICE,
+          DefaultFurnitureCatalog.PropertyKey.CURRENCY,
+          DefaultFurnitureCatalog.PropertyKey.VALUE_ADDED_TAX_PERCENTAGE,
+          // Ignored properties
+          // DefaultFurnitureCatalog.PropertyKey.MULTI_PART_MODEL,
+          // DefaultFurnitureCatalog.PropertyKey.ICON_DIGEST,
+          // DefaultFurnitureCatalog.PropertyKey.PLAN_ICON_DIGEST,
+          // DefaultFurnitureCatalog.PropertyKey.MODEL_DIGEST,
+        };
+
+      for (DefaultFurnitureCatalog.PropertyKey defaultProperty : defaultProperties) {
+        FurnitureProperty.Type type;
+        switch (defaultProperty) {
+          case ICON:
+          case PLAN_ICON:
+          case MODEL:
+            type = FurnitureProperty.Type.CONTENT;
+            break;
+          case CREATION_DATE:
+            type = FurnitureProperty.Type.DATE;
+          case MOVABLE:
+          case DOOR_OR_WINDOW:
+          case RESIZABLE:
+          case DEFORMABLE:
+          case TEXTURABLE:
+          case HORIZONTALLY_ROTATABLE:
+          case DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES:
+          case DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE:
+            type = FurnitureProperty.Type.BOOLEAN;
+            break;
+          case MODEL_FLAGS:
+          case MODEL_SIZE:
+            type = FurnitureProperty.Type.INTEGER;
+            break;
+          case GRADE:
+            type = FurnitureProperty.Type.NUMBER;
+            break;
+          case PRICE:
+            type = FurnitureProperty.Type.PRICE;
+            break;
+          case VALUE_ADDED_TAX_PERCENTAGE:
+            type = FurnitureProperty.Type.PERCENTAGE;
+            break;
+          case WIDTH:
+          case DEPTH:
+          case HEIGHT:
+          case ELEVATION:
+          case DROP_ON_TOP_ELEVATION:
+          case DOOR_OR_WINDOW_WALL_THICKNESS:
+          case DOOR_OR_WINDOW_WALL_DISTANCE:
+            type = FurnitureProperty.Type.LENGTH;
+            break;
+          default:
+            type = FurnitureProperty.Type.STRING;
+            break;
+        }
+
+        boolean editable;
+        switch (defaultProperty) {
+          case ID:
+            editable = isFurnitureIdEditable();
+            break;
+          case MODEL_SIZE:
+            editable = false;
+            break;
+          default:
+            editable = true;
+            break;
+        }
+
+        boolean displayable;
+        switch (defaultProperty) {
+          case ICON_DIGEST:
+          case PLAN_ICON_DIGEST:
+          case MODEL_DIGEST:
+          case HORIZONTALLY_ROTATABLE:
+          case MODEL_ROTATION:
+          case MODEL:
+          case DROP_ON_TOP_ELEVATION:
+          case DOOR_OR_WINDOW_CUT_OUT_SHAPE:
+          case DOOR_OR_WINDOW_WALL_THICKNESS:
+          case DOOR_OR_WINDOW_WALL_DISTANCE:
+          case DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES:
+          case DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE:
+          case DOOR_OR_WINDOW_SASH_X_AXIS:
+          case DOOR_OR_WINDOW_SASH_Y_AXIS:
+          case DOOR_OR_WINDOW_SASH_WIDTH:
+          case DOOR_OR_WINDOW_SASH_START_ANGLE:
+          case DOOR_OR_WINDOW_SASH_END_ANGLE:
+          case LIGHT_SOURCE_X:
+          case LIGHT_SOURCE_Y:
+          case LIGHT_SOURCE_Z:
+          case LIGHT_SOURCE_DIAMETER:
+          case LIGHT_SOURCE_COLOR:
+          case LIGHT_SOURCE_MATERIAL_NAME:
+            displayable = false;
+            break;
+          default:
+            displayable = true;
+            break;
+        }
+
+        boolean modifiable = Arrays.binarySearch(modifiableProperties, defaultProperty.name()) >= 0
+            || defaultProperty == DefaultFurnitureCatalog.PropertyKey.ICON
+            || (defaultProperty == DefaultFurnitureCatalog.PropertyKey.ID && isFurnitureIdEditable());
+        furnitureProperties.add(new FurnitureProperty(
+            defaultProperty.getKeyPrefix(), type, defaultProperty.name(), editable, modifiable, displayable, modifiable && displayable));
+      }
+      this.furnitureProperties = furnitureProperties.toArray(new FurnitureProperty [furnitureProperties.size()]);
+    }
+    return this.furnitureProperties.clone();
+  }
+
+  /**
+   * Sets the available furniture properties.
+   */
+  public void setFurnitureProperties(FurnitureProperty [] furnitureProperties) {
+    if (furnitureProperties != this.furnitureProperties) {
+      FurnitureProperty [] oldFurnitureProperties = this.furnitureProperties;
+      Boolean furnitureIdEditableNewValue = null;
+      for (int i = 0; i < furnitureProperties.length; i++) {
+        FurnitureProperty property = furnitureProperties [i];
+        if (DefaultFurnitureCatalog.PropertyKey.ID.name().equals(property.getDefaultPropertyKeyName())
+            && furnitureProperties [i].isEditable() != furnitureProperties [i].isEditable()) {
+          furnitureIdEditableNewValue = furnitureProperties [i].isEditable();
+          break;
+        }
+      }
+      this.furnitureProperties = furnitureProperties.clone();
+      this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_PROPERTIES.name(), oldFurnitureProperties, furnitureProperties);
+      if (furnitureIdEditableNewValue != null) {
+        setFurnitureIdEditable(furnitureIdEditableNewValue, false);
+      }
+    }
   }
 
   /**
@@ -146,7 +342,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
    */
   public void setDefaultCreator(String defaultCreator) {
     if (defaultCreator != this.defaultCreator
-        || defaultCreator != null && !defaultCreator.equals(this.defaultCreator)) {
+        && (defaultCreator == null || !defaultCreator.equals(this.defaultCreator))) {
       String oldDefaultCreator = this.defaultCreator;
       this.defaultCreator = defaultCreator;
       this.propertyChangeSupport.firePropertyChange(Property.DEFAULT_CREATOR.name(), oldDefaultCreator, defaultCreator);
@@ -201,7 +397,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
       throw new IllegalArgumentException("Furniture library doesn't support online libraries");
     }
     if (furnitureResourcesLocalDirectory != this.furnitureResourcesLocalDirectory
-        || furnitureResourcesLocalDirectory != null && !furnitureResourcesLocalDirectory.equals(this.furnitureResourcesLocalDirectory)) {
+        && (furnitureResourcesLocalDirectory == null || !furnitureResourcesLocalDirectory.equals(this.furnitureResourcesLocalDirectory))) {
       String oldValue = this.furnitureResourcesLocalDirectory;
       this.furnitureResourcesLocalDirectory = furnitureResourcesLocalDirectory;
       this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_RESOURCES_LOCAL_DIRECTORY.name(),
@@ -227,7 +423,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
       throw new IllegalArgumentException("Furniture library doesn't support online libraries");
     }
     if (furnitureResourcesRemoteUrlBase != this.furnitureResourcesRemoteUrlBase
-        || furnitureResourcesRemoteUrlBase != null && !furnitureResourcesRemoteUrlBase.equals(this.furnitureResourcesRemoteUrlBase)) {
+        && (furnitureResourcesRemoteUrlBase == null || !furnitureResourcesRemoteUrlBase.equals(this.furnitureResourcesRemoteUrlBase))) {
       Object oldValue = this.furnitureResourcesRemoteUrlBase;
       this.furnitureResourcesRemoteUrlBase = furnitureResourcesRemoteUrlBase;
       this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_RESOURCES_REMOTE_URL_BASE.name(),
@@ -236,18 +432,32 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
   }
 
   /**
-   * Returns <code>true</code> if furniture ids are editable.
+   * Returns <code>true</code> if furniture ids is editable.
    */
   public boolean isFurnitureIdEditable() {
     return this.furnitureIdEditable;
   }
 
   /**
-   * Sets whether furniture ids are editable.
+   * Sets whether furniture ids is editable.
    */
   public void setFurnitureIdEditable(boolean furnitureIdEditable) {
+    setFurnitureIdEditable(furnitureIdEditable, true);
+  }
+
+  private void setFurnitureIdEditable(boolean furnitureIdEditable, boolean updateFurnitureProperty) {
     if (furnitureIdEditable != this.furnitureIdEditable) {
       this.furnitureIdEditable = furnitureIdEditable;
+      // Update duplicated information in furnitureProperties
+      FurnitureProperty [] furnitureProperties = getFurnitureProperties();
+      for (int i = 0; i < furnitureProperties.length; i++) {
+        FurnitureProperty property = furnitureProperties [i];
+        if (DefaultFurnitureCatalog.PropertyKey.ID.name().equals(property.getDefaultPropertyKeyName())) {
+          furnitureProperties [i] = new FurnitureProperty(property.getName(), property.getType(), property.getDefaultPropertyKeyName(),
+              furnitureIdEditable, furnitureIdEditable, property.isDisplayable(), property.isDisplayed());
+        }
+      }
+      setFurnitureProperties(furnitureProperties);
       this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_ID_EDITABLE.name(), !furnitureIdEditable, furnitureIdEditable);
     }
   }
