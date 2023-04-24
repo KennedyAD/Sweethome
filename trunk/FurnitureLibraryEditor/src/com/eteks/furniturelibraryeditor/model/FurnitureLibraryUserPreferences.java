@@ -289,7 +289,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
         }
 
         boolean modifiable = Arrays.binarySearch(modifiableProperties, defaultProperty.name()) >= 0
-            || defaultProperty == DefaultFurnitureCatalog.PropertyKey.ICON
+                && defaultProperty != DefaultFurnitureCatalog.PropertyKey.ICON
             || (defaultProperty == DefaultFurnitureCatalog.PropertyKey.ID && isFurnitureIdEditable());
         furnitureProperties.add(new FurnitureProperty(
             defaultProperty.getKeyPrefix(), type, defaultProperty.name(), editable, modifiable, displayable, modifiable && displayable));
