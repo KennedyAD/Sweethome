@@ -1846,9 +1846,10 @@ public class FurniturePanel extends JPanel implements DialogView {
           1, 15, 3, 1, 0, 0, GridBagConstraints.NORTHWEST,
           GridBagConstraints.NONE, labelInsets, 0, 0));
       JScrollPane propertiesTableScrollPane = SwingTools.createScrollPane(this.additionalPropertiesTable);
+      propertiesTableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
       propertiesTableScrollPane.setPreferredSize(new Dimension(
           Math.round(250 * SwingTools.getResolutionScale()),
-          this.additionalPropertiesTable.getTableHeader().getPreferredSize().height + 3
+          this.additionalPropertiesTable.getTableHeader().getPreferredSize().height + 4
           + this.additionalPropertiesTable.getRowHeight() * Math.min(6, this.additionalPropertiesTable.getRowCount())));
       add(propertiesTableScrollPane, new GridBagConstraints(
           1, 16, 4, 1, 0, 0, GridBagConstraints.CENTER,
