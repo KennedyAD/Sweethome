@@ -1361,8 +1361,8 @@ public class FurniturePanel extends JPanel implements DialogView {
               // Manage button click
               EventQueue.invokeLater(new Runnable() {
                   public void run() {
-                    String image = controller.getContentManager().showOpenDialog(FurniturePanel.
-                        this, preferences.getLocalizedString(FurniturePanel.class, "selectContent.title"),
+                    String image = controller.getContentManager().showOpenDialog(FurniturePanel.this,
+                        preferences.getLocalizedString(FurniturePanel.class, "selectContent.title"),
                         ContentManager.ContentType.IMAGE);
                     table.editingCanceled(null);
                     if (image != null) {
@@ -1914,8 +1914,8 @@ public class FurniturePanel extends JPanel implements DialogView {
       this.additionalProperties = new LinkedHashMap<FurnitureProperty, String>(additionalProperties);
       this.keys = new ArrayList<FurnitureProperty>(additionalProperties.keySet());
       this.columnNames = new String [] {
-          preferences.getLocalizedString(FurniturePanel.class,"additionalProperties.nameColumn"),
-          preferences.getLocalizedString(FurniturePanel.class,"additionalProperties.valueColumn")};
+          preferences.getLocalizedString(FurniturePanel.class, "additionalProperties.nameColumn"),
+          preferences.getLocalizedString(FurniturePanel.class, "additionalProperties.valueColumn")};
     }
 
     public int getRowCount() {
