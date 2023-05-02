@@ -766,7 +766,6 @@ public class FurnitureLibraryTable extends JTable implements View {
       } else {
         final DateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd");
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
-          @SuppressWarnings("unchecked")
           public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
             String value1 = piece1.getProperty(propertyName);
             String value2 = piece2.getProperty(propertyName);
@@ -781,7 +780,7 @@ public class FurnitureLibraryTable extends JTable implements View {
             } else {
               FurnitureProperty.Type type = property.getType();
               if (type == null) {
-                type = FurnitureProperty.Type.NUMBER;
+                type = FurnitureProperty.Type.ANY;
               }
               switch (type) {
                 case BOOLEAN:
@@ -807,6 +806,7 @@ public class FurnitureLibraryTable extends JTable implements View {
                       return collator.compare(piece1.getName(), piece2.getName());
                     }
                   }
+                case ANY:
                 case INTEGER:
                 case PERCENTAGE:
                 case LENGTH:
@@ -885,7 +885,7 @@ public class FurnitureLibraryTable extends JTable implements View {
       TableCellRenderer headerRenderer = getHeaderRenderer();
       List<FurnitureProperty> editedProperties = new ArrayList<FurnitureProperty>();
       for (FurnitureProperty property : preferences.getFurnitureProperties()) {
-        if (property.isDisplayed()) {
+        if (property.isDisplayable()) {
           editedProperties.add(property);
         }
       }
@@ -1009,7 +1009,8 @@ public class FurnitureLibraryTable extends JTable implements View {
                                                 FurnitureLanguageController controller) {
       if (DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE.getKeyPrefix().equals(property.getName())) {
         return getBooleanRenderer(property);
-      } else if (property.getType() != null) {
+      } else if (property.getType() != null
+                 && property.getType() != FurnitureProperty.Type.ANY) {
         switch (property.getType()) {
           case BOOLEAN:
             return getBooleanRenderer(property);
@@ -1126,7 +1127,7 @@ public class FurnitureLibraryTable extends JTable implements View {
           } else if (DefaultFurnitureCatalog.PropertyKey.PLAN_ICON.getKeyPrefix().equals(propertyName)) {
             value = piece.getPlanIcon();
           } else {
-            value = null;
+            value = piece.getContentProperty(propertyName);
           }
           if (value != null) {
             label.setIcon(IconManager.getInstance().getIcon((Content)value, table.getRowHeight() - 1, table));
@@ -1192,7 +1193,7 @@ public class FurnitureLibraryTable extends JTable implements View {
               }
             }
             if (value != null) {
-              value = DecimalFormat.getIntegerInstance().format(value);
+              value = NumberFormat.getIntegerInstance().format(value);
             } else {
               value = "";
             }
@@ -1224,7 +1225,7 @@ public class FurnitureLibraryTable extends JTable implements View {
               }
             }
             if (value != null) {
-              value = DecimalFormat.getNumberInstance().format(value);
+              value = NumberFormat.getNumberInstance().format(value);
             } else {
               value = "";
             }
@@ -1287,8 +1288,8 @@ public class FurnitureLibraryTable extends JTable implements View {
           public Component getTableCellRendererComponent(JTable table,
                Object value, boolean isSelected, boolean hasFocus,
                int row, int column) {
+            CatalogPieceOfFurniture piece = (CatalogPieceOfFurniture)value;
             try {
-              CatalogPieceOfFurniture piece = (CatalogPieceOfFurniture)value;
               value = DefaultFurnitureCatalog.PropertyKey.PRICE.getKeyPrefix().equals(property.getName())
                   ? piece.getPrice()
                   : new BigDecimal(piece.getProperty(property.getName()));
@@ -1298,11 +1299,15 @@ public class FurnitureLibraryTable extends JTable implements View {
               value = null;
             }
             if (value != null) {
-              String currency = preferences.getCurrency();
+              String currencyCode = piece.getCurrency() != null
+                  ? piece.getCurrency()
+                  : preferences.getCurrency();
               NumberFormat currencyFormat;
-              if (currency != null) {
-                currencyFormat = DecimalFormat.getCurrencyInstance();
-                currencyFormat.setCurrency(Currency.getInstance(currency));
+              if (currencyCode != null) {
+                currencyFormat = NumberFormat.getCurrencyInstance();
+                Currency currency = Currency.getInstance(currencyCode);
+                currencyFormat.setCurrency(currency);
+                currencyFormat.setMaximumFractionDigits(currency.getDefaultFractionDigits());
               } else {
                 currencyFormat = new DecimalFormat("##0.00");
               }
@@ -1338,7 +1343,7 @@ public class FurnitureLibraryTable extends JTable implements View {
               percentageValue = null;
             }
             if (percentageValue != null) {
-              NumberFormat percentInstance = DecimalFormat.getPercentInstance();
+              NumberFormat percentInstance = NumberFormat.getPercentInstance();
               percentInstance.setMinimumFractionDigits(percentageValue.scale() - 2);
               value = percentInstance.format(percentageValue);
             } else {

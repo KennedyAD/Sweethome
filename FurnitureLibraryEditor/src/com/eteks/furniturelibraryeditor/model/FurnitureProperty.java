@@ -19,32 +19,15 @@
  */
 package com.eteks.furniturelibraryeditor.model;
 
+import com.eteks.sweethome3d.model.ObjectProperty;
+
 /**
  * Information about additional properties proposed in preferences.
  * @author Emmanuel Puybaret
  */
-public final class FurnitureProperty {
-  /**
-   * Property type.
-   */
-  public enum Type {
-    STRING,
-    DATE,
-    BOOLEAN,
-    INTEGER,
-    NUMBER,
-    PRICE,
-    LENGTH,
-    PERCENTAGE,
-    CONTENT,
-  }
-
-  private final String   name;
-  private final Type     type;
+public class FurnitureProperty extends ObjectProperty {
   private final String   defaultPropertyKeyName;
   private final boolean  editable;
-  private final boolean  modifiable;
-  private final boolean  displayable;
   private final boolean  displayed;
 
   public FurnitureProperty(String name) {
@@ -56,23 +39,12 @@ public final class FurnitureProperty {
   }
 
   public FurnitureProperty(String name, Type type, String defaultPropertyKeyName,
-                           boolean editable, boolean modifiable,
-                           boolean displayable, boolean displayed) {
-    this.name = name;
-    this.type = type;
+                           boolean displayable, boolean displayed,
+                           boolean editable, boolean modifiable) {
+    super(name, null, type, displayable, modifiable, true);
     this.defaultPropertyKeyName = defaultPropertyKeyName;
     this.editable = editable;
-    this.modifiable = modifiable;
-    this.displayable = displayable;
     this.displayed = displayed;
-  }
-
-  public String getName() {
-    return this.name;
-  }
-
-  public Type getType() {
-    return this.type;
   }
 
   public String getDefaultPropertyKeyName() {
@@ -83,38 +55,15 @@ public final class FurnitureProperty {
     return editable;
   }
 
-  public boolean isModifiable() {
-    return this.modifiable;
-  }
-
-  public boolean isDisplayable() {
-    return this.displayable;
-  }
-
   public boolean isDisplayed() {
     return this.displayed;
   }
 
   public FurnitureProperty deriveModifiableProperty(boolean modifiable) {
-    return new FurnitureProperty(this.name, this.type, this.defaultPropertyKeyName, this.editable, modifiable, this.displayable, this.displayed);
+    return new FurnitureProperty(getName(), getType(), this.defaultPropertyKeyName, isDisplayable(), this.displayed, this.editable, modifiable);
   }
 
   public FurnitureProperty deriveDisplayedProperty(boolean displayed) {
-    return new FurnitureProperty(this.name, this.type, this.defaultPropertyKeyName, this.editable, this.modifiable, this.displayable, displayed);
-  }
-
-  @Override
-  public int hashCode() {
-    return this.name == null ? 0 : this.name.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    } else if (obj instanceof FurnitureProperty) {
-      return this.name.equals(((FurnitureProperty)obj).name);
-    }
-    return false;
+    return new FurnitureProperty(getName(), getType(), this.defaultPropertyKeyName, isDisplayable(), displayed, this.editable, isModifiable());
   }
 }
