@@ -28,6 +28,7 @@ import java.util.prefs.Preferences;
 
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
 import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
+import com.eteks.sweethome3d.model.ObjectProperty;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Library;
 import com.eteks.sweethome3d.model.RecorderException;
@@ -135,7 +136,8 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
       FurnitureProperty property = furnitureProperties [i - 1];
       preferences.put(FURNITURE_PROPERTY_NAME + i, property.getName());
       if (property.getDefaultPropertyKeyName() == null) {
-        if (property.getType() != null) {
+        if (property.getType() != null
+            && property.getType() != ObjectProperty.Type.ANY) {
           preferences.put(FURNITURE_PROPERTY_TYPE + i, property.getType().name());
         } else {
           preferences.remove(FURNITURE_PROPERTY_TYPE + i);

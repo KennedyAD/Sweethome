@@ -251,7 +251,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
               FurnitureProperty property = furnitureProperties [i];
               if (DefaultFurnitureCatalog.PropertyKey.ID.name().equals(property.getDefaultPropertyKeyName())) {
                 furnitureProperties [i] = new FurnitureProperty(property.getName(), property.getType(), property.getDefaultPropertyKeyName(),
-                    idEditable, idEditable, property.isDisplayable(), property.isDisplayed());
+                    property.isDisplayed(), property.isDisplayable(), idEditable, idEditable);
                 break;
               }
             }
@@ -365,19 +365,16 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
             JTextField nameTextField = new JTextField(20);
             JLabel typeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addProperty.typeLabel.text"));
             List<FurnitureProperty.Type> types = new ArrayList<FurnitureProperty.Type>(Arrays.asList(
+                FurnitureProperty.Type.ANY,
                 FurnitureProperty.Type.STRING,
                 FurnitureProperty.Type.BOOLEAN,
-                FurnitureProperty.Type.NUMBER));
-            types.add(0, null);
+                FurnitureProperty.Type.NUMBER,
+                FurnitureProperty.Type.CONTENT));
             JComboBox typeComboBox = new JComboBox(types.toArray());
             typeComboBox.setMaximumRowCount(types.size());
             typeComboBox.setRenderer(new DefaultListCellRenderer() {
                 public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                  if (value == null) {
-                    value = preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class, "propertyType.ANY.text");
-                  } else {
-                    value = preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class, "propertyType." +  ((FurnitureProperty.Type)value).name() + ".text");
-                  }
+                  value = preferences.getLocalizedString(FurnitureLibraryUserPreferencesPanel.class, "propertyType." +  ((FurnitureProperty.Type)value).name() + ".text");
                   return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 }
               });
@@ -395,9 +392,9 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
                 1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
                 GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
             if (SwingTools.showConfirmDialog(FurnitureLibraryUserPreferencesPanel.this, inputPanel, title, nameTextField) == JOptionPane.OK_OPTION) {
-              if (!"".equals(nameTextField.getText())) {
+              if (nameTextField.getText() != null && nameTextField.getText().trim().length() > 0) {
                 for (DefaultFurnitureCatalog.PropertyKey defaultProperty : DefaultFurnitureCatalog.PropertyKey.values()) {
-                  if (defaultProperty.getKeyPrefix().equals(nameTextField.getText())) {
+                  if (defaultProperty.getKeyPrefix().equalsIgnoreCase(nameTextField.getText())) {
                     title = SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addExistingProperty.title");
                     String message = SwingTools.getLocalizedLabelText(preferences, FurnitureLibraryUserPreferencesPanel.class, "addExistingProperty.message");
                     JOptionPane.showMessageDialog(FurnitureLibraryUserPreferencesPanel.this, message, title, JOptionPane.ERROR_MESSAGE);
@@ -619,7 +616,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
         case 1:
           return property.isModifiable();
         case 2:
-          return property.isDisplayed();
+          return property.isDisplayable();
         default:
           throw new IllegalArgumentException();
       }
@@ -685,7 +682,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
     public boolean isCellEditable(int rowIndex, int columnIndex) {
       FurnitureProperty property = this.furnitureProperties [rowIndex];
       return columnIndex == 1 && property.isEditable() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName())
-          || columnIndex == 2 && property.isDisplayable() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName());
+          || columnIndex == 2 && property.isDisplayed() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName());
     }
 
     public FurnitureProperty [] getFurnitureProperties() {

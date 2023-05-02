@@ -292,7 +292,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
                 && defaultProperty != DefaultFurnitureCatalog.PropertyKey.ICON
             || (defaultProperty == DefaultFurnitureCatalog.PropertyKey.ID && isFurnitureIdEditable());
         furnitureProperties.add(new FurnitureProperty(
-            defaultProperty.getKeyPrefix(), type, defaultProperty.name(), editable, modifiable, displayable, modifiable && displayable));
+            defaultProperty.getKeyPrefix(), type, defaultProperty.name(), displayable, modifiable && displayable, editable, modifiable));
       }
       this.furnitureProperties = furnitureProperties.toArray(new FurnitureProperty [furnitureProperties.size()]);
     }
@@ -454,7 +454,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
         FurnitureProperty property = furnitureProperties [i];
         if (DefaultFurnitureCatalog.PropertyKey.ID.name().equals(property.getDefaultPropertyKeyName())) {
           furnitureProperties [i] = new FurnitureProperty(property.getName(), property.getType(), property.getDefaultPropertyKeyName(),
-              furnitureIdEditable, furnitureIdEditable, property.isDisplayable(), property.isDisplayed());
+              property.isDisplayed(), property.isDisplayable(), furnitureIdEditable, furnitureIdEditable);
         }
       }
       setFurnitureProperties(furnitureProperties);
