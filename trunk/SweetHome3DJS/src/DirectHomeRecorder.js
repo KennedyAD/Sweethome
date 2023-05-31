@@ -67,7 +67,12 @@ DirectHomeRecorder.prototype.readHome = function(homeName, observer) {
  */
 DirectHomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   var localContents = [];
-  this.searchLocalContents(home, [], localContents);
+  // Keep only local contents which have to be saved
+  this.searchContents(home, [], localContents, function(content) {
+	  return content instanceof LocalURLContent
+          || (content.isJAREntry() && URLContent.fromURL(content.getJAREntryURL()) instanceof LocalURLContent);
+    });
+  
   var abortableOperations = [];
   var recorder = this;
   var contentsObserver = {
@@ -144,58 +149,6 @@ DirectHomeRecorder.prototype.writeHome = function(home, homeName, observer) {
         }
       }
     };
-}
-
-/**
- * Returns a XML exporter able to generate a XML content.
- * @return {HomeXMLExporter}
- * @protected 
- */
-DirectHomeRecorder.prototype.getHomeXMLExporter = function() {
-  return new HomeXMLExporter();
-}
-
-/**
- * Seeks in home all the content which may need to be saved.
- * @param {Object} object the object root
- * @param {Array}  homeObjects array used to track already seeked objects
- * @param {Array}  localContents array filed with unsaved content
- * @private 
- */
-DirectHomeRecorder.prototype.searchLocalContents = function(object, homeObjects, localContents) {
-  if (Array.isArray(object)) {
-    for (var i = 0; i < object.length; i++) {
-      this.searchLocalContents(object[i], homeObjects, localContents);
-    }
-  } else if (object instanceof LocalURLContent
-             || object instanceof URLContent && object.isJAREntry() && URLContent.fromURL(object.getJAREntryURL()) instanceof LocalURLContent) {
-    for (var i = 0; i < localContents; i++) {
-      if (localContents [i].getURL() == object.getURL()) {
-        return;
-      }
-    }
-    localContents.push(object);
-  } else if (object != null 
-             && typeof object !== 'number'
-             && typeof object !== 'string'
-             && typeof object !== 'boolean'
-             && typeof object !== 'function'
-             && !(object instanceof URLContent)
-             && homeObjects.indexOf(object) < 0) {
-    homeObjects.push(object);
-    var propertyNames = Object.getOwnPropertyNames(object);
-    for (var j = 0; j < propertyNames.length; j++) {
-      var propertyName = propertyNames[j];
-      if (propertyName == "object3D"
-          || object.constructor 
-              && object.constructor.__transients 
-              && object.constructor.__transients.indexOf(propertyName) != -1) {
-        continue;
-      }
-      var propertyValue = object[propertyName];
-      this.searchLocalContents(propertyValue, homeObjects, localContents);
-    }
-  }
 }
 
 /**
