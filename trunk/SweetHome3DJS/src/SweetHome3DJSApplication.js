@@ -27,9 +27,9 @@
 
 /**
  * Creates a home controller handling savings from user interface.
- * @param [Home] home the controlled by this controller
- * @param [HomeApplication] application 
- * @param [ViewFactory] viewFactory
+ * @param {Home} [home] the home controlled by this controller
+ * @param {HomeApplication} [application] 
+ * @param {ViewFactory} [viewFactory]
  * @constructor
  * @author Emmanuel Puybaret
  * @ignore
@@ -41,7 +41,7 @@ DirectRecordingHomeController.prototype = Object.create(HomeController.prototype
 DirectRecordingHomeController.prototype.constructor = DirectRecordingHomeController;
 
 /**
- * Creates a new home after saving and deleting the current home.
+ * Creates a new home after saving and closing the current home.
  */
 DirectRecordingHomeController.prototype.newHome = function() {
   var controller = this;
@@ -185,7 +185,7 @@ DirectRecordingHomeController.prototype.open = function() {
 /**
  * Saves the home managed by this controller. If home name doesn't exist,
  * this method will act as {@link #saveAs() saveAs} method.
- * @param function [postSaveTask]
+ * @param {function} [postSaveTask]
  */
 DirectRecordingHomeController.prototype.save = function(postSaveTask) {
   if (this.home.getName() == null) {
@@ -229,7 +229,7 @@ DirectRecordingHomeController.prototype.save = function(postSaveTask) {
 
 /**
  * Saves the home managed by this controller with a different name.
- * @param function [postSaveTask]
+ * @param {function} [postSaveTask]
  */
 DirectRecordingHomeController.prototype.saveAs = function(postSaveTask) {
   var preferences = this.application.getUserPreferences();
@@ -252,7 +252,7 @@ DirectRecordingHomeController.prototype.close = function() {
 /**
  * Displays a dialog that lets user choose whether he wants to save
  * the current home or not, then calls <code>confirm</code>.
- * @param Function confirm 
+ * @param {function} confirm 
  * @private
  */
 DirectRecordingHomeController.prototype.confirmSave = function(confirm) {
@@ -290,7 +290,7 @@ DirectRecordingHomeController.prototype.confirmSave = function(confirm) {
 /**
  * Displays a dialog that lets user choose whether he wants to delete
  * a home or not, then calls <code>confirm</code>.
- * @param Function confirm 
+ * @param {function} confirm 
  * @private
  */
 DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confirm) {
@@ -315,9 +315,9 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
 
 /**
  * Creates a home controller handling savings for local files.
- * @param [Home] home the controlled by this controller
- * @param [HomeApplication] application 
- * @param [ViewFactory] viewFactory
+ * @param {Home} [home] the home controlled by this controller
+ * @param {HomeApplication} [application] 
+ * @param {ViewFactory} [viewFactory]
  * @constructor
  * @author Emmanuel Puybaret
  * @ignore
@@ -327,6 +327,14 @@ function LocalFileHomeController(home, application, viewFactory) {
 }
 LocalFileHomeController.prototype = Object.create(HomeController.prototype);
 LocalFileHomeController.prototype.constructor = LocalFileHomeController;
+
+/**
+ * Creates a new home after closing the current home.
+ */
+LocalFileHomeController.prototype.newHome = function() {
+  this.close();
+  this.application.addHome(this.application.createHome());
+}
 
 /**
  * Opens a home chosen by the user.
