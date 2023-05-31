@@ -58,7 +58,7 @@ HomeRecorder.prototype.readHome = function(url, observer) {
           try {
             var homeXmlEntry = zip.file(homeEntryName);
             if (homeXmlEntry !== null) {
-              recorder.parseHomeXMLEntry(zip.file(homeEntryName), zip, url, observer);
+              recorder.parseHomeXMLEntry(homeXmlEntry, zip, url, observer);
             } else {
               this.zipError("No " + homeEntryName + " entry in " + url);
             }
@@ -119,4 +119,309 @@ HomeRecorder.prototype.parseHomeXMLEntry = function(homeXmlEntry, zip, zipUrl, o
  */
 HomeRecorder.prototype.getHomeXMLHandler = function() {
   return new HomeXMLHandler();
+}
+
+/**
+ * Writes asynchronously the given <code>home</code> to a new blob.
+ * @param {Home}   home saved home
+ * @param {string} homeName the home name on the server 
+ * @param {{homeSaved: function, homeError: function}} [observer]  The callbacks used to follow the export operation of the home.
+ *           homeSaved will receive in its second parameter the blob containing the exported home with the resources it needs. 
+ */
+HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
+  var compressionLevel = 1; // 0 to 9
+  var homeClone = home.clone();
+  homeClone.setName(homeName);
+  var contents = [];
+  this.searchContents(homeClone, [], contents);
+
+  // Prepare saved content names
+  var savedContentNames = {};
+  var savedContentIndex = 0;
+  for (var i = 0; i < contents.length; i++) {
+    var content = contents[i];
+    var subEntryName = "";
+    if (content.isJAREntry()) {
+      var entryName = content.getJAREntryName();
+      if (content instanceof HomeURLContent) {
+        var slashIndex = entryName.indexOf('/');
+        // If content comes from a directory of a home file
+        if (slashIndex > 0) {
+          // Retrieve entry name in zipped stream without the directory
+          subEntryName = entryName.substring(slashIndex);
+        }
+      } else if (!(content instanceof SimpleURLContent)) {
+        // Retrieve entry name in zipped stream
+        subEntryName = "/" + entryName;
+      }
+    }
+
+    // Build a relative URL that points to content object
+    var homeContentPath = savedContentIndex++ + subEntryName;
+    savedContentNames [content.getURL()] = homeContentPath; 
+  }
+  
+  var writer = new StringWriter(); 
+  var exporter = this.getHomeXMLExporter();
+  exporter.setSavedContentNames(savedContentNames);
+  exporter.writeElement(new XMLWriter(writer), homeClone);
+  
+  var zipOut = new JSZip();
+  zipOut.file('Home.xml', writer.toString());
+  
+  if (contents.length > 0) {
+    contents.reverse();
+    for (var i = contents.length - 1; i >= 0; i--) {
+      var content = contents[i];
+      var contentEntryName = savedContentNames [content.getURL()];
+      var slashIndex = contentEntryName.indexOf('/');
+      if (slashIndex > 0) {
+        contentEntryName = contentEntryName.substring(0, slashIndex);
+      }
+      var contentObserver = {
+          contentSaved: function(content) {
+            contents.splice(contents.indexOf(content), 1);
+             if (contents.length === 0) {
+               var blob = zipOut.generate({type:'blob', 
+                   compression: compressionLevel > 0 ? "DEFLATE" : 'STORE', 
+                   compressionOptions: {level : compressionLevel}});
+               observer.homeSaved(home, blob);
+             }
+           }, 
+           contentError: function(status, error) {
+             observer.homeError(status, error);
+           }
+        };
+      if (!(content instanceof SimpleURLContent)
+          && content.isJAREntry()) {
+        if (content instanceof HomeURLContent) {
+          this.writeHomeZipEntries(zipOut, contentEntryName, content, contentObserver);
+        } else {
+          this.writeZipEntries(zipOut, contentEntryName, content, contentObserver);
+        }
+      } else {
+        this.writeZipEntry(zipOut, contentEntryName, content, contentObserver);
+      }
+    }
+  } else {
+    var blob = zipOut.generate({type:'blob', 
+        compression: compressionLevel > 0 ? "DEFLATE" : 'STORE', 
+        compressionOptions: {level : compressionLevel}});
+    observer.homeSaved(home, blob);
+  }
+}
+
+/**
+ * Searchs all the contents referenced by the given <code>object</code>.
+ * @param {Object} object the object root
+ * @param {Array}  homeObjects array used to track already seeked objects
+ * @param {Array}  contents array filed with unsaved content
+ * @param {function} [acceptContent] a function returning <code>false</code> if its parameter is not an interesting content  
+ * @private 
+ */
+HomeRecorder.prototype.searchContents = function(object, homeObjects, contents, acceptContent) {
+  if (Array.isArray(object)) {
+    for (var i = 0; i < object.length; i++) {
+      this.searchContents(object[i], homeObjects, contents, acceptContent);
+    }
+  } else if (object instanceof URLContent
+             && (acceptContent === undefined || acceptContent(object))) {
+    for (var i = 0; i < contents.length; i++) {
+      if (contents [i].getURL() == object.getURL()) {
+        return;
+      }
+    }
+    contents.push(object);
+  } else if (object != null 
+             && typeof object !== 'number'
+             && typeof object !== 'string'
+             && typeof object !== 'boolean'
+             && typeof object !== 'function'
+             && !(object instanceof URLContent)
+             && homeObjects.indexOf(object) < 0) {
+    homeObjects.push(object);
+    var propertyNames = Object.getOwnPropertyNames(object);
+    for (var j = 0; j < propertyNames.length; j++) {
+      var propertyName = propertyNames[j];
+      if (propertyName == "object3D"
+          || object.constructor 
+              && object.constructor.__transients 
+              && object.constructor.__transients.indexOf(propertyName) != -1) {
+        continue;
+      }
+      var propertyValue = object[propertyName];
+      this.searchContents(propertyValue, homeObjects, contents, acceptContent);
+    }
+  }
+}
+
+/**
+ * Writes in <code>zipOut</code> stream one or more entries matching the content
+ * <code>urlContent</code> coming from a home file.
+ * @param {JSZip} zipOut
+ * @param {string} entryNameOrDirectory
+ * @param {URLContent} urlContent
+ * @param {contentSaved: function, contentError: function} contentObserver 
+             called when content is saved or if writing fails
+ * @private 
+ */
+HomeRecorder.prototype.writeHomeZipEntries = function(zipOut, entryNameOrDirectory, urlContent, contentObserver) {
+  var entryName = urlContent.getJAREntryName();
+  var slashIndex = entryName.indexOf('/');
+  // If content comes from a directory of a home file
+  if (slashIndex > 0) {
+    var zipUrl = urlContent.getJAREntryURL();
+    var entryDirectory = entryName.substring(0, slashIndex + 1);
+    var recorder = this;
+    URLContent.fromURL(urlContent.getJAREntryURL()).getStreamURL({
+        urlReady: function(url) {
+          ZIPTools.getZIP(url, false, 
+            {
+              zipReady : function(zip) {
+                try {
+                  var entries = zip.file(new RegExp(entryDirectory + ".*")).reverse();
+                  for (var i = entries.length - 1; i >= 0 ; i--) {
+                    var zipEntry = entries [i];
+                    var siblingContent = new URLContent("jar:" + zipUrl + "!/" 
+                        + encodeURIComponent(zipEntry.name).replace("+", "%20"));
+                    recorder.writeZipEntry(zipOut, entryNameOrDirectory + zipEntry.name.substring(slashIndex), siblingContent, 
+                        {
+                          zipEntry: zipEntry, 
+                          contentSaved: function(content) {
+                            entries.splice(entries.indexOf(this.zipEntry), 1);
+                            if (entries.length === 0) {
+                              contentObserver.contentSaved(urlContent);
+                            }
+                          }, 
+                          contentError: function(status, error) {
+                            contentObserver.contentError(status, error);
+                          }
+                        });
+                  }            
+                } catch (ex) {
+                  this.zipError(ex);
+                }
+              },
+              zipError : function(error) {
+                contentObserver.contentError(0, error.message);
+            }
+          });
+        },
+        urlError: function(status, error) {
+          contentObserver.contentError(status, error);
+        }    
+      });
+  } else {
+    this.writeZipEntry(zipOut, entryNameOrDirectory, urlContent, contentObserver);
+  }
+}
+
+/**
+ * Writes in <code>zipOut</code> stream all the sibling files of the zipped
+ * <code>urlContent</code>.
+ * @param {JSZip} zipOut
+ * @param {string} directory
+ * @param {URLContent} urlContent
+ * @param {contentSaved: function, contentError: function} contentObserver 
+             called when content is saved or if writing fails
+ * @private 
+ */
+HomeRecorder.prototype.writeZipEntries = function(zipOut, directory, urlContent, contentObserver) {
+  var recorder = this;
+  URLContent.fromURL(urlContent.getJAREntryURL()).getStreamURL({
+      urlReady: function(url) {
+        ZIPTools.getZIP(url, false,
+          {
+            zipReady : function(zip) {
+              try {
+                var entries = zip.file(/.*/).reverse();
+                for (var i = entries.length - 1; i >= 0 ; i--) {
+                  var zipEntry = entries [i];
+                  var siblingContent = new URLContent("jar:" + urlContent.getJAREntryURL() + "!/" 
+                      + encodeURIComponent(zipEntry.name).replace("+", "%20"));
+                  recorder.writeZipEntry(zipOut, directory + "/" + zipEntry.name, siblingContent, 
+                     { 
+                        zipEntry: zipEntry,  
+                        contentSaved: function(content) {
+                          entries.splice(entries.indexOf(this.zipEntry), 1);
+                          if (entries.length === 0) {
+                            contentObserver.contentSaved(urlContent);
+                          }
+                        }, 
+                        contentError: function(status, error) {
+                          contentObserver.contentError(status, error);
+                        }
+                     });
+                }            
+              } catch (ex) {
+                this.zipError(ex);
+              }
+            },
+            zipError : function(error) {
+              contentObserver.contentError(0, error.message);
+          }
+        });
+      },
+      urlError: function(status, error) {
+        contentObserver.contentError(status, error);
+      }    
+    });
+}
+
+/**
+ * Writes in <code>zipOut</code> stream a new entry named <code>entryName</code> that
+ * contains a given <code>content</code>.
+ * @param {JSZip} zipOut
+ * @param {string} entryName
+ * @param {URLContent} content
+ * @param {contentSaved: function, contentError: function} contentObserver 
+             called when contents is saved or if writing fails
+ * @private 
+ */
+HomeRecorder.prototype.writeZipEntry = function(zipOut, entryName, content, contentObserver) {
+  content.getStreamURL({
+      urlReady: function(url) {
+        if (url.indexOf("jar:") === 0) {
+          var entrySeparatorIndex = url.indexOf("!/");
+          var contentEntryName = decodeURIComponent(url.substring(entrySeparatorIndex + 2));
+          var jarUrl = url.substring(4, entrySeparatorIndex);
+          ZIPTools.getZIP(jarUrl, false,
+            {
+              zipReady : function(zip) {
+                try {
+                  var contentEntry = zip.file(contentEntryName);
+                  zipOut.file(entryName, contentEntry.asBinary(), {binary: true});
+                  contentObserver.contentSaved(content);
+                } catch (ex) {
+                  this.zipError(ex);
+                }
+              },
+              zipError : function(error) {
+                contentObserver.contentError(0, error.message);
+            }
+          });
+        } else {
+          var request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.responseType = "arraybuffer";
+          request.addEventListener("load", function() {
+              zipOut.file(entryName, request.response);
+              contentObserver.contentSaved(content);
+            });
+          request.send();
+        }
+      },
+      urlError: function(status, error) {
+        contentObserver.contentError(status, error);
+      }    
+    });
+}
+
+/**
+ * Returns a XML exporter able to generate a XML content.
+ * @return {HomeXMLExporter}
+ * @protected 
+ */
+HomeRecorder.prototype.getHomeXMLExporter = function() {
+  return new HomeXMLExporter();
 }

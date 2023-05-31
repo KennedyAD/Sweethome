@@ -948,6 +948,7 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
   var toolBar = document.getElementById("home-pane-toolbar"); 
   this.toolBarDefaultChildren = Array.prototype.slice.call(toolBar.children);
 
+  this.startToolBarButtonGroup(toolBar);
   this.addActionToToolBar("SHOW_APPLICATION_MENU", toolBar);
   this.showApplicationMenuButton = toolBar.children[toolBar.children.length - 1].lastChild; 
   this.addSeparator(toolBar);
@@ -959,6 +960,11 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
     this.addActionToToolBar(HomeView.ActionType.SAVE_AS, toolBar);
     this.addSeparator(toolBar); 
   } else {
+	if (toolBar.classList.contains("local-file-saving")) {
+      this.addActionToToolBar(HomeView.ActionType.OPEN, toolBar);
+      this.addActionToToolBar(HomeView.ActionType.SAVE, toolBar);
+      this.addSeparator(toolBar); 
+    }
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
     this.addSeparator(toolBar);

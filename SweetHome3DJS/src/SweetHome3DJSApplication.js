@@ -78,9 +78,9 @@ DirectRecordingHomeController.prototype.open = function() {
               controller.close();
               controller.application.addHome(home);
             },
-            homeError: function(err) {
-              var message = preferences.getLocalizedString("HomeController", "openError", homeName, err);
-              console.error(err);
+            homeError: function(error) {
+              var message = preferences.getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
+              console.error(error);
               alert(message);
             },
             progression: function(part, info, percentage) {
@@ -312,6 +312,119 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
   confirmDeletionDialog.displayView();
 }
 
+
+/**
+ * Creates a home controller handling savings for local files.
+ * @param [Home] home the controlled by this controller
+ * @param [HomeApplication] application 
+ * @param [ViewFactory] viewFactory
+ * @constructor
+ * @author Emmanuel Puybaret
+ * @ignore
+ */
+function LocalFileHomeController(home, application, viewFactory) {
+  HomeController.call(this, home, application, viewFactory);  
+}
+LocalFileHomeController.prototype = Object.create(HomeController.prototype);
+LocalFileHomeController.prototype.constructor = LocalFileHomeController;
+
+/**
+ * Opens a home chosen by the user.
+ */
+LocalFileHomeController.prototype.open = function() {
+  var controller = this;
+  var fileInput = document.createElement('input');
+  fileInput.setAttribute("style", "display: none");
+  fileInput.setAttribute("type", "file");
+  document.body.appendChild(fileInput);  
+  fileInput.addEventListener("input", function(ev) {
+      document.body.removeChild(fileInput);
+      if (this.files[0]) {
+        var homeName = this.files[0].name.substring(this.files[0].name.indexOf("/") + 1);
+        controller.application.getHomeRecorder().readHome(URL.createObjectURL(this.files[0]), {
+            homeLoaded: function(home) {
+              home.setName(homeName);
+              controller.close();
+              controller.application.addHome(home);
+            },
+            homeError: function(error) {
+              var message = controller.application.getUserPreferences().
+                  getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
+              console.error(error);
+              alert(message);
+            }
+          });
+      }
+    }); 
+  fileInput.click();
+}
+
+/**
+ * Saves the home managed by this controller. 
+ */
+LocalFileHomeController.prototype.save = function() {
+  if (this.home.getName() == null) {
+    this.saveAs();
+  } else {
+    var preferences = this.application.getUserPreferences();
+    var savingTaskDialog = new JSDialog(preferences, 
+        preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
+        preferences.getLocalizedString("HomeController", "saveMessage"), 
+        { size: "small" });
+    savingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
+    savingTaskDialog.displayView();
+    
+	var controller = this;
+    setTimeout(function() {
+		var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
+	    controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
+	        homeSaved: function(home, blob) {
+	          savingTaskDialog.close(); 
+	          var downloadLink = document.createElement('a');
+	          downloadLink.setAttribute("style", "display: none");
+	          downloadLink.setAttribute("href", URL.createObjectURL(blob));
+	          downloadLink.setAttribute("download", homeName);
+	          document.body.appendChild(downloadLink);
+	          downloadLink.click();
+	          home.setModified(false);
+	          document.body.removeChild(downloadLink);
+	          URL.revokeObjectURL(downloadLink.getAttribute("href"));
+	        },
+	        homeError: function(status, error) {
+	          savingTaskDialog.close(); 
+	          console.log(error);
+	          new JSDialog(preferences, 
+	              preferences.getLocalizedString("HomePane", "error.title"),
+	              preferences.getLocalizedString("HomeController", "saveError", [homeName, error]),  
+	             { size: "small" }).displayView(); 
+	        }
+	      });
+      }, 200);
+  }
+}
+
+/**
+ * Saves the home managed by this controller with a different name.
+ */
+LocalFileHomeController.prototype.saveAs = function() {
+  var preferences = this.application.getUserPreferences();
+  var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
+  var homeName = prompt(message);
+  if (homeName != null) {
+    this.home.setName(homeName + (homeName.indexOf('.') < 0 ? ".sh3x" : ""));
+    this.save();    
+  }
+}
+
+/**
+ * Removes home from application homes list.
+ */
+LocalFileHomeController.prototype.close = function() {
+  this.application.deleteHome(this.home);  
+  this.getView().dispose();
+}
+
+
 /**
  * <code>HomeApplication</code> implementation for JavaScript.
  * @param {{furnitureCatalogURLs: string[],
@@ -379,9 +492,11 @@ SweetHome3DJSApplication.prototype.getHomeController = function(home) {
 
 SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
   if (!this.homeRecorder) {
-    this.homeRecorder = this.configuration !== undefined && this.configuration.writeHomeEditsURL !== undefined
-        ? new IncrementalHomeRecorder(this, this.configuration)
-        : new DirectHomeRecorder(this.configuration);
+    this.homeRecorder = this.configuration === undefined || this.configuration.readHomeURL === undefined
+      ? new HomeRecorder()
+      : (this.configuration.writeHomeEditsURL !== undefined
+          ? new IncrementalHomeRecorder(this, this.configuration)
+          : new DirectHomeRecorder(this.configuration));
   }
   return this.homeRecorder;
 }
@@ -406,7 +521,9 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
 }
 
 SweetHome3DJSApplication.prototype.createHomeController = function(home) {
-  return this.configuration !== undefined && this.configuration.writeHomeEditsURL !== undefined
-      ? new HomeController(home, this, this.getViewFactory())
-      : new DirectRecordingHomeController(home, this, this.getViewFactory());
+  return this.configuration === undefined || this.configuration.readHomeURL === undefined
+      ? new LocalFileHomeController(home, this, this.getViewFactory())
+      : (this.configuration.writeHomeEditsURL !== undefined
+      	  ? new HomeController(home, this, this.getViewFactory())
+          : new DirectRecordingHomeController(home, this, this.getViewFactory()));
 }
