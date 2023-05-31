@@ -382,31 +382,31 @@ LocalFileHomeController.prototype.save = function() {
     savingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
     savingTaskDialog.displayView();
     
-	var controller = this;
+    var controller = this;
     setTimeout(function() {
-		var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
-	    controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
-	        homeSaved: function(home, blob) {
-	          savingTaskDialog.close(); 
-	          var downloadLink = document.createElement('a');
-	          downloadLink.setAttribute("style", "display: none");
-	          downloadLink.setAttribute("href", URL.createObjectURL(blob));
-	          downloadLink.setAttribute("download", homeName);
-	          document.body.appendChild(downloadLink);
-	          downloadLink.click();
-	          home.setModified(false);
-	          document.body.removeChild(downloadLink);
-	          URL.revokeObjectURL(downloadLink.getAttribute("href"));
-	        },
-	        homeError: function(status, error) {
-	          savingTaskDialog.close(); 
-	          console.log(error);
-	          new JSDialog(preferences, 
-	              preferences.getLocalizedString("HomePane", "error.title"),
-	              preferences.getLocalizedString("HomeController", "saveError", [homeName, error]),  
-	             { size: "small" }).displayView(); 
-	        }
-	      });
+        var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
+        controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
+            homeSaved: function(home, blob) {
+              savingTaskDialog.close(); 
+              var downloadLink = document.createElement('a');
+              downloadLink.setAttribute("style", "display: none");
+              downloadLink.setAttribute("href", URL.createObjectURL(blob));
+              downloadLink.setAttribute("download", homeName);
+              document.body.appendChild(downloadLink);
+              downloadLink.click();
+              home.setModified(false);
+              document.body.removeChild(downloadLink);
+              URL.revokeObjectURL(downloadLink.getAttribute("href"));
+            },
+            homeError: function(status, error) {
+              savingTaskDialog.close(); 
+              console.log(error);
+              new JSDialog(preferences, 
+                  preferences.getLocalizedString("HomePane", "error.title"),
+                  preferences.getLocalizedString("HomeController", "saveError", [homeName, error]),  
+                 { size: "small" }).displayView(); 
+            }
+          });
       }, 200);
   }
 }
@@ -532,6 +532,6 @@ SweetHome3DJSApplication.prototype.createHomeController = function(home) {
   return this.configuration === undefined || this.configuration.readHomeURL === undefined
       ? new LocalFileHomeController(home, this, this.getViewFactory())
       : (this.configuration.writeHomeEditsURL !== undefined
-      	  ? new HomeController(home, this, this.getViewFactory())
+          ? new HomeController(home, this, this.getViewFactory())
           : new DirectRecordingHomeController(home, this, this.getViewFactory()));
 }

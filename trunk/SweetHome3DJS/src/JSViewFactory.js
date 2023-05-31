@@ -216,11 +216,11 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
         importImage(this.files[0]);
       });
     component.registerEventListener(component.imageChoiceStep.preview, "drop", function(ev) {
-	    ev.preventDefault();
-	    importImage(ev.dataTransfer.files[0]);
+        ev.preventDefault();
+        importImage(ev.dataTransfer.files[0]);
       });
     component.registerEventListener(component.imageChoiceStep.preview, "dragover", function(ev) {
-	    ev.preventDefault();
+        ev.preventDefault();
       });
   }
 
@@ -887,11 +887,11 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         importImage(this.files[0]);
       });
     this.registerEventListener(this.previewPanel, "drop", function(ev) {
-	    ev.preventDefault();
-	    importImage(ev.dataTransfer.files[0]);
+        ev.preventDefault();
+        importImage(ev.dataTransfer.files[0]);
       });
     this.registerEventListener(this.previewPanel, "dragover", function(ev) {
-	    ev.preventDefault();
+        ev.preventDefault();
       });
   
     this.registerPropertyChangeListener(controller, "IMAGE", function(ev) {

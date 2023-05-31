@@ -508,5 +508,5 @@ FurnitureCatalogListPanel.prototype.dispose = function() {
   this.preferences.removePropertyChangeListener("LANGUAGE", this.languageChangeListener);
   this.clearFurnitureCatalog();
   this.container.removeChild(document.getElementById("furniture-filter"));
-  this.toolTipDiv.parentElement.removeChild(this.toolTipDiv);	
+  this.toolTipDiv.parentElement.removeChild(this.toolTipDiv);
 }

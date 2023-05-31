@@ -210,11 +210,11 @@ IncrementalHomeRecorder.prototype.checkPoint = function(home) {
  */
 IncrementalHomeRecorder.prototype.addHome = function(home, homeController) {
   if (this.configuration.writeHomeEditsURL !== undefined) {
-	if (homeController === undefined
-	    && this.application.getHomeController !== undefined) {
+    if (homeController === undefined
+        && this.application.getHomeController !== undefined) {
       // Keep backward compatibility
       homeController = this.application.getHomeController(home);
-	}
+    }
     if (home.editionId === undefined) {
       // Add an edition id to home to manage additional data required for the recorder
       home.editionId = HomeObject.createId("home");

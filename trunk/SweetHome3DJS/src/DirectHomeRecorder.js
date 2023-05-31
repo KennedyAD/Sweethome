@@ -69,7 +69,7 @@ DirectHomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   var localContents = [];
   // Keep only local contents which have to be saved
   this.searchContents(home, [], localContents, function(content) {
-	  return content instanceof LocalURLContent
+      return content instanceof LocalURLContent
           || (content.isJAREntry() && URLContent.fromURL(content.getJAREntryURL()) instanceof LocalURLContent);
     });
   
