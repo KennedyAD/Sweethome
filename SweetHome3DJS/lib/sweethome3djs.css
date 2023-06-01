@@ -216,7 +216,7 @@ button:disabled {
   padding-right: 4px;
   width: 100%;
   box-sizing: border-box;
-  z-index: 2;
+  z-index: 20;
   background-color: rgba(0, 0, 0, 0.1);
   padding-top: 1px;
   padding-bottom: 1px;
@@ -365,6 +365,7 @@ label {
 #catalog-furniture-pane {
   border: 1px solid gray;
   background-color: white;
+  z-index: 15;
 }
 
 .furniture-catalog-list {
