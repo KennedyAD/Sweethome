@@ -230,7 +230,7 @@ body {
       top: 0;
       left: 0;
       width: 100%;
-      height: calc(100% - 80px - 40px);
+      height: calc(100% - 78px - 40px);
     }
 
     #home-3D-view {
