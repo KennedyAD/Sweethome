@@ -960,7 +960,8 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
     this.addActionToToolBar(HomeView.ActionType.SAVE_AS, toolBar);
     this.addSeparator(toolBar); 
   } else {
-	if (toolBar.classList.contains("local-file-saving")) {
+    if (toolBar.classList.contains("local-file-saving")) {
+      this.addActionToToolBar(HomeView.ActionType.NEW_HOME, toolBar);
       this.addActionToToolBar(HomeView.ActionType.OPEN, toolBar);
       this.addActionToToolBar(HomeView.ActionType.SAVE, toolBar);
       this.addSeparator(toolBar); 

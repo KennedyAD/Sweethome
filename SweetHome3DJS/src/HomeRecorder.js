@@ -26,9 +26,14 @@
 /**
  * Creates a home recorder able to read homes from URLs.
  * @constructor
+ * @param {{compressionLevel: number,
+ *          includeAllContent: boolean,
+ *          writeDataType: string
+ *         }} [configuration] the recorder configuration
  * @author Emmanuel Puybaret
  */
-function HomeRecorder() {
+function HomeRecorder(configuration) {
+  this.configuration = configuration !== undefined ? configuration : {};
 }
 
 HomeRecorder.READING_HOME = "Reading home";
@@ -126,10 +131,10 @@ HomeRecorder.prototype.getHomeXMLHandler = function() {
  * @param {Home}   home saved home
  * @param {string} homeName the home name on the server 
  * @param {{homeSaved: function, homeError: function}} [observer]  The callbacks used to follow the export operation of the home.
- *           homeSaved will receive in its second parameter the blob containing the exported home with the resources it needs. 
+ *           homeSaved will receive in its second parameter the data containing the saved home with the resources it needs. 
  */
 HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
-  var compressionLevel = 1; // 0 to 9
+  var includeAllContent = this.configuration.includeAllContent !== undefined ? this.configuration.includeAllContent : true;
   var homeClone = home.clone();
   homeClone.setName(homeName);
   var contents = [];
@@ -138,27 +143,34 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   // Prepare saved content names
   var savedContentNames = {};
   var savedContentIndex = 0;
-  for (var i = 0; i < contents.length; i++) {
+  for (var i = contents.length - 1; i >= 0; i--) {
     var content = contents[i];
-    var subEntryName = "";
-    if (content.isJAREntry()) {
-      var entryName = content.getJAREntryName();
-      if (content instanceof HomeURLContent) {
-        var slashIndex = entryName.indexOf('/');
-        // If content comes from a directory of a home file
-        if (slashIndex > 0) {
-          // Retrieve entry name in zipped stream without the directory
-          subEntryName = entryName.substring(slashIndex);
+    if (content instanceof LocalURLContent
+        || content instanceof HomeURLContent
+        || content instanceof SimpleURLContent
+        || includeAllContent) {
+      var subEntryName = "";
+      if (content.isJAREntry()) {
+        var entryName = content.getJAREntryName();
+        if (content instanceof HomeURLContent) {
+          var slashIndex = entryName.indexOf('/');
+          // If content comes from a directory of a home file
+          if (slashIndex > 0) {
+            // Retrieve entry name in zipped stream without the directory
+            subEntryName = entryName.substring(slashIndex);
+          }
+        } else if (!(content instanceof SimpleURLContent)) {
+          // Retrieve entry name in zipped stream
+          subEntryName = "/" + entryName;
         }
-      } else if (!(content instanceof SimpleURLContent)) {
-        // Retrieve entry name in zipped stream
-        subEntryName = "/" + entryName;
       }
+  
+      // Build a relative URL that points to content object
+      var homeContentPath = savedContentIndex++ + subEntryName;
+      savedContentNames [content.getURL()] = homeContentPath; 
+    } else {
+	  contents.splice(i, 1);
     }
-
-    // Build a relative URL that points to content object
-    var homeContentPath = savedContentIndex++ + subEntryName;
-    savedContentNames [content.getURL()] = homeContentPath; 
   }
   
   var writer = new StringWriter(); 
@@ -170,45 +182,59 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   zipOut.file('Home.xml', writer.toString());
   
   if (contents.length > 0) {
+    var recorder = this;
     contents.reverse();
     for (var i = contents.length - 1; i >= 0; i--) {
       var content = contents[i];
       var contentEntryName = savedContentNames [content.getURL()];
-      var slashIndex = contentEntryName.indexOf('/');
-      if (slashIndex > 0) {
-        contentEntryName = contentEntryName.substring(0, slashIndex);
-      }
-      var contentObserver = {
-          contentSaved: function(content) {
-            contents.splice(contents.indexOf(content), 1);
-             if (contents.length === 0) {
-               var blob = zipOut.generate({type:'blob', 
-                   compression: compressionLevel > 0 ? "DEFLATE" : 'STORE', 
-                   compressionOptions: {level : compressionLevel}});
-               observer.homeSaved(home, blob);
-             }
-           }, 
-           contentError: function(status, error) {
-             observer.homeError(status, error);
-           }
-        };
-      if (!(content instanceof SimpleURLContent)
-          && content.isJAREntry()) {
-        if (content instanceof HomeURLContent) {
-          this.writeHomeZipEntries(zipOut, contentEntryName, content, contentObserver);
-        } else {
-          this.writeZipEntries(zipOut, contentEntryName, content, contentObserver);
+      if (contentEntryName !== undefined) {
+        var slashIndex = contentEntryName.indexOf('/');
+        if (slashIndex > 0) {
+          contentEntryName = contentEntryName.substring(0, slashIndex);
         }
-      } else {
-        this.writeZipEntry(zipOut, contentEntryName, content, contentObserver);
+        var contentObserver = {
+            contentSaved: function(content) {
+              contents.splice(contents.indexOf(content), 1);
+              if (contents.length === 0) {
+	            observer.homeSaved(home, recorder.generateZip(zipOut));
+              }
+            }, 
+            contentError: function(status, error) {
+              observer.homeError(status, error);
+            }
+          };
+        if (!(content instanceof SimpleURLContent)
+            && content.isJAREntry()) {
+          if (content instanceof HomeURLContent) {
+            this.writeHomeZipEntries(zipOut, contentEntryName, content, contentObserver);
+          } else {
+            this.writeZipEntries(zipOut, contentEntryName, content, contentObserver);
+          }
+        } else {
+          this.writeZipEntry(zipOut, contentEntryName, content, contentObserver);
+        }
       }
     }
   } else {
-    var blob = zipOut.generate({type:'blob', 
-        compression: compressionLevel > 0 ? "DEFLATE" : 'STORE', 
-        compressionOptions: {level : compressionLevel}});
-    observer.homeSaved(home, blob);
+	observer.homeSaved(home, this.generateZip(zipOut));
   }
+}
+
+/**
+ * Returns the zipped data in the given paramater.
+ * @param {JSZip} [zip] the zip instance containing data
+ * @returns the data zipped according to the configuration of this recorder. 
+ * @private
+ */
+HomeRecorder.prototype.generateZip = function(zip, observer) {
+  // Supported types: base64, array, uint8array, arraybuffer, blob
+  var dataType = this.configuration.writeDataType !== undefined ? this.configuration.writeDataType : "blob";
+  var compression = this.configuration.compressionLevel !== undefined && this.configuration.compressionLevel === 0 ? "STORE" : "DEFLATE";
+  var compressionLevel = this.configuration.compressionLevel !== undefined ? this.configuration.compressionLevel : 1;
+  return zip.generate({
+	  type:dataType, 
+      compression: compression, 
+      compressionOptions: {level : compressionLevel}});
 }
 
 /**

@@ -501,7 +501,7 @@ SweetHome3DJSApplication.prototype.getHomeController = function(home) {
 SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
   if (!this.homeRecorder) {
     this.homeRecorder = this.configuration === undefined || this.configuration.readHomeURL === undefined
-      ? new HomeRecorder()
+      ? new HomeRecorder(this.configuration)
       : (this.configuration.writeHomeEditsURL !== undefined
           ? new IncrementalHomeRecorder(this, this.configuration)
           : new DirectHomeRecorder(this.configuration));

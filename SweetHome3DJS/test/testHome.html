@@ -2760,7 +2760,14 @@ var application = useServer
                }
              }
           })
-    : new SweetHome3DJSApplication();
+    : new SweetHome3DJSApplication(
+          {furnitureCatalogURLs:     [ZIPTools.getScriptFolder() + "resources/DefaultFurnitureCatalog.json"],
+           furnitureResourcesURLBase: ZIPTools.getScriptFolder() + "../",
+           texturesCatalogURLs:      [ZIPTools.getScriptFolder() + "resources/DefaultTexturesCatalog.json"],
+           texturesResourcesURLBase:  ZIPTools.getScriptFolder() + "../",
+           includeAllContent: true,
+           compressionLevel: 0
+          });
 var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
 
 // Read and display test file 
