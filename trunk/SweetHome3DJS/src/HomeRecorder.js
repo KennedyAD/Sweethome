@@ -169,7 +169,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
       var homeContentPath = savedContentIndex++ + subEntryName;
       savedContentNames [content.getURL()] = homeContentPath; 
     } else {
-	  contents.splice(i, 1);
+      contents.splice(i, 1);
     }
   }
   
@@ -196,7 +196,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
             contentSaved: function(content) {
               contents.splice(contents.indexOf(content), 1);
               if (contents.length === 0) {
-	            observer.homeSaved(home, recorder.generateZip(zipOut));
+                observer.homeSaved(home, recorder.generateZip(zipOut));
               }
             }, 
             contentError: function(status, error) {
@@ -216,7 +216,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
       }
     }
   } else {
-	observer.homeSaved(home, this.generateZip(zipOut));
+    observer.homeSaved(home, this.generateZip(zipOut));
   }
 }
 
@@ -232,7 +232,7 @@ HomeRecorder.prototype.generateZip = function(zip, observer) {
   var compression = this.configuration.compressionLevel !== undefined && this.configuration.compressionLevel === 0 ? "STORE" : "DEFLATE";
   var compressionLevel = this.configuration.compressionLevel !== undefined ? this.configuration.compressionLevel : 1;
   return zip.generate({
-	  type:dataType, 
+      type:dataType, 
       compression: compression, 
       compressionOptions: {level : compressionLevel}});
 }
