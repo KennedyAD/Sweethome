@@ -31,7 +31,7 @@
  *          writeResourceURL: string,
  *          readResourceURL: string,
  *          listHomesURL: string,
- *          deleteHomeURL: string,
+ *          deleteHomeURL: string
  *         }} [configuration] the recorder configuration
  * @author Emmanuel Puybaret
  */
