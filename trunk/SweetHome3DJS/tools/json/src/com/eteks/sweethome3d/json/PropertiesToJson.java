@@ -118,17 +118,19 @@ public class PropertiesToJson {
 
       Map<String, Properties> localizationProperties = convert(sourceRoot, sourceProperties,
           outputDirectory, "localization", null, supportedLanguages);
+      convert("src", new String[] {"package"},
+          outputDirectory, "localization", localizationProperties, supportedLanguages);
       if (args.length > 1) {
         for (int i = 1; i < args.length; i += 2) {
           convert(args [i], new String [] {args [i + 1]},
               outputDirectory, "localization", localizationProperties, supportedLanguages);
         }
       }
-      convert(sourceRoot, new String[] { "com/eteks/sweethome3d/model/LengthUnit" },
+      convert(sourceRoot, new String[] {"com/eteks/sweethome3d/model/LengthUnit"},
           outputDirectory, "LengthUnit", null, null, null, false, true, supportedLanguages);
-      convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultFurnitureCatalog" },
+      convert(sourceRoot, new String[] {"com/eteks/sweethome3d/io/DefaultFurnitureCatalog"},
           outputDirectory, "DefaultFurnitureCatalog", null, outputDirectory + "/models", null, true, true, supportedLanguages);
-      convert(sourceRoot, new String[] { "com/eteks/sweethome3d/io/DefaultTexturesCatalog" },
+      convert(sourceRoot, new String[] {"com/eteks/sweethome3d/io/DefaultTexturesCatalog"},
           outputDirectory, "DefaultTexturesCatalog", null, outputDirectory + "/textures", null, true, true, supportedLanguages);
     }
   }
