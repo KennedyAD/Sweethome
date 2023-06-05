@@ -351,7 +351,7 @@ body {
 }
 
 /* Hide optional buttons when screen is too small */
-@media (max-width: 705px) {
+@media (max-width: 820px) {
 
   #home-pane-toolbar .toolbar-optional  {
     display: none;
