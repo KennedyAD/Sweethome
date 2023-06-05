@@ -271,7 +271,7 @@ button:disabled {
   opacity: 0.5;
 }
 
-@media (min-width: 800px) {
+@media (min-width: 940px) {
   #home-pane-toolbar {
     display: flex;
   }
@@ -291,7 +291,7 @@ button:disabled {
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 940px) {
   #home-pane-toolbar > .toolbar-button  {
     width: 24px;
   }
@@ -315,7 +315,7 @@ button:disabled {
     padding: 2px 0 0 0;
   }
   
-  @media (min-width: 800px) {
+  @media (min-width: 940px) {
     #home-pane-toolbar .toolbar-button-group {
       padding-right: 6px;
       margin-right: 6px;
@@ -1994,6 +1994,21 @@ label {
 .open-dialog .home-list .item.selected {
   background-color: #BBDDFF;
 }
+
+.about-dialog table {
+  margin-left: auto; 
+  margin-right: auto;
+}
+
+.about-dialog td {
+  vertical-align: top;
+  text-align: center; 
+}
+
+.about-dialog a {
+  color: blue;
+}
+
 
 /*
  * Tree table
