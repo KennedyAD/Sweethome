@@ -953,19 +953,26 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
   this.showApplicationMenuButton = toolBar.children[toolBar.children.length - 1].lastChild; 
   this.addSeparator(toolBar);
 
-  if (toolBar.classList.contains("direct-saving")) {
+  var fileButton = false;
+  if (toolBar.classList.contains("new-home")) {
     this.addActionToToolBar(HomeView.ActionType.NEW_HOME, toolBar);
+    fileButton = true;
+  } 
+  if (toolBar.classList.contains("open")) {
     this.addActionToToolBar(HomeView.ActionType.OPEN, toolBar);
+    fileButton = true;
+  } 
+  if (toolBar.classList.contains("save")) {
     this.addActionToToolBar(HomeView.ActionType.SAVE, toolBar);
+    fileButton = true;
+  } 
+  if (toolBar.classList.contains("save-as")) {
     this.addActionToToolBar(HomeView.ActionType.SAVE_AS, toolBar);
+    fileButton = true;
+  } 
+  if (fileButton) {
     this.addSeparator(toolBar); 
   } else {
-    if (toolBar.classList.contains("local-file-saving")) {
-      this.addActionToToolBar(HomeView.ActionType.NEW_HOME, toolBar);
-      this.addActionToToolBar(HomeView.ActionType.OPEN, toolBar);
-      this.addActionToToolBar(HomeView.ActionType.SAVE, toolBar);
-      this.addSeparator(toolBar); 
-    }
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
     this.addSeparator(toolBar);
@@ -1014,12 +1021,13 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
   this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
   this.addSeparator(toolBar);
-
-  if (toolBar.classList.contains("direct-saving")) {
+  if (fileButton) {
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
     this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
     this.addSeparator(toolBar);
   }
+  this.addActionToToolBar(HomeView.ActionType.ABOUT, toolBar);
+  this.addSeparator(toolBar);
 
   this.addActionToToolBar(HomeView.ActionType.PREFERENCES, toolBar); 
 
@@ -2222,16 +2230,40 @@ HomePane.prototype.showActionTipMessage = function(actionTipKey) {
 /**
  * Displays a dialog that lets user choose whether he wants to save
  * the current home or not.
- * @return {HomeView.SaveAnswer} {@link com.eteks.sweethome3d.viewcontroller.HomeView.SaveAnswer#SAVE}
- * if the user chose to save home,
- * {@link com.eteks.sweethome3d.viewcontroller.HomeView.SaveAnswer#DO_NOT_SAVE}
- * if he doesn't want to save home,
- * or {@link com.eteks.sweethome3d.viewcontroller.HomeView.SaveAnswer#CANCEL}
- * if he doesn't want to continue current operation.
+ * @return {@link com.eteks.sweethome3d.viewcontroller.HomeView.SaveAnswer#CANCEL}
  * @param {string} homeName
- * @ignore
+ * @param {function} saveHome callback with a boolean parameter equal to true if the user confirmed to save
+ * @ignore 
  */
-HomePane.prototype.confirmSave = function(homeName) {
+HomePane.prototype.confirmSave = function(homeName, saveHome) {
+  var message;
+  if (homeName != null) {
+    message = this.preferences.getLocalizedString("HomePane", "confirmSave.message", '"' + homeName + '"');
+  } else {
+    message = this.preferences.getLocalizedString("HomePane", "confirmSave.message", " ");
+  }
+
+  var confirmSavingDialog = new JSDialog(this.preferences, 
+      this.preferences.getLocalizedString("HomePane", "confirmSave.title"), 
+      message + "</font>", 
+      { 
+        size: "small", 
+        applier: function() {
+          saveHome(true);
+        }
+      });
+  confirmSavingDialog.findElement(".dialog-ok-button").innerHTML = 
+      this.preferences.getLocalizedString("HomePane", "confirmSave.save");
+  var cancelButton = confirmSavingDialog.findElement(".dialog-cancel-button");
+  cancelButton.innerHTML = this.preferences.getLocalizedString("HomePane", "confirmSave.cancel");
+  var doNotSaveButton = document.createElement("button");
+  doNotSaveButton.innerHTML = this.preferences.getLocalizedString("HomePane", "confirmSave.doNotSave");
+  confirmSavingDialog.registerEventListener(doNotSaveButton, "click", function() {
+      confirmSavingDialog.close();
+      saveHome(false);
+    });
+  cancelButton.parentElement.insertBefore(doNotSaveButton, cancelButton);
+  confirmSavingDialog.displayView();
   return HomeView.SaveAnswer.CANCEL;
 }
 
@@ -2243,7 +2275,7 @@ HomePane.prototype.confirmSave = function(homeName) {
  * @ignore
  */
 HomePane.prototype.confirmSaveNewerHome = function(homeName) {
-  return false;
+  return true;
 }
   
 /**
@@ -2258,9 +2290,16 @@ HomePane.prototype.confirmExit = function() {
 
 /**
  * Displays an about dialog.
- * @ignore
  */
 HomePane.prototype.showAboutDialog = function() {
+  var message = this.preferences.getLocalizedString("HomePane", "about.message", this.controller.getVersion());
+  var template = "<table><tr><td><img src='"+ ZIPTools.getScriptFolder() + this.preferences.getLocalizedString("HomePane", "about.icon") + "'></td>"
+                 + "<td>" + message + "</td></tr></table>";
+  var aboutDialog = new JSDialog(this.preferences, 
+      this.preferences.getLocalizedString("HomePane", "about.title"), 
+      template, { size: "medium" });
+  aboutDialog.getHTMLElement().classList.add("about-dialog");
+  aboutDialog.displayView();
 }
 
 /**

@@ -26,6 +26,161 @@
 
 
 /**
+ * Creates a home controller handling savings for local files.
+ * @param {Home} [home] the home controlled by this controller
+ * @param {HomeApplication} [application] 
+ * @param {ViewFactory} [viewFactory]
+ * @constructor
+ * @author Emmanuel Puybaret
+ * @ignore
+ */
+function LocalFileHomeController(home, application, viewFactory) {
+  HomeController.call(this, home, application, viewFactory);  
+}
+LocalFileHomeController.prototype = Object.create(HomeController.prototype);
+LocalFileHomeController.prototype.constructor = LocalFileHomeController;
+
+/**
+ * Creates a new home after closing the current home.
+ */
+LocalFileHomeController.prototype.newHome = function() {
+  var controller = this;
+  var newHomeTask = function() {
+      controller.close();
+      controller.application.addHome(controller.application.createHome());
+    };
+
+  if (this.home.isModified()) {
+    this.getView().confirmSave(this.home.getName(), function(save) {
+        if (save) {
+          controller.save(newHomeTask);
+        } else {
+          newHomeTask();
+        } 
+      });
+  } else {
+    newHomeTask();
+  }
+}
+
+/**
+ * Opens a home chosen by the user.
+ */
+LocalFileHomeController.prototype.open = function() {
+  var controller = this;
+  var openHome = function(homeName) {
+	  var fileInput = document.createElement('input');
+	  fileInput.setAttribute("style", "display: none");
+	  fileInput.setAttribute("type", "file");
+	  document.body.appendChild(fileInput);  
+	  fileInput.addEventListener("input", function(ev) {
+	      document.body.removeChild(fileInput);
+	      if (this.files[0]) {
+	        var homeName = this.files[0].name.substring(this.files[0].name.indexOf("/") + 1);
+	        controller.application.getHomeRecorder().readHome(URL.createObjectURL(this.files[0]), {
+	            homeLoaded: function(home) {
+	              home.setName(homeName);
+	              controller.close();
+	              controller.application.addHome(home);
+	            },
+	            homeError: function(error) {
+	              var message = controller.application.getUserPreferences().
+	                  getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
+	              console.error(error);
+	              alert(message);
+	            }
+	          });
+	      }
+	    }); 
+	  fileInput.click();
+	};
+
+  if (this.home.isModified()) {
+    this.getView().confirmSave(this.home.getName(), function(save) {
+        if (save) {
+          controller.save(openHome);
+        } else {
+          openHome();
+        } 
+      });
+  } else {
+    openHome();
+  }
+}
+
+/**
+ * Saves the home managed by this controller. If home name doesn't exist,
+ * this method will act as {@link #saveAs() saveAs} method.
+ * @param {function} [postSaveTask]
+ */
+LocalFileHomeController.prototype.save = function(postSaveTask) {
+  if (this.home.getName() == null) {
+    this.saveAs(postSaveTask);
+  } else {
+    var preferences = this.application.getUserPreferences();
+    var savingTaskDialog = new JSDialog(preferences, 
+        preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
+        preferences.getLocalizedString("HomeController", "saveMessage"), 
+        { size: "small" });
+    savingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
+    savingTaskDialog.displayView();
+    
+    var controller = this;
+    setTimeout(function() {
+        var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
+        controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
+            homeSaved: function(home, blob) {
+              savingTaskDialog.close(); 
+              var downloadLink = document.createElement('a');
+              downloadLink.setAttribute("style", "display: none");
+              downloadLink.setAttribute("href", URL.createObjectURL(blob));
+              downloadLink.setAttribute("download", homeName);
+              document.body.appendChild(downloadLink);
+              downloadLink.click();
+              document.body.removeChild(downloadLink);
+              URL.revokeObjectURL(downloadLink.getAttribute("href"));
+              home.setModified(false);
+              if (postSaveTask !== undefined) {
+	            postSaveTask();
+              }
+            },
+            homeError: function(status, error) {
+              savingTaskDialog.close(); 
+              console.log(error);
+              new JSDialog(preferences, 
+                  preferences.getLocalizedString("HomePane", "error.title"),
+                  preferences.getLocalizedString("HomeController", "saveError", [homeName, error]),  
+                 { size: "small" }).displayView(); 
+            }
+          });
+      }, 200);
+  }
+}
+
+/**
+ * Saves the home managed by this controller with a different name.
+ * @param {function} [postSaveTask]
+ */
+LocalFileHomeController.prototype.saveAs = function(postSaveTask) {
+  var preferences = this.application.getUserPreferences();
+  var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
+  var homeName = prompt(message);
+  if (homeName != null) {
+    this.home.setName(homeName + (homeName.indexOf('.') < 0 ? ".sh3x" : ""));
+    this.save(postSaveTask);    
+  }
+}
+
+/**
+ * Removes home from application homes list.
+ */
+LocalFileHomeController.prototype.close = function() {
+  this.application.deleteHome(this.home);  
+  this.getView().dispose();
+}
+
+
+/**
  * Creates a home controller handling savings from user interface.
  * @param {Home} [home] the home controlled by this controller
  * @param {HomeApplication} [application] 
@@ -51,7 +206,7 @@ DirectRecordingHomeController.prototype.newHome = function() {
     };
 
   if (this.home.isModified()) {
-    this.confirmSave(function(save) {
+    this.getView().confirmSave(this.home.getName(), function(save) {
         if (save) {
           controller.save(newHomeTask);
         } else {
@@ -170,7 +325,7 @@ DirectRecordingHomeController.prototype.open = function() {
     };  
   
   if (this.home.isModified()) {
-    this.confirmSave(function(save) {
+    this.getView().confirmSave(this.home.getName(), function(save) {
         if (save) {
           controller.save(selectHome);
         } else {
@@ -250,44 +405,6 @@ DirectRecordingHomeController.prototype.close = function() {
 }
 
 /**
- * Displays a dialog that lets user choose whether he wants to save
- * the current home or not, then calls <code>confirm</code>.
- * @param {function} confirm 
- * @private
- */
-DirectRecordingHomeController.prototype.confirmSave = function(confirm) {
-  var preferences = this.application.getUserPreferences();
-  var message;
-  if (this.home.getName() != null) {
-    message = preferences.getLocalizedString("HomePane", "confirmSave.message", '"' + this.home.getName() + '"');
-  } else {
-    message = preferences.getLocalizedString("HomePane", "confirmSave.message", " ");
-  }
-
-  var confirmSavingDialog = new JSDialog(preferences, 
-      preferences.getLocalizedString("HomePane", "confirmSave.title"), 
-      message + "</font>", 
-      { 
-        size: "small", 
-        applier: function() {
-          confirm(true);
-        }
-      });
-  confirmSavingDialog.findElement(".dialog-ok-button").innerHTML = 
-      preferences.getLocalizedString("HomePane", "confirmSave.save");
-  var cancelButton = confirmSavingDialog.findElement(".dialog-cancel-button");
-  cancelButton.innerHTML = preferences.getLocalizedString("HomePane", "confirmSave.cancel");
-  var doNotSaveButton = document.createElement("button");
-  doNotSaveButton.innerHTML = preferences.getLocalizedString("HomePane", "confirmSave.doNotSave");
-  confirmSavingDialog.registerEventListener(doNotSaveButton, "click", function() {
-      confirmSavingDialog.close();
-      confirm(false);
-    });
-  cancelButton.parentElement.insertBefore(doNotSaveButton, cancelButton);
-  confirmSavingDialog.displayView();
-}
-
-/**
  * Displays a dialog that lets user choose whether he wants to delete
  * a home or not, then calls <code>confirm</code>.
  * @param {function} confirm 
@@ -310,126 +427,6 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
   var cancelButton = confirmDeletionDialog.findElement(".dialog-cancel-button");
   cancelButton.innerHTML = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.cancel");
   confirmDeletionDialog.displayView();
-}
-
-
-/**
- * Creates a home controller handling savings for local files.
- * @param {Home} [home] the home controlled by this controller
- * @param {HomeApplication} [application] 
- * @param {ViewFactory} [viewFactory]
- * @constructor
- * @author Emmanuel Puybaret
- * @ignore
- */
-function LocalFileHomeController(home, application, viewFactory) {
-  HomeController.call(this, home, application, viewFactory);  
-}
-LocalFileHomeController.prototype = Object.create(HomeController.prototype);
-LocalFileHomeController.prototype.constructor = LocalFileHomeController;
-
-/**
- * Creates a new home after closing the current home.
- */
-LocalFileHomeController.prototype.newHome = function() {
-  this.close();
-  this.application.addHome(this.application.createHome());
-}
-
-/**
- * Opens a home chosen by the user.
- */
-LocalFileHomeController.prototype.open = function() {
-  var controller = this;
-  var fileInput = document.createElement('input');
-  fileInput.setAttribute("style", "display: none");
-  fileInput.setAttribute("type", "file");
-  document.body.appendChild(fileInput);  
-  fileInput.addEventListener("input", function(ev) {
-      document.body.removeChild(fileInput);
-      if (this.files[0]) {
-        var homeName = this.files[0].name.substring(this.files[0].name.indexOf("/") + 1);
-        controller.application.getHomeRecorder().readHome(URL.createObjectURL(this.files[0]), {
-            homeLoaded: function(home) {
-              home.setName(homeName);
-              controller.close();
-              controller.application.addHome(home);
-            },
-            homeError: function(error) {
-              var message = controller.application.getUserPreferences().
-                  getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
-              console.error(error);
-              alert(message);
-            }
-          });
-      }
-    }); 
-  fileInput.click();
-}
-
-/**
- * Saves the home managed by this controller. 
- */
-LocalFileHomeController.prototype.save = function() {
-  if (this.home.getName() == null) {
-    this.saveAs();
-  } else {
-    var preferences = this.application.getUserPreferences();
-    var savingTaskDialog = new JSDialog(preferences, 
-        preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
-        preferences.getLocalizedString("HomeController", "saveMessage"), 
-        { size: "small" });
-    savingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
-    savingTaskDialog.displayView();
-    
-    var controller = this;
-    setTimeout(function() {
-        var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
-        controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
-            homeSaved: function(home, blob) {
-              savingTaskDialog.close(); 
-              var downloadLink = document.createElement('a');
-              downloadLink.setAttribute("style", "display: none");
-              downloadLink.setAttribute("href", URL.createObjectURL(blob));
-              downloadLink.setAttribute("download", homeName);
-              document.body.appendChild(downloadLink);
-              downloadLink.click();
-              home.setModified(false);
-              document.body.removeChild(downloadLink);
-              URL.revokeObjectURL(downloadLink.getAttribute("href"));
-            },
-            homeError: function(status, error) {
-              savingTaskDialog.close(); 
-              console.log(error);
-              new JSDialog(preferences, 
-                  preferences.getLocalizedString("HomePane", "error.title"),
-                  preferences.getLocalizedString("HomeController", "saveError", [homeName, error]),  
-                 { size: "small" }).displayView(); 
-            }
-          });
-      }, 200);
-  }
-}
-
-/**
- * Saves the home managed by this controller with a different name.
- */
-LocalFileHomeController.prototype.saveAs = function() {
-  var preferences = this.application.getUserPreferences();
-  var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
-  var homeName = prompt(message);
-  if (homeName != null) {
-    this.home.setName(homeName + (homeName.indexOf('.') < 0 ? ".sh3x" : ""));
-    this.save();    
-  }
-}
-
-/**
- * Removes home from application homes list.
- */
-LocalFileHomeController.prototype.close = function() {
-  this.application.deleteHome(this.home);  
-  this.getView().dispose();
 }
 
 
