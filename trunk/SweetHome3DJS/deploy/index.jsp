@@ -144,6 +144,7 @@ body {
 
 #plan-3D-view-splitter {
   top: calc(50% - 2px);
+  left: 0;
   width: 100%;
 }
 
@@ -175,10 +176,6 @@ body {
  */
 @media (hover: none), (pointer: coarse) {
 
-  .pane-splitter {
-    display: none;
-  }
-
   body {
     margin: 5px;
     height: calc(100% - 10px);
@@ -199,153 +196,217 @@ body {
     height: calc(100% - 2px);
   }
 
-  #furniture-catalog {
-    height: 100%;
+  #furniture-plan-splitter {
+    width: 8px;
   }
 
-  #furniture-catalog-list {
-    height: calc(100% - 2.5em);
-    left: 0;
+  #catalog-furniture-splitter, #plan-3D-view-splitter {
+    height: 8px;
   }
-
-  #catalog-furniture-splitter {
-    display: none;
+  
+  #catalog-furniture-pane {
+    top: 0;
+    height: calc(100% - 42px);
   }
-
-  #furniture-view {
-    display: none;
+  
+  #furniture-plan-splitter  {
+    top: 0;
+    height: calc(100% - 40px);
   }
-
-  #home-plan:focus { 
-    outline: none; 
+  
+  #plan-3D-view-pane {
+    top: 0;
+    height: calc(100% - 41px);
   }
-
-  #home-3D-view:focus { 
+  
+  #catalog-furniture-pane {
+    border-bottom: 1px solid gray;
+  }
+  
+  #home-plan {
+    width: calc(100% - 1px);
+    height: calc(50% - 4px);
+    border-right: 1px solid gray; 
+  }
+  
+  #home-3D-view {
+    top: calc(50% + 4px);
+    width: calc(100% - 1px);
+    height: calc(50% - 4px);
+    border-right: 1px solid gray;
+  }
+  
+  #home-plan:focus, #home-3D-view:focus { 
     outline: none; 
   }
   
-  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-
-    #plan-3D-view-pane {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: calc(100% - 78px - 40px);
-    }
-
-    #home-3D-view {
-      top: 0;
-      width: calc(100% - 2px);
-      height: calc(50% - 2px - 4px);
-      border: 1px solid gray;
-    }
-
-    #plan-3D-view-splitter {
-      display: initial;
-      top: calc(50% - 4px);
-      left: 0;
-      width: calc(100%);
-      height: 8px;
-    }
-
-    #home-plan {
-      top: calc(50% - 1px + 4px);
-      width: calc(100% - 2px);
-      height: calc(50% - 1px - 4px);
-      border: 1px solid gray;
-    }
+  .popup-menu .item * {
+    font-size: 17px;
+  }
+  
+  .tree-table {
+    font-size: 0.85em;
+  }
+  
+  .furniture > .furniture-label {
+    bottom: 0.58em;
+    font-size: 0.8em;
+  }
+  
+  /* Small touch devices like smartphones */
+  @media (max-width: 767px), (max-height: 511px) {
+    .pane-splitter { 
+      display: none; 
+    } 
     
-    /* Funiture catalog horizontal layout */
-
-    #catalog-furniture-pane {
-      top: calc(100% - 40px - 80px);
-      left: 0px;
-      width: calc(100% - 2px);
-      height: 78px;
-      overflow-x: scroll; 
-      overflow-y: hidden; 
-    }
-
     #furniture-catalog {
-      width: 100%;
-    }
-
-    #furniture-catalog-list {
-      width: 100%;
       height: 100%;
-      overflow-x: scroll;
-      overflow-y: hidden;
-      white-space: nowrap;
     }
-
-    .furniture-category-label {
+  
+    #furniture-catalog-list {
+      height: calc(100% - 2.5em);
+      left: 0;
+    }
+  
+    #catalog-furniture-splitter, #furniture-view {
       display: none;
     }
-
-    .furniture {
-      margin-top: 0px;
-      margin-bottom: 0px;
-      white-space: normal;
+  
+    #furniture-view {
+      display: none;
+    }
+  
+    #home-plan:focus { 
+      outline: none; 
+    }
+  
+    #home-3D-view:focus { 
+      outline: none; 
     }
     
-    .furniture > .furniture-icon {
-      top: 3px;
+    @media (orientation: portrait), (max-aspect-ratio: 5/4) {
+  
+      #plan-3D-view-pane {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 78px - 40px);
+      }
+  
+      #home-3D-view {
+        top: 0;
+        width: calc(100% - 2px);
+        height: calc(50% - 2px - 4px);
+        border: 1px solid gray;
+      }
+  
+      #plan-3D-view-splitter {
+        display: initial;
+        top: calc(50% - 4px);
+        left: 0;
+        width: calc(100%);
+        height: 8px;
+      }
+  
+      #home-plan {
+        top: calc(50% - 1px + 4px);
+        width: calc(100% - 2px);
+        height: calc(50% - 1px - 4px);
+        border: 1px solid gray;
+      }
+      
+      /* Funiture catalog horizontal layout */
+  
+      #catalog-furniture-pane {
+        top: calc(100% - 40px - 80px);
+        left: 0px;
+        width: calc(100% - 2px);
+        height: 78px;
+        overflow-x: scroll; 
+        overflow-y: hidden; 
+      }
+  
+      #furniture-catalog {
+        width: 100%;
+      }
+  
+      #furniture-catalog-list {
+        width: 100%;
+        height: 100%;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        white-space: nowrap;
+      }
+  
+      .furniture-category-label {
+        display: none;
+      }
+  
+      .furniture {
+        margin-top: 0px;
+        margin-bottom: 0px;
+        white-space: normal;
+      }
+      
+      .furniture > .furniture-icon {
+        top: 3px;
+      }
+  
+      .furniture > .furniture-label {
+        z-index: 2;
+        text-shadow: white 0px -2px;
+      }
+  
+      .furniture-category-separator {
+        display: inline-block;
+        height: 80px;
+        padding-right: 10px;
+        margin-right: 10px;
+        border-right: dashed 1px rgba(0, 0, 0, 0.4);
+      }
     }
-
-    .furniture > .furniture-label {
-      z-index: 2;
-      text-shadow: white 0px -2px;
-    }
-
-    .furniture-category-separator {
-      display: inline-block;
-      height: 80px;
-      padding-right: 10px;
-      margin-right: 10px;
-      border-right: dashed 1px rgba(0, 0, 0, 0.4);
-    }
-  }
-
-  @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
-
-    #catalog-furniture-pane {
-      top: 0;
-      left: 0;
-      width: 150px;
-      height: calc(100% - 40px - 2px);
-      overflow-x: hidden; 
-      overflow-y: scroll; 
-    }
-
-    #plan-3D-view-pane {
-      top: 0;
-      left: 150px;
-      width: calc(100% - 150px);
-      height: calc(100% - 40px);
-    }
-
-    #home-plan {
-      top: 0;
-      width: calc(50% - 4px);
-      height: calc(100% - 2px);
-      border: 1px solid gray;
-    }
-
-    #plan-3D-view-splitter {
-      display: initial;
-      top: 0;
-      left: calc(50% - 4px);
-      width: 8px;
-      height: calc(100%);
-    }
-
-    #home-3D-view {
-      top: 0;
-      left: calc(50%  + 4px);
-      width: calc(50% - 4px);
-      height: calc(100% - 2px);
-      border: 1px solid gray; 
-      border-left: 0px; 
+  
+    @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+  
+      #catalog-furniture-pane {
+        top: 0;
+        left: 0;
+        width: 150px;
+        height: calc(100% - 40px - 2px);
+        overflow-x: hidden; 
+        overflow-y: scroll; 
+      }
+  
+      #plan-3D-view-pane {
+        top: 0;
+        left: 150px;
+        width: calc(100% - 150px);
+        height: calc(100% - 40px);
+      }
+  
+      #home-plan {
+        top: 0;
+        width: calc(50% - 4px);
+        height: calc(100% - 2px);
+        border: 1px solid gray;
+      }
+  
+      #plan-3D-view-splitter {
+        display: initial;
+        top: 0;
+        left: calc(50% - 4px);
+        width: 8px;
+        height: calc(100%);
+      }
+  
+      #home-3D-view {
+        top: 0;
+        left: calc(50%  + 4px);
+        width: calc(50% - 4px);
+        height: calc(100% - 2px);
+        border: 1px solid gray; 
+        border-left: 0px; 
+      }
     }
   }
 }
@@ -357,6 +418,7 @@ body {
     display: none;
   }
 }
+
 
 </style>
 </head>
