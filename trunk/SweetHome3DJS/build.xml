@@ -294,7 +294,7 @@
           <replacestring from="core.js" to="core.min.js  version ${version}" />
         </tokenfilter>
       </filterchain>
-      <file name="dist/build/core.min.js" />
+      <file file="dist/build/core.min.js" />
     </concat>
     <!-- Add core.js GNU GPL header to geom.min.js -->
     <concat destfile="dist/geom.min.js" encoding="UTF-8">
@@ -307,19 +307,19 @@
       </filterchain>
     </concat>
     <concat destfile="dist/geom.min.js" encoding="UTF-8" append="true">
-      <file name="lib/generated/geom.js" />
+      <file file="lib/generated/geom.js" />
       <filterchain>
         <headfilter lines="1" skip="13" />
       </filterchain>
     </concat>
     <concat destfile="dist/geom.min.js" encoding="UTF-8" append="true">
-      <file name="dist/build/geom.min.js" />
+      <file file="dist/build/geom.min.js" />
     </concat>
     <!-- Add THIRDPARTY-LICENSE-BATIK.TXT to dist/batik-svgpathparser.min.js -->
     <concat destfile="dist/batik-svgpathparser.min.js" encoding="UTF-8">
       <header filtering="no" trimleading="yes">/*
       </header>
-      <file name="THIRDPARTY-LICENSE-BATIK.TXT" />
+      <file file="THIRDPARTY-LICENSE-BATIK.TXT" />
       <filterchain>
         <headfilter lines="3" skip="14" />
       </filterchain>
@@ -327,13 +327,13 @@
     <concat destfile="dist/batik-svgpathparser.min.js" encoding="UTF-8" append="true">
       <header filtering="no" trimleading="yes">*/
       </header>
-      <file name="lib/generated/batik-svgpathparser.js" />
+      <file file="lib/generated/batik-svgpathparser.js" />
       <filterchain>
         <headfilter lines="1" skip="5" />
       </filterchain>
     </concat>
     <concat destfile="dist/batik-svgpathparser.min.js" encoding="UTF-8" append="true">
-      <file name="dist/build/batik-svgpathparser.min.js" />
+      <file file="dist/build/batik-svgpathparser.min.js" />
     </concat>
 
     <concat destfile="dist/triangulator.min.js" encoding="UTF-8">
@@ -344,7 +344,7 @@
           <replacestring from="Triangulator.js" to="triangulator.min.js  version ${version}" />
         </tokenfilter>
       </filterchain>
-      <file name="dist/build/triangulator.min.js" />
+      <file file="dist/build/triangulator.min.js" />
     </concat>
     <copy file="lib/stroke.min.js" todir="dist" />
     <copy file="lib/big.min.js" todir="dist" />
@@ -385,7 +385,7 @@
           <replacestring from="viewModel.js" to="viewmodel.min.js  version ${version}" />
         </tokenfilter>
       </filterchain>
-      <file name="dist/build/viewmodel.min.js" />
+      <file file="dist/build/viewmodel.min.js" />
     </concat>
     <!-- Add viewHome.js GNU GPL header to viewhome.min.js -->
     <concat destfile="dist/viewhome.min.js" encoding="UTF-8">
@@ -396,7 +396,7 @@
           <replacestring from="viewHome.js" to="viewhome.min.js  version ${version}" />
         </tokenfilter>
       </filterchain>
-      <file name="dist/build/viewhome.min.js" />
+      <file file="dist/build/viewhome.min.js" />
     </concat>
 
     <!-- Clean build -->
@@ -442,13 +442,13 @@
       </filterchain>
     </concat>
     <concat destfile="dist/swingundo.min.js" encoding="UTF-8" append="true">
-      <file name="lib/generated/swingundo.js" />
+      <file file="lib/generated/swingundo.js" />
       <filterchain>
         <headfilter lines="1" skip="5" />
       </filterchain>
     </concat>
     <concat destfile="dist/swingundo.min.js" encoding="UTF-8" append="true">
-      <file name="dist/build/swingundo.min.js" />
+      <file file="dist/build/swingundo.min.js" />
     </concat>
     <!-- Add graphics2d.js GNU GPL header to graphics2d.min.js -->
     <concat destfile="dist/graphics2d.min.js" encoding="UTF-8">
@@ -459,7 +459,7 @@
           <replacestring from="graphics2d.js" to="graphics2d.min.js  version ${version}" />
         </tokenfilter>
       </filterchain>
-      <file name="dist/build/graphics2d.min.js" />
+      <file file="dist/build/graphics2d.min.js" />
     </concat>
     <!-- Add header.js GNU GPL header to sweethome3d.min.js -->
     <copy file="dist/build/sweethome3d.min.js" tofile="dist/sweethome3d.min.js"/>
@@ -471,7 +471,7 @@
           <replacestring from="SweetHome3DJSApplication.js" to="sweethome3d.min.js  version ${version}" />
         </tokenfilter>
       </filterchain>
-      <file name="dist/build/sweethome3d.min.js" />
+      <file file="dist/build/sweethome3d.min.js" />
     </concat>
 
     <!-- Clean build -->
