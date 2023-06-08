@@ -424,8 +424,8 @@ label {
 .furniture > .furniture-label {
   font-family: Arial;
   position: absolute;
-  bottom: 0.3em;
-  font-size: 0.7em;
+  bottom: 0.4em;
+  font-size: 0.75em;
   line-height: 95%;
   width: 70px;
   text-align: center;
@@ -494,22 +494,21 @@ label {
     height: 1.35em;
   }
 	
-  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-    /* Small touch devices like smartphones */
-    @media (max-width: 767px), (max-height: 511px) {
+  /* Small touch devices like smartphones */
+  @media (max-width: 767px), (max-height: 511px) {
+    @media (orientation: portrait), (max-aspect-ratio: 5/4) {
       #furniture-category-select {
         display: none;
       }
   
       #furniture-search-field {
-        background-position: 0px 1px;
         font-size: 0.8em;
         width: 25px;
         height: 1.3em;
         position: relative;
         z-index: 2;
         margin-bottom: -20px;
-        top: 5px;
+        top: 3px;
         left: 1px;
       }
   
