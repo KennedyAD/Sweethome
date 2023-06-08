@@ -1065,14 +1065,15 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
  * @private
  */
 HomePane.prototype.createToolBar = function(home, preferences, controller) {
+  var applicationMenuToolBar = document.getElementById("application-menu-toolbar");
+
+  this.startToolBarButtonGroup(applicationMenuToolBar);
+  this.addActionToToolBar("SHOW_APPLICATION_MENU", applicationMenuToolBar);
+  this.showApplicationMenuButton = applicationMenuToolBar.children[applicationMenuToolBar.children.length - 1].lastChild; 
+
   var toolBar = document.getElementById("home-pane-toolbar"); 
   this.toolBarDefaultChildren = Array.prototype.slice.call(toolBar.children);
-
   this.startToolBarButtonGroup(toolBar);
-  this.addActionToToolBar("SHOW_APPLICATION_MENU", toolBar);
-  this.showApplicationMenuButton = toolBar.children[toolBar.children.length - 1].lastChild; 
-  this.addSeparator(toolBar);
-
   var fileButton = false;
   if (toolBar.classList.contains("new-home")) {
     this.addActionToToolBar(HomeView.ActionType.NEW_HOME, toolBar);
@@ -1092,11 +1093,11 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
   } 
   if (fileButton) {
     this.addSeparator(toolBar); 
-  } else {
-    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
-    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
-    this.addSeparator(toolBar);
   }
+   
+  this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
+  this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
+  this.addSeparator(toolBar);
 
   this.addActionToToolBar(HomeView.ActionType.UNDO, toolBar); 
   this.addActionToToolBar(HomeView.ActionType.REDO, toolBar); 
@@ -1141,11 +1142,6 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
   this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
   this.addSeparator(toolBar);
-  if (fileButton) {
-    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_TOP, toolBar); 
-    this.addToggleActionToToolBar(HomeView.ActionType.VIEW_FROM_OBSERVER, toolBar);
-    this.addSeparator(toolBar);
-  }
   this.addActionToToolBar(HomeView.ActionType.ABOUT, toolBar);
   this.addSeparator(toolBar);
 
@@ -2595,8 +2591,13 @@ HomePane.prototype.dispose = function() {
     splitter.element.removeEventListener("touchstart", splitter.mouseListener.mousePressed, true);
     window.removeEventListener("resize", splitter.mouseListener.windowResized);
   }
+  var applicationMenuToolBar = document.getElementById("application-menu-toolbar");
+  var toolBarChildren = applicationMenuToolBar.children;
+  for (var i = toolBarChildren.length - 1; i >= 0; i--) {
+    applicationMenuToolBar.removeChild(toolBarChildren [i]);
+  } 
   var toolBar = document.getElementById("home-pane-toolbar");
-  var toolBarChildren = toolBar.children;
+  toolBarChildren = toolBar.children;
   for (var i = toolBarChildren.length - 1; i >= 0; i--) {
     if (this.toolBarDefaultChildren.indexOf(toolBarChildren [i]) < 0) {
       toolBar.removeChild(toolBarChildren [i]);
