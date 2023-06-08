@@ -436,13 +436,20 @@ body {
 }
 
 /* Hide optional buttons when screen is too small */
-@media (max-width: 820px) {
+@media (max-width: 712px) {
 
   #home-pane-toolbar .toolbar-optional  {
     display: none;
   }
 }
 
+@media (hover: none), (pointer: coarse) {
+  @media (max-width: 800px) {
+    #home-pane-toolbar .toolbar-optional  {
+      display: none;
+    }
+  }
+}
 
 </style>
 </head>
