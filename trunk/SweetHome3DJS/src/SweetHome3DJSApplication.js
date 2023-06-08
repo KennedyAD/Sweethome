@@ -140,8 +140,10 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
                 downloadLink.setAttribute("download", homeName);
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
-                document.body.removeChild(downloadLink);
-                URL.revokeObjectURL(downloadLink.getAttribute("href"));
+                setTimeout(function() {
+                    document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(downloadLink.getAttribute("href"));
+                  }, 500);
               }
               home.setModified(false);
               if (postSaveTask !== undefined) {
