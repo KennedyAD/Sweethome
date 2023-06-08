@@ -101,7 +101,7 @@ body {
 
 #home-plan::selection { background: #0042E0; }
 
-#home-pane-toolbar, 
+#application-menu-toolbar, #home-pane-toolbar, 
 #catalog-furniture-pane, #furniture-catalog, #catalog-furniture-splitter, #furniture-view, 
 #furniture-plan-splitter, #plan-3D-view-pane, #home-plan, #plan-3D-view-splitter, #home-3D-view {
   position: absolute;
@@ -110,6 +110,10 @@ body {
 /*
  * No-touch devices common CSS
  */
+#application-menu-toolbar {
+  display: none;
+}
+
 #home-pane-toolbar {
   top: 0;
   height: 30px;
@@ -226,12 +230,32 @@ body {
     display: none;
   }
 
-  #home-pane-toolbar {
+  #application-menu-toolbar {
+    display: flex;
     top: calc(100% - 40px);
     height: 40px;
+    width: calc(28px + 15px);
+  }
+  
+  #home-pane-toolbar {
+    left: calc(28px + 20px);
+    top: calc(100% - 40px);
+    height: 40px;
+    width: calc(100% - 28px - 20px);
   }
 
-  #home-pane-toolbar .toolbar-button {
+  @media (max-width: 940px) {
+    #application-menu-toolbar {
+      width: calc(28px + 11px);
+    }
+  
+    #home-pane-toolbar {
+      left: calc(28px + 13px);
+      width: calc(100% - 28px - 13px);
+    }
+  }
+
+  .toolbar .toolbar-button {
     margin-top: 0px;
     height: calc(100% - 2px);
   }
@@ -359,7 +383,7 @@ body {
   
       #catalog-furniture-pane {
         top: calc(100% - 40px - 80px);
-        left: 0px;
+        left: 0;
         width: calc(100% - 2px);
         height: 78px;
         overflow-x: scroll; 
@@ -465,7 +489,7 @@ body {
 
 <!--  HTML Elements of the user interface -->
 <div id="home-pane">
-  <div id="home-pane-toolbar" class="new-home open save save-as"></div>
+  <div id="application-menu-toolbar" class="toolbar"></div><div id="home-pane-toolbar" class="toolbar new-home open save save-as"></div>
 
   <div id="catalog-furniture-pane">
     <div id="furniture-catalog"><div id="furniture-catalog-list" class="furniture-catalog-list"></div></div>
