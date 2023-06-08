@@ -227,6 +227,7 @@ button:disabled {
   overflow:hidden;
   background-color: rgba(255, 255, 255, 0.5);
   width: 28px;
+  background-size: 60%; 
   opacity: 1;
 }
 
@@ -287,6 +288,7 @@ button:disabled {
 @media (max-width: 940px) {
   .toolbar .toolbar-button  {
     width: 24px;
+    background-size: 65%; 
   }
 
   .toolbar .toolbar-button-group {
