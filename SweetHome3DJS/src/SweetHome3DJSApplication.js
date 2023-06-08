@@ -131,14 +131,18 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
         controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
             homeSaved: function(home, blob) {
               savingTaskDialog.close(); 
-              var downloadLink = document.createElement('a');
-              downloadLink.setAttribute("style", "display: none");
-              downloadLink.setAttribute("href", URL.createObjectURL(blob));
-              downloadLink.setAttribute("download", homeName);
-              document.body.appendChild(downloadLink);
-              downloadLink.click();
-              document.body.removeChild(downloadLink);
-              URL.revokeObjectURL(downloadLink.getAttribute("href"));
+              if (navigator.msSaveOrOpenBlob !== undefined) {
+                navigator.msSaveOrOpenBlob(blob, homeName);
+              } else {
+                var downloadLink = document.createElement('a');
+                downloadLink.setAttribute("style", "display: none");
+                downloadLink.setAttribute("href", URL.createObjectURL(blob));
+                downloadLink.setAttribute("download", homeName);
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(downloadLink.getAttribute("href"));
+              }
               home.setModified(false);
               if (postSaveTask !== undefined) {
 	            postSaveTask();
