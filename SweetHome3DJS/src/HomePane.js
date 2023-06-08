@@ -2262,7 +2262,6 @@ HomePane.prototype.confirmSave = function(homeName, saveHome) {
       this.preferences.getLocalizedString("HomePane", "confirmSave.title"), 
       message + "</font>", 
       { 
-        size: "small", 
         applier: function() {
           saveHome(true);
         }

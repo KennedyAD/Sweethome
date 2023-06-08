@@ -261,7 +261,6 @@ DirectRecordingHomeController.prototype.open = function() {
                 '  </div>';
               var fileDialog = new JSDialog(preferences, "@{FileContentManager.openDialog.title}", html, 
                 {
-                  size: "small",
                   applier: function(dialog) {
                     var selectedItem = fileDialog.findElement(".selected");
                     if (selectedItem != null) {
@@ -421,7 +420,6 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
       preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.title"), 
       message + "</font>", 
       { 
-        size: "small", 
         applier: function() {
           confirm();
         }
