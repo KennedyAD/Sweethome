@@ -451,12 +451,14 @@ label {
 }
 
 .furniture-tooltip {
-  background-color: rgba(128, 128, 128, 0.8);
+  background-color: rgba(164, 164, 164, 0.90);
+  padding: 2px;
   border: solid black 1px;
   color: white;
   font-family: Arial;
   font-size: 11px;
   box-shadow: 2px 2px 4px #777777;
+  z-index: 16;
 }
 
 #furniture-filter {

@@ -49,7 +49,6 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.toolTipDiv.classList.add("furniture-tooltip");
   this.toolTipDiv.style.display = "none";
   this.toolTipDiv.style.position = "absolute";
-  this.toolTipDiv.style.zIndex = 10;
   document.body.appendChild(this.toolTipDiv);
 
   // Filtering
