@@ -1253,7 +1253,7 @@ DefaultPatternTexture.prototype.equals = function (obj) {
  *          writeResourceURL: string,
  *          readResourceURL: string,
  *          writePreferencesResourceURL: string,
- *          readPreferencesUResourceRL: string,
+ *          readPreferencesResourceURL: string,
  *          userLanguage: string,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
@@ -1261,7 +1261,7 @@ DefaultPatternTexture.prototype.equals = function (obj) {
  *                            connectionFound: Function, 
  *                            connectionLost: Function}
  *         }} [configuration] preferences configuration.
- *              If configuration.writePreferencesResourceURL / configuration.readPreferencesUResourceRL is missing,
+ *              If configuration.writePreferencesResourceURL / configuration.readPreferencesResourceURL is missing,
  *              configuration.writeResourceURL / configuration.readResourceURL will be used.
  * @constructor
  * @extends UserPreferences
