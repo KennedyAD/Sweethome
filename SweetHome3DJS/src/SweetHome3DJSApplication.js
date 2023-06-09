@@ -448,7 +448,7 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
  *          writePreferencesURL: string,
  *          readPreferencesURL: string,
  *          writePreferencesResourceURL: string,
- *          readPreferencesUResourceRL: string,
+ *          readPreferencesResourceURL: string,
  *          pingURL: string,
  *          autoWriteDelay: number,
  *          trackedHomeProperties: string[],
@@ -461,7 +461,7 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
  *                            connectionLost: Function}}  [configuration] 
  *              the URLs of resources and services required on server
  *              (if undefined, will use local files for testing).
- *              If writePreferencesResourceURL / readPreferencesUResourceRL is missing,
+ *              If writePreferencesResourceURL / readPreferencesResourceURL is missing,
  *              writeResourceURL / readResourceURL will be used.
  * @constructor
  * @author Emmanuel Puybaret
