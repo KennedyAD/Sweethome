@@ -1055,100 +1055,102 @@ HTMLCanvas3D.prototype.drawScene = function() {
       backgroundColor.length === 4 ? backgroundColor [3] : 1.);
   this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
   
-  // Set lights
-  var ambientLightColor = vec3.create();
-  var directionalLightCount = 0;
-  var directionalLightColors = [];
-  var lightDirections = [];
-  var viewPlatformInvertedTransform = mat4.invert(mat4.create(), this.viewPlatformTransform);
-  var transform = mat4.create();
-  for (var i = 0; i < this.lights.length; i++) {
-    var light = this.lights [i];
-    if (light.direction !== undefined) {
-      // Adjust direction (if lights should be a fixed place, use an identity transform instead of viewPlatformTransform)
-      var lightDirection = vec3.transformMat3(vec3.create(), light.direction, 
-          mat3.fromMat4(mat3.create(), mat4.mul(transform, viewPlatformInvertedTransform, light.transform)));
-      vec3.normalize(lightDirection, lightDirection);
-      vec3.negate(lightDirection, lightDirection);
-      directionalLightColors.push.apply(directionalLightColors, light.color);
-      lightDirections.push.apply(lightDirections, lightDirection);
-      directionalLightCount++;
-    } else {
-      // Compute total ambient light
-      vec3.add(ambientLightColor, ambientLightColor, light.color); 
-    }
-  }
-  this.gl.uniform1i(this.shaderProgram.directionalLightCount, directionalLightCount);
-  if (directionalLightCount < HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT) {
-    // Complete arrays to HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT
-    directionalLightColors.push.apply(directionalLightColors, new Array((HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT - directionalLightCount) * 3));
-    lightDirections.push.apply(lightDirections, new Array((HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT - directionalLightCount) * 3));
-  }
-  this.gl.uniform3fv(this.shaderProgram.directionalLightColors, directionalLightColors);
-  this.gl.uniform3fv(this.shaderProgram.lightDirections, lightDirections);
-  
-  // Convert horizontal field of view to vertical
-  var verticalFieldOfView = 2 * Math.atan(this.viewportHeight / this.viewportWidth * Math.tan(this.fieldOfView / 2));
-  // First draw background geometries (contained in a unit sphere)
-  var projectionTransform = mat4.create();
-  if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
-    mat4.ortho(projectionTransform, -1., 1., -1., 1., 0.001, 1.);
-  } else {
-    mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight, 
-        0.001, 1.0);
-  }
-  this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
-  // Translate to center
-  var backgroundTransform = mat4.clone(this.viewPlatformTransform);
-  backgroundTransform[12] = 0.
-  backgroundTransform[13] = 0;
-  backgroundTransform[14] = 0;
-  var backgroundInvertedTransform = mat4.invert(mat4.create(), backgroundTransform);
-  for (var i = 0; i < this.backgroundGeometries.length; i++) {
-    var backgroundGeometry = this.backgroundGeometries [i];
-    this.drawGeometry(backgroundGeometry, backgroundInvertedTransform, ambientLightColor, backgroundGeometry.lightingEnabled, true, true);
-  }
-
-  // Reset depth buffer to draw the scene above background
-  this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
-  this.getVirtualWorldToImageTransform(projectionTransform);
-  this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
-
-  // Second draw opaque geometries
-  this.gl.enable(this.gl.DEPTH_TEST);
-  var transparentGeometries = [];
-  for (var i = 0; i < this.sceneGeometries.length; i++) {
-    var geometry = this.sceneGeometries [i];
-    if (geometry.visible) {
-      if ((geometry.transparency === undefined
-              || geometry.transparency === 1)
-          && (geometry.texture === undefined
-              || geometry.texture.image === undefined
-              || !geometry.texture.image.transparent)) {
-        this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
-      } else if (geometry.transparency > 0) {
-        transparentGeometries.push(geometry);
+  if (this.scene !== null) {
+    // Set lights
+    var ambientLightColor = vec3.create();
+    var directionalLightCount = 0;
+    var directionalLightColors = [];
+    var lightDirections = [];
+    var viewPlatformInvertedTransform = mat4.invert(mat4.create(), this.viewPlatformTransform);
+    var transform = mat4.create();
+    for (var i = 0; i < this.lights.length; i++) {
+      var light = this.lights [i];
+      if (light.direction !== undefined) {
+        // Adjust direction (if lights should be a fixed place, use an identity transform instead of viewPlatformTransform)
+        var lightDirection = vec3.transformMat3(vec3.create(), light.direction, 
+            mat3.fromMat4(mat3.create(), mat4.mul(transform, viewPlatformInvertedTransform, light.transform)));
+        vec3.normalize(lightDirection, lightDirection);
+        vec3.negate(lightDirection, lightDirection);
+        directionalLightColors.push.apply(directionalLightColors, light.color);
+        lightDirections.push.apply(lightDirections, lightDirection);
+        directionalLightCount++;
+      } else {
+        // Compute total ambient light
+        vec3.add(ambientLightColor, ambientLightColor, light.color); 
       }
     }
-  }
+    this.gl.uniform1i(this.shaderProgram.directionalLightCount, directionalLightCount);
+    if (directionalLightCount < HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT) {
+      // Complete arrays to HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT
+      directionalLightColors.push.apply(directionalLightColors, new Array((HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT - directionalLightCount) * 3));
+      lightDirections.push.apply(lightDirections, new Array((HTMLCanvas3D.MAX_DIRECTIONAL_LIGHT - directionalLightCount) * 3));
+    }
+    this.gl.uniform3fv(this.shaderProgram.directionalLightColors, directionalLightColors);
+    this.gl.uniform3fv(this.shaderProgram.lightDirections, lightDirections);
+    
+    // Convert horizontal field of view to vertical
+    var verticalFieldOfView = 2 * Math.atan(this.viewportHeight / this.viewportWidth * Math.tan(this.fieldOfView / 2));
+    // First draw background geometries (contained in a unit sphere)
+    var projectionTransform = mat4.create();
+    if (this.projectionPolicy === HTMLCanvas3D.PARALLEL_PROJECTION) {
+      mat4.ortho(projectionTransform, -1., 1., -1., 1., 0.001, 1.);
+    } else {
+      mat4.perspective(projectionTransform, verticalFieldOfView, this.viewportWidth / this.viewportHeight, 
+          0.001, 1.0);
+    }
+    this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
+    // Translate to center
+    var backgroundTransform = mat4.clone(this.viewPlatformTransform);
+    backgroundTransform[12] = 0.
+    backgroundTransform[13] = 0;
+    backgroundTransform[14] = 0;
+    var backgroundInvertedTransform = mat4.invert(mat4.create(), backgroundTransform);
+    for (var i = 0; i < this.backgroundGeometries.length; i++) {
+      var backgroundGeometry = this.backgroundGeometries [i];
+      this.drawGeometry(backgroundGeometry, backgroundInvertedTransform, ambientLightColor, backgroundGeometry.lightingEnabled, true, true);
+    }
   
-  // Then draw geometries which are transparent or use a transparent texture 
-  this.gl.enable(this.gl.BLEND);
-  this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
-  // Sort transparent geometries from the farthest to the closest
-  var center = vec3.create();
-  for (var i = 0; i < transparentGeometries.length; i++) {
-    var geometry = transparentGeometries [i];
-    vec3.transformMat4(center, geometry.center, geometry.transform);
-    vec3.transformMat4(center, center, viewPlatformInvertedTransform);
-    geometry.zOrder = center [2];
-  }
-  transparentGeometries.sort(function(geometry1, geometry2) {
-      return geometry1.zOrder - geometry2.zOrder;
-    });
-  for (var i = 0; i < transparentGeometries.length; i++) {
-    var geometry = transparentGeometries [i];
-    this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
+    // Reset depth buffer to draw the scene above background
+    this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
+    this.getVirtualWorldToImageTransform(projectionTransform);
+    this.gl.uniformMatrix4fv(this.shaderProgram.projectionTransform, false, projectionTransform);
+  
+    // Second draw opaque geometries
+    this.gl.enable(this.gl.DEPTH_TEST);
+    var transparentGeometries = [];
+    for (var i = 0; i < this.sceneGeometries.length; i++) {
+      var geometry = this.sceneGeometries [i];
+      if (geometry.visible) {
+        if ((geometry.transparency === undefined
+                || geometry.transparency === 1)
+            && (geometry.texture === undefined
+                || geometry.texture.image === undefined
+                || !geometry.texture.image.transparent)) {
+          this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
+        } else if (geometry.transparency > 0) {
+          transparentGeometries.push(geometry);
+        }
+      }
+    }
+    
+    // Then draw geometries which are transparent or use a transparent texture 
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
+    // Sort transparent geometries from the farthest to the closest
+    var center = vec3.create();
+    for (var i = 0; i < transparentGeometries.length; i++) {
+      var geometry = transparentGeometries [i];
+      vec3.transformMat4(center, geometry.center, geometry.transform);
+      vec3.transformMat4(center, center, viewPlatformInvertedTransform);
+      geometry.zOrder = center [2];
+    }
+    transparentGeometries.sort(function(geometry1, geometry2) {
+        return geometry1.zOrder - geometry2.zOrder;
+      });
+    for (var i = 0; i < transparentGeometries.length; i++) {
+      var geometry = transparentGeometries [i];
+      this.drawGeometry(geometry, viewPlatformInvertedTransform, ambientLightColor, geometry.lightingEnabled, true, true);
+    }
   }
   
   // Keep track of the number of frames drawn per second
@@ -1458,6 +1460,8 @@ HTMLCanvas3D.prototype.clear = function() {
     this.gl.deleteTexture(this.textures [i]);
   }
   this.textures = [];
+  this.gl.deleteTexture(this.errorTexture);
+  this.errorTexture = null;
   
   this.clearGeometries(this.sharedGeometries);
   this.clearGeometries(this.sceneGeometries);
@@ -1468,6 +1472,13 @@ HTMLCanvas3D.prototype.clear = function() {
     this.gl.deleteFramebuffer(this.pickingFrameBuffer);
     delete this.pickingFrameBuffer;
   }
+  
+  var shaders = this.gl.getAttachedShaders(this.shaderProgram);
+  for (var i = 0; i < shaders.length; i++) {
+    this.gl.detachShader(this.shaderProgram, shaders [i]);
+  }
+  
+  this.scene = null;
   this.repaint();
 }
 
