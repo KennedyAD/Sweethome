@@ -36,7 +36,7 @@
  * @author Emmanuel Puybaret
  */
 function DirectHomeRecorder(configuration) {
-  this.configuration = configuration !== undefined ? configuration : {};
+  HomeRecorder.call(this, configuration);
 }
 DirectHomeRecorder.prototype = Object.create(HomeRecorder.prototype);
 DirectHomeRecorder.prototype.constructor = DirectHomeRecorder;
@@ -88,7 +88,6 @@ DirectHomeRecorder.prototype.writeHome = function(home, homeName, observer) {
             + "  var zip = new JSZip();"
             + "  zip.file('Home.xml', ev.data);"
             + "  postMessage(zip.generate({type:'blob', compression:'DEFLATE', compressionOptions: {level : 9}}));"
-            + "  URL.revokeObjectURL(ev.data);"
             + "}"], 
             { type: 'text/plain' });
         var worker = new Worker(URL.createObjectURL(blob));
