@@ -562,7 +562,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
                                 edit,
                                 newObjects,
                                 newObjectList,
-                                ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent", "additionalProperties"], 
+                                ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent"], 
                                 [UserPreferences, PlanController, Home],
                                 [Boolean, String, Number]);
   if (newObjectList.length > 0) {
