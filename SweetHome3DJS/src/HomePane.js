@@ -1748,6 +1748,18 @@ HomePane.prototype.setEnabled = function(actionType, enabled) {
 }
 
 /**
+ * Enables or disables the action matching <code>actionType</code>.
+ * @param {String} actionType
+ * @param {boolean} enabled
+ */
+HomePane.prototype.setActionEnabled = function(actionType, enabled) {
+  var action = this.getAction(actionType);
+  if (action != null) {
+    action.setEnabled(enabled);
+  }
+}
+
+/**
  * Sets the <code>NAME</code> and <code>SHORT_DESCRIPTION</code> properties value
  * of undo and redo actions. If a parameter is null,
  * the properties will be reset to their initial values.

@@ -212,7 +212,6 @@
         <file name="scene3d.js"/>
         <file name="HTMLCanvas3D.js"/>
         <file name="CoreTools.js"/>
-        <file name="URLContent.js"/>
         <file name="ModelLoader.js"/>
         <file name="OBJLoader.js"/>
         <file name="DAELoader.js"/>
@@ -231,7 +230,6 @@
         <file name="TextureManager.js"/>
         <file name="LengthUnit.js"/>
         <file name="UserPreferences.js"/>
-        <file name="HomeRecorder.js"/>
       	<file name="ResourceAction.js"/>
         <file name="PlanComponent.js"/>
         <file name="HomePane.js"/>
@@ -251,6 +249,17 @@
     </concat>
   </target>
 
+  <target name="recorderWorkerConcat"
+          description="Concat recorder Javacript files in dist/build directory">
+    <mkdir dir="dist/build" />
+    <concat destfile="dist/build/recorderworker.min.js" encoding="UTF-8">
+      <filelist dir="src">
+        <file name="URLContent.js"/>
+        <file name="HomeRecorder.js"/>
+      </filelist>
+    </concat>
+  </target>
+		
   <target name="commonLibrariesDistribution"
           description="Builds minified Javacript files common to viewer and application in dist directory">
     <!-- Download and build YUI Compressor -->
@@ -405,7 +414,7 @@
     <echo message="Javascript viewer files in dist ready for ftp" />
   </target>
 
-  <target name="applicationDistribution" depends="applicationConcat, commonLibrariesDistribution"
+  <target name="applicationDistribution" depends="applicationConcat, recorderWorkerConcat, commonLibrariesDistribution"
           description="Builds application minified Javacript files in dist directory">
     <!-- Find full name of YUI Compressor jar -->
     <path id="yuicompressor.jar">
@@ -424,6 +433,11 @@
       <arg value="src/graphics2d.js" />
       <arg value="-o" />
       <arg value="dist/build/graphics2d.min.js" />
+    </java>
+    <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
+      <arg value="dist/build/recorderworker.min.js" />
+      <arg value="-o" />
+      <arg value="dist/build/recorderworker.min.js" />
     </java>
     <java jar="${yuicompressor.jar}" fork="true" failonerror="true">
       <arg value="dist/build/sweethome3d.min.js" />
@@ -460,6 +474,18 @@
         </tokenfilter>
       </filterchain>
       <file file="dist/build/graphics2d.min.js" />
+    </concat>
+    <!-- Add header.js GNU GPL header to recorderworker.min.js -->
+    <copy file="dist/build/recorderworker.min.js" tofile="dist/recorderworker.min.js"/>
+    <concat destfile="dist/recorderworker.min.js" encoding="UTF-8">
+      <header file="src/SweetHome3DJSApplication.js" />
+      <filterchain>
+        <headfilter lines="19" />
+        <tokenfilter>
+          <replacestring from="SweetHome3DJSApplication.js" to="recorderworker.min.js  version ${version}" />
+        </tokenfilter>
+      </filterchain>
+      <file file="dist/build/recorderworker.min.js" />
     </concat>
     <!-- Add header.js GNU GPL header to sweethome3d.min.js -->
     <copy file="dist/build/sweethome3d.min.js" tofile="dist/sweethome3d.min.js"/>

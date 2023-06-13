@@ -24,7 +24,6 @@
 // Requires HomePane.js
 // Requires JSViewFactory.js
 
-
 /**
  * Creates a home controller handling savings for local files.
  * @param {Home} [home] the home controlled by this controller
@@ -121,15 +120,28 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
     var savingTaskDialog = new JSDialog(preferences, 
         preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
         preferences.getLocalizedString("HomeController", "saveMessage"), 
-        { size: "small" });
-    savingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
+          { 
+	        size: "small", 
+            disposer: function(dialog) { 
+              if (dialog.writingOperation !== undefined) { 
+                dialog.writingOperation.abort(); 
+              } 
+            } 
+          });
+    if (this.application.getHomeRecorder().configuration && this.application.getHomeRecorder().configuration.writeHomeWithWorker) {
+      savingTaskDialog.findElement(".dialog-cancel-button").innerHTML = 
+          ResourceAction.getLocalizedLabelText(preferences, "ThreadedTaskPanel", "cancelButton.text");
+    } else {
+     savingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
+    }
     savingTaskDialog.displayView();
     
     var controller = this;
+    var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
     setTimeout(function() {
-        var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
-        controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
+        savingTaskDialog.writingOperation = controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
             homeSaved: function(home, blob) {
+              delete savingTaskDialog.writingOperation;
               savingTaskDialog.close(); 
               if (navigator.msSaveOrOpenBlob !== undefined) {
                 navigator.msSaveOrOpenBlob(blob, homeName);
@@ -152,14 +164,14 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
             },
             homeError: function(status, error) {
               savingTaskDialog.close(); 
-              console.log(error);
+              console.log(status + " " + error);
               new JSDialog(preferences, 
                   preferences.getLocalizedString("HomePane", "error.title"),
-                  preferences.getLocalizedString("HomeController", "saveError", [homeName, error]),  
+                  preferences.getLocalizedString("HomeController", "saveError", homeName, status + "<br>" + error),  
                  { size: "small" }).displayView(); 
             }
           });
-      }, 200);
+      }, 200); // Add a little delay to ensure savingTaskDialog is displayed immediately and when no worker started
   }
 }
 
@@ -355,14 +367,14 @@ DirectRecordingHomeController.prototype.save = function(postSaveTask) {
     var savingTaskDialog = new JSDialog(preferences, 
         preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
         preferences.getLocalizedString("HomeController", "saveMessage"), 
-        { 
-          size: "small", 
-          disposer: function(dialog) { 
-            if (dialog.writingOperation !== undefined) { 
-              dialog.writingOperation.abort(); 
+          { 
+            size: "small", 
+            disposer: function(dialog) { 
+              if (dialog.writingOperation !== undefined) { 
+                dialog.writingOperation.abort(); 
+              } 
             } 
-          } 
-        });
+          });
     savingTaskDialog.findElement(".dialog-cancel-button").innerHTML = 
         ResourceAction.getLocalizedLabelText(preferences, "ThreadedTaskPanel", "cancelButton.text");
     savingTaskDialog.displayView();

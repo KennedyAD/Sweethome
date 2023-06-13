@@ -2870,9 +2870,10 @@ var application = useServer
            texturesCatalogURLs:      [ZIPTools.getScriptFolder() + "resources/DefaultTexturesCatalog.json"],
            texturesResourcesURLBase:  ZIPTools.getScriptFolder() + "../",
            includeAllContent: true,
-           compressionLevel: 0
+           compressionLevel: 0,
+           writeHomeWithWorker: true
           });
-var homeName = useServer ? "HomeTest" : "test/resources/HomeTest.sh3d";
+var homeName = useServer ? "HomeTest" : window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/resources/HomeTest.sh3d";
 
 // Read and display test file 
 // TODO Should be performed in HomeController.open

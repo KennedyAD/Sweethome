@@ -58,38 +58,40 @@ URLContent.fromURL = function(url) {
  * Returns the URL of this content.
  * @return {string}
  */
-URLContent.prototype.getURL = function(observer) {
-  var httpsSchemeIndex = this.url.indexOf("https://");
-  var httpSchemeIndex = this.url.indexOf("http://");
-  if (httpsSchemeIndex !== -1
-      || httpSchemeIndex !== -1) {
-    var scripts = document.getElementsByTagName("script");
-    if (scripts && scripts.length > 0) {
-      var scriptUrl = document.getElementsByTagName("script") [0].src;
-      var scriptColonSlashIndex = scriptUrl.indexOf("://");
-      var scriptScheme = scriptUrl.substring(0, scriptColonSlashIndex);
-      var scheme = httpsSchemeIndex !== -1  ? "https"  : "http";
-      // If scheme is different from script one, replace scheme and port with script ones to avoid CORS issues
-      if (scriptScheme != scheme) {
-        var scriptServer = scriptUrl.substring(scriptColonSlashIndex + "://".length, scriptUrl.indexOf("/", scriptColonSlashIndex + "://".length));
-        var scriptPort = "";
-        var colonIndex = scriptServer.indexOf(":");
-        if (colonIndex > 0) {
-          scriptPort = scriptServer.substring(colonIndex);
-          scriptServer = scriptServer.substring(0, colonIndex);
-        }
-        var schemeIndex = httpsSchemeIndex !== -1  ? httpsSchemeIndex  : httpSchemeIndex;
-        var colonSlashIndex = this.url.indexOf("://", schemeIndex);
-        var fileIndex = this.url.indexOf("/", colonSlashIndex + "://".length);
-        var server = this.url.substring(colonSlashIndex + "://".length, fileIndex);
-        if (server.indexOf(":") > 0) {
-          server = server.substring(0, server.indexOf(":"));
-        }
-        if (scriptServer == server) {
-          return this.url.substring(0, schemeIndex) + scriptScheme + "://" + scriptServer + scriptPort + this.url.substring(fileIndex); 
+URLContent.prototype.getURL = function() {
+  if (typeof document !== "undefined") {
+    var httpsSchemeIndex = this.url.indexOf("https://");
+    var httpSchemeIndex = this.url.indexOf("http://");
+    if (httpsSchemeIndex !== -1
+        || httpSchemeIndex !== -1) {
+      var scripts = document.getElementsByTagName("script");
+      if (scripts && scripts.length > 0) {
+        var scriptUrl = document.getElementsByTagName("script") [0].src;
+        var scriptColonSlashIndex = scriptUrl.indexOf("://");
+        var scriptScheme = scriptUrl.substring(0, scriptColonSlashIndex);
+        var scheme = httpsSchemeIndex !== -1  ? "https"  : "http";
+        // If scheme is different from script one, replace scheme and port with script ones to avoid CORS issues
+        if (scriptScheme != scheme) {
+          var scriptServer = scriptUrl.substring(scriptColonSlashIndex + "://".length, scriptUrl.indexOf("/", scriptColonSlashIndex + "://".length));
+          var scriptPort = "";
+          var colonIndex = scriptServer.indexOf(":");
+          if (colonIndex > 0) {
+            scriptPort = scriptServer.substring(colonIndex);
+            scriptServer = scriptServer.substring(0, colonIndex);
+          }
+          var schemeIndex = httpsSchemeIndex !== -1  ? httpsSchemeIndex  : httpSchemeIndex;
+          var colonSlashIndex = this.url.indexOf("://", schemeIndex);
+          var fileIndex = this.url.indexOf("/", colonSlashIndex + "://".length);
+          var server = this.url.substring(colonSlashIndex + "://".length, fileIndex);
+          if (server.indexOf(":") > 0) {
+            server = server.substring(0, server.indexOf(":"));
+          }
+          if (scriptServer == server) {
+            return this.url.substring(0, schemeIndex) + scriptScheme + "://" + scriptServer + scriptPort + this.url.substring(fileIndex); 
+          }
         }
       }
-    }
+    } 
   } 
   
   return this.url;
@@ -406,7 +408,6 @@ LocalURLContent.convertBlobToBase64 = function(blob, observer) {
   reader.readAsDataURL(blob);
   return reader;
 }
-
 
 /**
  * Content read from the URL of a <code>Blob</code> instance.
@@ -929,7 +930,7 @@ ZIPTools.isTransparentImage = function(imageData) {
 
 /**
  * Returns the folder where a given Javascript .js file was read from.
- * @param {string} [script] the URL of a script used in the program  
+ * @param {string|RegExp} [script] the URL of a script used in the program  
  * @package
  * @ignore
  */
@@ -938,14 +939,19 @@ ZIPTools.getScriptFolder = function(script) {
     // Consider this script is always here because ZIPTools itself requires it
     script = "jszip.min.js"; 
   }
-  var baseUrl = "http://www.sweethome3d.com/libjs/"; 
   // Search the base URL of this script
-  var scripts = document.getElementsByTagName("script");      
-  for (var i = 0; i < scripts.length; i++) {
-    if (scripts[i].src.indexOf(script) !== -1) {
-      baseUrl = scripts[i].src.substring(0, scripts[i].src.lastIndexOf("/") + 1);
-      break;
+  if (typeof document !== "undefined") {
+    var scripts = document.getElementsByTagName("script");      
+    for (var i = 0; i < scripts.length; i++) {
+      if (script instanceof RegExp && scripts[i].src.match(script)
+          || typeof script === "string" && scripts[i].src.indexOf(script) !== -1) {
+        return scripts[i].src.substring(0, scripts[i].src.lastIndexOf("/") + 1);
+      }
     }
+    
+    if (scripts.length > 0) {
+      return scripts[0].src.substring(0, scripts[0].src.lastIndexOf("/") + 1);
+    } 
   }
-  return baseUrl;
+  return "https://www.sweethome3d.com/libjs/";
 }
