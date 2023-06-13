@@ -41,6 +41,7 @@
 <script type="text/javascript" src="lib/batik-svgpathparser.min.js"></script>
 <script type="text/javascript" src="lib/triangulator.min.js"></script>
 <script type="text/javascript" src="lib/graphics2d.min.js"></script>
+<script type="text/javascript" src="lib/recorderworker.min.js" id="recorder-worker"></script>
 <script type="text/javascript" src="lib/sweethome3d.min.js"></script>
 <link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
 <style type="text/css">
