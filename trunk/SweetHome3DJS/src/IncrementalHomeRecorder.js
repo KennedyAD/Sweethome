@@ -48,9 +48,8 @@
  * @author Louis Grignon
  */
 function IncrementalHomeRecorder(application, configuration) {
-  HomeRecorder.call(this);
+  HomeRecorder.call(this, configuration);
   this.application = application;
-  this.configuration = configuration !== undefined ? configuration : {};
   this.homeData = {};
   this.online = true;
   var pingDelay = 10000;
@@ -563,7 +562,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
                                 edit,
                                 newObjects,
                                 newObjectList,
-                                ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent"], 
+                                ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent", "additionalProperties"], 
                                 [UserPreferences, PlanController, Home],
                                 [Boolean, String, Number]);
   if (newObjectList.length > 0) {
