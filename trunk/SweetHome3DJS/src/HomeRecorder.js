@@ -446,7 +446,7 @@ HomeRecorder.prototype.writeHomeZipEntries = function(zipOut, entryNameOrDirecto
             {
               zipReady : function(zip) {
                 try {
-                  var entries = zip.file(new RegExp(entryDirectory + ".*")).reverse();
+                  var entries = zip.file(new RegExp("^" + entryDirectory + ".*")).reverse();
                   for (var i = entries.length - 1; i >= 0 ; i--) {
                     var zipEntry = entries [i];
                     var siblingContent = new URLContent("jar:" + zipUrl + "!/" 
@@ -644,7 +644,6 @@ HomeRecorder.prototype.searchContents = function(object, homeObjects, contents, 
  * @ignored
  */
 HomeRecorder.prototype.getContentDigest = function(content, digestObserver) {
-  var abortableOperations = {};
   var contentDigest = HomeRecorder.contentDigestsCache [content.getURL()];
   if (contentDigest === undefined) {
     var recorder = this;
@@ -659,7 +658,7 @@ HomeRecorder.prototype.getContentDigest = function(content, digestObserver) {
               var entryDirectory = entryName.substring(0, slashIndex + 1);
               var contentData = new Uint8Array(0);
               var entries = slashIndex > 0 || !(content instanceof HomeURLContent) 
-                  ? zip.file(new RegExp(entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name < entry2.name }) // Reverse order
+                  ? zip.file(new RegExp("^" + entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name < entry2.name }) // Reverse order
                   : [zip.file(entryName)];
               
               for (var i = entries.length - 1; i >= 0 ; i--) {
