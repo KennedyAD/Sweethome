@@ -35,6 +35,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -204,6 +205,12 @@ public class HomeEditsDeserializer {
       JSONObject jsonObject = (JSONObject)jsonValue;
       String jsonObjectType = jsonObject.has("_type")
           ? jsonObject.getString("_type") : null;
+      Class<?> jsonObjectClass;
+      try {
+        jsonObjectClass = jsonObjectType != null ? Class.forName(jsonObjectType) : null;
+      } catch (ReflectiveOperationException ex) {
+        jsonObjectClass = null;
+      }
       if (DefaultPatternTexture.class.getName().equals(jsonObjectType)) {
         try {
           value = this.preferences.getPatternsCatalog().getPattern(jsonObject.getString("name"));
@@ -213,8 +220,8 @@ public class HomeEditsDeserializer {
       } else if (valueClass != null
                  && BigDecimal.class.isAssignableFrom(valueClass)) {
         value = new BigDecimal(jsonObject.getString("value"));
-      } else if (valueClass != null
-                 && Content.class.isAssignableFrom(valueClass)) {
+      } else if (valueClass != null && Content.class.isAssignableFrom(valueClass)
+                 || valueClass == Object.class && jsonObjectClass != null && Content.class.isAssignableFrom(jsonObjectClass)) {
         String url = jsonObject.getString("url");
         try {
           if (SimpleURLContent.class.getName().equals(jsonObjectType)) {
@@ -244,7 +251,7 @@ public class HomeEditsDeserializer {
         } catch (MalformedURLException ex) {
           throw new IllegalArgumentException("Can't build URL ", ex);
         }
-      } else if (Map.class.isAssignableFrom(valueClass) ) {
+      } else if (Map.class.isAssignableFrom(valueClass)) {
         value = deserializeMap(valueClass, (JSONObject)jsonValue, undo);
       } else {
         value = deserializeObject(valueClass, (JSONObject)jsonValue, undo);
@@ -280,7 +287,7 @@ public class HomeEditsDeserializer {
   }
 
   private Map<String, Object> deserializeMap(Class<?> type, JSONObject jsonMap, boolean undo) throws ReflectiveOperationException {
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new LinkedHashMap<String, Object>();
     for (String key : jsonMap.keySet()) {
       map.put(key, deserialize(Object.class, jsonMap.get(key), undo));
     }

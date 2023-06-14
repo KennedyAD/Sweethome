@@ -560,6 +560,7 @@ IncrementalHomeRecorder.prototype.storeEdit = function(home, edit, undoAction) {
   var processedEdit = this.substituteIdentifiableObjects(
                                 home,
                                 edit,
+                                null,
                                 newObjects,
                                 newObjectList,
                                 ["object3D", "hasBeenDone", "alive", "presentationNameKey", "__parent"], 
@@ -651,11 +652,11 @@ IncrementalHomeRecorder.prototype.rollbackUpdate = function(home, update, status
 /** 
  * @private 
  */
-IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home, origin, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes) {
+IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home, origin, parent, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes) {
   if (Array.isArray(origin)) {
     var destination = origin.slice(0);
     for (var i = 0; i < origin.length; i++) {
-      destination[i] = this.substituteIdentifiableObjects(home, origin[i], newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+      destination[i] = this.substituteIdentifiableObjects(home, origin[i], origin, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
     }
     return destination;
   } else if (origin instanceof Big) {
@@ -673,7 +674,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
           origin.isJAREntry() 
               ? URLContent.fromURL("jar:" + localContent.getSavedContent().getURL() + "!/" + origin.getJAREntryName())
               : localContent.getSavedContent(), 
-          newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+          parent, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
     } else {
       // Prepare blob and resource file name used in saveBlobs 
       var blob = localContent.getBlob();
@@ -692,7 +693,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
           origin.isJAREntry() 
               ? URLContent.fromURL("jar:" + localContent.getSavedContent().getURL() + "!/" + origin.getJAREntryName())
               : localContent.getSavedContent(), 
-          newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+          parent, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
       destination.resourceFileName = resourceFileName;
       destination.blob = blob;
       return destination;
@@ -713,7 +714,9 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
     }
     if (origin.constructor 
         && origin.constructor.__class
-        && origin.constructor.__class != "com.eteks.sweethome3d.tools.URLContent") { // Don't write default class of content
+        && (origin.constructor.__class != "com.eteks.sweethome3d.tools.URLContent"
+            || parent === undefined
+            || parent.constructor === Object)) { // Don't write default class of content except if origin's parent is a map
       destination._type = origin.constructor.__class;
     }
 
@@ -727,7 +730,7 @@ IncrementalHomeRecorder.prototype.substituteIdentifiableObjects = function(home,
         var propertyValue = origin[propertyName];
         if (typeof propertyValue !== 'function' 
             && !skippedTypes.some(function(skippedType) { return propertyValue instanceof skippedType; })) {
-          destination[propertyName] = this.substituteIdentifiableObjects(home, propertyValue, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
+          destination[propertyName] = this.substituteIdentifiableObjects(home, propertyValue, origin, newObjects, newObjectList, skippedPropertyNames, skippedTypes, preservedTypes);
         }
       }
     }
