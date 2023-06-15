@@ -286,7 +286,7 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
               }
             });
         } else if (url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
-          // Parse URL of the form indexeddb://database/objectstore?keyPathField=name&contentField=content&dateField=date&name=key
+          // Parse URL of the form indexeddb://database/objectstore?keyPathField=name&contentField=content&name=key
           var databaseNameIndex = url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) + IndexedDBURLContent.INDEXED_DB_PREFIX.length;
           var slashIndex = url.indexOf('/', databaseNameIndex);
           var questionMarkIndex = url.indexOf('?', slashIndex + 1);
@@ -296,7 +296,6 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
           var key = "";
           var keyPathField = "";
           var contentField = "";
-          var dateField = "";
           for (var i = 0; i < fields.length; i++) {
             var value = fields [i].substring(fields [i].indexOf('=') + 1);
             switch (fields [i].substring(0, fields [i].indexOf('='))) {
@@ -305,9 +304,6 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                 break;
               case "contentField": 
                 contentField = value; 
-                break;
-              case "dateField" : 
-                dateField = value; 
                 break;
             }
           }
@@ -335,7 +331,6 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                 var storedResource = {};
                 storedResource [keyPathField] = key;
                 storedResource [contentField] = blob;
-                storedResource [dateField] = Date.now();
                 var query = store.put(storedResource);
                 query.addEventListener("error", function(ev) { 
                     if (observer.blobError !== undefined) {
@@ -647,7 +642,7 @@ IndexedDBURLContent.prototype.getBlob = function(observer) {
         var ampersandIndex = url.indexOf('&', equalIndex + 1);
         var databaseName = url.substring(databaseNameIndex, firstPathSlashIndex);
         var objectStore = url.substring(firstPathSlashIndex + 1, secondPathSlashIndex);
-        var field = url.substring(secondPathSlashIndex + 1, questionMarkIndex);
+        var contentField = url.substring(secondPathSlashIndex + 1, questionMarkIndex);
         var keyPathField = url.substring(questionMarkIndex + 1, equalIndex);
         var key = decodeURIComponent(url.substring(equalIndex + 1, ampersandIndex > 0 ? ampersandIndex : url.length));
         var request = indexedDB.open(databaseName, 1);
@@ -674,8 +669,8 @@ IndexedDBURLContent.prototype.getBlob = function(observer) {
                 }); 
               query.addEventListener("success", function(ev) {
                   if (ev.target.result !== undefined) {
-                    urlContent.blob = ev.target.result [field];
-                    urlContent.blobUrl = URL.createObjectURL(urlContent.blob)
+                    urlContent.blob = ev.target.result [contentField];
+                    urlContent.blobUrl = URL.createObjectURL(urlContent.blob);
                     if (observer.blobReady !== undefined) {
                       observer.blobReady(urlContent.blob);
                     }
@@ -830,7 +825,7 @@ ZIPTools.getZIP = function(url, synchronous, zipObserver) {
                         && request.response != null) {
                       try {
                         ZIPTools.runningRequests.splice(ZIPTools.runningRequests.indexOf(request), 1);
-                        var zip = new JSZip(request.response);
+                        var zip = new JSZip(request.response);                        
                         ZIPTools.openedZips [url] = zip;
                         zipObserver.zipReady(ZIPTools.openedZips [url]); 
                       } catch (ex) {
