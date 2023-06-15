@@ -286,16 +286,17 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
               }
             });
         } else if (url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
-          // Parse URL of the form indexeddb://database/objectstore?keyPathField=name&contentField=content&name=key
+          // Parse URL of the form indexeddb://database/objectstore?keyPathField=name&contentField=content&dateField=date&name=key
           var databaseNameIndex = url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) + IndexedDBURLContent.INDEXED_DB_PREFIX.length;
           var slashIndex = url.indexOf('/', databaseNameIndex);
           var questionMarkIndex = url.indexOf('?', slashIndex + 1);
           var databaseName = url.substring(databaseNameIndex, slashIndex);
           var objectStore = url.substring(slashIndex + 1, questionMarkIndex);
           var fields = url.substring(questionMarkIndex + 1).split('&');
-          var key = "";
-          var keyPathField = "";
-          var contentField = "";
+          var key = null;
+          var keyPathField = null;
+          var contentField = null;
+          var dateField = null;
           for (var i = 0; i < fields.length; i++) {
             var value = fields [i].substring(fields [i].indexOf('=') + 1);
             switch (fields [i].substring(0, fields [i].indexOf('='))) {
@@ -304,6 +305,9 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                 break;
               case "contentField": 
                 contentField = value; 
+                break;
+              case "dateField" : 
+                dateField = value; 
                 break;
             }
           }
@@ -341,6 +345,9 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                   var storedResource = {};
                   storedResource [keyPathField] = key;
                   storedResource [contentField] = blob;
+                  if (dateField != null) {
+                    storedResource [dateField] = Date.now();
+                  }
                   var query = store.put(storedResource);
                   query.addEventListener("error", function(ev) { 
                       if (observer.blobError !== undefined) {
@@ -696,6 +703,16 @@ IndexedDBURLContent.prototype.getBlob = function(observer) {
                 query.addEventListener("success", function(ev) {
                     if (ev.target.result !== undefined) {
                       urlContent.blob = ev.target.result [contentField];
+                      var propertyNames = Object.getOwnPropertyNames(ev.target.result);
+                      // Store other properties in blob properties
+                      for (var j = 0; j < propertyNames.length; j++) {
+                        var propertyName = propertyNames[j];
+                        if (propertyName !== keyPathField
+                            && propertyName != contentField
+                            && urlContent.blob [propertyName] === undefined) {
+                          urlContent.blob [propertyName] = ev.target.result [propertyName]; 
+                        }
+                      }
                       urlContent.blobUrl = URL.createObjectURL(urlContent.blob);
                       if (observer.blobReady !== undefined) {
                         observer.blobReady(urlContent.blob);
