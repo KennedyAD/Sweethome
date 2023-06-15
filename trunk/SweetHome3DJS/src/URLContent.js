@@ -313,43 +313,59 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
               key = decodeURIComponent(fields [i].substring(fields [i].indexOf('=') + 1));
             }
           }
-          var request = indexedDB.open(databaseName, 1);
-          request.addEventListener("upgradeneeded", function(ev) { 
-              var database = ev.target.result; 
-              database.createObjectStore(objectStore, {keyPath: keyPathField});
-            });
-          request.addEventListener("error", function(ev) { 
-                if (observer.blobError !== undefined) {
-                  observer.blobError(ev.target.errorCode, "Can't connect to database " + databaseName);
-                }
-            });
-          request.addEventListener("success", function(ev) {  
+          
+          var databaseUpgradeNeeded = function(ev) { 
+              var database = ev.target.result;
+              if (!database.objectStoreNames.contains(objectStore)) {
+                database.createObjectStore(objectStore, {keyPath: keyPathField});
+              } 
+            };
+          var databaseError = function(ev) { 
+              if (observer.blobError !== undefined) {
+                observer.blobError(ev.target.errorCode, "Can't connect to database " + databaseName);
+              }
+            };
+          var databaseSuccess = function(ev) {
               var database = ev.target.result; 
               try {
-                var transaction = database.transaction(objectStore, 'readwrite');
-                var store = transaction.objectStore(objectStore);
-                var storedResource = {};
-                storedResource [keyPathField] = key;
-                storedResource [contentField] = blob;
-                var query = store.put(storedResource);
-                query.addEventListener("error", function(ev) { 
-                    if (observer.blobError !== undefined) {
-                      observer.blobError(ev.target.errorCode, "Can't store item in " + objectStore);
-                    }
-                  }); 
-                query.addEventListener("success", function(ev) {
-                    observer.blobSaved(content, blobName);
-                  }); 
-                transaction.addEventListener("complete", function(ev) { 
-                    database.close(); 
-                  }); 
-                abortableOperations.push(transaction);
+                if (!database.objectStoreNames.contains(objectStore)) {
+                  // Reopen the database to create missing object store  
+                  database.close(); 
+                  var requestUpgrade = indexedDB.open(databaseName, database.version + 1);
+                  requestUpgrade.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+                  requestUpgrade.addEventListener("error", databaseError);
+                  requestUpgrade.addEventListener("success", databaseSuccess);
+                } else {
+                  var transaction = database.transaction(objectStore, 'readwrite');
+                  var store = transaction.objectStore(objectStore);
+                  var storedResource = {};
+                  storedResource [keyPathField] = key;
+                  storedResource [contentField] = blob;
+                  var query = store.put(storedResource);
+                  query.addEventListener("error", function(ev) { 
+                      if (observer.blobError !== undefined) {
+                        observer.blobError(ev.target.errorCode, "Can't store item in " + objectStore);
+                      }
+                    }); 
+                  query.addEventListener("success", function(ev) {
+                      observer.blobSaved(content, blobName);
+                    }); 
+                  transaction.addEventListener("complete", function(ev) { 
+                      database.close(); 
+                    }); 
+                  abortableOperations.push(transaction);
+                }
               } catch (ex) {
                 if (observer.blobError !== undefined) {
                   observer.blobError(ex, "");
                 }
               }
-            });
+            };
+            
+          var request = indexedDB.open(databaseName);
+          request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+          request.addEventListener("error", databaseError);
+          request.addEventListener("success", databaseSuccess);
         } else {
           var request = new XMLHttpRequest();
           request.open("POST", url, true);
@@ -645,48 +661,64 @@ IndexedDBURLContent.prototype.getBlob = function(observer) {
         var contentField = url.substring(secondPathSlashIndex + 1, questionMarkIndex);
         var keyPathField = url.substring(questionMarkIndex + 1, equalIndex);
         var key = decodeURIComponent(url.substring(equalIndex + 1, ampersandIndex > 0 ? ampersandIndex : url.length));
-        var request = indexedDB.open(databaseName, 1);
         var urlContent = this;
-        request.addEventListener("upgradeneeded", function(ev) { 
-            var database = ev.target.result; 
-            database.createObjectStore(objectStore, {keyPath: keyPathField});
-          });
-        request.addEventListener("error", function(ev) { 
+        
+        var databaseUpgradeNeeded = function(ev) { 
+            var database = ev.target.result;
+            if (!database.objectStoreNames.contains(objectStore)) {
+              database.createObjectStore(objectStore, {keyPath: keyPathField});
+            } 
+          };
+        var databaseError = function(ev) { 
             if (observer.blobError !== undefined) {
               observer.blobError(ev.target.errorCode, "Can't connect to database " + databaseName);
             }
-          });
-        request.addEventListener("success", function(ev) {  
-            var database = ev.target.result; 
+          };
+        var databaseSuccess = function(ev) {
+            var database = ev.target.result;
             try {
-              var transaction = database.transaction(objectStore, 'readonly'); 
-              var store = transaction.objectStore(objectStore); 
-              var query = store.get(key); 
-              query.addEventListener("error", function(ev) { 
-                  if (observer.blobError !== undefined) {
-                    observer.blobError(ev.target.errorCode, "Can't query in " + objectStore);
-                  }
-                }); 
-              query.addEventListener("success", function(ev) {
-                  if (ev.target.result !== undefined) {
-                    urlContent.blob = ev.target.result [contentField];
-                    urlContent.blobUrl = URL.createObjectURL(urlContent.blob);
-                    if (observer.blobReady !== undefined) {
-                      observer.blobReady(urlContent.blob);
+              if (!database.objectStoreNames.contains(objectStore)) {
+                // Reopen the database to create missing object store  
+                database.close(); 
+                var requestUpgrade = indexedDB.open(databaseName, database.version + 1);
+                requestUpgrade.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+                requestUpgrade.addEventListener("error", databaseError);
+                requestUpgrade.addEventListener("success", databaseSuccess);
+              } else {
+                var transaction = database.transaction(objectStore, 'readonly'); 
+                var store = transaction.objectStore(objectStore); 
+                var query = store.get(key); 
+                query.addEventListener("error", function(ev) { 
+                    if (observer.blobError !== undefined) {
+                      observer.blobError(ev.target.errorCode, "Can't query in " + objectStore);
                     }
-                  } else if (observer.blobError !== undefined) {
-                    observer.blobError(-1, "Blob with key " + key + " not found");
-                  }
-                }); 
-              transaction.addEventListener("complete", function(ev) { 
-                  database.close(); 
-                }); 
+                  }); 
+                query.addEventListener("success", function(ev) {
+                    if (ev.target.result !== undefined) {
+                      urlContent.blob = ev.target.result [contentField];
+                      urlContent.blobUrl = URL.createObjectURL(urlContent.blob);
+                      if (observer.blobReady !== undefined) {
+                        observer.blobReady(urlContent.blob);
+                      }
+                    } else if (observer.blobError !== undefined) {
+                      observer.blobError(-1, "Blob with key " + key + " not found");
+                    }
+                  }); 
+                transaction.addEventListener("complete", function(ev) { 
+                    database.close(); 
+                  }); 
+              }
             } catch (ex) {
               if (observer.blobError !== undefined) {
                 observer.blobError(ex, "");
               }
             }
-          });
+          };
+          
+        var request = indexedDB.open(databaseName);
+        request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+        request.addEventListener("error", databaseError);
+        request.addEventListener("success", databaseSuccess);
       } else if (observer.urlError !== undefined) {
         observer.urlError(1, url + " not an indexedDB url");
       }
