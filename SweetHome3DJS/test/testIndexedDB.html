@@ -1566,12 +1566,12 @@ body {
 var urlBase = window.location.href.substring(0, window.location.href.lastIndexOf("/")) + "/..";
 var application = new SweetHome3DJSApplication({
     readHomeURL: "indexeddb://SweetHome3DJS/Data/content?name=%s.sh3x", 
-    writeHomeURL: "indexeddb://SweetHome3DJS/Data?keyPathField=name&contentField=content&dateField=date&name=%s.sh3x", 
-    writeResourceURL: "indexeddb://SweetHome3DJS/Data?keyPathField=name&contentField=content&dateField=date&name=%s", 
+    writeHomeURL: "indexeddb://SweetHome3DJS/Data?keyPathField=name&contentField=content&name=%s.sh3x", 
+    writeResourceURL: "indexeddb://SweetHome3DJS/Data?keyPathField=name&contentField=content&name=%s", 
     readResourceURL: "indexeddb://SweetHome3DJS/Data/content?name=%s",
     listHomesURL: "indexeddb://SweetHome3DJS/Data?name=(.*).sh3x",
     deleteHomeURL: "indexeddb://SweetHome3DJS/Data?name=%s.sh3x",
-    writePreferencesURL: "indexeddb://SweetHome3DJS/Data?keyPathField=name&contentField=content&dateField=date&name=preferences.json",
+    writePreferencesURL: "indexeddb://SweetHome3DJS/Data?keyPathField=name&contentField=content&name=preferences.json",
     readPreferencesURL: "indexeddb://SweetHome3DJS/Data/content?name=preferences.json",
     furnitureCatalogURLs: [urlBase + "/lib/resources/DefaultFurnitureCatalog.json"],
     furnitureResourcesURLBase: urlBase + "/",
