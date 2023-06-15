@@ -284,46 +284,62 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
       var objectStore = url.substring(firstPathSlashIndex + 1, questionMarkIndex);
       var keyPathField = url.substring(questionMarkIndex + 1, equalIndex);
       var regExp = new RegExp(url.substring(equalIndex + 1, ampersandIndex > 0 ? ampersandIndex : url.length));
-      var request = indexedDB.open(databaseName, 1);
-      request.addEventListener("upgradeneeded", function(ev) { 
+
+      var databaseUpgradeNeeded = function(ev) { 
           var database = ev.target.result; 
-          database.createObjectStore(objectStore, {keyPath: keyPathField});
-        });
-      request.addEventListener("error", function(ev) { 
+          if (!database.objectStoreNames.contains(objectStore)) {
+            database.createObjectStore(objectStore, {keyPath: keyPathField});
+          } 
+        };
+      var databaseError = function(ev) { 
           if (observer.homesError !== undefined) {
             observer.homesError(ev.target.errorCode, "Can't connect to database " + databaseName);
           }
-        });
-      request.addEventListener("success", function(ev) {  
+        };
+      var databaseSuccess = function(ev) {  
           var database = ev.target.result; 
           try {
-            var transaction = database.transaction(objectStore, 'readonly'); 
-            var store = transaction.objectStore(objectStore);
-            var query = store.getAllKeys(); 
-            query.addEventListener("error", function(ev) { 
-                if (observer.homesError !== undefined) {
-                  observer.homesError(ev.target.errorCode, "Can't query in " + objectStore);
-                }
-              }); 
-            query.addEventListener("success", function(ev) {
-                var homes = [];
-                for (var i = 0; i < ev.target.result.length; i++) {
-                  var tags = ev.target.result [i].match(regExp);
-                  if (tags) {
-                    homes.push(tags.length > 1 ? tags [1] : tags [0]);
+            if (!database.objectStoreNames.contains(objectStore)) {
+              // Reopen the database to create missing object store  
+              database.close(); 
+              var requestUpgrade = indexedDB.open(databaseName, database.version + 1);
+              requestUpgrade.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+              requestUpgrade.addEventListener("error", databaseError);
+              requestUpgrade.addEventListener("success", databaseSuccess);
+            } else {
+	          var transaction = database.transaction(objectStore, 'readonly'); 
+              var store = transaction.objectStore(objectStore);
+              var query = store.getAllKeys(); 
+              query.addEventListener("error", function(ev) { 
+                  if (observer.homesError !== undefined) {
+                    observer.homesError(ev.target.errorCode, "Can't query in " + objectStore);
                   }
-                }
-                observer.availableHomes(homes);
-              }); 
-            transaction.addEventListener("complete", function(ev) { 
-                database.close(); 
-              }); 
+                }); 
+              query.addEventListener("success", function(ev) {
+                  var homes = [];
+                  for (var i = 0; i < ev.target.result.length; i++) {
+                    var tags = ev.target.result [i].match(regExp);
+                    if (tags) {
+                      homes.push(tags.length > 1 ? tags [1] : tags [0]);
+                    }
+                  }
+                  observer.availableHomes(homes);
+                }); 
+              transaction.addEventListener("complete", function(ev) { 
+                  database.close(); 
+                });
+            } 
           } catch (ex) {
             if (observer.homesError !== undefined) {
               observer.homesError(ex, "");
             }
           }
-        });
+        };
+        
+      var request = indexedDB.open(databaseName);
+      request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+      request.addEventListener("error", databaseError);
+      request.addEventListener("success", databaseSuccess);
       return {abort: function() {  } };
     } else {
       var request = new XMLHttpRequest();
@@ -379,39 +395,55 @@ DirectHomeRecorder.prototype.deleteHome = function(homeName, observer) {
       var objectStore = url.substring(firstPathSlashIndex + 1, questionMarkIndex);
       var keyPathField = url.substring(questionMarkIndex + 1, equalIndex);
       var key = decodeURIComponent(url.substring(equalIndex + 1, ampersandIndex > 0 ? ampersandIndex : url.length));
-      var request = indexedDB.open(databaseName, 1);
-      request.addEventListener("upgradeneeded", function(ev) { 
+      
+      var databaseUpgradeNeeded = function(ev) { 
           var database = ev.target.result; 
-          database.createObjectStore(objectStore, {keyPath: keyPathField});
-        });
-      request.addEventListener("error", function(ev) { 
+          if (!database.objectStoreNames.contains(objectStore)) {
+            database.createObjectStore(objectStore, {keyPath: keyPathField});
+          } 
+        };
+      var databaseError = function(ev) { 
           if (observer.homeError !== undefined) {
             observer.homeError(ev.target.errorCode, "Can't connect to database " + databaseName);
           }
-        });
-      request.addEventListener("success", function(ev) {  
+        };
+      var databaseSuccess = function(ev) {  
           var database = ev.target.result; 
           try {
-            var transaction = database.transaction(objectStore, 'readwrite'); 
-            var store = transaction.objectStore(objectStore);
-            var query = store["delete"](key); 
-            query.addEventListener("error", function(ev) { 
-                if (observer.homeError !== undefined) {
-                  observer.homeError(ev.target.errorCode, "Can't delete in " + objectStore);
-                }
-              }); 
-            query.addEventListener("success", function(ev) {
-                observer.homeDeleted(homeName);
-              }); 
-            transaction.addEventListener("complete", function(ev) { 
-                database.close(); 
-              }); 
+	        if (!database.objectStoreNames.contains(objectStore)) {
+              // Reopen the database to create missing object store  
+              database.close(); 
+              var requestUpgrade = indexedDB.open(databaseName, database.version + 1);
+              requestUpgrade.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+              requestUpgrade.addEventListener("error", databaseError);
+              requestUpgrade.addEventListener("success", databaseSuccess);
+            } else {
+              var transaction = database.transaction(objectStore, 'readwrite'); 
+              var store = transaction.objectStore(objectStore);
+              var query = store["delete"](key); 
+              query.addEventListener("error", function(ev) { 
+                  if (observer.homeError !== undefined) {
+                    observer.homeError(ev.target.errorCode, "Can't delete in " + objectStore);
+                  }
+                }); 
+              query.addEventListener("success", function(ev) {
+                  observer.homeDeleted(homeName);
+                }); 
+              transaction.addEventListener("complete", function(ev) { 
+                  database.close(); 
+                });
+            } 
           } catch (ex) {
             if (observer.homeError !== undefined) {
               observer.homeError(ex, "");
             }
           }
-        });
+        };
+        
+      var request = indexedDB.open(databaseName);
+      request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+      request.addEventListener("error", databaseError);
+      request.addEventListener("success", databaseSuccess);
       return {abort: function() {  } };
     } else {
       // Replace % sequence by %% except %s before formating readHomeURL with home name 
