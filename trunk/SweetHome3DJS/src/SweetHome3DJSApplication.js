@@ -483,6 +483,8 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
  *          listHomesURL: string,
  *          deleteHomeURL: string,
  *          autoRecovery: boolean,
+ *          autoRecoveryDatabase: string,
+ *          autoRecoveryObjectstore: string,
  *          compressionLevel: number,
  *          includeAllContent: boolean,
  *          writeDataType: string,
@@ -609,17 +611,26 @@ SweetHome3DJSApplication.prototype.getHomeController = function(home) {
  */
 SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
   var application = this;
+  var autoRecoveryDatabase = "SweetHome3DJS";
+  var autoRecoveryObjectstore = "Recovery";
+  if (this.configuration.autoRecoveryDatabase !== undefined) {
+	autoRecoveryDatabase = this.configuration.autoRecoveryDatabase;
+  }
+  if (this.configuration.autoRecoveryObjectstore !== undefined) {
+	autoRecoveryObjectstore = this.configuration.autoRecoveryObjectstore;
+  }
   
+  var autoRecoveryDatabaseUrlBase = "indexeddb://" + autoRecoveryDatabase + "/" + autoRecoveryObjectstore;
   // Auto recovery recorder stores data in Recovery object store of IndexedDB,  
   // reusing XML handler and exporter of application recorder
   function AutoRecoveryRecorder() {
      HomeRecorder.call(this, {
-        readHomeURL: "indexeddb://SweetHome3DJS/Recovery/content?name=%s.recovered", 
-        writeHomeURL: "indexeddb://SweetHome3DJS/Recovery?keyPathField=name&contentField=content&dateField=date&name=%s.recovered", 
-        readResourceURL: "indexeddb://SweetHome3DJS/Recovery/content?name=%s",
-        writeResourceURL: "indexeddb://SweetHome3DJS/Recovery?keyPathField=name&contentField=content&dateField=date&name=%s", 
-        listHomesURL: "indexeddb://SweetHome3DJS/Recovery?name=(.*).recovered",
-        deleteHomeURL: "indexeddb://SweetHome3DJS/Recovery?name=%s.recovered",
+        readHomeURL: autoRecoveryDatabaseUrlBase + "/content?name=%s.recovered", 
+        writeHomeURL: autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s.recovered", 
+        readResourceURL: autoRecoveryDatabaseUrlBase + "/content?name=%s",
+        writeResourceURL: autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s", 
+        listHomesURL: autoRecoveryDatabaseUrlBase + "?name=(.*).recovered",
+        deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s.recovered",
         compressionLevel: 0,
         writeHomeWithWorker: true
       });
@@ -792,7 +803,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
 	                  console.error("Couldn't save home for recovery " + error + " " + text); 
 	                }
                   });
-              } else if (recoveredHomeNames.indexOf(home.getName()) <= 0) {
+              } else if (recoveredHomeNames.indexOf(home.getName()) < 0) {
                 deleteRecoveredHome(home.getName());
               }
             }
