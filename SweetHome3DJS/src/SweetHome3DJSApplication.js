@@ -686,7 +686,9 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                           replacingHome.setRecovered(true);
                           replacingHome.addPropertyChangeListener("RECOVERED", function(ev) {
                               if (!replacingHome.isRecovered()) {
+	                            recoveredHomeNames.splice(recoveredHomeNames.indexOf(replacingHome.getName()), 1);
                                 deleteRecoveredHome(homeName);
+                                replacingHome.addPropertyChangeListener("MODIFIED", homeModificationListener);
                               }
                             });
                           replacingHome.addPropertyChangeListener("NAME", function(ev) {
