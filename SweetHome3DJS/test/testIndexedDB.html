@@ -1576,11 +1576,18 @@ var application = new SweetHome3DJSApplication({
     furnitureCatalogURLs: [urlBase + "/lib/resources/DefaultFurnitureCatalog.json"],
     furnitureResourcesURLBase: urlBase + "/",
     texturesCatalogURLs: [urlBase + "/lib/resources/DefaultTexturesCatalog.json"],
-    texturesResourcesURLBase: urlBase + "/"});
-application.addHome(application.createHome());
+    texturesResourcesURLBase: urlBase + "/",
+    writeHomeWithWorker: true,
+    autoRecovery: true,
+    defaultHomeName: "home-52f43e39-7a18-495b-80e7-8b3710dd3d17"});
+
+setTimeout(function() {
+    application.addHome(application.createHome());
+  });
 
 window.addEventListener("beforeunload", function(ev) {
-    if (application.getHomes() [0].isModified()) {
+    if (application.getHomes() [0].isModified()
+        || application.getHomes() [0].isRecovered()) {
       ev.preventDefault();
       return "Leave without saving?";
     }

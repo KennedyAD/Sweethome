@@ -143,6 +143,7 @@ HomeRecorder.contentDigestsCache = {};
  */
 HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   var includeAllContent = this.configuration.includeAllContent !== undefined ? this.configuration.includeAllContent : true;
+  var dataType = this.configuration.writeDataType !== undefined ? this.configuration.writeDataType : "blob";
   var contents = [];
   this.searchContents(home, [], contents);
 
@@ -200,11 +201,13 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
               contentsCopy.splice(contentsCopy.indexOf(content), 1);
               if (contentsCopy.length === 0
                   && !abortedOperation) {
-                abortableOperation = recorder.writeHomeToZip(home, homeName, contents, savedContentNames, observer);
+                abortableOperation = recorder.writeHomeToZip(home, homeName, contents, savedContentNames, dataType, observer);
               }
             },
             digestError: function(status, error) {
-              observer.homeError(status, error);
+              if (observer.homeError !== undefined) {
+                observer.homeError(status, error);
+              }
             }    
           });
       } else {
@@ -212,12 +215,12 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
         contentsCopy.splice(contentsCopy.indexOf(content), 1);
         if (contentsCopy.length === 0
             && !abortedOperation) {
-          abortableOperation = recorder.writeHomeToZip(home, homeName, contents, savedContentNames, observer);
+          abortableOperation = recorder.writeHomeToZip(home, homeName, contents, savedContentNames, dataType, observer);
         }
       }
     }
   } else {
-    abortableOperation = this.writeHomeToZip(home, homeName, contents, {}, observer);
+    abortableOperation = this.writeHomeToZip(home, homeName, contents, {}, dataType, observer);
   }
 
   return {
@@ -236,11 +239,13 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
  * @param {string} homeName the home name on the server 
  * @param {[URLContent]} homeContents
  * @param {{string, string}} savedContentNames
+ * @param {string} dataType base64, array, uint8array, arraybuffer or blob
  * @param {{homeSaved: function, homeError: function}} [observer]  The callbacks used to follow the export operation of the home.
- *           homeSaved will receive in its second parameter the data containing the saved home with the resources it needs. 
- * @private
+ *           homeSaved will receive in its second parameter the data containing the saved home with the resources it needs.
+ * @return {abort: function} a function that will abort writing operation if needed 
+ * @ignored
  */
-HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, savedContentNames, observer) {
+HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, savedContentNames, dataType, observer) {
   var homeClone = home.clone();
   homeClone.setName(homeName);
   
@@ -260,7 +265,7 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
          + "');"
          + "onmessage = function(ev) {" 
          + "  new HomeRecorder(ev.data.recorderConfiguration).generateHomeZip("
-         + "      ev.data.homeXmlEntry, ev.data.homeContents, ev.data.homeContentTypes, ev.data.savedContentNames, {"
+         + "      ev.data.homeXmlEntry, ev.data.homeContents, ev.data.homeContentTypes, ev.data.savedContentNames, ev.data.dataType, {"
          + "         homeSaved: function(homeXmlEntry, data) {"
          + "            postMessage(data);"
          + "         },"
@@ -276,7 +281,9 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
     var workerListener = function(ev) {
 	    recorder.writeHomeWorker.removeEventListener("message", workerListener);
 	    if (ev.data.error) {
-          observer.homeError(ev.data.status, ev.data.error);
+          if (observer.homeError !== undefined) {
+            observer.homeError(ev.data.status, ev.data.error);
+          }
 	    } else {
           observer.homeSaved(home, ev.data);
 	    }
@@ -298,6 +305,7 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
         homeContents: homeContents, 
         homeContentTypes: homeContentTypes,
         savedContentNames: savedContentNames,
+        dataType: dataType
       });
     
     return {
@@ -309,12 +317,14 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
         }
       };
   } else {
-    this.generateHomeZip(writer.toString(), homeContents, null, savedContentNames, {
+    this.generateHomeZip(writer.toString(), homeContents, null, savedContentNames, dataType, {
         homeSaved: function(homeXmlEntry, data) {
           observer.homeSaved(home, data);
         },
         homeError: function(status, error) {
-          observer.homeError(status, error);
+          if (observer.homeError !== undefined) {
+            observer.homeError(status, error);
+          }
         }
       });
 
@@ -332,10 +342,12 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
  * @param {[URLContent|{}]} homeContents
  * @param {[string]} homeContentTypes
  * @param {{string, string}} savedContentNames
+ * @param {string} dataType base64, array, uint8array, arraybuffer or blob
  * @param {{homeSaved: function, homeError: function}} [observer]   
  * @private
  */
-HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, homeContentTypes, savedContentNames, observer) {
+HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, homeContentTypes, 
+                                                  savedContentNames, dataType, observer) {
   var zipOut = new JSZip();
   zipOut.file('Home.xml', homeXmlEntry);
   
@@ -369,6 +381,17 @@ HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, ho
         
     var recorder = this;
     var homeContentsCopy = homeContents.slice(0).reverse();
+    var contentObserver = {
+        contentSaved: function(content) {
+           homeContentsCopy.splice(homeContentsCopy.indexOf(content), 1);
+           if (homeContentsCopy.length === 0) {
+             observer.homeSaved(homeXmlEntry, recorder.generateZip(zipOut, dataType));
+            }
+          }, 
+          contentError: function(status, error) {
+            observer.homeError(status, error);
+          }
+        };
     for (var i = homeContentsCopy.length - 1; i >= 0; i--) {
       var content = homeContentsCopy[i];
       var contentEntryName = savedContentNames [content.getURL()];
@@ -377,17 +400,6 @@ HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, ho
         if (slashIndex > 0) {
           contentEntryName = contentEntryName.substring(0, slashIndex);
         }
-        var contentObserver = {
-            contentSaved: function(content) {
-              homeContentsCopy.splice(homeContentsCopy.indexOf(content), 1);
-              if (homeContentsCopy.length === 0) {
-                observer.homeSaved(homeXmlEntry, recorder.generateZip(zipOut));
-              }
-            }, 
-            contentError: function(status, error) {
-              observer.homeError(status, error);
-            }
-          };
         if (!(content instanceof SimpleURLContent)
             && content.isJAREntry()) {
           if (content instanceof HomeURLContent) {
@@ -398,22 +410,23 @@ HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, ho
         } else {
           this.writeZipEntry(zipOut, contentEntryName, content, contentObserver);
         }
+      } else {
+        contentObserver.contentSaved(content);
       }
     }
   } else {
-    observer.homeSaved(homeXmlEntry, this.generateZip(zipOut));
+    observer.homeSaved(homeXmlEntry, this.generateZip(zipOut, dataType));
   }
 }
 
 /**
  * Returns the zipped data in the given paramater.
- * @param {JSZip} [zip] the zip instance containing data
+ * @param {JSZip} zip the zip instance containing data
+ * @param {string} dataType base64, array, uint8array, arraybuffer or blob
  * @returns the data zipped according to the configuration of this recorder. 
  * @private
  */
-HomeRecorder.prototype.generateZip = function(zip) {
-  // Supported types: base64, array, uint8array, arraybuffer, blob
-  var dataType = this.configuration.writeDataType !== undefined ? this.configuration.writeDataType : "blob";
+HomeRecorder.prototype.generateZip = function(zip, dataType) {
   var compression = this.configuration.compressionLevel !== undefined && this.configuration.compressionLevel === 0 ? "STORE" : "DEFLATE";
   var compressionLevel = this.configuration.compressionLevel !== undefined ? this.configuration.compressionLevel : 1;
   return zip.generate({

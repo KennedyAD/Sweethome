@@ -31,7 +31,9 @@
  *          writeResourceURL: string,
  *          readResourceURL: string,
  *          listHomesURL: string,
- *          deleteHomeURL: string
+ *          deleteHomeURL: string,
+ *          compressionLevel: number,
+ *          writeHomeWithWorker: boolean
  *         }} [configuration] the recorder configuration
  * @author Emmanuel Puybaret
  */
@@ -77,55 +79,66 @@ DirectHomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   var recorder = this;
   var contentsObserver = {
       contentsSaved: function(savedContentNames) {
-        var writer = new StringWriter(); 
-        var exporter = recorder.getHomeXMLExporter();
-        exporter.setSavedContentNames(savedContentNames);
-        exporter.writeElement(new XMLWriter(writer), home);
-      
-        // Generate ZIP file in a separate worker
-        var blob = new Blob(["importScripts('" + ZIPTools.getScriptFolder() + "jszip.min.js');"
-            + "onmessage = function(ev) {" 
-            + "  var zip = new JSZip();"
-            + "  zip.file('Home.xml', ev.data);"
-            + "  postMessage(zip.generate({type:'blob', compression:'DEFLATE', compressionOptions: {level : 9}}));"
-            + "}"], 
-            { type: 'text/plain' });
-        var worker = new Worker(URL.createObjectURL(blob));
-        worker.addEventListener("message", function(ev) {
-            var content = new BlobURLContent(ev.data);
-            var revokeOperation = {
-                 abort: function() {
-                   // Don't keep blob URL in document
-                   URL.revokeObjectURL(content.getURL());
-                 }
-               };
-            abortableOperations.push(
-                content.writeBlob(recorder.configuration.writeHomeURL, homeName, 
-                  {
-                    blobSaved: function(content, name) {
-                      revokeOperation.abort();
-                      if (observer != null 
-                          && observer.homeSaved != null) {
-                        observer.homeSaved(home);
-                      }
-                    },
-                    blobError: function(status, error) {
-                      revokeOperation.abort();
-                      if (observer != null 
-                          && observer.homeError != null) {
-                        observer.homeError(status, error);
-                      }
+        // Search contents included in home
+        var homeContents = []
+        recorder.searchContents(home, [], homeContents, function(content) {
+            return content instanceof HomeURLContent
+                || content instanceof SimpleURLContent;
+          });
+
+	    var savedContentIndex = 0; 
+        for (var i = 0; i < homeContents.length; i++) {
+          var content = homeContents[i];
+	      if (content instanceof HomeURLContent) {
+		    var entry = content.getJAREntryName();
+		    if (entry.indexOf('/') < 0) {
+		      savedContentNames [content.getURL()] = (++savedContentIndex).toString();
+		    } else {
+		      savedContentNames [content.getURL()] = (++savedContentIndex) + entry.substring(entry.indexOf('/'));
+		    }
+	      } else if (content instanceof SimpleURLContent
+	                 && content.isJAREntry()
+	                 && URLContent.fromURL(content.getJAREntryURL()) instanceof LocalURLContent) {
+		    savedContentNames [content.getURL()] = (++savedContentIndex).toString();
+		  }
+	    }
+
+        abortableOperations.push(recorder.writeHomeToZip(home, homeName, homeContents, savedContentNames, "blob", {
+	        homeSaved: function(home, data) {
+              var content = new BlobURLContent(data);
+              var revokeOperation = {
+                  abort: function() {
+                    // Don't keep blob URL in document
+                    URL.revokeObjectURL(content.getURL());
                   }
-                }));
-            abortableOperations.push(revokeOperation);
-          });
-        
-        worker.postMessage(writer.toString());
-        abortableOperations.push({
-            abort: function() {
-              worker.terminate();
+                };
+              abortableOperations.push(
+                 content.writeBlob(recorder.configuration.writeHomeURL, homeName, 
+                   {
+                     blobSaved: function(content, name) {
+                       revokeOperation.abort();
+                       if (observer != null 
+                           && observer.homeSaved != null) {
+                         observer.homeSaved(home);
+                       }
+                     },
+                     blobError: function(status, error) {
+                       revokeOperation.abort();
+                       if (observer != null 
+                           && observer.homeError != null) {
+                         observer.homeError(status, error);
+                       }
+                     }
+                   }));
+              abortableOperations.push(revokeOperation);
+            },
+            homeError: function(status, error) {
+              if (observer != null 
+                  && observer.homeError != null) {
+                observer.homeError(status, error);
+              }
             }
-          });
+          }));    
       },
       contentsError: function(status, error) {
         if (observer != null 
@@ -271,9 +284,6 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
       observer.availableHomes(homes);
       return {abort: function() {  } };
     } else if (url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
-      if (IDBObjectStore.prototype.getAllKeys === undefined) {
-        return null; 
-      }
       // Parse URL of the form indexeddb://database/objectstore?keyPathField=regExpWithCapturingGroup
       var databaseNameIndex = url.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) + IndexedDBURLContent.INDEXED_DB_PREFIX.length;
       var firstPathSlashIndex = url.indexOf('/', databaseNameIndex);
@@ -309,21 +319,39 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
             } else {
 	          var transaction = database.transaction(objectStore, 'readonly'); 
               var store = transaction.objectStore(objectStore);
-              var query = store.getAllKeys(); 
+              var query;
+              if (IDBObjectStore.prototype.getAllKeys !== undefined) {
+                query = store.getAllKeys(); 
+                query.addEventListener("success", function(ev) {
+                    var homes = [];
+                    for (var i = 0; i < ev.target.result.length; i++) {
+                      var tags = ev.target.result [i].match(regExp);
+                      if (tags) {
+                        homes.push(tags.length > 1 ? tags [1] : tags [0]);
+                      }
+                    }
+                    observer.availableHomes(homes);
+                  });
+              } else {
+                query = store.openCursor();
+                var homes = [];
+                query.addEventListener("success", function(ev) {
+                    var cursor = ev.target.result;
+                    if (cursor != null) {
+	                  var tags = cursor.primaryKey.match(regExp);
+                      if (tags) {
+                        homes.push(tags.length > 1 ? tags [1] : tags [0]);
+                      }
+                      cursor ["continue"]();
+                    } else {
+                      observer.availableHomes(homes);
+                    }                    
+                  });
+              }  
               query.addEventListener("error", function(ev) { 
                   if (observer.homesError !== undefined) {
                     observer.homesError(ev.target.errorCode, "Can't query in " + objectStore);
                   }
-                }); 
-              query.addEventListener("success", function(ev) {
-                  var homes = [];
-                  for (var i = 0; i < ev.target.result.length; i++) {
-                    var tags = ev.target.result [i].match(regExp);
-                    if (tags) {
-                      homes.push(tags.length > 1 ? tags [1] : tags [0]);
-                    }
-                  }
-                  observer.availableHomes(homes);
                 }); 
               transaction.addEventListener("complete", function(ev) { 
                   database.close(); 
