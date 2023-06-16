@@ -111,17 +111,23 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.touchOverlay.style.left = "0px";
   this.touchOverlay.innerHTML = '<div id="touch-overlay-timer-content"></div><div id="touch-overlay-timer-bg"></div><div id="touch-overlay-timer-hidder"></div><div id="touch-overlay-timer-loader1"></div><div id="touch-overlay-timer-loader2"></div>';
   document.body.appendChild(this.touchOverlay);
+  var containerColor = this.container.style.color;
+  var containerBackgroundColor = this.container.style.backgroundColor;
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
-    var e = this.touchOverlay.children.item(i);
-    if (e.id.indexOf("loader") !== -1) {
-      e.style.borderTopColor = this.getSelectionColor();
-      e.style.borderRightColor = this.getSelectionColor();
+    var item = this.touchOverlay.children.item(i);
+    if (item.id.indexOf("loader") !== -1) {
+	  // /!\ The following change style may affect container color too in some browsers 
+      item.style.borderTopColor = this.getSelectionColor();
+      item.style.borderRightColor = this.getSelectionColor();
     }
-    if (e.id == "touch-overlay-timer-content") {
-      e.style.color = this.getForeground();
+    if (item.id == "touch-overlay-timer-content") {
+      item.style.color = this.getForeground();
     }
-    e.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
+    item.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
   }
+  // Reset the container color 
+  this.container.style.color = containerColor;
+  this.container.style.backgroundColor = containerBackgroundColor;
 
   this.resolutionScale = this.scrollPane ? PlanComponent.HIDPI_SCALE_FACTOR : 1.;
   this.selectedItemsOutlinePainted = true;
@@ -4850,7 +4856,7 @@ PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, sele
       && (selectedItems[0] instanceof DimensionLine) 
       && paintMode === PlanComponent.PaintMode.PAINT 
       && indicatorPaint != null) {
-    this.paintDimensionLineResizeIndicator(g2D, selectedItems[0], indicatorPaint, planScale);
+    this.paintDimensionLineResizeIndicators(g2D, selectedItems[0], indicatorPaint, planScale);
   }
 }
 
@@ -4862,18 +4868,18 @@ PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, sele
  * @param {number} planScale
  * @private
  */
-PlanComponent.prototype.paintDimensionLineResizeIndicator = function(g2D, dimensionLine, indicatorPaint, planScale) {
+PlanComponent.prototype.paintDimensionLineResizeIndicators = function(g2D, dimensionLine, indicatorPaint, planScale) {
   if (this.resizeIndicatorVisible) {
     g2D.setPaint(indicatorPaint);
     g2D.setStroke(PlanComponent.INDICATOR_STROKE);
     
-    var wallAngle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), 
+    var dimensionLineAngle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), 
         dimensionLine.getXEnd() - dimensionLine.getXStart());
     
     var previousTransform = g2D.getTransform();
     var scaleInverse = 1 / planScale;
     g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
-    g2D.rotate(wallAngle);
+    g2D.rotate(dimensionLineAngle);
     g2D.translate(0, dimensionLine.getOffset());
     g2D.rotate(Math.PI);
     g2D.scale(scaleInverse, scaleInverse);
@@ -4882,7 +4888,7 @@ PlanComponent.prototype.paintDimensionLineResizeIndicator = function(g2D, dimens
     g2D.setTransform(previousTransform);
     
     g2D.translate(dimensionLine.getXEnd(), dimensionLine.getYEnd());
-    g2D.rotate(wallAngle);
+    g2D.rotate(dimensionLineAngle);
     g2D.translate(0, dimensionLine.getOffset());
     g2D.scale(scaleInverse, scaleInverse);
     g2D.draw(resizeIndicator);
@@ -4890,7 +4896,7 @@ PlanComponent.prototype.paintDimensionLineResizeIndicator = function(g2D, dimens
     
     g2D.translate((dimensionLine.getXStart() + dimensionLine.getXEnd()) / 2, 
         (dimensionLine.getYStart() + dimensionLine.getYEnd()) / 2);
-    g2D.rotate(wallAngle);
+    g2D.rotate(dimensionLineAngle);
     g2D.translate(0, dimensionLine.getOffset());
     g2D.rotate(dimensionLine.getOffset() <= 0 
         ? Math.PI / 2 
@@ -6124,7 +6130,7 @@ PlanComponent.prototype.dispose = function() {
   window.removeEventListener("resize", this.windowResizeListener);
   if (this.scrollPane != null) {
     this.container.removeChild(this.canvas);
-    this.container.removeChild(this.scrollPane);	
+    this.container.removeChild(this.scrollPane);
   }
   this.preferences.removePropertyChangeListener("UNIT", this.preferencesListener);
   this.preferences.removePropertyChangeListener("LANGUAGE", this.preferencesListener);
