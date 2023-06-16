@@ -49,14 +49,15 @@ LocalFileHomeController.prototype.newHome = function() {
       controller.application.addHome(controller.application.createHome());
     };
 
-  if (this.home.isModified()) {
-    this.getView().confirmSave(this.home.getName(), function(save) {
-        if (save) {
-          controller.save(newHomeTask);
-        } else {
-          newHomeTask();
-        } 
-      });
+  if (this.home.isModified() || this.home.isRecovered()) {
+    this.getView().confirmSave(this.application.configuration === undefined || this.home.getName() !== this.application.configuration.defaultHomeName ? this.home.getName() : null, 
+        function(save) {
+          if (save) {
+            controller.save(newHomeTask);
+          } else {
+            newHomeTask();
+          } 
+        });
   } else {
     newHomeTask();
   }
@@ -68,40 +69,41 @@ LocalFileHomeController.prototype.newHome = function() {
 LocalFileHomeController.prototype.open = function() {
   var controller = this;
   var openHome = function(homeName) {
-	  var fileInput = document.createElement('input');
-	  fileInput.setAttribute("style", "display: none");
-	  fileInput.setAttribute("type", "file");
-	  document.body.appendChild(fileInput);  
-	  fileInput.addEventListener("input", function(ev) {
-	      document.body.removeChild(fileInput);
-	      if (this.files[0]) {
-	        var homeName = this.files[0].name.substring(this.files[0].name.indexOf("/") + 1);
-	        controller.application.getHomeRecorder().readHome(URL.createObjectURL(this.files[0]), {
-	            homeLoaded: function(home) {
-	              home.setName(homeName);
-	              controller.close();
-	              controller.application.addHome(home);
-	            },
-	            homeError: function(error) {
-	              var message = controller.application.getUserPreferences().
-	                  getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
-	              console.error(error);
-	              alert(message);
-	            }
-	          });
-	      }
-	    }); 
-	  fileInput.click();
-	};
+      var fileInput = document.createElement('input');
+      fileInput.setAttribute("style", "display: none");
+      fileInput.setAttribute("type", "file");
+      document.body.appendChild(fileInput);  
+      fileInput.addEventListener("input", function(ev) {
+          document.body.removeChild(fileInput);
+          if (this.files[0]) {
+            var homeName = this.files[0].name.substring(this.files[0].name.indexOf("/") + 1);
+            controller.application.getHomeRecorder().readHome(URL.createObjectURL(this.files[0]), {
+                homeLoaded: function(home) {
+                  // Do not set home name because file name may have been altered automatically by browser when saved
+                  controller.close();
+                  controller.application.addHome(home);
+                },
+                homeError: function(error) {
+                  var message = controller.application.getUserPreferences().
+                      getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
+                  console.error(error);
+                  alert(message);
+                }
+              });
+          }
+        }); 
+      fileInput.click();
+    };
 
-  if (this.home.isModified()) {
-    this.getView().confirmSave(this.home.getName(), function(save) {
-        if (save) {
-          controller.save(openHome);
-        } else {
-          openHome();
-        } 
-      });
+  if (this.home.isModified() || this.home.isRecovered()) {
+    this.getView().confirmSave(this.application.configuration === undefined || this.home.getName() !== this.application.configuration.defaultHomeName ? this.home.getName() : null, 
+        function(save) {
+          if (save) {
+            controller.save(openHome);
+          } else {
+            openHome();
+          } 
+        });
   } else {
     openHome();
   }
@@ -113,7 +115,8 @@ LocalFileHomeController.prototype.open = function() {
  * @param {function} [postSaveTask]
  */
 LocalFileHomeController.prototype.save = function(postSaveTask) {
-  if (this.home.getName() == null) {
+  if (this.home.getName() == null
+      || (this.application.configuration !== undefined && this.home.getName() === this.application.configuration.defaultHomeName)) {
     this.saveAs(postSaveTask);
   } else {
     var preferences = this.application.getUserPreferences();
@@ -121,7 +124,7 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
         preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
         preferences.getLocalizedString("HomeController", "saveMessage"), 
           { 
-	        size: "small", 
+            size: "small", 
             disposer: function(dialog) { 
               if (dialog.writingOperation !== undefined) { 
                 dialog.writingOperation.abort(); 
@@ -137,7 +140,9 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
     savingTaskDialog.displayView();
     
     var controller = this;
-    var homeName = controller.home.getName().replace(".sh3d", ".sh3x");
+    var homeExtension = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension");   // .sh3d
+    var homeExtension2 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension2"); // .sh3x
+    var homeName = controller.home.getName().replace(homeExtension, homeExtension2);
     setTimeout(function() {
         savingTaskDialog.writingOperation = controller.application.getHomeRecorder().writeHome(controller.home, homeName, {
             homeSaved: function(home, blob) {
@@ -158,8 +163,9 @@ LocalFileHomeController.prototype.save = function(postSaveTask) {
                   }, 500);
               }
               home.setModified(false);
+              home.setRecovered(false);
               if (postSaveTask !== undefined) {
-	            postSaveTask();
+                postSaveTask();
               }
             },
             homeError: function(status, error) {
@@ -184,7 +190,8 @@ LocalFileHomeController.prototype.saveAs = function(postSaveTask) {
   var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
   var homeName = prompt(message);
   if (homeName != null) {
-    this.home.setName(homeName + (homeName.indexOf('.') < 0 ? ".sh3x" : ""));
+    var homeExtension2 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension2"); // .sh3x
+    this.home.setName(homeName + (homeName.indexOf('.') < 0 ? homeExtension2 : ""));
     this.save(postSaveTask);    
   }
 }
@@ -193,6 +200,7 @@ LocalFileHomeController.prototype.saveAs = function(postSaveTask) {
  * Removes home from application homes list.
  */
 LocalFileHomeController.prototype.close = function() {
+  this.home.setRecovered(false);
   this.application.deleteHome(this.home);  
   this.getView().dispose();
 }
@@ -223,14 +231,15 @@ DirectRecordingHomeController.prototype.newHome = function() {
       controller.application.addHome(controller.application.createHome());
     };
 
-  if (this.home.isModified()) {
-    this.getView().confirmSave(this.home.getName(), function(save) {
-        if (save) {
-          controller.save(newHomeTask);
-        } else {
-          newHomeTask();
-        } 
-      });
+  if (this.home.isModified() || this.home.isRecovered()) {
+    this.getView().confirmSave(this.application.configuration === undefined || this.home.getName() !== this.application.configuration.defaultHomeName ? this.home.getName() : null, 
+        function(save) {
+          if (save) {
+            controller.save(newHomeTask);
+          } else {
+            newHomeTask();
+          } 
+        });
   } else {
     newHomeTask();
   }
@@ -332,6 +341,7 @@ DirectRecordingHomeController.prototype.open = function() {
             }
           }, 
           homesError: function() {
+            console.error("Couldn't retrieve homes from database " + error + " " + text); 
           }
         });
         
@@ -341,14 +351,15 @@ DirectRecordingHomeController.prototype.open = function() {
       }
     };  
   
-  if (this.home.isModified()) {
-    this.getView().confirmSave(this.home.getName(), function(save) {
-        if (save) {
-          controller.save(selectHome);
-        } else {
-          selectHome();
-        } 
-      });
+  if (this.home.isModified() || this.home.isRecovered()) {
+    this.getView().confirmSave(this.application.configuration === undefined || this.home.getName() !== this.application.configuration.defaultHomeName ? this.home.getName() : null, 
+        function(save) {
+          if (save) {
+            controller.save(selectHome);
+          } else {
+            selectHome();
+          } 
+        });
   } else {
     selectHome();
   }
@@ -360,7 +371,8 @@ DirectRecordingHomeController.prototype.open = function() {
  * @param {function} [postSaveTask]
  */
 DirectRecordingHomeController.prototype.save = function(postSaveTask) {
-  if (this.home.getName() == null) {
+  if (this.home.getName() == null
+      || (this.application.configuration !== undefined && this.home.getName() === this.application.configuration.defaultHomeName)) {
     this.saveAs(postSaveTask);
   } else {
     var preferences = this.application.getUserPreferences();
@@ -384,6 +396,7 @@ DirectRecordingHomeController.prototype.save = function(postSaveTask) {
           delete savingTaskDialog.writingOperation;
           savingTaskDialog.close(); 
           home.setModified(false);
+          home.setRecovered(false);
           if (postSaveTask !== undefined) {
             postSaveTask();
           }
@@ -417,6 +430,7 @@ DirectRecordingHomeController.prototype.saveAs = function(postSaveTask) {
  * Removes home from application homes list.
  */
 DirectRecordingHomeController.prototype.close = function() {
+  this.home.setRecovered(false);
   this.application.deleteHome(this.home);  
   this.getView().dispose();
 }
@@ -466,6 +480,14 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
  *          trackedHomeProperties: string[],
  *          autoWriteTrackedStateChange: boolean,
  *          userLanguage: string,
+ *          listHomesURL: string,
+ *          deleteHomeURL: string,
+ *          autoRecovery: boolean,
+ *          compressionLevel: number,
+ *          includeAllContent: boolean,
+ *          writeDataType: string,
+ *          writeHomeWithWorker: boolean, 
+ *          defaultHomeName: string,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
  *                            writeFailed: Function, 
@@ -475,6 +497,11 @@ DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confi
  *              (if undefined, will use local files for testing).
  *              If writePreferencesResourceURL / readPreferencesResourceURL is missing,
  *              writeResourceURL / readResourceURL will be used.
+ *              If writeHomeEditsURL and readHomeURL are missing, application recorder will be 
+ *              an instance of <code>HomeRecorder</code>.
+ *              If writeHomeEditsURL is missing, application recorder will be 
+ *              an instance of <code>DirectHomeRecorder</code>.
+ *              Auto recovery not available for incremental recorder.
  * @constructor
  * @author Emmanuel Puybaret
  * @author Renaud Pawlak
@@ -499,16 +526,20 @@ function SweetHome3DJSApplication(configuration) {
         }
       }
     });
+    
+  if (this.configuration !== undefined
+      && this.configuration.autoRecovery 
+      && this.configuration.writeHomeEditsURL === undefined) {
+    setTimeout(function() {
+        application.runAutoRecoveryManager();
+      });
+  }  
 }
 SweetHome3DJSApplication.prototype = Object.create(HomeApplication.prototype);
 SweetHome3DJSApplication.prototype.constructor = SweetHome3DJSApplication;
 
 SweetHome3DJSApplication.prototype.getVersion = function() {
   return "7.1";
-}
-
-SweetHome3DJSApplication.prototype.getHomeController = function(home) {
-  return this.homeControllers[this.getHomes().indexOf(home)];
 }
 
 SweetHome3DJSApplication.prototype.getHomeRecorder = function() {
@@ -529,11 +560,22 @@ SweetHome3DJSApplication.prototype.getUserPreferences = function() {
     } else {
       this.preferences = new RecordedUserPreferences(this.configuration);
     }
-    this.preferences.setFurnitureViewedFromTop(true);
   }
   return this.preferences;
 }
 
+SweetHome3DJSApplication.prototype.createHome = function() {
+  var home = HomeApplication.prototype.createHome.call(this);
+  if (this.configuration !== undefined && this.configuration.defaultHomeName !== undefined) {
+    home.setName(this.configuration.defaultHomeName);
+  }
+  return home;
+}
+
+/**
+ * Returns the view factory which will create the views associated to their controllers. 
+ * @return {Object}
+ */
 SweetHome3DJSApplication.prototype.getViewFactory = function() {
   if (this.viewFactory == null) {
     this.viewFactory = new JSViewFactory(this);
@@ -541,6 +583,10 @@ SweetHome3DJSApplication.prototype.getViewFactory = function() {
   return this.viewFactory;
 }
 
+/**
+ * Create the <code>HomeController</code> which controls the given <code>home</code>.
+ * @param {Home} home
+ */
 SweetHome3DJSApplication.prototype.createHomeController = function(home) {
   return this.configuration === undefined || this.configuration.readHomeURL === undefined
       ? new LocalFileHomeController(home, this, this.getViewFactory())
@@ -548,3 +594,251 @@ SweetHome3DJSApplication.prototype.createHomeController = function(home) {
           ? new HomeController(home, this, this.getViewFactory())
           : new DirectRecordingHomeController(home, this, this.getViewFactory()));
 }
+
+/**
+ * Returns the <code>HomeController</code> associated to the given <code>home</code>.
+ * @return {HomeController}
+ */
+SweetHome3DJSApplication.prototype.getHomeController = function(home) {
+  return this.homeControllers[this.getHomes().indexOf(home)];
+}
+
+/**
+ * Runs the auto recovery manager.
+ * @private
+ */
+SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
+  var application = this;
+  
+  // Auto recovery recorder stores data in Recovery object store of IndexedDB,  
+  // reusing XML handler and exporter of application recorder
+  function AutoRecoveryRecorder() {
+     HomeRecorder.call(this, {
+        readHomeURL: "indexeddb://SweetHome3DJS/Recovery/content?name=%s.recovered", 
+        writeHomeURL: "indexeddb://SweetHome3DJS/Recovery?keyPathField=name&contentField=content&dateField=date&name=%s.recovered", 
+        readResourceURL: "indexeddb://SweetHome3DJS/Recovery/content?name=%s",
+        writeResourceURL: "indexeddb://SweetHome3DJS/Recovery?keyPathField=name&contentField=content&dateField=date&name=%s", 
+        listHomesURL: "indexeddb://SweetHome3DJS/Recovery?name=(.*).recovered",
+        deleteHomeURL: "indexeddb://SweetHome3DJS/Recovery?name=%s.recovered",
+        compressionLevel: 0,
+        writeHomeWithWorker: true
+      });
+  }
+  AutoRecoveryRecorder.prototype = Object.create(DirectHomeRecorder.prototype);
+  AutoRecoveryRecorder.prototype.constructor = DirectHomeRecorder;
+
+  AutoRecoveryRecorder.prototype.getHomeXMLHandler = function() {
+    return application.getHomeRecorder().getHomeXMLHandler();
+  }
+  
+  AutoRecoveryRecorder.prototype.getHomeXMLExporter = function() {
+    return application.getHomeRecorder().getHomeXMLExporter();
+  }
+
+  var autoSaveRecorder = new AutoRecoveryRecorder();
+  
+  var recoveredHomeNames = [];
+  var homeExtension1 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension");
+  var homeExtension2 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension2");
+  
+  var homeModificationListener = function(ev) {
+      var home = ev.getSource(); 
+      if (!home.isModified()) {
+        home.removePropertyChangeListener("MODIFIED", homeModificationListener);
+        // Delete auto saved in 1s in case user was traversing quickly the undo/redo pile
+        setTimeout(function() {
+            if (!home.isModified()) {
+              deleteRecoveredHome(home.getName());
+            }
+            home.addPropertyChangeListener("MODIFIED", homeModificationListener);
+          }, 1000);
+      }
+    }; 
+  var homesListener = function(ev) {
+      var home = ev.getItem();
+      if (ev.getType() == CollectionEvent.Type.ADD) {
+	    if (home.getName() != null) {
+          recoveredHomeNames.push(home.getName());
+	    }
+        autoSaveRecorder.getAvailableHomes({
+            availableHomes: function(homeNames) {
+              var recoveredHome = false;
+              for (var i = 0; i < homeNames.length; i++) {
+                if (this.homeNamesEqual(home.getName(), homeNames [i])) {
+                  if (confirm(application.getUserPreferences().getLocalizedString("SweetHome3DJSApplication", "confirmRecoverHome"))) {
+                    recoveredHome = true;
+                    autoSaveRecorder.readHome(homeNames [i], {
+                        homeLoaded: function(replacingHome) {
+                          application.removeHomesListener(homesListener);
+                          application.getHomeController(home).close();
+                          var homeName = replacingHome.getName();
+                          replacingHome.setRecovered(true);
+                          replacingHome.addPropertyChangeListener("RECOVERED", function(ev) {
+                              if (!replacingHome.isRecovered()) {
+                                deleteRecoveredHome(homeName);
+                              }
+                            });
+                          replacingHome.addPropertyChangeListener("NAME", function(ev) {
+                              recoveredHomeNames.splice(recoveredHomeNames.indexOf(ev.getOldValue()), 1);
+                              if (!replacingHome.isRecovered()) {
+                                deleteRecoveredHome(ev.getOldValue());
+                              }
+                              recoveredHomeNames.push(ev.getNewValue());
+                            });
+                          application.addHome(replacingHome);
+                          application.addHomesListener(homesListener);
+                        },
+                        homeError: function(error) {
+                          var message = application.getUserPreferences().
+                              getLocalizedString("HomeController", "openError", home.getName()) + "\n" + error; 
+                          console.error(message);
+                          alert(message);
+                        },
+                      });
+                  } else {
+	                recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
+                    deleteRecoveredHome(homeNames [i]);
+                  }
+                  break;
+                }
+              }
+              
+              if (!recoveredHome) {
+                home.addPropertyChangeListener("MODIFIED", homeModificationListener);
+              }
+            },
+            homesError: function(error, text) {
+	          console.error("Couldn't retrieve homes from database " + error + " " + text); 
+	        },
+            homeNamesEqual: function(name1, name2) {
+              // If both names ends by a home extension
+              var name1Extension1Index = name1.indexOf(homeExtension1, name1.length - homeExtension1.length);
+              var name1Extension2Index = name1.indexOf(homeExtension2, name1.length - homeExtension2.length);
+              var name2Extension1Index = name2.indexOf(homeExtension1, name2.length - homeExtension1.length);
+              var name2Extension2Index = name2.indexOf(homeExtension2, name2.length - homeExtension2.length);
+              if ((name1Extension1Index > 0 || name1Extension2Index > 0)
+                  && (name2Extension1Index > 0 || name2Extension2Index > 0)) {
+                var name1WithoutExtension = name1Extension1Index > 0 
+                    ? name1.substring(0, name1Extension1Index)
+                    : name1.substring(0, name1Extension2Index);
+                var name2WithoutExtension = name2Extension1Index > 0 
+                    ? name2.substring(0, name2Extension1Index)
+                    : name2.substring(0, name2Extension2Index);
+                return name1WithoutExtension === name2WithoutExtension;
+              } else {
+                return name1 === name2;
+              }
+            }
+          });
+      } else if (ev.getType() == CollectionEvent.Type.DELETE
+                 && home.getName() != null) {
+	    if (recoveredHomeNames.indexOf(home.getName()) >= 0) {
+          recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
+          deleteRecoveredHome(home.getName());
+        }
+        home.removePropertyChangeListener("MODIFIED", homeModificationListener);
+      }
+    };
+  application.addHomesListener(homesListener);
+    
+  var deleteRecoveredHome = function(homeName) {
+      autoSaveRecorder.deleteHome(homeName, { 
+          homeDeleted: function() {
+            if (recoveredHomeNames.length == 0
+                && (application.configuration.writePreferencesURL !== undefined
+                    && (application.configuration.writeResourceURL !== undefined
+                        || application.configuration.writePreferencesResourceURL !== undefined)
+                    && (application.configuration.readResourceURL !== undefined
+                       || application.configuration.readPreferencesResourceURL !== undefined)
+                    || !application.userPreferencesContainModifiableItems())) {
+              // Remove all data if no homes are left in Recovery database
+              // except if a opened home was previously recovered (saving it again will make its data necessary)
+              autoSaveRecorder.getAvailableHomes({
+                  availableHomes: function(homeNames) {
+                    if (homeNames.length === 0) {
+                      var dummyRecorder = new DirectHomeRecorder({
+                          listHomesURL: "indexeddb://SweetHome3DJS/Recovery?name=.*",
+                          deleteHomeURL: "indexeddb://SweetHome3DJS/Recovery?name=%s"
+                        });
+                      dummyRecorder.getAvailableHomes({ 
+                          availableHomes: function(dataNames) {
+                            for (var i = 0; i < dataNames.length; i++) {
+                              dummyRecorder.deleteHome(dataNames [i], { homeDeleted: function() {} });
+                            }
+                          }
+                        });
+                    }  
+                  }
+                });
+            }
+          }
+        });      
+    };
+  
+  var autoSaveDelayForRecovery = application.getUserPreferences().getAutoSaveDelayForRecovery();
+  if (autoSaveDelayForRecovery > 0) {
+    var lastAutoSaveTime = Date.now();
+    var autoSaveTask = function() {
+        if (Date.now() - lastAutoSaveTime > 5000) {
+          var homes = application.getHomes();
+          for (var i = 0; i < homes.length; i++) {
+            var home = homes [i];
+            if (home.getName() != null) {
+              if (home.isModified()) {
+                autoSaveRecorder.writeHome(home, home.getName(), {
+                    homeSaved: function(home) {
+                    },
+                    homeError: function(error, text) {
+	                  console.error("Couldn't save home for recovery " + error + " " + text); 
+	                }
+                  });
+              } else if (recoveredHomeNames.indexOf(home.getName()) <= 0) {
+                deleteRecoveredHome(home.getName());
+              }
+            }
+          }
+          lastAutoSaveTime = Date.now();
+        }
+      };
+    var intervalId = setInterval(autoSaveTask, autoSaveDelayForRecovery);
+    application.getUserPreferences().addPropertyChangeListener("AUTO_SAVE_DELAY_FOR_RECOVERY", function(ev) {
+          window.clearInterval(intervalId);
+          if (ev.getNewValue() > 0) {
+            intervalId = setInterval(autoSaveTask, ev.getNewValue());
+          }
+        });
+  }
+}
+
+/**
+ * Returns <code>true</code> if the user preferences contain some modifiable textures or models.
+ * @private
+ */
+SweetHome3DJSApplication.prototype.userPreferencesContainModifiableItems = function() {
+  var preferences = this.getUserPreferences();
+  var texturesCatalog = preferences.getTexturesCatalog();
+  for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
+    var textureCategory = texturesCatalog.getCategory(i);
+    for (var j = 0; j < textureCategory.getTexturesCount(); j++) {
+      if (textureCategory.getTexture(j).isModifiable()) {
+        return true;
+      }
+    }
+  }
+  var recentTextures = preferences.getRecentTextures();
+  for (var i = 0; i < recentTextures.length; i++) {
+    if (recentTextures [i].getImage() instanceof LocalURLContent) {
+      return true;
+    }
+  }  
+  var furnitureCatalog = preferences.getFurnitureCatalog();
+  for (var i = 0; i < furnitureCatalog.getCategoriesCount(); i++) {
+    var furnitureCategory = furnitureCatalog.getCategory(i);
+    for (var j = 0; j < furnitureCategory.getFurnitureCount(); j++) {
+      if (furnitureCategory.getPieceOfFurniture(j).isModifiable()) {
+        return true;
+      }
+    }
+  }
+}
+

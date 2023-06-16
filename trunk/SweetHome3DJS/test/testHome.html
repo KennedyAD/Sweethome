@@ -2871,7 +2871,8 @@ var application = useServer
            texturesResourcesURLBase:  ZIPTools.getScriptFolder() + "../",
            includeAllContent: true,
            compressionLevel: 0,
-           writeHomeWithWorker: true
+           writeHomeWithWorker: true,
+           autoRecovery: skipTests
           });
 var homeName = useServer ? "HomeTest" : window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/resources/HomeTest.sh3d";
 
@@ -2894,6 +2895,7 @@ application.getHomeRecorder().readHome(homeName,
       progression: function(part, info, percentage) {
       }
     });
+    
 </script>
 
 </body>
