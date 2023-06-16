@@ -68,8 +68,8 @@ function UserPreferences() {
   this.newWallBaseboardHeight = 7;
   this.newRoomFloorColor = null;
   this.newFloorThickness = 12;
+  this.autoSaveDelayForRecovery = 0;
   this.recentHomes = [];
-  this.autoSaveDelayForRecovery;
   this.autoCompletionStrings = {};
   this.recentColors = [];
   this.recentTextures = [];
@@ -1153,10 +1153,12 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
     this.setNewWallBaseboardHeight(7);
   }
 
+  this.setNewFloorThickness(12);
   this.setNavigationPanelVisible(false);
   this.setWallPattern(patternsCatalog.getPattern("hatchUp"));
   this.setNewWallPattern(this.getWallPattern());
   this.setAerialViewCenteredOnSelectionEnabled(true);
+  this.setAutoSaveDelayForRecovery(60000);
 }
 DefaultUserPreferences.prototype = Object.create(UserPreferences.prototype);
 DefaultUserPreferences.prototype.constructor = DefaultUserPreferences;
@@ -1320,9 +1322,10 @@ RecordedUserPreferences.WALL_PATTERN                              = "wallPattern
 RecordedUserPreferences.NEW_WALL_PATTERN                          = "newWallPattern";
 RecordedUserPreferences.NEW_WALL_THICKNESS                        = "newWallThickness";
 RecordedUserPreferences.NEW_WALL_HEIGHT                           = "newHomeWallHeight";
-RecordedUserPreferences.NEW_FLOOR_THICKNESS                       = "newFloorThickness";
 RecordedUserPreferences.NEW_WALL_BASEBOARD_THICKNESS              = "newWallBaseboardThickness";
 RecordedUserPreferences.NEW_WALL_BASEBOARD_HEIGHT                 = "newWallBaseboardHeight";
+RecordedUserPreferences.NEW_FLOOR_THICKNESS                       = "newFloorThickness";
+RecordedUserPreferences.AUTO_SAVE_DELAY_FOR_RECOVERY              = "autoSaveDelayForRecovery";
 RecordedUserPreferences.RECENT_HOMES                              = "recentHomes#";
 RecordedUserPreferences.IGNORED_ACTION_TIP                        = "ignoredActionTip#";
 RecordedUserPreferences.TEXTURE_NAME                              = "textureName#";
@@ -1468,6 +1471,8 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
       '' + defaultPreferences.getNewWallBaseboardHeight())));
   this.setNewFloorThickness(parseFloat(this.getProperty(properties, RecordedUserPreferences.NEW_FLOOR_THICKNESS,
       '' + defaultPreferences.getNewFloorThickness())));
+  this.setAutoSaveDelayForRecovery(parseInt(this.getProperty(properties, RecordedUserPreferences.AUTO_SAVE_DELAY_FOR_RECOVERY,
+       '' + defaultPreferences.getAutoSaveDelayForRecovery())));
   // Read recent homes list
   var recentHomes = [];
   for (var i = 1; i <= this.getRecentHomesMaxCount(); i++) {
@@ -1755,7 +1760,8 @@ RecordedUserPreferences.prototype.write = function() {
     this.setProperty(properties, RecordedUserPreferences.NEW_WALL_BASEBOARD_THICKNESS, '' + this.getNewWallBaseboardThickness());
     this.setProperty(properties, RecordedUserPreferences.NEW_WALL_BASEBOARD_HEIGHT, '' + this.getNewWallBaseboardHeight());
     this.setProperty(properties, RecordedUserPreferences.NEW_FLOOR_THICKNESS, '' + this.getNewFloorThickness());
-    // Write recent homes list
+    this.setProperty(properties, RecordedUserPreferences.AUTO_SAVE_DELAY_FOR_RECOVERY, '' + this.getAutoSaveDelayForRecovery());
+     // Write recent homes list
     var recentHomes = this.getRecentHomes();
     for (var i = 0; i < recentHomes.length && i < this.getRecentHomesMaxCount(); i++) {
       this.setProperty(properties, RecordedUserPreferences.RECENT_HOMES + (i + 1), recentHomes[i]);
