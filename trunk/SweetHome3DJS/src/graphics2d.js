@@ -80,24 +80,24 @@ Graphics2D.prototype.createPathFromShape = function(s) {
   var coords = new Array(6);
   while (!it.isDone()) {
     switch (it.currentSegment(coords)) {
-    case java.awt.geom.PathIterator.SEG_MOVETO:
-      this.context.moveTo(coords[0], coords[1]);
-      break;
-    case java.awt.geom.PathIterator.SEG_LINETO:
-      this.context.lineTo(coords[0], coords[1]);
-      break;
-    case java.awt.geom.PathIterator.SEG_QUADTO:
-      console.error("QUADTO: " + coords);
-      this.context.lineTo(coords[0], coords[1]);
-      break;
-    case java.awt.geom.PathIterator.SEG_CUBICTO:
-      this.context.bezierCurveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-      break;
-    case java.awt.geom.PathIterator.SEG_CLOSE:
-      this.context.closePath();
-      break;
-    default:
-      break;
+      case java.awt.geom.PathIterator.SEG_MOVETO:
+        this.context.moveTo(coords[0], coords[1]);
+        break;
+      case java.awt.geom.PathIterator.SEG_LINETO:
+        this.context.lineTo(coords[0], coords[1]);
+        break;
+      case java.awt.geom.PathIterator.SEG_QUADTO:
+        console.error("QUADTO: " + coords);
+        this.context.lineTo(coords[0], coords[1]);
+        break;
+      case java.awt.geom.PathIterator.SEG_CUBICTO:
+        this.context.bezierCurveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
+        break;
+      case java.awt.geom.PathIterator.SEG_CLOSE:
+        this.context.closePath();
+        break;
+      default:
+        break;
     }
     it.next();
   }
@@ -384,8 +384,7 @@ Graphics2D.prototype.getPaint = function() {
 Graphics2D.prototype.setPaint = function(paint) {
   if (typeof paint === "string") {
     this.setColor(paint);
-  }
-  else {
+  } else {
     this.context.strokeStyle = paint;
     this.context.fillStyle = paint;
   }
@@ -399,31 +398,30 @@ Graphics2D.prototype.setStroke = function(s) {
   if (s.getDashArray() != null) {
     this.context.setLineDash(s.getDashArray());
     this.context.lineDashOffset = s.getDashPhase();
-  }
-  else {
+  } else {
     this.context.setLineDash([]);
   }
   switch (s.getLineJoin()) {
-  case java.awt.BasicStroke.JOIN_BEVEL:
-    this.context.lineJoin = "bevel";
-    break;
-  case java.awt.BasicStroke.JOIN_MITER:
-    this.context.lineJoin = "miter";
-    break;
-  case java.awt.BasicStroke.JOIN_ROUND:
-    this.context.lineJoin = "round";
-    break;
+    case java.awt.BasicStroke.JOIN_BEVEL:
+      this.context.lineJoin = "bevel";
+      break;
+    case java.awt.BasicStroke.JOIN_MITER:
+      this.context.lineJoin = "miter";
+      break;
+    case java.awt.BasicStroke.JOIN_ROUND:
+      this.context.lineJoin = "round";
+      break;
   }
   switch (s.getEndCap()) {
-  case java.awt.BasicStroke.CAP_BUTT:
-    this.context.lineCap = "butt";
-    break;
-  case java.awt.BasicStroke.CAP_ROUND:
-    this.context.lineCap = "round";
-    break;
-  case java.awt.BasicStroke.CAP_SQUARE:
-    this.context.lineCap = "square";
-    break;
+    case java.awt.BasicStroke.CAP_BUTT:
+      this.context.lineCap = "butt";
+      break;
+    case java.awt.BasicStroke.CAP_ROUND:
+      this.context.lineCap = "round";
+      break;
+    case java.awt.BasicStroke.CAP_SQUARE:
+      this.context.lineCap = "square";
+      break;
   }
   this.context.miterLimit = s.getMiterLimit();
 }
@@ -516,8 +514,7 @@ FontMetrics.prototype.compute = function(aString) {
     this.descent = textMetrics.fontBoundingBoxDescent;
     this.height = this.ascent + this.descent;
     this.width = textMetrics.width;
-  }
-  else {
+  } else {
     // height info is not available on old browsers, so we build an approx.
     if (!this.approximated) {
       this.approximated = true;
@@ -551,8 +548,7 @@ function Font(cssFontDecriptor) {
   }
   if (typeof cssFontDecriptor === 'string') {
     Font.element.style.font = cssFontDecriptor;
-  }
-  else {
+  } else {
     if (cssFontDecriptor.style) {
       Font.element.style.fontStyle = cssFontDecriptor.style;
     }
