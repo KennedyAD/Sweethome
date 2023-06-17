@@ -157,6 +157,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
     for (var i = contentsCopy.length - 1; i >= 0; i--) {
       var content = contentsCopy[i];
       if (content instanceof LocalURLContent
+          || (content.isJAREntry() && URLContent.fromURL(content.getJAREntryURL()) instanceof LocalURLContent)
           || content instanceof HomeURLContent
           || content instanceof SimpleURLContent
           || includeAllContent) {
