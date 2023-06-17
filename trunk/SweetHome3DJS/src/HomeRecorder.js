@@ -127,8 +127,6 @@ HomeRecorder.prototype.getHomeXMLHandler = function() {
   return new HomeXMLHandler();
 }
 
-HomeRecorder.contentDigestsCache = {};
-
 /**
  * Writes asynchronously the given <code>home</code> to a new blob 
  * (or the data matching the array type set in <code>writeDataType</code> configuration attribute, 
@@ -650,6 +648,11 @@ HomeRecorder.prototype.searchContents = function(object, homeObjects, contents, 
     }
   }
 }
+
+/**
+ * @private
+ */
+HomeRecorder.contentDigestsCache = {};
 
 /**
  * Returns asynchronously the SHA-1 digest of the given content.

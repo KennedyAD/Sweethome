@@ -614,15 +614,14 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
   var autoRecoveryDatabase = "SweetHome3DJS";
   var autoRecoveryObjectstore = "Recovery";
   if (this.configuration.autoRecoveryDatabase !== undefined) {
-	autoRecoveryDatabase = this.configuration.autoRecoveryDatabase;
+    autoRecoveryDatabase = this.configuration.autoRecoveryDatabase;
   }
   if (this.configuration.autoRecoveryObjectstore !== undefined) {
-	autoRecoveryObjectstore = this.configuration.autoRecoveryObjectstore;
+    autoRecoveryObjectstore = this.configuration.autoRecoveryObjectstore;
   }
   
   var autoRecoveryDatabaseUrlBase = "indexeddb://" + autoRecoveryDatabase + "/" + autoRecoveryObjectstore;
-  // Auto recovery recorder stores data in Recovery object store of IndexedDB,  
-  // reusing XML handler and exporter of application recorder
+  // Auto recovery recorder stores data in autoRecoveryObjectstore object store of IndexedDB,  
   function AutoRecoveryRecorder() {
      HomeRecorder.call(this, {
         readHomeURL: autoRecoveryDatabaseUrlBase + "/content?name=%s.recovered", 
@@ -638,10 +637,12 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
   AutoRecoveryRecorder.prototype = Object.create(DirectHomeRecorder.prototype);
   AutoRecoveryRecorder.prototype.constructor = DirectHomeRecorder;
 
+  // Reuse XML handler of application recorder
   AutoRecoveryRecorder.prototype.getHomeXMLHandler = function() {
     return application.getHomeRecorder().getHomeXMLHandler();
   }
   
+  // Reuse XML exporter of application recorder
   AutoRecoveryRecorder.prototype.getHomeXMLExporter = function() {
     return application.getHomeRecorder().getHomeXMLExporter();
   }
@@ -668,9 +669,9 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
   var homesListener = function(ev) {
       var home = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
-	    if (home.getName() != null) {
+        if (home.getName() != null) {
           recoveredHomeNames.push(home.getName());
-	    }
+        }
         autoSaveRecorder.getAvailableHomes({
             availableHomes: function(homeNames) {
               var recoveredHome = false;
@@ -686,7 +687,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                           replacingHome.setRecovered(true);
                           replacingHome.addPropertyChangeListener("RECOVERED", function(ev) {
                               if (!replacingHome.isRecovered()) {
-	                            recoveredHomeNames.splice(recoveredHomeNames.indexOf(replacingHome.getName()), 1);
+                                recoveredHomeNames.splice(recoveredHomeNames.indexOf(replacingHome.getName()), 1);
                                 deleteRecoveredHome(homeName);
                                 replacingHome.addPropertyChangeListener("MODIFIED", homeModificationListener);
                               }
@@ -709,7 +710,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                         },
                       });
                   } else {
-	                recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
+                    recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
                     deleteRecoveredHome(homeNames [i]);
                   }
                   break;
@@ -721,8 +722,8 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
               }
             },
             homesError: function(error, text) {
-	          console.error("Couldn't retrieve homes from database " + error + " " + text); 
-	        },
+              console.error("Couldn't retrieve homes from database " + error + " " + text); 
+            },
             homeNamesEqual: function(name1, name2) {
               // If both names ends by a home extension
               var name1Extension1Index = name1.indexOf(homeExtension1, name1.length - homeExtension1.length);
@@ -745,7 +746,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
           });
       } else if (ev.getType() == CollectionEvent.Type.DELETE
                  && home.getName() != null) {
-	    if (recoveredHomeNames.indexOf(home.getName()) >= 0) {
+        if (recoveredHomeNames.indexOf(home.getName()) >= 0) {
           recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
           deleteRecoveredHome(home.getName());
         }
@@ -802,8 +803,8 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                     homeSaved: function(home) {
                     },
                     homeError: function(error, text) {
-	                  console.error("Couldn't save home for recovery " + error + " " + text); 
-	                }
+                      console.error("Couldn't save home for recovery " + error + " " + text); 
+                    }
                   });
               } else if (recoveredHomeNames.indexOf(home.getName()) < 0) {
                 deleteRecoveredHome(home.getName());
