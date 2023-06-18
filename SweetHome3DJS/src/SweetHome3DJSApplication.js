@@ -771,8 +771,8 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                   availableHomes: function(homeNames) {
                     if (homeNames.length === 0) {
                       var dummyRecorder = new DirectHomeRecorder({
-                          listHomesURL: "indexeddb://SweetHome3DJS/Recovery?name=.*",
-                          deleteHomeURL: "indexeddb://SweetHome3DJS/Recovery?name=%s"
+                          listHomesURL: autoRecoveryDatabaseUrlBase + "?name=.*",
+                          deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s"
                         });
                       dummyRecorder.getAvailableHomes({ 
                           availableHomes: function(dataNames) {
