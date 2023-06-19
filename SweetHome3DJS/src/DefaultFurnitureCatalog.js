@@ -69,8 +69,6 @@ DefaultFurnitureCatalog.prototype.getLibraries = function() {
  */
 DefaultFurnitureCatalog.prototype.readDefaultFurnitureCatalogs = function(preferences, identifiedFurniture) {
   this.readFurnitureCatalog("DefaultFurnitureCatalog", preferences, identifiedFurniture);
-  // this.readFurnitureCatalog("ContributedFurnitureCatalog", preferences, identifiedFurniture);
-  // this.readFurnitureCatalog("AdditionalFurnitureCatalog", preferences, identifiedFurniture);
 }
 
 /**
@@ -118,6 +116,14 @@ DefaultFurnitureCatalog.prototype.readFurniture = function(resource, furnitureCa
         var pieceCategory = this.readFurnitureCategory(resource, index);
         this.add(pieceCategory, piece);
       }
+    } else {
+      // Read model contents to store its digests if they exist
+	  this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.ICON, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.ICON_DIGEST, index), 
+	      furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
+	  this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON_DIGEST, index), 
+	      furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
+	  this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL_DIGEST, index), 
+	      furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
     }
   }
 }
@@ -125,7 +131,7 @@ DefaultFurnitureCatalog.prototype.readFurniture = function(resource, furnitureCa
 /**
  * Returns the properties of the piece at the given <code>index</code>
  * different from default properties.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {number} index
  * @return {Object}
  */
@@ -176,7 +182,7 @@ DefaultFurnitureCatalog.prototype.getAdditionalProperties = function(resource, i
   } else {
     return {};
   }
-}
+}  
 
 /**
  * Returns <code>true</code> if the given parameter is the prefix of a default property
@@ -196,7 +202,7 @@ DefaultFurnitureCatalog.prototype.isDefaultProperty = function(keyPrefix) {
 /**
  * Returns the piece of furniture at the given <code>index</code> of a
  * localized <code>resource</code> bundle.
- * @param {java.util.ResourceBundle} resource a resource bundle
+ * @param {Object[]} resource a resource bundle
  * @param {number} index                the index of the read piece
  * @param {string} furnitureCatalogUrl  the URL from which piece resources will be loaded
  *                   or <code>null</code> if it's read from current classpath.
@@ -320,7 +326,7 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
 /**
  * Returns the furniture category of a piece at the given <code>index</code> of a
  * localized <code>resource</code> bundle.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {number} index
  * @return {FurnitureCategory}
  * @throws MissingResourceException if mandatory keys are not defined.
@@ -332,7 +338,7 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
 
 /**
  * Returns a valid content instance from the resource file or URL value of key.
- * @param {java.util.ResourceBundle} resource a resource bundle
+ * @param {Object[]} resource a resource bundle
  * @param {string} contentKey        the key of a resource content file
  * @param {string} contentDigestKey  the key of the digest of a resource content file
  * @param {string} furnitureUrl the URL of the file containing the target resource if it's not <code>null</code>
@@ -363,13 +369,18 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
   if (contentFile.indexOf("!/") >= 0 && contentFile.indexOf("jar:") !== 0) {
     url = "jar:" + url;
   }
+  
   var content = URLContent.fromURL(url);
+  var contentDigest = this.getOptionalString(resource, contentDigestKey, null);
+  if (contentDigest != null && contentDigest.length > 0) {
+    ContentDigestManager.getInstance().setContentDigest(content, contentDigest);
+  }
   return content;
 }
 
 /**
  * Returns model rotation parsed from key value.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {string} key
  * @return {Array}
  * @private
@@ -393,7 +404,7 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
 
 /**
  * Returns optional door or windows sashes.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {number} index
  * @param {number} doorOrWindowWidth
  * @param {number} doorOrWindowDepth
@@ -442,7 +453,7 @@ DefaultFurnitureCatalog.prototype.getDoorOrWindowSashes = function(resource, ind
 
 /**
  * Returns optional light sources.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {number} index
  * @param {number} lightWidth
  * @param {number} lightDepth
@@ -503,7 +514,7 @@ DefaultFurnitureCatalog.prototype.getLightSources = function(resource, index, li
 /**
  * Returns the value of <code>propertyKey</code> in <code>resource</code>,
  * or <code>defaultValue</code> if the property doesn't exist.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {string} propertyKey
  * @param {string} defaultValue
  * @return {string}
@@ -520,7 +531,7 @@ DefaultFurnitureCatalog.prototype.getOptionalString = function(resource, propert
 /**
  * Returns the value of <code>propertyKey</code> in <code>resource</code>,
  * or <code>defaultValue</code> if the property doesn't exist.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {string} propertyKey
  * @param {number} defaultValue
  * @return {number}
@@ -537,7 +548,7 @@ DefaultFurnitureCatalog.prototype.getOptionalFloat = function(resource, property
 /**
  * Returns the boolean value of <code>propertyKey</code> in <code>resource</code>,
  * or <code>defaultValue</code> if the property doesn't exist.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {string} propertyKey
  * @param {boolean} defaultValue
  * @return {boolean}
