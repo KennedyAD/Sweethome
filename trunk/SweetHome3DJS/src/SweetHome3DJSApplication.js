@@ -346,7 +346,7 @@ DirectRecordingHomeController.prototype.open = function() {
                             okButton.disabled = true;
                             deleteButton.disabled = true;
                           },
-                          homeError(status, error) {
+                          homeError: function(status, error) {
 	                        var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.errorMessage", item.innerText);
                             console.error(message + " : " + error); 
                             alert(message);
