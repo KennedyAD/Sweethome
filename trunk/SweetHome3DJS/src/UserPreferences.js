@@ -1099,7 +1099,7 @@ UserPreferences.prototype.isImportedImageResizedWithoutPrompting = function() {
 
 /**
  * Default user preferences.
- * @param {string[]} [furnitureCatalogUrls]
+ * @param {string[]|boolean} [furnitureCatalogUrls]
  * @param {string}   [furnitureResourcesUrlBase]
  * @param {string[]} [texturesCatalogUrls]
  * @param {string}   [texturesResourcesUrlBase]
@@ -1111,10 +1111,24 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
                                 texturesCatalogUrls, texturesResourcesUrlBase) {
   UserPreferences.call(this);
 
-  this.furnitureCatalogUrls = furnitureCatalogUrls;
-  this.furnitureResourcesUrlBase = furnitureResourcesUrlBase;
-  this.texturesCatalogUrls = texturesCatalogUrls;
-  this.texturesResourcesUrlBase = texturesResourcesUrlBase;
+  var readCatalogs;
+  var userLanguage;
+  if (furnitureCatalogUrls !== undefined 
+      && (typeof furnitureCatalogUrls === "boolean")) {
+	readCatalogs = furnitureCatalogUrls;
+    userLanguage = furnitureResourcesUrlBase;
+    this.furnitureCatalogUrls = undefined;
+    this.furnitureResourcesUrlBase = undefined;
+    this.texturesCatalogUrls = undefined;
+    this.texturesResourcesUrlBase = undefined;
+  } else {
+	readCatalogs = true;
+    userLanguage = Locale.getDefault();
+    this.furnitureCatalogUrls = furnitureCatalogUrls;
+    this.furnitureResourcesUrlBase = furnitureResourcesUrlBase;
+    this.texturesCatalogUrls = texturesCatalogUrls;
+    this.texturesResourcesUrlBase = texturesResourcesUrlBase;
+  }
   
   // Build default patterns catalog
   var patterns = [];
@@ -1128,18 +1142,18 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
   patterns.push(new DefaultPatternTexture("crossHatch"));
   var patternsCatalog = new PatternsCatalog(patterns);  
   this.setPatternsCatalog(patternsCatalog);
-  this.setFurnitureCatalog(typeof DefaultFurnitureCatalog === "function"
+  this.setFurnitureCatalog(readCatalogs && (typeof DefaultFurnitureCatalog === "function")
       ? (Array.isArray(furnitureCatalogUrls)
            ? new DefaultFurnitureCatalog(furnitureCatalogUrls, furnitureResourcesUrlBase) 
            : new DefaultFurnitureCatalog(this))
       : new FurnitureCatalog());
-  this.setTexturesCatalog(typeof DefaultTexturesCatalog === "function"
+  this.setTexturesCatalog(readCatalogs && (typeof DefaultTexturesCatalog === "function")
       ? (Array.isArray(texturesCatalogUrls)
            ? new DefaultTexturesCatalog(texturesCatalogUrls, texturesResourcesUrlBase) 
            : new DefaultTexturesCatalog(this))
       : new TexturesCatalog());
 
-  if (Locale.getDefault() == "en_US") {
+  if (userLanguage == "en_US") {
     this.setUnit(LengthUnit.INCH);
     this.setNewWallThickness(7.62);
     this.setNewWallHeight(243.84);
@@ -1294,8 +1308,14 @@ function RecordedUserPreferences(configuration) {
     userLanguage = this.getLanguage();
   }
 
-  var properties = this.getProperties();
-  this.updatePreferencesFromProperties(properties, userLanguage);
+  this.properties = {};
+  this.setFurnitureCatalog(new FurnitureCatalog());
+  this.setTexturesCatalog(new TexturesCatalog());
+  // Initialize properties from default preferences
+  this.updatePreferencesFromProperties(this.properties, userLanguage, false);
+  if (this.readPreferencesUrl) {
+    this.readPreferences(this.properties, userLanguage);
+  }
   this.uploadingBlobs = {};
 }
 
@@ -1375,19 +1395,19 @@ RecordedUserPreferences.prototype.removeProperty = function(properties, property
  * Updates saved preferences from the given properties.
  * @param {string, string} properties 
  * @param {string}         defaultUserLanguage
+ * @param {boolean}        updateCatalogs  
  * @private
  */
-RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(properties, defaultUserLanguage) {
+RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(properties, defaultUserLanguage, updateCatalogs) {
   this.setLanguage(this.getProperty(properties, RecordedUserPreferences.LANGUAGE, defaultUserLanguage));
 
   // Read default furniture and textures catalog
-  this.setFurnitureCatalog(new FurnitureCatalog());
-  this.setTexturesCatalog(new TexturesCatalog());
-  this.updateDefaultCatalogs();
+  if (updateCatalogs) {
+    this.updateDefaultCatalogs();
+  }
   this.readModifiableTexturesCatalog(properties);
 
-  var defaultPreferences = new DefaultUserPreferences(this.furnitureCatalogUrls, this.furnitureResourcesUrlBase,
-      this.texturesCatalogUrls, this.texturesResourcesUrlBase);
+  var defaultPreferences = new DefaultUserPreferences(false, defaultUserLanguage);
   defaultPreferences.setLanguage(this.getLanguage());
 
   // Fill default patterns catalog
@@ -1520,12 +1540,6 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
  * @private
  */
 RecordedUserPreferences.prototype.getProperties = function() {
-  if (this.properties === undefined) {
-    this.properties = {};
-    if (this.readPreferencesUrl) {
-      this.readPreferences(this.properties);
-    }
-  }
   return this.properties;
 }
 
@@ -1534,8 +1548,9 @@ RecordedUserPreferences.prototype.getProperties = function() {
  * @param {string, string} properties
  * @private
  */
-RecordedUserPreferences.prototype.readPreferences = function(properties) {
+RecordedUserPreferences.prototype.readPreferences = function(properties, defaultUserLanguage) {
   try {
+	var preferences = this;
     var updateJsonPreferences = function(jsonPreferences) {
         if (jsonPreferences != null) {
           var preferencesData = JSON.parse(jsonPreferences);
@@ -1543,23 +1558,23 @@ RecordedUserPreferences.prototype.readPreferences = function(properties) {
             properties [i] = preferencesData [i];
           }
         } 
+        preferences.updatePreferencesFromProperties(properties, defaultUserLanguage, true);
       };
       
     if (this.readPreferencesUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
       var key = this.readPreferencesUrl.substring(LocalStorageURLContent.LOCAL_STORAGE_PREFIX.length);
       updateJsonPreferences(localStorage.getItem(key));
     } else if (this.readPreferencesUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
-      var preferences = this;
       new IndexedDBURLContent(this.readPreferencesUrl).getBlob({
           blobReady: function(blob) {
             var reader = new FileReader();
             reader.addEventListener("load", function() {
                 updateJsonPreferences(reader.result);
-                preferences.updatePreferencesFromProperties(preferences.getProperties(), preferences.getLanguage());
               });
             reader.readAsText(blob);
           },
           blobError : function(status, error) {
+	        preferences.updateDefaultCatalogs();
             if (status != -1) {
               console.log("Can't read preferences from indexedDB " + status + " " + error);
             }
@@ -1573,6 +1588,8 @@ RecordedUserPreferences.prototype.readPreferences = function(properties) {
           if (request.readyState === XMLHttpRequest.DONE
               && request.status === 200) {
             updateJsonPreferences(request.responseText);
+          } else {
+            preferences.updateDefaultCatalogs();
           }
         });
       request.send();
@@ -1623,6 +1640,7 @@ RecordedUserPreferences.prototype.updateDefaultCatalogs = function() {
       }
     }
   }
+  
   // Add default textures
   var resourceTexturesCatalog = typeof DefaultTexturesCatalog === "function"
       ? (Array.isArray(this.texturesCatalogUrls)
