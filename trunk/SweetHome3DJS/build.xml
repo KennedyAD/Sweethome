@@ -233,7 +233,8 @@
       	<file name="ResourceAction.js"/>
         <file name="PlanComponent.js"/>
         <file name="HomePane.js"/>
-        <file name="DefaultFurnitureCatalog.js"/>
+      	<file name="ContentDigestManager.js"/>
+      	<file name="DefaultFurnitureCatalog.js"/>
         <file name="DefaultTexturesCatalog.js"/>
         <file name="FurnitureCatalogListPanel.js"/>
       	<file name="FurnitureTablePanel.js"/>
