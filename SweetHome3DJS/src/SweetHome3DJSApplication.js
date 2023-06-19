@@ -499,7 +499,7 @@ DirectRecordingHomeController.prototype.confirmDeleteHome = function(homeName, c
  *          autoWriteDelay: number,
  *          trackedHomeProperties: string[],
  *          autoWriteTrackedStateChange: boolean,
- *          userLanguage: string,
+ *          defaultUserLanguage: string,
  *          listHomesURL: string,
  *          deleteHomeURL: string,
  *          autoRecovery: boolean,
