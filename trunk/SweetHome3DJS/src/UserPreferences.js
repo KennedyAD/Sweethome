@@ -1312,35 +1312,16 @@ function RecordedUserPreferences(configuration) {
   this.properties = {};
   this.setFurnitureCatalog(new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
-  // Initialize properties from default preferences
-  this.updatePreferencesFromProperties(this.properties, userLanguage, false);
   if (this.readPreferencesUrl) {
+    this.updatePreferencesFromProperties(this.properties, userLanguage, false);
     this.readPreferences(this.properties, userLanguage);
   } else {
-	this.updateDefaultCatalogs();
+    // Initialize properties from default preferences
+    this.updatePreferencesFromProperties(this.properties, userLanguage, true);
+	this.addListeners();
   }
 
-  var preferences = this;
-  this.addPropertyChangeListener("LANGUAGE", function() {
-      preferences.updateDefaultCatalogs();
-    });
-
-  // Add a listener to track written properties and ignore the other ones during a call to write
-  var savedPropertyListener = function() {
-      preferences.writtenPropertiesUpdated = true;
-    };
-  var writtenProperties = ["LANGUAGE", "UNIT", "CURRENCY", "VALUE_ADDED_TAX_ENABLED", "DEFAULT_VALUE_ADDED_TAX_PERCENTAGE",
-      "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", 'DEFAULT_FONT_NAME', "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
-      "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "FURNITURE_VIEWED_FROM_TOP",
-      "FURNITURE_MODEL_ICON_SIZE", "ROOM_FLOOR_COLORED_OR_TEXTURED", "NEW_WALL_PATTERN", "NEW_WALL_THICKNESS",
-      "NEW_WALL_HEIGHT", "NEW_WALL_BASEBOARD_THICKNESS", "NEW_WALL_BASEBOARD_HEIGHT", "NEW_FLOOR_THICKNESS"];
-  for (var i = 0; i < writtenProperties.length; i++) {
-    var writtenProperty = writtenProperties[i];
-    this.addPropertyChangeListener(writtenProperty, savedPropertyListener);
-  }
-  this.getTexturesCatalog().addTexturesListener(savedPropertyListener);
 }
-
 RecordedUserPreferences.prototype = Object.create(UserPreferences.prototype);
 RecordedUserPreferences.prototype.constructor = RecordedUserPreferences;
 
@@ -1390,6 +1371,15 @@ RecordedUserPreferences.prototype.getProperty = function(properties, propertyKey
     return defaultValue;
   }
   return properties[propertyKey];
+}
+
+/**
+ * Returns preferences internal properties.
+ * @return {string, string}
+ * @private
+ */
+RecordedUserPreferences.prototype.getProperties = function() {
+  return this.properties;
 }
 
 /**
@@ -1537,12 +1527,29 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
 }
 
 /**
- * Returns preferences internal properties.
- * @return {string, string}
+ * Adds listeners to update catalogs and follow properties to save.
  * @private
  */
-RecordedUserPreferences.prototype.getProperties = function() {
-  return this.properties;
+RecordedUserPreferences.prototype.addListeners = function() {
+  var preferences = this;
+  this.addPropertyChangeListener("LANGUAGE", function() {
+      preferences.updateDefaultCatalogs();
+    });
+
+  // Add a listener to track written properties and ignore the other ones during a call to write
+  var savedPropertyListener = function() {
+      preferences.writtenPropertiesUpdated = true;
+    };
+  var writtenProperties = ["LANGUAGE", "UNIT", "CURRENCY", "VALUE_ADDED_TAX_ENABLED", "DEFAULT_VALUE_ADDED_TAX_PERCENTAGE",
+      "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", 'DEFAULT_FONT_NAME', "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
+      "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "FURNITURE_VIEWED_FROM_TOP",
+      "FURNITURE_MODEL_ICON_SIZE", "ROOM_FLOOR_COLORED_OR_TEXTURED", "NEW_WALL_PATTERN", "NEW_WALL_THICKNESS",
+      "NEW_WALL_HEIGHT", "NEW_WALL_BASEBOARD_THICKNESS", "NEW_WALL_BASEBOARD_HEIGHT", "NEW_FLOOR_THICKNESS"];
+  for (var i = 0; i < writtenProperties.length; i++) {
+    var writtenProperty = writtenProperties[i];
+    this.addPropertyChangeListener(writtenProperty, savedPropertyListener);
+  }
+  this.getTexturesCatalog().addTexturesListener(savedPropertyListener);
 }
 
 /**
@@ -1561,6 +1568,7 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
           }
         } 
         preferences.updatePreferencesFromProperties(properties, defaultUserLanguage, true);
+	    preferences.addListeners();
       };
       
     if (this.readPreferencesUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
@@ -1577,6 +1585,7 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
           },
           blobError : function(status, error) {
 	        preferences.updateDefaultCatalogs();
+            preferences.addListeners();
             if (status != -1) {
               console.log("Can't read preferences from indexedDB " + status + " " + error);
             }
@@ -1585,20 +1594,30 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
     } else {
       var request = new XMLHttpRequest();
       var querySeparator = this.readPreferencesUrl.indexOf('?') != -1 ? '&' : '?';
-      request.open("GET", this.readPreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), false); // TODO Avoid sync
+      request.open("GET", this.readPreferencesUrl + querySeparator + "requestId=" + UUID.randomUUID(), true); 
       request.addEventListener("load", function() {
           if (request.readyState === XMLHttpRequest.DONE
               && request.status === 200) {
             updateJsonPreferences(request.responseText);
           } else {
             preferences.updateDefaultCatalogs();
+            preferences.addListeners();
           }
         });
+      var errorListener = function(ev) {
+	      console.log("Can't read preferences from server");
+          preferences.updateDefaultCatalogs();
+          preferences.addListeners();
+        };
+      request.addEventListener("error", errorListener);
+      request.addEventListener("timeout", errorListener);
+      request.timeout = 10000;
       request.send();
     }
   } catch (ex) {
 	console.log(ex);
     preferences.updateDefaultCatalogs();    
+    preferences.addListeners();
   }
 }
 
