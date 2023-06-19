@@ -1315,6 +1315,8 @@ function RecordedUserPreferences(configuration) {
   this.updatePreferencesFromProperties(this.properties, userLanguage, false);
   if (this.readPreferencesUrl) {
     this.readPreferences(this.properties, userLanguage);
+  } else {
+	this.updateDefaultCatalogs();
   }
   this.uploadingBlobs = {};
 }
