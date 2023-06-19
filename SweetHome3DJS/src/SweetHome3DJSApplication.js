@@ -339,12 +339,17 @@ DirectRecordingHomeController.prototype.open = function() {
                 });
               fileDialog.registerEventListener(deleteButton, "click", function(ev) {
                   var item = fileDialog.findElement(".selected");
-                  controller.confirmDelete(item.innerText, function() {
+                  controller.confirmDeleteHome(item.innerText, function() {
                       controller.application.getHomeRecorder().deleteHome(item.innerText, {
                           homeDeleted: function() {
                             item.remove();
                             okButton.disabled = true;
                             deleteButton.disabled = true;
+                          },
+                          homeError(status, error) {
+	                        var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.errorMessage", item.innerText);
+                            console.error(message + " : " + error); 
+                            alert(message);
                           }
                         });
                     });
@@ -352,8 +357,10 @@ DirectRecordingHomeController.prototype.open = function() {
               fileDialog.displayView();
             }
           }, 
-          homesError: function() {
-            console.error("Couldn't retrieve homes from database " + error + " " + text); 
+          homesError: function(status, error) {
+	        var message = preferences.getLocalizedString("AppletContentManager", "showOpenDialog.availableHomesError");
+            console.error(message + " : " + error); 
+			alert(message);
           }
         });
         
@@ -414,11 +421,11 @@ DirectRecordingHomeController.prototype.save = function(postSaveTask) {
             postSaveTask();
           }
         }, 
-        homeError: function(error, text) { 
+        homeError: function(status, error) { 
           savingTaskDialog.close();
           new JSDialog(preferences, 
               preferences.getLocalizedString("HomePane", "error.title"),
-              preferences.getLocalizedString("HomeController", "saveError", [controller.home.getName(), text]),  
+              preferences.getLocalizedString("HomeController", "saveError", [controller.home.getName(), error]),  
              { size: "small" }).displayView(); 
         } 
       }); 
@@ -454,7 +461,7 @@ DirectRecordingHomeController.prototype.close = function() {
  * @param {function} confirm 
  * @private
  */
-DirectRecordingHomeController.prototype.confirmDelete = function(homeName, confirm) {
+DirectRecordingHomeController.prototype.confirmDeleteHome = function(homeName, confirm) {
   var preferences = this.application.getUserPreferences();
   var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.message", homeName);
   var confirmDeletionDialog = new JSDialog(preferences, 
@@ -734,8 +741,8 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                 home.addPropertyChangeListener("MODIFIED", homeModificationListener);
               }
             },
-            homesError: function(error, text) {
-              console.error("Couldn't retrieve homes from database " + error + " " + text); 
+            homesError: function(status, error) {
+              console.error("Couldn't retrieve homes from database : " + status + " " + error); 
             },
             homeNamesEqual: function(name1, name2) {
               // If both names ends by a home extension
@@ -815,8 +822,8 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                 autoSaveRecorder.writeHome(home, home.getName(), {
                     homeSaved: function(home) {
                     },
-                    homeError: function(error, text) {
-                      console.error("Couldn't save home for recovery " + error + " " + text); 
+                    homeError: function(status, error) {
+                      console.error("Couldn't save home for recovery : " + status + " " + error); 
                     }
                   });
               } else if (recoveredHomeNames.indexOf(home.getName()) < 0) {
