@@ -1308,6 +1308,7 @@ function RecordedUserPreferences(configuration) {
     userLanguage = this.getLanguage();
   }
 
+  this.uploadingBlobs = {};
   this.properties = {};
   this.setFurnitureCatalog(new FurnitureCatalog());
   this.setTexturesCatalog(new TexturesCatalog());
@@ -1318,7 +1319,26 @@ function RecordedUserPreferences(configuration) {
   } else {
 	this.updateDefaultCatalogs();
   }
-  this.uploadingBlobs = {};
+
+  var preferences = this;
+  this.addPropertyChangeListener("LANGUAGE", function() {
+      preferences.updateDefaultCatalogs();
+    });
+
+  // Add a listener to track written properties and ignore the other ones during a call to write
+  var savedPropertyListener = function() {
+      preferences.writtenPropertiesUpdated = true;
+    };
+  var writtenProperties = ["LANGUAGE", "UNIT", "CURRENCY", "VALUE_ADDED_TAX_ENABLED", "DEFAULT_VALUE_ADDED_TAX_PERCENTAGE",
+      "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", 'DEFAULT_FONT_NAME', "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
+      "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "FURNITURE_VIEWED_FROM_TOP",
+      "FURNITURE_MODEL_ICON_SIZE", "ROOM_FLOOR_COLORED_OR_TEXTURED", "NEW_WALL_PATTERN", "NEW_WALL_THICKNESS",
+      "NEW_WALL_HEIGHT", "NEW_WALL_BASEBOARD_THICKNESS", "NEW_WALL_BASEBOARD_HEIGHT", "NEW_FLOOR_THICKNESS"];
+  for (var i = 0; i < writtenProperties.length; i++) {
+    var writtenProperty = writtenProperties[i];
+    this.addPropertyChangeListener(writtenProperty, savedPropertyListener);
+  }
+  this.getTexturesCatalog().addTexturesListener(savedPropertyListener);
 }
 
 RecordedUserPreferences.prototype = Object.create(UserPreferences.prototype);
@@ -1514,26 +1534,6 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
       this.ignoredActionTips[ignoredActionTip] = true;
     }
   }
-
-  var preferences = this;
-  this.addPropertyChangeListener("LANGUAGE", function() {
-      preferences.updateDefaultCatalogs();
-    });
-
-  // Add a listener to track written properties and ignore the other ones during a call to write
-  var savedPropertyListener = function() {
-      preferences.writtenPropertiesUpdated = true;
-    };
-  var writtenProperties = ["LANGUAGE", "UNIT", "CURRENCY", "VALUE_ADDED_TAX_ENABLED", "DEFAULT_VALUE_ADDED_TAX_PERCENTAGE",
-      "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", 'DEFAULT_FONT_NAME', "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
-      "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "FURNITURE_VIEWED_FROM_TOP",
-      "FURNITURE_MODEL_ICON_SIZE", "ROOM_FLOOR_COLORED_OR_TEXTURED", "NEW_WALL_PATTERN", "NEW_WALL_THICKNESS",
-      "NEW_WALL_HEIGHT", "NEW_WALL_BASEBOARD_THICKNESS", "NEW_WALL_BASEBOARD_HEIGHT", "NEW_FLOOR_THICKNESS"];
-  for (var i = 0; i < writtenProperties.length; i++) {
-    var writtenProperty = writtenProperties[i];
-    this.addPropertyChangeListener(writtenProperty, savedPropertyListener);
-  }
-  this.getTexturesCatalog().addTexturesListener(savedPropertyListener);
 }
 
 /**
