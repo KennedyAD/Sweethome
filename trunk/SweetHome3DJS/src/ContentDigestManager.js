@@ -142,11 +142,11 @@ ContentDigestManager.prototype.getContentDigest = function(content, digestObserv
             } catch (ex) {
               this.zipError(ex);
             }
-        },
-        zipError : function(error) {
-          digestObserver.digestError(0, error.message);
-        }
-      });
+          },
+          zipError : function(error) {
+            digestObserver.digestError(error, error.message);
+          }
+        });
     } else {
       content.getStreamURL({
           urlReady: function(url) {

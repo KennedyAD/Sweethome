@@ -1847,7 +1847,7 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
       var successHandler = function() {
           if (preferences.writingObserver !== undefined
                 && preferences.writingObserver.writeSucceeded) {
-              preferences.writingObserver.writeSucceeded(properties);
+            preferences.writingObserver.writeSucceeded(properties);
           }
           setTimeout(function() {
               delete preferences.writingPreferences;
@@ -1872,7 +1872,7 @@ RecordedUserPreferences.prototype.writePreferences = function(properties) {
           successHandler();
           delete preferences.writingPreferences;
         } catch (ex) {
-          errorHandler(0, ex);
+          errorHandler(ex, ex.message);
         }
       } else if (this.writePreferencesUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0) {
         var preferencesContent = new BlobURLContent(new Blob([jsonPreferences], { type: 'application/json' }));
@@ -2099,16 +2099,16 @@ RecordedUserPreferences.prototype.writeResource = function(urlContent, path, ind
          if (preferences.writingObserver !== undefined
               && preferences.writingObserver.writeFailed) {
            preferences.writingObserver.writeFailed(urlContent.getBlob(), status, error);
-           // In case of error, wait 10s before attempting a new upload
-           setTimeout(function() {
-               // Check it wasn't saved elsewhere
-               if (urlContent.getSavedContent() === null) {
-                 preferences.writeResource(urlContent, path, index, loadListener);
-               } else {
-                 loadListener(urlContent, index);
-               }
-             }, 10000);
-        }
+         }
+         // In case of error, wait 10s before attempting a new upload
+         setTimeout(function() {
+             // Check it wasn't saved elsewhere
+             if (urlContent.getSavedContent() === null) {
+               preferences.writeResource(urlContent, path, index, loadListener);
+             } else {
+               loadListener(urlContent, index);
+             }
+           }, 10000);
       }
     });
 }

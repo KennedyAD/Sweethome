@@ -359,15 +359,19 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
             } 
           } catch (ex) {
             if (observer.homesError !== undefined) {
-              observer.homesError(ex, "");
+              observer.homesError(ex, ex.message);
             }
           }
         };
         
-      var request = indexedDB.open(databaseName);
-      request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
-      request.addEventListener("error", databaseError);
-      request.addEventListener("success", databaseSuccess);
+      if (indexedDB != null) {
+        var request = indexedDB.open(databaseName);
+        request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+        request.addEventListener("error", databaseError);
+        request.addEventListener("success", databaseSuccess);
+      } else if (observer.homesError !== undefined) {
+        observer.homesError(new Error("indexedDB"), "indexedDB unavailable");
+      }
       return {abort: function() {  } };
     } else {
       var request = new XMLHttpRequest();
@@ -377,11 +381,11 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
           if (request.readyState === XMLHttpRequest.DONE
               && request.status === 200) {
             observer.availableHomes(JSON.parse(request.responseText));
-          } else if (observer.homesError != null) {
+          } else if (observer.homesError !== undefined) {
             observer.homesError(request.status, request.responseText);
           }
         });
-      if (observer.homesError != null) {
+      if (observer.homesError !== undefined) {
         var errorListener = function(ev) {
             observer.homesError(0, ev);
           };
@@ -463,15 +467,19 @@ DirectHomeRecorder.prototype.deleteHome = function(homeName, observer) {
             } 
           } catch (ex) {
             if (observer.homeError !== undefined) {
-              observer.homeError(ex, "");
+              observer.homeError(ex, ex.message);
             }
           }
         };
         
-      var request = indexedDB.open(databaseName);
-      request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
-      request.addEventListener("error", databaseError);
-      request.addEventListener("success", databaseSuccess);
+      if (indexedDB != null) {
+        var request = indexedDB.open(databaseName);
+        request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+        request.addEventListener("error", databaseError);
+        request.addEventListener("success", databaseSuccess);
+      } else if (observer.homeError !== undefined) {
+        observer.homeError(new Error("indexedDB"), "indexedDB unavailable");
+      }
       return {abort: function() {  } };
     } else {
       // Replace % sequence by %% except %s before formating readHomeURL with home name 
@@ -484,11 +492,11 @@ DirectHomeRecorder.prototype.deleteHome = function(homeName, observer) {
           if (request.readyState === XMLHttpRequest.DONE
               && request.status === 200) {
             observer.homeDeleted(homeName);
-          } else if (observer.homeError != null) {
+          } else if (observer.homeError !== undefined) {
             observer.homeError(request.status, request.responseText);
           }
         });
-      if (observer.homeError != null) {
+      if (observer.homeError !== undefined) {
         var errorListener = function(ev) {
             observer.homeError(0, ev);
           };

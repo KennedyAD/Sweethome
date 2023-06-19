@@ -115,7 +115,7 @@ HomeRecorder.prototype.readHome = function(url, observer) {
               recorder.parseHomeXMLEntry(homeXmlEntry, zip, url, typeof ContentDigestManager === "undefined" 
                   ? observer : contentObserver);
             } else {
-              this.zipError("No " + homeEntryName + " entry in " + url);
+              this.zipError(new Error("No " + homeEntryName + " entry in " + url));
             }
           } catch (ex) {
             this.zipError(ex);
@@ -184,7 +184,7 @@ HomeRecorder.prototype.getHomeXMLHandler = function() {
  * will be generated in a separated worker kept alive between calls to this method.
  * @param {Home}   home saved home
  * @param {string} homeName the home name on the server 
- * @param {{homeSaved: function, homeError: function}} [observer]  The callbacks used to follow the export operation of the home.
+ * @param {{homeSaved: function, homeError: function}} observer  The callbacks used to follow the export operation of the home.
  *           homeSaved will receive in its second parameter the data containing the saved home with the resources it needs. 
  * @return {abort: function} a function that will abort writing operation if needed 
  */
@@ -292,7 +292,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
  * @param {[URLContent]} homeContents
  * @param {{string, string}} savedContentNames
  * @param {string} dataType base64, array, uint8array, arraybuffer or blob
- * @param {{homeSaved: function, homeError: function}} [observer]  The callbacks used to follow the export operation of the home.
+ * @param {{homeSaved: function, homeError: function}} observer  The callbacks used to follow the export operation of the home.
  *           homeSaved will receive in its second parameter the data containing the saved home with the resources it needs.
  * @return {abort: function} a function that will abort writing operation if needed 
  * @ignored
@@ -305,7 +305,8 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
   var exporter = this.getHomeXMLExporter();
   exporter.setSavedContentNames(savedContentNames);
   exporter.writeElement(new XMLWriter(writer), homeClone);
-
+  var homeXmlEntry = writer.toString();
+  
   if ((!OperatingSystem.isInternetExplorer() || homeContents.length == 0)
       && this.configuration.writeHomeWithWorker) {
     // Generate ZIP file in a separate worker
@@ -333,9 +334,14 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
     var workerListener = function(ev) {
         recorder.writeHomeWorker.removeEventListener("message", workerListener);
         if (ev.data.error) {
-          if (observer.homeError !== undefined) {
-            observer.homeError(ev.data.status, ev.data.error);
-          }
+	      if (ev.data.error === "indexedDB unavailable") {
+		    console.warn("Can't use worker to save home");
+		    recorder.writeHomeToZipWithoutWorker(home, homeXmlEntry, homeContents, savedContentNames, dataType, observer);
+	      } else {
+            if (observer.homeError !== undefined) {
+              observer.homeError(ev.data.status, ev.data.error);
+            }
+	      }
         } else {
           observer.homeSaved(home, ev.data);
         }
@@ -353,7 +359,7 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
     }    
     this.writeHomeWorker.postMessage({
         recorderConfiguration: this.configuration,
-        homeXmlEntry: writer.toString(), 
+        homeXmlEntry: homeXmlEntry, 
         homeContents: homeContents, 
         homeContentTypes: homeContentTypes,
         savedContentNames: savedContentNames,
@@ -369,33 +375,46 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
         }
       };
   } else {
-    this.generateHomeZip(writer.toString(), homeContents, null, savedContentNames, dataType, {
-        homeSaved: function(homeXmlEntry, data) {
-          observer.homeSaved(home, data);
-        },
-        homeError: function(status, error) {
-          if (observer.homeError !== undefined) {
-            observer.homeError(status, error);
-          }
-        }
-      });
-
-    return {
-        abort: function() {
-        }
-      };
+    this.writeHomeToZipWithoutWorker(home, homeXmlEntry, homeContents, savedContentNames, dataType, observer);
   }
 }
 
 /**
+ * Writes home to ZIP data without using a worker. 
+ * @param {string} homeXmlEntry entry of saved home
+ * @param {[URLContent|{}]} homeContents
+ * @param {{string, string}} savedContentNames
+ * @param {string} dataType base64, array, uint8array, arraybuffer or blob
+ * @param {{homeSaved: function, homeError: function}} observer   
+ * @return {abort: function} a function that will abort writing operation 
+ * @private
+ */
+HomeRecorder.prototype.writeHomeToZipWithoutWorker = function(home, homeXmlEntry, homeContents, savedContentNames, dataType, observer) {
+  this.generateHomeZip(homeXmlEntry, homeContents, null, savedContentNames, dataType, {
+      homeSaved: function(homeXmlEntry, data) {
+        observer.homeSaved(home, data);
+      },
+      homeError: function(status, error) {
+        if (observer.homeError !== undefined) {
+          observer.homeError(status, error);
+        }
+      }
+    });
+  
+  return {
+      abort: function() {
+      }
+    };
+}
+
+/**
  * Generates home ZIP data. 
- * @param {Home}   home saved home
- * @param {string} homeName the home name on the server 
+ * @param {string} homeXmlEntry entry of saved home
  * @param {[URLContent|{}]} homeContents
  * @param {[string]} homeContentTypes
  * @param {{string, string}} savedContentNames
  * @param {string} dataType base64, array, uint8array, arraybuffer or blob
- * @param {{homeSaved: function, homeError: function}} [observer]   
+ * @param {{homeSaved: function, homeError: function}} observer   
  * @private
  */
 HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, homeContentTypes, 
@@ -535,7 +554,7 @@ HomeRecorder.prototype.writeHomeZipEntries = function(zipOut, entryNameOrDirecto
                 }
               },
               zipError : function(error) {
-                contentObserver.contentError(0, error.message);
+                contentObserver.contentError(error, error.message);
             }
           });
         },
@@ -590,7 +609,7 @@ HomeRecorder.prototype.writeZipEntries = function(zipOut, directory, urlContent,
               }
             },
             zipError : function(error) {
-              contentObserver.contentError(0, error.message);
+              contentObserver.contentError(error, error.message);
           }
         });
       },
@@ -629,7 +648,7 @@ HomeRecorder.prototype.writeZipEntry = function(zipOut, entryName, content, cont
                 }
               },
               zipError : function(error) {
-                contentObserver.contentError(0, error.message);
+                contentObserver.contentError(error, error.message);
             }
           });
         } else {

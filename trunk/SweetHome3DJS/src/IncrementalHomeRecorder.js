@@ -176,8 +176,8 @@ IncrementalHomeRecorder.prototype.readHome = function(homeName, observer) {
             home.editionId = editionId;
             originalObserver.homeLoaded(home);
           },
-          homeError: function(err) {
-            originalObserver.homeError(err);
+          homeError: function(error) {
+            originalObserver.homeError(error);
           },
           progression: function(part, info, percentage) {
             originalObserver.progression(part, info, percentage);
