@@ -1270,7 +1270,7 @@ DefaultPatternTexture.prototype.equals = function (obj) {
  *          readResourceURL: string,
  *          writePreferencesResourceURL: string,
  *          readPreferencesResourceURL: string,
- *          userLanguage: string,
+ *          defaultUserLanguage: string,
  *          writingObserver: {writeStarted: Function, 
  *                            writeSucceeded: Function, 
  *                            writeFailed: Function, 
@@ -1302,8 +1302,8 @@ function RecordedUserPreferences(configuration) {
   }
   
   var userLanguage;
-  if (configuration !== undefined && configuration.userLanguage !== undefined) {
-    userLanguage = configuration.userLanguage;
+  if (configuration !== undefined && configuration.defaultUserLanguage !== undefined) {
+    userLanguage = configuration.defaultUserLanguage;
   } else { 
     userLanguage = this.getLanguage();
   }
