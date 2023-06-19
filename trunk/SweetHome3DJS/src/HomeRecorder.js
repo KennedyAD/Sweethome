@@ -62,7 +62,6 @@ HomeRecorder.prototype.readHome = function(url, observer) {
   var contentObserver = {
       homeLoaded: function(home) {
         var homeContents = [];
-        var t = Date.now(); // TODO
         recorder.searchContents(home, [], homeContents, function(content) {
             return content instanceof HomeURLContent;
           });
@@ -83,7 +82,6 @@ HomeRecorder.prototype.readHome = function(url, observer) {
                           return permanentContent != null ? permanentContent : content;
                         });
                     observer.homeLoaded(home);                    
-                    console.log(Date.now() - t)
                   }
                 },
                 digestError: function(status, error) {
