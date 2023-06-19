@@ -72,7 +72,6 @@ DefaultTexturesCatalog.prototype.getLibraries = function() {
  */
 DefaultTexturesCatalog.prototype.readDefaultTexturesCatalogs = function(preferences, identifiedTextures) {
   this.readTexturesCatalog("DefaultTexturesCatalog", preferences, identifiedTextures);
-  // this.readTexturesCatalog("AdditionalTexturesCatalog", preferences, identifiedTextures);
 }
 
 /**
@@ -105,7 +104,7 @@ DefaultTexturesCatalog.prototype.readTextures = function(resource, texturesCatal
     } catch (ex) {
       ignored = null;
     }
-    if (ignored == null || !this.parseBoolean(ignored)) {
+    if (ignored == null || "true" != ignored) {
       var texture = ignored == null ? this.readTexture(resource, index, texturesCatalogUrl, texturesResourcesUrlBase) : null;
       if (texture == null) {
         break;
@@ -120,6 +119,10 @@ DefaultTexturesCatalog.prototype.readTextures = function(resource, texturesCatal
         var textureCategory = this.readTexturesCategory(resource, index);
         this.add(textureCategory, texture);
       }
+    } else {
+      // Read image content to store its digest if it exists
+      this.getContent(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.IMAGE, index), this.getKey(DefaultTexturesCatalog.PropertyKey.ICON_DIGEST, index), 
+          texturesCatalogUrl, texturesResourcesUrlBase, true);
     }
   }
 }
@@ -127,7 +130,7 @@ DefaultTexturesCatalog.prototype.readTextures = function(resource, texturesCatal
 /**
  * Returns the texture at the given <code>index</code> of a
  * localized <code>resource</code> bundle.
- * @param {java.util.ResourceBundle} resource a resource bundle
+ * @param {Object[]} resource a resource bundle
  * @param {number} index                the index of the read texture
  * @param {string} texturesCatalogUrl  the URL from which texture resources will be loaded
  *                   or <code>null</code> if it's read from current classpath.
@@ -143,8 +146,8 @@ DefaultTexturesCatalog.prototype.readTexture = function(resource, index, texture
   } catch (ex) {
     return null;
   }
-  var image = this.getContent(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.IMAGE, index), this.getKey(DefaultTexturesCatalog.PropertyKey.ICON_DIGEST, index), 
-      texturesCatalogUrl, texturesResourcesUrlBase, false, false);
+  var image = this.getContent(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.IMAGE, index), this.getKey(DefaultTexturesCatalog.PropertyKey.IMAGE_DIGEST, index), 
+      texturesCatalogUrl, texturesResourcesUrlBase, false);
   var width = parseFloat(CoreTools.getStringFromKey(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.WIDTH, index)));
   var height = parseFloat(CoreTools.getStringFromKey(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.HEIGHT, index)));
   var creator = this.getOptionalString(resource, this.getKey(DefaultTexturesCatalog.PropertyKey.CREATOR, index), null);
@@ -156,7 +159,7 @@ DefaultTexturesCatalog.prototype.readTexture = function(resource, index, texture
  * Returns the category of a texture at the given <code>index</code> of a
  * localized <code>resource</code> bundle.
  * @throws MissingResourceException if mandatory keys are not defined.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {number} index
  * @return {TexturesCategory}
  */
@@ -167,18 +170,25 @@ DefaultTexturesCatalog.prototype.readTexturesCategory = function(resource, index
 
 /**
  * Returns a valid content instance from the resource file or URL value of key.
- * @param {java.util.ResourceBundle} resource a resource bundle
+ * @param {Object[]} resource a resource bundle
  * @param {string} contentKey        the key of a resource content file
  * @param {string} contentDigestKey  the key of the digest of a resource content file
  * @param {string} texturesUrl the URL of the file containing the target resource if it's not <code>null</code>
  * @param {string} resourceUrlBase the URL used as a base to build the URL to content file
  *      or <code>null</code> if it's read from current classpath or <code>texturesCatalogUrl</code>.
+ * @param {boolean} optional
  * @return {Object}
  * @throws IllegalArgumentException if the file value doesn't match a valid resource or URL.
  * @private
  */
- DefaultTexturesCatalog.prototype.getContent = function(resource, contentKey, contentDigestKey, texturesUrl, resourceUrlBase, multiPartModel, optional) {
-  var contentFile = CoreTools.getStringFromKey(resource, contentKey);
+ DefaultTexturesCatalog.prototype.getContent = function(resource, contentKey, contentDigestKey, texturesUrl, resourceUrlBase, optional) {
+  var contentFile = optional 
+      ? this.getOptionalString(resource, contentKey, null) 
+      : CoreTools.getStringFromKey(resource, contentKey);
+  if (optional && contentFile == null) {
+    return null;
+  }
+  
   var url = null;
   if (resourceUrlBase != null) {
     url = resourceUrlBase + contentFile;
@@ -186,13 +196,17 @@ DefaultTexturesCatalog.prototype.readTexturesCategory = function(resource, index
     url = contentFile;
   }
   var content = URLContent.fromURL(url);
+  var contentDigest = this.getOptionalString(resource, contentDigestKey, null);
+  if (contentDigest != null && contentDigest.length > 0) {
+    ContentDigestManager.getInstance().setContentDigest(content, contentDigest);
+  }
   return content;
 }
 
 /**
  * Returns the value of <code>propertyKey</code> in <code>resource</code>,
  * or <code>defaultValue</code> if the property doesn't exist.
- * @param {java.util.ResourceBundle} resource
+ * @param {Object[]} resource
  * @param {string} propertyKey
  * @param {string} defaultValue
  * @return {string}

@@ -58,13 +58,64 @@ HomeRecorder.prototype.readHome = function(url, observer) {
     url = url.substring(4, entrySeparatorIndex);
   }
   var recorder = this;
+  // An observer which will replace home contents by permanent content or content in recovery if it exists
+  var contentObserver = {
+      homeLoaded: function(home) {
+        var homeContents = [];
+        var t = Date.now(); // TODO
+        recorder.searchContents(home, [], homeContents, function(content) {
+            return content instanceof HomeURLContent;
+          });
+        // Compute digest for home contents
+        if (homeContents.length > 0) {
+          var contentDigestManager = ContentDigestManager.getInstance();
+          for (var i = 0; i < homeContents.length; i++) {
+            contentDigestManager.getContentDigest(homeContents [i], {
+                digestReady: function(content, digest) {
+                  homeContents.splice(content, 1);
+                  if (homeContents.length === 0) {
+                    recorder.searchContents(home, [], homeContents, 
+                        function(content) {
+                          return content instanceof HomeURLContent;
+                        }, 
+                        function(content) {
+                          var permanentContent = contentDigestManager.getPermanentContentDigest(content);
+                          return permanentContent != null ? permanentContent : content;
+                        });
+                    observer.homeLoaded(home);                    
+                    console.log(Date.now() - t)
+                  }
+                },
+                digestError: function(status, error) {
+                  if (observer.homeError !== undefined) {
+                    observer.homeError(error);
+                  }
+                }    
+              });
+          }
+        } else {
+          observer.homeLoaded(home);
+        }     
+      }, 
+      homeError: function(error){
+        if (observer.homeError !== undefined) {
+          observer.homeError(error);
+        }
+      }, 
+      progression: function(part, info, percentage) {
+        if (observer.progression !== undefined) {
+            observer.progression(percentage);
+        }
+      }
+    };
   ZIPTools.getZIP(url,
       {
         zipReady : function(zip) {
           try {
             var homeXmlEntry = zip.file(homeEntryName);
             if (homeXmlEntry !== null) {
-              recorder.parseHomeXMLEntry(homeXmlEntry, zip, url, observer);
+              recorder.parseHomeXMLEntry(homeXmlEntry, zip, url, typeof ContentDigestManager === "undefined" 
+                  ? observer : contentObserver);
             } else {
               this.zipError("No " + homeEntryName + " entry in " + url);
             }
@@ -150,8 +201,10 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
   if (contents.length > 0) {
     var recorder = this;
     var contentsCopy = contents.slice(0);
+    var savedContents = [];
     var savedContentNames = {};
     var savedContentIndex = 0;
+    var contentDigestManager = ContentDigestManager.getInstance();
     for (var i = contentsCopy.length - 1; i >= 0; i--) {
       var content = contentsCopy[i];
       if (content instanceof LocalURLContent
@@ -159,15 +212,16 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
           || content instanceof HomeURLContent
           || content instanceof SimpleURLContent
           || includeAllContent) {
-        this.getContentDigest(content, {
+        contentDigestManager.getContentDigest(content, {
             digestReady: function(content, digest) {
               // Check if duplicated content can be avoided
               var duplicatedContentFound = false;
               if (digest !== undefined) {
-                for (var url in savedContentNames) {
-                  if (content.getURL() !== url
-                      && digest === HomeRecorder.contentDigestsCache [url]) {
-                    savedContentNames [content.getURL()] = savedContentNames [url];
+                for (var j = 0; j < savedContents.length; j++) {
+                  var savedContent = savedContents [j];
+                  if (content.getURL() !== savedContent.getURL()
+                      && contentDigestManager.equals(content, savedContent)) {
+                    savedContentNames [content.getURL()] = savedContentNames [savedContent.getURL()];
                     contents.splice(contents.indexOf(content), 1);
                     duplicatedContentFound = true;
                     break;
@@ -195,6 +249,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
                 // Build a relative URL that points to content object
                 var homeContentPath = savedContentIndex++ + subEntryName;
                 savedContentNames [content.getURL()] = homeContentPath;
+                savedContents.push(content);
               }
           
               contentsCopy.splice(contentsCopy.indexOf(content), 1);
@@ -224,7 +279,7 @@ HomeRecorder.prototype.writeHome = function(home, homeName, observer) {
 
   return {
       abort: function() {
-	    abortedOperation = true; 
+        abortedOperation = true; 
         if (abortableOperation != null) {
           abortableOperation.abort();
         }
@@ -278,14 +333,14 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
     }
     var recorder = this;
     var workerListener = function(ev) {
-	    recorder.writeHomeWorker.removeEventListener("message", workerListener);
-	    if (ev.data.error) {
+        recorder.writeHomeWorker.removeEventListener("message", workerListener);
+        if (ev.data.error) {
           if (observer.homeError !== undefined) {
             observer.homeError(ev.data.status, ev.data.error);
           }
-	    } else {
+        } else {
           observer.homeSaved(home, ev.data);
-	    }
+        }
       };
     this.writeHomeWorker.addEventListener("message", workerListener);
   
@@ -293,10 +348,10 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
     for (var i = 0; i < homeContents.length; i++) {
       var constructor = Object.getPrototypeOf(homeContents [i]).constructor;
       if (constructor !== undefined && constructor.name !== undefined) {
-	    homeContentTypes [i] = constructor.name;
-	  } else { // IE 11
-	    homeContentTypes [i] = homeContents [i].constructor.toString().match(/function (\w*)/)[1];
-	  }
+        homeContentTypes [i] = constructor.name;
+      } else { // IE 11
+        homeContentTypes [i] = homeContents [i].constructor.toString().match(/function (\w*)/)[1];
+      }
     }    
     this.writeHomeWorker.postMessage({
         recorderConfiguration: this.configuration,
@@ -309,7 +364,7 @@ HomeRecorder.prototype.writeHomeToZip = function(home, homeName, homeContents, s
     
     return {
         abort: function() {
-	      if (recorder.writeHomeWorker != null) {
+          if (recorder.writeHomeWorker != null) {
             recorder.writeHomeWorker.terminate();
           }
           recorder.writeHomeWorker = null;
@@ -368,8 +423,8 @@ HomeRecorder.prototype.generateHomeZip = function(homeXmlEntry, homeContents, ho
           default:
             homeContents[i] = URLContent.fromURL(homeContents[i].url);
             if (homeContents[i] instanceof LocalStorageURLContent) {
-	          observer.homeError(0, "Data from localstorage not supported in workers");
-	          return;
+              observer.homeError(0, "Data from localstorage not supported in workers");
+              return;
             }
             break;
         }
@@ -611,21 +666,34 @@ HomeRecorder.prototype.getHomeXMLExporter = function() {
  * @param {Array}  homeObjects array used to track already seeked objects
  * @param {Array}  contents array filed with unsaved content
  * @param {function} [acceptContent] a function returning <code>false</code> if its parameter is not an interesting content  
- * @private 
+ * @param {function} [replaceContent] a function returning the content if its parameter is not an interesting content  
+ * @ignore 
  */
-HomeRecorder.prototype.searchContents = function(object, homeObjects, contents, acceptContent) {
+HomeRecorder.prototype.searchContents = function(object, homeObjects, contents, 
+                                                 acceptContent, replaceContent) {
   if (Array.isArray(object)) {
     for (var i = 0; i < object.length; i++) {
-      this.searchContents(object[i], homeObjects, contents, acceptContent);
+      var replacingContent = this.searchContents(object[i], homeObjects, contents, acceptContent, replaceContent);
+      if (replacingContent !== null) {
+        object [i] = replacingContent;
+      }
     }
   } else if (object instanceof URLContent
              && (acceptContent === undefined || acceptContent(object))) {
-    for (var i = 0; i < contents.length; i++) {
+    var i = 0;
+    for ( ; i < contents.length; i++) {
       if (contents [i].getURL() == object.getURL()) {
-        return;
+        break;
       }
     }
-    contents.push(object);
+    if (i === contents.length) {
+      contents.push(object);
+    }
+    if (replaceContent !== undefined) {
+      return replaceContent(object);
+    } else {
+      return null;
+    }
   } else if (object != null 
              && typeof object !== 'number'
              && typeof object !== 'string'
@@ -636,136 +704,19 @@ HomeRecorder.prototype.searchContents = function(object, homeObjects, contents, 
     homeObjects.push(object);
     var propertyNames = Object.getOwnPropertyNames(object);
     for (var j = 0; j < propertyNames.length; j++) {
-      var propertyName = propertyNames[j];
+      var propertyName = propertyNames [j];
       if (propertyName == "object3D"
           || object.constructor 
               && object.constructor.__transients 
               && object.constructor.__transients.indexOf(propertyName) != -1) {
         continue;
       }
-      var propertyValue = object[propertyName];
-      this.searchContents(propertyValue, homeObjects, contents, acceptContent);
+      var propertyValue = object [propertyName];
+      var replacingContent = this.searchContents(propertyValue, homeObjects, contents, acceptContent, replaceContent);
+      if (replacingContent !== null) {
+        object [propertyName] = replacingContent;
+      }
     }
   }
-}
-
-/**
- * @private
- */
-HomeRecorder.contentDigestsCache = {};
-
-/**
- * Returns asynchronously the SHA-1 digest of the given content.
- * @param {URLContent} content
- * @param {digestReady: function, digestError: function} digestObserver
- * @ignored
- */
-HomeRecorder.prototype.getContentDigest = function(content, digestObserver) {
-  var contentDigest = HomeRecorder.contentDigestsCache [content.getURL()];
-  if (contentDigest === undefined) {
-    var recorder = this;
-    if (content.isJAREntry()) {
-      ZIPTools.getZIP(content.getJAREntryURL(), false, {
-          zipReady : function(zip) {
-            try {
-              var entryName = content.getJAREntryName();
-              var slashIndex = content instanceof HomeURLContent
-                  ? entryName.indexOf('/')
-                  : -1;
-              var entryDirectory = entryName.substring(0, slashIndex + 1);
-              var contentData = new Uint8Array(0);
-              var entries = slashIndex > 0 || !(content instanceof HomeURLContent) 
-                  ? zip.file(new RegExp("^" + entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name < entry2.name }) // Reverse order
-                  : [zip.file(entryName)];
-              
-              for (var i = entries.length - 1; i >= 0 ; i--) {
-                var zipEntry = entries [i];
-                if (zipEntry.name !== entryDirectory
-                    && recorder.isSignificant(zipEntry.name)) {
-                  // Append entry data to contentData
-                  var binaryString = zipEntry.asBinary();
-                  var data = new Uint8Array(contentData.length + binaryString.length);
-                  data.set(contentData);
-                  for (var j = 0; j < binaryString.length; j++) {
-                    data [contentData.length + j] = binaryString.charCodeAt(j);
-                  }
-                  contentData = data;
-                }
-              }   
-              
-              recorder.computeContentDigest(contentData, function(digest) {
-                  HomeRecorder.contentDigestsCache [content.getURL()] = digest;
-                  digestObserver.digestReady(content, digest);
-                });              
-            } catch (ex) {
-              this.zipError(ex);
-            }
-        },
-        zipError : function(error) {
-          digestObserver.digestError(0, error.message);
-        }
-      });
-    } else {
-      content.getStreamURL({
-          urlReady: function(url) {
-            var request = new XMLHttpRequest();
-            request.open("GET", url, true);
-            request.responseType = "arraybuffer";
-            request.addEventListener("load", function() {
-                recorder.computeContentDigest(request.response, function(digest) {
-                    HomeRecorder.contentDigestsCache [content.getURL()] = digest;
-                    digestObserver.digestReady(content, digest);
-                  });
-              });
-            request.send();
-          },
-          urlError: function(status, error) {
-            digestObserver.digestError(status, error);
-          }    
-        });
-    }
-  } else {
-    digestObserver.digestReady(content, contentDigest);
-  }
-}
-
-/**
- * Computes the digest of the given data and calls <code>observer</code> when digest is ready. 
- * @param {Uint8Array} contentData
- * @param {function} observer callback which will receive in parameter the SHA-1 digest of contentData in Base64
- * @private
- */
-HomeRecorder.prototype.computeContentDigest = function(contentData, observer) {
-  var crypto = window.msCrypto !== undefined ? window.msCrypto : window.crypto;
-  var digest;
-  try {
-    digest = crypto.subtle.digest("SHA-1", contentData);
-  } catch (ex) {
-    // Use SHA-256 instead even if secured hash is not needed here
-    digest = crypto.subtle.digest("SHA-256", contentData);
-  }
-  if (digest.then !== undefined) { 
-    digest.then(function(hash) {
-        observer(btoa(String.fromCharCode.apply(null, new Uint8Array(hash))));
-      });
-  } else { 
-    // IE 11 digest.result is available without promise support but only after a call to setTimeout 
-    setTimeout(function() {
-        observer(btoa(String.fromCharCode.apply(null, new Uint8Array(digest.result))));      
-      });
-  }
-}
-
-/**
- * Returns <code>true</code> if entry name is significant to distinguish
- * the data of a content from an other one. 
- * @param {string} entryName
- * @return {boolean} 
- * @private
- */
-HomeRecorder.prototype.isSignificant = function(entryName) {
-  // Ignore LICENSE.TXT files
-  var entryNameUpperCase = entryName.toUpperCase();
-  return entryNameUpperCase !== "LICENSE.TXT"
-        && entryNameUpperCase.indexOf("/LICENSE.TXT", entryNameUpperCase.length - "/LICENSE.TXT".length) === -1;
+  return null;
 }

@@ -69,6 +69,12 @@ LocalFileHomeController.prototype.newHome = function() {
 LocalFileHomeController.prototype.open = function() {
   var controller = this;
   var openHome = function(homeName) {
+      var preferences = this.application.getUserPreferences();
+      var openingTaskDialog = new JSDialog(preferences, 
+          preferences.getLocalizedString("ThreadedTaskPanel", "threadedTask.title"), 
+          preferences.getLocalizedString("HomeController", "openMessage"), { size: "small" });
+      openingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
+
       var fileInput = document.createElement('input');
       fileInput.setAttribute("style", "display: none");
       fileInput.setAttribute("type", "file");
@@ -76,20 +82,26 @@ LocalFileHomeController.prototype.open = function() {
       fileInput.addEventListener("input", function(ev) {
           document.body.removeChild(fileInput);
           if (this.files[0]) {
-            var homeName = this.files[0].name.substring(this.files[0].name.indexOf("/") + 1);
-            controller.application.getHomeRecorder().readHome(URL.createObjectURL(this.files[0]), {
-                homeLoaded: function(home) {
-                  // Do not set home name because file name may have been altered automatically by browser when saved
-                  controller.close();
-                  controller.application.addHome(home);
-                },
-                homeError: function(error) {
-                  var message = controller.application.getUserPreferences().
-                      getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
-                  console.error(error);
-                  alert(message);
-                }
-              });
+            openingTaskDialog.displayView();
+            var file = this.files[0];
+            setTimeout(function() {
+                var homeName = file.name.substring(file.name.indexOf("/") + 1);
+                controller.application.getHomeRecorder().readHome(URL.createObjectURL(file), {
+                    homeLoaded: function(home) {
+                      // Do not set home name because file name may have been altered automatically by browser when saved
+                      controller.close();
+                      openingTaskDialog.close(); 
+                      controller.application.addHome(home);
+                    },
+                    homeError: function(error) {
+                      openingTaskDialog.close(); 
+                      var message = controller.application.getUserPreferences().
+                          getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
+                      console.error(error);
+                      alert(message);
+                    }
+                  });
+              }, 100);
           }
         }); 
       fileInput.click();
@@ -390,6 +402,7 @@ DirectRecordingHomeController.prototype.save = function(postSaveTask) {
     savingTaskDialog.findElement(".dialog-cancel-button").innerHTML = 
         ResourceAction.getLocalizedLabelText(preferences, "ThreadedTaskPanel", "cancelButton.text");
     savingTaskDialog.displayView();
+    
     var controller = this;
     savingTaskDialog.writingOperation = this.application.getHomeRecorder().writeHome(this.home, this.home.getName(), { 
         homeSaved: function(home) { 
