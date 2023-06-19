@@ -1597,7 +1597,8 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
       request.send();
     }
   } catch (ex) {
-    // Proceed anyway
+	console.log(ex);
+    preferences.updateDefaultCatalogs();    
   }
 }
 
