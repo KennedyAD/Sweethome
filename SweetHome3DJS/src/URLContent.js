@@ -281,7 +281,7 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                 observer.blobSaved(content, blobName);
               } catch (ex) {
                 if (observer.blobError !== undefined) {
-                  observer.blobError(0, ex);
+                  observer.blobError(ex, ex.message);
                 }
               }
             });
@@ -364,15 +364,19 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                 }
               } catch (ex) {
                 if (observer.blobError !== undefined) {
-                  observer.blobError(ex, "");
+                  observer.blobError(ex, ex.message);
                 }
               }
             };
             
-          var request = indexedDB.open(databaseName);
-          request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
-          request.addEventListener("error", databaseError);
-          request.addEventListener("success", databaseSuccess);
+          if (indexedDB != null) {
+            var request = indexedDB.open(databaseName);
+            request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+            request.addEventListener("error", databaseError);
+            request.addEventListener("success", databaseSuccess);
+          } else {
+            observer.blobError(new Error("indexedDB"), "indexedDB unavailable");
+          }
         } else {
           var request = new XMLHttpRequest();
           request.open("POST", url, true);
@@ -727,15 +731,19 @@ IndexedDBURLContent.prototype.getBlob = function(observer) {
               }
             } catch (ex) {
               if (observer.blobError !== undefined) {
-                observer.blobError(ex, "");
+                observer.blobError(ex, ex.message);
               }
             }
           };
-          
-        var request = indexedDB.open(databaseName);
-        request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
-        request.addEventListener("error", databaseError);
-        request.addEventListener("success", databaseSuccess);
+     
+        if (indexedDB != null) {     
+          var request = indexedDB.open(databaseName);
+          request.addEventListener("upgradeneeded", databaseUpgradeNeeded);
+          request.addEventListener("error", databaseError);
+          request.addEventListener("success", databaseSuccess);
+        } else {
+          observer.blobError(new Error("indexedDB"), "indexedDB unavailable");
+        }
       } else if (observer.urlError !== undefined) {
         observer.urlError(1, url + " not an indexedDB url");
       }
