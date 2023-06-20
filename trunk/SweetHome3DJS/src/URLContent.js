@@ -260,8 +260,10 @@ LocalURLContent.prototype.getBlob = function(observer) {
 
 /**
  * Writes the blob bound to this content with the request matching <code>writeBlobUrl</code>.
- * @param {string} writeBlobUrl the URL used to save the blob (containing possibly %s which will be replaced by <code>blobName</code>)
- * @param {string} blobName the name or path used to save the blob
+ * @param {string} writeBlobUrl the URL used to save the blob 
+             (containing possibly %s which will be replaced by <code>blobName</code>)
+ * @param {string|[string]} blobName the name or path used to save the blob, 
+             or an array of values used to format <code>writeBlobUrl</code> including blob name
  * @param {blobSaved: function(LocalURLContent, blobName)
            blobError: function} observer called when content is saved or if writing fails
  * @return {abort: function} an object containing <code>abort</code> method to abort the write operation
@@ -271,7 +273,18 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
   var abortableOperations = [];
   this.getBlob({
       blobReady: function(blob) {
-        var url = CoreTools.format(writeBlobUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(blobName));
+        var formatArguments;        
+        if (Array.isArray(blobName)) {
+          var firstArg = blobName[0];
+          formatArguments = new Array(blobName.length);
+          for (var i = 0; i < blobName.length; i++) {
+            formatArguments [i] = encodeURIComponent(blobName [i]);
+             }
+             blobName = firstArg;
+        } else {
+          formatArguments = encodeURIComponent(blobName);
+        }
+        var url = CoreTools.format(writeBlobUrl.replace(/(%[^s^\d])/g, "%$1"), formatArguments);
         if (url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
           var path = url.substring(url.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) + LocalStorageURLContent.LOCAL_STORAGE_PREFIX.length);
           var storageKey = decodeURIComponent(path.indexOf('?') > 0 ? path.substring(0, path.indexOf('?')) : path);
@@ -298,23 +311,31 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
           var contentField = null;
           var dateField = null;
           for (var i = 0; i < fields.length; i++) {
-            var value = fields [i].substring(fields [i].indexOf('=') + 1);
-            switch (fields [i].substring(0, fields [i].indexOf('='))) {
+            var equalIndex = fields [i].indexOf('=');
+            var parameter = fields [i].substring(0, equalIndex);
+            var value = fields [i].substring(equalIndex + 1);
+            switch (parameter) {
               case "keyPathField": 
                 keyPathField = value; 
                 break;
               case "contentField": 
                 contentField = value; 
                 break;
-              case "dateField" : 
+              case "dateField": 
                 dateField = value; 
                 break;
             }
           }
-          // Parse a second time fields in case key value is cited before keyPathField
+          // Parse a second time fields to retrieve parameters value (key and other other ones)
+          var otherFields = {};
           for (var i = 0; i < fields.length; i++) {
-            if (keyPathField === fields [i].substring(0, fields [i].indexOf('='))) {
-              key = decodeURIComponent(fields [i].substring(fields [i].indexOf('=') + 1));
+            var equalIndex = fields [i].indexOf('=');
+            var parameter = fields [i].substring(0, equalIndex);
+            var value = fields [i].substring(equalIndex + 1);
+            if (keyPathField === parameter) {
+              key = decodeURIComponent(value);
+            } else if (parameter.indexOf("Field", parameter.length - "Field".length) === -1) {
+              otherFields [parameter] = decodeURIComponent(value);
             }
           }
           
@@ -347,6 +368,9 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
                   storedResource [contentField] = blob;
                   if (dateField != null) {
                     storedResource [dateField] = Date.now();
+                  }
+                  for (var i in otherFields) {
+                    storedResource [i] = otherFields [i];
                   }
                   var query = store.put(storedResource);
                   query.addEventListener("error", function(ev) { 
@@ -707,10 +731,9 @@ IndexedDBURLContent.prototype.getBlob = function(observer) {
                 query.addEventListener("success", function(ev) {
                     if (ev.target.result !== undefined) {
                       urlContent.blob = ev.target.result [contentField];
-                      var propertyNames = Object.getOwnPropertyNames(ev.target.result);
                       // Store other properties in blob properties
-                      for (var j = 0; j < propertyNames.length; j++) {
-                        var propertyName = propertyNames[j];
+                      for (var i in ev.target.result) {
+                        var propertyName = ev.target.result [i];
                         if (propertyName !== keyPathField
                             && propertyName != contentField
                             && urlContent.blob [propertyName] === undefined) {

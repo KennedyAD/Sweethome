@@ -347,7 +347,7 @@ DirectRecordingHomeController.prototype.open = function() {
                             deleteButton.disabled = true;
                           },
                           homeError: function(status, error) {
-	                        var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.errorMessage", item.innerText);
+                            var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.errorMessage", item.innerText);
                             console.error(message + " : " + error); 
                             alert(message);
                           }
@@ -358,9 +358,9 @@ DirectRecordingHomeController.prototype.open = function() {
             }
           }, 
           homesError: function(status, error) {
-	        var message = preferences.getLocalizedString("AppletContentManager", "showOpenDialog.availableHomesError");
+            var message = preferences.getLocalizedString("AppletContentManager", "showOpenDialog.availableHomesError");
             console.error(message + " : " + error); 
-			alert(message);
+            alert(message);
           }
         });
         
@@ -500,6 +500,9 @@ DirectRecordingHomeController.prototype.confirmDeleteHome = function(homeName, c
  *          trackedHomeProperties: string[],
  *          autoWriteTrackedStateChange: boolean,
  *          defaultUserLanguage: string,
+ *          writeCacheResourceURL: string,
+ *          readCacheResourceURL: string,
+ *          listCacheResourcesURL: string,
  *          listHomesURL: string,
  *          deleteHomeURL: string,
  *          autoRecovery: boolean,
@@ -641,7 +644,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
   }
   
   var autoRecoveryDatabaseUrlBase = "indexeddb://" + autoRecoveryDatabase + "/" + autoRecoveryObjectstore;
-  // Auto recovery recorder stores data in autoRecoveryObjectstore object store of IndexedDB,  
+  // Auto recovery recorder stores data in autoRecoveryObjectstore object store of IndexedDB
   function AutoRecoveryRecorder() {
      HomeRecorder.call(this, {
         readHomeURL: autoRecoveryDatabaseUrlBase + "/content?name=%s.recovered", 
@@ -650,7 +653,6 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
         writeResourceURL: autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s", 
         listHomesURL: autoRecoveryDatabaseUrlBase + "?name=(.*).recovered",
         deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s.recovered",
-        compressionLevel: 0,
         writeHomeWithWorker: true
       });
   }

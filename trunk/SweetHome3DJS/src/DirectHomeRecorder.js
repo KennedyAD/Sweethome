@@ -86,25 +86,25 @@ DirectHomeRecorder.prototype.writeHome = function(home, homeName, observer) {
                 || content instanceof SimpleURLContent;
           });
 
-	    var savedContentIndex = 0; 
+        var savedContentIndex = 0; 
         for (var i = 0; i < homeContents.length; i++) {
           var content = homeContents[i];
-	      if (content instanceof HomeURLContent) {
-		    var entry = content.getJAREntryName();
-		    if (entry.indexOf('/') < 0) {
-		      savedContentNames [content.getURL()] = (++savedContentIndex).toString();
-		    } else {
-		      savedContentNames [content.getURL()] = (++savedContentIndex) + entry.substring(entry.indexOf('/'));
-		    }
-	      } else if (content instanceof SimpleURLContent
-	                 && content.isJAREntry()
-	                 && URLContent.fromURL(content.getJAREntryURL()) instanceof LocalURLContent) {
-		    savedContentNames [content.getURL()] = (++savedContentIndex).toString();
-		  }
-	    }
+          if (content instanceof HomeURLContent) {
+            var entry = content.getJAREntryName();
+            if (entry.indexOf('/') < 0) {
+              savedContentNames [content.getURL()] = (++savedContentIndex).toString();
+            } else {
+              savedContentNames [content.getURL()] = (++savedContentIndex) + entry.substring(entry.indexOf('/'));
+            }
+          } else if (content instanceof SimpleURLContent
+                     && content.isJAREntry()
+                     && URLContent.fromURL(content.getJAREntryURL()) instanceof LocalURLContent) {
+            savedContentNames [content.getURL()] = (++savedContentIndex).toString();
+          }
+        }
 
         abortableOperations.push(recorder.writeHomeToZip(home, homeName, homeContents, savedContentNames, "blob", {
-	        homeSaved: function(home, data) {
+            homeSaved: function(home, data) {
               var content = new BlobURLContent(data);
               var revokeOperation = {
                   abort: function() {
@@ -220,7 +220,7 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
                           ? "jar:" + content.getSavedContent().getURL() + "!/" + this.handledContent.getJAREntryName()
                           : content.getSavedContent().getURL(); 
                       delete abortableOperations [contentFileName];
-                      localContents.splice(localContents.indexOf(this.handledContent), 1);  
+                      localContents.splice(localContents.lastIndexOf(this.handledContent), 1);  
                       if (localContents.length === 0) {
                         contentsObserver.contentsSaved(savedContentNames);
                       }
@@ -278,7 +278,7 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
       for (var i = 0; i < propertyNames.length; i++) {
         var tags = propertyNames [i].match(regExp);
         if (tags) {
-          homes.push(tags.length > 1 ? tags [1] : tags [0])
+          homes.push(tags.length > 1 ? tags [1] : tags [0]);
         }
       }
       observer.availableHomes(homes);
@@ -317,7 +317,7 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
               requestUpgrade.addEventListener("error", databaseError);
               requestUpgrade.addEventListener("success", databaseSuccess);
             } else {
-	          var transaction = database.transaction(objectStore, 'readonly'); 
+              var transaction = database.transaction(objectStore, 'readonly'); 
               var store = transaction.objectStore(objectStore);
               var query;
               if (IDBObjectStore.prototype.getAllKeys !== undefined) {
@@ -338,7 +338,7 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
                 query.addEventListener("success", function(ev) {
                     var cursor = ev.target.result;
                     if (cursor != null) {
-	                  var tags = cursor.primaryKey.match(regExp);
+                      var tags = cursor.primaryKey.match(regExp);
                       if (tags) {
                         homes.push(tags.length > 1 ? tags [1] : tags [0]);
                       }
@@ -442,7 +442,7 @@ DirectHomeRecorder.prototype.deleteHome = function(homeName, observer) {
       var databaseSuccess = function(ev) {  
           var database = ev.target.result; 
           try {
-	        if (!database.objectStoreNames.contains(objectStore)) {
+            if (!database.objectStoreNames.contains(objectStore)) {
               // Reopen the database to create missing object store  
               database.close(); 
               var requestUpgrade = indexedDB.open(databaseName, database.version + 1);
