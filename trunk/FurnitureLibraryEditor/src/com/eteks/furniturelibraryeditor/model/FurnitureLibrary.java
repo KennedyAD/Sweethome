@@ -55,6 +55,7 @@ public class FurnitureLibrary implements Library {
   public static final String FURNITURE_NAME_PROPERTY                         = DefaultFurnitureCatalog.PropertyKey.NAME.name();
   public static final String FURNITURE_DESCRIPTION_PROPERTY                  = DefaultFurnitureCatalog.PropertyKey.DESCRIPTION.name();
   public static final String FURNITURE_INFORMATION_PROPERTY                  = DefaultFurnitureCatalog.PropertyKey.INFORMATION.name();
+  public static final String FURNITURE_LICENSE_PROPERTY                      = DefaultFurnitureCatalog.PropertyKey.LICENSE.name();
   public static final String FURNITURE_TAGS_PROPERTY                         = DefaultFurnitureCatalog.PropertyKey.TAGS.name();
   public static final String FURNITURE_CREATION_DATE_PROPERTY                = DefaultFurnitureCatalog.PropertyKey.CREATION_DATE.name();
   public static final String FURNITURE_GRADE_PROPERTY                        = DefaultFurnitureCatalog.PropertyKey.GRADE.name();

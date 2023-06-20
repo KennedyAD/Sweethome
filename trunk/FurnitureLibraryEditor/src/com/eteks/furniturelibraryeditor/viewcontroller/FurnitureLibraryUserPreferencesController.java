@@ -21,8 +21,6 @@ package com.eteks.furniturelibraryeditor.viewcontroller;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Arrays;
-import java.util.Collection;
 
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
 import com.eteks.furniturelibraryeditor.model.FurnitureProperty;

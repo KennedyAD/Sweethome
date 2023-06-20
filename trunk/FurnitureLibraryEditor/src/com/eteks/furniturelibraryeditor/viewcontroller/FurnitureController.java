@@ -48,9 +48,11 @@ import com.eteks.furniturelibraryeditor.model.FurnitureLibrary;
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
 import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
 import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
+import com.eteks.sweethome3d.model.BoxBounds;
 import com.eteks.sweethome3d.model.CatalogDoorOrWindow;
 import com.eteks.sweethome3d.model.CatalogLight;
 import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
+import com.eteks.sweethome3d.model.CatalogShelfUnit;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DoorOrWindow;
 import com.eteks.sweethome3d.model.FurnitureCatalog;
@@ -60,6 +62,7 @@ import com.eteks.sweethome3d.model.Light;
 import com.eteks.sweethome3d.model.LightSource;
 import com.eteks.sweethome3d.model.PieceOfFurniture;
 import com.eteks.sweethome3d.model.Sash;
+import com.eteks.sweethome3d.model.ShelfUnit;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.Controller;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
@@ -76,7 +79,7 @@ public class FurnitureController implements Controller {
   public enum Property {ID, NAME, DESCRIPTION, INFORMATION, TAGS, GRADE, CREATION_DATE, CATEGORY, MODEL, ICON,
       WIDTH, DEPTH,  HEIGHT, ELEVATION, MOVABLE, RESIZABLE, DEFORMABLE, TEXTURABLE,
       DOOR_OR_WINDOW, DOOR_OR_WINDOW_CUT_OUT_SHAPE, STAIRCASE, STAIRCASE_CUT_OUT_SHAPE,
-      MODEL_ROTATION, MODEL_SIZE, CREATOR, PROPORTIONAL, BACK_FACE_SHOWN, EDGE_COLOR_MATERIAL_HIDDEN,
+      MODEL_ROTATION, MODEL_SIZE, CREATOR, LICENSE, PROPORTIONAL, BACK_FACE_SHOWN, EDGE_COLOR_MATERIAL_HIDDEN,
       PRICE, VALUE_ADDED_TAX_PERCENTAGE, ADDITIONAL_PROPERTIES}
 
   private static final String DEFAULT_CUT_OUT_SHAPE = "M0,0 v1 h1 v-1 z";
@@ -121,6 +124,7 @@ public class FurnitureController implements Controller {
   private Boolean             texturable;
   private float [][]          modelRotation;
   private String              creator;
+  private String              license;
   private BigDecimal          price;
   private BigDecimal          valueAddedTaxPercentage;
   private Map<FurnitureProperty, Object> additionalProperties;
@@ -314,6 +318,7 @@ public class FurnitureController implements Controller {
       setBackFaceShown(null);
       setEdgeColorMaterialHidden(null);
       setCreator(null);
+      setLicense(null);
       setPrice(null);
       setValueAddedTaxPercentage(null);
       setAdditionalProperties(Collections.<FurnitureProperty, Object> emptyMap());
@@ -510,6 +515,38 @@ public class FurnitureController implements Controller {
                   if (firstPiece instanceof Light) {
                     String materialNames = Arrays.toString(((Light)firstPiece).getLightSourceMaterialNames());
                     propertyValue = materialNames.substring(1, materialNames.length() - 1); // Remove brackets
+                  }
+                  break;
+                case SHELF_ELEVATIONS:
+                  if (firstPiece instanceof ShelfUnit && ((ShelfUnit)firstPiece).getShelfElevations().length > 0) {
+                    float [] elevations = ((ShelfUnit)firstPiece).getShelfElevations();
+                    String elevationsProperty = "";
+                    for (int i = 0; i < elevations.length; i++) {
+                      if (i > 0) {
+                        elevationsProperty += " ";
+                      }
+                      elevationsProperty += lengthFormat.format(elevations [i] * firstPiece.getHeight());
+                    }
+                    propertyValue = elevationsProperty;
+
+                  }
+                  break;
+                case SHELF_BOXES:
+                  if (firstPiece instanceof ShelfUnit && ((ShelfUnit)firstPiece).getShelfBoxes().length > 0) {
+                    BoxBounds [] shelfBoxes = ((ShelfUnit)firstPiece).getShelfBoxes();
+                    String shelves = "";
+                    for (int shelfIndex = 0; shelfIndex < shelfBoxes.length; shelfIndex++) {
+                      if (shelfIndex > 0) {
+                        shelves += "   ";
+                      }
+                      shelves += lengthFormat.format(shelfBoxes [shelfIndex].getXLower() * firstPiece.getWidth())
+                          + " " + lengthFormat.format(shelfBoxes [shelfIndex].getYLower() * firstPiece.getDepth())
+                          + " " + lengthFormat.format(shelfBoxes [shelfIndex].getZLower() * firstPiece.getHeight())
+                          + " " + lengthFormat.format(shelfBoxes [shelfIndex].getXUpper() * firstPiece.getWidth())
+                          + " " + lengthFormat.format(shelfBoxes [shelfIndex].getYUpper() * firstPiece.getDepth())
+                          + " " + lengthFormat.format(shelfBoxes [shelfIndex].getZUpper() * firstPiece.getHeight());
+                    }
+                    propertyValue = shelves;
                   }
                   break;
                 case HORIZONTALLY_ROTATABLE:
@@ -819,6 +856,17 @@ public class FurnitureController implements Controller {
         }
       }
       setCreator(creator);
+
+      String license = firstPiece.getLicense();
+      if (license != null) {
+        for (int i = 1; i < this.modifiedFurniture.size(); i++) {
+          if (!license.equals(this.modifiedFurniture.get(i).getLicense())) {
+            license = null;
+            break;
+          }
+        }
+      }
+      setLicense(license);
 
       BigDecimal price = firstPiece.getPrice();
       if (price != null) {
@@ -1480,6 +1528,24 @@ public class FurnitureController implements Controller {
   }
 
   /**
+   * Sets the edited license.
+   */
+  public void setLicense(String license) {
+    if (license != this.license) {
+      String oldLicense = this.license;
+      this.license = license;
+      this.propertyChangeSupport.firePropertyChange(Property.LICENSE.name(), oldLicense, license);
+    }
+  }
+
+  /**
+   * Returns the edited license.
+   */
+  public String getLicense() {
+    return this.license;
+  }
+
+  /**
    * Sets the edited price.
    */
   public void setPrice(BigDecimal price) {
@@ -1566,6 +1632,7 @@ public class FurnitureController implements Controller {
       Boolean edgeColorMaterialHidden = getEdgeColorMaterialHidden();
       Long modelSize = getModelSize();
       String creator = getCreator();
+      String license = getLicense();
       BigDecimal price = getPrice();
       BigDecimal valueAddedTaxPercentage = getValueAddedTaxPercentage();
       Map<FurnitureProperty, Object> additionalProperties = new HashMap<FurnitureProperty, Object>(getAdditionalProperties());
@@ -1599,6 +1666,7 @@ public class FurnitureController implements Controller {
         String pieceStaircaseCutOutShape = piece.getStaircaseCutOutShape();
         Long pieceModelSize = piece.getModelSize();
         String pieceCreator = piece.getCreator();
+        String pieceLicense = piece.getLicense();
         boolean pieceResizable = piece.isResizable();
         boolean pieceDeformable = piece.isDeformable();
         boolean pieceTexturable = piece.isTexturable();
@@ -1649,7 +1717,7 @@ public class FurnitureController implements Controller {
           try {
             pieceDropOnTopElevation = ((Number)lengthFormat.parseObject(dropOnTopElevationString)).floatValue() / pieceHeight;
           } catch (ParseException ex) {
-            throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION.getKeyPrefix() + " : Invalid number : must a decimal number in " + preferences.getLengthUnit().getName(), ex);
+            throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION.getKeyPrefix() + " : Invalid distance in " + preferences.getLengthUnit().getName(), ex);
           }
         }
         boolean horizontallyRotatable = piece.isHorizontallyRotatable();
@@ -1683,21 +1751,21 @@ public class FurnitureController implements Controller {
         boolean doorOrWindowWidthDepthDeformable = false;
         Sash [] doorOrWindowSashes = null;
         boolean lengthUnitWithFraction = this.preferences.getLengthUnit() == LengthUnit.INCH || this.preferences.getLengthUnit() == LengthUnit.INCH_FRACTION;
-        String lengthsArraySeparator = lengthUnitWithFraction ? "\" " : " ";
+        String lengthsArraySeparator = lengthUnitWithFraction ? "\" +" : " +";
         if (doorOrWindow != null
             && doorOrWindow) {
           if (wallThicknessString != null) {
             try {
               doorOrWindowWallThickness = ((Number)lengthFormat.parseObject(wallThicknessString)).floatValue() / depth;
             } catch (ParseException ex) {
-              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS.getKeyPrefix() + " : Invalid decimal number in " + preferences.getLengthUnit().getName(), ex);
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS.getKeyPrefix() + " : Invalid distance in " + preferences.getLengthUnit().getName(), ex);
             }
           }
           if (wallDistanceString != null) {
             try {
               doorOrWindowWallDistance = ((Number)lengthFormat.parseObject(wallDistanceString)).floatValue() / depth;
             } catch (ParseException ex) {
-              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE.getKeyPrefix() + " : Invalid decimal number in " + preferences.getLengthUnit().getName(), ex);
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE.getKeyPrefix() + " : Invalid distance in " + preferences.getLengthUnit().getName(), ex);
             }
           }
           if (wallCutOutOnBothSidesString != null) {
@@ -1736,19 +1804,19 @@ public class FurnitureController implements Controller {
               try {
                 sashXAxis = ((Number)lengthFormat.parseObject(sashXAxes [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               Float sashYAxis;
               try {
                 sashYAxis = ((Number)lengthFormat.parseObject(sashYAxes [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               Float sashWidth;
               try {
                 sashWidth = ((Number)lengthFormat.parseObject(sashWidths [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               Float sashStartAngle;
               try {
@@ -1778,6 +1846,7 @@ public class FurnitureController implements Controller {
         } else {
           doorOrWindowSashes = new Sash [0];
         }
+
         LightSource [] lightSources = null;
         String [] lightSourceMaterialNames = null;
         String lightSourceXString = (String)additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X.getKeyPrefix()));
@@ -1819,19 +1888,19 @@ public class FurnitureController implements Controller {
               try {
                 x = ((Number)lengthFormat.parseObject(lightSourceX [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               float y;
               try {
                 y = ((Number)lengthFormat.parseObject(lightSourceY [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               float z;
               try {
                 z = ((Number)lengthFormat.parseObject(lightSourceZ [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               int color;
               try {
@@ -1849,7 +1918,7 @@ public class FurnitureController implements Controller {
                   diameter = ((Number)lengthFormat.parseObject(lightSourceDiameters [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue();
                 }
               } catch (ParseException ex) {
-                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER.getKeyPrefix() + " : Invalid list of decimal numbers in " + preferences.getLengthUnit().getName(), ex);
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
               }
               // Create the matching light source, converting cm to percentage of width, depth and height
               lightSources [i] = new LightSource(x / pieceWidth, y / pieceDepth, z / pieceHeight, color,
@@ -1869,6 +1938,53 @@ public class FurnitureController implements Controller {
         } else if (piece instanceof CatalogLight) {
           lightSources = ((CatalogLight)piece).getLightSources();
           lightSourceMaterialNames = ((CatalogLight)piece).getLightSourceMaterialNames();
+        }
+
+        float [] shelfElevations = null;
+        BoxBounds [] shelfBoxes = null;
+        String shelfElevationsString = (String)additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS.getKeyPrefix()));
+        String shelfBoxesString = (String)additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES.getKeyPrefix()));
+        if (doorOrWindow != null
+            && !doorOrWindow) {
+          if (shelfElevationsString != null) {
+            String [] elevations = shelfElevationsString.split(lengthsArraySeparator);
+            shelfElevations = new float [elevations.length];
+            for (int i = 0; i < shelfElevations.length; i++) {
+              try {
+                shelfElevations [i] = ((Number)lengthFormat.parseObject(elevations [i] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceHeight;
+              } catch (ParseException ex) {
+                throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
+              }
+            }
+          } else if (piece instanceof CatalogShelfUnit) {
+            shelfElevations = ((CatalogShelfUnit)piece).getShelfElevations();
+          }
+          if (shelfBoxesString != null) {
+            String [] values = shelfBoxesString.split(lengthsArraySeparator);
+            if (values.length % 6 != 0) {
+              throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES.getKeyPrefix() + " : Expected multiple of 6 values");
+            } else {
+              shelfBoxes = new BoxBounds [values.length / 6];
+              for (int i = 0; i < shelfBoxes.length; i++) {
+                try {
+                  shelfBoxes [i] = new BoxBounds(
+                      ((Number)lengthFormat.parseObject(values [i * 6] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceWidth,
+                      ((Number)lengthFormat.parseObject(values [i * 6 + 1] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceDepth,
+                      ((Number)lengthFormat.parseObject(values [i * 6 + 2] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceHeight,
+                      ((Number)lengthFormat.parseObject(values [i * 6 + 3] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceWidth,
+                      ((Number)lengthFormat.parseObject(values [i * 6 + 4] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceDepth,
+                      ((Number)lengthFormat.parseObject(values [i * 6 + 5] + (lengthUnitWithFraction ? "\"" : ""))).floatValue() / pieceHeight);
+                } catch (ParseException ex) {
+                  throw new IllegalStateException(DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES.getKeyPrefix() + " : Invalid list of distances in " + preferences.getLengthUnit().getName(), ex);
+                }
+              }
+            }
+          } else if (piece instanceof CatalogShelfUnit) {
+            shelfBoxes = ((CatalogShelfUnit)piece).getShelfBoxes();
+          }
+        } else if (piece instanceof CatalogShelfUnit) {
+          shelfElevations = ((CatalogShelfUnit)piece).getShelfElevations();
+          shelfBoxes = ((CatalogShelfUnit)piece).getShelfBoxes();
         }
 
         for (Map.Entry<FurnitureProperty, Object> entry : additionalProperties.entrySet()) {
@@ -1966,6 +2082,9 @@ public class FurnitureController implements Controller {
         if (creator != null || piecesCount == 1) {
           pieceCreator = creator;
         }
+        if (license != null || piecesCount == 1) {
+          pieceLicense = license;
+        }
         if (resizable != null || piecesCount == 1) {
           pieceResizable = resizable;
         }
@@ -2030,7 +2149,7 @@ public class FurnitureController implements Controller {
                 && (doorOrWindow == null || doorOrWindow)
             || (doorOrWindow != null && doorOrWindow)) {
           updatedPiece = new CatalogDoorOrWindow(pieceId, pieceName, pieceDescription,
-              pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
+              pieceInformation, pieceLicense, pieceTags, pieceCreationDate, pieceGrade,
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
               pieceDoorOrWindowCutOutShape, doorOrWindowWallThickness, doorOrWindowWallDistance,
@@ -2041,16 +2160,25 @@ public class FurnitureController implements Controller {
         } else if (piece instanceof CatalogLight
                    || lightSources != null || lightSourceMaterialNames != null) {
           updatedPiece = new CatalogLight(pieceId, pieceName, pieceDescription,
-              pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
+              pieceInformation, pieceLicense, pieceTags, pieceCreationDate, pieceGrade,
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
               lightSources, lightSourceMaterialNames, pieceStaircaseCutOutShape,
               pieceModelRotation, pieceModelFlags, pieceModelSize,
               pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, horizontallyRotatable,
               piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties, pieceContents);
+        } else if (piece instanceof CatalogShelfUnit
+                   || shelfElevations != null || shelfBoxes != null) {
+          updatedPiece = new CatalogShelfUnit(pieceId, pieceName, pieceDescription,
+              pieceInformation, pieceLicense, pieceTags, pieceCreationDate, pieceGrade,
+              pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
+              pieceElevation, pieceDropOnTopElevation, shelfElevations, shelfBoxes, pieceMovable,
+              pieceStaircaseCutOutShape, pieceModelRotation, pieceModelFlags, pieceModelSize,
+              pieceCreator, pieceResizable, pieceDeformable, pieceTexturable, horizontallyRotatable,
+              piecePrice, pieceValueAddedTaxPercentage, pieceCurrency, pieceProperties, pieceContents);
         } else {
           updatedPiece = new CatalogPieceOfFurniture(pieceId, pieceName, pieceDescription,
-              pieceInformation, pieceTags, pieceCreationDate, pieceGrade,
+              pieceInformation, pieceLicense, pieceTags, pieceCreationDate, pieceGrade,
               pieceIcon, piecePlanIcon, pieceModel, pieceWidth, pieceDepth, pieceHeight,
               pieceElevation, pieceDropOnTopElevation, pieceMovable,
               pieceStaircaseCutOutShape, pieceModelRotation, pieceModelFlags, pieceModelSize,

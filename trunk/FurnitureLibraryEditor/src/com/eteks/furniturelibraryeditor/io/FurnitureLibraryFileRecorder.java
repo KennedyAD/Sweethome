@@ -60,6 +60,7 @@ import com.eteks.furniturelibraryeditor.model.FurnitureLibraryRecorder;
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
 import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
 import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
+import com.eteks.sweethome3d.model.BoxBounds;
 import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.DoorOrWindow;
@@ -70,6 +71,7 @@ import com.eteks.sweethome3d.model.Light;
 import com.eteks.sweethome3d.model.LightSource;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.Sash;
+import com.eteks.sweethome3d.model.ShelfUnit;
 import com.eteks.sweethome3d.tools.ResourceURLContent;
 import com.eteks.sweethome3d.tools.TemporaryURLContent;
 import com.eteks.sweethome3d.tools.URLContent;
@@ -609,6 +611,38 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       if (piece.getElevation() > 0) {
         writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.ELEVATION, i, piece.getElevation());
       }
+      if (piece instanceof ShelfUnit) {
+        // Write properties specific to lights
+        ShelfUnit shelfUnit = (ShelfUnit)piece;
+        float [] elevations = shelfUnit.getShelfElevations();
+        if (elevations.length > 0) {
+          String elevationsProperty = "";
+          for (int j = 0; j < elevations.length; j++) {
+            if (j > 0) {
+              elevationsProperty += " ";
+            }
+            elevationsProperty += DECIMAL_FORMAT.format(elevations [j] * shelfUnit.getHeight());
+          }
+          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS, i, elevationsProperty);
+        }
+
+        BoxBounds [] shelfBoxes = shelfUnit.getShelfBoxes();
+        if (shelfBoxes.length > 0) {
+          String shelves = "";
+          for (int shelfIndex = 0; shelfIndex < shelfBoxes.length; shelfIndex++) {
+            if (shelfIndex > 0) {
+              shelves += "   ";
+            }
+            shelves += DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getXLower() * shelfUnit.getWidth())
+                + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getYLower() * shelfUnit.getDepth())
+                + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getZLower() * shelfUnit.getHeight())
+                + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getXUpper() * shelfUnit.getWidth())
+                + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getYUpper() * shelfUnit.getDepth())
+                + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getZUpper() * shelfUnit.getHeight());
+          }
+          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES, i, shelves);
+        }
+      }
       float [][] modelRotation = piece.getModelRotation();
       String modelRotationString =
           floatToString(modelRotation[0][0]) + " " + floatToString(modelRotation[0][1]) + " " + floatToString(modelRotation[0][2]) + " "
@@ -672,6 +706,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
         }
       }
       writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.CREATOR, i, piece.getCreator());
+      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LICENSE, i, piece.getLicense());
       i++;
     }
     writer.flush();

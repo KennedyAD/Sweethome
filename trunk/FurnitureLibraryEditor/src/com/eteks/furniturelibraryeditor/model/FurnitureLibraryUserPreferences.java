@@ -57,7 +57,6 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
         FurnitureLibrary.FURNITURE_MODEL_PROPERTY,
         FurnitureLibrary.FURNITURE_ICON_PROPERTY,
         FurnitureLibrary.FURNITURE_NAME_PROPERTY,
-        FurnitureLibrary.FURNITURE_DESCRIPTION_PROPERTY,
         FurnitureLibrary.FURNITURE_TAGS_PROPERTY,
         FurnitureLibrary.FURNITURE_CATEGORY_PROPERTY,
         FurnitureLibrary.FURNITURE_CREATOR_PROPERTY,
@@ -153,6 +152,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
           DefaultFurnitureCatalog.PropertyKey.TAGS,
           DefaultFurnitureCatalog.PropertyKey.CATEGORY,
           DefaultFurnitureCatalog.PropertyKey.CREATOR,
+          DefaultFurnitureCatalog.PropertyKey.LICENSE,
           DefaultFurnitureCatalog.PropertyKey.CREATION_DATE,
           DefaultFurnitureCatalog.PropertyKey.MODEL_SIZE,
           DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION,
@@ -185,6 +185,8 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
           DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR,
           DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER,
           DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME,
+          DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS,
+          DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES,
           DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE,
           DefaultFurnitureCatalog.PropertyKey.PRICE,
           DefaultFurnitureCatalog.PropertyKey.CURRENCY,
@@ -281,6 +283,8 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
           case LIGHT_SOURCE_DIAMETER:
           case LIGHT_SOURCE_COLOR:
           case LIGHT_SOURCE_MATERIAL_NAME:
+          case SHELF_ELEVATIONS:
+          case SHELF_BOXES:
             displayable = false;
             break;
           default:
@@ -289,10 +293,12 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
         }
 
         boolean modifiable = Arrays.binarySearch(modifiableProperties, defaultProperty.name()) >= 0
-                && defaultProperty != DefaultFurnitureCatalog.PropertyKey.ICON
             || (defaultProperty == DefaultFurnitureCatalog.PropertyKey.ID && isFurnitureIdEditable());
+        // Icon is modifiable only once the user made it modifiable
         furnitureProperties.add(new FurnitureProperty(
-            defaultProperty.getKeyPrefix(), type, defaultProperty.name(), displayable, modifiable && displayable, editable, modifiable));
+            defaultProperty.getKeyPrefix(), type, defaultProperty.name(),
+            displayable, modifiable && displayable || defaultProperty == DefaultFurnitureCatalog.PropertyKey.ICON,
+            editable, modifiable && defaultProperty != DefaultFurnitureCatalog.PropertyKey.ICON));
       }
       this.furnitureProperties = furnitureProperties.toArray(new FurnitureProperty [furnitureProperties.size()]);
     }
