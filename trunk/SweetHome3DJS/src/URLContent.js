@@ -942,23 +942,51 @@ ZIPTools.disposeZIP = function(url) {
 }
 
 /**
+ * Returns true if the given image data describes a GIF file.
+ * @package
+ * @ignore
+ */
+ZIPTools.isGIFImage = function(imageData) {
+  return imageData.length > 6
+      && imageData.charAt(0).charCodeAt(0) === 0x47  
+      && imageData.charAt(1).charCodeAt(0) === 0x49
+      && imageData.charAt(2).charCodeAt(0) === 0x46
+      && imageData.charAt(3).charCodeAt(0) === 0x38 
+      && (imageData.charAt(4).charCodeAt(0) === 0x37 || imageData.charAt(4).charCodeAt(0) === 0x39)
+      && imageData.charAt(5).charCodeAt(0) === 0x61;
+}
+
+/**
+ * Returns true if the given image data describes a BMP file.
+ * @package
+ * @ignore
+ */
+ZIPTools.isBMPImage = function(imageData) {
+  return imageData.length > 2
+      && imageData.charAt(0).charCodeAt(0) === 0x42  
+      && imageData.charAt(1).charCodeAt(0) === 0x4D;
+}
+
+/**
  * Returns true if the given image data describes a JPEG file.
  * @package
  * @ignore
  */
 ZIPTools.isJPEGImage = function(imageData) {
-  return imageData.charAt(0).charCodeAt(0) === 0xFF 
-      && imageData.charAt(1).charCodeAt(0) === 0xD8 
+  return imageData.length > 3
+      && imageData.charAt(0).charCodeAt(0) === 0xFF 
+      && (imageData.charAt(1).charCodeAt(0) === 0xD8 || imageData.charAt(1).charCodeAt(0) === 0x4F) 
       && imageData.charAt(2).charCodeAt(0) === 0xFF;
 }
 
 /**
- * Returns true if the given image data describes a transparent PNG file.
+ * Returns true if the given image data describes a PNG file.
  * @package
  * @ignore
  */
 ZIPTools.isPNGImage = function(imageData) {
-  return imageData.charAt(0).charCodeAt(0) === 0x89 
+  return imageData.length > 8
+      && imageData.charAt(0).charCodeAt(0) === 0x89 
       && imageData.charAt(1).charCodeAt(0) === 0x50 
       && imageData.charAt(2).charCodeAt(0) === 0x4E 
       && imageData.charAt(3).charCodeAt(0) === 0x47 
@@ -975,6 +1003,7 @@ ZIPTools.isPNGImage = function(imageData) {
  */
 ZIPTools.isTransparentImage = function(imageData) {
   return ZIPTools.isPNGImage(imageData)
+      && imageData.length > 26
       && (imageData.charAt(25).charCodeAt(0) === 4
           || imageData.charAt(25).charCodeAt(0) === 6
           || (imageData.indexOf("PLTE") !== -1 && imageData.indexOf("tRNS") !== -1));
