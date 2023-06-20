@@ -567,6 +567,24 @@ public class FurnitureLibraryTable extends JTable implements View {
               return collator.compare(piece1.getCreator(), piece2.getCreator());
             }
           };
+      } else if (DefaultFurnitureCatalog.PropertyKey.LICENSE.getKeyPrefix().equals(propertyName)) {
+        furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
+            public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
+              String piece1License = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+                  piece1, controller.getFurnitureLangauge(), propertyName, piece1.getLicense());
+              if (piece1License == null) {
+                return -1;
+              } else {
+                String piece2License = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+                    piece2, controller.getFurnitureLangauge(), propertyName, piece2.getLicense());
+                if (piece2License == null) {
+                  return 1;
+                } else {
+                  return collator.compare(piece1License, piece2License);
+                }
+              }
+            }
+          };
       } else if (DefaultFurnitureCatalog.PropertyKey.TAGS.getKeyPrefix().equals(propertyName)) {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
@@ -885,7 +903,7 @@ public class FurnitureLibraryTable extends JTable implements View {
       TableCellRenderer headerRenderer = getHeaderRenderer();
       List<FurnitureProperty> editedProperties = new ArrayList<FurnitureProperty>();
       for (FurnitureProperty property : preferences.getFurnitureProperties()) {
-        if (property.isDisplayable()) {
+        if (property.isDisplayed()) {
           editedProperties.add(property);
         }
       }
@@ -969,7 +987,8 @@ public class FurnitureLibraryTable extends JTable implements View {
           || DefaultFurnitureCatalog.PropertyKey.INFORMATION.getKeyPrefix().equals(propertyName)
           || DefaultFurnitureCatalog.PropertyKey.TAGS.getKeyPrefix().equals(propertyName)) {
         return 150;
-      } else if (DefaultFurnitureCatalog.PropertyKey.CATEGORY.getKeyPrefix().equals(propertyName)) {
+      } else if (DefaultFurnitureCatalog.PropertyKey.CATEGORY.getKeyPrefix().equals(propertyName)
+                 || DefaultFurnitureCatalog.PropertyKey.LICENSE.getKeyPrefix().equals(propertyName)) {
         return 70;
       } else if (DefaultFurnitureCatalog.PropertyKey.PRICE.getKeyPrefix().equals(propertyName)) {
         return 70;
@@ -1089,6 +1108,10 @@ public class FurnitureLibraryTable extends JTable implements View {
             } else if (DefaultFurnitureCatalog.PropertyKey.INFORMATION.getKeyPrefix().equals(propertyName)) {
               value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getInformation());
+            } else if (DefaultFurnitureCatalog.PropertyKey.CREATOR.getKeyPrefix().equals(propertyName)) {
+              value = piece.getCreator();
+            } else if (DefaultFurnitureCatalog.PropertyKey.LICENSE.getKeyPrefix().equals(propertyName)) {
+              value = piece.getLicense();
             } else if (DefaultFurnitureCatalog.PropertyKey.TAGS.getKeyPrefix().equals(propertyName)) {
               String tagsText = Arrays.toString((String [])furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getTags()));
@@ -1096,8 +1119,6 @@ public class FurnitureLibraryTable extends JTable implements View {
             } else if (DefaultFurnitureCatalog.PropertyKey.CATEGORY.getKeyPrefix().equals(propertyName)) {
               value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getCategory().getName());
-            } else if (DefaultFurnitureCatalog.PropertyKey.CREATOR.getKeyPrefix().equals(propertyName)) {
-              value = piece.getCreator();
             } else if (DefaultFurnitureCatalog.PropertyKey.CURRENCY.getKeyPrefix().equals(propertyName)) {
               value = piece.getCurrency();
             } else {

@@ -616,7 +616,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
         case 1:
           return property.isModifiable();
         case 2:
-          return property.isDisplayable();
+          return property.isDisplayed();
         default:
           throw new IllegalArgumentException();
       }
@@ -682,7 +682,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
     public boolean isCellEditable(int rowIndex, int columnIndex) {
       FurnitureProperty property = this.furnitureProperties [rowIndex];
       return columnIndex == 1 && property.isEditable() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName())
-          || columnIndex == 2 && property.isDisplayed() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName());
+          || columnIndex == 2 && property.isDisplayable() && !DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(property.getName());
     }
 
     public FurnitureProperty [] getFurnitureProperties() {
