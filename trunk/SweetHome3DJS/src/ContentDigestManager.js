@@ -106,15 +106,15 @@ ContentDigestManager.prototype.getContentDigest = function(content, digestObserv
   var contentDigest = this.contentDigestsCache [content.getURL()];
   if (contentDigest === undefined) {
     if (content.isJAREntry()) {
-      this.getZipContentDigest(content, content.getJAREntryURL(), content.getJAREntryName(), digestObserver);
+      this.getZipContentDigest(content, digestObserver);
     } else if (content instanceof LocalURLContent) {
       var manager = this;
       content.getBlob({
           blobReady: function(blob) {
-	        if (blob.type === "application/zip") {
-              manager.getZipContentDigest(content, content.getURL(), "", digestObserver);
+            if (blob.type === "application/zip") {
+              manager.getZipContentDigest(content, digestObserver);
             } else {
-	          manager.getURLContentDigest(content, digestObserver);
+              manager.getURLContentDigest(content, digestObserver);
             }
           },
           blobError: function(status, error) {
@@ -132,16 +132,15 @@ ContentDigestManager.prototype.getContentDigest = function(content, digestObserv
 /**
  * Returns asynchronously the SHA-1 digest of the given content.
  * @param {URLContent} content content containing zipped data
- * @param {string} url        url of zipped data 
- * @param {string} entryName  entry name or empty string
  * @param {digestReady: function, digestError: function} digestObserver
  * @private
  */
-ContentDigestManager.prototype.getZipContentDigest = function(content, url, entryName, digestObserver) {
+ContentDigestManager.prototype.getZipContentDigest = function(content, digestObserver) {
   var manager = this;
-  ZIPTools.getZIP(url, false, {
+  ZIPTools.getZIP(content.isJAREntry() ? content.getJAREntryURL() : content.getURL(), false, {
       zipReady : function(zip) {
         try {
+          var entryName = content.isJAREntry() ? content.getJAREntryName() : "";
           var slashIndex = content instanceof HomeURLContent
               ? entryName.indexOf('/')
               : -1;
