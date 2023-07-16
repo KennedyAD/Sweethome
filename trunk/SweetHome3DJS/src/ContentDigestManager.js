@@ -105,68 +105,104 @@ ContentDigestManager.prototype.getPermanentContentDigest = function(content) {
 ContentDigestManager.prototype.getContentDigest = function(content, digestObserver) {
   var contentDigest = this.contentDigestsCache [content.getURL()];
   if (contentDigest === undefined) {
-    var manager = this;
     if (content.isJAREntry()) {
-      ZIPTools.getZIP(content.getJAREntryURL(), false, {
-          zipReady : function(zip) {
-            try {
-              var entryName = content.getJAREntryName();
-              var slashIndex = content instanceof HomeURLContent
-                  ? entryName.indexOf('/')
-                  : -1;
-              var entryDirectory = entryName.substring(0, slashIndex + 1);
-              var contentData = new Uint8Array(0);
-              var entries = slashIndex > 0 || !(content instanceof HomeURLContent) 
-                  ? zip.file(new RegExp("^" + entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name === entry2.name ? 0 : (entry1.name < entry2.name ? 1 : -1); }) // Reverse order
-                  : [zip.file(entryName)];
-              
-              for (var i = entries.length - 1; i >= 0 ; i--) {
-                var zipEntry = entries [i];
-                if (zipEntry.name !== entryDirectory
-                    && manager.isSignificant(zipEntry.name)) {
-                  // Append entry data to contentData
-                  var entryData = zipEntry.asUint8Array();
-                  var data = new Uint8Array(contentData.length + entryData.length);
-                  data.set(contentData);
-                  data.set(entryData, contentData.length);
-                  contentData = data;
-                }
-              }   
-              
-              manager.computeContentDigest(contentData, function(digest) {
-                  manager.contentDigestsCache [content.getURL()] = digest;
-                  digestObserver.digestReady(content, digest);
-                });              
-            } catch (ex) {
-              this.zipError(ex);
+      this.getZipContentDigest(content, content.getJAREntryURL(), content.getJAREntryName(), digestObserver);
+    } else if (content instanceof LocalURLContent) {
+      var manager = this;
+      content.getBlob({
+          blobReady: function(blob) {
+	        if (blob.type === "application/zip") {
+              manager.getZipContentDigest(content, content.getURL(), "", digestObserver);
+            } else {
+	          manager.getURLContentDigest(content, digestObserver);
             }
           },
-          zipError : function(error) {
-            digestObserver.digestError(error, error.message);
-          }
-        });
-    } else {
-      content.getStreamURL({
-          urlReady: function(url) {
-            var request = new XMLHttpRequest();
-            request.open("GET", url, true);
-            request.responseType = "arraybuffer";
-            request.addEventListener("load", function() {
-                manager.computeContentDigest(request.response, function(digest) {
-                    manager.contentDigestsCache [content.getURL()] = digest;
-                    digestObserver.digestReady(content, digest);
-                  });
-              });
-            request.send();
-          },
-          urlError: function(status, error) {
+          blobError: function(status, error) {
             digestObserver.digestError(status, error);
           }    
         });
+    } else {
+      this.getURLContentDigest(content, digestObserver);
     }
   } else {
     digestObserver.digestReady(content, contentDigest);
   }
+}
+
+/**
+ * Returns asynchronously the SHA-1 digest of the given content.
+ * @param {URLContent} content content containing zipped data
+ * @param {string} url        url of zipped data 
+ * @param {string} entryName  entry name or empty string
+ * @param {digestReady: function, digestError: function} digestObserver
+ * @private
+ */
+ContentDigestManager.prototype.getZipContentDigest = function(content, url, entryName, digestObserver) {
+  var manager = this;
+  ZIPTools.getZIP(url, false, {
+      zipReady : function(zip) {
+        try {
+          var slashIndex = content instanceof HomeURLContent
+              ? entryName.indexOf('/')
+              : -1;
+          var entryDirectory = entryName.substring(0, slashIndex + 1);
+          var contentData = new Uint8Array(0);
+          var entries = slashIndex > 0 || !(content instanceof HomeURLContent) 
+              ? zip.file(new RegExp("^" + entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name === entry2.name ? 0 : (entry1.name < entry2.name ? 1 : -1); }) // Reverse order
+              : [zip.file(entryName)];
+          
+          for (var i = entries.length - 1; i >= 0 ; i--) {
+            var zipEntry = entries [i];
+            if (zipEntry.name !== entryDirectory
+                && manager.isSignificant(zipEntry.name)) {
+              // Append entry data to contentData
+              var entryData = zipEntry.asUint8Array();
+              var data = new Uint8Array(contentData.length + entryData.length);
+              data.set(contentData);
+              data.set(entryData, contentData.length);
+              contentData = data;
+            }
+          }   
+          
+          manager.computeContentDigest(contentData, function(digest) {
+              manager.contentDigestsCache [content.getURL()] = digest;
+              digestObserver.digestReady(content, digest);
+            });              
+        } catch (ex) {
+          this.zipError(ex);
+        }
+      },
+      zipError : function(error) {
+        digestObserver.digestError(error, error.message);
+      }
+    });
+}
+
+/**
+ * Returns asynchronously the SHA-1 digest of the given content.
+ * @param {URLContent} content content containing no zipped data 
+ * @param {digestReady: function, digestError: function} digestObserver
+ * @private
+ */
+ContentDigestManager.prototype.getURLContentDigest = function(content, digestObserver) {
+  var manager = this;
+  content.getStreamURL({
+      urlReady: function(url) {
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+        request.addEventListener("load", function() {
+            manager.computeContentDigest(request.response, function(digest) {
+                manager.contentDigestsCache [content.getURL()] = digest;
+                digestObserver.digestReady(content, digest);
+              });
+          });
+        request.send();
+      },
+      urlError: function(status, error) {
+        digestObserver.digestError(status, error);
+      }    
+    });
 }
 
 /**
