@@ -173,28 +173,29 @@ HomeRecorder.prototype.replaceHomeContents = function(home, homeUrl, observer) {
       for (var i = 0; i < propertyNames.length; i++) {
         var tags = propertyNames [i].match(regExp);
         if (tags) {
-          resourceKeys.push(tags.length > 1 ? tags [1] : tags [0]);
+          resourceKeys.push(propertyNames [i]);
         }
       }
       if (resourceKeys.length > 0) {
         // Get resource digest and store it in content digest manager 
         for (var i = resourceKeys.length - 1; i >= 0; i--) {
-          localStorage.getItem(resourceKeys [i]);
+          var data = localStorage.getItem(resourceKeys [i]);
           var contentType = data.substring("data:".length, data.indexOf(';'));
           var chars = atob(data.substring(data.indexOf(',') + 1));
           var numbers = new Array(chars.length);
-          for (var i = 0; i < numbers.length; i++) {
-            numbers[i] = chars.charCodeAt(i);
+          for (var j = 0; j < numbers.length; j++) {
+            numbers[j] = chars.charCodeAt(j);
           }
           var byteArray = new Uint8Array(numbers);
-          var blobContentUrl = new BlobURL(Blob([byteArray], {type: contentType}));
+          var blobContentUrl = new BlobURLContent(new Blob([byteArray], {type: contentType}));
           contentDigestManager.getContentDigest(blobContentUrl, {
               key : resourceKeys [i],
               blobContentUrl: blobContentUrl,
               digestReady: function(content, digest) {
                 URL.revokeObjectURL(this.blobContentUrl);
+                var tags = this.key.match(regExp);                
                 var cacheContent = URLContent.fromURL(
-                     CoreTools.format(recorder.configuration.readCacheResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(this.key)));
+                     CoreTools.format(recorder.configuration.readCacheResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(tags.length > 1 ? tags [1] : tags [0])));
                 contentDigestManager.setContentDigest(cacheContent, digest);
                 
                 resourceKeys.splice(resourceKeys.lastIndexOf(this.key), 1);
@@ -372,7 +373,7 @@ HomeRecorder.prototype.replaceOrExtractHomeContents = function(home, homeUrl, ob
                   && recorder.configuration.readCacheResourceURL
                   && recorder.configuration.writeCacheResourceURL) {
                 // If some permanent content was found, store remaining home contents in cache 
-                // to be able to optimize memory by closing home file and not reopening it workers when saving home
+                // to be able to optimize memory by closing home file and not reopening it in workers when saving home
                 var compressionLevel =  recorder.configuration.writeCacheResourceURL.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0
                     && recorder.configuration.writeCacheResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0  ? 5 : 0;
                   
