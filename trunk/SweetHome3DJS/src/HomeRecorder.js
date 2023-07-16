@@ -357,15 +357,15 @@ HomeRecorder.prototype.replaceOrExtractHomeContents = function(home, homeUrl, ob
                         && contentDigestManager.getPermanentContentDigest(content) != null;
                   }, 
                   function(content) {
-	                var permanentContent = contentDigestManager.getPermanentContentDigest(content);
-	                if (permanentContent.getURL().indexOf(".extract", permanentContent.getURL().length - ".extract".length) > 0) {
-		              return URLContent.fromURL("jar:" + permanentContent.getURL() + "!/data");
-	                } else if (content.isJAREntry() && content.getJAREntryName().indexOf('/') > 0 && !permanentContent.isJAREntry()) {
-		              return URLContent.fromURL("jar:" + permanentContent.getURL() + "!/" 
-		                  + content.getJAREntryName().substring(content.getJAREntryName().indexOf('/') + 1));
-	                } else {
-		              return permanentContent;
-	                }
+                    var permanentContent = contentDigestManager.getPermanentContentDigest(content);
+                    if (permanentContent.getURL().indexOf(".extract", permanentContent.getURL().length - ".extract".length) > 0) {
+                      return URLContent.fromURL("jar:" + permanentContent.getURL() + "!/data");
+                    } else if (content.isJAREntry() && content.getJAREntryName().indexOf('/') > 0 && !permanentContent.isJAREntry()) {
+                      return URLContent.fromURL("jar:" + permanentContent.getURL() + "!/" 
+                          + content.getJAREntryName().substring(content.getJAREntryName().indexOf('/') + 1));
+                    } else {
+                      return permanentContent;
+                    }
                   });
  
               var remainingHomeContentCount = homeContents.length - permanentContents.length;
@@ -394,7 +394,7 @@ HomeRecorder.prototype.replaceOrExtractHomeContents = function(home, homeUrl, ob
                 var writeBlob = function(homeContent, blob, blobContentEntryName, extension) {
                     var blobName = UUID.randomUUID();
                     if (extension != null) {
-	                  blobName += extension;
+                      blobName += extension;
                     }
                     contentDigestManager.getContentDigest(homeContent, {
                         digestReady: function(content, digest) {
