@@ -117,7 +117,7 @@ ContentDigestManager.prototype.getContentDigest = function(content, digestObserv
               var entryDirectory = entryName.substring(0, slashIndex + 1);
               var contentData = new Uint8Array(0);
               var entries = slashIndex > 0 || !(content instanceof HomeURLContent) 
-                  ? zip.file(new RegExp("^" + entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name < entry2.name }) // Reverse order
+                  ? zip.file(new RegExp("^" + entryDirectory + ".*")).sort(function(entry1, entry2) { return entry1.name === entry2.name ? 0 : (entry1.name < entry2.name ? 1 : -1); }) // Reverse order
                   : [zip.file(entryName)];
               
               for (var i = entries.length - 1; i >= 0 ; i--) {
@@ -125,12 +125,10 @@ ContentDigestManager.prototype.getContentDigest = function(content, digestObserv
                 if (zipEntry.name !== entryDirectory
                     && manager.isSignificant(zipEntry.name)) {
                   // Append entry data to contentData
-                  var binaryString = zipEntry.asBinary();
-                  var data = new Uint8Array(contentData.length + binaryString.length);
+                  var entryData = zipEntry.asUint8Array();
+                  var data = new Uint8Array(contentData.length + entryData.length);
                   data.set(contentData);
-                  for (var j = 0; j < binaryString.length; j++) {
-                    data [contentData.length + j] = binaryString.charCodeAt(j);
-                  }
+                  data.set(entryData, contentData.length);
                   contentData = data;
                 }
               }   
