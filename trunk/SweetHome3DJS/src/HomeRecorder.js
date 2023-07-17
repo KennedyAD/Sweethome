@@ -451,17 +451,12 @@ HomeRecorder.prototype.replaceOrExtractHomeContents = function(home, homeUrl, ob
                                   zipReady : function(zip) {
                                     try {
                                       var contentEntry = zip.file(contentEntryName);
-                                      var binaryString = contentEntry.asBinary();
-                                      if (ZIPTools.isPNGImage(binaryString)
-                                          || ZIPTools.isGIFImage(binaryString)
-                                          || ZIPTools.isJPEGImage(binaryString)
-                                          || ZIPTools.isBMPImage(binaryString)) {
-                                        var data = new Uint8Array(binaryString.length);
-                                        for (var k = 0; k < binaryString.length; k++) {
-                                          data [k] = binaryString.charCodeAt(k);
-                                        }
-                                        var blob = new Blob([data]);
-                                        writeBlob(this.homeContent, blob);
+                                      var entryData = contentEntry.asUint8Array();
+                                      if (ZIPTools.isPNGImage(entryData)
+                                          || ZIPTools.isGIFImage(entryData)
+                                          || ZIPTools.isJPEGImage(entryData)
+                                          || ZIPTools.isBMPImage(entryData)) {
+                                        writeBlob(this.homeContent, new Blob([entryData]));
                                       } else {
                                         // Store 3D model and other files in a ZIP file with one entry containing homeContent
                                         var contentZipOut = new JSZip();
@@ -982,7 +977,7 @@ HomeRecorder.prototype.writeZipEntry = function(zipOut, entryName, content, cont
               zipReady : function(zip) {
                 try {
                   var contentEntry = zip.file(contentEntryName);
-                  zipOut.file(entryName, contentEntry.asBinary(), {binary: true});
+                  zipOut.file(entryName, contentEntry.asUint8Array(), {binary: true});
                   contentObserver.contentSaved(content);
                 } catch (ex) {
                   this.zipError(ex);

@@ -966,50 +966,79 @@ ZIPTools.disposeZIP = function(url) {
 
 /**
  * Returns true if the given image data describes a GIF file.
+ * @param {string|Uint8Array} imageData
  * @package
  * @ignore
  */
 ZIPTools.isGIFImage = function(imageData) {
-  return imageData.length > 6
-      && imageData.charAt(0).charCodeAt(0) === 0x47  
-      && imageData.charAt(1).charCodeAt(0) === 0x49
-      && imageData.charAt(2).charCodeAt(0) === 0x46
-      && imageData.charAt(3).charCodeAt(0) === 0x38 
-      && (imageData.charAt(4).charCodeAt(0) === 0x37 || imageData.charAt(4).charCodeAt(0) === 0x39)
-      && imageData.charAt(5).charCodeAt(0) === 0x61;
+  if (imageData.length <= 6) {
+	return false;
+  } else if (typeof imageData === "string") { 
+    return imageData.charAt(0).charCodeAt(0) === 0x47  
+        && imageData.charAt(1).charCodeAt(0) === 0x49
+        && imageData.charAt(2).charCodeAt(0) === 0x46
+        && imageData.charAt(3).charCodeAt(0) === 0x38 
+        && (imageData.charAt(4).charCodeAt(0) === 0x37 || imageData.charAt(4).charCodeAt(0) === 0x39)
+        && imageData.charAt(5).charCodeAt(0) === 0x61;
+  } else {
+	return imageData [0] === 0x47  
+        && imageData [1] === 0x49
+        && imageData [2] === 0x46
+        && imageData [3] === 0x38 
+        && (imageData [4] === 0x37 || imageData [4] === 0x39)
+        && imageData [5] === 0x61;
+  }
 }
 
 /**
  * Returns true if the given image data describes a BMP file.
+ * @param {string|Uint8Array} imageData
  * @package
  * @ignore
  */
 ZIPTools.isBMPImage = function(imageData) {
-  return imageData.length > 2
-      && imageData.charAt(0).charCodeAt(0) === 0x42  
-      && imageData.charAt(1).charCodeAt(0) === 0x4D;
+  if (imageData.length <= 2) {
+	return false;
+  } else if (typeof imageData === "string") {
+    return imageData.charAt(0).charCodeAt(0) === 0x42  
+        && imageData.charAt(1).charCodeAt(0) === 0x4D;
+  } else {
+    return imageData [0] === 0x42  
+        && imageData [1] === 0x4D;
+  }
 }
 
 /**
  * Returns true if the given image data describes a JPEG file.
+ * @param {string|Uint8Array} imageData
  * @package
  * @ignore
  */
 ZIPTools.isJPEGImage = function(imageData) {
-  return imageData.length > 3
-      && imageData.charAt(0).charCodeAt(0) === 0xFF 
+  if (imageData.length <= 3) {
+	return false;
+  } else if (typeof imageData === "string") {
+    return imageData.charAt(0).charCodeAt(0) === 0xFF 
       && (imageData.charAt(1).charCodeAt(0) === 0xD8 || imageData.charAt(1).charCodeAt(0) === 0x4F) 
       && imageData.charAt(2).charCodeAt(0) === 0xFF;
+  } else {
+    return imageData [0] === 0xFF 
+      && (imageData [1] === 0xD8 || imageData [1] === 0x4F) 
+      && imageData [2] === 0xFF;
+  }
 }
 
 /**
  * Returns true if the given image data describes a PNG file.
+ * @param {string|Uint8Array} imageData
  * @package
  * @ignore
  */
 ZIPTools.isPNGImage = function(imageData) {
-  return imageData.length > 8
-      && imageData.charAt(0).charCodeAt(0) === 0x89 
+  if (imageData.length <= 8) {
+	return false;
+  } else if (typeof imageData === "string") {
+    return imageData.charAt(0).charCodeAt(0) === 0x89 
       && imageData.charAt(1).charCodeAt(0) === 0x50 
       && imageData.charAt(2).charCodeAt(0) === 0x4E 
       && imageData.charAt(3).charCodeAt(0) === 0x47 
@@ -1017,10 +1046,21 @@ ZIPTools.isPNGImage = function(imageData) {
       && imageData.charAt(5).charCodeAt(0) === 0x0A 
       && imageData.charAt(6).charCodeAt(0) === 0x1A 
       && imageData.charAt(7).charCodeAt(0) === 0x0A;
+  } else {
+    return imageData [0] === 0x89 
+      && imageData [1] === 0x50 
+      && imageData [2] === 0x4E 
+      && imageData [3] === 0x47 
+      && imageData [4] === 0x0D 
+      && imageData [5] === 0x0A 
+      && imageData [6] === 0x1A 
+      && imageData [7] === 0x0A;
+   }
 }
 
 /**
  * Returns true if the given image data describes a transparent PNG file.
+ * @param {string} imageData
  * @package
  * @ignore
  */
