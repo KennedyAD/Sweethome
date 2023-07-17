@@ -147,7 +147,7 @@ HomeRecorder.prototype.getHomeXMLHandler = function() {
 /**
  * @private
  */
-HomeRecorder.cacheResourcesStoredInContentDisgestManager = false;
+HomeRecorder.cacheResourcesStoredInContentDigestManager = false;
 
 /**
  * Replaces home contents by permanent content or content in cache if it exists, 
@@ -158,7 +158,7 @@ HomeRecorder.cacheResourcesStoredInContentDisgestManager = false;
  * @private
  */
 HomeRecorder.prototype.replaceHomeContents = function(home, homeUrl, observer) {
-  if (!HomeRecorder.cacheResourcesStoredInContentDisgestManager
+  if (!HomeRecorder.cacheResourcesStoredInContentDigestManager
       && this.configuration.listCacheResourcesURL
       && this.configuration.readCacheResourceURL) {
     var recorder = this;
@@ -303,13 +303,13 @@ HomeRecorder.prototype.replaceHomeContents = function(home, homeUrl, observer) {
               contentDigestManager.setContentDigest(cacheContent, availableResources [i].digest);
             } 
           } else if (observer.homeError !== undefined) {
-            console.warn("Error while requesting to " + url);
-            recorder.replaceOrExtractHomeContents(home, homeUrl, observer);
+            console.warn("Error while requesting " + url);
           }
+          recorder.replaceOrExtractHomeContents(home, homeUrl, observer);
         });
       if (observer.homeError !== undefined) {
         var errorListener = function(ev) {
-            console.warn("Error while requesting to " + url);
+            console.warn("Error while requesting " + url);
             recorder.replaceOrExtractHomeContents(home, homeUrl, observer);
           };
         request.addEventListener("error", errorListener);
@@ -319,7 +319,7 @@ HomeRecorder.prototype.replaceHomeContents = function(home, homeUrl, observer) {
       return request;
     }
 
-    HomeRecorder.cacheResourcesStoredInContentDisgestManager = true;
+    HomeRecorder.cacheResourcesStoredInContentDigestManager = true;
   } else {
     this.replaceOrExtractHomeContents(home, homeUrl, observer);
   }
