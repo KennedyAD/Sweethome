@@ -31,11 +31,11 @@ CoreTools.unavailableResources = [];
 
 /**
  * Loads a JSON resource from a url (synchronous).
- * @param url {string}  the url of the JSON resource to be loaded
+ * @param {string} url  the url of the JSON resource to be loaded
  * @return an object that corresponds to the loaded JSON
  */
 CoreTools.loadJSON = function(url) {
-  if (url.indexOf('/') !== 0 && url.indexOf('://') < 0) {
+  if (url.indexOf('/') !== 0 && url.indexOf("://") < 0) {
     // Relative URLs based on scripts folder
     url = ZIPTools.getScriptFolder() + url;
   }
@@ -43,7 +43,7 @@ CoreTools.loadJSON = function(url) {
   if (CoreTools.unavailableResources.indexOf(url) < 0) {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, false);
+      xhr.open("GET", url, false);
       // It is not allowed to change response type for a synchronous XHR
       // xhr.responseType = 'json';
       xhr.send();
@@ -109,7 +109,7 @@ CoreTools.format = function(formatString, args) {
 /**
  * Returns the given <code>string</code> without accents. For example, <code>éèâ</code> 
  * returns <code>eea</code>.
- * @param {string} a string containing accents
+ * @param {string} string a string containing accents
  * @return the string with all the accentuated characters substituted with the corresponding 
  *          un-accentuated characters  
  */
@@ -123,8 +123,8 @@ CoreTools.removeAccents = function(string) {
 
 /**
  * Returns resource bundles loaded from a given base URL and a given language.
- * @param baseURL the base URL of the localized resource to be loaded
- * @param language the language to be loaded (Java conventions)
+ * @param {string} baseURL the base URL of the localized resource to be loaded
+ * @param {string} language the language to be loaded (Java conventions)
  * @param {boolean} [noCache] force refresh content
  * @return an array of bundle objects, starting with the most specific localization to the default
  */
@@ -145,9 +145,9 @@ CoreTools.loadResourceBundles = function(baseURL, language, noCache) {
 
 /**
  * Returns the string associated with the given key from an array of resource bundles, starting with the first bundle. 
- * @param resourceBundles {Object[]} an array of bundle objects to look up the key into.
- * @param key {string} the key to lookup
- * @param parameters {...*} parameters for the formatting of the key
+ * @param {Object[]} resourceBundles an array of bundle objects to look up the key into.
+ * @param {string} key the key to lookup
+ * @param {...Object} parameters  parameters for the formatting of the key
  * @return the value associated with the key (in the first bundle object that contains it)
  */
 CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
@@ -161,7 +161,7 @@ CoreTools.getStringFromKey = function(resourceBundles, key, parameters) {
 
 /**
  * Returns all the keys from an array of resource bundles. 
- * @param resourceBundles {Object[]} an array of bundle objects to look up the keys into.
+ * @param {Object[]} resourceBundles an array of bundle objects to look up the keys into.
  * @return the list of keys found in the bundle
  */
 CoreTools.getKeys = function(resourceBundles) {
@@ -177,8 +177,8 @@ CoreTools.getKeys = function(resourceBundles) {
 /**
  * Returns the object stored in a map object from a key. Note that this implementation is slow if the key object is not a string.
  * @param map {Object} the object holding the map
- * @param key {string|*} the key to associate the value to (can be an object or a string)
- * @return {*} the value associated to the key (null if not found)
+ * @param key {string|Object} the key to associate the value to (can be an object or a string)
+ * @return {Object} the value associated to the key (null if not found)
  */
 CoreTools.getFromMap = function(map, key) {
   if (typeof key === 'string') {
@@ -203,9 +203,9 @@ CoreTools.getFromMap = function(map, key) {
 /**
  * Puts an object in a map object. When the given key is a string, the map object directly holds the 
  * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
- * @param map {Object} the object holding the map
- * @param key {string|*} the key to associate the value to (can be an object or a string)
- * @param value {*} the value to be put
+ * @param {Object} map the object holding the map
+ * @param {string|Object} key the key to associate the value to (can be an object or a string)
+ * @param {Object} value the value to be put
  */
 CoreTools.putToMap = function(map, key, value) {
   if (typeof key === 'string') {
@@ -239,8 +239,8 @@ CoreTools.putToMap = function(map, key, value) {
 /**
  * Removes an object from a map object and returns it. When the given key is a string, the map object directly holds the 
  * key-value. When the given key is not a string, the map object will contain a list of entries (should be optimized).
- * @param map {Object} the object holding the map
- * @param key {string|*} the key to associate the value to (can be an object or a string)
+ * @param {Object} map the object holding the map
+ * @param {string|*} key the key to associate the value to (can be an object or a string)
  * @return the removed value or <code>null</code> if not found
  */
 CoreTools.removeFromMap = function(map, key) {
@@ -268,7 +268,7 @@ CoreTools.removeFromMap = function(map, key) {
 
 /**
  * Returns all the values put in a map object, as an array.
- * @param map {Object} the map containing the values
+ * @param {Object} map the map containing the values
  * @return {Array} the values (no specific order)
  */
 CoreTools.valuesFromMap = function(map) {
@@ -288,7 +288,7 @@ CoreTools.valuesFromMap = function(map) {
 /**
  * Sorts an array with a comparator object or function. The comparator object must provide a <code>compare(Object, Object)</code> 
  * function, otherwise it is expected to be a comparison function.
- * @param array {Array} an array to be sorted (in-place sort)
+ * @param {Array} array an array to be sorted (in-place sort)
  * @param comparator {Object|function} an object providing a <code>compare(Object, Object)</code>, or simply a function
  */
 CoreTools.sortArray = function(array, comparator) { 
