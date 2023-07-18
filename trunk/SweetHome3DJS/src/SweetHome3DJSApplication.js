@@ -283,7 +283,7 @@ DirectRecordingHomeController.prototype.open = function() {
       }
     };
   var selectHome = function() {
-      var request = this.application.getHomeRecorder().getAvailableHomes({
+      var request = controller.application.getHomeRecorder().getAvailableHomes({
           availableHomes: function(homes) {
             if (homes.length == 0) {
               var message = preferences.getLocalizedString("AppletContentManager", "showOpenDialog.noAvailableHomes");
