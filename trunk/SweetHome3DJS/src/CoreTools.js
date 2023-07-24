@@ -30,11 +30,15 @@ var CoreTools = {};
 CoreTools.unavailableResources = [];
 
 /**
- * Loads a JSON resource from a url (synchronous).
- * @param {string} url  the url of the JSON resource to be loaded
- * @return an object that corresponds to the loaded JSON
+ * Loads a JSON resource from the given <code>url</code>. If <code>observer</code> is undefined, the request is sent synchronously
+ * and the content of the <code>url</code> is returned. If it's not undefined, the request is sent asynchronously
+ * and the JSON content is passed in parameter to <code>jsonLoaded</code>.
+ * @param {string}   url  the url of the JSON resource to be loaded
+ * @param {function} [observer] if present, the <code>jsonLoaded</code> method of <code>observer</code> is called 
+                         once the given <code>url</url> is loaded and its JSON content is parsed.  
+ * @return an object matching the loaded JSON if loaded synchronously
  */
-CoreTools.loadJSON = function(url) {
+CoreTools.loadJSON = function(url, observer) {
   if (url.indexOf('/') !== 0 && url.indexOf("://") < 0) {
     // Relative URLs based on scripts folder
     url = ZIPTools.getScriptFolder() + url;
@@ -42,14 +46,29 @@ CoreTools.loadJSON = function(url) {
   
   if (CoreTools.unavailableResources.indexOf(url) < 0) {
     try {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", url, false);
-      // It is not allowed to change response type for a synchronous XHR
-      // xhr.responseType = 'json';
-      xhr.send();
-      return JSON.parse(xhr.responseText);
+      var request = new XMLHttpRequest();
+      request.open("GET", url, observer !== undefined);
+      if (observer !== undefined) {
+        request.addEventListener("load", function() {
+            if (request.readyState === XMLHttpRequest.DONE) {
+              if (request.status === 0 || request.status === 200) {
+                observer.jsonLoaded(JSON.parse(request.responseText));
+              } else if (observer.jsonError !== undefined) {
+                observer.jsonError(request.status, request.statusText);
+              }
+            }
+          });
+      }
+      request.send();
+      if (observer === undefined) {
+        return JSON.parse(request.responseText);
+      }
     } catch (ex) {
       CoreTools.unavailableResources.push(url);
+      if (observer !== undefined
+          && observer.jsonError !== undefined) {
+        observer.jsonError(ex, ex.message);
+      }
     }
   }
   return undefined;
