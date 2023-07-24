@@ -1578,9 +1578,10 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
       new IndexedDBURLContent(this.readPreferencesUrl).getBlob({
           blobReady: function(blob) {
             var reader = new FileReader();
-            reader.addEventListener("load", function() {
+            // Use onload rather that addEventListener for Cordova support
+            reader.onload = function() {
                 updateJsonPreferences(reader.result);
-              });
+              };
             reader.readAsText(blob);
           },
           blobError : function(status, error) {

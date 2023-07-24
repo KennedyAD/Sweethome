@@ -448,9 +448,10 @@ LocalURLContent.prototype.writeBlob = function(writeBlobUrl, blobName, observer)
  */
 LocalURLContent.convertBlobToBase64 = function(blob, observer) {
   var reader = new FileReader();
-  reader.addEventListener("load", function() {
+  // Use onload rather that addEventListener for Cordova support
+  reader.onload = function() {
       observer(reader.result);
-    });
+    };
   reader.readAsDataURL(blob);
   return reader;
 }
