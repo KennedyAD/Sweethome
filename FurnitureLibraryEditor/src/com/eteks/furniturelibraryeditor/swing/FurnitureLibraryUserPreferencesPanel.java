@@ -566,7 +566,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
           this.furniturePropertiesTable.getTableHeader().getPreferredSize().height + this.furniturePropertiesTable.getRowHeight() * 10 + 3));
       furniturePropertiesPanel.add(furniturePropertiesScrollPane, new GridBagConstraints(
           0, 0, 1, 2, 0, 0, GridBagConstraints.CENTER,
-          GridBagConstraints.BOTH, componentInsets, 0, 0));
+          GridBagConstraints.BOTH, new Insets(0, 0, 0, gap), 0, 0));
       furniturePropertiesPanel.add(this.addPropertyButton, new GridBagConstraints(
           1, 0, 1, 1, 0, 0.5, GridBagConstraints.SOUTH,
           GridBagConstraints.HORIZONTAL, componentInsets, 0, 0));
