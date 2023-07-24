@@ -200,15 +200,16 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
     var importImage = function(file) {
         if (file) {
           var reader = new FileReader();
-          reader.addEventListener("load", function(ev) {
+          // Use onload and onerror rather that addEventListener for Cordova support
+          reader.onload = function(ev) {
               var image = new Image();
               image.addEventListener("load", function(ev) {
                   component.updateController(image, file);
                 });
               image.addEventListener("error", imageErrorListener);
               image.src = ev.target.result;
-            });
-          reader.addEventListener("error", imageErrorListener);
+            };
+          reader.onerror = imageErrorListener;
           reader.readAsDataURL(file);
         }
       };
@@ -871,15 +872,16 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     var importImage = function(file) {
         if (file) {
           var reader = new FileReader();
-          reader.addEventListener("load", function(ev) {
+          // Use onload and onerror rather that addEventListener for Cordova support
+          reader.onload = function(ev) {
               var image = new Image();
               image.addEventListener("load", function(ev) {
                 component.updateController(image, file);
               });
               image.addEventListener("error", imageErrorListener);
               image.src = ev.target.result;
-            });
-          reader.addEventListener("error", imageErrorListener);
+            };
+          reader.onerror = imageErrorListener;
           reader.readAsDataURL(file);
         }
       };
