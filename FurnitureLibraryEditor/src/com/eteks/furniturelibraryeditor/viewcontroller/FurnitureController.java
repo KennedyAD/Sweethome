@@ -1719,6 +1719,142 @@ public class FurnitureController implements Controller {
           }
         }
 
+        // Retrieve localized data
+        Map<String, Object> localizedNames = new HashMap<String, Object>();
+        retrieveLocalizedData(piece, localizedNames, FurnitureLibrary.FURNITURE_NAME_PROPERTY);
+        Map<String, Object> localizedDescriptions = new HashMap<String, Object>();
+        retrieveLocalizedData(piece, localizedDescriptions, FurnitureLibrary.FURNITURE_DESCRIPTION_PROPERTY);
+        Map<String, Object> localizedInformation = new HashMap<String, Object>();
+        retrieveLocalizedData(piece, localizedInformation, FurnitureLibrary.FURNITURE_INFORMATION_PROPERTY);
+        Map<String, Object> localizedTags = new HashMap<String, Object>();
+        retrieveLocalizedData(piece, localizedTags, FurnitureLibrary.FURNITURE_TAGS_PROPERTY);
+        Map<String, Object> localizedCategories = new HashMap<String, Object>();
+        retrieveLocalizedData(piece, localizedCategories, FurnitureLibrary.FURNITURE_CATEGORY_PROPERTY);
+
+        // Update mandatory not localizable data
+        if (model != null) {
+          pieceModel = model;
+        }
+        if (width != null) {
+          pieceWidth = width;
+        }
+        if (depth != null) {
+          pieceDepth = depth;
+        }
+        if (height != null) {
+          pieceHeight = height;
+        }
+        if (movable != null) {
+          pieceMovable = movable;
+        }
+        // Update not mandatory and not localizable data
+        // When only one piece is updated, data can be reset to empty
+        if (id != null || piecesCount == 1) {
+          pieceId = id;
+        }
+        if (creationDate != null || piecesCount == 1) {
+          pieceCreationDate = creationDate;
+        }
+        if (grade != null || piecesCount == 1) {
+          pieceGrade = grade;
+        }
+        if (elevation != null || piecesCount == 1) {
+          pieceElevation = elevation;
+        }
+        if (modelRotation != null || piecesCount == 1) {
+          pieceModelRotation = modelRotation;
+        }
+        if (backFaceShown != null) {
+          pieceModelFlags = (pieceModelFlags & ~PieceOfFurniture.SHOW_BACK_FACE)
+              | (backFaceShown ? PieceOfFurniture.SHOW_BACK_FACE : 0);
+        }
+        if (edgeColorMaterialHidden != null) {
+          pieceModelFlags = (pieceModelFlags & ~PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL)
+              | (edgeColorMaterialHidden ? PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL : 0);
+        }
+        if (pieceDoorOrWindowCutOutShape != null || piecesCount == 1) {
+          pieceDoorOrWindowCutOutShape = doorOrWindowCutOutShape;
+        }
+        if (staircase != null) { // Always Boolean.TRUE or Boolean.FALSE (not null) if piecesCount == 1
+          if (staircase) {
+            if (staircaseCutOutShape != null) {
+              pieceStaircaseCutOutShape = staircaseCutOutShape;
+            } else if (piecesCount == 1) {
+              pieceStaircaseCutOutShape = DEFAULT_CUT_OUT_SHAPE;
+            }
+          } else {
+            pieceStaircaseCutOutShape = null;
+          }
+        } else if (staircaseCutOutShape != null && pieceStaircaseCutOutShape != null) {
+          pieceStaircaseCutOutShape = staircaseCutOutShape;
+        }
+        if (modelSize != null || piecesCount == 1) {
+          pieceModelSize = modelSize;
+        }
+        if (creator != null || piecesCount == 1) {
+          pieceCreator = creator;
+        }
+        if (license != null || piecesCount == 1) {
+          pieceLicense = license;
+        }
+        if (resizable != null || piecesCount == 1) {
+          pieceResizable = resizable;
+        }
+        if (deformable != null || piecesCount == 1) {
+          pieceDeformable = deformable;
+        }
+        if (texturable != null || piecesCount == 1) {
+          pieceTexturable = texturable;
+        }
+        if (price != null || piecesCount == 1) {
+          piecePrice = price;
+        }
+        if (valueAddedTaxPercentage != null || piecesCount == 1) {
+          pieceValueAddedTaxPercentage = valueAddedTaxPercentage;
+        }
+        // Update mandatory localizable data
+        if (name != null) {
+          if (defaultFurnitureLanguage) {
+            pieceName = name;
+          } else {
+            localizedNames.put(this.furnitureLanguageController.getFurnitureLangauge(), name);
+          }
+        }
+        if (category != null) {
+          if (defaultFurnitureLanguage) {
+            pieceCategory = category;
+          } else {
+            localizedCategories.put(this.furnitureLanguageController.getFurnitureLangauge(), category.getName());
+          }
+        }
+        // Update not mandatory localizable data
+        // When only one piece is updated, data can be reset to empty
+        if (description != null || piecesCount == 1) {
+          if (defaultFurnitureLanguage) {
+            pieceDescription = description;
+          } else {
+            localizedDescriptions.put(this.furnitureLanguageController.getFurnitureLangauge(), description);
+          }
+        }
+        if (information != null || piecesCount == 1) {
+          if (defaultFurnitureLanguage) {
+            pieceInformation = information;
+          } else {
+            localizedInformation.put(this.furnitureLanguageController.getFurnitureLangauge(), information);
+          }
+        }
+        if (tags != null || piecesCount == 1) {
+          if (defaultFurnitureLanguage) {
+            if (tags == null) {
+              pieceTags = new String [0];
+            } else {
+              pieceTags = tags;
+            }
+          } else {
+            localizedTags.put(this.furnitureLanguageController.getFurnitureLangauge(), tags);
+          }
+        }
+
         // Update additional properties stored as fields
         Content iconContent = (Content)additionalProperties.remove(new FurnitureProperty(DefaultFurnitureCatalog.PropertyKey.ICON.getKeyPrefix()));
         if (iconContent != null) {
@@ -2044,142 +2180,6 @@ public class FurnitureController implements Controller {
             }
           } else {
             pieceProperties.put(entry.getKey().getName(), (String)entry.getValue());
-          }
-        }
-
-        // Retrieve localized data
-        Map<String, Object> localizedNames = new HashMap<String, Object>();
-        retrieveLocalizedData(piece, localizedNames, FurnitureLibrary.FURNITURE_NAME_PROPERTY);
-        Map<String, Object> localizedDescriptions = new HashMap<String, Object>();
-        retrieveLocalizedData(piece, localizedDescriptions, FurnitureLibrary.FURNITURE_DESCRIPTION_PROPERTY);
-        Map<String, Object> localizedInformation = new HashMap<String, Object>();
-        retrieveLocalizedData(piece, localizedInformation, FurnitureLibrary.FURNITURE_INFORMATION_PROPERTY);
-        Map<String, Object> localizedTags = new HashMap<String, Object>();
-        retrieveLocalizedData(piece, localizedTags, FurnitureLibrary.FURNITURE_TAGS_PROPERTY);
-        Map<String, Object> localizedCategories = new HashMap<String, Object>();
-        retrieveLocalizedData(piece, localizedCategories, FurnitureLibrary.FURNITURE_CATEGORY_PROPERTY);
-
-        // Update mandatory not localizable data
-        if (model != null) {
-          pieceModel = model;
-        }
-        if (width != null) {
-          pieceWidth = width;
-        }
-        if (depth != null) {
-          pieceDepth = depth;
-        }
-        if (height != null) {
-          pieceHeight = height;
-        }
-        if (movable != null) {
-          pieceMovable = movable;
-        }
-        // Update not mandatory and not localizable data
-        // When only one piece is updated, data can be reset to empty
-        if (id != null || piecesCount == 1) {
-          pieceId = id;
-        }
-        if (creationDate != null || piecesCount == 1) {
-          pieceCreationDate = creationDate;
-        }
-        if (grade != null || piecesCount == 1) {
-          pieceGrade = grade;
-        }
-        if (elevation != null || piecesCount == 1) {
-          pieceElevation = elevation;
-        }
-        if (modelRotation != null || piecesCount == 1) {
-          pieceModelRotation = modelRotation;
-        }
-        if (backFaceShown != null) {
-          pieceModelFlags = (pieceModelFlags & ~PieceOfFurniture.SHOW_BACK_FACE)
-              | (backFaceShown ? PieceOfFurniture.SHOW_BACK_FACE : 0);
-        }
-        if (edgeColorMaterialHidden != null) {
-          pieceModelFlags = (pieceModelFlags & ~PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL)
-              | (edgeColorMaterialHidden ? PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL : 0);
-        }
-        if (pieceDoorOrWindowCutOutShape != null || piecesCount == 1) {
-          pieceDoorOrWindowCutOutShape = doorOrWindowCutOutShape;
-        }
-        if (staircase != null) { // Always Boolean.TRUE or Boolean.FALSE (not null) if piecesCount == 1
-          if (staircase) {
-            if (staircaseCutOutShape != null) {
-              pieceStaircaseCutOutShape = staircaseCutOutShape;
-            } else if (piecesCount == 1) {
-              pieceStaircaseCutOutShape = DEFAULT_CUT_OUT_SHAPE;
-            }
-          } else {
-            pieceStaircaseCutOutShape = null;
-          }
-        } else if (staircaseCutOutShape != null && pieceStaircaseCutOutShape != null) {
-          pieceStaircaseCutOutShape = staircaseCutOutShape;
-        }
-        if (modelSize != null || piecesCount == 1) {
-          pieceModelSize = modelSize;
-        }
-        if (creator != null || piecesCount == 1) {
-          pieceCreator = creator;
-        }
-        if (license != null || piecesCount == 1) {
-          pieceLicense = license;
-        }
-        if (resizable != null || piecesCount == 1) {
-          pieceResizable = resizable;
-        }
-        if (deformable != null || piecesCount == 1) {
-          pieceDeformable = deformable;
-        }
-        if (texturable != null || piecesCount == 1) {
-          pieceTexturable = texturable;
-        }
-        if (price != null || piecesCount == 1) {
-          piecePrice = price;
-        }
-        if (valueAddedTaxPercentage != null || piecesCount == 1) {
-          pieceValueAddedTaxPercentage = valueAddedTaxPercentage;
-        }
-        // Update mandatory localizable data
-        if (name != null) {
-          if (defaultFurnitureLanguage) {
-            pieceName = name;
-          } else {
-            localizedNames.put(this.furnitureLanguageController.getFurnitureLangauge(), name);
-          }
-        }
-        if (category != null) {
-          if (defaultFurnitureLanguage) {
-            pieceCategory = category;
-          } else {
-            localizedCategories.put(this.furnitureLanguageController.getFurnitureLangauge(), category.getName());
-          }
-        }
-        // Update not mandatory localizable data
-        // When only one piece is updated, data can be reset to empty
-        if (description != null || piecesCount == 1) {
-          if (defaultFurnitureLanguage) {
-            pieceDescription = description;
-          } else {
-            localizedDescriptions.put(this.furnitureLanguageController.getFurnitureLangauge(), description);
-          }
-        }
-        if (information != null || piecesCount == 1) {
-          if (defaultFurnitureLanguage) {
-            pieceInformation = information;
-          } else {
-            localizedInformation.put(this.furnitureLanguageController.getFurnitureLangauge(), information);
-          }
-        }
-        if (tags != null || piecesCount == 1) {
-          if (defaultFurnitureLanguage) {
-            if (tags == null) {
-              pieceTags = new String [0];
-            } else {
-              pieceTags = tags;
-            }
-          } else {
-            localizedTags.put(this.furnitureLanguageController.getFurnitureLangauge(), tags);
           }
         }
 
