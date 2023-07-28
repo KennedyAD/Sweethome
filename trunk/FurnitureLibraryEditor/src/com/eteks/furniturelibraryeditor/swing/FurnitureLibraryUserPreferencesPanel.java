@@ -369,6 +369,8 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
                 FurnitureProperty.Type.STRING,
                 FurnitureProperty.Type.BOOLEAN,
                 FurnitureProperty.Type.NUMBER,
+                FurnitureProperty.Type.LENGTH,
+                FurnitureProperty.Type.DATE,
                 FurnitureProperty.Type.CONTENT));
             JComboBox typeComboBox = new JComboBox(types.toArray());
             typeComboBox.setMaximumRowCount(types.size());

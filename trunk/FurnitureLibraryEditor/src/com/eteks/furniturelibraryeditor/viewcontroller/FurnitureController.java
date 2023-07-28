@@ -23,16 +23,19 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Currency;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -60,6 +63,7 @@ import com.eteks.sweethome3d.model.FurnitureCategory;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Light;
 import com.eteks.sweethome3d.model.LightSource;
+import com.eteks.sweethome3d.model.ObjectProperty.Type;
 import com.eteks.sweethome3d.model.PieceOfFurniture;
 import com.eteks.sweethome3d.model.Sash;
 import com.eteks.sweethome3d.model.ShelfUnit;
@@ -566,6 +570,25 @@ public class FurnitureController implements Controller {
                   // Format number value in user notation
                   propertyValue = NumberFormat.getNumberInstance().format(Float.parseFloat(propertyValue));
                 } catch (NumberFormatException ex) {
+                }
+              }
+              additionalProperties.put(property, propertyValue);
+            } else if (property.getType() == FurnitureProperty.Type.LENGTH) {
+              String propertyValue = firstPiece.getProperty(property.getName());
+              if (propertyValue != null) {
+                try {
+                  propertyValue = preferences.getLengthUnit().getFormat().format(Float.parseFloat(propertyValue));
+                } catch (NumberFormatException ex) {
+                }
+              }
+              additionalProperties.put(property, propertyValue);
+            } else if (property.getType() == FurnitureProperty.Type.DATE) {
+              String propertyValue = firstPiece.getProperty(property.getName());
+              if (propertyValue != null) {
+                try {
+                  propertyValue = DateFormat.getDateInstance(DateFormat.SHORT).format(
+                      new SimpleDateFormat("yyyy-MM-dd").parse(propertyValue));
+                } catch (ParseException ex) {
                 }
               }
               additionalProperties.put(property, propertyValue);
@@ -1989,7 +2012,8 @@ public class FurnitureController implements Controller {
 
         for (Map.Entry<FurnitureProperty, Object> entry : additionalProperties.entrySet()) {
           if (entry.getValue() != null) {
-            if (entry.getKey().getType() == FurnitureProperty.Type.NUMBER) {
+            Type entryType = entry.getKey().getType();
+            if (entryType == FurnitureProperty.Type.NUMBER) {
               float number;
               try {
                 number = ((Number)NumberFormat.getNumberInstance().parse((String)entry.getValue())).floatValue();
@@ -1997,7 +2021,23 @@ public class FurnitureController implements Controller {
                 throw new IllegalStateException(entry.getKey().getName() + " : Invalid number", ex);
               }
               pieceProperties.put(entry.getKey().getName(), String.valueOf(number));
-            } else if (entry.getKey().getType() == FurnitureProperty.Type.CONTENT) {
+            } else if (entryType == FurnitureProperty.Type.LENGTH) {
+              float number;
+              try {
+                number = ((Number)preferences.getLengthUnit().getFormat().parseObject((String)entry.getValue())).floatValue();
+              } catch (ParseException ex) {
+                throw new IllegalStateException(entry.getKey().getName() + " : Invalid length", ex);
+              }
+              pieceProperties.put(entry.getKey().getName(), String.valueOf(number));
+            } else if (entryType == FurnitureProperty.Type.DATE) {
+              Date date;
+              try {
+                date = DateFormat.getDateInstance(DateFormat.SHORT).parse((String)entry.getValue());
+              } catch (ParseException ex) {
+                throw new IllegalStateException(entry.getKey().getName() + " : Invalid date", ex);
+              }
+              pieceProperties.put(entry.getKey().getName(), new SimpleDateFormat("yyyy-MM-dd").format(date));
+            } else if (entryType == FurnitureProperty.Type.CONTENT) {
               pieceContents.put(entry.getKey().getName(), (Content)entry.getValue());
             } else {
               pieceProperties.put(entry.getKey().getName(), (String)entry.getValue());
