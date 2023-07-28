@@ -1404,6 +1404,12 @@ public class FurniturePanel extends JPanel implements DialogView {
             editorTextField.getDocument().removeDocumentListener(this.documentListener);
             super.cancelCellEditing();
           }
+
+          @Override
+          public Object getCellEditorValue() {
+            Object value = super.getCellEditorValue();
+            return "".equals(value) ? null : value;
+          }
         };
       propertyCellEditor.setClickCountToStart(1);
 
