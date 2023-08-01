@@ -1067,9 +1067,11 @@ HomePane.prototype.createItalicStyleToggleModel = function(actionType, home, pre
 HomePane.prototype.createToolBar = function(home, preferences, controller) {
   var applicationMenuToolBar = document.getElementById("application-menu-toolbar");
 
-  this.startToolBarButtonGroup(applicationMenuToolBar);
-  this.addActionToToolBar("SHOW_APPLICATION_MENU", applicationMenuToolBar);
-  this.showApplicationMenuButton = applicationMenuToolBar.children[applicationMenuToolBar.children.length - 1].lastChild; 
+  if (applicationMenuToolBar != null) {
+    this.startToolBarButtonGroup(applicationMenuToolBar);
+    this.addActionToToolBar("SHOW_APPLICATION_MENU", applicationMenuToolBar);
+    this.showApplicationMenuButton = applicationMenuToolBar.children[applicationMenuToolBar.children.length - 1].lastChild; 
+  }
 
   var toolBar = document.getElementById("home-pane-toolbar"); 
   this.toolBarDefaultChildren = Array.prototype.slice.call(toolBar.children);
@@ -2603,10 +2605,12 @@ HomePane.prototype.dispose = function() {
     window.removeEventListener("resize", splitter.mouseListener.windowResized);
   }
   var applicationMenuToolBar = document.getElementById("application-menu-toolbar");
-  var toolBarChildren = applicationMenuToolBar.children;
-  for (var i = toolBarChildren.length - 1; i >= 0; i--) {
-    applicationMenuToolBar.removeChild(toolBarChildren [i]);
-  } 
+  if (applicationMenuToolBar != null) {
+    var toolBarChildren = applicationMenuToolBar.children;
+    for (var i = toolBarChildren.length - 1; i >= 0; i--) {
+      applicationMenuToolBar.removeChild(toolBarChildren [i]);
+    } 
+  }
   var toolBar = document.getElementById("home-pane-toolbar");
   toolBarChildren = toolBar.children;
   for (var i = toolBarChildren.length - 1; i >= 0; i--) {
