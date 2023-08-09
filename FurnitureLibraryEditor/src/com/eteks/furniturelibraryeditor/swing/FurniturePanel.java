@@ -1599,7 +1599,7 @@ public class FurniturePanel extends JPanel implements DialogView {
             FurniturePanel.class, "priceLabel.mnemonic")).getKeyCode());
         this.priceLabel.setLabelFor(this.priceSpinner);
       }
-      if (this.priceLabel != null) {
+      if (this.valueAddedTaxPercentageLabel != null) {
         this.valueAddedTaxPercentageLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             FurniturePanel.class, "valueAddedTaxPercentageLabel.mnemonic")).getKeyCode());
         this.valueAddedTaxPercentageLabel.setLabelFor(this.valueAddedTaxPercentageSpinner);
