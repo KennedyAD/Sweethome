@@ -701,7 +701,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
                 propertyType = property.getType();
               }
             }
-            writeProperty(writer, propertyName + "#" + i + (propertyType != null ? ":" + propertyType.name() : ""), propertyValue);
+            writeProperty(writer, propertyName + "#" + i + (propertyType != null && propertyType != FurnitureProperty.Type.ANY ? ":" + propertyType.name() : ""), propertyValue);
           }
         }
       }
