@@ -1441,9 +1441,13 @@ public class FurniturePanel extends JPanel implements DialogView {
           @Override
           public Component getTableCellRendererComponent(JTable table,
                     Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            FurnitureProperty property = (FurnitureProperty)value;
             JComponent label = (JComponent)super.getTableCellRendererComponent(
-                table, ((FurnitureProperty)value).getName(), isSelected, hasFocus, row, column);
+                table, property.getName(), isSelected, hasFocus, row, column);
             label.setEnabled(table.isCellEditable(row, 1));
+            if (property.getDefaultPropertyKeyName() == null) {
+              label.setFont(label.getFont().deriveFont(Font.ITALIC));
+            }
             return label;
           }
         });
