@@ -40,6 +40,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -323,6 +324,16 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
         columnModel.getColumn(i).setPreferredWidth(columnMinWidths [i] * charWidth);
       }
 
+      columnModel.getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+          @Override
+          public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            JComponent label = (JComponent)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (furniturePropertiesTableModel.getFurnitureProperties() [row].getDefaultPropertyKeyName() == null) {
+              label.setFont(label.getFont().deriveFont(Font.ITALIC));
+            }
+            return label;
+          }
+        });
       // Display second and third column as a check box
       TableCellRenderer checkBoxCellRenderer = new TableCellRenderer() {
           private TableCellRenderer booleanRenderer = furniturePropertiesTable.getDefaultRenderer(Boolean.class);
