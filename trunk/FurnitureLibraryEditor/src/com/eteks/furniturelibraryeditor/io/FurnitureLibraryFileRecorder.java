@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -59,6 +60,8 @@ import com.eteks.furniturelibraryeditor.model.FurnitureLibrary;
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryRecorder;
 import com.eteks.furniturelibraryeditor.model.FurnitureLibraryUserPreferences;
 import com.eteks.furniturelibraryeditor.model.FurnitureProperty;
+import com.eteks.sweethome3d.io.Base64;
+import com.eteks.sweethome3d.io.ContentDigestManager;
 import com.eteks.sweethome3d.io.DefaultFurnitureCatalog;
 import com.eteks.sweethome3d.model.BoxBounds;
 import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
@@ -165,9 +168,17 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       }
       URL furnitureLibraryUrl = furnitureLibraryFile.toURI().toURL();
       String furnitureResourcesLocalDirectory = preferences.getFurnitureResourcesLocalDirectory();
-      URL furnitureResourcesUrlBase = furnitureResourcesLocalDirectory != null
-          ? new File(furnitureResourcesLocalDirectory).toURI().toURL()
-          : null;
+      URL furnitureResourcesUrlBase;
+      if (preferences.isFurnitureLibraryOffline()) {
+        furnitureResourcesUrlBase = null;
+      } else {
+        if (furnitureResourcesLocalDirectory == null) {
+          furnitureResourcesLocalDirectory = new File(furnitureLibraryLocation).getParent();
+        } else if (!new File(furnitureResourcesLocalDirectory).isAbsolute()) {
+          furnitureResourcesLocalDirectory = new File(new File(furnitureLibraryLocation).getParent(), furnitureResourcesLocalDirectory).toString();
+        }
+        furnitureResourcesUrlBase = new File(furnitureResourcesLocalDirectory).toURI().toURL();
+      }
       final List<CatalogPieceOfFurniture> furniture = new ArrayList<CatalogPieceOfFurniture>();
       new DefaultFurnitureCatalog(new URL [] {furnitureLibraryUrl}, furnitureResourcesUrlBase) {
           @Override
@@ -311,52 +322,80 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
                                      boolean contentMatchingFurnitureName,
                                      String  furnitureResourcesLocalDirectory,
                                      String  furnitureResourcesRemoteUrlBase) throws RecorderException {
+    File furnitureLibraryFile = new File(furnitureLibraryLocation);
+    boolean jsonExport = furnitureLibraryLocation.endsWith(".json");
     URL furnitureResourcesRemoteAbsoluteUrlBase = null;
     String furnitureResourcesRemoteRelativeUrlBase = null;
-    if (!offlineFurnitureLibrary
-        && furnitureResourcesLocalDirectory != null
-        && furnitureResourcesRemoteUrlBase != null) {
-      try {
-        furnitureResourcesRemoteAbsoluteUrlBase = new URL(furnitureResourcesRemoteUrlBase);
-      } catch (MalformedURLException ex) {
-        // furnitureResourcesRemoteUrlBase is a relative URL
-        int lastSlashIndex = furnitureResourcesRemoteUrlBase.lastIndexOf('/');
-        if (lastSlashIndex != 1) {
-          furnitureResourcesRemoteRelativeUrlBase = furnitureResourcesRemoteUrlBase.substring(0, lastSlashIndex + 1);
-          furnitureResourcesLocalDirectory = new File(furnitureResourcesLocalDirectory, furnitureResourcesRemoteUrlBase).toString();
-        } else {
-          furnitureResourcesRemoteRelativeUrlBase = "";
+    if (!offlineFurnitureLibrary || jsonExport) {
+      if (furnitureResourcesLocalDirectory == null) {
+        furnitureResourcesLocalDirectory = furnitureLibraryFile.getParent();
+      } else if (!new File(furnitureResourcesLocalDirectory).isAbsolute()) {
+        furnitureResourcesLocalDirectory = new File(furnitureLibraryFile.getParent(), furnitureResourcesLocalDirectory).toString();
+      }
+      if (furnitureResourcesRemoteUrlBase != null) {
+        try {
+          furnitureResourcesRemoteAbsoluteUrlBase = new URL(furnitureResourcesRemoteUrlBase);
+        } catch (MalformedURLException ex) {
+          // furnitureResourcesRemoteUrlBase is a relative URL
+          int lastSlashIndex = furnitureResourcesRemoteUrlBase.lastIndexOf('/');
+          if (lastSlashIndex != 1) {
+            furnitureResourcesRemoteRelativeUrlBase = furnitureResourcesRemoteUrlBase.substring(0, lastSlashIndex + 1);
+            furnitureResourcesLocalDirectory = new File(furnitureResourcesLocalDirectory, furnitureResourcesRemoteUrlBase).toString();
+          } else {
+            furnitureResourcesRemoteRelativeUrlBase = "";
+          }
         }
+      } else {
+        furnitureResourcesRemoteRelativeUrlBase = "";
       }
     }
 
-    ZipOutputStream zipOut = null;
-    Map<Content, String> contentEntries = new HashMap<Content, String>();
-    File furnitureLibraryFile = new File(furnitureLibraryLocation);
-    File tmpFile = null;
+    OutputStream propertiesOutput = null;
     try {
-      tmpFile = File.createTempFile("temp", ".sh3f");
-      OutputStream out = new FileOutputStream(tmpFile);
-      if (out != null) {
+      Map<Content, String> contentEntries = new HashMap<Content, String>();
+      ZipOutputStream zipOut = null;
+      File tmpFile = null;
+      if (jsonExport) {
+        propertiesOutput = new FileOutputStream(furnitureLibraryLocation);
+      } else {
+        tmpFile = File.createTempFile("temp", ".sh3f");
         // Create a zip output on file
-        zipOut = new ZipOutputStream(out);
+        zipOut = new ZipOutputStream(new FileOutputStream(tmpFile));
         // Write furniture description file in first entry
         zipOut.putNextEntry(new ZipEntry(DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY + ".properties"));
-        writeFurnitureLibraryProperties(zipOut, furnitureLibrary, furnitureLibraryFile,
-            furnitureProperties, offlineFurnitureLibrary, contentMatchingFurnitureName,
-            furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase,
-            contentEntries);
+        propertiesOutput = zipOut;
+      }
+      writeFurnitureLibraryProperties(propertiesOutput, furnitureLibrary, jsonExport,
+          furnitureProperties, offlineFurnitureLibrary, contentMatchingFurnitureName,
+          furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase,
+          !offlineFurnitureLibrary || jsonExport, contentEntries);
+      if (jsonExport) {
+        propertiesOutput.close();
+      } else {
         zipOut.closeEntry();
-        // Write supported languages description files
-        for (String language : furnitureLibrary.getSupportedLanguages()) {
-          if (!FurnitureLibrary.DEFAULT_LANGUAGE.equals(language)) {
+      }
+
+      // Write supported languages description files
+      for (String language : furnitureLibrary.getSupportedLanguages()) {
+        if (!FurnitureLibrary.DEFAULT_LANGUAGE.equals(language)) {
+          if (jsonExport) {
+            propertiesOutput = new FileOutputStream(furnitureLibraryLocation.replace(".json", "_" + language + ".json"));
+          } else {
             zipOut.putNextEntry(new ZipEntry(DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY + "_" + language + ".properties"));
-            writeFurnitureLibraryLocalizedProperties(zipOut, furnitureLibrary, language);
+          }
+          writeFurnitureLibraryLocalizedProperties(propertiesOutput, furnitureLibrary, jsonExport, language);
+          if (jsonExport) {
+            propertiesOutput.close();
+          } else {
             zipOut.closeEntry();
           }
         }
-        // Write Content objects in files
-        writeContents(zipOut, offlineFurnitureLibrary, furnitureResourcesLocalDirectory, contentEntries);
+      }
+
+      // Write Content objects in files
+      writeContents(zipOut, !offlineFurnitureLibrary || jsonExport, furnitureResourcesLocalDirectory, contentEntries);
+
+      if (zipOut != null) {
         // Finish zip writing
         zipOut.finish();
         zipOut.close();
@@ -368,9 +407,9 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
     } catch (IOException ex) {
       throw new RecorderException("Can't save furniture library file " + furnitureLibraryLocation, ex);
     } finally {
-      if (zipOut != null) {
+      if (propertiesOutput != null) {
         try {
-          zipOut.close();
+          propertiesOutput.close();
         } catch (IOException ex) {
           throw new RecorderException("Can't close furniture library file " + furnitureLibraryLocation, ex);
         }
@@ -384,12 +423,13 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
    */
   private void writeFurnitureLibraryProperties(OutputStream output,
                                                FurnitureLibrary furnitureLibrary,
-                                               File furnitureLibraryFile,
+                                               boolean jsonExport,
                                                FurnitureProperty [] furnitureProperties,
                                                boolean offlineFurnitureLibrary,
                                                boolean contentMatchingFurnitureName,
                                                URL furnitureResourcesRemoteAbsoluteUrlBase,
                                                String furnitureResourcesRemoteRelativeUrlBase,
+                                               boolean contentDigest,
                                                Map<Content, String> contentEntries) throws IOException {
     boolean keepURLContentUnchanged = !offlineFurnitureLibrary
         && furnitureResourcesRemoteAbsoluteUrlBase == null
@@ -397,40 +437,49 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
     DateFormat creationDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     // Store existing entries in lower case to be able to compare their names ignoring case
     Set<String> existingEntryNamesLowerCase = new HashSet<String>();
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "ISO-8859-1"));
-    final String CATALOG_FILE_HEADER = "#\n# "
-        + DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY + ".properties %tc\n"
-        + "# Generated by Furniture Library Editor\n#\n";
-    writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
+    StringWriter jsonWriter = null;
+    BufferedWriter writer;
+    if (jsonExport) {
+      // Write first in a string buffer to remove the last comma
+      jsonWriter = new StringWriter();
+      writer = new BufferedWriter(jsonWriter);
+      writer.write("{");
+    } else {
+      writer = new BufferedWriter(new OutputStreamWriter(output, "ISO-8859-1"));
+      final String CATALOG_FILE_HEADER = "#\n# "
+          + DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY + ".properties %tc\n"
+          + "# Generated by Furniture Library Editor\n#\n";
+      writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
+    }
     writer.newLine();
-    writeProperty(writer, ID, furnitureLibrary.getId());
-    writeProperty(writer, NAME, furnitureLibrary.getName());
-    writeProperty(writer, DESCRIPTION, furnitureLibrary.getDescription());
-    writeProperty(writer, VERSION, furnitureLibrary.getVersion());
-    writeProperty(writer, LICENSE, furnitureLibrary.getLicense());
-    writeProperty(writer, PROVIDER, furnitureLibrary.getProvider());
+    writeProperty(writer, jsonExport, ID, furnitureLibrary.getId());
+    writeProperty(writer, jsonExport, NAME, furnitureLibrary.getName());
+    writeProperty(writer, jsonExport, DESCRIPTION, furnitureLibrary.getDescription());
+    writeProperty(writer, jsonExport, VERSION, furnitureLibrary.getVersion());
+    writeProperty(writer, jsonExport, LICENSE, furnitureLibrary.getLicense());
+    writeProperty(writer, jsonExport, PROVIDER, furnitureLibrary.getProvider());
 
     int i = 1;
     for (CatalogPieceOfFurniture piece : furnitureLibrary.getFurniture()) {
       writer.newLine();
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.ID, i, piece.getId());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.NAME, i, piece.getName());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DESCRIPTION, i, piece.getDescription());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.INFORMATION, i, piece.getInformation());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.ID, i, piece.getId());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.NAME, i, piece.getName());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DESCRIPTION, i, piece.getDescription());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.INFORMATION, i, piece.getInformation());
       String tags = Arrays.toString(piece.getTags());
       if (tags.length() > 2) {
         // Write comma separated tags without [ and ] characters
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.TAGS, i, tags.substring(1, tags.length() - 1));
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.TAGS, i, tags.substring(1, tags.length() - 1));
       }
       Long creationDate = piece.getCreationDate();
       if (creationDate != null) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.CREATION_DATE, i,
-            creationDateFormat.format(new Date(piece.getCreationDate())));
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.CREATION_DATE,
+            i, creationDateFormat.format(new Date(piece.getCreationDate())));
       }
       if (piece.getGrade() != null) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.GRADE, i, piece.getGrade());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.GRADE, i, piece.getGrade());
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.CATEGORY, i, piece.getCategory().getName());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.CATEGORY, i, piece.getCategory().getName());
       Content pieceModel = piece.getModel();
       String contentBaseName;
       if (contentMatchingFurnitureName
@@ -459,9 +508,13 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
           contentEntries.put(pieceIcon, iconContentEntryName);
         }
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.ICON, i,
-          getContentProperty(pieceIcon, iconContentEntryName, offlineFurnitureLibrary,
-              furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.ICON,
+          i, getContentProperty(pieceIcon, iconContentEntryName, jsonExport,
+              offlineFurnitureLibrary, furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+      if (contentDigest) {
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.ICON_DIGEST,
+            i, Base64.encodeBytes(ContentDigestManager.getInstance().getContentDigest(pieceIcon)));
+      }
       Content piecePlanIcon = piece.getPlanIcon();
       if (piecePlanIcon != null) {
         String planIconContentEntryName = contentEntries.get(piecePlanIcon);
@@ -473,9 +526,13 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
             contentEntries.put(piecePlanIcon, planIconContentEntryName);
           }
         }
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.PLAN_ICON, i,
-            getContentProperty(piecePlanIcon, planIconContentEntryName, offlineFurnitureLibrary,
-                furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.PLAN_ICON,
+            i, getContentProperty(piecePlanIcon, planIconContentEntryName, jsonExport,
+                offlineFurnitureLibrary, furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+        if (contentDigest) {
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.PLAN_ICON_DIGEST,
+              i, Base64.encodeBytes(ContentDigestManager.getInstance().getContentDigest(piecePlanIcon)));
+        }
       }
       boolean multipart = pieceModel instanceof ResourceURLContent
               && ((ResourceURLContent)pieceModel).isMultiPartResource()
@@ -485,7 +542,8 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       String modelContentEntryName = contentEntries.get(pieceModel);
       // If piece model content not referenced yet among saved content
       if (modelContentEntryName == null) {
-        if (multipart) {
+        if (jsonExport // Handle all exported contents in ZIP files even if not multipart
+            || multipart) {
           String jarEntryName = ((URLContent)pieceModel).getJAREntryName();
           modelContentEntryName = getContentEntry(pieceModel,
               pieceModel instanceof TemporaryURLContent
@@ -500,43 +558,47 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
           contentEntries.put(pieceModel, modelContentEntryName);
         }
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MODEL, i,
-          getContentProperty(pieceModel, modelContentEntryName, offlineFurnitureLibrary,
-              furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MODEL,
+          i, getContentProperty(pieceModel, modelContentEntryName, jsonExport,
+              offlineFurnitureLibrary, furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+      if (contentDigest) {
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MODEL_DIGEST,
+            i, Base64.encodeBytes(ContentDigestManager.getInstance().getContentDigest(pieceModel)));
+      }
       if (multipart) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MULTI_PART_MODEL, i, "true");
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MULTI_PART_MODEL, i, "true");
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.WIDTH, i, piece.getWidth());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DEPTH, i, piece.getDepth());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.HEIGHT, i, piece.getHeight());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.WIDTH, i, piece.getWidth());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DEPTH, i, piece.getDepth());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.HEIGHT, i, piece.getHeight());
       if (Math.abs(piece.getDropOnTopElevation() - 1f) > 1E-6f) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION, i,
-            piece.getDropOnTopElevation() * piece.getHeight());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DROP_ON_TOP_ELEVATION,
+            i, piece.getDropOnTopElevation() * piece.getHeight());
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MOVABLE, i, piece.isMovable());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW, i, piece.isDoorOrWindow());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MOVABLE, i, piece.isMovable());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW, i, piece.isDoorOrWindow());
       if (piece.isDoorOrWindow()) {
         // Write properties specific to doors and windows
         DoorOrWindow doorOrWindow = (DoorOrWindow)piece;
         if (doorOrWindow.getCutOutShape() != null) {
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_CUT_OUT_SHAPE, i,
-              doorOrWindow.getCutOutShape());
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_CUT_OUT_SHAPE,
+              i, doorOrWindow.getCutOutShape());
         }
         if (doorOrWindow.getWallThickness() != 1) {
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS, i,
-              doorOrWindow.getWallThickness() * doorOrWindow.getDepth());
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_THICKNESS,
+              i, doorOrWindow.getWallThickness() * doorOrWindow.getDepth());
         }
         if (doorOrWindow.getWallDistance() != 0) {
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE, i,
-              doorOrWindow.getWallDistance() * doorOrWindow.getDepth());
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_DISTANCE,
+              i, doorOrWindow.getWallDistance() * doorOrWindow.getDepth());
         }
         if (!doorOrWindow.isWallCutOutOnBothSides()) {
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES, i,
-              doorOrWindow.isWallCutOutOnBothSides());
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WALL_CUT_OUT_ON_BOTH_SIDES,
+              i, doorOrWindow.isWallCutOutOnBothSides());
         }
         if (!doorOrWindow.isWidthDepthDeformable()) {
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE, i,
-              doorOrWindow.isWidthDepthDeformable());
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE,
+              i, doorOrWindow.isWidthDepthDeformable());
         }
         Sash [] sashes = doorOrWindow.getSashes();
         if (sashes.length > 0) {
@@ -559,11 +621,11 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
             sashStartAngle += Math.round(Math.toDegrees(sashes [sashIndex].getStartAngle()) * 100) / 100;
             sashEndAngle += Math.round(Math.toDegrees(sashes [sashIndex].getEndAngle()) * 100) / 100;
           }
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS, i, sashXAxis);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS, i, sashYAxis);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH, i, sashWidth);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE, i, sashStartAngle);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE, i, sashEndAngle);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS, i, sashXAxis);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS, i, sashYAxis);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH, i, sashWidth);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE, i, sashStartAngle);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE, i, sashEndAngle);
         }
       }
       if (piece instanceof Light) {
@@ -597,19 +659,19 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
               lightSourceDiameter += DECIMAL_FORMAT.format(lightSources [lightIndex].getDiameter() * light.getWidth());
             }
           }
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X, i, lightSourceX);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y, i, lightSourceY);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z, i, lightSourceZ);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR, i, lightSourceColor);
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER, i, lightSourceDiameter);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X, i, lightSourceX);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y, i, lightSourceY);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z, i, lightSourceZ);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR, i, lightSourceColor);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER, i, lightSourceDiameter);
         }
         String [] lightSourceMaterialNames = light.getLightSourceMaterialNames();
         if (lightSourceMaterialNames.length > 0) {
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME, i, lightSourceMaterialNames);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME, i, lightSourceMaterialNames);
         }
       }
       if (piece.getElevation() > 0) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.ELEVATION, i, piece.getElevation());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.ELEVATION, i, piece.getElevation());
       }
       if (piece instanceof ShelfUnit) {
         // Write properties specific to lights
@@ -623,7 +685,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
             }
             elevationsProperty += DECIMAL_FORMAT.format(elevations [j] * shelfUnit.getHeight());
           }
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS, i, elevationsProperty);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS, i, elevationsProperty);
         }
 
         BoxBounds [] shelfBoxes = shelfUnit.getShelfBoxes();
@@ -640,7 +702,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
                 + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getYUpper() * shelfUnit.getDepth())
                 + " " + DECIMAL_FORMAT.format(shelfBoxes [shelfIndex].getZUpper() * shelfUnit.getHeight());
           }
-          writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES, i, shelves);
+          writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES, i, shelves);
         }
       }
       float [][] modelRotation = piece.getModelRotation();
@@ -649,32 +711,32 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
         + floatToString(modelRotation[1][0]) + " " + floatToString(modelRotation[1][1]) + " " + floatToString(modelRotation[1][2]) + " "
         + floatToString(modelRotation[2][0]) + " " + floatToString(modelRotation[2][1]) + " " + floatToString(modelRotation[2][2]);
       if (!"1 0 0 0 1 0 0 0 1".equals(modelRotationString)) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION, i, modelRotationString);
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MODEL_ROTATION, i, modelRotationString);
       }
       if (piece.getModelFlags() != 0) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MODEL_FLAGS, i, piece.getModelFlags());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MODEL_FLAGS, i, piece.getModelFlags());
       }
       if (piece.getStaircaseCutOutShape() != null) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE, i, piece.getStaircaseCutOutShape());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.STAIRCASE_CUT_OUT_SHAPE, i, piece.getStaircaseCutOutShape());
       }
       if (piece.getModelSize() != null) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.MODEL_SIZE, i, piece.getModelSize());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.MODEL_SIZE, i, piece.getModelSize());
       }
       if (!piece.isResizable()) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.RESIZABLE, i, piece.isResizable());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.RESIZABLE, i, piece.isResizable());
       }
       if (!piece.isDeformable()) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.DEFORMABLE, i, piece.isDeformable());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.DEFORMABLE, i, piece.isDeformable());
       }
       if (!piece.isTexturable()) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.TEXTURABLE, i, piece.isTexturable());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.TEXTURABLE, i, piece.isTexturable());
       }
       if (!piece.isHorizontallyRotatable()) {
-        writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.HORIZONTALLY_ROTATABLE, i, piece.isHorizontallyRotatable());
+        writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.HORIZONTALLY_ROTATABLE, i, piece.isHorizontallyRotatable());
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.PRICE, i, piece.getPrice());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.VALUE_ADDED_TAX_PERCENTAGE, i, piece.getValueAddedTaxPercentage());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.CURRENCY, i, piece.getCurrency());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.PRICE, i, piece.getPrice());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.VALUE_ADDED_TAX_PERCENTAGE, i, piece.getValueAddedTaxPercentage());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.CURRENCY, i, piece.getCurrency());
       List<String> propertyNames = new ArrayList<String>(piece.getPropertyNames());
       Collections.sort(propertyNames);
       for (String propertyName : propertyNames) {
@@ -689,9 +751,9 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
               contentEntries.put(content, contentEntryName);
             }
           }
-          writeProperty(writer, propertyName + "#" + i + ":" + FurnitureProperty.Type.CONTENT.name(),
-              getContentProperty(content, contentEntryName, offlineFurnitureLibrary,
-                  furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
+          writeProperty(writer, jsonExport,
+              propertyName + "#" + i + ":" + FurnitureProperty.Type.CONTENT.name(), getContentProperty(content, contentEntryName, jsonExport,
+                  offlineFurnitureLibrary, furnitureResourcesRemoteAbsoluteUrlBase, furnitureResourcesRemoteRelativeUrlBase));
         } else {
           String propertyValue = piece.getProperty(propertyName);
           if (propertyValue != null) {
@@ -701,15 +763,28 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
                 propertyType = property.getType();
               }
             }
-            writeProperty(writer, propertyName + "#" + i + (propertyType != null && propertyType != FurnitureProperty.Type.ANY ? ":" + propertyType.name() : ""), propertyValue);
+            String propertyTypeInfo = Boolean.getBoolean("com.eteks.furniturelibraryeditor.writePropertyType")
+                && propertyType != null
+                && propertyType != FurnitureProperty.Type.ANY  ? ":" + propertyType.name()  : "";
+            writeProperty(writer, jsonExport, propertyName + "#" + i + propertyTypeInfo, propertyValue);
           }
         }
       }
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.CREATOR, i, piece.getCreator());
-      writeProperty(writer, DefaultFurnitureCatalog.PropertyKey.LICENSE, i, piece.getLicense());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.CREATOR, i, piece.getCreator());
+      writeProperty(writer, jsonExport, DefaultFurnitureCatalog.PropertyKey.LICENSE, i, piece.getLicense());
       i++;
     }
+
     writer.flush();
+    if (jsonExport) {
+      // Remove last comma
+      String jsonString = jsonWriter.toString();
+      int lastCommaIndex = jsonString.lastIndexOf(',');
+      if (lastCommaIndex > 0) {
+        jsonString = jsonString.substring(0, lastCommaIndex);
+      }
+      output.write((jsonString + "\n}\n").getBytes("UTF-8"));
+    }
   }
 
   /**
@@ -733,13 +808,21 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
    */
   private void writeFurnitureLibraryLocalizedProperties(OutputStream output,
                                                         FurnitureLibrary furnitureLibrary,
-                                                        String language) throws IOException {
-    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "ISO-8859-1"));
-    final String CATALOG_FILE_HEADER = "#\n# "
-        + DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY + "_" + language + ".properties %tc\n"
-        + "# Generated by Furniture Library Editor\n#\n";
-    writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
-
+                                                        boolean jsonExport, String language) throws IOException {
+    StringWriter jsonWriter = null;
+    BufferedWriter writer;
+    if (jsonExport) {
+      // Write first in a string buffer to remove the last comma
+      jsonWriter = new StringWriter();
+      writer = new BufferedWriter(jsonWriter);
+      writer.write("{");
+    } else {
+      writer = new BufferedWriter(new OutputStreamWriter(output, "ISO-8859-1"));
+      final String CATALOG_FILE_HEADER = "#\n# "
+          + DefaultFurnitureCatalog.PLUGIN_FURNITURE_CATALOG_FAMILY + "_" + language + ".properties %tc\n"
+          + "# Generated by Furniture Library Editor\n#\n";
+      writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
+    }
     Map<String, DefaultFurnitureCatalog.PropertyKey> localizedProperties = new LinkedHashMap<String, DefaultFurnitureCatalog.PropertyKey>();
     localizedProperties.put(FurnitureLibrary.FURNITURE_NAME_PROPERTY, DefaultFurnitureCatalog.PropertyKey.NAME);
     localizedProperties.put(FurnitureLibrary.FURNITURE_DESCRIPTION_PROPERTY, DefaultFurnitureCatalog.PropertyKey.DESCRIPTION);
@@ -754,12 +837,22 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
         Object pieceData = furnitureLibrary.getPieceOfFurnitureLocalizedData(
             piece, language, localizedPropertyEntry.getKey());
         if (pieceData != null) {
-          writeProperty(writer, localizedPropertyEntry.getValue(), i, pieceData);
+          writeProperty(writer, jsonExport, localizedPropertyEntry.getValue(), i, pieceData);
         }
       }
       i++;
     }
+
     writer.flush();
+    if (jsonExport) {
+      // Remove last comma
+      String jsonString = jsonWriter.toString();
+      int lastCommaIndex = jsonString.lastIndexOf(',');
+      if (lastCommaIndex > 0) {
+        jsonString = jsonString.substring(0, lastCommaIndex);
+      }
+      output.write((jsonString + "\n}\n").getBytes("UTF-8"));
+    }
   }
 
   /**
@@ -840,17 +933,20 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
    */
   private String getContentProperty(Content content,
                                     String  entryName,
+                                    boolean jsonExport,
                                     boolean offlineFurnitureLibrary,
                                     URL furnitureResourcesRemoteAbsoluteUrlBase,
                                     String furnitureResourcesRemoteRelativeUrlBase) throws IOException {
-    if (offlineFurnitureLibrary
-        || (furnitureResourcesRemoteAbsoluteUrlBase == null
-            && furnitureResourcesRemoteRelativeUrlBase == null)) {
+    if (!jsonExport
+        && (offlineFurnitureLibrary
+            || (furnitureResourcesRemoteAbsoluteUrlBase == null
+                && furnitureResourcesRemoteRelativeUrlBase == null))) {
       return "/" + entryName;
     } else if (content instanceof TemporaryURLContent
                || content instanceof ResourceURLContent
                || furnitureResourcesRemoteAbsoluteUrlBase != null
-               || furnitureResourcesRemoteRelativeUrlBase != null) {
+               || furnitureResourcesRemoteRelativeUrlBase != null
+               || jsonExport) {
       int slashIndex = entryName.indexOf('/');
       if (slashIndex == -1) {
         if (furnitureResourcesRemoteAbsoluteUrlBase != null) {
@@ -877,23 +973,24 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
    * Writes the (<code>key</code>, <code>value</code>) of a property
    * in <code>writer</code>.
    */
-  private void writeProperty(BufferedWriter writer,
-                             DefaultFurnitureCatalog.PropertyKey key,
-                             int index, Object value) throws IOException {
-    writeProperty(writer, key.getKey(index), value);
+  private void writeProperty(BufferedWriter writer, boolean jsonExport,
+                             DefaultFurnitureCatalog.PropertyKey key, int index,
+                             Object value) throws IOException {
+    writeProperty(writer, jsonExport, key.getKey(index), value);
   }
 
   /**
    * Writes the (<code>key</code>, <code>value</code>) of a property
    * in <code>writer</code>, if the <code>value</code> isn't <code>null</code>.
    */
-  private void writeProperty(BufferedWriter writer,
-                             String key,
-                             Object value) throws IOException {
+  private void writeProperty(BufferedWriter writer, boolean jsonExport,
+                             String key, Object value) throws IOException {
     if (value != null) {
-      // Write key, escaping the characters : = and space
-      writer.write(key.replace(":", "\\:").replace("=", "\\=").replace(" ", "\\ "));
-      writer.write("=");
+      // Write key, escaping the characters \ " : = and space
+      writer.write(jsonExport
+           ? " \"" + key.replace("\\", "\\\\").replace("\"", "\\\"")
+           : key.replace(":", "\\:").replace("=", "\\=").replace(" ", "\\ "));
+      writer.write(jsonExport ? "\": \"" : "=");
       String s;
       if (value.getClass().isArray()) {
         s = Arrays.toString((Object [])value);
@@ -903,7 +1000,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       } else {
         s = value.toString();
       }
-      CharsetEncoder encoder = Charset.forName("ISO-8859-1").newEncoder();
+      CharsetEncoder encoder = Charset.forName(jsonExport ? "UTF-8" : "ISO-8859-1").newEncoder();
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
         switch (c) {
@@ -915,6 +1012,12 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
             writer.write('\\');
             writer.write('t');
             break;
+          case '"':
+            if (jsonExport) {
+              writer.write('\\');
+              writer.write('"');
+              break;
+            }
           default:
             if (encoder.canEncode(c)) {
               writer.write(c);
@@ -928,6 +1031,9 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
             }
         }
       }
+      if (jsonExport) {
+        writer.write("\",");
+      }
       writer.newLine();
     }
   }
@@ -936,10 +1042,10 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
    * Writes in <code>zipOut</code> stream the given contents.
    */
   private void writeContents(ZipOutputStream zipOut,
-                             boolean offlineFurnitureLibrary,
+                             boolean contentSavedInSeparateFile,
                              String  furnitureResourcesLocalDirectory,
                              Map<Content, String> contentEntries) throws IOException, InterruptedRecorderException {
-    if (!offlineFurnitureLibrary && furnitureResourcesLocalDirectory != null) {
+    if (contentSavedInSeparateFile && furnitureResourcesLocalDirectory != null) {
       // Check local directory
       File directory = new File(furnitureResourcesLocalDirectory);
       if (!directory.exists()) {
@@ -958,9 +1064,9 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
         URLContent urlContent = (URLContent)content;
         String entryName = contentEntry.getValue();
         if (entryName.indexOf('/') != -1) {
-          writeZipEntries(zipOut, offlineFurnitureLibrary, furnitureResourcesLocalDirectory,
+          writeZipEntries(zipOut, contentSavedInSeparateFile, furnitureResourcesLocalDirectory,
               urlContent, entryName, zipUrlsEntries);
-        } else if (offlineFurnitureLibrary || furnitureResourcesLocalDirectory == null) {
+        } else if (!contentSavedInSeparateFile || furnitureResourcesLocalDirectory == null) {
           writeZipEntry(zipOut, urlContent, entryName);
         } else {
           File file = new File(furnitureResourcesLocalDirectory, entryName);
@@ -980,13 +1086,13 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
    * <code>content</code>.
    */
   private void writeZipEntries(ZipOutputStream zipOut,
-                               boolean offlineFurnitureLibrary,
+                               boolean contentSavedInSeparateFile,
                                String furnitureResourcesLocalDirectory,
                                URLContent content,
                                String mainEntryName,
                                Map<String, List<ZipEntry>> zipUrlsEntries) throws IOException {
     String mainEntryDirectory = mainEntryName.substring(0, mainEntryName.indexOf('/'));
-    if (!offlineFurnitureLibrary && furnitureResourcesLocalDirectory != null) {
+    if (contentSavedInSeparateFile && furnitureResourcesLocalDirectory != null) {
       // Write content entries in a separate zipped file, if the file doesn't exist
       File file = new File(furnitureResourcesLocalDirectory, mainEntryDirectory + ".zip");
       if (file.exists()) {
@@ -1007,35 +1113,42 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       }
     }
 
-    URL zipUrl = content.getJAREntryURL();
-    // Keep in cache the entries of the read zip files to speed up save process
-    List<ZipEntry> entries = zipUrlsEntries.get(zipUrl.toString());
-    if (entries == null) {
-      zipUrlsEntries.put(zipUrl.toString(), entries = getZipEntries(zipUrl));
-    }
-    for (ZipEntry entry : entries) {
-      String zipEntryName = entry.getName();
-      URLContent siblingContent = new URLContent(new URL("jar:" + zipUrl + "!/" +
-          URLEncoder.encode(zipEntryName, "UTF-8").replace("+", "%20")));
-      if (contentDirectory.length() == 0) {
-        boolean saveEntry = true;
-        for (String ignoredExtension : IGNORED_EXTENSIONS) {
-          if (zipEntryName.toLowerCase().endsWith(ignoredExtension)) {
-            saveEntry = false;
-            break;
+    if (content instanceof ResourceURLContent
+         && !((ResourceURLContent)content).isMultiPartResource()
+         && contentSavedInSeparateFile) {
+      // mainEntry is actually not saved in a sub folder
+      writeZipEntry(zipOut, content, mainEntryName.substring(mainEntryName.indexOf('/') + 1));
+    } else {
+      URL zipUrl = content.getJAREntryURL();
+      // Keep in cache the entries of the read zip files to speed up save process
+      List<ZipEntry> entries = zipUrlsEntries.get(zipUrl.toString());
+      if (entries == null) {
+        zipUrlsEntries.put(zipUrl.toString(), entries = getZipEntries(zipUrl));
+      }
+      for (ZipEntry entry : entries) {
+        String zipEntryName = entry.getName();
+        URLContent siblingContent = new URLContent(new URL("jar:" + zipUrl + "!/" +
+            URLEncoder.encode(zipEntryName, "UTF-8").replace("+", "%20")));
+        if (contentDirectory.length() == 0) {
+          boolean saveEntry = true;
+          for (String ignoredExtension : IGNORED_EXTENSIONS) {
+            if (zipEntryName.toLowerCase().endsWith(ignoredExtension)) {
+              saveEntry = false;
+              break;
+            }
           }
+          if (saveEntry) {
+            // Write each zipped stream entry that is stored in content except useless content
+            writeZipEntry(zipOut, siblingContent, mainEntryDirectory + zipEntryName);
+          }
+        } else if (zipEntryName.startsWith(contentDirectory)) {
+          // Write each zipped stream entry that is stored in the same directory as content
+          writeZipEntry(zipOut, siblingContent, mainEntryDirectory + zipEntryName.substring(contentDirectory.length()));
         }
-        if (saveEntry) {
-          // Write each zipped stream entry that is stored in content except useless content
-          writeZipEntry(zipOut, siblingContent, mainEntryDirectory + zipEntryName);
-        }
-      } else if (zipEntryName.startsWith(contentDirectory)) {
-        // Write each zipped stream entry that is stored in the same directory as content
-        writeZipEntry(zipOut, siblingContent, mainEntryDirectory + zipEntryName.substring(contentDirectory.length()));
       }
     }
 
-    if (!offlineFurnitureLibrary && furnitureResourcesLocalDirectory != null) {
+    if (contentSavedInSeparateFile && furnitureResourcesLocalDirectory != null) {
       zipOut.close();
     }
   }

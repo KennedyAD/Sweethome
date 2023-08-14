@@ -251,7 +251,7 @@ public class EditorController implements Controller {
   private void saveAs(Runnable postSaveTask) {
     String saveTitle = this.preferences.getLocalizedString(EditorController.class, "saveTitle");
     String furnitureLibraryLocation = this.contentManager.showSaveDialog(null, saveTitle,
-        ContentManager.ContentType.FURNITURE_LIBRARY, this.furnitureLibrary.getLocation());
+        ContentManager.ContentType.USER_DEFINED, this.furnitureLibrary.getLocation());
     if (furnitureLibraryLocation != null) {
       save(furnitureLibraryLocation, postSaveTask);
     }
@@ -268,10 +268,13 @@ public class EditorController implements Controller {
           recorder.writeFurnitureLibrary(furnitureLibrary, location, preferences);
           getView().invokeLater(new Runnable() {
               public void run() {
-                furnitureLibrary.setLocation(location);
-                furnitureLibrary.setModified(false);
-                if (postSaveTask != null) {
-                  postSaveTask.run();
+                // Consider file as saved only if it's a library
+                if (contentManager.isAcceptable(location, ContentManager.ContentType.FURNITURE_LIBRARY)) {
+                  furnitureLibrary.setLocation(location);
+                  furnitureLibrary.setModified(false);
+                  if (postSaveTask != null) {
+                    postSaveTask.run();
+                  }
                 }
               }
             });

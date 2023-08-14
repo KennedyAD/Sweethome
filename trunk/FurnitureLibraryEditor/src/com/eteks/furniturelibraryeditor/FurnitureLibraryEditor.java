@@ -38,7 +38,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -114,6 +113,8 @@ public class FurnitureLibraryEditor {
   protected ContentManager getContentManager() {
     if (this.contentManager == null) {
       this.contentManager = new FileContentManager(getUserPreferences()) {
+          private final String JSON_EXTENSION   = ".json";
+
           private File modelsDirectory;
 
           @Override
@@ -150,28 +151,90 @@ public class FurnitureLibraryEditor {
           }
 
           @Override
+          public String showSaveDialog(View parentView, String dialogTitle, ContentType contentType, String path) {
+            String savedPath = super.showSaveDialog(parentView, dialogTitle, contentType, path);
+            if (contentType == ContentType.USER_DEFINED
+                && savedPath != null) {
+              // Reset furniture library extension if user entered JSON + FURNITURE_LIBRARY extensions (FURNITURE_LIBRARY being added by default)
+              String defaultExtension = getDefaultFileExtension(ContentType.FURNITURE_LIBRARY);
+              if (savedPath.toLowerCase().endsWith(JSON_EXTENSION + defaultExtension)) {
+                savedPath = savedPath.substring(0, savedPath.lastIndexOf(defaultExtension));
+                // If the file exists, prompt user if he wants to overwrite it
+                File savedFile = new File(savedPath);
+                if (savedFile.exists()
+                    && !OperatingSystem.isMacOSX()
+                    && !confirmOverwrite(parentView, savedFile.getName())) {
+                  return showSaveDialog(parentView, dialogTitle, contentType, savedPath);
+                }
+              }
+            }
+            return savedPath;
+          }
+
+          @Override
           protected FileFilter [] getFileFilter(ContentType contentType) {
-            FileFilter [] fileFilter = super.getFileFilter(contentType);
             if (contentType == ContentType.FURNITURE_LIBRARY) {
-              List<FileFilter> filters = new ArrayList<FileFilter>(fileFilter.length + 1);
-              filters.addAll(Arrays.asList(fileFilter));
-              filters.add(new FileFilter() {
+              FileFilter [] fileFilter = super.getFileFilter(contentType);
+              FileFilter [] filters = new FileFilter [fileFilter.length + 1];
+              System.arraycopy(fileFilter, 0, filters, 0, fileFilter.length);
+              filters [filters.length - 1] = new FileFilter() {
                   @Override
                   public String getDescription() {
                     return "Default library";
                   }
 
                   @Override
-                  public boolean accept(File f) {
-                    return f.isFile() && getFurnitureLibraryRecorder().isDefaultFurnitureLibrary(f.getAbsolutePath());
+                  public boolean accept(File file) {
+                    return file.isDirectory()
+                        || getFurnitureLibraryRecorder().isDefaultFurnitureLibrary(file.getAbsolutePath());
                   }
-                });
-              fileFilter = filters.toArray(new FileFilter [filters.size()]);
+                };
+              return filters;
+            } else if (contentType == ContentType.USER_DEFINED) {
+              FileFilter [] fileFilter = super.getFileFilter(ContentType.FURNITURE_LIBRARY);
+              FileFilter [] filters = new FileFilter [fileFilter.length + 1];
+              System.arraycopy(fileFilter, 0, filters, 0, fileFilter.length);
+              filters [filters.length - 1] = new FileFilter() {
+                  @Override
+                  public boolean accept(File file) {
+                    // Accept JSON files
+                    return file.isDirectory()
+                        || file.getName().toLowerCase().endsWith(JSON_EXTENSION);
+                  }
+
+                  @Override
+                  public String getDescription() {
+                    return "JSON";
+                  }
+                };
+              return filters;
+            } else {
+              return super.getFileFilter(contentType);
             }
-            return fileFilter;
+          }
+
+          @Override
+          protected String [] getFileExtensions(ContentType contentType) {
+            String [] fileExtensions = super.getFileExtensions(contentType);
+            if (contentType == ContentType.USER_DEFINED) {
+              String [] fileExtensionsWithJson = new String [fileExtensions.length + 1];
+              System.arraycopy(fileExtensions, 0, fileExtensionsWithJson, 0, fileExtensions.length);
+              fileExtensionsWithJson [fileExtensionsWithJson.length - 1] = JSON_EXTENSION;
+              return fileExtensionsWithJson;
+            } else {
+              return fileExtensions;
+            }
+          }
+
+          @Override
+          public String getDefaultFileExtension(ContentType contentType) {
+            return super.getDefaultFileExtension(contentType == ContentType.USER_DEFINED
+                ? ContentType.FURNITURE_LIBRARY
+                : contentType);
           }
         };
     }
+
     return this.contentManager;
   }
 
