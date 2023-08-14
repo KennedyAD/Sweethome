@@ -39,7 +39,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
    * to user preferences will be notified under a property name equal to the string value of one these properties.
    */
   public enum Property {FURNITURE_PROPERTIES, DEFAULT_CREATOR, OFFLINE_FURNITURE_LIBRARY, FURNITURE_RESOURCES_LOCAL_DIRECTORY,
-                        FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME}
+                        FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME, FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME}
 
   private final PropertyChangeSupport propertyChangeSupport;
   private String []                   editedProperties;
@@ -50,6 +50,7 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
   private String                      furnitureResourcesRemoteUrlBase;
   private boolean                     furnitureIdEditable;
   private boolean                     contentMatchingFurnitureName;
+  private boolean                     furnitureNameEqualToImportedModelFileName;
 
   public FurnitureLibraryUserPreferences() {
     this.propertyChangeSupport = new PropertyChangeSupport(this);
@@ -484,6 +485,26 @@ public abstract class FurnitureLibraryUserPreferences extends UserPreferences {
     if (contentMatchingFurnitureName != this.contentMatchingFurnitureName) {
       this.contentMatchingFurnitureName = contentMatchingFurnitureName;
       this.propertyChangeSupport.firePropertyChange(Property.CONTENT_MATCHING_FURNITURE_NAME.name(), !contentMatchingFurnitureName, contentMatchingFurnitureName);
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if the furniture name of an imported model be equal
+   * to the imported file name.
+   */
+  public boolean isFurnitureNameEqualToImportedModelFileName() {
+    return this.furnitureNameEqualToImportedModelFileName;
+  }
+
+  /**
+   * Sets if the furniture name of an imported model be equal
+   * to the imported file name.
+   */
+  public void setFurnitureNameEqualToImportedModelFileName(boolean furnitureNameEqualToImportedModelFileName) {
+    if (furnitureNameEqualToImportedModelFileName != this.furnitureNameEqualToImportedModelFileName) {
+      this.furnitureNameEqualToImportedModelFileName = furnitureNameEqualToImportedModelFileName;
+      this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME.name(),
+          !furnitureNameEqualToImportedModelFileName, furnitureNameEqualToImportedModelFileName);
     }
   }
 

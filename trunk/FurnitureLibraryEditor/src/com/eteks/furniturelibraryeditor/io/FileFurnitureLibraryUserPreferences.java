@@ -46,6 +46,7 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
   private static final String FURNITURE_RESOURCES_REMOTE_URL_BASE   = "furnitureResourcesRemoteUrlBase";
   private static final String FURNITURE_ID_EDITABLE                 = "furnitureIdEditable";
   private static final String CONTENT_MATCHING_FURNITURE_NAME       = "contentMatchingFurnitureName";
+  private static final String FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME = "furnitureNameEqualToImportedModelFileName";
 
   private static final String FURNITURE_PROPERTY_NAME               = "furniturePropertyName#";
   private static final String FURNITURE_PROPERTY_TYPE               = "furniturePropertyType#";
@@ -70,6 +71,8 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
     }
     setFurnitureIdEditable(preferences.getBoolean(FURNITURE_ID_EDITABLE, isFurnitureIdEditable()));
     setContentMatchingFurnitureName(preferences.getBoolean(CONTENT_MATCHING_FURNITURE_NAME, isContentMatchingFurnitureName()));
+    setFurnitureNameEqualToImportedModelFileName(preferences.getBoolean(FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME,
+        isFurnitureNameEqualToImportedModelFileName()));
 
     // Read furniture properties
     FurnitureProperty [] defaultProperties = getFurnitureProperties();
@@ -129,6 +132,7 @@ public class FileFurnitureLibraryUserPreferences extends FurnitureLibraryUserPre
     }
     preferences.putBoolean(FURNITURE_ID_EDITABLE, isFurnitureIdEditable());
     preferences.putBoolean(CONTENT_MATCHING_FURNITURE_NAME, isContentMatchingFurnitureName());
+    preferences.putBoolean(FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME, isFurnitureNameEqualToImportedModelFileName());
 
     FurnitureProperty [] furnitureProperties = getFurnitureProperties();
     int i = 1;

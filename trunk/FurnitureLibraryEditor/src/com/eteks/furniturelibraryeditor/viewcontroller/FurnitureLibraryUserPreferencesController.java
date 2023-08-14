@@ -37,7 +37,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
    * The properties that may be edited by the view associated to this controller.
    */
   public enum Property {DEFAULT_CREATOR, OFFLINE_FURNITURE_LIBRARY, FURNITURE_RESOURCES_LOCAL_DIRECTORY,
-      FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME, FURNITURE_PROPERTIES}
+      FURNITURE_RESOURCES_REMOTE_URL_BASE, FURNITURE_ID_EDITABLE, CONTENT_MATCHING_FURNITURE_NAME, FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME, FURNITURE_PROPERTIES}
 
   private final FurnitureLibraryUserPreferences preferences;
   private final PropertyChangeSupport   propertyChangeSupport;
@@ -48,6 +48,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   private String               furnitureResourcesRemoteUrlBase;
   private boolean              furnitureIdEditable;
   private boolean              contentMatchingFurnitureName;
+  private boolean              furnitureNameEqualToImportedModelFileName;
   private FurnitureProperty [] furnitureProperties;
 
   public FurnitureLibraryUserPreferencesController(FurnitureLibraryUserPreferences preferences,
@@ -84,6 +85,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     setFurnitureResourcesRemoteURLBase(this.preferences.getFurnitureResourcesRemoteURLBase());
     setFurnitureIdEditable(this.preferences.isFurnitureIdEditable());
     setContentMatchingFurnitureName(this.preferences.isContentMatchingFurnitureName());
+    setFurnitureNameEqualToImportedModelFileName(this.preferences.isFurnitureNameEqualToImportedModelFileName());
     setFurnitureProperties(this.preferences.getFurnitureProperties());
   }
 
@@ -103,6 +105,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
         || property == Property.DEFAULT_CREATOR
         || property == Property.FURNITURE_ID_EDITABLE
         || property == Property.CONTENT_MATCHING_FURNITURE_NAME
+        || property == Property.FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME
         || property == Property.FURNITURE_PROPERTIES;
   }
 
@@ -227,6 +230,26 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
   }
 
   /**
+   * Returns <code>true</code> if the furniture name of an imported model be equal
+   * to the imported file name.
+   */
+  public boolean isFurnitureNameEqualToImportedModelFileName() {
+    return this.furnitureNameEqualToImportedModelFileName;
+  }
+
+  /**
+   * Sets if the furniture name of an imported model be equal
+   * to the imported file name.
+   */
+  public void setFurnitureNameEqualToImportedModelFileName(boolean furnitureNameEqualToImportedModelFileName) {
+    if (furnitureNameEqualToImportedModelFileName != this.furnitureNameEqualToImportedModelFileName) {
+      this.furnitureNameEqualToImportedModelFileName = furnitureNameEqualToImportedModelFileName;
+      this.propertyChangeSupport.firePropertyChange(Property.FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME.toString(),
+          !furnitureNameEqualToImportedModelFileName, furnitureNameEqualToImportedModelFileName);
+    }
+  }
+
+  /**
    * Returns the furniture properties which can be edited and displayed.
    */
   public FurnitureProperty [] getFurnitureProperties() {
@@ -259,6 +282,7 @@ public class FurnitureLibraryUserPreferencesController extends UserPreferencesCo
     }
     this.preferences.setFurnitureIdEditable(isFurnitureIdEditable());
     this.preferences.setContentMatchingFurnitureName(isContentMatchingFurnitureName());
+    this.preferences.setFurnitureNameEqualToImportedModelFileName(isFurnitureNameEqualToImportedModelFileName());
     this.preferences.setFurnitureProperties(getFurnitureProperties());
   }
 }
