@@ -133,7 +133,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
           URLContent urlContent = TemporaryURLContent.copyToTemporaryURLContent(model);
           // Open zipped stream
           zipIn = new ZipInputStream(urlContent.openStream());
-          // Parse entries to see if a obj file is readable
+          // Parse entries to see if a model file is readable
           for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null; ) {
             String entryName = entry.getName();
             // Ignore directory entries and entries starting by a dot
@@ -258,26 +258,30 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
 
   /**
    * Returns a human readable name matching the given model name with spaces instead of hyphens
-   * and without camel case and trailing digit.
+   * and without camel case.
    */
   protected String getPieceOfFurnitureName(String modelName) {
-    // Compute a more human readable name with spaces instead of hyphens and without camel case and trailing digit
-    String pieceName = "" + Character.toUpperCase(modelName.charAt(0));
-    for (int i = 1; i < modelName.length(); i++) {
-      char c = modelName.charAt(i);
-      if (c == '-' || c == '_') {
-        pieceName += ' ';
-      } else if (!Character.isDigit(c) || i < modelName.length() - 1) {
-        // Remove camel case
-        if ((Character.isUpperCase(c) || Character.isDigit(c))
-            && Character.isLowerCase(modelName.charAt(i - 1))) {
+    if (this.preferences.isFurnitureNameEqualToImportedModelFileName()) {
+      return modelName;
+    } else {
+      // Compute a more human readable name with spaces instead of hyphens and without camel case
+      String pieceName = "" + Character.toUpperCase(modelName.charAt(0));
+      for (int i = 1; i < modelName.length(); i++) {
+        char c = modelName.charAt(i);
+        if (c == '-' || c == '_') {
           pieceName += ' ';
-          c = Character.toLowerCase(c);
+        } else {
+          // Remove camel case
+          if ((Character.isUpperCase(c) || Character.isDigit(c))
+              && Character.isLowerCase(modelName.charAt(i - 1))) {
+            pieceName += ' ';
+            c = Character.toLowerCase(c);
+          }
+          pieceName += c;
         }
-        pieceName += c;
       }
+      return pieceName;
     }
-    return pieceName;
   }
 
   /**
