@@ -297,10 +297,10 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
                                      String  texturesResourcesLocalDirectory,
                                      String  texturesResourcesRemoteUrlBase) throws RecorderException {
     File texturesLibraryFile = new File(texturesLibraryLocation);
-    boolean json = texturesLibraryLocation.endsWith(".json");
+    boolean jsonExport = texturesLibraryLocation.endsWith(".json");
     URL texturesResourcesRemoteAbsoluteUrlBase = null;
     String texturesResourcesRemoteRelativeUrlBase = null;
-    if (!offlineTexturesLibrary || json) {
+    if (!offlineTexturesLibrary || jsonExport) {
       if (texturesResourcesLocalDirectory == null) {
         texturesResourcesLocalDirectory = texturesLibraryFile.getParent();
       } else if (!new File(texturesResourcesLocalDirectory).isAbsolute()) {
@@ -319,6 +319,8 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             texturesResourcesRemoteRelativeUrlBase = "";
           }
         }
+      } else {
+        texturesResourcesRemoteRelativeUrlBase = "";
       }
     }
 
@@ -327,21 +329,21 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       Map<Content, String> contentEntries = new HashMap<Content, String>();
       ZipOutputStream zipOut = null;
       File tmpFile = null;
-      if (json) {
+      if (jsonExport) {
         propertiesOutput = new FileOutputStream(texturesLibraryLocation);
       } else {
         tmpFile = File.createTempFile("temp", ".sh3t");
         // Create a zip output on file
         zipOut = new ZipOutputStream(new FileOutputStream(tmpFile));
-        // Write furniture description file in first entry
+        // Write textures description file in first entry
         zipOut.putNextEntry(new ZipEntry(DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + ".properties"));
         propertiesOutput = zipOut;
       }
-      writeTexturesLibraryProperties(propertiesOutput, texturesLibrary, json,
+      writeTexturesLibraryProperties(propertiesOutput, texturesLibrary, jsonExport,
           offlineTexturesLibrary, contentMatchingTexturesName,
           texturesResourcesRemoteAbsoluteUrlBase, texturesResourcesRemoteRelativeUrlBase,
-          !offlineTexturesLibrary || json, contentEntries);
-      if (json) {
+          !offlineTexturesLibrary || jsonExport, contentEntries);
+      if (jsonExport) {
         propertiesOutput.close();
         propertiesOutput = null;
       } else {
@@ -351,13 +353,13 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       // Write supported languages description files
       for (String language : texturesLibrary.getSupportedLanguages()) {
         if (!TexturesLibrary.DEFAULT_LANGUAGE.equals(language)) {
-          if (json) {
+          if (jsonExport) {
             propertiesOutput = new FileOutputStream(texturesLibraryLocation.replace(".json", "_" + language + ".json"));
           } else {
             zipOut.putNextEntry(new ZipEntry(DefaultTexturesCatalog.PLUGIN_TEXTURES_CATALOG_FAMILY + "_" + language + ".properties"));
           }
-          writeTexturesLibraryLocalizedProperties(propertiesOutput, texturesLibrary, json, language);
-          if (json) {
+          writeTexturesLibraryLocalizedProperties(propertiesOutput, texturesLibrary, jsonExport, language);
+          if (jsonExport) {
             propertiesOutput.close();
             propertiesOutput = null;
           } else {
@@ -367,7 +369,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       }
 
       // Write Content objects in files
-      writeContents(zipOut, !offlineTexturesLibrary || json, texturesResourcesLocalDirectory, contentEntries);
+      writeContents(zipOut, !offlineTexturesLibrary || jsonExport, texturesResourcesLocalDirectory, contentEntries);
 
       if (zipOut != null) {
         // Finish zip writing
@@ -397,7 +399,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    */
   private void writeTexturesLibraryProperties(OutputStream output,
                                                TexturesLibrary texturesLibrary,
-                                               boolean json,
+                                               boolean jsonExport,
                                                boolean offlineTexturesLibrary,
                                                boolean contentMatchingTexturesName,
                                                URL texturesResourcesRemoteAbsoluteUrlBase,
@@ -411,7 +413,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
     Set<String> existingEntryNamesLowerCase = new HashSet<String>();
     StringWriter jsonWriter = null;
     BufferedWriter writer;
-    if (json) {
+    if (jsonExport) {
       // Write first in a string buffer to remove the last comma
       jsonWriter = new StringWriter();
       writer = new BufferedWriter(jsonWriter);
@@ -424,19 +426,19 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       writer.write(String.format(CATALOG_FILE_HEADER, new Date()));
     }
     writer.newLine();
-    writeProperty(writer, json, ID, texturesLibrary.getId());
-    writeProperty(writer, json, NAME, texturesLibrary.getName());
-    writeProperty(writer, json, DESCRIPTION, texturesLibrary.getDescription());
-    writeProperty(writer, json, VERSION, texturesLibrary.getVersion());
-    writeProperty(writer, json, LICENSE, texturesLibrary.getLicense());
-    writeProperty(writer, json, PROVIDER, texturesLibrary.getProvider());
+    writeProperty(writer, jsonExport, ID, texturesLibrary.getId());
+    writeProperty(writer, jsonExport, NAME, texturesLibrary.getName());
+    writeProperty(writer, jsonExport, DESCRIPTION, texturesLibrary.getDescription());
+    writeProperty(writer, jsonExport, VERSION, texturesLibrary.getVersion());
+    writeProperty(writer, jsonExport, LICENSE, texturesLibrary.getLicense());
+    writeProperty(writer, jsonExport, PROVIDER, texturesLibrary.getProvider());
 
     int i = 1;
     for (CatalogTexture texture : texturesLibrary.getTextures()) {
       writer.newLine();
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.ID, i, texture.getId());
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.NAME, i, texture.getName());
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.CATEGORY, i, texture.getCategory().getName());
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.ID, i, texture.getId());
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.NAME, i, texture.getName());
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.CATEGORY, i, texture.getCategory().getName());
       Content textureImage = texture.getImage();
       String contentBaseName;
       if (contentMatchingTexturesName
@@ -468,20 +470,20 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
           contentEntries.put(textureImage, imageContentEntryName);
         }
       }
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.IMAGE,
-          i, getContentProperty(textureImage, imageContentEntryName, offlineTexturesLibrary,
-              texturesResourcesRemoteAbsoluteUrlBase, texturesResourcesRemoteRelativeUrlBase));
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.IMAGE,
+          i, getContentProperty(textureImage, imageContentEntryName, jsonExport,
+              offlineTexturesLibrary, texturesResourcesRemoteAbsoluteUrlBase, texturesResourcesRemoteRelativeUrlBase));
       if (contentDigest) {
-        writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.IMAGE_DIGEST,
+        writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.IMAGE_DIGEST,
             i, Base64.encodeBytes(ContentDigestManager.getInstance().getContentDigest(textureImage)));
       }
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.WIDTH, i, texture.getWidth());
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.HEIGHT, i, texture.getHeight());
-      writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.CREATOR, i, texture.getCreator());
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.WIDTH, i, texture.getWidth());
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.HEIGHT, i, texture.getHeight());
+      writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.CREATOR, i, texture.getCreator());
       i++;
     }
     writer.flush();
-    if (json) {
+    if (jsonExport) {
       // Remove last comma
       String jsonString = jsonWriter.toString();
       int lastCommaIndex = jsonString.lastIndexOf(',');
@@ -498,10 +500,10 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    */
   private void writeTexturesLibraryLocalizedProperties(OutputStream output,
                                                        TexturesLibrary texturesLibrary,
-                                                       boolean json, String language) throws IOException {
+                                                       boolean jsonExport, String language) throws IOException {
     StringWriter jsonWriter = null;
     BufferedWriter writer;
-    if (json) {
+    if (jsonExport) {
       // Write first in a string buffer to remove the last comma
       jsonWriter = new StringWriter();
       writer = new BufferedWriter(jsonWriter);
@@ -520,18 +522,18 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
       Object textureName = texturesLibrary.getTextureLocalizedData(
           texture, language, TexturesLibrary.TEXTURES_NAME_PROPERTY);
       if (textureName != null) {
-        writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.NAME, i, textureName);
+        writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.NAME, i, textureName);
       }
       Object categoryName = texturesLibrary.getTextureLocalizedData(
           texture, language, TexturesLibrary.TEXTURES_CATEGORY_PROPERTY);
       if (categoryName != null) {
-        writeProperty(writer, json, DefaultTexturesCatalog.PropertyKey.CATEGORY, i, categoryName);
+        writeProperty(writer, jsonExport, DefaultTexturesCatalog.PropertyKey.CATEGORY, i, categoryName);
       }
       i++;
     }
 
     writer.flush();
-    if (json) {
+    if (jsonExport) {
       // Remove last comma
       String jsonString = jsonWriter.toString();
       int lastCommaIndex = jsonString.lastIndexOf(',');
@@ -620,17 +622,19 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    */
   private String getContentProperty(Content content,
                                     String  entryName,
+                                    boolean jsonExport,
                                     boolean offlineTexturesLibrary,
-                                    URL texturesResourcesRemoteAbsoluteUrlBase,
-                                    String texturesResourcesRemoteRelativeUrlBase) throws IOException {
-    if (offlineTexturesLibrary
-        || (texturesResourcesRemoteAbsoluteUrlBase == null
-            && texturesResourcesRemoteRelativeUrlBase == null)) {
+                                    URL texturesResourcesRemoteAbsoluteUrlBase, String texturesResourcesRemoteRelativeUrlBase) throws IOException {
+    if (!jsonExport
+        && (offlineTexturesLibrary
+            || (texturesResourcesRemoteAbsoluteUrlBase == null
+                && texturesResourcesRemoteRelativeUrlBase == null))) {
       return "/" + entryName;
     } else if (content instanceof TemporaryURLContent
                || content instanceof ResourceURLContent
                || texturesResourcesRemoteAbsoluteUrlBase != null
-               || texturesResourcesRemoteRelativeUrlBase != null) {
+               || texturesResourcesRemoteRelativeUrlBase != null
+               || jsonExport) {
       int slashIndex = entryName.indexOf('/');
       if (slashIndex == -1) {
         if (texturesResourcesRemoteAbsoluteUrlBase != null) {
@@ -657,25 +661,25 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
    * Writes the (<code>key</code>, <code>value</code>) of a property
    * in <code>writer</code>.
    */
-  private void writeProperty(BufferedWriter writer, boolean json,
+  private void writeProperty(BufferedWriter writer, boolean jsonExport,
                              DefaultTexturesCatalog.PropertyKey key, int index, Object value) throws IOException {
-    writeProperty(writer, json, key.getKey(index), value);
+    writeProperty(writer, jsonExport, key.getKey(index), value);
   }
 
   /**
    * Writes the (<code>key</code>, <code>value</code>) of a property
    * in <code>writer</code>, if the <code>value</code> isn't <code>null</code>.
    */
-  private void writeProperty(BufferedWriter writer, boolean json,
+  private void writeProperty(BufferedWriter writer, boolean jsonExport,
                              String key, Object value) throws IOException {
     if (value != null) {
       // Write key, escaping the characters \ " : = and space
-      writer.write(json
+      writer.write(jsonExport
            ? " \"" + key.replace("\\", "\\\\").replace("\"", "\\\"")
            : key.replace(":", "\\:").replace("=", "\\=").replace(" ", "\\ "));
-      writer.write(json ? "\": \"" : "=");
+      writer.write(jsonExport ? "\": \"" : "=");
       String s = value.toString();
-      CharsetEncoder encoder = Charset.forName(json ? "UTF-8" : "ISO-8859-1").newEncoder();
+      CharsetEncoder encoder = Charset.forName(jsonExport ? "UTF-8" : "ISO-8859-1").newEncoder();
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
         switch (c) {
@@ -688,7 +692,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             writer.write('t');
             break;
           case '"':
-            if (json) {
+            if (jsonExport) {
               writer.write('\\');
               writer.write('"');
               break;
@@ -706,7 +710,7 @@ public class TexturesLibraryFileRecorder implements TexturesLibraryRecorder {
             }
         }
       }
-      if (json) {
+      if (jsonExport) {
         writer.write("\",");
       }
       writer.newLine();

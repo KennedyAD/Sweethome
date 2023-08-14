@@ -251,7 +251,7 @@ public class EditorController implements Controller {
   private void saveAs(Runnable postSaveTask) {
     String saveTitle = this.preferences.getLocalizedString(EditorController.class, "saveTitle");
     String texturesLibraryLocation = this.contentManager.showSaveDialog(null, saveTitle,
-        ContentManager.ContentType.TEXTURES_LIBRARY, this.texturesLibrary.getLocation());
+        ContentManager.ContentType.USER_DEFINED, this.texturesLibrary.getLocation());
     if (texturesLibraryLocation != null) {
       save(texturesLibraryLocation, postSaveTask);
     }
@@ -268,10 +268,13 @@ public class EditorController implements Controller {
           recorder.writeTexturesLibrary(texturesLibrary, location, preferences);
           getView().invokeLater(new Runnable() {
               public void run() {
-                texturesLibrary.setLocation(location);
-                texturesLibrary.setModified(false);
-                if (postSaveTask != null) {
-                  postSaveTask.run();
+                // Consider file as saved only if it's a library
+                if (contentManager.isAcceptable(location, ContentManager.ContentType.TEXTURES_LIBRARY)) {
+                  texturesLibrary.setLocation(location);
+                  texturesLibrary.setModified(false);
+                  if (postSaveTask != null) {
+                    postSaveTask.run();
+                  }
                 }
               }
             });
