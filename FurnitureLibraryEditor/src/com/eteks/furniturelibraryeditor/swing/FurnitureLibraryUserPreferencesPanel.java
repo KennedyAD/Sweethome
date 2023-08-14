@@ -87,8 +87,8 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
   private JRadioButton furnitureIdEditableRadioButton;
   private JRadioButton furnitureIdNotEditableRadioButton;
   private JLabel       contentMatchingFurnitureNameLabel;
-  private JRadioButton contentMatchingFurnitureNameRadioButton;
   private JRadioButton contentMatchingImportedFileRadioButton;
+  private JRadioButton contentMatchingFurnitureNameRadioButton;
   private JLabel       importedFurnitureNameLabel;
   private JRadioButton furnitureNameEqualToModelFileNameRadioButton;
   private JRadioButton furnitureNameAdaptedRadioButton;
@@ -276,23 +276,23 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
       // Create furniture catalog label and radio buttons bound to controller CONTENT_MATCHING_FURNITURE_NAME property
       this.contentMatchingFurnitureNameLabel = new JLabel(preferences.getLocalizedString(
           FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameLabel.text"));
-      this.contentMatchingFurnitureNameRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
-          FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.text"),
-          controller.isContentMatchingFurnitureName());
       this.contentMatchingImportedFileRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
           FurnitureLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.text"),
           !controller.isContentMatchingFurnitureName());
+      this.contentMatchingFurnitureNameRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.text"),
+          controller.isContentMatchingFurnitureName());
       ButtonGroup contentMatchingFurnitureNameButtonGroup = new ButtonGroup();
-      contentMatchingFurnitureNameButtonGroup.add(this.contentMatchingFurnitureNameRadioButton);
       contentMatchingFurnitureNameButtonGroup.add(this.contentMatchingImportedFileRadioButton);
+      contentMatchingFurnitureNameButtonGroup.add(this.contentMatchingFurnitureNameRadioButton);
 
       ItemListener contentMatchingFurnitureNameChangeListener = new ItemListener() {
           public void itemStateChanged(ItemEvent ev) {
             controller.setContentMatchingFurnitureName(contentMatchingFurnitureNameRadioButton.isSelected());
           }
         };
-      this.contentMatchingFurnitureNameRadioButton.addItemListener(contentMatchingFurnitureNameChangeListener);
       this.contentMatchingImportedFileRadioButton.addItemListener(contentMatchingFurnitureNameChangeListener);
+      this.contentMatchingFurnitureNameRadioButton.addItemListener(contentMatchingFurnitureNameChangeListener);
       controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.CONTENT_MATCHING_FURNITURE_NAME,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
@@ -321,7 +321,7 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
           }
         };
       this.furnitureNameEqualToModelFileNameRadioButton.addItemListener(importedFurnitureNameChangeListener);
-      this.contentMatchingImportedFileRadioButton.addItemListener(importedFurnitureNameChangeListener);
+      this.furnitureNameAdaptedRadioButton.addItemListener(importedFurnitureNameChangeListener);
       controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
@@ -518,10 +518,10 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
             FurnitureLibraryUserPreferencesPanel.class, "furnitureIdNotEditableRadioButton.mnemonic")).getKeyCode());
       }
       if (this.contentMatchingFurnitureNameLabel != null) {
-        this.contentMatchingFurnitureNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-            FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.mnemonic")).getKeyCode());
         this.contentMatchingImportedFileRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             FurnitureLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.mnemonic")).getKeyCode());
+        this.contentMatchingFurnitureNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            FurnitureLibraryUserPreferencesPanel.class, "contentMatchingFurnitureNameRadioButton.mnemonic")).getKeyCode());
       }
       if (this.importedFurnitureNameLabel != null) {
         this.furnitureNameEqualToModelFileNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
@@ -599,10 +599,10 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
       add(this.contentMatchingFurnitureNameLabel, new GridBagConstraints(
           0, 105, 1, 1, 0, 0, labelAlignment,
           GridBagConstraints.NONE, labelInsets, 0, 0));
-      add(this.contentMatchingFurnitureNameRadioButton, new GridBagConstraints(
+      add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
           1, 105, 2, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.NONE, componentInsets, 0, 0));
-      add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
+      add(this.contentMatchingFurnitureNameRadioButton, new GridBagConstraints(
           1, 106, 2, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.NONE, new Insets(0, 0, 2 * gap, 0), 0, 0));
     }
