@@ -321,10 +321,10 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
             TexturesLibraryUserPreferencesPanel.class, "texturesIdNotEditableRadioButton.mnemonic")).getKeyCode());
       }
       if (this.contentMatchingTexturesNameLabel != null) {
-        this.contentMatchingTexturesNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-            TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameRadioButton.mnemonic")).getKeyCode());
         this.contentMatchingImportedFileRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             TexturesLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.mnemonic")).getKeyCode());
+        this.contentMatchingTexturesNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameRadioButton.mnemonic")).getKeyCode());
       }
       if (this.importedTextureNameLabel != null) {
         this.textureNameEqualToImportedFileNameRadioButton.setMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
