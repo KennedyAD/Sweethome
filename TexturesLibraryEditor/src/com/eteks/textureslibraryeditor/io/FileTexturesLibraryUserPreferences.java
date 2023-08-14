@@ -42,6 +42,7 @@ public class FileTexturesLibraryUserPreferences extends TexturesLibraryUserPrefe
   private static final String TEXTURES_RESOURCES_REMOTE_URL_BASE   = "texturesResourcesRemoteUrlBase";
   private static final String TEXTURES_ID_EDITABLE                 = "texturesIdEditable";
   private static final String CONTENT_MATCHING_TEXTURES_NAME       = "contentMatchingTexturesName";
+  private static final String TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME = "textureNameEqualToImportedFileName";
 
   /**
    * Creates user preferences read from Java preferences.
@@ -61,6 +62,8 @@ public class FileTexturesLibraryUserPreferences extends TexturesLibraryUserPrefe
     }
     setTexturesIdEditable(preferences.getBoolean(TEXTURES_ID_EDITABLE, isTexturesIdEditable()));
     setContentMatchingTexturesName(preferences.getBoolean(CONTENT_MATCHING_TEXTURES_NAME, isContentMatchingTexturesName()));
+    setTextureNameEqualToImportedFileName(preferences.getBoolean(TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME,
+        isTextureNameEqualToImportedFileName()));
   }
 
   @Override
@@ -86,6 +89,7 @@ public class FileTexturesLibraryUserPreferences extends TexturesLibraryUserPrefe
     }
     preferences.putBoolean(TEXTURES_ID_EDITABLE, isTexturesIdEditable());
     preferences.putBoolean(CONTENT_MATCHING_TEXTURES_NAME, isContentMatchingTexturesName());
+    preferences.putBoolean(TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME, isTextureNameEqualToImportedFileName());
 
     try {
       // Write preferences

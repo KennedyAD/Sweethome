@@ -35,7 +35,7 @@ public abstract class TexturesLibraryUserPreferences extends UserPreferences {
    * to user preferences will be notified under a property name equal to the string value of one these properties.
    */
   public enum Property {DEFAULT_CREATOR, OFFLINE_TEXTURES_LIBRARY, TEXTURES_RESOURCES_LOCAL_DIRECTORY,
-                        TEXTURES_RESOURCES_REMOTE_URL_BASE, TEXTURES_ID_EDITABLE, CONTENT_MATCHING_TEXTURES_NAME}
+                        TEXTURES_RESOURCES_REMOTE_URL_BASE, TEXTURES_ID_EDITABLE, CONTENT_MATCHING_TEXTURES_NAME, TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME}
 
   private final PropertyChangeSupport propertyChangeSupport;
   private String [] editedProperties;
@@ -45,6 +45,7 @@ public abstract class TexturesLibraryUserPreferences extends UserPreferences {
   private String    texturesResourcesRemoteUrlBase;
   private boolean   texturesIdEditable;
   private boolean   contentMatchingTexturesName;
+  private boolean   textureNameEqualToImportedFileName;
 
   public TexturesLibraryUserPreferences() {
     this.propertyChangeSupport = new PropertyChangeSupport(this);
@@ -250,6 +251,26 @@ public abstract class TexturesLibraryUserPreferences extends UserPreferences {
     if (contentMatchingTexturesName != this.contentMatchingTexturesName) {
       this.contentMatchingTexturesName = contentMatchingTexturesName;
       this.propertyChangeSupport.firePropertyChange(Property.CONTENT_MATCHING_TEXTURES_NAME.name(), !contentMatchingTexturesName, contentMatchingTexturesName);
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if the texture name of an imported image be equal
+   * to the imported file name.
+   */
+  public boolean isTextureNameEqualToImportedFileName() {
+    return this.textureNameEqualToImportedFileName;
+  }
+
+  /**
+   * Sets if the texture name of an imported image be equal
+   * to the imported file name.
+   */
+  public void setTextureNameEqualToImportedFileName(boolean textureNameEqualToImportedFileName) {
+    if (textureNameEqualToImportedFileName != this.textureNameEqualToImportedFileName) {
+      this.textureNameEqualToImportedFileName = textureNameEqualToImportedFileName;
+      this.propertyChangeSupport.firePropertyChange(Property.TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME.name(),
+          !textureNameEqualToImportedFileName, textureNameEqualToImportedFileName);
     }
   }
 
