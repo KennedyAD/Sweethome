@@ -242,11 +242,11 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
       this.furnitureIdNotEditableRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
           FurnitureLibraryUserPreferencesPanel.class, "furnitureIdNotEditableRadioButton.text"),
           !controller.isFurnitureIdEditable());
-      ButtonGroup furnitureCatalogViewButtonGroup = new ButtonGroup();
-      furnitureCatalogViewButtonGroup.add(this.furnitureIdEditableRadioButton);
-      furnitureCatalogViewButtonGroup.add(this.furnitureIdNotEditableRadioButton);
+      ButtonGroup furnitureIdEditableButtonGroup = new ButtonGroup();
+      furnitureIdEditableButtonGroup.add(this.furnitureIdEditableRadioButton);
+      furnitureIdEditableButtonGroup.add(this.furnitureIdNotEditableRadioButton);
 
-      ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
+      ItemListener furnitureIdEditableChangeListener = new ItemListener() {
           public void itemStateChanged(ItemEvent ev) {
             boolean idEditable = furnitureIdEditableRadioButton.isSelected();
             controller.setFurnitureIdEditable(idEditable);
@@ -262,8 +262,8 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
             controller.setFurnitureProperties(furnitureProperties);
           }
         };
-      this.furnitureIdEditableRadioButton.addItemListener(furnitureCatalogViewChangeListener);
-      this.furnitureIdNotEditableRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      this.furnitureIdEditableRadioButton.addItemListener(furnitureIdEditableChangeListener);
+      this.furnitureIdNotEditableRadioButton.addItemListener(furnitureIdEditableChangeListener);
       controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_ID_EDITABLE,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
@@ -286,13 +286,13 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
       contentMatchingFurnitureNameButtonGroup.add(this.contentMatchingFurnitureNameRadioButton);
       contentMatchingFurnitureNameButtonGroup.add(this.contentMatchingImportedFileRadioButton);
 
-      ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
+      ItemListener contentMatchingFurnitureNameChangeListener = new ItemListener() {
           public void itemStateChanged(ItemEvent ev) {
             controller.setContentMatchingFurnitureName(contentMatchingFurnitureNameRadioButton.isSelected());
           }
         };
-      this.contentMatchingFurnitureNameRadioButton.addItemListener(furnitureCatalogViewChangeListener);
-      this.contentMatchingImportedFileRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      this.contentMatchingFurnitureNameRadioButton.addItemListener(contentMatchingFurnitureNameChangeListener);
+      this.contentMatchingImportedFileRadioButton.addItemListener(contentMatchingFurnitureNameChangeListener);
       controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.CONTENT_MATCHING_FURNITURE_NAME,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
@@ -315,13 +315,13 @@ public class FurnitureLibraryUserPreferencesPanel extends UserPreferencesPanel {
       importedFurnitureNameButtonGroup.add(this.furnitureNameEqualToModelFileNameRadioButton);
       importedFurnitureNameButtonGroup.add(this.furnitureNameAdaptedRadioButton);
 
-      ItemListener furnitureCatalogViewChangeListener = new ItemListener() {
+      ItemListener importedFurnitureNameChangeListener = new ItemListener() {
           public void itemStateChanged(ItemEvent ev) {
             controller.setFurnitureNameEqualToImportedModelFileName(furnitureNameEqualToModelFileNameRadioButton.isSelected());
           }
         };
-      this.furnitureNameEqualToModelFileNameRadioButton.addItemListener(furnitureCatalogViewChangeListener);
-      this.contentMatchingImportedFileRadioButton.addItemListener(furnitureCatalogViewChangeListener);
+      this.furnitureNameEqualToModelFileNameRadioButton.addItemListener(importedFurnitureNameChangeListener);
+      this.contentMatchingImportedFileRadioButton.addItemListener(importedFurnitureNameChangeListener);
       controller.addPropertyChangeListener(FurnitureLibraryUserPreferencesController.Property.FURNITURE_NAME_EQUAL_TO_IMPORTED_MODEL_FILE_NAME,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
