@@ -60,8 +60,8 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
   private JRadioButton texturesIdEditableRadioButton;
   private JRadioButton texturesIdNotEditableRadioButton;
   private JLabel       contentMatchingTexturesNameLabel;
-  private JRadioButton contentMatchingTexturesNameRadioButton;
   private JRadioButton contentMatchingImportedFileRadioButton;
+  private JRadioButton contentMatchingTexturesNameRadioButton;
   private JLabel       importedTextureNameLabel;
   private JRadioButton textureNameEqualToImportedFileNameRadioButton;
   private JRadioButton textureNameAdaptedRadioButton;
@@ -235,23 +235,23 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
       // Create textures catalog label and radio buttons bound to controller CONTENT_MATCHING_TEXTURES_NAME property
       this.contentMatchingTexturesNameLabel = new JLabel(preferences.getLocalizedString(
           TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameLabel.text"));
-      this.contentMatchingTexturesNameRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
-          TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameRadioButton.text"),
-          controller.isContentMatchingTexturesName());
       this.contentMatchingImportedFileRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
           TexturesLibraryUserPreferencesPanel.class, "contentMatchingImportedFileRadioButton.text"),
           !controller.isContentMatchingTexturesName());
+      this.contentMatchingTexturesNameRadioButton = new JRadioButton(SwingTools.getLocalizedLabelText(preferences,
+          TexturesLibraryUserPreferencesPanel.class, "contentMatchingTexturesNameRadioButton.text"),
+          controller.isContentMatchingTexturesName());
       ButtonGroup contentMatchingTexturesNameButtonGroup = new ButtonGroup();
-      contentMatchingTexturesNameButtonGroup.add(this.contentMatchingTexturesNameRadioButton);
       contentMatchingTexturesNameButtonGroup.add(this.contentMatchingImportedFileRadioButton);
+      contentMatchingTexturesNameButtonGroup.add(this.contentMatchingTexturesNameRadioButton);
 
       ItemListener contentMatchingTexturesNameChangeListener = new ItemListener() {
           public void itemStateChanged(ItemEvent ev) {
             controller.setContentMatchingTexturesName(contentMatchingTexturesNameRadioButton.isSelected());
           }
         };
-      this.contentMatchingTexturesNameRadioButton.addItemListener(contentMatchingTexturesNameChangeListener);
       this.contentMatchingImportedFileRadioButton.addItemListener(contentMatchingTexturesNameChangeListener);
+      this.contentMatchingTexturesNameRadioButton.addItemListener(contentMatchingTexturesNameChangeListener);
       controller.addPropertyChangeListener(TexturesLibraryUserPreferencesController.Property.CONTENT_MATCHING_TEXTURES_NAME,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
@@ -280,7 +280,7 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
           }
         };
       this.textureNameEqualToImportedFileNameRadioButton.addItemListener(importedTextureNameChangeListener);
-      this.contentMatchingImportedFileRadioButton.addItemListener(importedTextureNameChangeListener);
+      this.textureNameAdaptedRadioButton.addItemListener(importedTextureNameChangeListener);
       controller.addPropertyChangeListener(TexturesLibraryUserPreferencesController.Property.TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME,
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
@@ -396,10 +396,10 @@ public class TexturesLibraryUserPreferencesPanel extends UserPreferencesPanel {
       add(this.contentMatchingTexturesNameLabel, new GridBagConstraints(
           0, 105, 1, 1, 0, 0, labelAlignment,
           GridBagConstraints.NONE, labelInsets, 0, 0));
-      add(this.contentMatchingTexturesNameRadioButton, new GridBagConstraints(
+      add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
           1, 105, 2, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.NONE, componentInsets, 0, 0));
-      add(this.contentMatchingImportedFileRadioButton, new GridBagConstraints(
+      add(this.contentMatchingTexturesNameRadioButton, new GridBagConstraints(
           1, 106, 2, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.NONE, new Insets(0, 0, 2 * gap, 0), 0, 0));
      }
