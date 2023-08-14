@@ -36,7 +36,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
    * The properties that may be edited by the view associated to this controller.
    */
   public enum Property {DEFAULT_CREATOR, OFFLINE_TEXTURES_LIBRARY, TEXTURES_RESOURCES_LOCAL_DIRECTORY,
-      TEXTURES_RESOURCES_REMOTE_URL_BASE, TEXTURES_ID_EDITABLE, CONTENT_MATCHING_TEXTURES_NAME}
+      TEXTURES_RESOURCES_REMOTE_URL_BASE, TEXTURES_ID_EDITABLE, CONTENT_MATCHING_TEXTURES_NAME, TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME}
 
   private final TexturesLibraryUserPreferences preferences;
   private final PropertyChangeSupport          propertyChangeSupport;
@@ -47,6 +47,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
   private String    texturesResourcesRemoteUrlBase;
   private boolean   texturesIdEditable;
   private boolean   contentMatchingTexturesName;
+  private boolean   textureNameEqualToImportedFileName;
 
   public TexturesLibraryUserPreferencesController(TexturesLibraryUserPreferences preferences,
                                                    ViewFactory viewFactory,
@@ -81,6 +82,7 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
     setTexturesResourcesRemoteURLBase(this.preferences.getTexturesResourcesRemoteURLBase());
     setTexturesIdEditable(this.preferences.isTexturesIdEditable());
     setContentMatchingTexturesName(this.preferences.isContentMatchingTexturesName());
+    setTextureNameEqualToImportedFileName(this.preferences.isTextureNameEqualToImportedFileName());
   }
 
   @Override
@@ -98,7 +100,8 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
     return this.preferences.isOnlineTexturesLibrarySupported()
         || property == Property.DEFAULT_CREATOR
         || property == Property.TEXTURES_ID_EDITABLE
-        || property == Property.CONTENT_MATCHING_TEXTURES_NAME;
+        || property == Property.CONTENT_MATCHING_TEXTURES_NAME
+        || property == Property.TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME;
   }
 
   /**
@@ -222,6 +225,26 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
   }
 
   /**
+   * Returns <code>true</code> if the texture name of an imported image be equal
+   * to the imported file name.
+   */
+  public boolean isTextureNameEqualToImportedFileName() {
+    return this.textureNameEqualToImportedFileName;
+  }
+
+  /**
+   * Sets if the texture name of an imported image be equal
+   * to the imported file name.
+   */
+  public void setTextureNameEqualToImportedFileName(boolean textureNameEqualToImportedFileName) {
+    if (textureNameEqualToImportedFileName != this.textureNameEqualToImportedFileName) {
+      this.textureNameEqualToImportedFileName = textureNameEqualToImportedFileName;
+      this.propertyChangeSupport.firePropertyChange(Property.TEXTURE_NAME_EQUAL_TO_IMPORTED_FILE_NAME.toString(),
+          !textureNameEqualToImportedFileName, textureNameEqualToImportedFileName);
+    }
+  }
+
+  /**
    * Updates user preferences and saves them.
    */
   @Override
@@ -235,5 +258,6 @@ public class TexturesLibraryUserPreferencesController extends UserPreferencesCon
     }
     this.preferences.setTexturesIdEditable(isTexturesIdEditable());
     this.preferences.setContentMatchingTexturesName(isContentMatchingTexturesName());
+    this.preferences.setTextureNameEqualToImportedFileName(isTextureNameEqualToImportedFileName());
   }
 }
