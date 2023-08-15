@@ -544,7 +544,7 @@ public class FurnitureLibraryFileRecorder implements FurnitureLibraryRecorder {
       if (modelContentEntryName == null) {
         if (jsonExport // Handle all exported contents in ZIP files even if not multipart
             || multipart) {
-          String jarEntryName = ((URLContent)pieceModel).getJAREntryName();
+          String jarEntryName = ((URLContent)pieceModel).getJAREntryName().replace("%20", " ");
           modelContentEntryName = getContentEntry(pieceModel,
               pieceModel instanceof TemporaryURLContent
                   ? contentBaseName + "/" + jarEntryName
