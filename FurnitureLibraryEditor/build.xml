@@ -140,11 +140,9 @@
     <mkdir dir="build"/>
     <zip destfile="build/java3d-1.6/jogl-java3d.jar">
       <zipfileset src="../SweetHome3D/lib/java3d-1.6/jogl-all.jar"  
-        excludes="com/jogamp/graph/**, com/jogamp/newt/**, com/jogamp/opengl/swt/**, com/jogamp/opengl/util/**,
+        excludes="com/jogamp/graph/**, com/jogamp/newt/**, com/jogamp/opengl/swt/**, 
                   javax/media/opengl/Debug*, javax/media/opengl/Trace*,
                   jogamp/graph/**, jogamp/newt/**, jogl/util/data/av/**"/>
-      <zipfileset src="../SweetHome3D/lib/java3d-1.6/jogl-all.jar"  
-        includes="com/jogamp/opengl/util/GLBuffers.class"/>
     </zip>
   </target>
 
