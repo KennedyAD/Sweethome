@@ -93,6 +93,21 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
   public CatalogPieceOfFurniture readPieceOfFurniture(final Content model) throws InterruptedException {
     try {
       String modelName = "model";
+      if (model instanceof URLContent) {
+        // Initialize model name from
+        String file = ((URLContent)model).getURL().getFile();
+        if (file.indexOf('?') == -1) {
+          modelName = URLDecoder.decode(file.replace("+", "%2B"), "UTF-8");
+          if (modelName.lastIndexOf('/') != -1) {
+            modelName = modelName.substring(modelName.lastIndexOf('/') + 1);
+          }
+          int dotIndex = modelName.lastIndexOf('.');
+          if (dotIndex != -1) {
+            modelName = modelName.substring(0, dotIndex);
+          }
+        }
+      }
+
       final AtomicReference<BranchGroup> modelNode = new AtomicReference<BranchGroup>();
       ModelManager modelManager = ModelManager.getInstance();
       try {
@@ -105,18 +120,7 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
       URLContent pieceModel = null;
       if (modelNode.get() != null) {
         // Copy model to a temporary OBJ content with materials and textures
-        if (model instanceof URLContent) {
-          modelName = URLDecoder.decode(((URLContent)model).getURL().getFile().replace("+", "%2B"), "UTF-8");;
-          if (modelName.lastIndexOf('/') != -1) {
-            modelName = modelName.substring(modelName.lastIndexOf('/') + 1);
-          }
-        }
-
         pieceModel = copyToTemporaryOBJContent(modelNode.get(), model);
-        int dotIndex = modelName.lastIndexOf('.');
-        if (dotIndex != -1) {
-          modelName = modelName.substring(0, dotIndex);
-        }
         // Load copied content in current thread using cache to make it accessible by preview components without waiting in EDT
         modelManager.loadModel(model, true, new ModelManager.ModelObserver() {
             public void modelUpdated(BranchGroup modelRoot) {
@@ -141,12 +145,6 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
               int slashIndex = entryName.lastIndexOf('/');
               String entryFileName = entryName.substring(slashIndex + 1);
               if (!entryFileName.startsWith(".")) {
-                int dotIndex = entryFileName.lastIndexOf(".");
-                if (dotIndex != -1) {
-                  modelName = entryFileName.substring(0, dotIndex);
-                } else {
-                  modelName = entryFileName;
-                }
                 URL entryUrl = new URL("jar:" + urlContent.getURL() + "!/"
                     + URLEncoder.encode(entryName, "UTF-8").replace("+", "%20").replace("%2F", "/"));
                 final Content entryContent = new TemporaryURLContent(entryUrl);
@@ -167,6 +165,15 @@ public class ImportFurnitureTaskPanel extends ThreadedTaskPanel implements Impor
                           || slashIndex > 0)) {
                     // Convert models in subdirectories at format different from OBJ
                     pieceModel = copyToTemporaryOBJContent(modelNode.get(), model);
+                  }
+                  if (!"model.dae".equals(entryFileName)) {
+                    // Use entry name as model name (except for "model.dae" which
+                    int dotIndex = entryFileName.lastIndexOf(".");
+                    if (dotIndex != -1) {
+                      modelName = entryFileName.substring(0, dotIndex);
+                    } else {
+                      modelName = entryFileName;
+                    }
                   }
                   break;
                 }
