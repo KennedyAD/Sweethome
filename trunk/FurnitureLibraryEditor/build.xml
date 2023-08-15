@@ -138,15 +138,28 @@
   <target name="jogl-java3d"
           description="Builds jogl-java3d.jar that contains only packages required for Java 3D">
     <mkdir dir="build"/>
-    <zip destfile="build/java3d-1.6/jogl-java3d.jar">
-      <zipfileset src="../SweetHome3D/lib/java3d-1.6/jogl-all.jar"  
+  	<!-- Sets default jogl-folder if not set -->
+  	<condition property="jogl-folder" value=".">
+      <not>  
+  	    <isset property="jogl-folder"/>
+  	  </not>
+  	</condition>
+    <zip destfile="build/java3d-1.6/${jogl-folder}/jogl-java3d.jar">
+      <zipfileset src="../SweetHome3D/lib/java3d-1.6/${jogl-folder}/jogl-all.jar"  
         excludes="com/jogamp/graph/**, com/jogamp/newt/**, com/jogamp/opengl/swt/**, 
                   javax/media/opengl/Debug*, javax/media/opengl/Trace*,
                   jogamp/graph/**, jogamp/newt/**, jogl/util/data/av/**"/>
     </zip>
   </target>
 
-  <target name="furnitureLibraryEditorJarExecutable" depends="furnitureLibraryEditor,jogl-java3d"
+  <target name="jogl-java3d-x86"
+          description="Builds jogl-java3d.jar that contains only packages required for Java 3D under x86">
+  	<antcall target="jogl-java3d">
+      <param name="jogl-folder" value="i586"/>
+  	</antcall>
+  </target>
+		
+  <target name="furnitureLibraryEditorJarExecutable" depends="furnitureLibraryEditor,jogl-java3d,jogl-java3d-x86"
           description="Builds FurnitureLibraryEditor-version.jar executable Jar">
     <!-- Create FurnitureLibraryEditor-version.jar containing Furniture Library Editor classes and resources,
          and other DLLs and jars -->
@@ -160,6 +173,7 @@
         <include name="*.jar"/>
         <include name="macosx/*.jar"/>
         <include name="java3d-1.6/*.jar"/>
+        <include name="java3d-1.6/i586/gluegen-rt.jar"/>
         <exclude name="java3d-1.6/jogl-all.jar"/>
         <exclude name="freehep-vectorgraphics-svg-*.jar"/>
         <exclude name="iText-*.jar"/>
@@ -167,7 +181,8 @@
         <exclude name="jmf.jar"/>
       </fileset>
       <fileset dir="build">
-        <include name="java3d-1.6/jogl-java3d.jar"/>
+      	<include name="java3d-1.6/jogl-java3d.jar"/>
+      	<include name="java3d-1.6/i586/jogl-java3d.jar"/>
       </fileset>
       <fileset dir="../SweetHome3D/lib">
         <include name="windows/**/*.dll"/>
