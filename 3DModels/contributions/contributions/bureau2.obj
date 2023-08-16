@@ -1,6 +1,7 @@
 # Produced by Art of Illusion 2.5, Mon Sep 24 18:44:29 CEST 2007
 #
 # Created by GdB / Damien Leduc
+# Dimensions of lowest shelf fixed by Emmanuel Puybaret / eTeks  
 #
 # This file is distributed under Free Art License, see http://artlibre.org/licence/lal/en for more informations
 # and under CC-BY Creative Commons Attribution 3.0 Unported license, see http://creativecommons.org/licenses/by/3.0/
@@ -705,14 +706,14 @@ f 150//272 154//272 149//272
 f 150//273 151//273 154//273
 g Couche:OBJECT002
 usemtl lighttan
-v -1.28 -1.92 1.24
-v -0.44 -1.92 1.24
-v -0.44 -1.92 0.28
-v -1.28 -1.92 0.28
-v -1.28 -1.9 0.28
-v -1.28 -1.9 1.24
-v -0.44 -1.9 1.24
-v -0.44 -1.9 0.28
+v -1.28 -1.92 1.26
+v -0.44 -1.92 1.26
+v -0.44 -1.92 0.3
+v -1.28 -1.92 0.3
+v -1.28 -1.9 0.3
+v -1.28 -1.9 1.26
+v -0.44 -1.9 1.26
+v -0.44 -1.9 0.3
 vn 1 0 0
 vn 0 -1 0
 vn 0 -1 0
