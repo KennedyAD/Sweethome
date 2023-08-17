@@ -386,17 +386,16 @@ HomeComponent3D.prototype.addCameraListeners = function() {
   var component3D = this;
   var home = this.home;
   this.cameraChangeListener = function(ev) {
-      if (!this.updater) {
+      if (!component3D.cameraChangeListener.updater) {
         // Update view transform later to let finish camera changes  
-        var context = this;
-        this.updater = function() {
+        component3D.cameraChangeListener.updater = function() {
             if (component3D.canvas3D) {
               component3D.updateView(home.getCamera());
               component3D.updateViewPlatformTransform(home.getCamera(), true);
             }
-            delete context.updater;
+            delete component3D.cameraChangeListener.updater;
           };
-        setTimeout(this.updater, 0);
+        setTimeout(component3D.cameraChangeListener.updater, 0);
       }
     };
   home.getCamera().addPropertyChangeListener(this.cameraChangeListener);
@@ -1478,15 +1477,15 @@ HomeComponent3D.prototype.createGroundNode = function(groundOriginX, groundOrigi
     transformGroup.addChild(ground3D);
 
     if (listenToHomeUpdates) {
-      // Add a listener on ground color and texture properties change 
+	  var component3D = this;
+      // Add a listener on ground color and texture properties change
       this.groundChangeListener = function(ev) {
-          if (!this.updater) {
-            var context = this;
-            this.updater = function() {
+          if (!component3D.groundChangeListener.updater) {
+            component3D.groundChangeListener.updater = function() {
                 ground3D.update();
-                delete context.updater;
+                delete component3D.groundChangeListener.updater;
               };
-            setTimeout(this.updater, 0);
+            setTimeout(component3D.groundChangeListener.updater, 0);
           }
         };
       var homeEnvironment = this.home.getEnvironment();
