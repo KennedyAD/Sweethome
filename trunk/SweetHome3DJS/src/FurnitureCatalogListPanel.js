@@ -379,6 +379,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
           furnitureElements[k].classList.remove("selected");
         }
         pieceContainer.classList.add("selected");
+        furnitureCatalogListPanel.container.focus();
         furnitureCatalogListPanel.controller.setSelectedFurniture([piece]);
       }
     };
