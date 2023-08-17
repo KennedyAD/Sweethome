@@ -58,6 +58,12 @@ CoreTools.loadJSON = function(url, observer) {
               }
             }
           });
+        request.addEventListener("error", function() {
+            CoreTools.unavailableResources.push(url);
+		    if (observer.jsonError !== undefined) {
+              observer.jsonError(request.status, request.statusText);
+            } 
+	      });
       }
       request.send();
       if (observer === undefined) {
