@@ -179,7 +179,7 @@ ResourceAction.getLocalizedLabelText = function(preferences, resourceClass, reso
 ResourceAction.prototype.getURL = function(propertyKey) {
   var url = this.getValue(propertyKey);
   if (url != null && url.indexOf("://") === -1) {
-    url = ZIPTools.getScriptFolder() + "/"+ url;
+    url = ZIPTools.getScriptFolder() + url;
   }
   return url;
 }
