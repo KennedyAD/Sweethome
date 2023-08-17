@@ -43,6 +43,7 @@ function HomePane(containerId, home, preferences, controller) {
   this.clipboardEmpty = true;
   this.actionMap = {};
   this.inputMap = {};
+  this.transferHandlerEnabled = false;
 
   this.createActions(home, preferences, controller);
   this.initActions(preferences);
@@ -1807,7 +1808,8 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
   var furnitureView = this.controller.getFurnitureController().getView();
   var planView = this.controller.getPlanController().getView();
-  if (enabled) {
+  if (enabled
+      && !this.transferHandlerEnabled) {
     if (furnitureCatalogView != null) {
       if (this.furnitureCatalogDragAndDropListener == null) {
         this.furnitureCatalogDragAndDropListener = this.createFurnitureCatalogMouseListener();
@@ -1836,7 +1838,31 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
       }
       furnitureCatalogView.getHTMLElement().addEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
     }
-  } else {
+    var homePane = this;
+    this.furnitureCatalogListener = function(ev) {
+        if (ev.getType() === CollectionEvent.Type.ADD
+            && !homePane.furnitureCatalogListener.updater) {
+          // Add listeners later in case more than one piece was added 
+          homePane.furnitureCatalogListener.updater = function() {
+              var pieceContainers = furnitureCatalogView.getHTMLElement().querySelectorAll(".furniture");
+              if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+                  && window.PointerEvent) {
+                for (i = 0; i < pieceContainers.length; i++) {
+                  pieceContainers[i].addEventListener("pointerdown", homePane.furnitureCatalogDragAndDropListener.pointerPressed);
+                }
+              } else {
+                for (i = 0; i < pieceContainers.length; i++) {
+                  pieceContainers[i].addEventListener("touchstart", homePane.furnitureCatalogDragAndDropListener.mousePressed);
+                }
+              }
+              delete homePane.furnitureCatalogListener.updater;
+            };
+          setTimeout(homePane.furnitureCatalogListener.updater, 100);
+        }
+      };
+    this.preferences.getFurnitureCatalog().addFurnitureListener(this.furnitureCatalogListener);
+  } else if (!enabled
+      		 && this.transferHandlerEnabled) {
     if (furnitureCatalogView != null) {
       var pieceContainers = furnitureCatalogView.getHTMLElement().querySelectorAll(".furniture");
       if (OperatingSystem.isInternetExplorerOrLegacyEdge()
@@ -1860,6 +1886,8 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
       }
       furnitureCatalogView.getHTMLElement().removeEventListener("contextmenu", this.furnitureCatalogDragAndDropListener.contextMenuDisplayed);
     }
+  	this.preferences.getFurnitureCatalog().removeFurnitureListener(this.furnitureCatalogListener);
+  	delete this.furnitureCatalogListener;
   }
   this.transferHandlerEnabled = enabled;
 }
@@ -2625,4 +2653,7 @@ HomePane.prototype.dispose = function() {
   this.getHTMLElement().removeEventListener("focusin", this.focusListener);
   this.preferences.removePropertyChangeListener("VALUE_ADDED_TAX_ENABLED", this.preferencesChangeListener);
   this.preferences.removePropertyChangeListener("CURRENCY", this.preferencesChangeListener);
+  if (this.furnitureCatalogListener != null) {
+	this.preferences.getFurnitureCatalog().removeFurnitureListener(this.furnitureCatalogListener);
+  }
 }
