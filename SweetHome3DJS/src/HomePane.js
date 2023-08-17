@@ -1368,7 +1368,6 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
  * @private
  */
 HomePane.prototype.initSplitters = function() {
-  var home = this.home;
   var controller = this.controller;
 
   var furnitureCatalogView = controller.getFurnitureCatalogController().getView();
@@ -1421,6 +1420,11 @@ HomePane.prototype.initSplitters = function() {
     };
 
   this.updateSplitters();
+  
+  // Dispatch a resize window event to configure HTML elements in split panes and their children
+  var resizeEvent = window.document.createEvent('UIEvents'); 
+  resizeEvent.initEvent('resize', true, true); 
+  window.dispatchEvent(resizeEvent);
 }
 
 /**
