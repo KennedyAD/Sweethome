@@ -287,16 +287,20 @@ JSTextureDialog.prototype.constructor = JSTextureDialog;
  * @return {HomeTexture} currently selected texture
  */
 JSTextureDialog.prototype.getSelectedTexture = function() {
-  return new HomeTexture(
-      this.selectedTextureModel.texture,
-      this.selectedTextureModel.xOffset,
-      this.selectedTextureModel.yOffset,
-      this.selectedTextureModel.angleInRadians,
-      this.selectedTextureModel.scale,
-      this.controller.getTexture() instanceof HomeTexture 
-          ? this.controller.getTexture().isFittingArea()
-          : false,
-      true);
+  if (this.selectedTextureModel.texture != null) {
+    return new HomeTexture(
+        this.selectedTextureModel.texture,
+        this.selectedTextureModel.xOffset,
+        this.selectedTextureModel.yOffset,
+        this.selectedTextureModel.angleInRadians,
+        this.selectedTextureModel.scale,
+        this.controller.getTexture() instanceof HomeTexture 
+            ? this.controller.getTexture().isFittingArea()
+            : false,
+        true);
+  } else {
+    return null;	
+  }
 }
 
 /**
