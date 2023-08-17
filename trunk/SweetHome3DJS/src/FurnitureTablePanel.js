@@ -439,7 +439,7 @@ FurnitureTablePanel.prototype.renderNameCell = function(piece, cell) {
   var iconElement = document.createElement("span");
   iconElement.setAttribute("icon", true);
   var icon = piece instanceof HomeFurnitureGroup
-      ? new URLContent(ZIPTools.getScriptFolder() + "/resources/groupIcon.png")
+      ? new URLContent(ZIPTools.getScriptFolder() + "resources/groupIcon.png")
       : piece.getIcon();
   if (icon != null) {
     TextureManager.getInstance().loadTexture(icon, 0, false,

@@ -1194,7 +1194,7 @@ DefaultUserPreferences.prototype.write = function() {
  */
 function DefaultPatternTexture(name) {
   this.name = name;
-  this.image = new URLContent(ZIPTools.getScriptFolder() + "/resources/patterns/" + this.name + ".png");
+  this.image = new URLContent(ZIPTools.getScriptFolder() + "resources/patterns/" + this.name + ".png");
 }
 
 DefaultPatternTexture["__class"] = "com.eteks.sweethome3d.io.DefaultPatternTexture";

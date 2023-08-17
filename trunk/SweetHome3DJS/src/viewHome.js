@@ -121,7 +121,7 @@ function viewHomeInOverlay(homeUrl, params) {
 
   // Create close button image
   var closeButtonImage = new Image();
-  closeButtonImage.src = ZIPTools.getScriptFolder() + "/close.png";
+  closeButtonImage.src = ZIPTools.getScriptFolder() + "close.png";
   closeButtonImage.style.position = "absolute";
   overlayDiv.appendChild(closeButtonImage);
   
