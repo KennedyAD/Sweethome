@@ -632,7 +632,7 @@ JSWizardDialog.prototype.updateStepIcon = function() {
     icon.crossOrigin = "anonymous";
     imageContainer.appendChild(icon);
     icon.src = stepIcon.indexOf("://") === -1 
-        ?  ZIPTools.getScriptFolder() + "/" + stepIcon 
+        ?  ZIPTools.getScriptFolder() + stepIcon 
         : stepIcon;
   }
 }
