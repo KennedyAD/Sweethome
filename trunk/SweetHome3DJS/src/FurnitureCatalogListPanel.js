@@ -225,13 +225,12 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
         }
       }
 
-      if (!this.updater) {
-        var context = this;
-        this.updater = function() {
+      if (!furnitureCatalogListPanel.furnitureCatalogUpdater) {
+        furnitureCatalogListPanel.furnitureCatalogUpdater = function() {
             furnitureCatalogListPanel.resetFurnitureCatalog(catalog);
-            delete context.updater;
+            delete furnitureCatalogListPanel.furnitureCatalogUpdater;
           };
-        setTimeout(this.updater, 0);
+        setTimeout(furnitureCatalogListPanel.furnitureCatalogUpdater, 0);
       }
     });
 }
