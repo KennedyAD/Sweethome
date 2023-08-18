@@ -1813,12 +1813,20 @@ label {
 
 @media (hover: none), (pointer: coarse) {
   @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-    .texture-chooser-dialog .texture-catalog-list {
-      height: 20vh;
-    }
+    @media (max-width: 600px) {
+      .texture-chooser-dialog .texture-catalog-list {
+        height: 20vh;
+      }
     
-    .texture-chooser-dialog .selected-texture-preview {
-      margin-top: 1em; 
+      .texture-chooser-dialog .selected-texture-preview {
+        margin-top: 1em; 
+      }
+    }
+  }
+  
+  @media (min-width: 600px) and (max-width: 800px) {
+    .texture-chooser-dialog .texture-catalog-list {
+      width: 300px;
     }
   }
 
