@@ -201,7 +201,7 @@ LocalFileHomeController.prototype.saveAs = function(postSaveTask) {
   var preferences = this.application.getUserPreferences();
   var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
   var homeName = prompt(message);
-  if (homeName != null) {
+  if (homeName != null && homeName.length > 0) {
     var homeExtension2 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension2"); // .sh3x
     this.home.setName(homeName + (homeName.indexOf('.') < 0 ? homeExtension2 : ""));
     this.save(postSaveTask);    
@@ -264,7 +264,7 @@ DirectRecordingHomeController.prototype.open = function() {
   var controller = this;
   var preferences = controller.application.getUserPreferences();
   var readTask = function(homeName) {
-      if (homeName != null) {
+      if (homeName != null && homeName.length > 0) {
           controller.application.getHomeRecorder().readHome(homeName, 
           {
             homeLoaded: function(home) {
@@ -296,6 +296,7 @@ DirectRecordingHomeController.prototype.open = function() {
                 '  </div>';
               var fileDialog = new JSDialog(preferences, "@{FileContentManager.openDialog.title}", html, 
                 {
+                  size: "small", 
                   applier: function(dialog) {
                     var selectedItem = fileDialog.findElement(".selected");
                     if (selectedItem != null) {
@@ -440,9 +441,50 @@ DirectRecordingHomeController.prototype.saveAs = function(postSaveTask) {
   var preferences = this.application.getUserPreferences();
   var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
   var homeName = prompt(message);
-  if (homeName != null) {
-    this.home.setName(homeName);
-    this.save(postSaveTask);    
+ 
+  if (homeName != null && homeName.length > 0) {
+    var controller = this;
+    var request = controller.application.getHomeRecorder().getAvailableHomes({
+        availableHomes: function(homeNames) {
+          var homeExists = false;
+          for (var i = 0; i < homeNames.length; i++) {
+            if (homeName == homeNames [i]) {
+              homeExists = true;
+            }
+          }
+          if (!homeExists) {
+            controller.home.setName(homeName);
+            controller.save(postSaveTask);    
+          } else {
+            var message = preferences.getLocalizedString("FileContentManager", "confirmOverwrite.message", homeName).replace(/\<br\>/g, " ");
+            var confirmOverwriteDialog = new JSDialog(preferences, 
+                preferences.getLocalizedString("FileContentManager", "confirmOverwrite.title"), 
+                message + "</font>", 
+                { 
+                  size: "small", 
+                  applier: function() {
+                    controller.home.setName(homeName);
+                    controller.save(postSaveTask);
+                  }
+                });
+            confirmOverwriteDialog.findElement(".dialog-ok-button").innerHTML = 
+                preferences.getLocalizedString("FileContentManager", "confirmOverwrite.overwrite");
+            var cancelButton = confirmOverwriteDialog.findElement(".dialog-cancel-button");
+            cancelButton.innerHTML = preferences.getLocalizedString("FileContentManager", "confirmOverwrite.cancel");
+            confirmOverwriteDialog.displayView();
+          }
+        }, 
+        homesError: function(status, error) {
+          var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.checkHomeError");
+          console.error(message + " : " + error); 
+          alert(message);
+        }
+      });
+        
+    if (request == null) {
+      this.home.setName(homeName);
+      this.save(postSaveTask);    
+    };  
   }
 }
 
@@ -463,11 +505,12 @@ DirectRecordingHomeController.prototype.close = function() {
  */
 DirectRecordingHomeController.prototype.confirmDeleteHome = function(homeName, confirm) {
   var preferences = this.application.getUserPreferences();
-  var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.message", homeName);
+  var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.message", homeName).replace(/\<br\>/g, " ");
   var confirmDeletionDialog = new JSDialog(preferences, 
       preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.title"), 
       message + "</font>", 
       { 
+        size: "small", 
         applier: function() {
           confirm();
         }
