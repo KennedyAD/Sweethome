@@ -196,7 +196,7 @@ button:disabled {
 
 #application-menu-toolbar .toolbar-button-group:last-child {
   border-right: 1px dotted rgba(0, 0, 0, 0.6);
-}	
+}
 
 .toolbar {
   visibility: visible;
@@ -275,7 +275,7 @@ button:disabled {
   #application-menu-toolbar .toolbar-button-group:last-child {
     padding-right: 5px;
   }
-  	
+
   #home-pane-toolbar .toolbar-button-group:last-child {
     border-right: none;
     flex-grow: 1;
@@ -297,7 +297,7 @@ button:disabled {
 
   #application-menu-toolbar .toolbar-button-group:last-child {
     padding-right: 2px;
-  }	
+  }
 
   .dialog-body {
     padding-left: .5em;
@@ -495,7 +495,7 @@ label {
     margin-bottom: 2px;
     height: 1.35em;
   }
-	
+
   /* Small touch devices like smartphones */
   @media (max-width: 767px), (max-height: 511px) {
     @media (orientation: portrait), (max-aspect-ratio: 5/4) {
@@ -895,9 +895,9 @@ label {
 .dialog-body {
   flex-grow: 1;
   box-sizing: border-box;
-  padding: 20px 1em 60px 1em;
+  padding: 20px 1em 20px 1em;
   overflow: auto;
-  max-height: calc(100% /* max content height */ - 80px /* title and buttons */);
+  max-height: calc(100% - 5em); /* title and buttons */
   background-color: #E9E9E9;
 }
 
@@ -997,7 +997,18 @@ label {
   grid-column: 1 / span 2;
 }
 
+
 @media (max-width: 800px) {
+  .dialog-container.visible.small .dialog-content {
+    width: 70%;
+  }
+  
+  .dialog-container.visible.medium .dialog-content {
+    width: 85%;
+  }
+}
+  
+@media (max-width: 600px) {
   .dialog-container.visible:not(.small) .dialog-content {
     top: 0;
     bottom: 0;
@@ -1006,9 +1017,9 @@ label {
     width: 100%;
     box-shadow: none;
   }
-  
+
   .dialog-container.visible.small .dialog-content {
-    width: 80%;
+    width: 90%;
   }
   
   .dialog-container.buttons-3 .mac button {
@@ -1016,7 +1027,7 @@ label {
   }
   
   .dialog-container.buttons-3 .dialog-body {
-    max-height: calc(100%/* max content height */ - 153px /* title and buttons */);
+    max-height: calc(100% - 153px); /* title and buttons */
   }
   
   .dialog-container.buttons-3 .dialog-buttons {
@@ -1041,7 +1052,7 @@ label {
   .dialog-body {
     padding: 20px 2em 60px 2em;
   }
-	
+
   .dialog-body .label-input-grid.double {
     grid-template-columns: 1fr 1fr 1fr 1fr;
     -ms-grid-columns: 1fr 1fr 1fr 1fr;
@@ -1061,6 +1072,7 @@ label {
   bottom: 0;
   left: 0;
   right: 0;
+  line-height: 2;
   background-color: #E9E9E9;
   border-top: solid lightgrey 1px;
   text-align: center;
@@ -1072,6 +1084,16 @@ label {
   font-size: 1em;
   cursor: pointer;
 }
+
+@media (max-width: 600px) {
+  .dialog-container.visible.small .dialog-buttons {
+    position: relative;  
+  }
+
+	.dialog-container .dialog-buttons button {
+    margin-right: 0.25em;
+  }
+}  
 
 .dialog-content .mac button {
   float: right;
@@ -1792,7 +1814,7 @@ label {
 
 @media (hover: none), (pointer: coarse) {
   @media (orientation: portrait), (max-aspect-ratio: 5/4) {
-	.texture-chooser-dialog .texture-catalog-list {
+    .texture-chooser-dialog .texture-catalog-list {
       height: 20vh;
     }
     
@@ -2020,6 +2042,14 @@ label {
 .about-dialog td {
   vertical-align: top;
   text-align: center; 
+}
+
+
+@media (max-width: 600px) {
+  .about-dialog img {
+    width: 64px;
+    height: auto; 
+  }
 }
 
 .about-dialog a {

@@ -2306,8 +2306,9 @@ HomePane.prototype.confirmSave = function(homeName, saveHome) {
 
   var confirmSavingDialog = new JSDialog(this.preferences, 
       this.preferences.getLocalizedString("HomePane", "confirmSave.title"), 
-      message + "</font>", 
+      message.replace(/\<br\>/, " ") + "</font>", 
       { 
+	    size: "small",
         applier: function() {
           saveHome(true);
         }
