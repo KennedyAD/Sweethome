@@ -1908,7 +1908,7 @@ public class FurnitureController implements Controller {
         float doorOrWindowWallDistance = 0;
         boolean doorOrWindowWallCutOutOnBothSides = true;
         boolean doorOrWindowWidthDepthDeformable = false;
-        Sash [] doorOrWindowSashes = null;
+        Sash [] doorOrWindowSashes = new Sash [0];
         boolean lengthUnitWithFraction = this.preferences.getLengthUnit() == LengthUnit.INCH || this.preferences.getLengthUnit() == LengthUnit.INCH_FRACTION;
         String lengthsArraySeparator = lengthUnitWithFraction ? "\" +" : " +";
         if (doorOrWindow != null
@@ -2002,8 +2002,6 @@ public class FurnitureController implements Controller {
           doorOrWindowWallCutOutOnBothSides = ((CatalogDoorOrWindow)piece).isWallCutOutOnBothSides();
           doorOrWindowWidthDepthDeformable = ((CatalogDoorOrWindow)piece).isWidthDepthDeformable();
           doorOrWindowSashes = ((CatalogDoorOrWindow)piece).getSashes();
-        } else {
-          doorOrWindowSashes = new Sash [0];
         }
 
         LightSource [] lightSources = null;
