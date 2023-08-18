@@ -58,7 +58,10 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.canvas.setAttribute("id", containerOrCanvasId + ".canvas");
     this.canvas.style.width = "100%"; // computedStyle.width;
     this.canvas.style.height = "100%"; // computedStyle.height;
-    this.canvas.style.backgroundColor = computedStyle.backgroundColor;
+    if (PlanComponent.initialBackgroundColor === undefined) {
+	  PlanComponent.initialBackgroundColor = computedStyle.backgroundColor;
+    }
+    this.canvas.style.backgroundColor = PlanComponent.initialBackgroundColor;  // /!\ computedStyle.backgroundColor may change when reseting home
     this.canvas.style.color = computedStyle.color;
     this.canvas.style.font = computedStyle.font;
     this.scrollPane = document.createElement("div");
@@ -111,12 +114,9 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.touchOverlay.style.left = "0px";
   this.touchOverlay.innerHTML = '<div id="touch-overlay-timer-content"></div><div id="touch-overlay-timer-bg"></div><div id="touch-overlay-timer-hidder"></div><div id="touch-overlay-timer-loader1"></div><div id="touch-overlay-timer-loader2"></div>';
   document.body.appendChild(this.touchOverlay);
-  var containerColor = this.container.style.color;
-  var containerBackgroundColor = this.container.style.backgroundColor;
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     var item = this.touchOverlay.children.item(i);
     if (item.id.indexOf("loader") !== -1) {
-	  // /!\ The following change style may affect container color too in some browsers 
       item.style.borderTopColor = this.getSelectionColor();
       item.style.borderRightColor = this.getSelectionColor();
     }
@@ -125,9 +125,6 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     }
     item.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
   }
-  // Reset the container color 
-  this.container.style.color = containerColor;
-  this.container.style.backgroundColor = containerBackgroundColor;
 
   this.resolutionScale = this.scrollPane ? PlanComponent.HIDPI_SCALE_FACTOR : 1.;
   this.selectedItemsOutlinePainted = true;
