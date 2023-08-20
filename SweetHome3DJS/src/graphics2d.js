@@ -87,7 +87,6 @@ Graphics2D.prototype.createPathFromShape = function(s) {
         this.context.lineTo(coords[0], coords[1]);
         break;
       case java.awt.geom.PathIterator.SEG_QUADTO:
-        console.error("QUADTO: " + coords);
         this.context.lineTo(coords[0], coords[1]);
         break;
       case java.awt.geom.PathIterator.SEG_CUBICTO:

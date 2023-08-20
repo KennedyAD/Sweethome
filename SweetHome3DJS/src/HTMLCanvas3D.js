@@ -952,7 +952,7 @@ HTMLCanvas3D.prototype.prepareTexture = function(textureImage) {
     return texture;
   } else {
     // Environment is probably missing resources
-    console.error("Can't create texture");
+    console.log("Can't create texture");
     return this.errorTexture;
   }
 }

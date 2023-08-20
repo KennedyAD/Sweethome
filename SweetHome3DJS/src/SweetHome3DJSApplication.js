@@ -80,7 +80,7 @@ LocalFileHomeController.prototype.open = function() {
       fileInput.setAttribute("type", "file");
       document.body.appendChild(fileInput);  
       fileInput.addEventListener("input", function(ev) {
-          document.body.removeChild(fileInput);
+	      document.body.removeChild(fileInput);
           if (this.files[0]) {
             openingTaskDialog.displayView();
             var file = this.files[0];
@@ -97,7 +97,7 @@ LocalFileHomeController.prototype.open = function() {
                       openingTaskDialog.close(); 
                       var message = controller.application.getUserPreferences().
                           getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
-                      console.error(error);
+                      console.log(error);
                       alert(message);
                     }
                   });
@@ -274,7 +274,7 @@ DirectRecordingHomeController.prototype.open = function() {
             },
             homeError: function(error) {
               var message = preferences.getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
-              console.error(error);
+              console.log(error);
               alert(message);
             },
             progression: function(part, info, percentage) {
@@ -349,7 +349,7 @@ DirectRecordingHomeController.prototype.open = function() {
                           },
                           homeError: function(status, error) {
                             var message = preferences.getLocalizedString("AppletContentManager", "confirmDeleteHome.errorMessage", item.innerText);
-                            console.error(message + " : " + error); 
+                            console.log(message + " : " + error); 
                             alert(message);
                           }
                         });
@@ -360,7 +360,7 @@ DirectRecordingHomeController.prototype.open = function() {
           }, 
           homesError: function(status, error) {
             var message = preferences.getLocalizedString("AppletContentManager", "showOpenDialog.availableHomesError");
-            console.error(message + " : " + error); 
+            console.log(message + " : " + error); 
             alert(message);
           }
         });
@@ -480,7 +480,7 @@ DirectRecordingHomeController.prototype.saveAs = function(postSaveTask) {
         }, 
         homesError: function(status, error) {
           var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.checkHomeError");
-          console.error(message + " : " + error); 
+          console.log(message + " : " + error); 
           alert(message);
         }
       });
@@ -774,7 +774,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                         homeError: function(error) {
                           var message = application.getUserPreferences().
                               getLocalizedString("HomeController", "openError", home.getName()) + "\n" + error; 
-                          console.error(message);
+                          console.log(message);
                           alert(message);
                         },
                       });
@@ -791,7 +791,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
               }
             },
             homesError: function(status, error) {
-              console.error("Couldn't retrieve homes from database : " + status + " " + error); 
+              console.log("Couldn't retrieve homes from database : " + status + " " + error); 
             },
             homeNamesEqual: function(name1, name2) {
               // If both names ends by a home extension
@@ -872,7 +872,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                     homeSaved: function(home) {
                     },
                     homeError: function(status, error) {
-                      console.error("Couldn't save home for recovery : " + status + " " + error); 
+                      console.log("Couldn't save home for recovery : " + status + " " + error); 
                     }
                   });
               } else if (recoveredHomeNames.indexOf(home.getName()) < 0) {

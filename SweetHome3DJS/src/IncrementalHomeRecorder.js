@@ -320,7 +320,7 @@ IncrementalHomeRecorder.prototype.removeHome = function(home) {
         request.open("GET", closeHomeURL, true); // Asynchronous call required during unload
         request.send();
       } catch (ex) {
-        console.error(ex); 
+        console.log(ex); 
       }
     }
   }
@@ -422,7 +422,7 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
               recorder.commitUpdate(home, update);
             } else {
               // Should never happen
-              console.error(request.responseText);
+              console.log(request.responseText);
               serverErrorHandler(request.status, request.responseText);
             }
           } else {

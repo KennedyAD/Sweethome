@@ -500,7 +500,7 @@ HomePane.prototype.createAction = function(actionType, preferences, controller, 
     this.getActionMap()[HomeView.ActionType[actionType]] = action;
     return action;
   } catch (ex) {
-    console.error(ex);
+    console.log(ex);
   }
 }
 
