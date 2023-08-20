@@ -440,7 +440,11 @@ DirectRecordingHomeController.prototype.save = function(postSaveTask) {
 DirectRecordingHomeController.prototype.saveAs = function(postSaveTask) {
   var preferences = this.application.getUserPreferences();
   var message = preferences.getLocalizedString("AppletContentManager", "showSaveDialog.message");
-  var homeName = prompt(message);
+  var homeName = prompt(message, this.home.getName() != null 
+      && (this.application.configuration === undefined 
+          || this.home.getName() !== this.application.configuration.defaultHomeName) 
+      ? this.home.getName() 
+      : undefined);
  
   if (homeName != null && homeName.length > 0) {
     var controller = this;
