@@ -1546,8 +1546,8 @@ label {
 
 .color-button .color-preview {
   border: solid 1px black;
-  width: 2.2em;
-  height: 1.1em;
+  width: 2rem;
+  height: 1rem;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
@@ -1705,8 +1705,8 @@ label {
 
 .texture-button .texture-preview {
   border: solid 1px black;
-  width: 1.1em;
-  height: 1.1em;
+  width: 1rem;
+  height: 1rem;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
