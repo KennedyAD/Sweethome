@@ -175,6 +175,10 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
   var abortableOperations = {};
   var savedContents = {};
   var savedContentNames = {};
+  var autoRecoveryObjectstore = "/Recovery/";
+  if (this.configuration.autoRecoveryObjectstore !== undefined) {
+    autoRecoveryObjectstore = "/" + this.configuration.autoRecoveryObjectstore + "/";
+  }
   var recorder = this;
   localContents = localContents.slice(0);
   for (var i = localContents.length - 1; i >= 0; i--) {
@@ -182,10 +186,14 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
     var localUrlContent = localContent.isJAREntry() 
         ? URLContent.fromURL(localContent.getJAREntryURL())
         : localContent;
-    if ((!(localUrlContent instanceof LocalStorageURLContent)
-           || this.configuration.writeResourceURL.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0)
-        && (!(localUrlContent instanceof IndexedDBURLContent)
-           || this.configuration.writeResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0)) {
+    if (  (!(localUrlContent instanceof LocalStorageURLContent)
+             || this.configuration.writeResourceURL.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0)
+          && (!(localUrlContent instanceof IndexedDBURLContent)
+              || this.configuration.writeResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0)
+        || (localUrlContent instanceof IndexedDBURLContent
+            && (this.configuration.writeResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0
+                || this.configuration.writeResourceURL.indexOf(autoRecoveryObjectstore) < 0)
+            && localUrlContent.getURL().indexOf(autoRecoveryObjectstore) > 0)) {
       if (localUrlContent.getSavedContent() == null
           || localUrlContent.getSavedContent().getURL().indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0
               && this.configuration.writeResourceURL.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0
