@@ -284,7 +284,7 @@ JSColorChooser.prototype.selectColorTile = function(tileElement) {
   this.color = this.getTileColor(tileElement);
   var colorHex = ColorTools.integerToHexadecimalString(this.color);
   this.customColorEditorInput.value = colorHex.substring(1);
-  this.customColorEditorPreview.style.backgroundColor = this.customColorEditorInput.value;
+  this.customColorEditorPreview.style.backgroundColor = colorHex;
   if (this.findElement(".color-input") != null) {
     this.findElement(".color-input").value = colorHex;
   }
