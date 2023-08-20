@@ -26,7 +26,10 @@
 /**
  * Creates a home recorder able to read homes from URLs.
  * @constructor
- * @param {{compressionLevel: number,
+ * @param {{writeCacheResourceURL: string,
+ *          readCacheResourceURL: string,
+ *          listCacheResourcesURL: string,
+ *          compressionLevel: number,
  *          includeAllContent: boolean,
  *          writeDataType: string,
  *          writeHomeWithWorker: boolean 
