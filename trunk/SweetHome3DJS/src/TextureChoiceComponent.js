@@ -68,7 +68,7 @@ TextureChoiceComponent.prototype.updateTexture = function(texture) {
             component.preview.style.backgroundImage = "url('" + image.src + "')";
           },
           textureError: function(error) {
-            console.error("Image cannot be loaded", error);
+            console.log("Image cannot be loaded", error);
           }
         });
   }

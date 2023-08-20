@@ -411,7 +411,7 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
         pieceContainer.appendChild(image);
       },
       textureError:  function(error) {
-        console.error("Image cannot be loaded", error);
+        console.log("Image cannot be loaded", error);
       }
     });
 }
