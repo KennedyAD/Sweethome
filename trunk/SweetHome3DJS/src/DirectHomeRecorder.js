@@ -198,7 +198,9 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
           || localUrlContent.getSavedContent().getURL().indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0
               && this.configuration.writeResourceURL.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0
           || localUrlContent.getSavedContent().getURL().indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0
-              && this.configuration.writeResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0) {
+              && (this.configuration.writeResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0
+                  || this.configuration.writeResourceURL.indexOf(autoRecoveryObjectstore) < 0
+                     && localUrlContent.getSavedContent().getURL().indexOf(autoRecoveryObjectstore) > 0)) {
         var savedContent = savedContents [localUrlContent.getURL()];
         if (savedContent != null) {
           localUrlContent.setSavedContent(savedContent);
