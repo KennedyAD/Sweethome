@@ -135,10 +135,12 @@ HomeComponent3D.prototype.disposeGeometries = function() {
 HomeComponent3D.prototype.revalidate = function() {
   var canvas = this.canvas3D.getHTMLElement();
   var canvasBounds = canvas.getBoundingClientRect();
-  navigationPanelDiv = document.getElementById(this.navigationPanelId);
-  if (navigationPanelDiv.style !== undefined) {
-    navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
-    navigationPanelDiv.style.top = (canvasBounds.top + window.pageYOffset) + "px";
+  if (this.navigationPanelId != null) {
+    navigationPanelDiv = document.getElementById(this.navigationPanelId);
+    if (navigationPanelDiv !== undefined && navigationPanelDiv.style !== undefined) {
+      navigationPanelDiv.style.left = (canvasBounds.left + window.pageXOffset) + "px";
+      navigationPanelDiv.style.top = (canvasBounds.top + window.pageYOffset) + "px";
+    }
   }
   this.canvas3D.updateViewportSize();
 }
@@ -374,6 +376,7 @@ HomeComponent3D.prototype.dispose = function() {
     }
     var navigationPanel = document.getElementById(this.navigationPanelId);
     navigationPanel.parentElement.removeChild(navigationPanel);
+    this.navigationPanelId = null;
   }
   this.canvas3D.clear();
 }
