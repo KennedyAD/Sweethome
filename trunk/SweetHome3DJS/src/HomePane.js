@@ -1844,18 +1844,20 @@ HomePane.prototype.setTransferEnabled = function(enabled) {
             && !homePane.furnitureCatalogListener.updater) {
           // Add listeners later in case more than one piece was added 
           homePane.furnitureCatalogListener.updater = function() {
-              var pieceContainers = furnitureCatalogView.getHTMLElement().querySelectorAll(".furniture");
-              if (OperatingSystem.isInternetExplorerOrLegacyEdge()
-                  && window.PointerEvent) {
-                for (i = 0; i < pieceContainers.length; i++) {
-                  pieceContainers[i].addEventListener("pointerdown", homePane.furnitureCatalogDragAndDropListener.pointerPressed);
+	          if (homePane.furnitureCatalogListener !== undefined) {
+                var pieceContainers = furnitureCatalogView.getHTMLElement().querySelectorAll(".furniture");
+                if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+                    && window.PointerEvent) {
+                  for (i = 0; i < pieceContainers.length; i++) {
+                    pieceContainers[i].addEventListener("pointerdown", homePane.furnitureCatalogDragAndDropListener.pointerPressed);
+                  }
+                } else {
+                  for (i = 0; i < pieceContainers.length; i++) {
+                    pieceContainers[i].addEventListener("touchstart", homePane.furnitureCatalogDragAndDropListener.mousePressed);
+                  }
                 }
-              } else {
-                for (i = 0; i < pieceContainers.length; i++) {
-                  pieceContainers[i].addEventListener("touchstart", homePane.furnitureCatalogDragAndDropListener.mousePressed);
-                }
-              }
-              delete homePane.furnitureCatalogListener.updater;
+                delete homePane.furnitureCatalogListener.updater;
+	          }
             };
           setTimeout(homePane.furnitureCatalogListener.updater, 100);
         }
