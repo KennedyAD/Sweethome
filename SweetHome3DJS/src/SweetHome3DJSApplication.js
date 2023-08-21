@@ -80,7 +80,7 @@ LocalFileHomeController.prototype.open = function() {
       fileInput.setAttribute("type", "file");
       document.body.appendChild(fileInput);  
       fileInput.addEventListener("input", function(ev) {
-	      document.body.removeChild(fileInput);
+          document.body.removeChild(fileInput);
           if (this.files[0]) {
             openingTaskDialog.displayView();
             var file = this.files[0];
@@ -95,7 +95,7 @@ LocalFileHomeController.prototype.open = function() {
                     },
                     homeError: function(error) {
                       openingTaskDialog.close(); 
-                      var message = controller.application.getUserPreferences().
+                      var message = preferences.
                           getLocalizedString("HomeController", "openError", homeName) + "\n" + error;
                       console.log(error);
                       alert(message);
@@ -555,6 +555,7 @@ DirectRecordingHomeController.prototype.confirmDeleteHome = function(homeName, c
  *          autoRecovery: boolean,
  *          autoRecoveryDatabase: string,
  *          autoRecoveryObjectstore: string,
+ *          silentAutoRecovery: boolean,
  *          compressionLevel: number,
  *          includeAllContent: boolean,
  *          writeDataType: string,
@@ -603,7 +604,8 @@ function SweetHome3DJSApplication(configuration) {
       && this.configuration.autoRecovery 
       && this.configuration.writeHomeEditsURL === undefined) {
     setTimeout(function() {
-        application.runAutoRecoveryManager();
+        // Launch auto recovery manager
+        application.autoRecoveryManager = new AutoRecoveryManager(application);
       });
   }  
 }
@@ -676,18 +678,24 @@ SweetHome3DJSApplication.prototype.getHomeController = function(home) {
 }
 
 /**
- * Runs the auto recovery manager.
- * @private
+ * Manager able to automatically save open homes in recovery database with a timer.
+ * The delay between two automatic save operations is specified by 
+ * {@link UserPreferences#getAutoSaveDelayForRecovery() auto save delay for recovery}
+ * property.
+ * @constructor
+ * @param {SweetHome3DJSApplication} application
+ * @ignored
+ * @author Emmanuel Puybaret
  */
-SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
-  var application = this;
+function AutoRecoveryManager(application) {
+  this.application = application;
   var autoRecoveryDatabase = "SweetHome3DJS";
   var autoRecoveryObjectstore = "Recovery";
-  if (this.configuration.autoRecoveryDatabase !== undefined) {
-    autoRecoveryDatabase = this.configuration.autoRecoveryDatabase;
+  if (application.configuration.autoRecoveryDatabase !== undefined) {
+    autoRecoveryDatabase = application.configuration.autoRecoveryDatabase;
   }
-  if (this.configuration.autoRecoveryObjectstore !== undefined) {
-    autoRecoveryObjectstore = this.configuration.autoRecoveryObjectstore;
+  if (application.configuration.autoRecoveryObjectstore !== undefined) {
+    autoRecoveryObjectstore = application.configuration.autoRecoveryObjectstore;
   }
   
   var autoRecoveryDatabaseUrlBase = "indexeddb://" + autoRecoveryDatabase + "/" + autoRecoveryObjectstore;
@@ -716,12 +724,11 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
     return application.getHomeRecorder().getHomeXMLExporter();
   }
 
-  var autoSaveRecorder = new AutoRecoveryRecorder();
-  
-  var recoveredHomeNames = [];
+  this.autoSaveRecorder = new AutoRecoveryRecorder();
+  this.recoveredHomeNames = [];
   var homeExtension1 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension");
   var homeExtension2 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension2");
-  
+  var manager = this;
   var homeModificationListener = function(ev) {
       var home = ev.getSource(); 
       if (!home.isModified()) {
@@ -729,7 +736,7 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
         // Delete auto saved in 1s in case user was traversing quickly the undo/redo pile
         setTimeout(function() {
             if (!home.isModified()) {
-              deleteRecoveredHome(home.getName());
+              manager.deleteRecoveredHome(home.getName());
             }
             home.addPropertyChangeListener("MODIFIED", homeModificationListener);
           }, 1000);
@@ -739,16 +746,18 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
       var home = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
         if (home.getName() != null) {
-          recoveredHomeNames.push(home.getName());
+          manager.recoveredHomeNames.push(home.getName());
         }
-        autoSaveRecorder.getAvailableHomes({
+        manager.autoSaveRecorder.getAvailableHomes({
             availableHomes: function(homeNames) {
               var recoveredHome = false;
               for (var i = 0; i < homeNames.length; i++) {
-                if (this.homeNamesEqual(home.getName(), homeNames [i])) {
-                  if (confirm(application.getUserPreferences().getLocalizedString("SweetHome3DJSApplication", "confirmRecoverHome"))) {
+                if (home.getName() != null 
+                    && this.homeNamesEqual(home.getName(), homeNames [i])) {
+                  if (application.configuration.silentAutoRecovery
+                      || confirm(application.getUserPreferences().getLocalizedString("SweetHome3DJSApplication", "confirmRecoverHome"))) {
                     recoveredHome = true;
-                    autoSaveRecorder.readHome(homeNames [i], {
+                    manager.autoSaveRecorder.readHome(homeNames [i], {
                         homeLoaded: function(replacingHome) {
                           application.removeHomesListener(homesListener);
                           application.getHomeController(home).close();
@@ -756,17 +765,17 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                           replacingHome.setRecovered(true);
                           replacingHome.addPropertyChangeListener("RECOVERED", function(ev) {
                               if (!replacingHome.isRecovered()) {
-                                recoveredHomeNames.splice(recoveredHomeNames.indexOf(replacingHome.getName()), 1);
-                                deleteRecoveredHome(homeName);
+                                manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(replacingHome.getName()), 1);
+                                manager.deleteRecoveredHome(homeName);
                                 replacingHome.addPropertyChangeListener("MODIFIED", homeModificationListener);
                               }
                             });
                           replacingHome.addPropertyChangeListener("NAME", function(ev) {
-                              recoveredHomeNames.splice(recoveredHomeNames.indexOf(ev.getOldValue()), 1);
+                              manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(ev.getOldValue()), 1);
                               if (!replacingHome.isRecovered()) {
-                                deleteRecoveredHome(ev.getOldValue());
+                                manager.deleteRecoveredHome(ev.getOldValue());
                               }
-                              recoveredHomeNames.push(ev.getNewValue());
+                              manager.recoveredHomeNames.push(ev.getNewValue());
                             });
                           application.addHome(replacingHome);
                           application.addHomesListener(homesListener);
@@ -779,8 +788,8 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
                         },
                       });
                   } else {
-                    recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
-                    deleteRecoveredHome(homeNames [i]);
+                    manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(home.getName()), 1);
+                    manager.deleteRecoveredHome(homeNames [i]);
                   }
                   break;
                 }
@@ -815,90 +824,121 @@ SweetHome3DJSApplication.prototype.runAutoRecoveryManager = function() {
           });
       } else if (ev.getType() == CollectionEvent.Type.DELETE
                  && home.getName() != null) {
-        if (recoveredHomeNames.indexOf(home.getName()) >= 0) {
-          recoveredHomeNames.splice(recoveredHomeNames.indexOf(home.getName()), 1);
-          deleteRecoveredHome(home.getName());
+        if (manager.recoveredHomeNames.indexOf(home.getName()) >= 0) {
+          manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(home.getName()), 1);
+          manager.deleteRecoveredHome(home.getName());
         }
         home.removePropertyChangeListener("MODIFIED", homeModificationListener);
       }
     };
   application.addHomesListener(homesListener);
     
-  var deleteRecoveredHome = function(homeName) {
-      autoSaveRecorder.deleteHome(homeName, { 
-          homeDeleted: function() {
-            if (recoveredHomeNames.length == 0
-                && (application.configuration.writePreferencesURL !== undefined
-                    && (application.configuration.writeResourceURL !== undefined
-                        || application.configuration.writePreferencesResourceURL !== undefined)
-                    && (application.configuration.readResourceURL !== undefined
-                       || application.configuration.readPreferencesResourceURL !== undefined)
-                    || !application.userPreferencesContainModifiableItems())) {
-              // Remove all data if no homes are left in Recovery database
-              // except if a opened home was previously recovered (saving it again will make its data necessary)
-              autoSaveRecorder.getAvailableHomes({
-                  availableHomes: function(homeNames) {
-                    if (homeNames.length === 0) {
-                      var dummyRecorder = new DirectHomeRecorder({
-                          listHomesURL: autoRecoveryDatabaseUrlBase + "?name=.*",
-                          deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s"
-                        });
-                      dummyRecorder.getAvailableHomes({ 
-                          availableHomes: function(dataNames) {
-                            for (var i = 0; i < dataNames.length; i++) {
-                              dummyRecorder.deleteHome(dataNames [i], { homeDeleted: function() {} });
-                            }
-                          }
-                        });
-                    }  
-                  }
-                });
+  this.lastAutoSaveTime = Date.now();
+  application.getUserPreferences().addPropertyChangeListener("AUTO_SAVE_DELAY_FOR_RECOVERY", function(ev) {
+      manager.restartTimer();
+    });
+  this.restartTimer();
+}
+
+/**
+ * Saves now modified document in auto recovery.
+ * @ignored
+ */
+AutoRecoveryManager.prototype.saveRecoveredHomes = function() {
+  var homes = this.application.getHomes();
+  for (var i = 0; i < homes.length; i++) {
+    var home = homes [i];
+    if (home.getName() != null) {
+      if (home.isModified()) {
+        this.autoSaveRecorder.writeHome(home, home.getName(), {
+            homeSaved: function(home) {
+            },
+            homeError: function(status, error) {
+              console.log("Couldn't save home for recovery : " + status + " " + error); 
             }
-          }
-        });      
-    };
-  
+          });
+      } else if (this.recoveredHomeNames.indexOf(home.getName()) < 0) {
+        this.deleteRecoveredHome(home.getName());
+      }
+    }
+  }
+  this.lastAutoSaveTime = Math.max(this.lastAutoSaveTime, Date.now());
+}
+
+/**
+ * Restarts the timer that regularly saves application homes.
+ * @ignored
+ */
+AutoRecoveryManager.prototype.restartTimer = function() {
+  var manager = this;
+  this.stopTimer();
   var autoSaveDelayForRecovery = application.getUserPreferences().getAutoSaveDelayForRecovery();
   if (autoSaveDelayForRecovery > 0) {
-    var lastAutoSaveTime = Date.now();
     var autoSaveTask = function() {
-        if (Date.now() - lastAutoSaveTime > 5000) {
-          var homes = application.getHomes();
-          for (var i = 0; i < homes.length; i++) {
-            var home = homes [i];
-            if (home.getName() != null) {
-              if (home.isModified()) {
-                autoSaveRecorder.writeHome(home, home.getName(), {
-                    homeSaved: function(home) {
-                    },
-                    homeError: function(status, error) {
-                      console.log("Couldn't save home for recovery : " + status + " " + error); 
-                    }
-                  });
-              } else if (recoveredHomeNames.indexOf(home.getName()) < 0) {
-                deleteRecoveredHome(home.getName());
-              }
-            }
-          }
-          lastAutoSaveTime = Date.now();
+        if (Date.now() - manager.lastAutoSaveTime > 5000) {
+          manager.saveRecoveredHomes();
         }
       };
-    var intervalId = setInterval(autoSaveTask, autoSaveDelayForRecovery);
-    application.getUserPreferences().addPropertyChangeListener("AUTO_SAVE_DELAY_FOR_RECOVERY", function(ev) {
-          window.clearInterval(intervalId);
-          if (ev.getNewValue() > 0) {
-            intervalId = setInterval(autoSaveTask, ev.getNewValue());
-          }
-        });
+    this.timerIntervalId = setInterval(autoSaveTask, autoSaveDelayForRecovery);
   }
+}
+
+/**
+ * Restarts the timer that regularly saves application homes.
+ * @ignored
+ */
+AutoRecoveryManager.prototype.stopTimer = function() {
+  if (this.timerIntervalId) {
+    window.clearInterval(this.timerIntervalId);
+    delete this.timerIntervalId;
+  }
+}
+
+/**
+ * Deletes the given home form auto recovery database.
+ * @private
+ */
+AutoRecoveryManager.prototype.deleteRecoveredHome = function(homeName) {
+  var manager = this;
+  this.autoSaveRecorder.deleteHome(homeName, { 
+      homeDeleted: function() {
+        if (manager.recoveredHomeNames.length == 0
+            && (manager.application.configuration.writePreferencesURL !== undefined
+                && (manager.application.configuration.writeResourceURL !== undefined
+                    || manager.application.configuration.writePreferencesResourceURL !== undefined)
+                && (manager.application.configuration.readResourceURL !== undefined
+                   || manager.application.configuration.readPreferencesResourceURL !== undefined)
+                || !manager.userPreferencesContainModifiableItems())) {
+          // Remove all data if no homes are left in Recovery database
+          // except if an opened home was previously recovered (saving it again will make its data necessary)
+          manager.autoSaveRecorder.getAvailableHomes({
+              availableHomes: function(homeNames) {
+                if (homeNames.length === 0) {
+                  var dummyRecorder = new DirectHomeRecorder({
+                      listHomesURL: autoRecoveryDatabaseUrlBase + "?name=.*",
+                      deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s"
+                    });
+                  dummyRecorder.getAvailableHomes({ 
+                      availableHomes: function(dataNames) {
+                        for (var i = 0; i < dataNames.length; i++) {
+                          dummyRecorder.deleteHome(dataNames [i], { homeDeleted: function() {} });
+                        }
+                      }
+                    });
+                }  
+              }
+            });
+        }
+      }
+    });      
 }
 
 /**
  * Returns <code>true</code> if the user preferences contain some modifiable textures or models.
  * @private
  */
-SweetHome3DJSApplication.prototype.userPreferencesContainModifiableItems = function() {
-  var preferences = this.getUserPreferences();
+AutoRecoveryManager.prototype.userPreferencesContainModifiableItems = function() {
+  var preferences = this.application.getUserPreferences();
   var texturesCatalog = preferences.getTexturesCatalog();
   for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
     var textureCategory = texturesCatalog.getCategory(i);
