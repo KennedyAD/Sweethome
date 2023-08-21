@@ -166,7 +166,7 @@ function createModel3DOverlay() {
   var hide = function(ev) {
       hideModel3DOverlay("canvas3D");
     }; 
-  window.addEventListener("keydown", 
+  document.addEventListener("keydown", 
       function(ev) {
         if (ev.keyCode === 27) {
           hide();
