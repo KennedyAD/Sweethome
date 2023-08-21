@@ -130,7 +130,7 @@ function viewHomeInOverlay(homeUrl, params) {
         hideHomeOverlay();
       }
     };
-  window.addEventListener("keydown", overlayDiv.escKeyListener);
+  document.addEventListener("keydown", overlayDiv.escKeyListener);
   closeButtonImage.addEventListener("click", hideHomeOverlay);
   var mouseActionsListener = {
       mousePressed : function(ev) {

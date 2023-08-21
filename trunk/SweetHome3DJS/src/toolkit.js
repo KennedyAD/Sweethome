@@ -1100,8 +1100,8 @@ if (!JSPopupMenu.globalCloserRegistered) {
         }
       }
     };
-  document.addEventListener("click", listener);
-  document.addEventListener("touchstart", listener);
+  window.addEventListener("click", listener);
+  window.addEventListener("touchstart", listener);
   
   document.addEventListener("keydown", function(ev) {
       if (ev.key == "Escape" || ev.keyCode == 27) {
@@ -1706,7 +1706,7 @@ JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
   selectionPanel.style.opacity = 1;
   selectionPanel.style.left = pageX + selectionPanel.clientWidth > window.width ? window.width - selectionPanel.clientWidth : pageX;
   selectionPanel.style.top = pageY + selectionPanel.clientHeight > window.innerHeight ? window.innerHeight - selectionPanel.clientHeight : pageY;
-  document.addEventListener("click", closeSelectorPanel);
+  window.addEventListener("click", closeSelectorPanel);
 }
 
 /**
