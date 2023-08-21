@@ -146,42 +146,47 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   
   // Tooltip management
   var currentFurnitureContainer;
-  document.addEventListener("mousemove", function(ev) {
-    var panelBounds = furnitureCatalogListPanel.container.getBoundingClientRect();
-    var coords = ev;
-    if ((coords.clientX >= panelBounds.left) && (coords.clientX < panelBounds.left + furnitureCatalogListPanel.container.clientWidth)
-        && (coords.clientY >= panelBounds.top) && (coords.clientY < panelBounds.top + furnitureCatalogListPanel.container.clientHeight)) {
-      if (furnitureCatalogListPanel.toolTipDiv.style.display == "none") {
-        if (furnitureCatalogListPanel.showTooltipTimeOut) {
-          clearTimeout(furnitureCatalogListPanel.showTooltipTimeOut);
+  window.addEventListener("mousemove", function(ev) {
+      var panelBounds = furnitureCatalogListPanel.container.getBoundingClientRect();
+      var coords = ev;
+      if ((coords.clientX >= panelBounds.left) && (coords.clientX < panelBounds.left + panelBounds.width)
+          && (coords.clientY >= panelBounds.top) && (coords.clientY < panelBounds.top + panelBounds.height)) {
+        if (furnitureCatalogListPanel.toolTipDiv.style.display == "none") {
+          if (furnitureCatalogListPanel.showTooltipTimeout) {
+            clearTimeout(furnitureCatalogListPanel.showTooltipTimeout);
+          }
+          furnitureCatalogListPanel.showTooltipTimeout = setTimeout(function() {
+              if (furnitureCatalogListPanel.currentFurnitureContainer !== undefined) {
+                currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
+                furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
+                if (!furnitureCatalogListPanel.hideTooltipTimeout) {
+                  furnitureCatalogListPanel.hideTooltipTimeout = setTimeout(function() { 
+                      furnitureCatalogListPanel.hideTooltip(); 
+                    }, 3000);
+                }
+              }
+            }, 1000);
+        } else {
+          if (currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
+            currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer;
+            furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev);
+          }
+          if (furnitureCatalogListPanel.hideTooltipTimeout) {
+            clearTimeout(furnitureCatalogListPanel.hideTooltipTimeout);
+          }
+          furnitureCatalogListPanel.hideTooltipTimeout = setTimeout(function() { 
+              furnitureCatalogListPanel.hideTooltip(); 
+            }, 3000);
         }
-        furnitureCatalogListPanel.showTooltipTimeOut = setTimeout(function() {
-            if (furnitureCatalogListPanel.currentFurnitureContainer !== undefined) {
-              currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer; 
-              furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev); 
-            }
-          }, 1000);
       } else {
-        if (currentFurnitureContainer !== furnitureCatalogListPanel.currentFurnitureContainer) {
-          currentFurnitureContainer = furnitureCatalogListPanel.currentFurnitureContainer;
-          furnitureCatalogListPanel.showTooltip(currentFurnitureContainer, ev);
-        }
-        if (furnitureCatalogListPanel.hideTooltipTimeOut) {
-          clearTimeout(furnitureCatalogListPanel.hideTooltipTimeOut);
-        }
-        furnitureCatalogListPanel.hideTooltipTimeOut = setTimeout(function() { 
-            furnitureCatalogListPanel.hideTooltip(); 
-          }, 3000);
+        furnitureCatalogListPanel.currentFurnitureContainer = undefined;
+        furnitureCatalogListPanel.hideTooltip();
       }
-    } else {
-      furnitureCatalogListPanel.currentFurnitureContainer = undefined;
-      furnitureCatalogListPanel.hideTooltip();
-    }
-  });
+    });
 
   furnitureCatalogList.addEventListener("mouseleave", function(ev) {
-     furnitureCatalogListPanel.hideTooltip();
-   });
+      furnitureCatalogListPanel.hideTooltip();
+    });
   
   this.languageChangeListener = function(ev) {
       var searchInput = document.getElementById("furniture-search-field");
@@ -422,24 +427,24 @@ FurnitureCatalogListPanel.prototype.createPieceOfFurniturePanel = function(piece
 FurnitureCatalogListPanel.prototype.showTooltip = function(pieceContainer, ev) {
   var pieceIcon = pieceContainer.querySelector("img.furniture-icon");
   if (pieceIcon !== null) {
-    this.toolTipDiv.style.left = ev.clientX + 10;
-    this.toolTipDiv.style.top = ev.clientY + 10;
+    this.toolTipDiv.style.left = (ev.clientX + 10) + "px";
+    this.toolTipDiv.style.top = (ev.clientY + 10) + "px";
     this.toolTipDiv.style.display = "block";
     this.toolTipDiv.innerHTML = this.createCatalogItemTooltipText(pieceContainer.pieceOfFurniture);
     var icon = this.toolTipDiv.querySelector("img");
     icon.src = pieceIcon.src;
     var toolTipBounds = this.toolTipDiv.getBoundingClientRect();
     if (toolTipBounds.x < 0) {
-      this.toolTipDiv.style.left = ev.clientX + 10 - toolTipBounds.x;
+      this.toolTipDiv.style.left = (ev.clientX + 10 - toolTipBounds.x) + "px";
     }
     if (toolTipBounds.y < 0) {
-      this.toolTipDiv.style.left = ev.clientY + 10 - toolTipBounds.y;
+      this.toolTipDiv.style.left = (ev.clientY + 10 - toolTipBounds.y) + "px";
     }
-    if (toolTipBounds.x + toolTipBounds.width > window.innerWidth) {
-      this.toolTipDiv.style.left = ev.clientX + 10 - (toolTipBounds.x + toolTipBounds.width - window.innerWidth);
+    if (toolTipBounds.x + Math.max(150, toolTipBounds.width) > window.innerWidth) {
+      this.toolTipDiv.style.left = (window.innerWidth - Math.max(150, toolTipBounds.width)) + "px";
     }
     if (toolTipBounds.y + toolTipBounds.height > window.innerHeight) {
-      this.toolTipDiv.style.top = ev.clientY + 10 - (toolTipBounds.y + toolTipBounds.height - window.innerHeight);
+      this.toolTipDiv.style.top = (window.innerHeight - toolTipBounds.height) + "px";
     }
   } else {
     this.hideTooltip();
@@ -450,13 +455,13 @@ FurnitureCatalogListPanel.prototype.showTooltip = function(pieceContainer, ev) {
  * @private 
  */
 FurnitureCatalogListPanel.prototype.hideTooltip = function() {
-  if (this.hideTooltipTimeOut) {
-    clearTimeout(this.hideTooltipTimeOut);
-    this.hideTooltipTimeOut = undefined;
+  if (this.hideTooltipTimeout) {
+    clearTimeout(this.hideTooltipTimeout);
+    this.hideTooltipTimeout = undefined;
   }
-  if (this.showTooltipTimeOut) {
-    clearTimeout(this.showTooltipTimeOut);
-    this.showTooltipTimeOut = undefined;
+  if (this.showTooltipTimeout) {
+    clearTimeout(this.showTooltipTimeout);
+    this.showTooltipTimeout = undefined;
   }
   if (this.toolTipDiv.style.display != "none") {
     this.toolTipDiv.style.display = "none";
