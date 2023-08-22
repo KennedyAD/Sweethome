@@ -2029,17 +2029,17 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
                   || this.writeResourceUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) < 0)
               && (!(textureImage instanceof IndexedDBURLContent)
                   || this.writeResourceUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0)) {
-            var savedContent = textureImage.getSavedContent();
-            if (savedContent === null) {
+            if (!this.isSavedContentInResourceScope(textureImage)) {
               var textureImageFileName = this.uploadingBlobs[textureImage.getURL()];
               if (textureImageFileName === undefined) {
                 textureImage.getBlob({
+	                textureImage: textureImage, 
                     blobReady: function(blob) {
                       textureImageFileName = UUID.randomUUID();
-                      preferences.uploadingBlobs[textureImage.getURL()] = textureImageFileName;
+                      preferences.uploadingBlobs[this.textureImage.getURL()] = textureImageFileName;
                       var imageExtension = blob.type == "image/png" ? ".png" : ".jpg";
                       var loadListener = function(textureImage, fileName, textureIndex) {
-                          if (textureImage.getSavedContent() === null) {
+                          if (!preferences.isSavedContentInResourceScope(textureImage)) {
                             var savedContent = URLContent.fromURL(
                                 CoreTools.format(preferences.readResourceUrl.replace(/(%[^s])/g, "%$1"), encodeURIComponent(fileName)));
                             textureImage.setSavedContent(savedContent);
@@ -2057,7 +2057,7 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
             } else {
               // Always update uploading blobs map because blob may have been saved elsewhere
               delete preferences.uploadingBlobs[textureImage.getURL()];
-              this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, savedContent.getURL());
+              this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, textureImage.getSavedContent().getURL());
             }
           } else if (textureImage instanceof URLContent) {
             this.setProperty(properties, RecordedUserPreferences.TEXTURE_IMAGE + index, textureImage.getURL());
@@ -2077,6 +2077,20 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
       this.removeProperty(properties, RecordedUserPreferences.TEXTURE_CREATOR + index);
     }
   }
+}
+
+/**
+ * Returns <code>true</code> if the saved content of the given content exists 
+ * and depends on the scope where the resources managed by preferences are saved.
+ * @param {URLContent} urlContent  content
+ * @private
+ */
+RecordedUserPreferences.prototype.isSavedContentInResourceScope = function(urlContent) {
+  var savedContent = urlContent.getSavedContent();
+  return savedContent !== null
+      && (!(savedContent instanceof IndexedDBURLContent)
+          || this.writeResourceUrl.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0
+          || savedContent.getURL().indexOf(this.writeResourceUrl.substring(0, this.writeResourceUrl.indexOf('?'))) === 0);
 }
 
 /**

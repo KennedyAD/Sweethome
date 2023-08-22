@@ -175,7 +175,7 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
   var abortableOperations = {};
   var savedContents = {};
   var savedContentNames = {};
-  var autoRecoveryObjectstore = "/Recovery/";
+  var autoRecoveryObjectstore = "/Recovery";
   if (this.configuration.autoRecoveryObjectstore !== undefined) {
     autoRecoveryObjectstore = "/" + this.configuration.autoRecoveryObjectstore + "/";
   }
@@ -220,7 +220,11 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
                 var observer = {
                     handledContent: this.localContent,
                     blobSaved: function(content, contentFileName) {
-                      if (content.getSavedContent() == null) {
+                      if (content.getSavedContent() == null
+                          || content.getSavedContent().getURL().indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) === 0
+                             && (recorder.configuration.writeResourceURL.indexOf(IndexedDBURLContent.INDEXED_DB_PREFIX) < 0
+                                 || recorder.configuration.writeResourceURL.indexOf(autoRecoveryObjectstore) < 0
+                                    && content.getSavedContent().getURL().indexOf(autoRecoveryObjectstore) > 0)) {
                         var savedContent = URLContent.fromURL(
                             CoreTools.format(recorder.configuration.readResourceURL.replace(/(%[^s])/g, "%$1"), encodeURIComponent(contentFileName)));
                         content.setSavedContent(savedContent);

@@ -698,16 +698,17 @@ function AutoRecoveryManager(application) {
     autoRecoveryObjectstore = application.configuration.autoRecoveryObjectstore;
   }
   
-  var autoRecoveryDatabaseUrlBase = "indexeddb://" + autoRecoveryDatabase + "/" + autoRecoveryObjectstore;
+  var manager = this;
+  this.autoRecoveryDatabaseUrlBase = "indexeddb://" + autoRecoveryDatabase + "/" + autoRecoveryObjectstore;
   // Auto recovery recorder stores data in autoRecoveryObjectstore object store of IndexedDB
   function AutoRecoveryRecorder() {
      HomeRecorder.call(this, {
-        readHomeURL: autoRecoveryDatabaseUrlBase + "/content?name=%s.recovered", 
-        writeHomeURL: autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s.recovered", 
-        readResourceURL: autoRecoveryDatabaseUrlBase + "/content?name=%s",
-        writeResourceURL: autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s", 
-        listHomesURL: autoRecoveryDatabaseUrlBase + "?name=(.*).recovered",
-        deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s.recovered",
+        readHomeURL: manager.autoRecoveryDatabaseUrlBase + "/content?name=%s.recovered", 
+        writeHomeURL: manager.autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s.recovered", 
+        readResourceURL: manager.autoRecoveryDatabaseUrlBase + "/content?name=%s",
+        writeResourceURL: manager.autoRecoveryDatabaseUrlBase + "?keyPathField=name&contentField=content&dateField=date&name=%s", 
+        listHomesURL: manager.autoRecoveryDatabaseUrlBase + "?name=(.*).recovered",
+        deleteHomeURL: manager.autoRecoveryDatabaseUrlBase + "?name=%s.recovered",
         writeHomeWithWorker: true
       });
   }
@@ -728,7 +729,6 @@ function AutoRecoveryManager(application) {
   this.recoveredHomeNames = [];
   var homeExtension1 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension");
   var homeExtension2 = application.getUserPreferences().getLocalizedString("FileContentManager", "homeExtension2");
-  var manager = this;
   var homeModificationListener = function(ev) {
       var home = ev.getSource(); 
       if (!home.isModified()) {
@@ -906,21 +906,15 @@ AutoRecoveryManager.prototype.deleteRecoveredHome = function(homeName) {
   var manager = this;
   this.autoSaveRecorder.deleteHome(homeName, { 
       homeDeleted: function() {
-        if (manager.recoveredHomeNames.length == 0
-            && (manager.application.configuration.writePreferencesURL !== undefined
-                && (manager.application.configuration.writeResourceURL !== undefined
-                    || manager.application.configuration.writePreferencesResourceURL !== undefined)
-                && (manager.application.configuration.readResourceURL !== undefined
-                   || manager.application.configuration.readPreferencesResourceURL !== undefined)
-                || !manager.userPreferencesContainModifiableItems())) {
+        if (manager.recoveredHomeNames.length == 0) {
           // Remove all data if no homes are left in Recovery database
           // except if an opened home was previously recovered (saving it again will make its data necessary)
           manager.autoSaveRecorder.getAvailableHomes({
               availableHomes: function(homeNames) {
                 if (homeNames.length === 0) {
                   var dummyRecorder = new DirectHomeRecorder({
-                      listHomesURL: autoRecoveryDatabaseUrlBase + "?name=.*",
-                      deleteHomeURL: autoRecoveryDatabaseUrlBase + "?name=%s"
+                      listHomesURL: manager.autoRecoveryDatabaseUrlBase + "?name=.*",
+                      deleteHomeURL: manager.autoRecoveryDatabaseUrlBase + "?name=%s"
                     });
                   dummyRecorder.getAvailableHomes({ 
                       availableHomes: function(dataNames) {
@@ -936,36 +930,3 @@ AutoRecoveryManager.prototype.deleteRecoveredHome = function(homeName) {
       }
     });      
 }
-
-/**
- * Returns <code>true</code> if the user preferences contain some modifiable textures or models.
- * @private
- */
-AutoRecoveryManager.prototype.userPreferencesContainModifiableItems = function() {
-  var preferences = this.application.getUserPreferences();
-  var texturesCatalog = preferences.getTexturesCatalog();
-  for (var i = 0; i < texturesCatalog.getCategoriesCount(); i++) {
-    var textureCategory = texturesCatalog.getCategory(i);
-    for (var j = 0; j < textureCategory.getTexturesCount(); j++) {
-      if (textureCategory.getTexture(j).isModifiable()) {
-        return true;
-      }
-    }
-  }
-  var recentTextures = preferences.getRecentTextures();
-  for (var i = 0; i < recentTextures.length; i++) {
-    if (recentTextures [i].getImage() instanceof LocalURLContent) {
-      return true;
-    }
-  }  
-  var furnitureCatalog = preferences.getFurnitureCatalog();
-  for (var i = 0; i < furnitureCatalog.getCategoriesCount(); i++) {
-    var furnitureCategory = furnitureCatalog.getCategory(i);
-    for (var j = 0; j < furnitureCategory.getFurnitureCount(); j++) {
-      if (furnitureCategory.getPieceOfFurniture(j).isModifiable()) {
-        return true;
-      }
-    }
-  }
-}
-
