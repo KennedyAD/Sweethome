@@ -591,7 +591,9 @@ label {
   box-sizing: border-box;
   cursor: pointer;
   padding: 0;
-  line-height: 70%;
+  line-height: 75%;
+  font-size: 0.9rem;
+  font-weight: 500;
   user-select: none;
 }
 
