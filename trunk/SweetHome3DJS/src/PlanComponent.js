@@ -1188,6 +1188,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
         // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
         // but track touch event types to avoid them to be managed also for mousedown and dblclick events
         mouseListener.touchEventType = ev.pointerType === undefined;
+        plan.lastTouchEndX = undefined;
+        plan.lastTouchEndY = undefined;
         if (plan.isEnabled()) {
           // Prevent default behavior to ensure a second touchstart event will be received 
           // for double taps under iOS >= 15
@@ -1403,6 +1405,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                 ev.targetTouches[1].clientX, ev.targetTouches[1].clientY)
           }
           
+          plan.lastTouchEndX = plan.lastTouchX;
+          plan.lastTouchEndY = plan.lastTouchY; 
           plan.lastTouchX = undefined;
           plan.lastTouchY = undefined;
         }
@@ -1635,6 +1639,20 @@ PlanComponent.prototype.stopIndicatorAnimation = function() {
 PlanComponent.prototype.addFocusListener = function(controller) {
   var plan = this;
   this.focusOutListener = function() {
+	  if (plan.pointerType === View.PointerType.TOUCH
+	      && plan.lastTouchEndX
+          && plan.lastTouchEndY
+		  && controller.isModificationState()
+	      && (controller.getMode() === PlanController.Mode.WALL_CREATION
+	          || controller.getMode() === PlanController.Mode.ROOM_CREATION
+	          || controller.getMode() === PlanController.Mode.POLYLINE_CREATION
+	          || controller.getMode() === PlanController.Mode.DIMENSION_LINE_CREATION)) {
+		// Emulate a mouse click at last touch location to validate last entered point
+		controller.pressMouse(plan.convertXPixelToModel(plan.lastTouchEndX), 
+            plan.convertYPixelToModel(plan.lastTouchEndY), 1, false, false, false, false, View.PointerType.TOUCH);
+		controller.releaseMouse(plan.convertXPixelToModel(plan.lastTouchEndX), 
+            plan.convertYPixelToModel(plan.lastTouchEndY));
+      }
       plan.mouseListener.lastPointerLocation = null;
       plan.mouseListener.actionStartedInPlanComponent = false;
       controller.escape();
