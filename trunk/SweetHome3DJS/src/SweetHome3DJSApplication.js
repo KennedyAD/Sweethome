@@ -265,7 +265,7 @@ DirectRecordingHomeController.prototype.open = function() {
   var preferences = controller.application.getUserPreferences();
   var readTask = function(homeName) {
       if (homeName != null && homeName.length > 0) {
-          controller.application.getHomeRecorder().readHome(homeName, 
+        controller.application.getHomeRecorder().readHome(homeName, 
           {
             homeLoaded: function(home) {
               home.setName(homeName);
@@ -329,7 +329,7 @@ DirectRecordingHomeController.prototype.open = function() {
                     if (ev.target == items [i]) {
                       items [i].classList.add("selected");
                       okButton.disabled = false;
-                      deleteButton.disabled = false;
+                      deleteButton.disabled = ev.target.innerHTML == controller.home.getName();
                     } else {
                       items [i].classList.remove("selected");
                     }
