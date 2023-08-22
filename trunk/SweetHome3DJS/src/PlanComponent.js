@@ -59,7 +59,7 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.canvas.style.width = "100%"; // computedStyle.width;
     this.canvas.style.height = "100%"; // computedStyle.height;
     if (PlanComponent.initialBackgroundColor === undefined) {
-	  PlanComponent.initialBackgroundColor = computedStyle.backgroundColor;
+      PlanComponent.initialBackgroundColor = computedStyle.backgroundColor;
     }
     this.canvas.style.backgroundColor = PlanComponent.initialBackgroundColor;  // /!\ computedStyle.backgroundColor may change when reseting home
     this.canvas.style.color = computedStyle.color;
@@ -2591,7 +2591,7 @@ PlanComponent.prototype.getForegroundColor = function(mode) {
  */
 PlanComponent.prototype.getForeground = function() {
   if (this.foreground == null) {
-    this.foreground = ColorTools.styleToHexadecimalString(window.getComputedStyle(this.canvas).color);
+    this.foreground = ColorTools.styleToHexadecimalString(this.canvas.style.color);
   }
   return this.foreground;
 }
@@ -2615,7 +2615,7 @@ PlanComponent.prototype.getBackgroundColor = function(mode) {
  */
 PlanComponent.prototype.getBackground = function() {
   if (this.background == null) {
-    this.background = ColorTools.styleToHexadecimalString(window.getComputedStyle(this.canvas).backgroundColor);
+    this.background = ColorTools.styleToHexadecimalString(this.canvas.style.backgroundColor);
   }
   return this.background;
 }
@@ -2828,8 +2828,8 @@ PlanComponent.prototype.paintGridLines = function(g2D, gridScale, xMin, xMax, yM
 PlanComponent.prototype.getGridColor = function() {
   if (this.gridColor == null) {
     // compute the gray color in between background and foreground colors
-    var background = ColorTools.styleToInteger(window.getComputedStyle(this.canvas).backgroundColor);
-    var foreground = ColorTools.styleToInteger(window.getComputedStyle(this.canvas).color);
+    var background = ColorTools.styleToInteger(this.canvas.style.backgroundColor);
+    var foreground = ColorTools.styleToInteger(this.canvas.style.color);
     var gridColorComponent = ((((background & 0xFF) + (foreground & 0xFF) + (background & 0xFF00) + (foreground & 0xFF00) + (background & 0xFF0000) + (foreground & 0xFF0000)) / 6) | 0) & 0xFF;
     this.gridColor = ColorTools.integerToHexadecimalString(gridColorComponent + (gridColorComponent << 8) + (gridColorComponent << 16));
   }
