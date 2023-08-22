@@ -797,6 +797,10 @@ function AutoRecoveryManager(application) {
               
               if (!recoveredHome) {
                 home.addPropertyChangeListener("MODIFIED", homeModificationListener);
+                if (home.isModified()) {
+	              manager.saveRecoveredHomes();
+	              manager.restartTimer();
+                }
               }
             },
             homesError: function(status, error) {
