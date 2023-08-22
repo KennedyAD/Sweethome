@@ -429,6 +429,7 @@ label {
   line-height: 95%;
   width: 70px;
   text-align: center;
+  overflow-wrap: break-word;
   pointer-events: none;
   z-index: 1;
   background-color: rgba(255,255,255,0.5);
