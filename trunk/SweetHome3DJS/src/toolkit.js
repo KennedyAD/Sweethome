@@ -833,6 +833,7 @@ JSPopupMenu.prototype.createMenuElement = function(items, zIndex) {
         JSPopupMenu.closeOpenedMenu();
       } else {
         menuElement.classList.remove("visible");
+        ev.stopPropagation();
       }
     });
   menuElement.appendChild(backElement);
@@ -1105,8 +1106,10 @@ if (!JSPopupMenu.globalCloserRegistered) {
   
   document.addEventListener("keydown", function(ev) {
       if (ev.key == "Escape" || ev.keyCode == 27) {
-        JSDialog.closeTopMostDialog();
-        JSPopupMenu.closeOpenedMenu();
+        if (!JSComboBox.closeOpenedSelectionPanel()) {
+          JSDialog.closeTopMostDialog();
+          JSPopupMenu.closeOpenedMenu();
+        }
       } else if (ev.keyCode == 13 && JSDialog.getTopMostDialog() != null) {
         var defaultCapableButton = JSDialog.getTopMostDialog().findElement(".default-capable");
         if (defaultCapableButton != null) {
@@ -1645,6 +1648,9 @@ JSComboBox.prototype.initSelectionPanel = function() {
         component.options.selectionChanged(component.selectedItem);
       }
     });
+  this.registerEventListener(this.selectionPanel, "focusout", function(ev) {
+	  comboBox.closeSelectionPanel();
+    });
 }
 
 /**
@@ -1688,25 +1694,52 @@ JSComboBox.prototype.setEnabled = function(enabled) {
 }
 
 /**
- * Opens the combo box's selectionPanel
+ * Opens the combo box's selection panel.
  * @param {number} pageX
  * @param {number} pageY
- *
  * @private
  */
 JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
-  var selectionPanel = this.selectionPanel;
-  var closeSelectorPanel = function() {
-      document.removeEventListener("click", closeSelectorPanel);
-      selectionPanel.style.opacity = 0;
-      selectionPanel.style.display = "none";
+  if (JSComboBox.current != null) {
+	JSComboBox.current.closeSelectionPanel();
+  }
+  
+  var comboBox = this;
+  this.closeSelectionPanelListener = function() {
+	  comboBox.closeSelectionPanel();
     }
 
-  selectionPanel.style.display = "block";
-  selectionPanel.style.opacity = 1;
-  selectionPanel.style.left = pageX + selectionPanel.clientWidth > window.width ? window.width - selectionPanel.clientWidth : pageX;
-  selectionPanel.style.top = pageY + selectionPanel.clientHeight > window.innerHeight ? window.innerHeight - selectionPanel.clientHeight : pageY;
-  window.addEventListener("click", closeSelectorPanel);
+  this.selectionPanel.style.display = "block";
+  this.selectionPanel.style.opacity = 1;
+  this.selectionPanel.style.left = (pageX + this.selectionPanel.clientWidth > window.width ? window.width - this.selectionPanel.clientWidth : pageX) + "px";
+  this.selectionPanel.style.top = (pageY + this.selectionPanel.clientHeight > window.innerHeight ? window.innerHeight - this.selectionPanel.clientHeight : pageY) + "px";
+  window.addEventListener("click", this.closeSelectionPanelListener);
+  JSComboBox.current = this;
+}
+
+/**
+ * Closes the combo box's selection panel.
+ * @private
+ */
+JSComboBox.prototype.closeSelectionPanel = function() {
+  window.removeEventListener("click", this.closeSelectionPanelListener);
+  this.selectionPanel.style.opacity = 0;
+  this.selectionPanel.style.display = "none";
+  this.closeSelectionPanelListener = null;
+  JSComboBox.current = null;
+}
+
+/**
+ * Closes currently displayed selection panel if any.
+ * @static
+ * @ignored
+ */
+JSComboBox.closeOpenedSelectionPanel= function() {
+  if (JSComboBox.current != null) {
+    JSComboBox.current.closeSelectionPanel();
+    return true;
+  }
+  return false;
 }
 
 /**
