@@ -52,7 +52,15 @@ CoreTools.loadJSON = function(url, observer) {
         request.addEventListener("load", function() {
             if (request.readyState === XMLHttpRequest.DONE) {
               if (request.status === 0 || request.status === 200) {
-                observer.jsonLoaded(JSON.parse(request.responseText));
+	            try {
+                  observer.jsonLoaded(JSON.parse(request.responseText));
+                } catch (ex) {
+                  CoreTools.unavailableResources.push(url);
+                  if (observer !== undefined
+                      && observer.jsonError !== undefined) {
+                    observer.jsonError(ex, ex.message);
+                  }
+                }
               } else if (observer.jsonError !== undefined) {
                 observer.jsonError(request.status, request.statusText);
               }
