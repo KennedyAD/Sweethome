@@ -344,6 +344,22 @@ function JSColorChooserDialog(preferences, title, color, observer) {
   this.registerEventListener(this.colorChooser.colorTileElements, "dblclick", function(ev) { 
       dialog.validate(); 
     });
+  if (!OperatingSystem.isInternetExplorerOrLegacyEdge()
+      || !window.PointerEvent) {
+	// Simulate double touch on the same element
+	var lastTouchTime = -1;
+	var colorTileElement = null;
+    this.registerEventListener(this.colorChooser.colorTileElements, "touchstart", function(ev) {
+        var time = Date.now();
+        if (time - lastTouchTime < 500
+            && colorTileElement === ev.target) {
+	      dialog.validate();
+        } else {
+          lastTouchTime = time; 
+          colorTileElement = ev.target;
+        }
+      });
+  }
 }
 JSColorChooserDialog.prototype = Object.create(JSDialog.prototype);
 JSColorChooserDialog.prototype.constructor = JSColorChooserDialog;
