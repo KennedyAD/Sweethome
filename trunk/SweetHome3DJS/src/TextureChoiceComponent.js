@@ -254,6 +254,22 @@ function JSTextureDialog(preferences, controller) {
   this.registerEventListener(this.findElements(".item"), "dblclick", function(ev) { 
       dialog.validate(); 
     });
+  if (!OperatingSystem.isInternetExplorerOrLegacyEdge()
+      || !window.PointerEvent) {
+	// Simulate double touch on the same element
+	var lastTouchTime = -1;
+	var textureElement = null;
+    this.registerEventListener(this.findElements(".item"), "touchstart", function(ev) {
+        var time = Date.now();
+        if (time - lastTouchTime < 500
+            && textureElement === ev.target) {
+	      dialog.validate();
+        } else {
+          lastTouchTime = time; 
+          textureElement = ev.target;
+        }
+      });
+  }
 
   this.initImportTexturesPanel();
 
