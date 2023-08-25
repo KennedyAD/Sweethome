@@ -60,9 +60,10 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
     this.canvas.style.height = "100%"; // computedStyle.height;
     if (PlanComponent.initialBackgroundColor === undefined) {
       PlanComponent.initialBackgroundColor = computedStyle.backgroundColor;
+      PlanComponent.initialForegroundColor = computedStyle.color;
     }
-    this.canvas.style.backgroundColor = PlanComponent.initialBackgroundColor;  // /!\ computedStyle.backgroundColor may change when reseting home
-    this.canvas.style.color = computedStyle.color;
+    this.canvas.style.backgroundColor = PlanComponent.initialBackgroundColor;  // /!\ computedStyle.backgroundColor and color may change when reseting home
+    this.canvas.style.color = PlanComponent.initialForegroundColor;
     this.canvas.style.font = computedStyle.font;
     this.scrollPane = document.createElement("div");
     this.scrollPane.setAttribute("id", containerOrCanvasId + ".scrollPane");
