@@ -155,7 +155,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
   var navigationPanelDiv = null;
   var innerHtml;
   try {
-    innerHtml = preferences.getLocalizedString(HomeComponent3D, "navigationPanel.innerHTML");
+    innerHtml = preferences.getLocalizedString("HomeComponent3D", "navigationPanel.innerHTML");
   } catch (ex) {
     innerHtml = 
           '<img src="' + ZIPTools.getScriptFolder("gl-matrix-min.js") + 'navigationPanel.png"'
