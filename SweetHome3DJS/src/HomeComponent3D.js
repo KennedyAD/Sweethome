@@ -198,42 +198,76 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
         });
   }
   
-  this.simulatedElementMousePressedListener = function(ev) {
-      var simulatedElement = ev.target;
-      var repeatKeyAction = function() {
-          var attribute = simulatedElement.getAttribute("data-simulated-key");
-          var keyName = attribute.substring(attribute.indexOf(":") + 1);
-          var keyStroke = ""; 
-          if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
-            keyStroke += "control ";
-          }
-          if (ev.altKey || keyName.indexOf("alt ") != -1) {
-            keyStroke += "alt ";
-          }
-          if (ev.metaKey || keyName.indexOf("meta ") != -1) {
-            keyStroke += "meta ";
-          }
-          if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
-            keyStroke += "shift ";
-          }
-          keyStroke += "pressed " + keyName;
-          component3D.callAction(ev, keyStroke);
-        };
-      var stopInterval = function(ev) {
-          window.clearInterval(intervalId);
-          simulatedElement.removeEventListener("mouseup", stopInterval);
-          simulatedElement.removeEventListener("mouseleave", stopInterval);
-          component3D.userActionsListener.windowMouseReleased(ev);
-          ev.stopPropagation();
-        };
-      simulatedElement.addEventListener("mouseup", stopInterval);
-      simulatedElement.addEventListener("mouseleave", stopInterval);
-      repeatKeyAction();
-      var intervalId = window.setInterval(repeatKeyAction, 80);
+  this.simulatedEventListener = {
+      mousePressed: function(ev) {
+        var simulatedElement = ev.target;
+        var repeatKeyAction = function() {
+            var attribute = simulatedElement.getAttribute("data-simulated-key");
+            var keyName = attribute.substring(attribute.indexOf(":") + 1);
+            var keyStroke = ""; 
+            if (ev.ctrlKey || keyName.indexOf("control ") != -1) {
+              keyStroke += "control ";
+            }
+            if (ev.altKey || keyName.indexOf("alt ") != -1) {
+              keyStroke += "alt ";
+            }
+            if (ev.metaKey || keyName.indexOf("meta ") != -1) {
+              keyStroke += "meta ";
+            }
+            if (ev.shiftKey || keyName.indexOf("shift ") != -1) {
+              keyStroke += "shift ";
+            }
+            keyStroke += "pressed " + keyName;
+            component3D.callAction(ev, keyStroke);
+          };
+        var stopInterval = function(ev) {
+            window.clearInterval(intervalId);
+            if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+                && window.PointerEvent) {
+              simulatedElement.removeEventListener("pointerup", stopInterval);
+              simulatedElement.removeEventListener("pointerleave", stopInterval);
+            } else {
+              simulatedElement.removeEventListener("touchend", stopInterval);
+              simulatedElement.removeEventListener("mouseup", stopInterval);
+              simulatedElement.removeEventListener("mouseleave", stopInterval);
+            }
+            component3D.userActionsListener.windowMouseReleased(ev);
+            ev.stopPropagation();
+          };
+        if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+            && window.PointerEvent) {
+          // Multi touch support for IE and Edge
+          simulatedElement.addEventListener("pointerup", stopInterval);
+          simulatedElement.addEventListener("pointerleave", stopInterval);
+        } else {
+          simulatedElement.addEventListener("touchend", stopInterval);
+          simulatedElement.addEventListener("mouseup", stopInterval);
+          simulatedElement.addEventListener("mouseleave", stopInterval);
+        }
+        repeatKeyAction();
+        var intervalId = window.setInterval(repeatKeyAction, 80);
+      },
+      pointerMousePressed : function(ev) {
+        // Required to avoid click simulation
+        ev.stopPropagation();
+      },
+      touchStarted : function(ev) {
+        // Prevent default behavior to avoid local zooming under iOS >= 15
+        ev.preventDefault(); 
+        component3D.simulatedEventListener.mousePressed(ev);
+      }
     };
   for (var i = 0; i < simulatedKeys.length; i++) {
     // Add a listener that simulates the given key and repeats it until mouse is released 
-    simulatedKeys [i].addEventListener("mousedown", this.simulatedElementMousePressedListener);
+    if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+        && window.PointerEvent) {
+      // Multi touch support for IE and Edge
+      simulatedKeys [i].addEventListener("pointerdown", this.simulatedEventListener.mousePressed);
+      simulatedKeys [i].addEventListener("mousedown", this.simulatedEventListener.pointerMousePressed);
+    } else {
+      simulatedKeys [i].addEventListener("touchstart", this.simulatedEventListener.touchStarted);
+      simulatedKeys [i].addEventListener("mousedown", this.simulatedEventListener.mousePressed);
+    }
   }
 
   if (navigationPanelDiv !== null) {
@@ -372,7 +406,14 @@ HomeComponent3D.prototype.dispose = function() {
     window.removeEventListener("resize", this.windowResizeListener);
     var simulatedKeys = this.getSimulatedKeyElements(document.getElementsByTagName("body") [0]);
     for (var i = 0; i < simulatedKeys.length; i++) {
-      simulatedKeys [i].removeEventListener("mousedown", this.simulatedElementMousePressedListener);
+      if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+          && window.PointerEvent) {
+        simulatedKeys [i].removeEventListener("pointerdown", this.simulatedEventListener.mousePressed);
+        simulatedKeys [i].removeEventListener("mousedown", this.simulatedEventListener.pointerMousePressed);
+      } else {
+        simulatedKeys [i].removeEventListener("touchstart", this.simulatedEventListener.touchStarted);
+        simulatedKeys [i].removeEventListener("mousedown", this.simulatedEventListener.mousePressed);
+      }
     }
     var navigationPanel = document.getElementById(this.navigationPanelId);
     navigationPanel.parentElement.removeChild(navigationPanel);
