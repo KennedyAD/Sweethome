@@ -759,7 +759,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         '  <div description>@{ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
         '  <div class="buttons">' +
         '    <button changeImage>@{ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>' +
-        '    <button onclick="window.open(\'http://www.sweethome3d.com/fr/importTextures.jsp\', \'_blank\')">@{ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
+        '    <button findImage>@{ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
         '    <input type="file" accept="image/*" style="display: none" /> ' +
         '  </div>' +
         '  <div preview>' +
@@ -817,6 +817,7 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
     this.imageStepPanel = this.findElement("[imageStep]");
     this.imageChoiceOrChangeLabel = this.findElement("[imageStep] [description]");
     this.imageChoiceOrChangeButton = this.findElement("button[changeImage]");
+    this.imageFindImageButton = this.findElement("button[findImage]");
     this.imageChooserInput = this.findElement("input[type='file']");
     this.previewPanel = this.findElement("[preview]");
   
@@ -868,6 +869,14 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
       };
     this.registerEventListener(this.imageChoiceOrChangeButton, "click", function(ev) {
         component.imageChooserInput.click();
+      });  
+    this.registerEventListener(this.imageFindImageButton, "click", function(ev) {
+	    try {
+	      var url = preferences.getLocalizedString("ImportedTextureWizardStepsPanel", "findImagesButton.url");
+          window.open(url, "_blank");
+		} catch (e) {
+		  this.imageFindImageButton.style.display = "none";
+		}
       });  
     var importImage = function(file) {
         if (file) {
