@@ -480,7 +480,7 @@ body {
   <div id="application-menu-toolbar" class="toolbar"></div><div id="home-pane-toolbar" class="toolbar"></div>
 
   <div id="catalog-furniture-pane">
-    <div id="furniture-catalog"><div id="furniture-catalog-list" class="furniture-catalog-list"></div></div>
+    <div id="furniture-catalog" tabindex="0"><div id="furniture-catalog-list" class="furniture-catalog-list"></div></div>
     <div id="catalog-furniture-splitter" class="pane-splitter"></div>
     <div id="furniture-view" tabindex="-1"></div>
   </div>
