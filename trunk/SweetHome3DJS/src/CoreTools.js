@@ -84,6 +84,9 @@ CoreTools.loadJSON = function(url, observer) {
         observer.jsonError(ex, ex.message);
       }
     }
+  } else if (observer !== undefined
+             && observer.jsonError !== undefined) {
+    observer.jsonError(404, "No " + url);
   }
   return undefined;
 }
