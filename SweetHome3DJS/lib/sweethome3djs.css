@@ -849,11 +849,11 @@ label {
 }
 
 .dialog-container.visible.small .dialog-content {
-  width: 40%;
+  width: 50%;
 }
 
 .dialog-container.visible.medium .dialog-content {
-  width: 60%;
+  width: 65%;
 }
 
 @media (max-height: 600px) {
