@@ -1145,8 +1145,11 @@ HomePane.prototype.createToolBar = function(home, preferences, controller) {
   this.addActionToToolBar(HomeView.ActionType.ZOOM_IN, toolBar, "toolbar-optional");
   this.addActionToToolBar(HomeView.ActionType.ZOOM_OUT, toolBar, "toolbar-optional");
   this.addSeparator(toolBar);
-  this.addActionToToolBar(HomeView.ActionType.ABOUT, toolBar);
-  this.addSeparator(toolBar);
+  if (this.showApplicationMenuButton == null
+      || !window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+    this.addActionToToolBar(HomeView.ActionType.ABOUT, toolBar);
+    this.addSeparator(toolBar);
+  }
 
   this.addActionToToolBar(HomeView.ActionType.PREFERENCES, toolBar); 
 
@@ -1367,6 +1370,8 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.DISPLAY_ALL_LEVELS, builder);
           homePane.addActionToMenu(ActionType.DISPLAY_SELECTED_LEVEL, builder);
           homePane.addActionToMenu(ActionType.MODIFY_3D_ATTRIBUTES, builder);
+          builder.addSeparator();
+          homePane.addActionToMenu(ActionType.ABOUT, builder);
         });
   } 
 }
