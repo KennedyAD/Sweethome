@@ -1956,7 +1956,7 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
               img.style.height = style.height;
               img.style.position = "absolute";
               img.style.opacity = 0.6;
-              img.style.zIndex = 4;
+              img.style.zIndex = 105;
               mouseListener.draggedImage = img;
               document.body.appendChild(img);
             }
