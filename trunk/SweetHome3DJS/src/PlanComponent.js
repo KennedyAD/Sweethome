@@ -105,7 +105,7 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   this.tooltip.style.borderColor = ColorTools.toRGBAStyle(this.getForeground(), 0.7);
   this.tooltip.style.font = this.font;
   this.tooltip.style.color = this.canvas.style.color;
-  this.tooltip.style.zIndex = 3;
+  this.tooltip.style.zIndex = 101;
   document.body.appendChild(this.tooltip);
 
   this.touchOverlay = document.createElement("div");
@@ -1572,7 +1572,8 @@ PlanComponent.prototype.startLongTouchAnimation = function(x, y, character, anim
   }
   this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
   this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
-  if (this.tooltip.style.visibility == "visible") {
+  if (this.tooltip.style.visibility == "visible"
+      && this.tooltip.getBoundingClientRect().top < this.canvas.getBoundingClientRect().top + y) {
     this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
   }
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
@@ -1610,8 +1611,9 @@ PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
     document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="' + ZIPTools.getScriptFolder() + 'resources/cursors/' + indicator + '32x32.png"/>';
     this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
     this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
-    if (this.tooltip.style.visibility == "visible") {
-      this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 65) + "px";
+    if (this.tooltip.style.visibility == "visible"
+        && this.tooltip.getBoundingClientRect().top < this.canvas.getBoundingClientRect().top + y) {
+      this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
     }
     for (var i = 0; i < this.touchOverlay.children.length; i++) {
       this.touchOverlay.children.item(i).classList.remove("animated");
@@ -5975,19 +5977,20 @@ PlanComponent.prototype.setToolTipFeedback = function(toolTipFeedback, x, y) {
   this.tooltip.style.marginLeft = "";
   if (toolTipFeedback.indexOf("<html>") === 0) {
     this.tooltip.style.textAlign = "left";
-  }
-  else {
+  } else {
     this.tooltip.style.textAlign = "center";
   }
   this.tooltip.innerHTML = toolTipFeedback.replace("<html>", "").replace("</html>", "");
-  var containerRect = this.container.getBoundingClientRect();
-  this.tooltip.style.left = containerRect.left + this.convertXModelToPixel(x) + "px";
-  this.tooltip.style.top = containerRect.top + this.convertYModelToPixel(y) + "px";
-  this.tooltip.style.marginTop = -(this.tooltip.clientHeight 
-      + (this.pointerType === View.PointerType.TOUCH ? (this.touchOverlay.style.visibility == "visible" ? 65 : 50) : 20)) + "px";
+  var marginTop =  -(this.tooltip.clientHeight + (this.pointerType === View.PointerType.TOUCH ? 55 : 20));
+  this.tooltip.style.marginTop = (marginTop + (this.touchOverlay.style.visibility == "visible" ? 15 : 0)) + "px";
   var width = this.tooltip.clientWidth + 10;
   this.tooltip.style.width = width + "px";
   this.tooltip.style.marginLeft = -width / 2 + "px";
+  var containerRect = this.container.getBoundingClientRect();
+  this.tooltip.style.left = Math.max(5 + width / 2, 
+     Math.min(window.innerWidth - width / 2 - 10, containerRect.left + this.convertXModelToPixel(x))) + "px";
+  var top =  containerRect.top + this.convertYModelToPixel(y);
+  this.tooltip.style.top =  (top + marginTop > 15 ? top : top - marginTop + (this.pointerType === View.PointerType.TOUCH ? 100 : 20)) + "px";
   this.tooltip.style.visibility = "visible";
 }
 

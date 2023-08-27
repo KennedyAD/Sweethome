@@ -72,7 +72,7 @@ button:disabled {
   width: 20px;
   height: 20px;
   opacity: 0.8;
-  z-index: 4;
+  z-index: 104;
   pointer-events: none;
 }
 
@@ -129,7 +129,7 @@ button:disabled {
 }
 
 #touch-overlay-timer-hidder.animated {
-  z-index: 1;
+  z-index: 101;
   visibility: hidden;
   border-bottom-color: transparent;
   border-left-color: transparent;
@@ -1673,7 +1673,7 @@ label {
 
 .combo-box .selection-panel {
   background-color: white;
-  z-index: 3000;
+  z-index: 1100;
   transition: opacity 0.5s;
   display: none;
   position: fixed;
