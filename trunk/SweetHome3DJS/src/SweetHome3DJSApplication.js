@@ -745,89 +745,87 @@ function AutoRecoveryManager(application) {
   var homesListener = function(ev) {
       var home = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
-	    setTimeout(function() {
-            if (home.getName() != null) {
-              manager.recoveredHomeNames.push(home.getName());
-            }
-            manager.autoSaveRecorder.getAvailableHomes({
-                availableHomes: function(homeNames) {
-                  var recoveredHome = false;
-                  for (var i = 0; i < homeNames.length; i++) {
-                    if (home.getName() != null 
-                        && this.homeNamesEqual(home.getName(), homeNames [i])) {
-                      if (application.configuration.silentAutoRecovery
-                          || confirm(application.getUserPreferences().getLocalizedString("SweetHome3DJSApplication", "confirmRecoverHome"))) {
-                        recoveredHome = true;
-                        manager.autoSaveRecorder.readHome(homeNames [i], {
-                            homeLoaded: function(replacingHome) {
-                              application.removeHomesListener(homesListener);
-                              application.getHomeController(home).close();
-                              var homeName = replacingHome.getName();
-                              replacingHome.setRecovered(true);
-                              replacingHome.addPropertyChangeListener("RECOVERED", function(ev) {
-                                  if (!replacingHome.isRecovered()) {
-                                    manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(replacingHome.getName()), 1);
-                                    manager.deleteRecoveredHome(homeName);
-                                    replacingHome.addPropertyChangeListener("MODIFIED", homeModificationListener);
-                                  }
-                                });
-                              replacingHome.addPropertyChangeListener("NAME", function(ev) {
-                                  manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(ev.getOldValue()), 1);
-                                  if (!replacingHome.isRecovered()) {
-                                    manager.deleteRecoveredHome(ev.getOldValue());
-                                  }
-                                  manager.recoveredHomeNames.push(ev.getNewValue());
-                                });
-                              application.addHome(replacingHome);
-                              application.addHomesListener(homesListener);
-                            },
-                            homeError: function(error) {
-                              var message = application.getUserPreferences().
-                                  getLocalizedString("HomeController", "openError", home.getName()) + "\n" + error; 
-                              console.log(message);
-                              alert(message);
-                            },
-                          });
-                      } else {
-                        manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(home.getName()), 1);
-                        manager.deleteRecoveredHome(homeNames [i]);
-                      }
-                      break;
-                    }
-                  }
-                  
-                  if (!recoveredHome) {
-                    home.addPropertyChangeListener("MODIFIED", homeModificationListener);
-                    if (home.isModified()) {
-                      manager.saveRecoveredHomes();
-                      manager.restartTimer();
-                    }
-                  }
-                },
-                homesError: function(status, error) {
-                  console.log("Couldn't retrieve homes from database : " + status + " " + error); 
-                },
-                homeNamesEqual: function(name1, name2) {
-                  // If both names ends by a home extension
-                  var name1Extension1Index = name1.indexOf(homeExtension1, name1.length - homeExtension1.length);
-                  var name1Extension2Index = name1.indexOf(homeExtension2, name1.length - homeExtension2.length);
-                  var name2Extension1Index = name2.indexOf(homeExtension1, name2.length - homeExtension1.length);
-                  var name2Extension2Index = name2.indexOf(homeExtension2, name2.length - homeExtension2.length);
-                  if ((name1Extension1Index > 0 || name1Extension2Index > 0)
-                      && (name2Extension1Index > 0 || name2Extension2Index > 0)) {
-                    var name1WithoutExtension = name1Extension1Index > 0 
-                        ? name1.substring(0, name1Extension1Index)
-                        : name1.substring(0, name1Extension2Index);
-                    var name2WithoutExtension = name2Extension1Index > 0 
-                        ? name2.substring(0, name2Extension1Index)
-                        : name2.substring(0, name2Extension2Index);
-                    return name1WithoutExtension === name2WithoutExtension;
+        manager.autoSaveRecorder.getAvailableHomes({
+            availableHomes: function(homeNames) {
+              if (home.getName() != null) {
+                manager.recoveredHomeNames.push(home.getName());
+              }
+              var recoveredHome = false;
+              for (var i = 0; i < homeNames.length; i++) {
+                if (home.getName() != null 
+                    && this.homeNamesEqual(home.getName(), homeNames [i])) {
+                  if (application.configuration.silentAutoRecovery
+                      || confirm(application.getUserPreferences().getLocalizedString("SweetHome3DJSApplication", "confirmRecoverHome"))) {
+                    recoveredHome = true;
+                    manager.autoSaveRecorder.readHome(homeNames [i], {
+                        homeLoaded: function(replacingHome) {
+                          application.removeHomesListener(homesListener);
+                          application.getHomeController(home).close();
+                          var homeName = replacingHome.getName();
+                          replacingHome.setRecovered(true);
+                          replacingHome.addPropertyChangeListener("RECOVERED", function(ev) {
+                              if (!replacingHome.isRecovered()) {
+                                manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(replacingHome.getName()), 1);
+                                manager.deleteRecoveredHome(homeName);
+                                replacingHome.addPropertyChangeListener("MODIFIED", homeModificationListener);
+                              }
+                            });
+                          replacingHome.addPropertyChangeListener("NAME", function(ev) {
+                              manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(ev.getOldValue()), 1);
+                              if (!replacingHome.isRecovered()) {
+                                manager.deleteRecoveredHome(ev.getOldValue());
+                              }
+                              manager.recoveredHomeNames.push(ev.getNewValue());
+                            });
+                          application.addHome(replacingHome);
+                          application.addHomesListener(homesListener);
+                        },
+                        homeError: function(error) {
+                          var message = application.getUserPreferences().
+                              getLocalizedString("HomeController", "openError", home.getName()) + "\n" + error; 
+                          console.log(message);
+                          alert(message);
+                        },
+                      });
                   } else {
-                    return name1 === name2;
+                    manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(home.getName()), 1);
+                    manager.deleteRecoveredHome(homeNames [i]);
                   }
+                  break;
                 }
-              });
-            }, 50); // Leave some time to deletion cleanup in case a home is added just after an other one is deleted
+              }
+              
+              if (!recoveredHome) {
+                home.addPropertyChangeListener("MODIFIED", homeModificationListener);
+                if (home.isModified()) {
+                  manager.saveRecoveredHomes();
+                  manager.restartTimer();
+                }
+              }
+            },
+            homesError: function(status, error) {
+              console.log("Couldn't retrieve homes from database : " + status + " " + error); 
+            },
+            homeNamesEqual: function(name1, name2) {
+              // If both names ends by a home extension
+              var name1Extension1Index = name1.indexOf(homeExtension1, name1.length - homeExtension1.length);
+              var name1Extension2Index = name1.indexOf(homeExtension2, name1.length - homeExtension2.length);
+              var name2Extension1Index = name2.indexOf(homeExtension1, name2.length - homeExtension1.length);
+              var name2Extension2Index = name2.indexOf(homeExtension2, name2.length - homeExtension2.length);
+              if ((name1Extension1Index > 0 || name1Extension2Index > 0)
+                  && (name2Extension1Index > 0 || name2Extension2Index > 0)) {
+                var name1WithoutExtension = name1Extension1Index > 0 
+                    ? name1.substring(0, name1Extension1Index)
+                    : name1.substring(0, name1Extension2Index);
+                var name2WithoutExtension = name2Extension1Index > 0 
+                    ? name2.substring(0, name2Extension1Index)
+                    : name2.substring(0, name2Extension2Index);
+                return name1WithoutExtension === name2WithoutExtension;
+              } else {
+                return name1 === name2;
+              }
+            }
+          });
       } else if (ev.getType() == CollectionEvent.Type.DELETE
                  && home.getName() != null) {
         if (manager.recoveredHomeNames.indexOf(home.getName()) >= 0) {
