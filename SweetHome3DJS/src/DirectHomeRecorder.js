@@ -177,7 +177,7 @@ DirectHomeRecorder.prototype.saveContents = function(localContents, contentsObse
   var savedContentNames = {};
   var autoRecoveryObjectstore = "/Recovery";
   if (this.configuration.autoRecoveryObjectstore !== undefined) {
-    autoRecoveryObjectstore = "/" + this.configuration.autoRecoveryObjectstore + "/";
+    autoRecoveryObjectstore = "/" + this.configuration.autoRecoveryObjectstore;
   }
   var recorder = this;
   localContents = localContents.slice(0);
