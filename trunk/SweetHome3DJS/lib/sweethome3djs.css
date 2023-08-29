@@ -570,7 +570,7 @@ label {
   display: inline-block;
   position: relative;
   height: 1.5rem;
-  width: 8rem;
+  width: 7rem;
 }
 
 .spinner input[type="text"] {
@@ -839,7 +839,7 @@ label {
 }
 
 .dialog-container.visible .dialog-content {
-  max-height: 80%;
+  max-height: 85%;
   /* height: auto; */
   width: 80%;
   opacity: 1;
