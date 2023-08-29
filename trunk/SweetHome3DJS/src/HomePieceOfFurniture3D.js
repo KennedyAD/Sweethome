@@ -687,19 +687,21 @@ HomePieceOfFurniture3D.prototype.setVisible = function(node, visible, modelFlags
     
     if (visible) {
       var appearanceName = appearance.getName();
-      if ((modelFlags & PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL) != 0
-          && appearanceName.indexOf(ModelManager.EDGE_COLOR_MATERIAL_PREFIX) === 0) {
-        visible = false;
-      } else if (materials != null) {
-        // Check whether the material color used by this shape isn't invisible 
-        for (var i = 0; i < materials.length; i++) {
-          var material = materials [i];
-          if (material !== null 
-              && material.getName() == appearanceName) {
-            var color = material.getColor();  
-            visible = color === null
-                || (color & 0xFF000000) !== 0;
-            break;
+      if (appearanceName != null) {
+        if ((modelFlags & PieceOfFurniture.HIDE_EDGE_COLOR_MATERIAL) != 0
+            && appearanceName.indexOf(ModelManager.EDGE_COLOR_MATERIAL_PREFIX) === 0) {
+          visible = false;
+        } else if (materials != null) {
+          // Check whether the material color used by this shape isn't invisible 
+          for (var i = 0; i < materials.length; i++) {
+            var material = materials [i];
+            if (material !== null 
+                && material.getName() == appearanceName) {
+              var color = material.getColor();  
+              visible = color === null
+                  || (color & 0xFF000000) !== 0;
+              break;
+            }
           }
         }
       }
