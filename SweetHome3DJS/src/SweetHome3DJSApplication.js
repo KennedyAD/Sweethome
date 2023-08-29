@@ -742,6 +742,13 @@ function AutoRecoveryManager(application) {
           }, 1000);
       }
     }; 
+  var homeNameModificationListener = function(ev) {
+      manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(ev.getOldValue()), 1);
+      if (!ev.getSource().isRecovered()) {
+        manager.deleteRecoveredHome(ev.getOldValue());
+      }
+      manager.recoveredHomeNames.push(ev.getNewValue());
+    }; 
   var homesListener = function(ev) {
       var home = ev.getItem();
       if (ev.getType() == CollectionEvent.Type.ADD) {
@@ -770,13 +777,7 @@ function AutoRecoveryManager(application) {
                                 replacingHome.addPropertyChangeListener("MODIFIED", homeModificationListener);
                               }
                             });
-                          replacingHome.addPropertyChangeListener("NAME", function(ev) {
-                              manager.recoveredHomeNames.splice(manager.recoveredHomeNames.indexOf(ev.getOldValue()), 1);
-                              if (!replacingHome.isRecovered()) {
-                                manager.deleteRecoveredHome(ev.getOldValue());
-                              }
-                              manager.recoveredHomeNames.push(ev.getNewValue());
-                            });
+                          replacingHome.addPropertyChangeListener("NAME", homeNameModificationListener);
                           application.addHome(replacingHome);
                           application.addHomesListener(homesListener);
                         },
@@ -797,6 +798,7 @@ function AutoRecoveryManager(application) {
               
               if (!recoveredHome) {
                 home.addPropertyChangeListener("MODIFIED", homeModificationListener);
+                home.addPropertyChangeListener("NAME", homeNameModificationListener);
                 if (home.isModified()) {
                   manager.saveRecoveredHomes();
                   manager.restartTimer();
