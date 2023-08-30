@@ -880,10 +880,13 @@ public class FurnitureController implements Controller {
       }
       setCreator(creator);
 
-      String license = firstPiece.getLicense();
+      String license = (String)this.furnitureLibrary.getPieceOfFurnitureLocalizedData(
+          firstPiece, furnitureLanguage, FurnitureLibrary.FURNITURE_LICENSE_PROPERTY, firstPiece.getLicense());
       if (license != null) {
         for (int i = 1; i < this.modifiedFurniture.size(); i++) {
-          if (!license.equals(this.modifiedFurniture.get(i).getLicense())) {
+          CatalogPieceOfFurniture piece = this.modifiedFurniture.get(i);
+          if (!license.equals(this.furnitureLibrary.getPieceOfFurnitureLocalizedData(
+              piece, furnitureLanguage, FurnitureLibrary.FURNITURE_LICENSE_PROPERTY, piece.getLicense()))) {
             license = null;
             break;
           }
@@ -1730,6 +1733,8 @@ public class FurnitureController implements Controller {
         retrieveLocalizedData(piece, localizedTags, FurnitureLibrary.FURNITURE_TAGS_PROPERTY);
         Map<String, Object> localizedCategories = new HashMap<String, Object>();
         retrieveLocalizedData(piece, localizedCategories, FurnitureLibrary.FURNITURE_CATEGORY_PROPERTY);
+        Map<String, Object> localizedLicenses = new HashMap<String, Object>();
+        retrieveLocalizedData(piece, localizedLicenses, FurnitureLibrary.FURNITURE_LICENSE_PROPERTY);
 
         // Update mandatory not localizable data
         if (model != null) {
@@ -1794,9 +1799,6 @@ public class FurnitureController implements Controller {
         if (creator != null || piecesCount == 1) {
           pieceCreator = creator;
         }
-        if (license != null || piecesCount == 1) {
-          pieceLicense = license;
-        }
         if (resizable != null || piecesCount == 1) {
           pieceResizable = resizable;
         }
@@ -1852,6 +1854,13 @@ public class FurnitureController implements Controller {
             }
           } else {
             localizedTags.put(this.furnitureLanguageController.getFurnitureLangauge(), tags);
+          }
+        }
+        if (license != null || piecesCount == 1) {
+          if (defaultFurnitureLanguage) {
+            pieceLicense = license;
+          } else {
+            localizedLicenses.put(this.furnitureLanguageController.getFurnitureLangauge(), license);
           }
         }
 
@@ -2253,6 +2262,18 @@ public class FurnitureController implements Controller {
             if (localizedPieceCategory != null) {
               this.furnitureLibrary.setPieceOfFurnitureLocalizedData(
                   updatedPiece, language, FurnitureLibrary.FURNITURE_CATEGORY_PROPERTY, localizedPieceCategory);
+            }
+            Object localizedPieceLicense = localizedLicenses.get(language);
+            if (localizedPieceLicense != null) {
+              this.furnitureLibrary.setPieceOfFurnitureLocalizedData(
+                  updatedPiece, language, FurnitureLibrary.FURNITURE_LICENSE_PROPERTY, localizedPieceLicense);
+            }
+            // Copy localized properties
+            for (String propertyName : piece.getPropertyNames()) {
+              Object pieceData = this.furnitureLibrary.getPieceOfFurnitureLocalizedData(piece, language, propertyName);
+              if (pieceData != null) {
+                this.furnitureLibrary.setPieceOfFurnitureLocalizedData(updatedPiece, language, propertyName, pieceData);
+              }
             }
           }
         }
