@@ -537,9 +537,9 @@ public class FurnitureLibraryTable extends JTable implements View {
          furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
              public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
                String piece1Name = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                   piece1, controller.getFurnitureLangauge(), propertyName, piece1.getName());
+                   piece1, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece1.getName());
                String piece2Name = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                   piece2, controller.getFurnitureLangauge(), propertyName, piece2.getName());
+                   piece2, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece2.getName());
                return collator.compare(piece1Name, piece2Name);
              }
            };
@@ -547,12 +547,12 @@ public class FurnitureLibraryTable extends JTable implements View {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
               String piece1Description = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                  piece1, controller.getFurnitureLangauge(), propertyName, piece1.getDescription());
+                  piece1, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece1.getDescription());
               if (piece1Description == null) {
                 return -1;
               } else {
                 String piece2Description = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                    piece2, controller.getFurnitureLangauge(), propertyName, piece2.getDescription());
+                    piece2, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece2.getDescription());
                 if (piece2Description == null) {
                   return 1;
                 } else {
@@ -571,12 +571,12 @@ public class FurnitureLibraryTable extends JTable implements View {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
               String piece1License = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                  piece1, controller.getFurnitureLangauge(), propertyName, piece1.getLicense());
+                  piece1, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece1.getLicense());
               if (piece1License == null) {
                 return -1;
               } else {
                 String piece2License = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                    piece2, controller.getFurnitureLangauge(), propertyName, piece2.getLicense());
+                    piece2, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece2.getLicense());
                 if (piece2License == null) {
                   return 1;
                 } else {
@@ -589,12 +589,12 @@ public class FurnitureLibraryTable extends JTable implements View {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
               String [] piece1Tags = (String [])furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                  piece1, controller.getFurnitureLangauge(), propertyName, piece1.getTags());
+                  piece1, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece1.getTags());
               if (piece1Tags == null) {
                 return -1;
               } else {
                 String [] piece2Tags = (String [])furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                    piece2, controller.getFurnitureLangauge(), propertyName, piece2.getTags());
+                    piece2, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece2.getTags());
                 if (piece2Tags == null) {
                   return 1;
                 } else {
@@ -607,12 +607,12 @@ public class FurnitureLibraryTable extends JTable implements View {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
               String piece1Information = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                  piece1, controller.getFurnitureLangauge(), propertyName, piece1.getInformation());
+                  piece1, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece1.getInformation());
               if (piece1Information == null) {
                 return -1;
               } else {
                 String piece2Information = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                    piece2, controller.getFurnitureLangauge(), propertyName, piece2.getInformation());
+                    piece2, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece2.getInformation());
                 if (piece2Information == null) {
                   return 1;
                 } else {
@@ -649,9 +649,9 @@ public class FurnitureLibraryTable extends JTable implements View {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
               String piece1Category = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                  piece1, controller.getFurnitureLangauge(), propertyName, piece1.getCategory().getName());
+                  piece1, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece1.getCategory().getName());
               String piece2Category = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
-                  piece2, controller.getFurnitureLangauge(), propertyName, piece2.getCategory().getName());
+                  piece2, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece2.getCategory().getName());
               return collator.compare(piece1Category, piece2Category);
             }
           };
@@ -785,8 +785,10 @@ public class FurnitureLibraryTable extends JTable implements View {
         final DateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd");
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
           public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
-            String value1 = piece1.getProperty(propertyName);
-            String value2 = piece2.getProperty(propertyName);
+            String value1 = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+                piece1, controller.getFurnitureLangauge(), propertyName, piece1.getProperty(propertyName));
+            String value2 = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+                piece2, controller.getFurnitureLangauge(), propertyName, piece2.getProperty(propertyName));
             if (value1 == null) {
               if (value2 == null) {
                 return collator.compare(piece1.getName(), piece2.getName());
@@ -1100,29 +1102,31 @@ public class FurnitureLibraryTable extends JTable implements View {
             if (DefaultFurnitureCatalog.PropertyKey.ID.getKeyPrefix().equals(propertyName)) {
               value = piece.getId();
             } else if (DefaultFurnitureCatalog.PropertyKey.NAME.getKeyPrefix().equals(propertyName)) {
-              value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+              value = furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getName());
             } else if (DefaultFurnitureCatalog.PropertyKey.DESCRIPTION.getKeyPrefix().equals(propertyName)) {
-              value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+              value = furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getDescription());
             } else if (DefaultFurnitureCatalog.PropertyKey.INFORMATION.getKeyPrefix().equals(propertyName)) {
-              value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+              value = furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getInformation());
             } else if (DefaultFurnitureCatalog.PropertyKey.CREATOR.getKeyPrefix().equals(propertyName)) {
               value = piece.getCreator();
             } else if (DefaultFurnitureCatalog.PropertyKey.LICENSE.getKeyPrefix().equals(propertyName)) {
-              value = piece.getLicense();
+              value = furnitureLibrary.getPieceOfFurnitureLocalizedData(
+                  piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getLicense());
             } else if (DefaultFurnitureCatalog.PropertyKey.TAGS.getKeyPrefix().equals(propertyName)) {
               String tagsText = Arrays.toString((String [])furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getTags()));
               value = tagsText.substring(1, tagsText.length() - 1);
             } else if (DefaultFurnitureCatalog.PropertyKey.CATEGORY.getKeyPrefix().equals(propertyName)) {
-              value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+              value = furnitureLibrary.getPieceOfFurnitureLocalizedData(
                   piece, controller.getFurnitureLangauge(), property.getDefaultPropertyKeyName(), piece.getCategory().getName());
             } else if (DefaultFurnitureCatalog.PropertyKey.CURRENCY.getKeyPrefix().equals(propertyName)) {
               value = piece.getCurrency();
             } else {
-              value = piece.getProperty(propertyName);
+              value = (String)furnitureLibrary.getPieceOfFurnitureLocalizedData(
+                  piece, controller.getFurnitureLangauge(), propertyName, piece.getProperty(propertyName));
             }
             return super.getTableCellRendererComponent(
                 table, value, isSelected, hasFocus, row, column);
