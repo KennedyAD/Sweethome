@@ -22,6 +22,7 @@ package com.eteks.furniturelibraryeditor.model;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -246,6 +247,20 @@ public class FurnitureLibrary implements Library {
       pieceData.put(propertyKey, propertyValue);
       this.propertyChangeSupport.firePropertyChange(Property.LOCALIZED_DATA.name(), oldPropertyValue, propertyValue);
     }
+  }
+
+  /**
+   * Returns the names of the localized properties of the given piece.
+   */
+  public Collection<String> getPieceOfFurnitureLocalizedDataPropertyNames(CatalogPieceOfFurniture piece, String language) {
+    Map<String, Map<String, Object>> pieceLocalizedData = this.furnitureLocalizedData.get(piece);
+    if (pieceLocalizedData != null) {
+      Map<String, Object> pieceData = pieceLocalizedData.get(language);
+      if (pieceData != null) {
+        return pieceData.keySet();
+      }
+    }
+    return Collections.emptySet();
   }
 
   /**
