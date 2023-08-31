@@ -1,0 +1,211 @@
+<!--
+   test3DView.html 
+   
+   Sweet Home 3D, Copyright (c) 2016-2019 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+<!-- /!\ Requires lib files built with viewerLibraries Ant target 
+         and access to local file system : https://www.google.com/search?q=browser+access+to+local+files -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>SweetHome3DJS Viewer Test</title>
+<base href="..">
+<script type="text/javascript" src="lib/big.min.js"></script>
+<script type="text/javascript" src="lib/gl-matrix-min.js"></script>
+<script type="text/javascript" src="lib/jszip.min.js"></script>
+<script type="text/javascript" src="lib/jsXmlSaxParser.min.js"></script>
+
+<script type="text/javascript" src="src/core.js"></script>
+<script type="text/javascript" src="src/scene3d.js"></script>
+<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
+<script type="text/javascript" src="src/URLContent.js"></script>
+<script type="text/javascript" src="src/ModelLoader.js"></script>
+<script type="text/javascript" src="src/Triangulator.js"></script>
+<script type="text/javascript" src="src/OBJLoader.js"></script>
+<script type="text/javascript" src="src/DAELoader.js"></script>
+<script type="text/javascript" src="src/Max3DSLoader.js"></script>
+<script type="text/javascript" src="src/ModelManager.js"></script>
+<script type="text/javascript" src="src/ModelPreviewComponent.js"></script>
+
+<script type="text/javascript" src="lib/generated/geom.js"></script>
+<script type="text/javascript" src="lib/stroke.min.js"></script>
+<script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="lib/generated/SweetHome3DViewer.js"></script>
+<script type="text/javascript" src="src/ShapeTools.js"></script>
+<script type="text/javascript" src="src/HomeComponent3D.js"></script>
+<script type="text/javascript" src="src/Object3DBranch.js"></script>
+<script type="text/javascript" src="src/HomePieceOfFurniture3D.js"></script>
+<script type="text/javascript" src="src/Room3D.js"></script>
+<script type="text/javascript" src="src/Wall3D.js"></script>
+<script type="text/javascript" src="src/Ground3D.js"></script>
+<script type="text/javascript" src="src/Polyline3D.js"></script>
+<script type="text/javascript" src="src/Label3D.js"></script>
+<script type="text/javascript" src="src/TextureManager.js"></script>
+<script type="text/javascript" src="src/LengthUnit.js"></script>
+<script type="text/javascript" src="src/UserPreferences.js"></script>
+<script type="text/javascript" src="src/HomeRecorder.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+
+var animate = true;
+
+/**
+ * Tests Home, HomeComponent3D and HomeController3D classes.
+ */
+function test3DView() {
+  // Create a home with furniture
+  var catalogPiece = new CatalogPieceOfFurniture("eTeks#Test", "Cube", "Test", null, ["Test"], null, 5, 
+      new URLContent("test/resources/cube.png"), null, new URLContent("test/resources/cube.zip"), 100, 100, 100, 0, 1, 
+      true, null, null, false, "eTeks", true, true, true, new Big("10.20"), new Big("20.6"), null);
+  
+  new HomeRecorder().readHome("test/resources/SweetHome3DExample3.zip", 
+      {
+        homeLoaded: function(home) {
+          var preferences = new DefaultUserPreferences();
+          displayHome(home, preferences);
+          
+          // Add objects to home and make them blink          
+          var piece = new HomePieceOfFurniture(catalogPiece);
+          piece.setX(-150);
+          piece.setY(250);
+          home.addPieceOfFurniture(piece);
+          
+          var wall1 = new Wall(30, 725, 30, 870, 5, 150);
+          var wall2 = new Wall(30, 870, 170, 870, 5, 150);
+          wall1.setWallAtEnd(wall2);
+          wall2.setWallAtStart(wall1);
+          home.addWall(wall1);
+          home.addWall(wall2);
+
+          var room = new Room([[30, 725], [30, 870], [170, 870], [160, 735]]);
+          home.addRoom(room);
+          
+          var label = new Label("Date", 90, 900);
+          label.setPitch(Math.PI / 3);
+          label.setStyle(new TextStyle("Arial", 30, true, false));
+          label.setElevation(10);
+          home.addLabel(label);
+
+          var polyline = new Polyline([[0, 910], [200, 910], [200, 950]]);
+          var polyline = new Polyline([[20, 910], [170, 910], [180, 890]]);
+          polyline.setThickness(3);
+          polyline.setDashPattern([10, 2]);  
+          polyline.setVisibleIn3D(true);
+          home.addPolyline(polyline);
+          
+          var movedObjects = [wall1, wall2, room, label, polyline];
+          for (var i = 0; i < movedObjects.length; i++) {
+            movedObjects [i].move(-250, -550);
+          }
+          
+          // Create a group with smaller objects placed on top of piece
+          var piece2 = piece.clone();
+          piece2.setColor(0xFFFF0000);
+          var piece3 = piece.clone();
+          piece3.setColor(0xFF0000FF);
+          piece3.setElevation(piece2.getHeight());
+          piece3.setWidth(piece2.getWidth() / 2);
+          piece3.setDepth(piece2.getDepth() / 2);
+          piece3.setHeight(piece2.getHeight() / 2);
+          var group = new HomeFurnitureGroup([piece2, piece3], 0, false, "Group");
+          group.setElevation(piece.getHeight());
+          group.setWidth(group.getWidth() / 2);
+          group.setDepth(group.getDepth() / 2);
+          group.setHeight(group.getHeight() / 2);
+          group.setAngle(Math.PI / 4);
+          piece3.setPitch(Math.PI / 6);
+          piece3.setRoll(Math.PI / 6);
+          home.addPieceOfFurniture(group);
+              
+          if (animate) {
+            var thicknessDelta = 0.5;
+            var lengthDelta = -5;
+            var elevationDelta = -5;
+            var dashOffsetDelta = 0.05;
+            setInterval(function() {
+                // Remove / add piece to make it blink and test GC for objects handling
+                if (home.getFurniture().indexOf(piece) >= 0) {
+                  home.deletePieceOfFurniture(piece);
+                } else {
+                  home.addPieceOfFurniture(piece);
+                }
+                // Change wall and room color
+                var patterns = preferences.getPatternsCatalog().getPatterns();
+                wall1.setPattern(patterns [(patterns.indexOf(wall1.getPattern()) + 1) % patterns.length])                
+                wall2.setRightSideColor(wall2.getRightSideColor() == 0xFF00 ? 0xFFFFFF : 0xFF00);
+                // Ground around room will be computed only for a home file which doesn't include a precomputed structure
+                room.setFloorColor(room.getFloorColor() == 0x77 ? 0x777777 : 0x77);
+                // Update label with current time
+                label.setText(new Date().toLocaleTimeString({hour: "numeric", minute: "numeric", second: "numeric"}))
+              }, 500);
+            setInterval(function() {
+                // Change objects location
+                wall1.setThickness(wall1.getThickness() + thicknessDelta);
+                if (wall1.getThickness() > 15 || wall1.getThickness() < 1) {
+                  thicknessDelta = -thicknessDelta;
+                }
+                wall2.setXEnd(wall2.getXEnd() + lengthDelta);
+                if (wall2.getLength() >= 140 || wall2.getLength() < 20) {
+                  lengthDelta = -lengthDelta;
+                }
+                label.setElevation(label.getElevation() + elevationDelta);
+                if (label.getElevation() >= 100 || label.getElevation() < 10) {
+                  elevationDelta = -elevationDelta;
+                }
+                polyline.setDashOffset(Math.max(polyline.getDashOffset() + dashOffsetDelta, 0));
+                if (polyline.getDashOffset() >= 100 || polyline.getDashOffset() <= 0) {
+                  dashOffsetDelta = -dashOffsetDelta;
+                }
+              }, 100);
+          }
+              
+          // View an unanimated clone of the home in the second canvas
+          visitHome(home.clone(), preferences);
+        },
+        homeError: function(err) {
+            console.log(err.stack);
+            alert(err);
+          },
+        progression: function(part, info, percentage) {
+          }
+        });
+}
+
+function displayHome(home, preferences) {
+  var controller = new HomeController3D(home, preferences);
+  new HomeComponent3D("canvas3D", home, preferences, null, controller);
+}
+
+function visitHome(home, preferences) {
+  home.setCamera(home.getObserverCamera());
+  var controller = new HomeController3D(home, preferences);
+  new HomeComponent3D("canvas3D_2", home, preferences, null, controller);
+}
+</script>
+
+<canvas id="canvas3D" style="background-color: #CCCCCC; border: 1px solid gray;" 
+        width="600" height="600" tabIndex="1"></canvas>
+<canvas id="canvas3D_2" style="background-color: #CCCCCC; border: 1px solid gray;" 
+        width="600" height="300" tabIndex="2"></canvas>
+
+<script type="text/javascript">
+test3DView();
+</script>
+
+</body>
+</html>
