@@ -16,7 +16,8 @@
 <project basedir="." default="viewerBuild" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
   <property name="version" value="7.1.2"/>
-
+  <!-- The version of Sweet Home 3D on which Sweet Home 3D JS is based -->
+  <property name="SweetHome3D-version" value="7.1"/>
   <!-- The version of JSweet transpiler (use version 3.1.0 to compile with Java 11) -->
   <property name="jsweet-version" value="3.2.0-SNAPSHOT"/>
 
@@ -556,7 +557,7 @@
     <fail message="Please build SweetHome3D jar before deploy.">
       <condition>
         <not>
-          <available file="../SweetHome3D/install/SweetHome3D-${version}.jar" />
+          <available file="../SweetHome3D/install/SweetHome3D-${SweetHome3D-version}.jar" />
         </not>
       </condition>
     </fail>
@@ -566,7 +567,7 @@
     <mkdir dir="deploy/WEB-INF/classes" />
     <mkdir dir="deploy/WEB-INF/lib" />
     <mkdir dir="deploy/homes" />
-    <copy file="../SweetHome3D/install/SweetHome3D-${version}.jar" todir="deploy/WEB-INF/lib" />
+    <copy file="../SweetHome3D/install/SweetHome3D-${SweetHome3D-version}.jar" todir="deploy/WEB-INF/lib" />
     <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
     <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
     <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
