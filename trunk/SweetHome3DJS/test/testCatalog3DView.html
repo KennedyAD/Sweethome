@@ -1,0 +1,2715 @@
+<!--
+   testHome.html 
+   
+   Sweet Home 3D, Copyright (c) 2016-2020 Emmanuel PUYBARET / eTeks <info@eteks.com>
+   
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+<!-- /!\ Requires lib files built with applicationLibraries Ant target 
+         and access to local file system : https://www.google.com/search?q=browser+access+to+local+files -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+<meta name="format-detection" content="telephone=no">
+<meta name="msapplication-tap-highlight" content="no">
+<title>SweetHome3DJS Test</title>
+<base href="..">
+<script type="text/javascript" src="lib/big.min.js"></script>
+<script type="text/javascript" src="lib/gl-matrix-min.js"></script>
+<script type="text/javascript" src="lib/jszip.min.js"></script>
+<script type="text/javascript" src="lib/jsXmlSaxParser.min.js"></script>
+
+<script type="text/javascript" src="src/core.js"></script>
+<script type="text/javascript" src="src/scene3d.js"></script>
+<script type="text/javascript" src="src/HTMLCanvas3D.js"></script>
+<script type="text/javascript" src="src/URLContent.js"></script>
+<script type="text/javascript" src="src/ModelLoader.js"></script>
+<script type="text/javascript" src="src/Triangulator.js"></script>
+<script type="text/javascript" src="src/OBJLoader.js"></script>
+<script type="text/javascript" src="src/DAELoader.js"></script>
+<script type="text/javascript" src="src/Max3DSLoader.js"></script>
+<script type="text/javascript" src="src/ModelManager.js"></script>
+<script type="text/javascript" src="src/ModelPreviewComponent.js"></script>
+
+<script type="text/javascript" src="lib/generated/geom.js"></script>
+<script type="text/javascript" src="lib/stroke.min.js"></script>
+<script type="text/javascript" src="lib/generated/swingundo.js"></script>
+<script type="text/javascript" src="lib/generated/batik-svgpathparser.js"></script>
+<script type="text/javascript" src="src/CoreTools.js"></script>
+<script type="text/javascript" src="lib/generated/SweetHome3D.js"></script>
+<script type="text/javascript" src="src/ShapeTools.js"></script>
+<script type="text/javascript" src="src/HomeComponent3D.js"></script>
+<script type="text/javascript" src="src/Object3DBranch.js"></script>
+<script type="text/javascript" src="src/HomePieceOfFurniture3D.js"></script>
+<script type="text/javascript" src="src/Room3D.js"></script>
+<script type="text/javascript" src="src/Wall3D.js"></script>
+<script type="text/javascript" src="src/Ground3D.js"></script>
+<script type="text/javascript" src="src/Polyline3D.js"></script>
+<script type="text/javascript" src="src/Label3D.js"></script>
+<script type="text/javascript" src="src/TextureManager.js"></script>
+<script type="text/javascript" src="src/LengthUnit.js"></script>
+<script type="text/javascript" src="src/UserPreferences.js"></script>
+<script type="text/javascript" src="src/HomeRecorder.js"></script>
+
+<script type="text/javascript" src="src/graphics2d.js"></script>
+<script type="text/javascript" src="src/ResourceAction.js"></script>
+<script type="text/javascript" src="src/toolkit.js"></script>
+<script type="text/javascript" src="src/PlanComponent.js"></script>
+<script type="text/javascript" src="src/HomePane.js"></script>
+<script type="text/javascript" src="src/DefaultFurnitureCatalog.js"></script>
+<script type="text/javascript" src="src/DefaultTexturesCatalog.js"></script>
+<script type="text/javascript" src="src/FurnitureCatalogListPanel.js"></script>
+<script type="text/javascript" src="src/FurnitureTablePanel.js"></script>
+<script type="text/javascript" src="src/ColorButton.js"></script>
+<script type="text/javascript" src="src/TextureChoiceComponent.js"></script>
+<script type="text/javascript" src="src/ModelMaterialsComponent.js"></script>
+<script type="text/javascript" src="src/JSViewFactory.js"></script>
+<script type="text/javascript" src="src/DirectHomeRecorder.js"></script>
+<script type="text/javascript" src="src/IncrementalHomeRecorder.js"></script>
+<script type="text/javascript" src="src/SweetHome3DJSApplication.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/sweethome3djs.css">
+<style type="text/css">
+
+html, body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+body {
+  position: relative;
+  margin: 0px;
+  height: 100%;
+  -ms-user-select: none;       
+  user-select: none;    
+  touch-action: none;
+}
+
+#home-plan::selection { background: #0042E0; }
+
+#home-pane-toolbar, 
+#catalog-furniture-pane, #furniture-catalog, #catalog-furniture-splitter, #furniture-view, 
+#furniture-plan-splitter, #plan-3D-view-pane, #home-plan, #plan-3D-view-splitter, #home-3D-view {
+  position: absolute;
+}
+
+/*
+ * No-touch devices common CSS
+ */
+#home-pane-toolbar {
+  top: 0;
+  height: 30px;
+  white-space: nowrap;
+}
+
+#catalog-furniture-pane {
+  top: 30px;
+  left: 0;
+  width: 296px;
+  height: calc(100% - 30px);
+  overflow: hidden;
+}
+
+#furniture-catalog {
+  height: 70%;
+  width: 100%;
+  overflow-y: hidden;
+}
+
+#furniture-catalog-list {
+  height: calc(100% - 3.3em);
+  width: 100%;
+  overflow-y: scroll;
+}
+
+#catalog-furniture-splitter {
+  top: 70%;
+  left: 0;
+  width: 100%;
+}
+
+#furniture-view {
+  top: calc(70% + 4px);
+  width: 100%;
+  height: calc(30% - 4px);
+  box-sizing: border-box; 
+}
+
+#furniture-view .tree-table {
+  width: 100%;
+  height: 100%;
+  overflow-y: hidden;
+}
+
+.pane-splitter.vertical::after {
+  transform: rotate(90deg);
+  bottom: initial;
+  top: 50%;
+}
+
+#furniture-plan-splitter {
+  top: 30px;
+  left: 296px;
+  height: calc(100% - 30px);
+}
+
+#plan-3D-view-pane {
+  top: 30px;
+  left: 300px;
+  width: calc(100% - 300px);
+  height: calc(100% - 30px);
+}
+
+#home-plan {
+  width: 100%;
+  height: calc(50% - 2px);
+  font-family: sans-serif;
+  border-top: 1px solid gray; 
+  border-bottom: 1px solid gray; 
+}
+
+#plan-3D-view-splitter {
+  top: calc(50% - 2px);
+  width: 100%;
+}
+
+#home-3D-view {
+  top: calc(50% + 2px);
+  width: 100%;
+  height: calc(50% - 2px);
+  border-bottom: 1px solid gray; 
+}
+
+@media (orientation: portrait) {
+
+  #catalog-furniture-pane {
+    width: 160px;
+  }
+
+  #furniture-plan-splitter {
+    left: 160px;
+  }
+
+  #plan-3D-view-pane {
+    left: 164px;
+    width: calc(100% - 164px);
+  }
+}
+
+/*
+ * Touch devices common CSS - ignored by IE (coarse point query required for some Android devices)
+ */
+@media (hover: none), (pointer: coarse) {
+
+  .pane-splitter {
+    display: none;
+  }
+
+  body {
+    margin: 5px;
+    height: calc(100% - 10px);
+  }
+
+  /* No scroll bars under Chrome */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  #home-pane-toolbar {
+    top: calc(100% - 40px);
+    height: 40px;
+  }
+
+  #home-pane-toolbar .toolbar-button {
+    margin-top: 0px;
+    height: calc(100% - 2px);
+  }
+
+  #furniture-catalog {
+    height: 100%;
+  }
+
+  #furniture-catalog-list {
+    height: calc(100% - 2.5em);
+    left: 0;
+  }
+
+  #catalog-furniture-splitter {
+    display: none;
+  }
+
+  #furniture-view {
+    display: none;
+  }
+
+  #home-plan:focus { 
+    outline: none; 
+  }
+
+  #home-3D-view:focus { 
+    outline: none; 
+  }
+  
+  @media (orientation: portrait), (max-aspect-ratio: 5/4) {
+
+    #plan-3D-view-pane {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 78px - 40px);
+    }
+
+    #home-3D-view {
+      top: 0;
+      width: calc(100% - 2px);
+      height: calc(50% - 2px - 4px);
+      border: 1px solid gray; 
+    }
+
+    #plan-3D-view-splitter {
+      display: initial;
+      top: calc(50% - 4px);
+      left: 0;
+      width: calc(100%);
+      height: 8px;
+    }
+
+    #home-plan {
+      top: calc(50% - 1px + 4px);
+      width: calc(100% - 2px);
+      height: calc(50% - 1px - 4px);
+      border: 1px solid gray;
+    }
+
+    /* Funiture catalog horizontal layout */
+
+    #catalog-furniture-pane {
+      top: calc(100% - 40px - 80px);
+      left: 0px;
+      width: calc(100% - 2px);
+      height: 78px;
+      overflow-x: scroll; 
+      overflow-y: hidden; 
+    }
+
+    #furniture-catalog {
+      width: 100%;
+    }
+
+    #furniture-catalog-list {
+      width: 100%;
+      height: 100%;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      white-space: nowrap;
+    }
+
+    .furniture-category-label {
+      display: none;
+    }
+
+    .furniture {
+      margin-top: 0px;
+      margin-bottom: 0px;
+      white-space: normal;
+    }
+    
+    .furniture > .furniture-icon {
+      top: 3px;
+    }
+
+    .furniture > .furniture-label {
+      z-index: 2;
+      text-shadow: white 0px -2px;
+    }
+
+    .furniture-category-separator {
+      display: inline-block;
+      height: 80px;
+      padding-right: 10px;
+      margin-right: 10px;
+      border-right: dashed 1px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  @media (orientation: landscape) and (min-aspect-ratio: 5/4) {
+
+    #catalog-furniture-pane {
+      top: 0;
+      left: 0;
+      width: 150px;
+      height: calc(100% - 40px - 2px);
+      overflow-x: hidden; 
+      overflow-y: scroll; 
+    }
+
+    #plan-3D-view-pane {
+      top: 0;
+      left: 150px;
+      width: calc(100% - 150px);
+      height: calc(100% - 40px);
+    }
+
+    #home-plan {
+      top: 0;
+      width: calc(50% - 4px);
+      height: calc(100% - 2px);
+      border: 1px solid gray;
+    }
+
+    #plan-3D-view-splitter {
+      display: initial;
+      top: 0;
+      left: calc(50% - 4px);
+      width: 8px;
+      height: calc(100%);
+    }
+
+    #home-3D-view {
+      top: 0;
+      left: calc(50%  + 4px);
+      width: calc(50% - 4px);
+      height: calc(100% - 2px);
+      border: 1px solid gray; 
+      border-left: 0px; 
+    }
+  }
+}
+
+/* Hide optional buttons when screen is too small */
+@media (max-width: 705px) {
+
+  #home-pane-toolbar .toolbar-optional  {
+    display: none;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!--  HTML Elements of the user interface -->
+<div id="home-pane">
+  <div id="home-pane-toolbar" class="toolbar"></div>
+  
+  <div id="catalog-furniture-pane">
+    <div id="furniture-catalog" tabindex="0"><div id="furniture-catalog-list" class="furniture-catalog-list"></div></div>
+    <div id="catalog-furniture-splitter" class="pane-splitter"></div>
+    <div id="furniture-view"></div>
+  </div>
+  
+  <div id="furniture-plan-splitter" class="pane-splitter"></div>
+  
+  <div id="plan-3D-view-pane">
+    <div id="home-plan" style="background-color: #FFFFFF; color: #000000;" tabindex="2" ></div>
+    <div id="plan-3D-view-splitter" class="pane-splitter"></div>
+    <div><canvas id="home-3D-view" style="background-color: #CCCCCC;" tabindex="1"></canvas><select id="level-selector"></select></div>
+  </div>
+</div>
+
+<div id="home-furniture-dialog-template" class="dialog-template">
+  <div class="home-furniture-dialog">
+    <h3 class="card" data-name="name-and-price-title"></h3>
+    <div data-name="name-and-price-panel" class="card label-input-grid">
+      <div class="label-cell">
+        <div data-name="name-label">@{HomeFurniturePanel.nameLabel.text}</div>
+      </div>
+      <div>
+        <input name="name-input" size="50" type="text" />
+
+        <label>
+          <input type="checkbox" name="name-visible-checkbox" />
+          <span>@{HomeFurniturePanel.nameVisibleCheckBox.text}</span>
+        </label>
+      </div>
+
+      <div class="label-cell">
+        <div data-name="price-label">@{HomeFurniturePanel.priceLabel.text}</div>
+      </div>
+      <div>
+        <span data-name="price-input"></span>
+
+        <span>@{HomeFurniturePanel.valueAddedTaxPercentageLabel.text}</span>
+        <span data-name="value-added-tax-percentage-input"></span>
+      </div>
+    </div>
+
+    <br />
+    <div class="columns">
+      <div class="location-column">
+        <h3 class="card">@{HomeFurniturePanel.locationPanel.title}</h3>
+        <div class="location-panel card label-input-grid">
+          <div data-name="x-label" class="label-cell"></div>
+          <div>
+            <span data-name="x-input" />
+          </div>
+
+          <div data-name="y-label" class="label-cell"></div>
+          <div>
+            <span data-name="y-input" />
+          </div>
+
+          <div data-name="elevation-label" class="label-cell"></div>
+          <div>
+            <span data-name="elevation-input" />
+          </div>
+
+          <label title="@{HomeFurniturePanel.mirroredModelCheckBox.tooltip}" class="whole-line">
+            <input type="checkbox" name="mirrored-model-checkbox" />
+            <span>@{HomeFurniturePanel.mirroredModelCheckBox.text}</span>
+          </label>
+
+          <label title="@{HomeFurniturePanel.basePlanItemCheckBox.tooltip}" class="whole-line">
+            <input type="checkbox" name="base-plan-item-checkbox" />
+            <span>@{HomeFurniturePanel.basePlanItemCheckBox.text}</span>
+          </label>
+        </div>
+
+        <br />
+        <h3 class="card">@{HomeFurniturePanel.colorAndTexturePanel.title}</h3>
+        <div data-name="paint-panel" class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="default">
+              @{HomeFurniturePanel.defaultColorAndTextureRadioButton.text}
+            </label>
+          </div>
+          <div></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="color">
+              @{HomeFurniturePanel.colorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="color-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="texture">
+              @{HomeFurniturePanel.textureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="texture-component"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="paint-checkbox" value="MODEL_MATERIALS">
+              @{HomeFurniturePanel.modelMaterialsRadioButton.text}
+            </label>
+          </div>
+          <div data-name="material-component"></div>
+        </div>
+      </div>
+      
+      <div class="orientation-column">
+        <h3 class="card">@{HomeFurniturePanel.orientationPanel.title}</h3>
+        <div data-name="orientation-panel" class="card label-input-grid">
+          <div class="whole-line" data-name="vertical-rotation-label">@{HomeFurniturePanel.verticalRotationLabel.text}</div>
+
+          <div class="label-cell" data-name="angle-label">@{HomeFurniturePanel.angleLabel.text}</div>
+          <div>
+            <span data-name="angle-input"></span>
+          </div>
+
+          <div class="whole-line"  data-name="horizontal-rotation-label">@{HomeFurniturePanel.horizontalRotationLabel.text}</div>
+
+          <label class="label-cell">
+            <input type="radio" name="horizontal-rotation-radio" value="PITCH" />
+            @{HomeFurniturePanel.pitchRadioButton.text}
+          </label>
+          <div>
+            <span data-name="pitch-input"></span>
+          </div>
+
+          <label class="label-cell">
+            <input type="radio" name="horizontal-rotation-radio" value="ROLL" />
+            @{HomeFurniturePanel.rollRadioButton.text}
+          </label>
+          <div>
+            <span data-name="roll-input"></span>
+          </div>
+
+          <div class="whole-line" data-name="furniture-orientation-image">
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="card">@{HomeFurniturePanel.sizePanel.title}</h3>
+        <div data-name="size-panel" class="card label-input-grid">
+          <div data-name="width-label" class="label-cell"></div>
+          <div>
+            <span data-name="width-input"></span>
+          </div>
+          
+          <div data-name="depth-label" class="label-cell"></div>
+          <div>
+            <span data-name="depth-input"></span>
+          </div>
+          
+          <div data-name="height-label" class="label-cell"></div>
+          <div>
+            <span data-name="height-input"></span>
+          </div>
+
+          <label class="whole-line">
+            <input type="checkbox" name="keep-proportions-checkbox" />
+            <span>@{ImportedFurnitureWizardStepsPanel.keepProportionsCheckBox.text}</span>
+          </label>
+          
+          <div class="whole-line" style="text-align: center">
+            <button name="model-transformations-button">@{HomeFurniturePanel.modelTransformationsButton.text}</button>
+          </div>
+        </div>
+        
+        <br />
+        <h3 class="card">@{HomeFurniturePanel.shininessPanel.title}</h3>
+        <div data-name="shininess-panel" class="card label-input-grid">
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="DEFAULT" />
+              <span>@{HomeFurniturePanel.defaultShininessRadioButton.text}</span>
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="MATT" />
+              <span>@{HomeFurniturePanel.mattRadioButton.text}</span>
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input name="shininess-radio" type="radio" value="SHINY" />
+              <span>@{HomeFurniturePanel.shinyRadioButton.text}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <div class="card visibility">
+      <label>
+        <input type="checkbox" name="visible-checkbox" />
+        <span>@{HomeFurniturePanel.visibleCheckBox.text}</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+
+<div id="observer-camera-dialog-template" class="dialog-template">
+  <div class="observer-camera-dialog">
+    <div class="columns">
+      <div>
+        <h3 class="card">@{ObserverCameraPanel.locationPanel.title}</h3>
+        <div data-name="location-panel" class="card label-input-grid">
+          <div data-name="x-label" class="label-cell"></div>
+          <div>
+            <span data-name="x-input" />
+          </div>
+
+          <div data-name="y-label" class="label-cell"></div>
+          <div>
+            <span data-name="y-input" />
+          </div>
+
+          <div data-name="elevation-label" class="label-cell"></div>
+          <div>
+            <span data-name="elevation-input" />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="card">@{ObserverCameraPanel.anglesPanel.title}</h3>
+        <div data-name="angles-panel" class="card label-input-grid">
+
+          <div class="label-cell">@{ObserverCameraPanel.yawLabel.text}</div>
+          <div>
+            <span data-name="yaw-input"></span>
+          </div>
+
+          <div class="label-cell">@{ObserverCameraPanel.pitchLabel.text}</div>
+          <div>
+            <span data-name="pitch-input"></span>
+          </div>
+
+          <div class="label-cell">@{ObserverCameraPanel.fieldOfViewLabel.text}</div>
+          <div>
+            <span data-name="field-of-view-input"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <label>
+      <input type="checkbox" name="adjust-observer-camera-elevation-checkbox" />
+      @{ObserverCameraPanel.adjustObserverCameraElevationCheckBox.text}
+    </label>
+  </div>
+</div>
+
+<div id="home-3Dattributes-dialog-template" class="dialog-template">
+  <div class="home-3Dattributes-dialog">
+    <div class="columns">
+      <div class="column1">
+        <h3 class="card">@{Home3DAttributesPanel.groundPanel.title}</h3>
+        <div class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="ground-color-and-texture-choice" value="COLORED">
+              @{Home3DAttributesPanel.groundColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ground-color-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="ground-color-and-texture-choice" value="TEXTURED">
+              @{Home3DAttributesPanel.groundTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ground-texture-component"></div>
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="background-image-visible-on-ground-3D-checkbox" />
+              @{Home3DAttributesPanel.backgroundImageVisibleOnGround3DCheckBox.text}
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="column2">
+        <h3 class="card">@{Home3DAttributesPanel.skyPanel.title}</h3>
+        <div class="card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="sky-color-and-texture-choice" value="COLORED">
+              @{Home3DAttributesPanel.skyColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="sky-color-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="sky-color-and-texture-choice" value="TEXTURED">
+              @{Home3DAttributesPanel.skyTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="sky-texture-component"></div>
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <h3 class="card">@{Home3DAttributesPanel.renderingPanel.title}</h3>
+    <div class="card label-input-grid">
+      <div>
+        @{Home3DAttributesPanel.brightnessLabel.text}
+      </div>
+      <div>
+        <input type="range" name="brightness-slider" min="0" max="255" list="home-3Dattributes-brightness-list" />
+        <datalist id="home-3Dattributes-brightness-list"></datalist>
+        <div class="slider-labels">
+          <div>@{Home3DAttributesPanel.darkLabel.text}</div>
+          <div>@{Home3DAttributesPanel.brightLabel.text}</div>
+        </div>
+      </div>
+
+      <div>
+        @{Home3DAttributesPanel.wallsTransparencyLabel.text}
+      </div>
+      <div>
+        <input type="range" name="walls-transparency-slider" min="0" max="255" list="home-3Dattributes-walls-transparency-list" />
+        <datalist id="home-3Dattributes-walls-transparency-list"></datalist>
+        <div class="slider-labels">
+          <div>@{Home3DAttributesPanel.opaqueLabel.text}</div>
+          <div>@{Home3DAttributesPanel.invisibleLabel.text}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="compass-dialog-template" class="dialog-template">
+  <div class="compass-dialog">
+    <h3 class="card">@{CompassPanel.compassRosePanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-label" class="label-cell"></span>
+      <span data-name="x-input"></span>
+
+      <label class="label-and-input">
+        <input type="checkbox" name="visible-checkbox" />
+        <span>@{CompassPanel.visibleCheckBox.text}</span>
+      </label>
+
+      <span data-name="y-label" class="label-cell"></span>
+      <span data-name="y-input"></span>
+
+      <span data-name="diameter-label" class="label-cell"></span>
+      <span data-name="diameter-input"></span>
+    </div>
+    
+    <br />
+    <h3 class="card">@{CompassPanel.geographicLocationPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span class="label-cell">@{CompassPanel.latitudeLabel.text}</span>
+      <span data-name="latitude-input"></span>
+
+      <span class="label-cell">@{CompassPanel.northDirectionLabel.text}</span>
+      <span>
+        <span data-name="north-direction-input"></span>
+        <canvas data-name="compass-preview">
+        </canvas>
+      </span>
+
+      <span class="label-cell">@{CompassPanel.longitudeLabel.text}</span>
+      <span data-name="longitude-input"></span>
+    </div>
+  </div>
+</div>
+
+<div id="level-dialog-template" class="dialog-template">
+  <div class="level-dialog">
+    <div class="label-input-grid">
+      <span></span>
+      <label>
+        <input type="checkbox" name="viewable-checkbox" />
+        <span>@{LevelPanel.viewableCheckBox.text}</span>
+      </label>
+
+      <span class="label-cell">@{LevelPanel.nameLabel.text}</span>
+      <span><input name="name-input" type="text" /></span>
+
+      <span data-name="elevation-label" class="label-cell"></span>
+      <span>
+        <span data-name="elevation-input"></span>
+      </span>
+
+      <span data-name="floor-thickness-label" class="label-cell"></span>
+      <span>
+        <span data-name="floor-thickness-input"></span>
+      </span>
+
+      <span data-name="height-label" class="label-cell"></span>
+      <span>
+        <span data-name="height-input"></span>
+      </span>
+    </div>
+
+    <hr />
+    <div>@{LevelPanel.levelsSummaryLabel.text}</div>
+    <br/>
+    <div class="levels-summary">
+      <table data-name="levels-table">
+        <thead>
+          <tr>
+            <th>@{LevelPanel.nameColumn}</th>
+            <th>@{LevelPanel.elevationColumn}</th>
+            <th>@{LevelPanel.floorThicknessColumn}</th>
+            <th>@{LevelPanel.heightColumn}</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <div class="levels-elevation-index-buttons">
+        <button name="increase-elevation-index-button"></button>
+        <br/>
+        <button name="decrease-elevation-index-button"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="wall-dialog-template" class="dialog-template">
+  <div class="wall-dialog">
+    <h3 class="card">@{WallPanel.startPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-start-label"></span>
+      <span data-name="x-start-input"></span>
+      <span data-name="y-start-label"></span>
+      <span data-name="y-start-input"></span>
+    </div>
+
+    <br />
+    <h3 class="card">@{WallPanel.endPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-end-label"></span>
+      <span data-name="x-end-input"></span>
+      <span data-name="y-end-label"></span>
+      <span data-name="y-end-input"></span>
+      <span class="whole-line">
+        <span data-name="distance-to-end-point-label"></span>
+        <span data-name="distance-to-end-point-input"></span>
+      </span>
+    </div>
+
+    <br />
+    <div class="columns-2">
+      <div class="column1">
+        <h3 class="card">@{WallPanel.leftSidePanel.title}</h3>
+        <div class="color-and-texture-panel card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="left-side-color-and-texture-choice" value="COLORED">
+              @{WallPanel.leftSideColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="left-side-color-button"></div>
+          
+          <div>
+            <label>
+              <input type="radio" name="left-side-color-and-texture-choice" value="TEXTURED">
+              @{WallPanel.leftSideTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="left-side-texture-component"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <label>
+            <input type="radio" name="left-side-shininess-choice" value="0">
+            @{WallPanel.leftSideMattRadioButton.text}
+          </label>
+          <label>
+            <input type="radio" name="left-side-shininess-choice" value="0.25">
+            @{WallPanel.leftSideShinyRadioButton.text}
+          </label>
+
+          <div class="whole-line" style="text-align: center">
+            <button name="left-side-modify-baseboard-button"></button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="column2">
+        <h3 class="card">@{WallPanel.rightSidePanel.title}</h3>
+        <div class="color-and-texture-panel card label-input-grid">
+          <div>
+            <label>
+              <input type="radio" name="right-side-color-and-texture-choice" value="COLORED">
+              @{WallPanel.rightSideColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="right-side-color-button"></div>
+          
+          <div>
+            <label>
+              <input type="radio" name="right-side-color-and-texture-choice" value="TEXTURED">
+              @{WallPanel.rightSideTextureRadioButton.text}
+            </label>
+          </div>         
+          <div data-name="right-side-texture-component"></div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <label>
+            <input type="radio" name="right-side-shininess-choice" value="0">
+            @{WallPanel.rightSideMattRadioButton.text}
+          </label>
+          <label>
+            <input type="radio" name="right-side-shininess-choice" value="0.25">
+            @{WallPanel.rightSideShinyRadioButton.text}
+          </label>
+
+          <div class="whole-line" style="text-align: center">
+            <button name="right-side-modify-baseboard-button"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <h3 class="card">@{WallPanel.topPanel.title}</h3>
+    <div class="card label-input-grid">
+      <span>@{WallPanel.patternLabel.text}</span>
+      <div data-name="pattern-select"></div>
+
+      <span>@{WallPanel.topColorLabel.text}</span>
+      <span>
+        <label>
+          <input type="radio" name="top-color-choice" value="DEFAULT">
+          @{WallPanel.topDefaultColorRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="top-color-choice" value="COLORED">
+          @{WallPanel.topColorRadioButton.text}
+          <span data-name="top-color-button"></span>
+        </label>
+      </span>
+    </div>
+
+    <br />
+    <h3 class="card">@{WallPanel.heightPanel.title}</h3>
+    <div class="card">
+      <div class="columns-2">
+        <div class="column1">
+
+          <div>
+            <label>
+              <input type="radio" name="wall-shape-choice" value="RECTANGULAR_WALL">
+              @{WallPanel.rectangularWallRadioButton.text}
+            </label>
+          </div>
+          <br />
+
+          <div class="label-input-grid">
+            <span data-name="rectangular-wall-height-label" class="label-cell"></span>
+            <span data-name="rectangular-wall-height-input"></span>
+          </div>
+        </div>
+
+        <div class="column2">
+          <div>
+            <label class="label-and-input">
+              <input type="radio" name="wall-shape-choice" value="SLOPING_WALL">
+              @{WallPanel.slopingWallRadioButton.text}
+            </label>
+          </div>
+          <br />
+
+          <div class="label-input-grid">
+            <span class="label-cell">@{WallPanel.slopingWallHeightAtStartLabel.text}</span>
+            <span data-name="sloping-wall-height-at-start-input"></span>
+            <span class="label-cell">@{WallPanel.slopingWallHeightAtEndLabel.text}</span>
+            <span data-name="sloping-wall-height-at-end-input"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br />
+    <div class="card label-input-grid double">
+      <span data-name="thickness-label" class="label-cell"></span>
+      <span data-name="thickness-input"></span>
+      <span data-name="arc-extent-label" class="label-cell"></span>
+      <span data-name="arc-extent-input"></span>
+    </div>
+    
+    <br/>
+    <div data-name="wall-orientation-label" class="card">
+    </div>
+  </div>
+</div>
+
+<div id="room-dialog-template" class="dialog-template">
+  <div class="room-dialog">
+    <h3 class=card>@{RoomPanel.nameAndAreaPanel.title}</h3>
+    <div data-name="name-and-area-panel" class=card>
+      <span>
+        @{RoomPanel.nameLabel.text}
+        <input name="name-input" type="text" />
+      </span>
+
+      <label>
+        <input type="checkbox" name="area-visible-checkbox" />
+        @{RoomPanel.areaVisibleCheckBox.text}
+      </label>
+    </div>
+
+    <div class="columns">
+      <div>
+        <h3 class=card>@{RoomPanel.floorPanel.title}</h3>
+        <div data-name="floor-panel" class="card label-input-grid">
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="floor-visible-checkbox" />
+              @{RoomPanel.floorVisibleCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="floor-color-and-texture-choice" value="COLORED">
+              @{RoomPanel.floorColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="floor-color-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="floor-color-and-texture-choice" value="TEXTURED">
+              @{RoomPanel.floorTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="floor-texture-component"></div>
+    
+          <div class="whole-line">
+            <label>&nbsp;</label>
+          </div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="floor-shininess-choice" value="0">
+              @{RoomPanel.floorMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="floor-shininess-choice" value="0.25">
+              @{RoomPanel.floorShinyRadioButton.text}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class=card>@{RoomPanel.ceilingPanel.title}</h3>
+        <div data-name="ceiling-panel" class="card label-input-grid">
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="ceiling-visible-checkbox" />
+              @{RoomPanel.ceilingVisibleCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="ceiling-color-and-texture-choice" value="COLORED">
+              @{RoomPanel.ceilingColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ceiling-color-button"></div>
+
+          <div>
+            <label>
+              <input type="radio" name="ceiling-color-and-texture-choice" value="TEXTURED">
+              @{RoomPanel.ceilingTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="ceiling-texture-component"></div>
+
+          <div class="whole-line">
+            <label>
+              <input type="checkbox" name="ceiling-flat-checkbox" />
+              @{RoomPanel.ceilingFlatCheckBox.text}
+            </label>
+          </div>
+
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="ceiling-shininess-choice" value="0">
+              @{RoomPanel.ceilingMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="ceiling-shininess-choice" value="0.25">
+              @{RoomPanel.ceilingShinyRadioButton.text}
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <h3 class="card">@{RoomPanel.wallSidesPanel.title}</h3>
+        <div data-name="wall-sides-panel" class="card label-input-grid">
+
+          <div class="whole-line">
+            <label title="@{RoomPanel.splitSurroundingWallsCheckBox.tooltip}">
+              <input type="checkbox" name="split-surrounding-walls-checkbox" />
+              @{RoomPanel.splitSurroundingWallsCheckBox.text}
+            </label>
+          </div>
+
+          <div>
+            <label>
+              <input type="radio" name="wall-sides-color-and-texture-choice" value="COLORED">
+              @{RoomPanel.wallSidesColorRadioButton.text}
+            </label>
+          </div>
+          <div data-name="wall-sides-color-button"></div>
+          <div>
+            <label>
+              <input type="radio" name="wall-sides-color-and-texture-choice" value="TEXTURED">
+              @{RoomPanel.wallSidesTextureRadioButton.text}
+            </label>
+          </div>
+          <div data-name="wall-sides-texture-component"></div>
+
+          <div class="whole-line">
+            <label>&nbsp;</label>
+          </div>
+          
+          <div class="whole-line">
+            <hr />
+          </div>
+
+          <div class="whole-line">
+            <label>
+              <input type="radio" name="wall-sides-shininess-choice" value="0">
+              @{RoomPanel.wallSidesMattRadioButton.text}
+            </label>
+            <label>
+              <input type="radio" name="wall-sides-shininess-choice" value="0.25">
+              @{RoomPanel.wallSidesShinyRadioButton.text}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div>
+          <h3 class="card">@{RoomPanel.wallSidesBaseboardPanel.title}</h3>
+          <div data-name="wall-sides-baseboard-panel" class="card">
+
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="user-preferences-dialog-template" class="dialog-template">
+  
+  <div class="user-preferences-dialog label-input-grid">
+    <div>@{UserPreferencesPanel.languageLabel.text}</div>
+    <div>
+      <select name="language-select"></select>
+    </div>
+
+    <div>@{UserPreferencesPanel.unitLabel.text}</div>
+    <div>
+      <select name="unit-select"></select>
+    </div>
+    
+    <div>@{UserPreferencesPanel.currencyLabel.text}</div>
+    <div>
+      <select name="currency-select"></select>
+
+      <label>
+        <input type="checkbox" name="value-added-tax-checkbox" />
+        @{UserPreferencesPanel.valueAddedTaxCheckBox.text}
+      </label>
+    </div>
+    
+    <div>@{UserPreferencesPanel.furnitureCatalogViewLabel.text}</div>
+    <div>
+      <label>
+        <input type="radio" name="furniture-catalog-view-radio" value="tree" />
+        @{UserPreferencesPanel.treeRadioButton.text}
+      </label>
+      <label>
+        <input type="radio" name="furniture-catalog-view-radio" value="list" />
+        @{UserPreferencesPanel.listRadioButton.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.navigationPanelLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="navigation-panel-checkbox" />
+        @{UserPreferencesPanel.navigationPanelCheckBox.text}
+      </label>
+    </div>
+    
+    <div>@{UserPreferencesPanel.aerialViewCenteredOnSelectionLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="aerial-view-centered-on-selection-checkbox" />
+        @{UserPreferencesPanel.aerialViewCenteredOnSelectionCheckBox.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.observerCameraSelectedAtChangeLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="observer-camera-selected-at-change-checkbox" />
+        @{UserPreferencesPanel.observerCameraSelectedAtChangeCheckBox.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.magnetismLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="magnetism-checkbox" />
+        @{UserPreferencesPanel.magnetismCheckBox.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.rulersLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="rulers-checkbox" />
+        @{UserPreferencesPanel.rulersCheckBox.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.gridLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="grid-checkbox" />
+        @{UserPreferencesPanel.gridCheckBox.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.defaultFontNameLabel.text}</div>
+    <div>
+      <select name="default-font-name-select">
+      </select>
+    </div>
+
+    <div>@{UserPreferencesPanel.furnitureIconLabel.text}</div>
+    <div>
+      <label>
+        <input type="radio" name="furniture-icon-radio" value="catalog" />
+        @{UserPreferencesPanel.catalogIconRadioButton.text}
+      </label>
+      <br />
+      <label>
+        <input type="radio" name="furniture-icon-radio" value="topView" />
+        @{UserPreferencesPanel.topViewRadioButton.text}
+      </label>
+      @{UserPreferencesPanel.iconSizeLabel.text}
+      <select name="icon-size-select"></select>
+    </div>
+
+    <div>@{UserPreferencesPanel.roomRenderingLabel.text}</div>
+    <div>
+      <label>
+        <input type="radio" name="room-rendering-radio" value="monochrome" />
+        @{UserPreferencesPanel.monochromeRadioButton.text}
+      </label>
+      <label>
+        <input type="radio" name="room-rendering-radio" value="floorColorOrTexture" />
+        @{UserPreferencesPanel.floorColorOrTextureRadioButton.text}
+      </label>
+    </div>
+
+    <div>@{UserPreferencesPanel.newWallPatternLabel.text}</div>
+    <div data-name="new-wall-pattern-select"></div>
+
+    <div>@{UserPreferencesPanel.newWallThicknessLabel.text}</div>
+    <div>
+      <span data-name="new-wall-thickness-input"></span>
+    </div>
+    <div>@{UserPreferencesPanel.newWallHeightLabel.text}</div>
+    <div>
+      <span data-name="new-wall-height-input"></span>
+    </div>
+    <div>@{UserPreferencesPanel.newFloorThicknessLabel.text}</div>
+    <div>
+      <span data-name="new-floor-thickness-input"></span>
+    </div>
+  </div>
+</div>
+
+<div id="polyline-dialog-template" class="dialog-template">
+  <div class="polyline-dialog label-input-grid">
+    <div data-name="thickness-label">
+    </div>
+    <div>
+      <span data-name="thickness-input"></span>
+    </div>
+
+    <div>
+      @{PolylinePanel.arrowsStyleLabel.text}
+    </div>
+    <div data-name="arrows-style-select"></div>
+
+    <div>
+      @{PolylinePanel.joinStyleLabel.text}
+    </div>
+    <div data-name="join-style-select"></div>
+
+    <div>
+      @{PolylinePanel.dashStyleLabel.text}
+    </div>
+    <div data-name="dash-style-select"></div>
+
+    <div>
+      @{PolylinePanel.dashOffsetLabel.text}
+    </div>
+    <div>
+      <span data-name="dash-offset-input"></span>
+    </div>
+
+    <div>
+      @{PolylinePanel.colorLabel.text}
+    </div>
+    <div data-name="color-button"></div>
+    
+    <div></div>
+    <div>
+      <label>
+        <input type="checkbox" name="visible-in-3D-checkbox" />
+        @{PolylinePanel.visibleIn3DViewCheckBox.text}
+      </label>
+    </div>
+    <div></div>
+  </div>
+</div>
+
+<div id="label-dialog-template" class="dialog-template">
+  <div class="label-dialog">
+    <h3 class=card>@{LabelPanel.textAndStylePanel.title}</h3>
+    <div data-name="text-and-style-panel" class="card label-input-grid">
+      <div>
+        @{LabelPanel.textLabel.text}
+      </div>
+      <div>
+        <textarea name="text" rows="4"></textarea>
+      </div>
+
+      <div>
+        @{LabelPanel.alignmentLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="label-alignment-radio" value="LEFT" />
+          @{LabelPanel.leftAlignmentRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-alignment-radio" value="CENTER" />
+          @{LabelPanel.centerAlignmentRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-alignment-radio" value="RIGHT" />
+          @{LabelPanel.rightAlignmentRadioButton.text}
+        </label>
+      </div>
+
+      <div>
+        @{LabelPanel.fontNameLabel.text}
+      </div>
+      <div>
+        <select name="font-select">
+        </select>
+      </div>
+
+      <div data-name="font-size-label">
+      </div>
+      <div data-name="font-size-input-container">
+        <span data-name="font-size-input" />
+      </div>
+
+      <div data-name="color-label">
+        @{LabelPanel.colorLabel.text}
+      </div>
+      <div data-name="color-button"></div>
+    </div>
+
+    <br />
+    <h3 class=card>@{LabelPanel.rendering3DPanel.title}</h3>
+    <div data-name="rendering-3D-panel" class="card label-input-grid">
+      <div class="whole-line">
+        <label>
+          <input type="checkbox" name="visible-in-3D-checkbox" />
+          @{LabelPanel.visibleIn3DViewCheckBox.text}
+        </label>
+      </div>
+
+      <div>
+        @{LabelPanel.pitchLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="label-pitch-radio" value="0" />
+          @{LabelPanel.pitch0DegreeRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-pitch-radio" value="90" />
+          @{LabelPanel.pitch90DegreeRadioButton.text}
+        </label>
+      </div>
+
+      <div data-name="elevation-label">
+      </div>
+      <div>
+        <span data-name="elevation-input" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<style type="text/css">
+/* #furniture-view, #catalog-furniture-splitter, #home-plan, #plan-3D-view-splitter, */
+/* #home-pane-toolbar span:nth-of-type(6), #home-pane-toolbar span:nth-of-type(8), #home-pane-toolbar span:nth-of-type(9), #toolbar-button-LOCK_BASE_PLAN { */
+/*   display: none; */
+/* } */
+/* #furniture-catalog { */
+/*   height: calc(100%); */
+/* } */
+/* #home-3D-view { */
+/*   left: 0; */
+/*   top: 0; */
+/*   width: calc(100%); */
+/*   height: calc(100%); */
+/* } */
+</style>
+
+<script type="text/javascript">
+var allow3DViewHandling = true;
+
+/**
+ * Customized Home component 3D.
+ * @constructor
+ */
+function CustomizedHomeComponent3D(canvasId, home, preferences, factory, controller) {
+  HomeComponent3D.call(this, canvasId, home, preferences, factory, controller);
+  this.home = home;
+
+  var selectionListener = null;
+  if (allow3DViewHandling) {
+    // data: contains the zip file of the selection box
+    var selectionBox = new URLContent("jar:" + "data:@file/zip;base64,UEsDBBQDAAAAADB5hVQAAAAAAAAAAAAAAAAJAAAAX19NQUNPU1gvUEsDBBQDAAAIAC15hVSQylRhbwAAALAAAAAbAAAAX19NQUNPU1gvLl9zZWxlY3Rpb25Cb3gub2JqjYsxC0BQFIUvJdlMlOmV3eAPyE6EwfrwNqI82Qx+gN9gtfmJ7q1XyuTU17n3dA4Yjgk6QMpblpWsZkqUgYWEyIbQfyM/FFdVoU5anIj9qWhv7rXjEPBp6kXQ81kus+g6LoWfl1Rco6Qh34/LJX8AUEsDBBQDAAAIAC15hVS/EH3QawAAAOYAAAAQAAAAc2VsZWN0aW9uQm94Lm9iam2MSwqAMAxE9z3FXECx/tdeRFCiCPGDWvH4pqVCF13kZWbIZMZFTOO97Fu3v8pctN6MiQc21B/mJPUgSys3iUCsXVEf2D/z7ZgN22EQfmNo5MIchbD0tHmFWlijcboVNiiFhde21UK7G60+UEsBAj8DFAMAAAAAMHmFVAAAAAAAAAAAAAAAAAkAJAAAAAAAAAAQgO1BAAAAAF9fTUFDT1NYLwoAIAAAAAAAAQAYAABOumPuSNgBAE66Y+5I2AEATrpj7kjYAVBLAQI/AxQDAAAIAC15hVSQylRhbwAAALAAAAAbACQAAAAAAAAAIICkgScAAABfX01BQ09TWC8uX3NlbGVjdGlvbkJveC5vYmoKACAAAAAAAAEAGAAAxyZg7kjYAQAhiWLuSNgBAE66Y+5I2AFQSwECPwMUAwAACAAteYVUvxB90GsAAADmAAAAEAAkAAAAAAAAACCApIHPAAAAc2VsZWN0aW9uQm94Lm9iagoAIAAAAAAAAQAYAADHJmDuSNgBACGJYu5I2AEATrpj7kjYAVBLBQYAAAAAAwADACoBAABoAQAAAAA=" + "!/selectionBox.obj"); 
+    // Preload selection box
+    ModelManager.getInstance().loadModel(selectionBox, { });
+
+    selectionListener = {
+        selectionItems : [], // <Selectable>
+        selectionNodes : {}, // Map <id Selectable, BranchGroup3D>
+        listener : function(ev) {
+            var item = ev.getSource();
+            var transformGroup = selectionListener.selectionNodes [item.getId()].getChild(0);
+            setTimeout(function() {
+                var selectionTransformation = selectionListener.getSelectionTransformation(item, item.object3D);
+                var appearance = transformGroup.getChild(0).getChild(0).getAppearance();
+                if (selectionTransformation != null) {
+                  transformGroup.setTransform(selectionTransformation); 
+                  if (item instanceof HomePieceOfFurniture
+                      && "VISIBLE" == ev.getPropertyName()) {
+                    appearance.setVisible(item.isVisible());
+                  } else if (item instanceof Room
+                      && "POINTS" == ev.getPropertyName()) {
+                    appearance.setVisible(true);
+                  } else if (item instanceof Label
+                      && "PITCH" == ev.getPropertyName()) {
+                    appearance.setVisible(item.getPitch() != null);
+                  } else if (item instanceof Polyline
+                      && "VISIBLE_IN_3D" == ev.getPropertyName()) {
+                    appearance.setVisible(item.isVisibleIn3D());
+                  } 
+                } else {
+                  appearance.setVisible(false);
+                }
+              });
+            },
+          selectionChanged : function(ev) {
+              setTimeout(function() {
+                for (var i = 0; i < selectionListener.selectionItems.length; i++) {
+                  var item = selectionListener.selectionItems [i];
+                  selectionListener.selectionNodes [item.getId()].detach(); 
+                  if (item instanceof HomeObject) {
+                    item.removePropertyChangeListener(selectionListener.listener);
+                  }
+                }
+                  
+                selectionListener.selectionItems = [];
+                selectionListener.selectionNodes = {};
+                var selectedItems = home.getSelectedItems();
+                for (var i = 0; i < selectedItems.length; i++) {
+                  var item = selectedItems [i];
+                  var selectedNode = item.object3D;
+                  if (selectedNode != null
+                      || item instanceof HomeFurnitureGroup) {
+                    var sceneTree;
+                    if (selectedNode != null) {
+                      sceneTree = selectedNode.getParent();
+                    } else {
+                      sceneTree = selectionListener.getPieceDifferentFromGroup(item).object3D.getParent();
+                    }
+                    ModelManager.getInstance().loadModel(selectionBox, 
+                        {
+                          modelUpdated: function(boxRoot) {
+                            var selectionNode = new BranchGroup3D();
+                            var selectionGroup = new TransformGroup3D();
+                            selectionGroup.setCapability(TransformGroup3D.ALLOW_TRANSFORM_WRITE);
+                            var box = boxRoot.getChild(0);
+                            box.setPickable(false);
+                            var boxAppearance = new Appearance3D();
+                            boxAppearance.setDiffuseColor(vec3.fromValues(0, 0, 0.7102)); 
+                            boxAppearance.setIllumination(0);
+                            box.setAppearance(boxAppearance);
+                            selectionGroup.addChild(boxRoot);
+                            selectionNode.addChild(selectionGroup);
+                            sceneTree.addChild(selectionNode);
+
+                            if (item instanceof HomePieceOfFurniture) {
+                              boxAppearance.setVisible(item.isVisible());
+                            } else if (item instanceof Label) {
+                              boxAppearance.setVisible(item.getPitch() != null);
+                            } else if (item instanceof Polyline) {
+                              boxAppearance.setVisible(item.isVisibleIn3D());
+                            }
+                            
+                            var selectionTransformation = selectionListener.getSelectionTransformation(item, selectedNode);
+                            if (selectionTransformation != null) {
+                              selectionGroup.setTransform(selectionTransformation);
+                            } else {
+                              boxAppearance.setVisible(false);
+                            }
+
+                            selectionListener.selectionItems.push(item);
+                            selectionListener.selectionNodes [item.getId()] = selectionNode;
+                            if (item instanceof HomeObject) {
+                              item.addPropertyChangeListener(selectionListener.listener);
+                            }
+                          }
+                        });
+                  }
+                }
+              });
+            },
+          getPieceDifferentFromGroup : function(group) {
+              var children = group.getFurniture();
+              for (var i = 0; i < children.length; i++) {
+                var piece = children [i];
+                if (piece instanceof HomeFurnitureGroup) {
+                  return selectionListener.getPieceDifferentFromGroup(piece);
+                } else {
+                  return piece;
+                }
+              }
+              return null;
+            },
+          getSelectionTransformation : function(item, selectedNode) {
+              var transform = mat4.create();
+              if (item instanceof HomePieceOfFurniture) {
+                var piece = item;
+                var height = piece.getHeightInPlan();
+                var depth = piece.getDepthInPlan();
+                mat4.scale(transform, transform, vec3.fromValues(piece.getWidthInPlan() + 0.2, height, depth + 0.2));
+                var rotation = mat4.create();
+                mat4.rotateY(rotation, rotation, -piece.getAngle());
+                mat4.mul(transform, rotation, transform);
+                var translation = mat4.create();
+                mat4.translate(translation, translation, vec3.fromValues(piece.getX(), piece.getGroundElevation() + height  / 2, piece.getY()));
+                mat4.mul(transform, translation, transform);
+              } else {
+                var bounds = ModelManager.getInstance().getBounds(selectedNode);              
+                if (bounds.isEmpty()) {
+                  return null;
+                } else {
+                  var lower = vec3.create();
+                  bounds.getLower(lower);
+                  var upper = vec3.create();
+                  bounds.getUpper(upper);
+                  mat4.scale(transform, transform, vec3.fromValues(upper[0] - lower[0] + 0.1, upper[1] - lower[1] + 0.1, upper[2] - lower[2] + 0.1));
+                  var translation = mat4.create();
+                  mat4.translate(translation, translation, vec3.fromValues((upper[0] + lower[0]) / 2, (upper[1] + lower[1]) / 2 + 0.1, (upper[2] + lower[2]) / 2));
+                  mat4.mul(transform, translation, transform);
+                }
+              }
+              return transform;
+            }
+        };
+
+      home.addSelectionListener(selectionListener); 
+
+      var component3D = this;
+      var mouseListener = {
+          elevationActivated : false,
+          rotationActivated : false,
+          magnetismToggled : false, 
+          movedItems : null,
+          distanceToPickedItem: 0,
+          startPoint : [0, 0],
+          elevation : false,
+          rotation : false,
+          mousePressedPoint: null,
+          dx : null,
+          dy : null,
+          mouseMoved : false,
+          oldElevation : 0,
+          initialPointerLocation: null,
+          lastPointerLocation: null,
+          pointerTouches : {},
+          lastEventType : null,
+          lastTargetTouches : [],
+          firstTouchStartedTimeStamp : 0,
+          longTouchStartTime : 0,
+          longTouch : null,
+          longTouchAction : false,
+          actionStartedInComponent : false,
+          mouseClicked : function(ev) {
+            if (ev.button === 0
+                && !mouseListener.mouseMoved) {
+              var item = component3D.getClosestItemAt(ev.clientX, ev.clientY);
+              if (item != null
+                  && home.isBasePlanLocked()
+                  && controller.getPlanController().isItemPartOfBasePlan(item)) {
+                item = null;
+              }
+              if (ev.shiftKey
+                  || mouseListener.longTouchAction) {
+                if (item != null) {
+                  var selectedItems = home.getSelectedItems().slice(0);
+                  if (selectedItems.indexOf(item) >= 0) {
+                    home.deselectItem(item);
+                  } else {
+                    selectedItems.push(item);
+                    home.setSelectedItems(selectedItems);
+                  }
+                }
+              } else {
+                if (item != null) {
+                  home.setSelectedItems([item]);
+                } else {
+                  home.setSelectedItems([]);
+                }
+              }
+            }
+          },
+          mousePressed : function(ev) {
+            mouseListener.updateCoordinates(ev, "mousePressed");
+            mouseListener.startMoveItems(ev);
+          },
+          mouseDoubleClicked: function(ev) {
+            mouseListener.updateCoordinates(ev, "mouseDoubleClicked");
+            mouseListener.mousePressed(ev);
+          },
+          startMoveItems : function(ev) {
+            mouseListener.longTouchAction = false;
+            if (!ev.shiftKey
+                && !controller.getPlanController().isModificationState()) {
+              var closestItem = component3D.getClosestItemAt(ev.clientX, ev.clientY);
+              var allSelectedItems = [];
+              var selectedItems = home.getSelectedItems();
+              for (var i = 0; i < selectedItems.length; i++) {
+                var item = selectedItems [i];
+                if (item instanceof HomeFurnitureGroup) {
+                  allSelectedItems.push.apply(allSelectedItems, item.getAllFurniture())
+                } else {
+                  allSelectedItems.push(item);
+                }
+              }
+
+              if (ev.clickCount === 2 && selectedItems.length > 0) {
+                if (closestItem instanceof Wall) {
+                  controller.getPlanController().modifySelectedWalls();
+                } else if (closestItem instanceof HomePieceOfFurniture) {
+                  controller.getPlanController().modifySelectedFurniture();
+                } else if (closestItem instanceof Room) {
+                  controller.getPlanController().modifySelectedRooms();
+                } else if (closestItem instanceof Polyline) {
+                  controller.getPlanController().modifySelectedPolylines();
+                } else if (closestItem instanceof Label) {
+                  controller.getPlanController().modifySelectedLabels();
+                } else if (closestItem instanceof Compass) {
+                  controller.getPlanController().modifyCompass();
+                } else if (closestItem instanceof ObserverCamera) {
+                  controller.getPlanController().modifyObserverCamera();
+                }
+              } else if (allSelectedItems.indexOf(closestItem) >= 0
+                  && controller.getPlanController().isItemMovable(closestItem)) {
+                mouseListener.movedItems = [];
+                for (var i = 0; i < allSelectedItems.length; i++) {
+                  var item = allSelectedItems [i];
+                  if (controller.getPlanController().isItemMovable(item)) {
+                    mouseListener.movedItems.push(item);
+                  }
+                }
+
+                mouseListener.elevation = mouseListener.elevationActivated;
+                mouseListener.rotation = !mouseListener.elevationActivated && mouseListener.rotationActivated;
+                if (mouseListener.movedItems != null) {
+                  mouseListener.mousePressedPoint = component3D.convertPixelLocationToVworld(ev.canvasX, ev.canvasY);
+                  mouseListener.distanceToPickedItem = vec3.dist(mouseListener.mousePressedPoint,
+                      ModelManager.getInstance().getCenter(closestItem.object3D));
+                }
+
+                mouseListener.dx = null;
+                mouseListener.dy = null;
+                controller.setNullCameraState(); 
+              }
+            }
+            mouseListener.mouseMoved = false;
+          },
+          windowMouseMoved : function(ev) {
+            mouseListener.updateCoordinates(ev, "mouseMoved");
+            mouseListener.moveItems(ev);
+          },
+          moveItems : function(ev) {
+            if (mouseListener.movedItems != null) {
+              var point = component3D.convertPixelLocationToVworld(ev.canvasX, ev.canvasY);
+              var factor = 50 + Math.pow(Math.max(0, mouseListener.distanceToPickedItem - 200), 1.005) / 4;
+              if ((mouseListener.elevation
+                    || mouseListener.longTouchAction
+                    || mouseListener.rotation)
+                  && mouseListener.movedItems [0] instanceof HomePieceOfFurniture) {
+                var piece = mouseListener.movedItems [0];
+
+                if (!mouseListener.mouseMoved) {
+                  var selectedItems = home.getSelectedItems();
+                  if (mouseListener.moveItems.length > 1
+                      || selectedItems.length > 1
+                      || !(selectedItems [0] instanceof HomePieceOfFurniture)
+                      || selectedItems [0] instanceof HomeFurnitureGroup
+                          && item.getAllFurniture().length > 1) {
+                    // Can elevate only the only selected piece
+                    mouseListener.movedItems = null;
+                    return;
+                  }
+                  if (mouseListener.rotation) {
+                    mouseListener.oldAngle = piece.getAngle();
+                    mouseListener.doorOrWindowBoundToWall = piece instanceof HomeDoorOrWindow
+                        && piece.isBoundToWall();
+
+                  } else {
+                    mouseListener.oldElevation = piece.getElevation();
+                  }
+                }
+                
+                if (mouseListener.rotation) {
+                  var newAngle = mouseListener.oldAngle + (point [0] - mouseListener.mousePressedPoint [0]) * factor / 20;
+                  if (preferences.isMagnetismEnabled()
+                      ^ listener.magnetismToggled) {
+                    var angleStep = 2 * Math.PI / PlanController.PieceOfFurnitureRotationState.STEP_COUNT;
+                    // Compute angles closest to a step angle (multiple of angleStep)
+                    newAngle = Math.round(newAngle / angleStep) * angleStep;
+                  }
+                  piece.setAngle(newAngle);
+                } else {
+                  piece.setElevation(Math.max(0, mouseListener.oldElevation + (point [1] - mouseListener.mousePressedPoint [1]) * factor));
+                }
+              } else {
+                if (mouseListener.dx === null) {
+                  // Force selection move state
+                  mouseListener.startPoint = controller.getPlanController().setSelectionMoveStateWithoutSelectionChange();
+                }
+                // Simulate a mouse move in the plan
+                mouseListener.dx = (point [0] - mouseListener.mousePressedPoint [0]) * factor;
+                mouseListener.dy = (point [2] - mouseListener.mousePressedPoint [2]) * factor;
+                controller.getPlanController().setAlignmentActivated(ev.shiftKey);
+                controller.getPlanController().moveMouse(mouseListener.startPoint [0] + mouseListener.dx, mouseListener.startPoint [1] + mouseListener.dy);
+              }
+            }
+            mouseListener.mouseMoved = true;
+          },
+          windowMouseReleased : function(ev) {
+            mouseListener.updateCoordinates(ev, "mouseReleased");
+            mouseListener.endMoveItems(ev);
+          },
+          endMoveItems : function(ev) {
+            if (mouseListener.movedItems != null) {
+              if ((mouseListener.elevation
+                    || mouseListener.longTouchAction
+                    || mouseListener.rotation)
+                  && mouseListener.movedItems [0] instanceof HomePieceOfFurniture) {
+                var piece = mouseListener.movedItems [0];
+                if (mouseListener.rotation) {
+                  if (piece.getAngle() != mouseListener.oldAngle) {
+                    controller.getPlanController().postPieceOfFurnitureRotation(piece, mouseListener.oldAngle, mouseListener.doorOrWindowBoundToWall);
+                  }
+                } else {
+                  if (piece.getElevation() != mouseListener.oldElevation) {
+                    controller.getPlanController().postPieceOfFurnitureElevation(piece, mouseListener.oldElevation);
+                  }
+                }
+              } else {
+                if (mouseListener.dx !== null) {
+                  // Simulate a mouse release in the plan
+                  controller.getPlanController().releaseMouse(mouseListener.startPoint [0] + mouseListener.dx, mouseListener.startPoint [1] + mouseListener.dy);
+                }
+              }
+              mouseListener.movedItems = null;
+            }
+            controller.setDefaultCameraState(); 
+          },
+          pointerPressed : function(ev) {
+            if (ev.pointerType == "mouse") {
+              mouseListener.mousePressed(ev);
+            } else {
+              // Multi touch support for IE and Edge
+              mouseListener.copyPointerToTargetTouches(ev, false);
+              mouseListener.touchStarted(ev);
+            }
+          },
+          pointerMousePressed : function(ev) {
+            // Required to avoid click simulation
+            ev.stopPropagation();
+          },
+          windowPointerMoved : function(ev) {
+            if (ev.pointerType == "mouse") {
+              mouseListener.windowMouseMoved(ev);
+            } else {
+              // Multi touch support for IE and Edge
+              mouseListener.copyPointerToTargetTouches(ev, false) 
+              mouseListener.touchMoved(ev);
+            }
+          },
+          windowPointerReleased : function(ev) {
+            if (ev.pointerType == "mouse") {
+              mouseListener.windowMouseReleased(ev);
+            } else {
+              ev.preventDefault();
+              // Multi touch support for IE and legacy Edge
+              mouseListener.copyPointerToTargetTouches(ev, true);
+              mouseListener.touchEnded(ev);
+            }
+          },
+          contextMenu : function(ev){
+            ev.preventDefault();
+          },
+          touchStarted: function(ev) {
+            ev.preventDefault();
+            mouseListener.updateCoordinates(ev, "touchStarted");
+            if (mouseListener.longTouch != null) {
+              clearTimeout(mouseListener.longTouch);
+              mouseListener.longTouch = null;
+              component3D.stopLongTouchAnimation();
+            }
+            
+            if (ev.targetTouches.length === 1) {
+              ev.clickCount = 1;
+              if (mouseListener.initialPointerLocation != null
+                  && mouseListener.distance(ev.canvasX, ev.canvasY,
+                  	mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
+                  && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= PlanComponent.DOUBLE_TOUCH_DELAY) { 
+                ev.clickCount = 2;
+                mouseListener.firstTouchStartedTimeStamp = 0;
+                mouseListener.initialPointerLocation = null;
+              } else {
+                mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
+                mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+              }
+              
+              mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+              mouseListener.actionStartedInComponent = true;
+              if (component3D.getClosestItemAt(ev.clientX, ev.clientY) !== null) {
+                mouseListener.longTouch = setTimeout(function() {
+                    component3D.startLongTouchAnimation(ev.canvasX, ev.canvasY, 
+                        function() {
+                          mouseListener.longTouchAction = true;
+                        });
+                  }, PlanComponent.LONG_TOUCH_DELAY);
+                mouseListener.longTouchStartTime = Date.now();
+              }
+              mouseListener.startMoveItems(ev);
+            } else {
+              // Additional touch allows to escape current modification 
+              controller.getPlanController().escape();
+              mouseListener.actionStartedInComponent = false;
+            }
+          },
+          touchMoved: function(ev) {
+            if (mouseListener.actionStartedInComponent) {
+              ev.preventDefault();
+              ev.stopPropagation();
+              if (mouseListener.updateCoordinates(ev, "touchMoved")) {
+                mouseListener.initialPointerLocation = null;
+                
+                if (ev.targetTouches.length == 1) {
+                  if (mouseListener.longTouch != null) {
+                    // Cancel long touch animation only when pointer moved during the past 200 ms
+                    clearTimeout(mouseListener.longTouch);
+                    mouseListener.longTouch = null;
+                    component3D.stopLongTouchAnimation();
+                  }
+                  
+                  mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+                  mouseListener.moveItems(ev);
+                }
+              }
+            }
+          },
+          touchEnded: function(ev) {
+            if (mouseListener.actionStartedInComponent) {
+              mouseListener.updateCoordinates(ev, "touchEnded");
+
+              if (ev.targetTouches.length == 0) {
+                if (mouseListener.longTouch != null) {
+                  clearTimeout(mouseListener.longTouch);
+                  mouseListener.longTouch = null;
+                  component3D.stopLongTouchAnimation();
+                }
+              
+                mouseListener.endMoveItems(ev);
+                mouseListener.mouseClicked(ev);
+                
+                mouseListener.actionStartedInComponent = false;
+              }
+            }
+          },
+          copyPointerToTargetTouches : function(ev, touchEnded) {
+            // Copy the IE and Edge pointer location to ev.targetTouches or ev.changedTouches
+            if (touchEnded) {
+              ev.changedTouches = [mouseListener.pointerTouches [ev.pointerId]];
+              delete mouseListener.pointerTouches [ev.pointerId];
+            } else {
+              mouseListener.pointerTouches [ev.pointerId] = {clientX : ev.clientX, clientY : ev.clientY};
+            }
+            ev.targetTouches = [];
+            for (var attribute in mouseListener.pointerTouches) {
+              if (mouseListener.pointerTouches.hasOwnProperty(attribute)) {
+                ev.targetTouches.push(mouseListener.pointerTouches [attribute]);
+              }
+            }
+          },
+          updateCoordinates : function(ev, type) {
+            // Updates canvasX and canvasY properties and return true if they changed
+            var rect = component3D.getHTMLElement().getBoundingClientRect();
+            var updated = true; 
+            if (type.indexOf("touch") === 0) {
+              var minDistance = mouseListener.lastEventType == "touchStarted"
+                  ? 5 : 1.5;
+              var touches;
+              if (ev.targetTouches.length === 1
+                    && type == "touchMoved" 
+                    && mouseListener.distance(mouseListener.lastTargetTouches [0].clientX, mouseListener.lastTargetTouches [0].clientY,
+                        ev.targetTouches[0].clientX, ev.targetTouches[0].clientY) < minDistance
+                  || ev.targetTouches.length === 0
+                         && type == "touchEnded" 
+                         && mouseListener.distance(mouseListener.lastTargetTouches [0].clientX, mouseListener.lastTargetTouches [0].clientY,
+                             ev.changedTouches[0].clientX, ev.changedTouches[0].clientY) < minDistance) {
+                touches = mouseListener.lastTargetTouches;
+                updated = false;
+              } else {
+                if (ev.targetTouches.length == 0) {
+                  // touchend case
+                  touches = ev.changedTouches;
+                } else {
+                  touches = ev.targetTouches;
+                }
+                mouseListener.lastEventType = type;
+              }
+              
+              if (touches.length == 1) {
+                ev.canvasX = touches[0].clientX - rect.left;
+                ev.canvasY = touches[0].clientY - rect.top;
+                var rect = component3D.getHTMLElement().getBoundingClientRect();
+                ev.clientX = touches[0].clientX;
+                ev.clientY = touches[0].clientY;
+                ev.button = 0;
+              } 
+              ev.clickCount = 1;
+
+              if (updated) {
+                // Make a copy of touches because old iOS reuse the same ev.targetTouches array between events
+                mouseListener.lastTargetTouches = [];
+                for (var i = 0; touches[i] !== undefined; i++) {
+                  mouseListener.lastTargetTouches.push({clientX: touches[i].clientX, clientY: touches[i].clientY});
+                }
+              }
+            } else {
+              ev.canvasX = ev.clientX - rect.left;
+              ev.canvasY = ev.clientY - rect.top;
+            }  
+            
+            if (ev.clickCount === undefined) {
+              if (type == "mouseDoubleClicked") {
+                ev.clickCount = 2;
+              } else if (type == "mousePressed" || type == "mouseReleased") {
+                ev.clickCount = 1;
+              } else {
+                ev.clickCount = 0;
+              }
+            }
+            if (type == "mouseWheelMoved") {
+              ev.wheelRotation = (ev.deltaY !== undefined 
+                  ? ev.deltaX + ev.deltaY 
+                  : -ev.wheelDelta) / 4;
+            }
+            
+            return updated;
+          },
+          distance: function(x1, y1, x2, y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+          }
+        };
+      
+      if (OperatingSystem.isInternetExplorerOrLegacyEdge()
+          && window.PointerEvent) {
+        // Multi touch support for IE and Edge
+        this.getHTMLElement().addEventListener("pointerdown", mouseListener.pointerPressed);
+        this.getHTMLElement().addEventListener("mousedown", mouseListener.pointerMousePressed);
+        this.getHTMLElement().addEventListener("dblclick", mouseListener.mouseDoubleClicked);
+        // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
+        window.addEventListener("pointermove", mouseListener.windowPointerMoved);
+        window.addEventListener("pointerup", mouseListener.windowPointerReleased);
+        this.getHTMLElement().addEventListener('contextmenu', mouseListener.contextMenu);
+      } else {
+        this.getHTMLElement().addEventListener("touchstart", mouseListener.touchStarted);
+        this.getHTMLElement().addEventListener("touchmove", mouseListener.touchMoved);
+        this.getHTMLElement().addEventListener("touchend", mouseListener.touchEnded);
+        this.getHTMLElement().addEventListener("click", mouseListener.mouseClicked);
+        this.getHTMLElement().addEventListener("mousedown", mouseListener.mousePressed);
+        this.getHTMLElement().addEventListener("dblclick", mouseListener.mouseDoubleClicked);
+        window.addEventListener("mousemove", mouseListener.windowMouseMoved);
+        window.addEventListener("mouseup", mouseListener.windowMouseReleased);
+      }
+
+      var inputMap = this.getInputMap();
+      inputMap ["pressed E"] = "ACTIVATE_ELEVATION";
+      inputMap ["released E"] = "DEACTIVATE_ELEVATION";
+      inputMap ["pressed R"] = "ACTIVATE_ROTATION";
+      inputMap ["released R"] = "DEACTIVATE_ROTATION";
+      inputMap ["pressed ESCAPE"] = "ESCAPE";
+      inputMap ["shift pressed ESCAPE"] = "ESCAPE";
+      inputMap ["shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+      inputMap ["released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+      if (OperatingSystem.isMacOSX()) {
+        // Under Mac OS X, duplication with Alt key
+        inputMap ["alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+        inputMap ["released ALT"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["shift alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+        inputMap ["shift released ALT"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["meta alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+        inputMap ["meta released ALT"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["shift meta alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+        inputMap ["shift meta released ALT"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["alt pressed ESCAPE"] = "ESCAPE";
+      } else {
+        // Under other systems, duplication with Ctrl key
+        inputMap ["control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+        inputMap ["released CONTROL"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["shift control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+        inputMap ["shift released CONTROL"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["meta control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+        inputMap ["meta released CONTROL"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["shift meta control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+        inputMap ["shift meta released CONTROL"] = "DEACTIVATE_DUPLICATION";
+        inputMap ["control pressed ESCAPE"] = "ESCAPE";
+      }
+      if (OperatingSystem.isWindows()) {
+        // Under Windows, magnetism toggled with Alt key
+        inputMap ["alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["released ALT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["shift alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["shift released ALT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["control alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["control released ALT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["shift control alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["shift control released ALT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["alt pressed ESCAPE"] = "ESCAPE";
+      } else if (OperatingSystem.isMacOSX()) {
+        // Under Windows, magnetism toggled with cmd key
+        inputMap ["meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["released META"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["shift meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["shift released META"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["alt meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["alt released META"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["shift alt meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["shift alt released META"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["meta pressed ESCAPE"] = "ESCAPE";
+      } else {
+        // Under other Unix systems, magnetism toggled with Alt + Shift key
+        inputMap ["shift alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["alt shift pressed SHIFT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["alt released SHIFT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["shift released ALT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["control shift alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["control alt shift pressed SHIFT"] = "TOGGLE_MAGNETISM_ON";
+        inputMap ["control alt released SHIFT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["control shift released ALT"] = "TOGGLE_MAGNETISM_OFF";
+        inputMap ["alt shift pressed ESCAPE"] = "ESCAPE";
+        inputMap ["control alt shift pressed ESCAPE"] = "ESCAPE";
+      }
+
+      var actionMap = this.getActionMap();
+      actionMap ["ESCAPE"] = {
+          actionPerformed : function() {
+            controller.getPlanController().escape();
+          }
+        };
+      actionMap ["ACTIVATE_ALIGNMENT"] = {
+          actionPerformed : function() {
+            controller.getPlanController().setAlignmentActivated(true);
+          }
+        };
+      actionMap ["DEACTIVATE_ALIGNMENT"] = {
+          actionPerformed : function() {
+            controller.getPlanController().setAlignmentActivated(false);
+          }
+        };
+      actionMap ["TOGGLE_MAGNETISM_ON"] = {
+          actionPerformed : function() {
+            controller.getPlanController().toggleMagnetism(true);
+            mouseListener.magnetismToggled = false;
+          }
+        };
+      actionMap ["TOGGLE_MAGNETISM_OFF"] = {
+        actionPerformed : function() {
+            controller.getPlanController().toggleMagnetism(false);
+            mouseListener.magnetismToggled = false;
+          }
+        };
+      actionMap ["ACTIVATE_DUPLICATION"] = {
+          actionPerformed : function() {
+            controller.getPlanController().setDuplicationActivated(true);
+          }
+        };
+      actionMap ["DEACTIVATE_DUPLICATION"] = {
+          actionPerformed : function() {
+            controller.getPlanController().setDuplicationActivated(false);
+          }
+        };
+      actionMap ["ACTIVATE_ELEVATION"] = {
+          actionPerformed : function() {
+            mouseListener.elevationActivated = true;
+          }
+        };
+      actionMap ["DEACTIVATE_ELEVATION"] = {
+          actionPerformed : function() {
+            mouseListener.elevationActivated = false;
+          }
+        };
+      actionMap ["ACTIVATE_ROTATION"] = {
+          actionPerformed : function() {
+            mouseListener.rotationActivated = true;
+          }
+        };
+      actionMap ["DEACTIVATE_ROTATION"] = {
+          actionPerformed : function() {
+            mouseListener.rotationActivated = false;
+          }
+        };
+    }
+
+  // Overlay used for long touch
+  this.touchOverlay = document.createElement("div");
+  this.touchOverlay.id = "touch-overlay-timer";
+  this.touchOverlay.style.position = "absolute";
+  this.touchOverlay.style.top = "0px";
+  this.touchOverlay.style.left = "0px";
+  this.touchOverlay.innerHTML = '<div id="touch-overlay-timer-content"></div><div id="touch-overlay-timer-bg"></div><div id="touch-overlay-timer-hidder"></div><div id="touch-overlay-timer-loader1"></div><div id="touch-overlay-timer-loader2"></div>';
+  document.body.appendChild(this.touchOverlay);
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    var item = this.touchOverlay.children.item(i);
+    if (item.id.indexOf("loader") !== -1) {
+      item.style.borderTopColor = controller.getPlanController().getView() .getSelectionColor();
+      item.style.borderRightColor = controller.getPlanController().getView().getSelectionColor();
+    }
+    if (item.id == "touch-overlay-timer-content") {
+      item.style.color = "#000000";
+      item.innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>"
+    }
+    item.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
+  }
+}
+CustomizedHomeComponent3D.prototype = Object.create(HomeComponent3D.prototype);
+CustomizedHomeComponent3D.prototype.constructor = CustomizedHomeComponent3D;
+
+CustomizedHomeComponent3D.prototype.startLongTouchAnimation = function(x, y, animationPostTask) {
+  this.touchOverlay.style.visibility = "visible";
+  this.touchOverlay.style.left = (this.getHTMLElement().getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
+  this.touchOverlay.style.top = (this.getHTMLElement().getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+    this.touchOverlay.children.item(i).classList.add("animated");
+  }
+  if (animationPostTask !== undefined) {
+    this.longTouchAnimationPostTask = setTimeout(animationPostTask, PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY);
+  }
+}
+
+CustomizedHomeComponent3D.prototype.stopLongTouchAnimation = function(x, y) {
+  this.touchOverlay.style.visibility = "hidden";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("animated");
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+  if (this.longTouchAnimationPostTask !== undefined) {
+    clearTimeout(this.longTouchAnimationPostTask);
+    delete this.longTouchAnimationPostTask;
+  }
+}
+
+/**
+ * Returns the coordinates in virtual world of the point (x, y) in component 3D space.
+ */
+ CustomizedHomeComponent3D.prototype.convertPixelLocationToVworld = function(x, y) {
+  // See http://webglfactory.blogspot.com/2011/05/how-to-convert-world-to-screen.html
+  var transform = this.canvas3D.getVirtualWorldToImageTransform(mat4.create());
+  mat4.invert(transform, transform);
+  mat4.mul(transform, this.canvas3D.getViewPlatformTransform(mat4.create()), transform);
+  
+  var rect = this.getHTMLElement().getBoundingClientRect();
+  var point = vec3.fromValues((x / rect.width - 0.5) * 2, (0.5 - y / rect.height) * 2, 0);
+  vec3.transformMat4(point, point, transform);
+  
+  return point;
+}
+
+ CustomizedHomeComponent3D.prototype.getPointOnFloorAt = function(x, y) {
+  var floorElevation = 0;
+  var selectedLevel = this.home.getSelectedLevel();
+  if (selectedLevel != null) {
+    floorElevation = selectedLevel.getElevation();
+  }
+  
+  var point = this.convertPixelLocationToVworld(x, y);
+  var camera = this.home.getCamera();
+  var eye = vec3.fromValues(camera.getX(), camera.getZ(), camera.getY());
+  var eyePointDirection = vec3.sub(vec3.fromValues(0, 0, 0), point, eye);
+  
+  // Compute coordinates of the intersection point between the line joining
+  // eye and the given point with the plan y = elevation
+  // Parametric equation of the line
+  // x = point[0] + t . direction[0]
+  // y = point[1] + t . direction[1]
+  // z = point[2] + t . direction[2]
+  var t = (floorElevation - point [1]) / eyePointDirection [1];
+  var xFloor = (point [0] + t * eyePointDirection [0]);
+  var zFloor = (point [2] + t * eyePointDirection [2]);
+  return [xFloor, zFloor, floorElevation];
+}
+
+
+/**
+ * Customized home view.
+ * @constructor
+ */
+function CustomizedHomePane(containerId, home, preferences, controller) {
+  HomePane.call(this, containerId, home, preferences, controller);
+}
+CustomizedHomePane.prototype = Object.create(HomePane.prototype);
+CustomizedHomePane.prototype.constructor = CustomizedHomePane;
+
+/**
+ * Returns an overriden mouse listener for catalog that acts as plan transfer handlers
+ * for drag and drop operations.
+ * @private
+ */
+ CustomizedHomePane.prototype.createFurnitureCatalogMouseListener = function() {
+  var mouseListener = HomePane.prototype.createFurnitureCatalogMouseListener.call(this);
+  // Change default implementation
+  var homePane = this;
+  mouseListener.getPointInView3D = function(ev) {
+      var view3D = homePane.controller.getHomeController3D().getView();
+      if (view3D != null) {
+        var rect = view3D.getHTMLElement().getBoundingClientRect();
+        var coords = mouseListener.getCoordinates(ev);
+        if (coords.clientX >= rect.left 
+            && coords.clientX < rect.left + rect.width
+            && coords.clientY >= rect.top 
+            && coords.clientY < rect.top + rect.height) {
+          return [coords.clientX - rect.left, coords.clientY - rect.top];
+        }
+      }
+      return null;
+    };
+  mouseListener.windowMouseReleased = function(ev) {
+      if (mouseListener.actionStartedInFurnitureCatalog) {
+        if (mouseListener.draggedImage != null) {
+          document.body.removeChild(mouseListener.draggedImage);
+          mouseListener.draggedImage = null;
+        }
+        if ((ev.button === 0 || ev.targetTouches) && mouseListener.selectedPiece != null) {
+          ev.preventDefault();
+          if (!mouseListener.escaped) {
+            var selectedLevel = homePane.home.getSelectedLevel();
+            if (selectedLevel == null || selectedLevel.isViewable()) {
+              var transferredFurniture = [homePane.controller.getFurnitureController().createHomePieceOfFurniture(mouseListener.selectedPiece)];
+              var view;
+              var pointInView = mouseListener.getPointInPlanView(ev, transferredFurniture);
+              if (pointInView != null) {
+                homePane.controller.getPlanController().stopDraggedItems();
+                view = homePane.controller.getPlanController().getView();
+                homePane.controller.drop(transferredFurniture, view, pointInView [0], pointInView [1]);
+                var view = mouseListener.previousView;
+                if (view && typeof view.setCursor === "function") {
+                  view.setCursor(this.previousCursor);
+                }
+              } else {
+                pointInView3D = mouseListener.getPointInView3D(ev);
+                if (pointInView3D !== null) {
+                  var dropLocation = homePane.getDropModelLocation(homePane.controller.getHomeController3D().getView(), 
+                      transferredFurniture, pointInView3D);
+                  homePane.controller.drop(
+                      transferredFurniture, homePane.controller.getPlanController().getView(),
+                      dropLocation [0], dropLocation [1], dropLocation.length === 3 ? dropLocation [2] : null);
+                }
+              }
+            }
+          }
+        }
+      }
+      mouseListener.selectedPiece = null;
+      mouseListener.actionStartedInFurnitureCatalog = false;
+      delete homePane.inputMap ["ESCAPE"];
+    };
+
+  return mouseListener;
+}
+
+/**
+ * Returns the drop location converted in model coordinates space.
+ */
+ CustomizedHomePane.prototype.getDropModelLocation = function(destination, transferedItems, dropLocation) {
+  var floorLocation = [0, 0];
+  if (destination instanceof CustomizedHomeComponent3D) {
+    var view3D = destination;
+    var rect = view3D.getHTMLElement().getBoundingClientRect();
+    var item = view3D.getClosestItemAt(dropLocation [0] + rect.left, dropLocation [1] + rect.top);
+    if (item instanceof HomePieceOfFurniture) {
+      floorLocation = [item.getX(), item.getY()];
+      if (transferedItems.length === 1
+          && transferedItems [0] instanceof HomePieceOfFurniture) {
+        var pointOnFloor = view3D.getPointOnFloorAt(dropLocation [0], dropLocation [1]);
+        floorLocation = CustomizedHomePane.computeIntersection(pointOnFloor [0], pointOnFloor [1], this.home.getCamera().getX(), this.home.getCamera().getY(),
+            floorLocation [0], floorLocation [1], floorLocation [0] + Math.cos(item.getAngle()), floorLocation [1] + Math.sin(item.getAngle()));
+        var transferedItem = transferedItems [0];
+        floorLocation [0] -= transferedItem.getWidth() / 2;
+        floorLocation [1] -= transferedItem.getDepth() / 2;
+        var camera = this.home.getCamera();
+        var distancePointOnFloorToCamera = java.awt.geom.Point2D.distance(pointOnFloor [0], pointOnFloor [1], camera.getX(), camera.getY());
+        var distancePointOnFloorToLocation = java.awt.geom.Point2D.distance(pointOnFloor [0], pointOnFloor [1], floorLocation [0], floorLocation [1]);
+        var elevation = (camera.getZ() - (this.home.getSelectedLevel() !== null ? this.home.getSelectedLevel().getElevation() : 0))
+            / distancePointOnFloorToCamera * distancePointOnFloorToLocation;
+        floorLocation = [floorLocation [0], floorLocation [1], elevation];
+      }
+    } else if (item instanceof Wall
+                && item.getArcExtent() === null
+                && transferedItems.length === 1) {
+      var pointOnFloor = view3D.getPointOnFloorAt(dropLocation [0], dropLocation [1]);
+      // Compute intersection between camera - pointOnFloor line and left/right sides of the wall
+      var wall = item;
+      var wallPoints = wall.getPoints();
+      var leftSideIntersection = CustomizedHomePane.computeIntersection(pointOnFloor [0], pointOnFloor [1], this.home.getCamera().getX(), this.home.getCamera().getY(),
+          wallPoints [0][0], wallPoints [0][1], wallPoints [1][0], wallPoints [1][1]);
+      var rightSideIntersection = CustomizedHomePane.computeIntersection(pointOnFloor [0], pointOnFloor [1], this.home.getCamera().getX(), this.home.getCamera().getY(),
+          wallPoints [3][0], wallPoints [3][1], wallPoints [2][0], wallPoints [2][1]);
+      if (java.awt.geom.Point2D.distanceSq(this.home.getCamera().getX(), this.home.getCamera().getY(), leftSideIntersection [0], leftSideIntersection [1])
+           < java.awt.geom.Point2D.distanceSq(this.home.getCamera().getX(), this.home.getCamera().getY(), rightSideIntersection [0], rightSideIntersection [1])) {
+        floorLocation = leftSideIntersection;
+      } else {
+        floorLocation = rightSideIntersection;
+      }
+    } else {
+      floorLocation = view3D.getPointOnFloorAt(dropLocation [0], dropLocation [1]);
+    }
+    if (floorLocation === null) {
+      floorLocation = [0, 0];
+    }
+  }
+  return floorLocation;
+}
+
+/**
+ * Returns the intersection point between the line joining the first two points and
+ * the line joining the two last points.
+ */
+ CustomizedHomePane.computeIntersection = function(xPoint1, yPoint1, xPoint2, yPoint2,
+                                                   xPoint3, yPoint3, xPoint4, yPoint4) {
+  var x = xPoint2;
+  var y = yPoint2;
+  var alpha1 = (yPoint2 - yPoint1) / (xPoint2 - xPoint1);
+  var alpha2 = (yPoint4 - yPoint3) / (xPoint4 - xPoint3);
+  // If the two lines are not parallel
+  if (alpha1 !== alpha2) {
+    // If first line is vertical
+    if (Math.abs(alpha1) > 4000)  {
+      if (Math.abs(alpha2) < 4000) {
+        x = xPoint1;
+        var beta2  = yPoint4 - alpha2 * xPoint4;
+        y = alpha2 * x + beta2;
+      }
+    // If second line is vertical
+    } else if (Math.abs(alpha2) > 4000) {
+      if (Math.abs(alpha1) < 4000) {
+        x = xPoint3;
+        var beta1  = yPoint2 - alpha1 * xPoint2;
+        y = alpha1 * x + beta1;
+      }
+    } else {
+      var sameSignum = alpha1 > 0 && alpha2 > 0 || alpha1 < 0 && alpha2 < 0;
+      if (Math.abs(alpha1 - alpha2) > 1E-5
+          && (!sameSignum || (Math.abs(alpha1) > Math.abs(alpha2)   ? alpha1 / alpha2   : alpha2 / alpha1) > 1.004)) {
+        var beta1  = yPoint2 - alpha1 * xPoint2;
+        var beta2  = yPoint4 - alpha2 * xPoint4;
+        x = (beta2 - beta1) / (alpha1 - alpha2);
+        y = alpha1 * x + beta1;
+      }
+    }
+  }
+  return [x, y];
+}
+
+
+/**
+ * Customized home controller 3D.
+ * @constructor
+ */
+function CustomizedHomeController3D(home, preferences, viewFactory, contentManager, undoSupport, homeController) {
+  HomeController3D.call(this, home, preferences, viewFactory, contentManager, undoSupport);
+  this.homeController = homeController;
+  
+  // Subclass CustomizedHomeController3D.CameraControllerStateDecorator
+  function ObserverCameraControllerStateDecorator(state) {
+    CustomizedHomeController3D.CameraControllerStateDecorator.call(this, state);
+  }  
+  ObserverCameraControllerStateDecorator.prototype = Object.create(CustomizedHomeController3D.CameraControllerStateDecorator.prototype);
+  ObserverCameraControllerStateDecorator.prototype.constructor = ObserverCameraControllerStateDecorator;
+  
+  ObserverCameraControllerStateDecorator.prototype.enter = function () {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.enter.call(this);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+  
+  ObserverCameraControllerStateDecorator.prototype.disableObserverCameraSelectedAtChange = function () {
+    var observerCameraSelectedAtChange = preferences.isObserverCameraSelectedAtChange();
+    if (observerCameraSelectedAtChange) {
+      var selectedItems = home.getSelectedItems();
+      if (selectedItems.length !== 0 
+          && (selectedItems.length !== 1 || selectedItems[0] !== home.getCamera())) {
+        preferences.setObserverCameraSelectedAtChange(false);
+      }
+    }
+    return observerCameraSelectedAtChange;
+  }
+
+  ObserverCameraControllerStateDecorator.prototype.moveCamera = function (delta) {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.moveCamera.call(this, delta);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+
+  ObserverCameraControllerStateDecorator.prototype.moveCameraSideways = function (delta) {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.moveCameraSideways.call(this, delta);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+  
+  ObserverCameraControllerStateDecorator.prototype.elevateCamera = function (delta) {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.elevateCamera.call(this, delta);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+
+  ObserverCameraControllerStateDecorator.prototype.rotateCameraYaw = function (delta) {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.rotateCameraYaw.call(this, delta);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+
+  ObserverCameraControllerStateDecorator.prototype.rotateCameraPitch = function (delta) {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.rotateCameraPitch.call(this, delta);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+ 
+  ObserverCameraControllerStateDecorator.prototype.modifyFieldOfView = function (delta) {
+    var observerCameraSelectedAtChange = this.disableObserverCameraSelectedAtChange();
+    CustomizedHomeController3D.CameraControllerStateDecorator.prototype.modifyFieldOfView.call(this, delta);
+    preferences.setObserverCameraSelectedAtChange(observerCameraSelectedAtChange);
+  }
+
+  this.decoratedObserverCameraState = new ObserverCameraControllerStateDecorator(HomeController3D.prototype.getObserverCameraState.call(this));
+}
+CustomizedHomeController3D.prototype = Object.create(HomeController3D.prototype);
+CustomizedHomeController3D.prototype.constructor = CustomizedHomeController3D;
+
+CustomizedHomeController3D.prototype.getUndoSupport = function () {
+  return this.undoSupport;
+}
+
+CustomizedHomeController3D.prototype.getPlanController = function () {
+  return this.homeController.getPlanController();
+}
+
+CustomizedHomeController3D.prototype.getObserverCameraState = function () {
+  return this.decoratedObserverCameraState;
+}
+  
+CustomizedHomeController3D.prototype.setNullCameraState = function () {
+  this.setCameraState(new HomeController3D.CameraControllerState());
+}
+  
+CustomizedHomeController3D.prototype.setDefaultCameraState = function () {
+  this.setCameraState(this.home.getCamera() === this.home.getTopCamera() ? this.getTopCameraState() : this.getObserverCameraState());
+}
+
+// CustomizedHomeController3D.CameraControllerStateDecorator class decorator
+CustomizedHomeController3D.CameraControllerStateDecorator = function (state) {
+  HomeController3D.CameraControllerState.call(this);
+  this.state = state;
+}
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype = Object.create(HomeController3D.CameraControllerState.prototype);
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.constructor = CustomizedHomeController3D.CameraControllerStateDecorator;
+  
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.enter = function () {
+  this.state.enter();
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.exit = function () {
+  this.state.exit();
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.moveCamera = function (delta) {
+  this.state.moveCamera(delta);
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.moveCameraSideways = function (delta) {
+  this.state.moveCameraSideways(delta);
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.elevateCamera = function (delta) {
+  this.state.elevateCamera(delta);
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.rotateCameraYaw = function (delta) {
+  this.state.rotateCameraYaw(delta);
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.rotateCameraPitch = function (delta) {
+  this.state.rotateCameraPitch(delta);
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.modifyFieldOfView = function (delta) {
+  this.state.modifyFieldOfView(delta);
+}
+
+CustomizedHomeController3D.CameraControllerStateDecorator.prototype.goToCamera = function (camera) {
+  this.state.goToCamera(camera);
+}
+
+
+/**
+ * Customized plan controller.
+ * @constructor
+ */
+function CustomizedPlanController(home, preferences, viewFactory, contentManager, undoSupport) {
+  PlanController.call(this, home, preferences, viewFactory, contentManager, undoSupport);
+  
+  // PlanController.ControllerState subclass
+  function NoOperationState() {
+    PlanController.ControllerState.call(this);
+  }  
+  NoOperationState.prototype = Object.create(PlanController.ControllerState.prototype);
+  NoOperationState.prototype.constructor = NoOperationState;
+  
+  NoOperationState.prototype.getMode = function () {
+    return PlanController.Mode.SELECTION;
+  }
+
+  this.noOperationState = new NoOperationState();
+}
+CustomizedPlanController.prototype = Object.create(PlanController.prototype);
+CustomizedPlanController.prototype.constructor = CustomizedPlanController;
+
+CustomizedPlanController.prototype.setSelectionMoveStateWithoutSelectionChange = function () {
+  var selectedItems = this.home.getSelectedItems();
+  if (selectedItems.length == 0) {
+    return null;
+  } else {
+    this.setState(this.noOperationState);
+    var startPoint = selectedItems[0].getPoints()[0];
+    this.moveMouse(startPoint[0], startPoint[1]);
+    this.pressMouse$float$float$int$boolean$boolean$boolean$boolean(startPoint[0], startPoint[1], 1, this.wasShiftDownLastMousePress(), this.wasAlignmentActivatedLastMousePress(), this.wasDuplicationActivatedLastMousePress(), this.wasMagnetismToggledLastMousePress());
+    this.setState(this.getSelectionMoveState());
+    return startPoint;
+  }
+}
+
+CustomizedPlanController.prototype.isItemMovable = function (item) {
+  if (item instanceof HomePieceOfFurniture) {
+    return PlanController.prototype.isItemMovable.call(this, item);
+  } else {
+    return false;
+  }
+}
+
+CustomizedPlanController.prototype.isItemResizable = function (item) {
+  if (item instanceof HomePieceOfFurniture) {
+    return PlanController.prototype.isItemResizable.call(this, item);
+  } else {
+    return false;
+  }
+}
+
+CustomizedPlanController.prototype.isItemDeletable = function (item) {
+  if (item instanceof HomePieceOfFurniture) {
+    return PlanController.prototype.isItemDeletable.call(this, item);
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Customized home controller.
+ * @constructor
+ */
+function CustomizedHomeController(home, application, viewFactory) {
+  HomeController.call(this, home, application, viewFactory);
+  this.homeController3D = new CustomizedHomeController3D(
+      home, application.getUserPreferences(), viewFactory, null, this.getUndoableEditSupport(), this);
+  this.planController = new CustomizedPlanController(
+      home, application.getUserPreferences(), viewFactory, null, this.getUndoableEditSupport());
+}
+CustomizedHomeController.prototype = Object.create(HomeController.prototype);
+CustomizedHomeController.prototype.constructor = CustomizedHomeController;
+
+
+/**
+ * Customized application.
+ */
+function CustomizedJSApplication(params) {
+  SweetHome3DJSApplication.call(this, params);
+}
+CustomizedJSApplication.prototype = Object.create(SweetHome3DJSApplication.prototype);
+CustomizedJSApplication.prototype.constructor = CustomizedJSApplication;
+
+CustomizedJSApplication.prototype.getViewFactory = function() {
+  if (this.viewFactory == null) {
+    SweetHome3DJSApplication.prototype.getViewFactory.call(this);
+    this.viewFactory.createView3D = function(home, preferences, homeController3D) {
+        return new CustomizedHomeComponent3D("home-3D-view", home, preferences, null, homeController3D);
+      };
+    this.viewFactory.createHomeView = function(home, preferences, homeController) {
+        return new CustomizedHomePane("home-pane", home, preferences, homeController);
+      };
+  }
+  return this.viewFactory;
+}
+
+CustomizedJSApplication.prototype.createHomeController = function(home) {
+  return new CustomizedHomeController(home, this, this.getViewFactory());
+}
+
+
+var homeName = "test/resources/HomeTest.sh3d";
+var application = new CustomizedJSApplication();
+
+// Read and display test file 
+// TODO Should be performed in HomeController.open
+application.getHomeRecorder().readHome(homeName, 
+    {
+      homeLoaded: function(home) {
+        home.setName(homeName);
+        application.addHome(home);
+        application.getUserPreferences().setAerialViewCenteredOnSelectionEnabled(false);
+      },
+      homeError: function(err) {
+        console.error(err);
+        alert(err);
+      },
+      progression: function(part, info, percentage) {
+      }
+    });
+</script>
+
+</body>
+</html>
