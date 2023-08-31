@@ -263,6 +263,7 @@ function JSTextureDialog(preferences, controller) {
         var time = Date.now();
         if (time - lastTouchTime < 500
             && textureElement === ev.target) {
+	      ev.preventDefault();
 	      dialog.validate();
         } else {
           lastTouchTime = time; 
