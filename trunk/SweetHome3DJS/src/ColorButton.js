@@ -346,14 +346,15 @@ function JSColorChooserDialog(preferences, title, color, observer) {
     });
   if (!OperatingSystem.isInternetExplorerOrLegacyEdge()
       || !window.PointerEvent) {
-	// Simulate double touch on the same element
-	var lastTouchTime = -1;
-	var colorTileElement = null;
+    // Simulate double touch on the same element
+    var lastTouchTime = -1;
+    var colorTileElement = null;
     this.registerEventListener(this.colorChooser.colorTileElements, "touchstart", function(ev) {
         var time = Date.now();
         if (time - lastTouchTime < 500
             && colorTileElement === ev.target) {
-	      dialog.validate();
+          ev.preventDefault();
+          dialog.validate();
         } else {
           lastTouchTime = time; 
           colorTileElement = ev.target;
