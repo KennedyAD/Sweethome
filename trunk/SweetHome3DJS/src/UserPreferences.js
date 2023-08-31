@@ -1115,14 +1115,14 @@ function DefaultUserPreferences(furnitureCatalogUrls, furnitureResourcesUrlBase,
   var userLanguage;
   if (furnitureCatalogUrls !== undefined 
       && (typeof furnitureCatalogUrls === "boolean")) {
-	readCatalogs = furnitureCatalogUrls;
+    readCatalogs = furnitureCatalogUrls;
     userLanguage = furnitureResourcesUrlBase;
     this.furnitureCatalogUrls = undefined;
     this.furnitureResourcesUrlBase = undefined;
     this.texturesCatalogUrls = undefined;
     this.texturesResourcesUrlBase = undefined;
   } else {
-	readCatalogs = true;
+    readCatalogs = true;
     userLanguage = Locale.getDefault();
     this.furnitureCatalogUrls = furnitureCatalogUrls;
     this.furnitureResourcesUrlBase = furnitureResourcesUrlBase;
@@ -1318,7 +1318,7 @@ function RecordedUserPreferences(configuration) {
   } else {
     // Initialize properties from default preferences
     this.updatePreferencesFromProperties(this.properties, userLanguage, true);
-	this.addListeners();
+    this.addListeners();
   }
 
 }
@@ -1559,7 +1559,7 @@ RecordedUserPreferences.prototype.addListeners = function() {
  */
 RecordedUserPreferences.prototype.readPreferences = function(properties, defaultUserLanguage) {
   try {
-	var preferences = this;
+    var preferences = this;
     var updateJsonPreferences = function(jsonPreferences) {
         if (jsonPreferences != null) {
           var preferencesData = JSON.parse(jsonPreferences);
@@ -1568,7 +1568,7 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
           }
         } 
         preferences.updatePreferencesFromProperties(properties, defaultUserLanguage, true);
-	    preferences.addListeners();
+        preferences.addListeners();
       };
       
     if (this.readPreferencesUrl.indexOf(LocalStorageURLContent.LOCAL_STORAGE_PREFIX) === 0) {
@@ -1585,7 +1585,7 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
             reader.readAsText(blob);
           },
           blobError : function(status, error) {
-	        preferences.updateDefaultCatalogs();
+            preferences.updateDefaultCatalogs();
             preferences.addListeners();
             if (status != -1) {
               console.log("Can't read preferences from indexedDB " + status + " " + error);
@@ -1606,7 +1606,7 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
           }
         });
       var errorListener = function(ev) {
-	      console.log("Can't read preferences from server");
+          console.log("Can't read preferences from server");
           preferences.updateDefaultCatalogs();
           preferences.addListeners();
         };
@@ -1616,7 +1616,7 @@ RecordedUserPreferences.prototype.readPreferences = function(properties, default
       request.send();
     }
   } catch (ex) {
-	console.log(ex);
+    console.log(ex);
     preferences.updateDefaultCatalogs();    
     preferences.addListeners();
   }
@@ -2033,7 +2033,7 @@ RecordedUserPreferences.prototype.writeModifiableTexturesCatalog = function(prop
               var textureImageFileName = this.uploadingBlobs[textureImage.getURL()];
               if (textureImageFileName === undefined) {
                 textureImage.getBlob({
-	                textureImage: textureImage, 
+                    textureImage: textureImage, 
                     blobReady: function(blob) {
                       textureImageFileName = UUID.randomUUID();
                       preferences.uploadingBlobs[this.textureImage.getURL()] = textureImageFileName;

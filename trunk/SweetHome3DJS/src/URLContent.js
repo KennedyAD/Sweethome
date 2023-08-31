@@ -973,7 +973,7 @@ ZIPTools.disposeZIP = function(url) {
  */
 ZIPTools.isGIFImage = function(imageData) {
   if (imageData.length <= 6) {
-	return false;
+    return false;
   } else if (typeof imageData === "string") { 
     return imageData.charAt(0).charCodeAt(0) === 0x47  
         && imageData.charAt(1).charCodeAt(0) === 0x49
@@ -982,7 +982,7 @@ ZIPTools.isGIFImage = function(imageData) {
         && (imageData.charAt(4).charCodeAt(0) === 0x37 || imageData.charAt(4).charCodeAt(0) === 0x39)
         && imageData.charAt(5).charCodeAt(0) === 0x61;
   } else {
-	return imageData [0] === 0x47  
+    return imageData [0] === 0x47  
         && imageData [1] === 0x49
         && imageData [2] === 0x46
         && imageData [3] === 0x38 
@@ -999,7 +999,7 @@ ZIPTools.isGIFImage = function(imageData) {
  */
 ZIPTools.isBMPImage = function(imageData) {
   if (imageData.length <= 2) {
-	return false;
+    return false;
   } else if (typeof imageData === "string") {
     return imageData.charAt(0).charCodeAt(0) === 0x42  
         && imageData.charAt(1).charCodeAt(0) === 0x4D;
@@ -1017,7 +1017,7 @@ ZIPTools.isBMPImage = function(imageData) {
  */
 ZIPTools.isJPEGImage = function(imageData) {
   if (imageData.length <= 3) {
-	return false;
+    return false;
   } else if (typeof imageData === "string") {
     return imageData.charAt(0).charCodeAt(0) === 0xFF 
       && (imageData.charAt(1).charCodeAt(0) === 0xD8 || imageData.charAt(1).charCodeAt(0) === 0x4F) 
@@ -1037,7 +1037,7 @@ ZIPTools.isJPEGImage = function(imageData) {
  */
 ZIPTools.isPNGImage = function(imageData) {
   if (imageData.length <= 8) {
-	return false;
+    return false;
   } else if (typeof imageData === "string") {
     return imageData.charAt(0).charCodeAt(0) === 0x89 
       && imageData.charAt(1).charCodeAt(0) === 0x50 
