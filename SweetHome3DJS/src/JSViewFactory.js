@@ -871,12 +871,12 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
         component.imageChooserInput.click();
       });  
     this.registerEventListener(this.imageFindImageButton, "click", function(ev) {
-	    try {
-	      var url = preferences.getLocalizedString("ImportedTextureWizardStepsPanel", "findImagesButton.url");
+        try {
+          var url = preferences.getLocalizedString("ImportedTextureWizardStepsPanel", "findImagesButton.url");
           window.open(url, "_blank");
-		} catch (e) {
-		  this.imageFindImageButton.style.display = "none";
-		}
+        } catch (e) {
+          this.imageFindImageButton.style.display = "none";
+        }
       });  
     var importImage = function(file) {
         if (file) {

@@ -1649,7 +1649,7 @@ JSComboBox.prototype.initSelectionPanel = function() {
       }
     });
   this.registerEventListener(this.selectionPanel, "focusout", function(ev) {
-	  comboBox.closeSelectionPanel();
+      comboBox.closeSelectionPanel();
     });
 }
 
@@ -1701,12 +1701,12 @@ JSComboBox.prototype.setEnabled = function(enabled) {
  */
 JSComboBox.prototype.openSelectionPanel = function(pageX, pageY) {
   if (JSComboBox.current != null) {
-	JSComboBox.current.closeSelectionPanel();
+    JSComboBox.current.closeSelectionPanel();
   }
   
   var comboBox = this;
   this.closeSelectionPanelListener = function() {
-	  comboBox.closeSelectionPanel();
+      comboBox.closeSelectionPanel();
     }
 
   this.selectionPanel.style.display = "block";

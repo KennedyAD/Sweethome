@@ -1521,7 +1521,7 @@ HomeComponent3D.prototype.createGroundNode = function(groundOriginX, groundOrigi
     transformGroup.addChild(ground3D);
 
     if (listenToHomeUpdates) {
-	  var component3D = this;
+      var component3D = this;
       // Add a listener on ground color and texture properties change
       this.groundChangeListener = function(ev) {
           if (!component3D.groundChangeListener.updater) {

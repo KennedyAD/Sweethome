@@ -1642,18 +1642,18 @@ PlanComponent.prototype.stopIndicatorAnimation = function() {
 PlanComponent.prototype.addFocusListener = function(controller) {
   var plan = this;
   this.focusOutListener = function() {
-	  if (plan.pointerType === View.PointerType.TOUCH
-	      && plan.lastTouchEndX
+      if (plan.pointerType === View.PointerType.TOUCH
+          && plan.lastTouchEndX
           && plan.lastTouchEndY
-		  && controller.isModificationState()
-	      && (controller.getMode() === PlanController.Mode.WALL_CREATION
-	          || controller.getMode() === PlanController.Mode.ROOM_CREATION
-	          || controller.getMode() === PlanController.Mode.POLYLINE_CREATION
-	          || controller.getMode() === PlanController.Mode.DIMENSION_LINE_CREATION)) {
-		// Emulate a mouse click at last touch location to validate last entered point
-		controller.pressMouse(plan.convertXPixelToModel(plan.lastTouchEndX), 
+          && controller.isModificationState()
+          && (controller.getMode() === PlanController.Mode.WALL_CREATION
+              || controller.getMode() === PlanController.Mode.ROOM_CREATION
+              || controller.getMode() === PlanController.Mode.POLYLINE_CREATION
+              || controller.getMode() === PlanController.Mode.DIMENSION_LINE_CREATION)) {
+        // Emulate a mouse click at last touch location to validate last entered point
+        controller.pressMouse(plan.convertXPixelToModel(plan.lastTouchEndX), 
             plan.convertYPixelToModel(plan.lastTouchEndY), 1, false, false, false, false, View.PointerType.TOUCH);
-		controller.releaseMouse(plan.convertXPixelToModel(plan.lastTouchEndX), 
+        controller.releaseMouse(plan.convertXPixelToModel(plan.lastTouchEndX), 
             plan.convertYPixelToModel(plan.lastTouchEndY));
       }
       plan.mouseListener.lastPointerLocation = null;
