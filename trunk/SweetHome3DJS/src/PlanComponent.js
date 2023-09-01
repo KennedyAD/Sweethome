@@ -6323,7 +6323,8 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.constructor = PlanComponent.Pi
  * @private
  */
 PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSize) {
-  if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+  if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D
+      || !PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize]) {
     var canvas = document.createElement("canvas");
     canvas.width = iconSize;
     canvas.height = iconSize;
@@ -6346,15 +6347,24 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
       sceneRoot.addChild(lights[i]);
     }
     canvas3D.setScene(sceneRoot);
-    PlanComponent.PieceOfFurnitureModelIcon.canvas3D = canvas3D;
-  } else {
-    if (PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getHTMLElement().width !== iconSize) {
-      PlanComponent.PieceOfFurnitureModelIcon.canvas3D.clear();
-      delete PlanComponent.PieceOfFurnitureModelIcon.canvas3D;
-      return this.getSceneRoot(iconSize);
+    if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+	  PlanComponent.PieceOfFurnitureModelIcon.canvas3D = {};
+    }
+    PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize] = canvas3D;
+  }
+  
+  if (iconSize !== 128) {
+	// Keep only canvas for 128 (default) size and the requested icon size
+    for (var key in PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
+      if (key != 128
+          && key != iconSize
+          && PlanComponent.PieceOfFurnitureModelIcon.canvas3D.hasOwnProperty(key)) {
+        PlanComponent.PieceOfFurnitureModelIcon.canvas3D [key].clear();
+        delete PlanComponent.PieceOfFurnitureModelIcon.canvas3D [key];
+      }
     }
   }
-  return PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getScene();
+  return PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize].getScene();
 }
 
 /**
@@ -6382,9 +6392,9 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.createIcon = function(pieceNod
     var observingStart = Date.now();
     var iconGeneration = function() {
         sceneRoot.addChild(model);
-        var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.isLoadingCompleted();
+        var loadingCompleted = PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize].isLoadingCompleted();
         if (loadingCompleted || (Date.now() - observingStart) > 5000) {
-          PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage(iconObserver);
+          PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize].getImage(iconObserver);
         }
         sceneRoot.removeChild(model);
         if (!loadingCompleted) {
@@ -6396,7 +6406,7 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.createIcon = function(pieceNod
   }
   else {
     sceneRoot.addChild(model);
-    var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D.getImage();
+    var icon = PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize].getImage();
     sceneRoot.removeChild(model);
     return icon;
   }
