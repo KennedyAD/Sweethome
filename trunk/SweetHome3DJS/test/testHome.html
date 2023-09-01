@@ -1720,8 +1720,8 @@ function testHomeModifications() {
       var compassPoints = compass.getPoints();
       var indicatorLocation = [(compassPoints [1][0] + compassPoints [2][0]) / 2,
                                (compassPoints [1][1] + compassPoints [2][1]) / 2];
-      planController.moveMouse(indicatorLocation [0], indicatorLocation [1]);
-      planController.pressMouse(indicatorLocation [0], indicatorLocation [1], 1, false, false);
+      planController.moveMouse(indicatorLocation [0] + 0.01, indicatorLocation [1]);
+      planController.pressMouse(indicatorLocation [0] + 0.01, indicatorLocation [1], 1, false, false);
       planController.moveMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
       planController.releaseMouse(indicatorLocation [0] + 20, indicatorLocation [1]);
       assertTrue("Compass size didn't change", compass.getDiameter() > diameter);
