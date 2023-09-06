@@ -1611,7 +1611,7 @@ PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
     document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="' + ZIPTools.getScriptFolder() + 'resources/cursors/' + indicator + '32x32.png"/>';
     this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
     this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
-    if (this.tooltip.style.visibility == "visible"
+    if (this.tooltip.style.visibility == "visible" 
         && this.tooltip.getBoundingClientRect().top < this.canvas.getBoundingClientRect().top + y) {
       this.tooltip.style.marginTop = -(this.tooltip.clientHeight + 70) + "px";
     }
@@ -5981,8 +5981,8 @@ PlanComponent.prototype.setToolTipFeedback = function(toolTipFeedback, x, y) {
     this.tooltip.style.textAlign = "center";
   }
   this.tooltip.innerHTML = toolTipFeedback.replace("<html>", "").replace("</html>", "");
-  var marginTop =  -(this.tooltip.clientHeight + (this.pointerType === View.PointerType.TOUCH ? 55 : 20));
-  this.tooltip.style.marginTop = (marginTop + (this.touchOverlay.style.visibility == "visible" ? 15 : 0)) + "px";
+  var marginTop = -(this.tooltip.clientHeight + (this.pointerType === View.PointerType.TOUCH ? 55 : 20));
+  this.tooltip.style.marginTop = (marginTop - (this.pointerType === View.PointerType.TOUCH && this.touchOverlay.style.visibility == "visible" ? 15 : 0)) + "px";
   var width = this.tooltip.clientWidth + 10;
   this.tooltip.style.width = width + "px";
   this.tooltip.style.marginLeft = -width / 2 + "px";
@@ -5991,7 +5991,7 @@ PlanComponent.prototype.setToolTipFeedback = function(toolTipFeedback, x, y) {
      Math.min(window.innerWidth - width / 2 - 10, containerRect.left + this.convertXModelToPixel(x))) + "px";
   var top =  containerRect.top + this.convertYModelToPixel(y);
   this.tooltip.style.top =  (top + marginTop > 15 ? top : top - marginTop + (this.pointerType === View.PointerType.TOUCH ? 100 : 20)) + "px";
-  this.tooltip.style.visibility = "visible";
+  this.tooltip.style.visibility = "visible";  
 }
 
 /**
