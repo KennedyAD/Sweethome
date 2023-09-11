@@ -93,19 +93,21 @@ function HomePane(containerId, home, preferences, controller) {
     };
   document.addEventListener("keydown", this.keydownListener, false);
 
-  // Restore viewport position if it exists
-  var planComponent = controller.getPlanController().getView(); 
-  var viewportX = home.getNumericProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
-  var viewportY = home.getNumericProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
-  if (viewportX != null && viewportY != null) {
-    planComponent.scrollPane.scrollLeft = viewportX | 0;
-    planComponent.scrollPane.scrollTop = viewportY | 0;
-  }
+  var planComponent = controller.getPlanController().getView();
+  if (planComponent != null) {
+    // Restore viewport position if it exists
+    var viewportX = home.getNumericProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY);
+    var viewportY = home.getNumericProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY);
+    if (viewportX != null && viewportY != null) {
+      planComponent.scrollPane.scrollLeft = viewportX | 0;
+      planComponent.scrollPane.scrollTop = viewportY | 0;
+    }
 
-  planComponent.scrollPane.addEventListener("scroll", function(ev) {
-      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
-      controller.setHomeProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
-    });
+    planComponent.scrollPane.addEventListener("scroll", function(ev) {
+        controller.setHomeProperty(HomePane.PLAN_VIEWPORT_X_VISUAL_PROPERTY, planComponent.scrollPane.scrollLeft.toString());
+        controller.setHomeProperty(HomePane.PLAN_VIEWPORT_Y_VISUAL_PROPERTY, planComponent.scrollPane.scrollTop.toString());
+      });
+  } 
 
   // Create level selector
   this.levelSelector = document.getElementById("level-selector");
@@ -155,6 +157,15 @@ function HomePane(containerId, home, preferences, controller) {
         ev.getItem().removePropertyChangeListener(levelChangeListener);
       }
       levelsChangeListener();
+    });
+    
+  setTimeout(function() {
+      // Give default focus to the plan or the 3D view
+	  if (planComponent != null) {
+        planComponent.getHTMLElement().focus();
+	  } else if (controller.getHomeController3D().getView() != null) {
+	    controller.getHomeController3D().getView().getHTMLElement().focus();
+      }
     });
 }
 HomePane["__class"] = "HomePane";
@@ -720,8 +731,9 @@ HomePane.prototype.addPlanControllerListener = function(planController) {
 HomePane.prototype.addFocusListener = function() {
   var homePane = this; 
   this.focusListener = function(ev) {
-      var focusableViews = [homePane.controller.getFurnitureCatalogController().getView(),
-                            homePane.controller.getFurnitureController().getView(),
+	  // Manage focus only for plan and component 3D to simplify actions choice proposed to the user
+      var focusableViews = [// homePane.controller.getFurnitureCatalogController().getView(),
+                            // homePane.controller.getFurnitureController().getView(),
                             homePane.controller.getPlanController().getView(),
                             homePane.controller.getHomeController3D().getView()];
       for (var i = 0; i < focusableViews.length; i++) {
@@ -1818,8 +1830,6 @@ HomePane.prototype.setNameAndShortDescription = function(actionType, name) {
  */
 HomePane.prototype.setTransferEnabled = function(enabled) {
   var furnitureCatalogView = this.controller.getFurnitureCatalogController().getView();
-  var furnitureView = this.controller.getFurnitureController().getView();
-  var planView = this.controller.getPlanController().getView();
   if (enabled
       && !this.transferHandlerEnabled) {
     if (furnitureCatalogView != null) {
@@ -1981,15 +1991,15 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
               pointInView = mouseListener.getPointInFurnitureView(ev);
             }
 
-            if (mouseListener.previousView != view) {
+            if (mouseListener.previousView !== view) {
               if (mouseListener.previousView != null) {
-                if (mouseListener.previousView == homePane.controller.getPlanController().getView()
+                if (mouseListener.previousView === homePane.controller.getPlanController().getView()
                     && !mouseListener.escaped) {
                   homePane.controller.getPlanController().stopDraggedItems();
                 }
                 var component = mouseListener.previousView;
-                if (view && typeof view.setCursor === "function") {
-                  view.setCursor(mouseListener.previousCursor);
+                if (component && typeof component.setCursor === "function") {
+                  component.setCursor(mouseListener.previousCursor);
                 }
                 mouseListener.previousCursor = null;
                 mouseListener.previousView = null;
@@ -1999,8 +2009,8 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
                 mouseListener.previousCursor = "default";
                 mouseListener.previousView = view;
                 if (!mouseListener.escaped) {
-                  if (typeof view.setCursor === "function") {
-                    view.setCursor("copy");
+                  if (typeof component.setCursor === "function") {
+                    component.setCursor("copy");
                   }
                   if (view === homePane.controller.getPlanController().getView()) {
                     homePane.controller.getPlanController().startDraggedItems(transferredFurniture, pointInView [0], pointInView [1]);
