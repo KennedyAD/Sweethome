@@ -2289,7 +2289,7 @@ HomePane.prototype.showSaveDialog = function(homeName) {
  * @ignore
  */
 HomePane.prototype.showError = function(message) {
-  alert(message);
+  alert(message.indexOf("<html>") < 0 ? message : message.replace(/\<\/?\w+(\s+\w+\=[\"\'][^\"\']+[\"\'])*\>/g, " ").replace(/\s+/g, " "));
 }
 
 /**
@@ -2298,7 +2298,7 @@ HomePane.prototype.showError = function(message) {
  * @ignore
  */
 HomePane.prototype.showMessage = function(message) {
-  alert(message);
+  alert(message.indexOf("<html>") < 0 ? message : message.replace(/\<\/?\w+(\s+\w+\=[\"\'][^\"\']+[\"\'])*\>/g, " ").replace(/\s+/g, " "));
 }
 
 /**
