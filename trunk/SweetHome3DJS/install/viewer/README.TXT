@@ -1,4 +1,4 @@
-SWEET HOME 3D JS VIEWER v 7.1.2
+SWEET HOME 3D JS VIEWER v 7.1.4
 -------------------------------
 
 This archive contains files required to install Sweet Home 3D JS Viewer, a 
