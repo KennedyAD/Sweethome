@@ -552,7 +552,7 @@ HTMLCanvas3D.prototype.prepareScene = function(node, sharedGeometries, sceneGeom
                   texture = canvas3D.prepareTexture(nodeAppearance.getTextureImage());
                 }
                 canvas3D.prepareGeometry(addedGeometry, nodeAppearance, texture, node, 
-                    sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, parentTransforms);
+                    sharedGeometries, sceneGeometries, backgroundGeometries, background, parentLinks, canvas3D.getTransformFromRoot(node));
               }
             }
           });
@@ -714,7 +714,11 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
                 nodeGeometry : nodeGeometry,
                 vertexCount  : nodeGeometry.vertexIndices.length};
     geometry.vertexBuffer = this.prepareBuffer(nodeGeometry.vertices, nodeGeometry.vertexIndices);
-    geometry.textureCoordinatesBuffer = this.prepareBuffer(nodeGeometry.textureCoordinates, nodeGeometry.textureCoordinateIndices);
+    if (nodeGeometry.hasTextureCoordinates()) {
+      geometry.textureCoordinatesBuffer = this.prepareBuffer(nodeGeometry.textureCoordinates, nodeGeometry.textureCoordinateIndices);
+    } else {
+	  geometry.textureCoordinatesBuffer = null; 
+    }
     if (nodeGeometry instanceof IndexedTriangleArray3D) {
       geometry.mode = this.gl.TRIANGLES;
       geometry.normalBuffer = this.prepareBuffer(nodeGeometry.normals, nodeGeometry.normalIndices);
