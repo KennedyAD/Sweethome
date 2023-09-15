@@ -345,7 +345,7 @@ Graphics2D.prototype.getBackground = function() {
  */
 Graphics2D.prototype.setTransform = function(transform) {
   this.currentTransform.setTransform(transform);
-  this.context.setTransform(transform.getScaleX(), transform.getShearX(), transform.getShearY(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
+  this.context.setTransform(transform.getScaleX(), transform.getShearY(), transform.getShearX(), transform.getScaleY(), transform.getTranslateX(), transform.getTranslateY());
 }
 
 /**
