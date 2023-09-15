@@ -717,7 +717,7 @@ HTMLCanvas3D.prototype.prepareGeometry = function(nodeGeometry, nodeAppearance, 
     if (nodeGeometry.hasTextureCoordinates()) {
       geometry.textureCoordinatesBuffer = this.prepareBuffer(nodeGeometry.textureCoordinates, nodeGeometry.textureCoordinateIndices);
     } else {
-	  geometry.textureCoordinatesBuffer = null; 
+      geometry.textureCoordinatesBuffer = null; 
     }
     if (nodeGeometry instanceof IndexedTriangleArray3D) {
       geometry.mode = this.gl.TRIANGLES;
