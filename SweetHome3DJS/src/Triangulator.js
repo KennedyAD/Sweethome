@@ -113,7 +113,7 @@ Triangulator.prototype.triangulate = function(vertices, vertexIndices, textureCo
     var lastInd = this.loops[currLoop];
     for (var k = 0; k < stripCounts[j]; k++) {
       var ind = this.list.length;
-      this.list.push(new ListNode(vertexIndices[index]));
+      this.list.push(new Triangulator.ListNode(vertexIndices[index]));
       this.insertAfter(lastInd, ind);
       this.list[ind].setCommonIndex(index);
       lastInd = ind;
@@ -326,7 +326,7 @@ Triangulator.prototype.splitSplice = function(ind1, ind2, ind3, ind4) {
 }
 
 Triangulator.prototype.makeHook = function() {
-  var node = new ListNode(-1);
+  var node = new Triangulator.ListNode(-1);
   node.prev = this.list.length;
   node.next = this.list.length;
   this.list.push(node);
@@ -339,7 +339,7 @@ Triangulator.prototype.makeLoopHeader = function() {
 }
 
 Triangulator.prototype.makeNode = function(index) {
-  this.list.push(new ListNode(index));
+  this.list.push(new Triangulator.ListNode(index));
   return this.list.length - 1;
 }
 
@@ -383,9 +383,9 @@ Triangulator.prototype.swapLinks = function(ind1) {
 
 Triangulator.prototype.storeTriangle = function(i, j, k) {
   if (this.ccwLoop) {
-    this.triangles.push(new Triangle(i,j,k));
+    this.triangles.push(new Triangulator.Triangle(i,j,k));
   } else {
-    this.triangles.push(new Triangle(j,i,k));
+    this.triangles.push(new Triangulator.Triangle(j,i,k));
   }
 }
 
@@ -1215,7 +1215,7 @@ Triangulator.prototype.isEar = function(ind2, ind1, ind3, ratio) {
   var convex = this.getAngle(ind3[0]) > 0;
   var coneOk = this.isInCone(i2, i3, i4, i1, convex);
   if (coneOk) {
-    var box = new BoundingBox(this, i1, i3);
+    var box = new Triangulator.BoundingBox(this, i1, i3);
     if (!this.noHashIntersectionExists(i2, ind2, i3, i1, box)) {
       ratio[0] = 1.0;
       return true;
@@ -1311,7 +1311,7 @@ Triangulator.prototype.insertAfterVertex = function(vertexIndex) {
   if (this.vertexList === null) {
     this.vertexList = [];
   }
-  var node = new PointNode();
+  var node = new Triangulator.PointNode();
   node.pnt = vertexIndex;
   node.next = this.reflexVertices;
   this.vertexList.push(node);
@@ -1434,7 +1434,7 @@ Triangulator.prototype.noHashEdgeIntersectionExists = function(box, i1, i2, ind5
     do {
       ind2 = this.fetchNextData(ind2);
       var i4 = this.fetchData(ind2);
-      var box1 = new BoundingBox(this, i3, i4);
+      var box1 = new Triangulator.BoundingBox(this, i3, i4);
       if (box.overlaps(box1)) {
         if (this.segmentsIntersect(box.imin, box.imax, box1.imin, box1.imax, i5))
           return  true;
@@ -1576,8 +1576,8 @@ Triangulator.prototype.existsCrossOver = function(ind, ind1, i1, ind2, i2, ind3,
   ind4[0] = this.fetchNextData(ind3[0]);
   i4[0] = this.fetchData(ind4[0]);
   do {
-    var box1 = new BoundingBox(this, i1[0], i2[0]);
-    var box2 = new BoundingBox(this, i3[0], i4[0]);
+    var box1 = new Triangulator.BoundingBox(this, i1[0], i2[0]);
+    var box2 = new Triangulator.BoundingBox(this, i3[0], i4[0]);
     if (box1.overlaps(box2)) {
       if (this.segmentsIntersect(box1.imin, box1.imax, box2.imin, box2.imax, -1)) {
         return true;
@@ -1645,7 +1645,7 @@ Triangulator.prototype.existsSplit = function(ind, ind1, i1, ind2, i2) {
     this.maxNumDist = this.numPoints;
     this.distances = new Array(this.maxNumDist);
     for (var k = 0; k < this.maxNumDist; k++) {
-      this.distances[k] = new Distance();
+      this.distances[k] = new Triangulator.Distance();
     }
   }
   ind1[0] = ind;
@@ -1723,7 +1723,7 @@ Triangulator.prototype.foundSplit = function(ind5, i5, ind, ind1, i1, i3, i4, in
       if (this.isInCone(i6, i2[0], i7, i1, convex)) {
         convex = this.getAngle(ind1) > 0;
         if (this.isInCone(i3, i1, i4, i2[0], convex)) {
-          var box = new BoundingBox(this, i1, i2[0]);
+          var box = new Triangulator.BoundingBox(this, i1, i2[0]);
           if (!this.noHashEdgeIntersectionExists(box, -1, -1, ind1, -1)) {
             var center = [(this.points[i1][0] + this.points[i2[0]][0]) * 0.5, 
                           (this.points[i1][1] + this.points[i2[0]][1]) * 0.5];
@@ -1792,7 +1792,7 @@ Triangulator.prototype.initHeap = function() {
 }
 
 Triangulator.prototype.storeHeapData = function(index, ratio, ind, prev, next) {
-  this.heap[index] = new HeapNode();
+  this.heap[index] = new Triangulator.HeapNode();
   this.heap[index].ratio = ratio;
   this.heap[index].index = ind;
   this.heap[index].prev  = prev;
@@ -1852,7 +1852,7 @@ Triangulator.prototype.deleteFromHeap = function(ind, prev, next) {
 
 // From Bridge class
 Triangulator.prototype.sortDistance = function(distances, numPts) {
-  var swap = new Distance();
+  var swap = new Triangulator.Distance();
   for (var i = 0; i < numPts; i++) {
     for (var j = i + 1; j < numPts; j++) {
       if (this.compareDistances(distances[i], distances[j]) > 0) {
@@ -1978,7 +1978,7 @@ Triangulator.prototype.checkBottleNeck = function(i1, i2, i3, ind4) {
 
 
 // ListNode class
-function ListNode(ind) {
+Triangulator.ListNode = function(ind) {
   this.index = ind;
   this.prev = -1;
   this.next = -1;
@@ -1986,37 +1986,37 @@ function ListNode(ind) {
   this.vcntIndex = -1;
 }
 
-ListNode.prototype.setCommonIndex = function(comIndex) {
+Triangulator.ListNode.prototype.setCommonIndex = function(comIndex) {
   this.vcntIndex = comIndex;
 }
 
-ListNode.prototype.getCommonIndex = function() {
+Triangulator.ListNode.prototype.getCommonIndex = function() {
   return this.vcntIndex;
 }
 
 // Triangle class
-function Triangle(a, b, c) {
+Triangulator.Triangle = function(a, b, c) {
   this.v1 = a;
   this.v2 = b;
   this.v3 = c;
 }
 
 // BoundingBox class (from BBox class) 
-function BoundingBox(triangulator, i, j) {
+Triangulator.BoundingBox = function(triangulator, i, j) {
   this.imin = Math.min(i, j);
   this.imax = Math.max(i, j);
   this.ymin = Math.min(triangulator.points[this.imin][1], triangulator.points[this.imax][1]);
   this.ymax = Math.max(triangulator.points[this.imin][1], triangulator.points[this.imax][1]);
 }
 
-BoundingBox.prototype.isInBoundingBox = function(point, i) {
+Triangulator.BoundingBox.prototype.isInBoundingBox = function(point, i) {
   return this.imax >= i 
       && this.imin <= i 
       && this.ymax >= point[1] 
       && this.ymin <= point[1];
 }
 
-BoundingBox.prototype.overlaps = function(box) {
+Triangulator.BoundingBox.prototype.overlaps = function(box) {
   return this.imax >= box.imin 
       && this.imin <= box.imax 
       && this.ymax >= box.ymin 
@@ -2024,14 +2024,14 @@ BoundingBox.prototype.overlaps = function(box) {
 }
 
 // HeapNode class
-function HeapNode() {
+Triangulator.HeapNode = function() {
   this.index = 0;
   this.prev = 0;
   this.next = 0;
   this.ratio = 0.;
 }
 
-HeapNode.prototype.copy = function(hNode) {
+Triangulator.HeapNode.prototype.copy = function(hNode) {
   this.index = hNode.index;
   this.prev = hNode.prev;
   this.next = hNode.next;
@@ -2039,18 +2039,18 @@ HeapNode.prototype.copy = function(hNode) {
 }
 
 // Distance class
-function Distance() {
+Triangulator.Distance = function() {
   this.ind = 0;
   this.dist = 0.;
 }
 
-Distance.prototype.copy = function(d) {
+Triangulator.Distance.prototype.copy = function(d) {
   this.ind = d.ind;
   this.dist = d.dist;
 }
 
 // PointNode class (from PntNode class)
-function PointNode() {
+Triangulator.PointNode = function() {
   this.pnt = 0;
   this.next = 0;
 }
