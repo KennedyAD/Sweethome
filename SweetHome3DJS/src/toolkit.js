@@ -285,8 +285,11 @@ function JSDialog(preferences, title, template, behavior) {
     this.setTitle(title);
   }
 
-  this.getCloseButton().addEventListener("click", function() {
+  this.registerEventListener(this.getCloseButton(), "click", function() {
       dialog.cancel();
+    });
+  this.registerEventListener(this.getHTMLElement(), "mousedown", function(ev) {
+      ev.stopPropagation();
     });
 
   this.buttonsPanel = this.findElement(".dialog-buttons");
