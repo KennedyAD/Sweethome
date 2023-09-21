@@ -1,6 +1,7 @@
-# Blender v3.2.2 OBJ File: 'garçon-v7.blend'
+# Blender v3.2.2 OBJ File: 'garcon-v7.blend'
 # www.blender.org
-mtllib garcon.mtl
+# Adapted from garcon.obj model to fix pelvis shirt shape name by Emmanuel Puybaret / eTeks
+mtllib boy.mtl
 o sweethome3d_mannequin_abdomen_abdomen
 v 0 -10.003 -2.688
 v 0 -11.239 -5.112
@@ -45053,7 +45054,7 @@ f 12019//8824 11942//8823 12024//8826 12018//8829
 f 12017//8828 11941//8827 12023//8830 12016//8832
 f 12022//8835 11944//8834 11943//8836 12021//8837
 f 12020//8825 12025//8822 11942//8823 12019//8824
-o shirt_pelvis.001
+o sweethome3d_mannequin_pelvis_shirt_pelvis
 v -9.308 -40.47 -8.892
 v -2.826 -43.19 6.391
 v -6.241 -42.812 5.95
