@@ -28,15 +28,19 @@
  * Creates the 3D wall matching the given home <code>wall</code>.
  * @param {Wall} wall
  * @param {Home} home
+ * @param {UserPreferences} [preferences]
  * @param {boolean} waitModelAndTextureLoadingEnd
  * @constructor
  * @extends Object3DBranch
  * @author Emmanuel Puybaret
  */
-function Wall3D(wall, home, waitModelAndTextureLoadingEnd) {
-  Object3DBranch.call(this);
-  this.setUserData(wall);      
-  this.home = home;
+function Wall3D(wall, home, preferences, waitModelAndTextureLoadingEnd) {
+  if (waitModelAndTextureLoadingEnd === undefined) {
+    // 3 parameters
+    waitModelAndTextureLoadingEnd = preferences;
+    preferences = null;
+  }
+  Object3DBranch.call(this, wall, home, preferences);
 
   for (var i = 0; i < 8; i++) {
     var wallSideGroup = new Group3D();
@@ -44,6 +48,13 @@ function Wall3D(wall, home, waitModelAndTextureLoadingEnd) {
     this.addChild(wallSideGroup);
   }
   
+  // Add selection node
+  var wallSelectionShape = new Shape3D();
+  wallSelectionShape.setAppearance(this.getSelectionAppearance());
+  wallSelectionShape.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
+  wallSelectionShape.setPickable(false);
+  this.addChild(wallSelectionShape);
+
   this.updateWallGeometry(waitModelAndTextureLoadingEnd);
   this.updateWallAppearance(waitModelAndTextureLoadingEnd);
 }
@@ -85,7 +96,13 @@ Wall3D.prototype.update = function() {
 Wall3D.prototype.updateWallGeometry = function(waitDoorOrWindowModelsLoadingEnd) {
   this.updateWallSideGeometry(Wall3D.WALL_LEFT_SIDE, waitDoorOrWindowModelsLoadingEnd);
   this.updateWallSideGeometry(Wall3D.WALL_RIGHT_SIDE, waitDoorOrWindowModelsLoadingEnd);
-  this.setPickable(this.home.getEnvironment().getWallsAlpha() == 0);
+  this.setPickable(this.getHome().getEnvironment().getWallsAlpha() == 0);
+
+  var wallSelectionShape = this.getChild(8);
+  wallSelectionShape.addGeometry(this.createWallSelectionGeometry());
+  if (wallSelectionShape.getGeometries().length > 1) {
+    wallSelectionShape.removeGeometry(0);
+  }
 }
 
 Wall3D.prototype.updateWallSideGeometry = function(wallSide, waitDoorOrWindowModelsLoadingEnd) {
@@ -193,7 +210,7 @@ Wall3D.prototype.createWallGeometries = function(bottomGeometries, sideGeometrie
   }
   var windowIntersections = [];
   var intersectingDoorOrWindows = [];
-  var visibleDoorsAndWindows = this.getVisibleDoorsAndWindows(this.home.getFurniture());
+  var visibleDoorsAndWindows = this.getVisibleDoorsAndWindows(this.getHome().getFurniture());
   for (var i = 0; i < visibleDoorsAndWindows.length; i++) {
     var piece = visibleDoorsAndWindows[i];
     var pieceElevation = piece.getGroundElevation();
@@ -594,7 +611,7 @@ Wall3D.prototype.getWallBaseboardPoints = function(wallSide) {
 Wall3D.prototype.createVerticalPartGeometry = function(wall, points, minElevation, 
                                                        cosWallYawAngle, sinWallYawAngle, topLineAlpha, topLineBeta, 
                                                        baseboard, texture, textureReferencePoint, wallSide) {
-  var subpartSize = this.home.getEnvironment().getSubpartSizeUnderLight();
+  var subpartSize = this.getHome().getEnvironment().getSubpartSizeUnderLight();
   var arcExtent = wall.getArcExtent();
   if ((arcExtent === null || arcExtent === 0) && subpartSize > 0) {
     var pointsList = [];
@@ -1145,7 +1162,7 @@ Wall3D.prototype.getFloorThicknessBottomWall = function() {
   if (level == null) {
     return 0;
   } else {
-    var levels = this.home.getLevels();
+    var levels = this.getHome().getLevels();
     if (!(levels.length === 0) && levels[0].getElevation() === level.getElevation()) {
       return 0;
     } else {
@@ -1165,7 +1182,7 @@ Wall3D.prototype.getWallTopElevationAtStart = function() {
   if (wallHeight !== null) {
     wallHeightAtStart = wallHeight + this.getWallElevation(false) + this.getFloorThicknessBottomWall();
   } else {
-    wallHeightAtStart = this.home.getWallHeight() + this.getWallElevation(false) + this.getFloorThicknessBottomWall();
+    wallHeightAtStart = this.getHome().getWallHeight() + this.getWallElevation(false) + this.getFloorThicknessBottomWall();
   }
   return wallHeightAtStart + this.getTopElevationShift();
 }
@@ -1176,7 +1193,7 @@ Wall3D.prototype.getWallTopElevationAtStart = function() {
 Wall3D.prototype.getTopElevationShift = function() {
   var level = this.getUserData().getLevel();
   if (level !== null) {
-    var levels = this.home.getLevels();
+    var levels = this.getHome().getLevels();
     if (levels[levels.length - 1] !== level) {
       return Wall3D.LEVEL_ELEVATION_SHIFT;
     }
@@ -1206,6 +1223,114 @@ Wall3D.prototype.getWallTopElevationAtEnd = function() {
 */
 Wall3D.prototype.getBaseboardTopElevation = function(baseboard) {
   return baseboard.getHeight() + this.getWallElevation(true);
+}
+
+/**
+ * Returns the selection geometry of this wall.
+ * @return {IndexedGeometryArray3D}
+ * @private
+ */
+Wall3D.prototype.createWallSelectionGeometry = function() {
+  var wall = this.getUserData();
+  var wallElevation = this.getWallElevation(true);
+  var leftSideBaseboard = wall.getLeftSideBaseboard();
+  var rightSideBaseboard = wall.getRightSideBaseboard();
+  var wallPoints = wall.getPoints();
+  var wallPointsIncludingBaseboards = wall.getPoints(true);
+  var selectionCoordinates = new Array(wallPoints.length * 2
+                                       + (leftSideBaseboard != null ? 4 : 0)
+                                       + (rightSideBaseboard != null ? 4 : 0));
+  var indices = new Array(wallPoints.length * 4
+                          + (leftSideBaseboard != null ? 12 : 4)
+                          + (rightSideBaseboard != null ? 12 : 4));
+  // Contour at bottom
+  var j = 0, k = 0;
+  for (var i = 0; i < wallPoints.length; i++, j++) {
+    selectionCoordinates [j] = vec3.fromValues(wallPointsIncludingBaseboards [i][0], wallElevation, wallPointsIncludingBaseboards [i][1]);
+    indices [k++] = j;
+    if (i > 0) {
+      indices [k++] = j;
+    }
+  }
+  indices [k++] = 0;
+
+  // Compute wall angles and top line factors to generate top contour
+  var topElevationAtStart = this.getWallTopElevationAtStart();
+  var topElevationAtEnd = this.getWallTopElevationAtEnd();
+  var wallYawAngle = Math.atan2(wall.getYEnd() - wall.getYStart(), wall.getXEnd() - wall.getXStart());
+  var cosWallYawAngle = Math.cos(wallYawAngle);
+  var sinWallYawAngle = Math.sin(wallYawAngle);
+  var wallXStartWithZeroYaw = cosWallYawAngle * wall.getXStart() + sinWallYawAngle * wall.getYStart();
+  var wallXEndWithZeroYaw = cosWallYawAngle * wall.getXEnd() + sinWallYawAngle * wall.getYEnd();
+  var topLineAlpha;
+  var topLineBeta;
+  if (topElevationAtStart == topElevationAtEnd) {
+    topLineAlpha = 0;
+    topLineBeta = topElevationAtStart;
+  } else {
+    topLineAlpha = (topElevationAtEnd - topElevationAtStart) / (wallXEndWithZeroYaw - wallXStartWithZeroYaw);
+    topLineBeta = topElevationAtStart - topLineAlpha * wallXStartWithZeroYaw;
+  }
+
+  // Contour at top
+  for (var i = 0; i < wallPoints.length; i++, j++) {
+    var xTopPointWithZeroYaw = cosWallYawAngle * wallPoints [i][0] + sinWallYawAngle * wallPoints [i][1];
+    var topY = topLineAlpha * xTopPointWithZeroYaw + topLineBeta;
+    selectionCoordinates [j] = vec3.fromValues(wallPoints [i][0], topY, wallPoints [i][1]);
+    indices [k++] = j;
+    if (i > 0) {
+      indices [k++] = j;
+    }
+  }
+  indices [k++] = wallPoints.length;
+
+  // Vertical lines at corners
+  indices [k++] = 0;
+  if (leftSideBaseboard != null) {
+    var leftBaseboardHeight = this.getBaseboardTopElevation(leftSideBaseboard);
+    selectionCoordinates [j] = vec3.fromValues(wallPointsIncludingBaseboards [0][0], Math.min(leftBaseboardHeight, topElevationAtStart), wallPointsIncludingBaseboards [0][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+    selectionCoordinates [j] = vec3.fromValues(wallPoints [0][0], Math.min(leftBaseboardHeight, topElevationAtStart), wallPoints [0][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+  }
+  indices [k++] = wallPoints.length;
+  indices [k++] = wallPoints.length / 2 - 1;
+  if (leftSideBaseboard != null) {
+    var leftBaseboardHeight = this.getBaseboardTopElevation(leftSideBaseboard);
+    selectionCoordinates [j] = vec3.fromValues(wallPointsIncludingBaseboards [wallPoints.length / 2 - 1][0], Math.min(leftBaseboardHeight, topElevationAtEnd), wallPointsIncludingBaseboards [wallPoints.length / 2 - 1][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+    selectionCoordinates [j] = vec3.fromValues(wallPoints [wallPoints.length / 2 - 1][0], Math.min(leftBaseboardHeight, topElevationAtEnd), wallPoints [wallPoints.length / 2 - 1][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+  }
+  indices [k++] = wallPoints.length + wallPoints.length / 2 - 1;
+  indices [k++] = wallPoints.length - 1;
+  if (rightSideBaseboard != null) {
+    var rightBaseboardHeight = this.getBaseboardTopElevation(rightSideBaseboard);
+    selectionCoordinates [j] = vec3.fromValues(wallPointsIncludingBaseboards [wallPoints.length - 1][0], Math.min(rightBaseboardHeight, topElevationAtStart), wallPointsIncludingBaseboards [wallPoints.length - 1][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+    selectionCoordinates [j] = vec3.fromValues(wallPoints [wallPoints.length - 1][0], Math.min(rightBaseboardHeight, topElevationAtStart), wallPoints [wallPoints.length - 1][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+  }
+  indices [k++] = 2 * wallPoints.length - 1;
+  indices [k++] = wallPoints.length / 2;
+  if (rightSideBaseboard != null) {
+    var rightBaseboardHeight = this.getBaseboardTopElevation(rightSideBaseboard);
+    selectionCoordinates [j] = vec3.fromValues(wallPointsIncludingBaseboards [wallPoints.length / 2][0], Math.min(rightBaseboardHeight, topElevationAtEnd), wallPointsIncludingBaseboards [wallPoints.length / 2][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+    selectionCoordinates [j] = vec3.fromValues(wallPoints [wallPoints.length / 2][0], Math.min(rightBaseboardHeight, topElevationAtEnd), wallPoints [wallPoints.length / 2][1]);
+    indices [k++] = j;
+    indices [k++] = j++;
+  }
+  indices [k++] = wallPoints.length + wallPoints.length / 2;
+
+  return new IndexedLineArray3D(selectionCoordinates, indices);
 }
 
 /**
@@ -1254,6 +1379,11 @@ Wall3D.prototype.updateWallAppearance = function(waitTextureLoadingEnd) {
           null, waitTextureLoadingEnd, wallsTopColor, 0);
     }
   }
+  
+  var selectionShapeAppearance = this.getChild(8).getAppearance();
+  selectionShapeAppearance.setVisible(this.getUserPreferences() != null
+      && this.getUserPreferences().isEditingIn3DViewEnabled()
+      && this.getHome().isItemSelected(wall));
 }
 
 /**
@@ -1273,7 +1403,6 @@ Wall3D.prototype.updateFilledWallSideAppearance = function(wallSideAppearance, w
   } else {
     this.updateAppearanceMaterial(wallSideAppearance, Object3DBranch.DEFAULT_COLOR, Object3DBranch.DEFAULT_AMBIENT_COLOR, shininess);
     this.updateTextureTransform(wallSideAppearance, wallSideTexture, true);
-    var wall3d = this;
     TextureManager.getInstance().loadTexture(wallSideTexture.getImage(), waitTextureLoadingEnd, {
         textureUpdated : function(texture) {
           wallSideAppearance.setTextureImage(texture);
@@ -1283,7 +1412,7 @@ Wall3D.prototype.updateFilledWallSideAppearance = function(wallSideAppearance, w
         }
       });
   }
-  var wallsAlpha = this.home.getEnvironment().getWallsAlpha();
+  var wallsAlpha = this.getHome().getEnvironment().getWallsAlpha();
   wallSideAppearance.setTransparency(wallsAlpha);
 }
 

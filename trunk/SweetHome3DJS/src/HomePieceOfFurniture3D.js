@@ -29,15 +29,19 @@
  * Creates the 3D piece matching the given home <code>piece</code>.
  * @param {HomePieceOfFurniture} piece
  * @param {Home} home
+ * @param {UserPreferences} [preferences]
  * @param {boolean|function} waitModelAndTextureLoadingEnd
  * @constructor
  * @extends Object3DBranch
  * @author Emmanuel Puybaret
  */
-function HomePieceOfFurniture3D(piece, home, waitModelAndTextureLoadingEnd) {
-  Object3DBranch.call(this);
-  this.setUserData(piece);      
-  this.home = home;
+function HomePieceOfFurniture3D(piece, home, preferences, waitModelAndTextureLoadingEnd) {
+  if (waitModelAndTextureLoadingEnd === undefined) {
+    // 3 parameters
+    waitModelAndTextureLoadingEnd = preferences;
+    preferences = null;
+  }
+  Object3DBranch.call(this, piece, home, preferences);
   
   this.createPieceOfFurnitureNode(piece, waitModelAndTextureLoadingEnd);
 }
@@ -45,6 +49,16 @@ HomePieceOfFurniture3D.prototype = Object.create(Object3DBranch.prototype);
 HomePieceOfFurniture3D.prototype.constructor = HomePieceOfFurniture3D;
 
 HomePieceOfFurniture3D.DEFAULT_BOX = new Object();
+HomePieceOfFurniture3D.SELECTION_BOX_GEOMETRY = new IndexedLineArray3D(
+    [vec3.fromValues(-0.5, -0.5, -0.5),
+     vec3.fromValues(0.5, -0.5, -0.5),
+     vec3.fromValues(0.5, 0.5, -0.5),
+     vec3.fromValues(-0.5, 0.5, -0.5),
+     vec3.fromValues(-0.5, -0.5, 0.5),
+     vec3.fromValues(0.5, -0.5, 0.5),
+     vec3.fromValues(0.5, 0.5, 0.5),
+     vec3.fromValues(-0.5, 0.5, 0.5)],
+    [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7, 4, 6, 5, 7]);
 
 /**
  * Creates the piece node with its transform group and add it to the piece branch. 
@@ -167,12 +181,29 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureColorAndTexture = functio
 
 /**
  * Returns the node of the filled model.
+ * @return {Node}
  * @private
  */
 HomePieceOfFurniture3D.prototype.getModelNode = function() {
   var transformGroup = this.getChild(0);
   var branchGroup = transformGroup.getChild(0);
   return branchGroup.getChild(0);
+}
+
+/**
+ * Returns the selection node of the model.
+ * @return {Node}
+ * @private
+ */
+HomePieceOfFurniture3D.prototype.getSelectionNode  = function() {
+  var transformGroup = this.getChild(0);
+  var branchGroup = transformGroup.getChild(0);
+  if (branchGroup.getChildren().length > 1
+      && branchGroup.getChild(1) instanceof Shape3D) {
+    return branchGroup.getChild(1);
+  } else {
+    return null;
+  }
 }
 
 /**
@@ -187,6 +218,13 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureVisibility = function() {
       ? piece.getModelMaterials()
       : null;
   this.setVisible(this.getModelNode(), visible, piece.getModelFlags(), materials);
+  var selectionNode = this.getSelectionNode();
+  if (selectionNode != null) {
+    this.setVisible(selectionNode, this.getUserPreferences() != null
+        && this.getUserPreferences().isEditingIn3DViewEnabled()
+        && visible && this.getHome() != null
+        && this.isSelected(this.getHome().getSelectedItems()), 0, null);
+  }
 }
 
 /**
@@ -320,6 +358,13 @@ HomePieceOfFurniture3D.prototype.updatePieceOfFurnitureModelNode = function(mode
   var modelBranch = new BranchGroup3D();
   modelBranch.addChild(normalization);
 
+  if (this.getHome() != null) {
+    // Add selection box node
+    var selectionBox = new Shape3D(HomePieceOfFurniture3D.SELECTION_BOX_GEOMETRY, this.getSelectionAppearance());
+    selectionBox.setPickable(false);
+    modelBranch.addChild(selectionBox);
+  }
+    
   var piece = this.getUserData();
   if (piece.isDoorOrWindow()) {
     this.setTransparentShapeNotPickable(modelNode);
@@ -677,8 +722,8 @@ HomePieceOfFurniture3D.prototype.setVisible = function(node, visible, modelFlags
     if (visible 
         && shapeName !== null
         && shapeName.indexOf(ModelManager.LIGHT_SHAPE_PREFIX) === 0
-        && this.home !== null
-        && !this.isSelected(this.home.getSelectedItems())
+        && this.getHome() !== null
+        && !this.isSelected(this.getHome().getSelectedItems())
         && (typeof HomeLight === "undefined"
             || this.getUserData() instanceof HomeLight)) {
       // Don't display light sources shapes of unselected lights

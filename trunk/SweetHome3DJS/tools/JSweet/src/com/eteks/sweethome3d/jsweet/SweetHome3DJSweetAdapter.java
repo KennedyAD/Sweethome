@@ -43,6 +43,7 @@ import javax.lang.model.type.TypeMirror;
 
 import org.jsweet.JSweetConfig;
 import org.jsweet.transpiler.extension.AnnotationManager;
+import org.jsweet.transpiler.extension.AnnotationManager.Action;
 import org.jsweet.transpiler.extension.PrinterAdapter;
 import org.jsweet.transpiler.model.AssignmentElement;
 import org.jsweet.transpiler.model.CaseElement;
@@ -127,15 +128,22 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
         "com.eteks.sweethome3d.model.HomeEnvironment.removePropertyChangeListener(com.eteks.sweethome3d.model.HomeEnvironment.Property,java.beans.PropertyChangeListener)");
 
     if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))) {
-      // Only HomeController3D and its dependencies are needed for Sweet Home 3D
-      // viewer
+      // Only HomeController3D and its dependencies are needed for Sweet Home 3D viewer
       addAnnotation("jsweet.lang.Erased",
           "com.eteks.sweethome3d.model.HomeApplication",
           "com.eteks.sweethome3d.model.HomeRecorder",
           "com.eteks.sweethome3d.model.*Exception",
           "com.eteks.sweethome3d.viewcontroller.*",
           "!com.eteks.sweethome3d.viewcontroller.HomeController3D",
-          "com.eteks.sweethome3d.viewcontroller.HomeController3D.modifyAttributes(**)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.modifyAttributes(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.isEditingState()",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.pressMouse(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.releaseMouse(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.moveMouse(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.escape()",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.toggleMagnetism(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.setAlignmentActivated(..)",
+          "com.eteks.sweethome3d.viewcontroller.HomeController3D.EditingCameraState.setDuplicationActivated(..)",
           "!com.eteks.sweethome3d.viewcontroller.Controller",
           "!com.eteks.sweethome3d.viewcontroller.View",
           // Support for reading homes at XML format,
@@ -226,6 +234,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
                   && c.getParameters().size() != 26
                   && c.getParameters().size() != 28
                   && c.getParameters().size() != 29
+                  && c.getParameters().size() != 31
                   && (c.getParameters().size() != 18 || types().isSameType(c.getParameters().get(11).asType(), util().getType(boolean.class)))) {
                 return Action.ADD;
               }
@@ -236,7 +245,7 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             // Only keep the public constructors of CatalogLight available from version 5.5
             // (CatalogLight class didn't exist in SweetHome3DJS 1.2)
             ExecutableElement c = (ExecutableElement) element;
-            if (c.getParameters().size() != 29 && c.getParameters().size() != 30 && c.getParameters().size() != 31) {
+            if (c.getParameters().size() != 29 && c.getParameters().size() != 30 && c.getParameters().size() != 31 && c.getParameters().size() != 33) {
               return Action.ADD;
             }
           } else if (element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
@@ -244,7 +253,15 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
             // Only keep the public constructors of CatalogDoorOrWindow used to create unmodifiable pieces
             // (CatalogDoorOrWindow class didn't exist in SweetHome3DJS 1.2)
             ExecutableElement c = (ExecutableElement) element;
-            if (c.getParameters().size() != 18 && c.getParameters().size() != 32 && c.getParameters().size() != 33) {
+            if (c.getParameters().size() != 18 && c.getParameters().size() != 32 && c.getParameters().size() != 33 && c.getParameters().size() != 35) {
+              return Action.ADD;
+            }
+          } else if ("SweetHome3DJSViewer".equals(System.getProperty("transpilationTarget"))
+              && element.getKind() == ElementKind.CONSTRUCTOR && ((QualifiedNameable) element.getEnclosingElement())
+                    .getQualifiedName().toString().equals("com.eteks.sweethome3d.viewcontroller.HomeController3D")) {
+            // Only keep the public constructor of HomeController3D which doesn't use PlanController parameter
+            ExecutableElement c = (ExecutableElement) element;
+            if (c.getParameters().size() == 6) {
               return Action.ADD;
             }
           }
@@ -408,6 +425,17 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
               return true;
           }
           break;
+        case "java.util.Map":
+          switch (invocation.getMethodName()) {
+            case "putAll":
+              printMacroName(invocation.getMethodName());
+              print("(function (m, n) {"
+                  + "for (var i in n)"
+                  + "  m [i] = n [i];"
+                  + "})(").print(invocation.getTargetExpression()).print(",").printArgList(invocation.getArguments()).print(")");
+              return true;
+          }
+          break;
         case "java.util.TreeMap":
           switch (invocation.getMethodName()) {
             case "lastKey":
@@ -476,6 +504,16 @@ public class SweetHome3DJSweetAdapter extends PrinterAdapter {
               print("((").print(invocation.getArguments().get(0)).print(") != null ? ")
                   .print(invocation.getTargetExpression()).print(".eq(").print(invocation.getArguments().get(0)).print(") : (")
                   .print(invocation.getTargetExpression()).print(" === (").print(invocation.getArguments().get(0)).print(")))");
+              return true;
+          }
+          break;
+        case "java.lang.String":
+          switch (invocation.getMethodName()) {
+            case "split":
+              // Split is supposed to take a regular expression as parameter
+              String regex = invocation.getArgument(0).toString().replaceAll("\\\\s", "\\s").replaceAll("\\\\p", "\\p");
+              print(invocation.getTargetExpression()).print(".").print(invocation.getMethodName()).print("(/")
+                  .print(regex.substring(1, regex.length() - 1)).print("/)");
               return true;
           }
           break;

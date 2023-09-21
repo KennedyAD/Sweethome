@@ -48,9 +48,10 @@ function UserPreferences() {
   /** @type {LengthUnit} */
   this.unit = null;
   this.furnitureCatalogViewedInTree = false;
+  this.navigationPanelVisible = true;
+  this.editingIn3DViewEnabled = false;
   this.aerialViewCenteredOnSelectionEnabled = false;
   this.observerCameraSelectedAtChange = true;
-  this.navigationPanelVisible = true;
   this.magnetismEnabled = true;
   this.rulersVisible = true;
   this.gridVisible = true;
@@ -473,6 +474,7 @@ UserPreferences.prototype.setFurnitureCatalogViewedInTree = function(furnitureCa
 
 /**
  * Returns <code>true</code> if the navigation panel should be displayed.
+ * @return {boolean}
  */
 UserPreferences.prototype.isNavigationPanelVisible = function() {
   return this.navigationPanelVisible;
@@ -480,6 +482,7 @@ UserPreferences.prototype.isNavigationPanelVisible = function() {
 
 /**
  * Sets whether the navigation panel should be displayed or not.
+ * @param {boolean} navigationPanelVisible
  */
 UserPreferences.prototype.setNavigationPanelVisible = function(navigationPanelVisible) {
   if (this.navigationPanelVisible !== navigationPanelVisible) {
@@ -490,7 +493,38 @@ UserPreferences.prototype.setNavigationPanelVisible = function(navigationPanelVi
 }
 
 /**
+ * Returns whether interactive editing in 3D view is enabled or not.
+ * @return {boolean}
+ * @since 7.2
+ */
+UserPreferences.prototype.isEditingIn3DViewEnabled = function() {
+  return this.editingIn3DViewEnabled;
+}
+
+/**
+ * Sets whether interactive editing in 3D view is enabled or not.
+ * @param {boolean} editingIn3DViewEnabled
+ * @since 7.2
+ */
+UserPreferences.prototype.setEditingIn3DViewEnabled = function(editingIn3DViewEnabled) {
+  if (editingIn3DViewEnabled != this.editingIn3DViewEnabled) {
+    this.editingIn3DViewEnabled = editingIn3DViewEnabled;
+    this.propertyChangeSupport.firePropertyChange("EDITING_IN_3D_VIEW_ENABLED",
+        !editingIn3DViewEnabled, editingIn3DViewEnabled);
+  }
+}
+
+/**
+ * Returns whether observer camera should be centered on selection or not.
+ * @return {boolean}
+ */
+UserPreferences.prototype.isAerialViewCenteredOnSelectionEnabled = function() {
+  return this.aerialViewCenteredOnSelectionEnabled;
+}
+
+/**
  * Sets whether aerial view should be centered on selection or not.
+ * @param {boolean} aerialViewCenteredOnSelectionEnabled
  */
 UserPreferences.prototype.setAerialViewCenteredOnSelectionEnabled = function(aerialViewCenteredOnSelectionEnabled) {
   if (aerialViewCenteredOnSelectionEnabled !== this.aerialViewCenteredOnSelectionEnabled) {
@@ -501,14 +535,17 @@ UserPreferences.prototype.setAerialViewCenteredOnSelectionEnabled = function(aer
 }
 
 /**
- * Returns whether aerial view should be centered on selection or not.
+ * Returns whether the observer camera should be selected at each change.
+ * @return {boolean}
+ * @since 5.5
  */
-UserPreferences.prototype.isAerialViewCenteredOnSelectionEnabled = function() {
-  return this.aerialViewCenteredOnSelectionEnabled;
+UserPreferences.prototype.isObserverCameraSelectedAtChange = function() {
+  return this.observerCameraSelectedAtChange;
 }
 
 /**
  * Sets whether the observer camera should be selected at each change.
+ * @param {boolean} observerCameraSelectedAtChange
  * @since 5.5
  */
 UserPreferences.prototype.setObserverCameraSelectedAtChange = function(observerCameraSelectedAtChange) {
@@ -520,16 +557,8 @@ UserPreferences.prototype.setObserverCameraSelectedAtChange = function(observerC
 }
 
 /**
- * Returns whether the observer camera should be selected at each change.
- * @since 5.5
- */
-UserPreferences.prototype.isObserverCameraSelectedAtChange = function() {
-  return this.observerCameraSelectedAtChange;
-}
-
-/**
  * Returns <code>true</code> if magnetism is enabled.
- * @return <code>true</code> by default.
+ * @return {boolean} <code>true</code> by default.
  */
 UserPreferences.prototype.isMagnetismEnabled = function() {
   return this.magnetismEnabled;
@@ -538,7 +567,7 @@ UserPreferences.prototype.isMagnetismEnabled = function() {
 /**
  * Sets whether magnetism is enabled or not, and notifies
  * listeners of this change. 
- * @param magnetismEnabled <code>true</code> if magnetism is enabled,
+ * @param {boolean} magnetismEnabled <code>true</code> if magnetism is enabled,
  *          <code>false</code> otherwise.
  */
 UserPreferences.prototype.setMagnetismEnabled = function(magnetismEnabled) {
@@ -551,7 +580,7 @@ UserPreferences.prototype.setMagnetismEnabled = function(magnetismEnabled) {
 
 /**
  * Returns <code>true</code> if rulers are visible.
- * @return <code>true</code> by default.
+ * @return {boolean} <code>true</code> by default.
  * @ignore
  */
 UserPreferences.prototype.isRulersVisible = function() {
@@ -561,7 +590,7 @@ UserPreferences.prototype.isRulersVisible = function() {
 /**
  * Sets whether rulers are visible or not, and notifies
  * listeners of this change. 
- * @param rulersVisible <code>true</code> if rulers are visible,
+ * @param {boolean} rulersVisible <code>true</code> if rulers are visible,
  *          <code>false</code> otherwise.
  * @ignore
  */
@@ -575,7 +604,7 @@ UserPreferences.prototype.setRulersVisible = function(rulersVisible) {
 
 /**
  * Returns <code>true</code> if plan grid visible.
- * @return <code>true</code> by default.
+ * @return {boolean} <code>true</code> by default.
  */
 UserPreferences.prototype.isGridVisible = function() {
   return this.gridVisible;
@@ -584,7 +613,7 @@ UserPreferences.prototype.isGridVisible = function() {
 /**
  * Sets whether plan grid is visible or not, and notifies
  * listeners of this change. 
- * @param gridVisible <code>true</code> if grid is visible,
+ * @param {boolean} gridVisible <code>true</code> if grid is visible,
  *          <code>false</code> otherwise.
  */
 UserPreferences.prototype.setGridVisible = function(gridVisible) {
@@ -598,6 +627,7 @@ UserPreferences.prototype.setGridVisible = function(gridVisible) {
 /**
  * Returns the name of the font that should be used by default or <code>null</code> 
  * if the default font should be the default one in the application.
+ * @return {string}
  */
 UserPreferences.prototype.getDefaultFontName = function() {
   return this.defaultFontName;
@@ -605,6 +635,7 @@ UserPreferences.prototype.getDefaultFontName = function() {
 
 /**
  * Sets the name of the font that should be used by default.
+ * @param {string} defaultFontName
  */
 UserPreferences.prototype.setDefaultFontName = function(defaultFontName) {
   if (defaultFontName != this.defaultFontName) {
@@ -616,6 +647,7 @@ UserPreferences.prototype.setDefaultFontName = function(defaultFontName) {
 
 /**
  * Returns <code>true</code> if furniture should be viewed from its top in plan.
+ * @return {boolean}
  */
 UserPreferences.prototype.isFurnitureViewedFromTop = function() {
   return this.furnitureViewedFromTop;
@@ -624,7 +656,7 @@ UserPreferences.prototype.isFurnitureViewedFromTop = function() {
 /**
  * Sets how furniture icon should be displayed in plan, and notifies
  * listeners of this change. 
- * @param furnitureViewedFromTop if <code>true</code> the furniture 
+ * @param {boolean} furnitureViewedFromTop if <code>true</code> the furniture 
  *    should be viewed from its top.
  */
 UserPreferences.prototype.setFurnitureViewedFromTop = function(furnitureViewedFromTop) {
@@ -1332,6 +1364,7 @@ RecordedUserPreferences.VALUE_ADDED_TAX_ENABLED                   = "valueAddedT
 RecordedUserPreferences.DEFAULT_VALUE_ADDED_TAX_PERCENTAGE        = "defaultValueAddedTaxPercentage";
 RecordedUserPreferences.FURNITURE_CATALOG_VIEWED_IN_TREE          = "furnitureCatalogViewedInTree";
 RecordedUserPreferences.NAVIGATION_PANEL_VISIBLE                  = "navigationPanelVisible";
+RecordedUserPreferences.EDITING_IN_3D_VIEW_ENABLED                = "editingIn3DViewEnabled";
 RecordedUserPreferences.AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED = "aerialViewCenteredOnSelectionEnabled";
 RecordedUserPreferences.OBSERVER_CAMERA_SELECTED_AT_CHANGE        = "observerCameraSelectedAtChange";
 RecordedUserPreferences.MAGNETISM_ENABLED                         = "magnetismEnabled";
@@ -1452,6 +1485,9 @@ RecordedUserPreferences.prototype.updatePreferencesFromProperties = function(pro
   this.setNavigationPanelVisible(
       this.getProperty(properties, RecordedUserPreferences.NAVIGATION_PANEL_VISIBLE, 
           '' + defaultPreferences.isNavigationPanelVisible()) == 'true');
+  this.setEditingIn3DViewEnabled(
+      this.getProperty(properties, RecordedUserPreferences.EDITING_IN_3D_VIEW_ENABLED, 
+          '' + defaultPreferences.isEditingIn3DViewEnabled()) == 'true');
   this.setAerialViewCenteredOnSelectionEnabled(
       this.getProperty(properties, RecordedUserPreferences.AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED,
           '' + defaultPreferences.isAerialViewCenteredOnSelectionEnabled()) == 'true');
@@ -1541,8 +1577,8 @@ RecordedUserPreferences.prototype.addListeners = function() {
       preferences.writtenPropertiesUpdated = true;
     };
   var writtenProperties = ["LANGUAGE", "UNIT", "CURRENCY", "VALUE_ADDED_TAX_ENABLED", "DEFAULT_VALUE_ADDED_TAX_PERCENTAGE",
-      "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", 'DEFAULT_FONT_NAME', "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
-      "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "FURNITURE_VIEWED_FROM_TOP",
+      "FURNITURE_CATALOG_VIEWED_IN_TREE", "NAVIGATION_PANEL_VISIBLE", "EDITING_IN_3D_VIEW_ENABLED", "AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED",
+      "OBSERVER_CAMERA_SELECTED_AT_CHANGE", "MAGNETISM_ENABLED", "GRID_VISIBLE", "DEFAULT_FONT_NAME", "FURNITURE_VIEWED_FROM_TOP",
       "FURNITURE_MODEL_ICON_SIZE", "ROOM_FLOOR_COLORED_OR_TEXTURED", "NEW_WALL_PATTERN", "NEW_WALL_THICKNESS",
       "NEW_WALL_HEIGHT", "NEW_WALL_BASEBOARD_THICKNESS", "NEW_WALL_BASEBOARD_HEIGHT", "NEW_FLOOR_THICKNESS"];
   for (var i = 0; i < writtenProperties.length; i++) {
@@ -1777,6 +1813,7 @@ RecordedUserPreferences.prototype.write = function() {
     }
     this.setProperty(properties, RecordedUserPreferences.FURNITURE_CATALOG_VIEWED_IN_TREE, '' + this.isFurnitureCatalogViewedInTree());
     this.setProperty(properties, RecordedUserPreferences.NAVIGATION_PANEL_VISIBLE, '' + this.isNavigationPanelVisible());
+    this.setProperty(properties, RecordedUserPreferences.EDITING_IN_3D_VIEW_ENABLED, '' + this.isEditingIn3DViewEnabled());
     this.setProperty(properties, RecordedUserPreferences.AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED, '' + this.isAerialViewCenteredOnSelectionEnabled());
     this.setProperty(properties, RecordedUserPreferences.OBSERVER_CAMERA_SELECTED_AT_CHANGE, '' + this.isObserverCameraSelectedAtChange());
     this.setProperty(properties, RecordedUserPreferences.MAGNETISM_ENABLED, '' + this.isMagnetismEnabled());

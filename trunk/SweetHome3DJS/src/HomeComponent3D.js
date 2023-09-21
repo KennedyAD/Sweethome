@@ -18,12 +18,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-// Requires Home.js
-//          HomeObject.js
-//          HomePieceOfFurniture.js
+// Requires core.js
 //          scene3d.js
+//          SweetHome3D.js
 //          ModelManager.js
 //          HomePieceOfFurniture3D.js
+//          Wall3D.js
+//          Room3D.js
+//          Polyline3D.js
+//          DimensionLine3D.js
+//          Label3D.js
 //          HomeController3D.js
 //          HTMLCanvas3D.js
 
@@ -45,7 +49,7 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
   this.preferences = preferences;
   this.object3dFactory = object3dFactory !== null 
       ? object3dFactory
-      : new Object3DBranchFactory();
+      : new Object3DBranchFactory(preferences);
   this.homeObjects = [];
   this.homeObjects3D = [];
   this.sceneLights = [];
@@ -60,6 +64,7 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
   this.lightColorListener = null;
   this.elevationChangeListener = null;
   this.wallsAlphaListener = null;
+  this.selectionListener = null;
   this.levelListener = null;
   this.levelChangeListener = null;
   this.wallListener = null;
@@ -70,12 +75,21 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
   this.roomChangeListener = null;
   this.polylineChangeListener = null;
   this.polylineListener = null;
-  this.labelListener = null;
+  this.dimensionLineChangeListener = null;
+  this.dimensionLineListener = null;
   this.labelChangeListener = null;
+  this.labelListener = null;
   this.approximateHomeBoundsCache = null;
   this.homeHeightCache = null;
   this.createComponent3D(canvasId, preferences, controller);
 }
+
+HomeComponent3D["__interfaces"] = ["com.eteks.sweethome3d.viewcontroller.View3D", "com.eteks.sweethome3d.viewcontroller.View"];
+
+HomeComponent3D.LONG_TOUCH_DELAY = 200; // ms
+HomeComponent3D.LONG_TOUCH_DELAY_WHEN_DRAGGING = 400; // ms
+HomeComponent3D.LONG_TOUCH_DURATION_AFTER_DELAY = 800; // ms
+HomeComponent3D.DOUBLE_TOUCH_DELAY = 500; // ms
 
 /**
  * Creates the 3D canvas associated to the given <code>canvasId</code>.
@@ -83,16 +97,20 @@ function HomeComponent3D(canvasId, home, preferences, object3dFactory, controlle
  */
 HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, controller) {
   this.canvas3D = new HTMLCanvas3D(canvasId);
+  var component3D = this;
   if (controller) {
-    this.addMouseListeners(controller, this.canvas3D);
+    this.addMouseListeners(controller, preferences, this.canvas3D);
     if (preferences !== null) {
       this.navigationPanelId = this.createNavigationPanel(this.home, preferences, controller);
       this.setNavigationPanelVisible(preferences.isNavigationPanelVisible());
-      var component3D = this;
       this.preferencesChangeListener = function(ev) {
           component3D.setNavigationPanelVisible(ev.getNewValue());
         };
       preferences.addPropertyChangeListener("NAVIGATION_PANEL_VISIBLE", this.preferencesChangeListener);
+      this.editingIn3DViewChangeListener = function(ev) {
+          component3D.updateObjectsAndFurnitureGroups(component3D.home.getSelectedItems());
+        };
+      preferences.addPropertyChangeListener("EDITING_IN_3D_VIEW_ENABLED", this.editingIn3DViewChangeListener);
     }
     this.createActions(controller);
     this.installKeyboardActions();
@@ -106,6 +124,10 @@ HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, co
   this.addCameraListeners();
   
   this.canvas3D.setScene(this.createSceneTree(true, false));
+  this.unitChangeListener = function(ev) {
+      component3D.updateObjects(component3D.home.getDimensionLines());
+    };
+  preferences.addPropertyChangeListener("UNIT", this.unitChangeListener);
 }
 
 /**
@@ -194,7 +216,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
     // Redirect mouse clicks out of div elements to this component 
     navigationPanelDiv.addEventListener("mousedown", 
         function(ev) {
-          component3D.userActionsListener.mousePressed(ev);
+          component3D.mouseListener.mousePressed(ev);
         });
   }
   
@@ -231,7 +253,7 @@ HomeComponent3D.prototype.createNavigationPanel = function(home, preferences, co
               simulatedElement.removeEventListener("mouseup", stopInterval);
               simulatedElement.removeEventListener("mouseleave", stopInterval);
             }
-            component3D.userActionsListener.windowMouseReleased(ev);
+            component3D.mouseListener.windowMouseReleased(ev);
             ev.stopPropagation();
           };
         if (OperatingSystem.isInternetExplorerOrLegacyEdge()
@@ -336,6 +358,7 @@ HomeComponent3D.prototype.removeHomeListeners = function() {
   this.home.getCamera().removePropertyChangeListener(this.cameraChangeListener);
   this.home.removePropertyChangeListener("CAMERA", this.elevationChangeListener);
   this.home.getCamera().removePropertyChangeListener(this.elevationChangeListener);
+  this.home.removeSelectionListener(this.selectionListener);
   this.home.removeLevelsListener(this.levelListener);
   var levels = this.home.getLevels();
   for (var i = 0; i < levels.length; i++) {
@@ -361,6 +384,11 @@ HomeComponent3D.prototype.removeHomeListeners = function() {
   for (var i = 0; i < polylines.length; i++) {
     polylines[i].removePropertyChangeListener(this.polylineChangeListener);
   }
+  this.home.removeDimensionLinesListener(this.dimensionLineListener);
+  var dimensionLines = this.home.getDimensionLines();
+  for (var i = 0; i < dimensionLines.length; i++) {
+    dimensionLines [i].removePropertyChangeListener(this.dimensionLineChangeListener);
+  }
   this.home.removeLabelsListener(this.labelListener);
   var labels = this.home.getLabels();
   for (var i = 0; i < labels.length; i++) {
@@ -373,25 +401,27 @@ HomeComponent3D.prototype.removeHomeListeners = function() {
  * @private 
  */
 HomeComponent3D.prototype.removeMouseListeners = function(canvas3D) {
-  if (this.userActionsListener) {
+  if (this.mouseListener) {
     if (OperatingSystem.isInternetExplorerOrLegacyEdge()
         && window.PointerEvent) {
       // Multi touch support for IE and Edge
-      canvas3D.getHTMLElement().removeEventListener("pointerdown", this.userActionsListener.pointerPressed);
-      canvas3D.getHTMLElement().removeEventListener("mousedown", this.userActionsListener.pointerMousePressed);
-      window.removeEventListener("pointermove", this.userActionsListener.windowPointerMoved);
-      window.removeEventListener("pointerup", this.userActionsListener.windowPointerReleased);
+      canvas3D.getHTMLElement().removeEventListener("pointerdown", this.mouseListener.pointerPressed);
+      canvas3D.getHTMLElement().removeEventListener("mousedown", this.mouseListener.pointerMousePressed);
+      canvas3D.getHTMLElement().removeEventListener("dblclick", this.mouseListener.mouseDoubleClicked);
+      window.removeEventListener("pointermove", this.mouseListener.windowPointerMoved);
+      window.removeEventListener("pointerup", this.mouseListener.windowPointerReleased);
     } else {
-      canvas3D.getHTMLElement().removeEventListener("touchstart", this.userActionsListener.touchStarted);
-      canvas3D.getHTMLElement().removeEventListener("touchmove", this.userActionsListener.touchMoved);
-      canvas3D.getHTMLElement().removeEventListener("touchend", this.userActionsListener.touchEnded);
-      canvas3D.getHTMLElement().removeEventListener("mousedown", this.userActionsListener.mousePressed);
-      window.removeEventListener("mousemove", this.userActionsListener.windowMouseMoved);
-      window.removeEventListener("mouseup", this.userActionsListener.windowMouseReleased);
+      canvas3D.getHTMLElement().removeEventListener("touchstart", this.mouseListener.touchStarted);
+      canvas3D.getHTMLElement().removeEventListener("touchmove", this.mouseListener.touchMoved);
+      canvas3D.getHTMLElement().removeEventListener("touchend", this.mouseListener.touchEnded);
+      canvas3D.getHTMLElement().removeEventListener("mousedown", this.mouseListener.mousePressed);
+      canvas3D.getHTMLElement().removeEventListener("dblclick", this.mouseListener.mouseDoubleClicked);
+      window.removeEventListener("mousemove", this.mouseListener.windowMouseMoved);
+      window.removeEventListener("mouseup", this.mouseListener.windowMouseReleased);
     }
-    canvas3D.getHTMLElement().removeEventListener("contextmenu", this.userActionsListener.contextMenuDisplayed);
-    canvas3D.getHTMLElement().removeEventListener("DOMMouseScroll", this.userActionsListener.mouseScrolled);
-    canvas3D.getHTMLElement().removeEventListener("mousewheel", this.userActionsListener.mouseWheelMoved);
+    canvas3D.getHTMLElement().removeEventListener("contextmenu", this.mouseListener.contextMenuDisplayed);
+    canvas3D.getHTMLElement().removeEventListener("DOMMouseScroll", this.mouseListener.mouseScrolled);
+    canvas3D.getHTMLElement().removeEventListener("mousewheel", this.mouseListener.mouseWheelMoved);
   }
 }
 
@@ -419,6 +449,8 @@ HomeComponent3D.prototype.dispose = function() {
     navigationPanel.parentElement.removeChild(navigationPanel);
     this.navigationPanelId = null;
   }
+  this.preferences.removePropertyChangeListener("EDITING_IN_3D_VIEW_ENABLED", this.editingIn3DViewChangeListener);
+  this.preferences.removePropertyChangeListener("UNIT", this.unitChangeListener);
   this.canvas3D.clear();
 }
 
@@ -557,6 +589,24 @@ HomeComponent3D.prototype.getApproximateHomeBounds = function() {
         }
       }
     }
+    var dimensionLines = this.home.getDimensionLines();
+    for (var i = 0; i < dimensionLines.length; i++) {
+      var dimensionLine = dimensionLines [i];
+      if ((dimensionLine.getLevel() == null
+            || dimensionLine.getLevel().isViewable())
+          && dimensionLine.isVisibleIn3D()) {
+        var levelElevation = dimensionLine.getLevel() != null ? dimensionLine.getLevel().getElevation() : 0;
+        var startPoint = vec3.fromValues(dimensionLine.getXStart(), dimensionLine.getYStart(),
+            levelElevation + dimensionLine.getElevationStart());
+        if (approximateHomeBounds == null) {
+          approximateHomeBounds = new BoundingBox3D(startPoint, startPoint);
+        } else {
+          approximateHomeBounds.combine(startPoint);
+        }
+        approximateHomeBounds.combine(vec3.fromValues(dimensionLine.getXEnd(), dimensionLine.getYEnd(),
+            levelElevation + dimensionLine.getElevationEnd()));
+      }
+    }
     var labels = this.home.getLabels();
     for (var i = 0; i < labels.length; i++) {
       var label = labels[i];
@@ -568,6 +618,23 @@ HomeComponent3D.prototype.getApproximateHomeBounds = function() {
           approximateHomeBounds = new BoundingBox3D(center, center);
         } else {
           approximateHomeBounds.combine(center);
+        }
+      }
+    }
+    var polylines = this.home.getPolylines();
+    for (var i = 0; i < polylines.length; i++) {
+      var polyline = polylines [i];
+      if ((polyline.getLevel() == null
+            || polyline.getLevel().isViewable())
+          && polyline.isVisibleIn3D()) {
+        var points = polyline.getPoints()
+        for (var j = 0; j < points.length; j++) {
+          var point3d = vec3.fromValues(points[j][0], points[j][1], polyline.getGroundElevation());
+          if (approximateHomeBounds == null) {
+            approximateHomeBounds = new BoundingBox3D(point3d, point3d);
+          } else {
+            approximateHomeBounds.combine(point3d);
+          }
         }
       }
     }
@@ -761,18 +828,29 @@ HomeComponent3D.prototype.getHomeHeight = function() {
     var polylines = this.home.getPolylines();
     for (var i = 0; i < polylines.length; i++) {
       var polyline = polylines[i];
-      if ((polyline.getLevel() == null
-          || polyline.getLevel().isViewable())
-          && polyline.isVisibleIn3D()) {
+      if (polyline.isVisibleIn3D()
+          && (polyline.getLevel() == null
+              || polyline.getLevel().isViewable())) {
         homeHeight = Math.max(homeHeight, polyline.getGroundElevation());
+      }
+    }
+    var dimensionLines = this.home.getDimensionLines();
+    for (var i = 0; i < dimensionLines.length; i++) {
+      var dimensionLine = dimensionLines [i];
+      if (dimensionLine.isVisibleIn3D()
+          && (dimensionLine.getLevel() == null
+              || dimensionLine.getLevel().isViewable())) {
+        var levelElevation = dimensionLine.getLevel() != null ? dimensionLine.getLevel().getElevation() : 0;
+        homeHeight = Math.max(homeHeight,
+            levelElevation + Math.max(dimensionLine.getElevationStart(), dimensionLine.getElevationEnd()));
       }
     }
     var labels = this.home.getLabels();
     for (var i = 0; i < labels.length; i++) {
       var label = labels[i];
-      if ((label.getLevel() == null
-            || label.getLevel().isViewable())
-          && label.getPitch() != null) {
+      if (label.getPitch() != null
+          && (label.getLevel() == null
+              || label.getLevel().isViewable())) {
         homeHeight = Math.max(homeHeight, label.getGroundElevation());
       }
     }
@@ -909,49 +987,113 @@ HomeComponent3D.prototype.computeViewPlatformTransform = function(transform, cam
  * Adds mouse listeners to the canvas3D that calls back <code>controller</code> methods.  
  * @private 
  */
-HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
+HomeComponent3D.prototype.addMouseListeners = function(controller, preferences, canvas3D) {
   var component3D = this; 
-  var userActionsListener = {
-      xLastMove : -1,
-      yLastMove : -1,
+  var mouseListener = {
+      initialPointerLocation: null,
+      lastPointerLocation: null,
+      touchEventType : false,
       buttonPressed : -1,
-      touchEventType: false,
       pointerTouches : {},
+      lastEventType : null,
+      lastTargetTouches : [],
       distanceLastPinch : -1,
+      firstTouchStartedTimeStamp: 0,
+      longTouchActivated: false,
+      doubleLongTouchActivated: false,
+      longTouchStartTime: 0,
       actionStartedInComponent3D : false,
       contextMenuEventType: false,
       mousePressed : function(ev) {
-        if (!userActionsListener.touchEventType
-            && !userActionsListener.contextMenuEventType) {
-          userActionsListener.xLastMove = ev.clientX;
-          userActionsListener.yLastMove = ev.clientY;
-          userActionsListener.buttonPressed  = ev.button;
-          userActionsListener.actionStartedInComponent3D = true;
-          ev.stopPropagation();
+        if (!mouseListener.touchEventType
+            && !mouseListener.contextMenuEventType
+            && ev.button === 0) {
+          mouseListener.updateCoordinates(ev, "mousePressed");
+          mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
+          mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+          mouseListener.actionStartedInComponent3D = true;
+          controller.pressMouse(ev.canvasX, ev.canvasY, 
+              ev.clickCount, mouseListener.isShiftDown(ev), mouseListener.isAlignmentActivated(ev), 
+              mouseListener.isDuplicationActivated(ev), mouseListener.isMagnetismToggled(ev), View.PointerType.MOUSE);
         }
+        ev.stopPropagation();
       },
-      windowMouseMoved : function(ev) {
-        if (userActionsListener.actionStartedInComponent3D
-            && !userActionsListener.contextMenuEventType) {
-          userActionsListener.moved(ev.clientX, ev.clientY, ev.altKey, ev.shiftKey);
-        }
+      isShiftDown : function(ev) {
+        return ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+      }, 
+      isAlignmentActivated : function(ev) {
+        return OperatingSystem.isWindows() || OperatingSystem.isMacOSX() 
+            ? ev.shiftKey 
+            : ev.shiftKey && !ev.altKey;
+      }, 
+      isDuplicationActivated : function(ev) {
+        return OperatingSystem.isMacOSX() 
+            ? ev.altKey 
+            : ev.ctrlKey;
+      }, 
+      isMagnetismToggled : function(ev) {
+        return OperatingSystem.isWindows() 
+            ? ev.altKey 
+            : (OperatingSystem.isMacOSX() 
+                ? ev.metaKey 
+                : ev.shiftKey && ev.altKey);
       },
-      windowMouseReleased : function(ev) {
-        if (!userActionsListener.touchEventType
-            && !userActionsListener.contextMenuEventType) {
-          userActionsListener.buttonPressed = -1;
+      mouseDoubleClicked: function(ev) {
+        mouseListener.updateCoordinates(ev, "mouseDoubleClicked");
+        mouseListener.mousePressed(ev);
+        actionStartedInComponent3D = false;
+      },
+      windowMouseMoved: function(ev) {
+        if (!mouseListener.touchEventType
+            && !mouseListener.contextMenuEventType) {
+          mouseListener.updateCoordinates(ev, "mouseMoved");
+          if (mouseListener.initialPointerLocation != null 
+              && !(mouseListener.initialPointerLocation[0] === ev.canvasX 
+                  && mouseListener.initialPointerLocation[1] === ev.canvasY)) {
+            mouseListener.initialPointerLocation = null;
+          }
+          
+          if (mouseListener.initialPointerLocation == null
+              && (ev.buttons === 0 && mouseListener.isInCanvas(ev) 
+                  || mouseListener.actionStartedInComponent3D)) {
+            if (controller.isEditingState()) {
+              controller.moveMouse(ev.canvasX, ev.canvasY);
+            } else if (mouseListener.actionStartedInComponent3D
+                       && document.activeElement === component3D.canvas3D.getHTMLElement()) {
+              mouseListener.moveCamera(ev.canvasX, ev.canvasY, mouseListener.lastPointerLocation [0], mouseListener.lastPointerLocation [1], 
+                  ev.button, ev.altKey, ev.shiftKey);
+            }
+          }
+          mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
         }
-        userActionsListener.touchEventType = false;
-        userActionsListener.contextMenuEventType = false;
-        userActionsListener.actionStartedInComponent3D = false;
+      }, 
+      windowMouseReleased: function(ev) {
+        if (!mouseListener.touchEventType) {
+          if (mouseListener.lastPointerLocation != null) {
+            if (mouseListener.actionStartedInComponent3D 
+                && document.activeElement === component3D.canvas3D.getHTMLElement()
+                && ev.button === 0) {
+              if (mouseListener.contextMenuEventType) {
+                controller.releaseMouse(mouseListener.initialPointerLocation[0], mouseListener.initialPointerLocation[1]);
+              } else {
+                mouseListener.updateCoordinates(ev, "mouseReleased");
+                controller.releaseMouse(ev.canvasX, ev.canvasY);
+              }
+            }
+            mouseListener.initialPointerLocation = null;
+            mouseListener.lastPointerLocation = null;
+            mouseListener.actionStartedInComponent3D = false;
+          }
+        } 
+        mouseListener.contextMenuEventType = false;
       },
       pointerPressed : function(ev) {
         if (ev.pointerType == "mouse") {
-          userActionsListener.mousePressed(ev);
+          mouseListener.mousePressed(ev);
         } else {
           // Multi touch support for IE and Edge
-          userActionsListener.copyPointerToTargetTouches(ev);
-          userActionsListener.touchStarted(ev);
+          mouseListener.copyPointerToTargetTouches(ev, false);
+          mouseListener.touchStarted(ev);
         }
       },
       pointerMousePressed : function(ev) {
@@ -960,88 +1102,291 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       },
       windowPointerMoved : function(ev) {
         if (ev.pointerType == "mouse") {
-          userActionsListener.windowMouseMoved(ev);
+          mouseListener.windowMouseMoved(ev);
         } else {
           // Multi touch support for IE and Edge
-          userActionsListener.copyPointerToTargetTouches(ev);
-          userActionsListener.touchMoved(ev);
+          mouseListener.copyPointerToTargetTouches(ev, false) 
+          mouseListener.touchMoved(ev);
         }
       },
       windowPointerReleased : function(ev) {
         if (ev.pointerType == "mouse") {
-          userActionsListener.windowMouseReleased(ev);
+          mouseListener.windowMouseReleased(ev);
         } else {
-          delete userActionsListener.pointerTouches [ev.pointerId];
-          userActionsListener.touchEnded(ev);
+          ev.preventDefault();
+          // Multi touch support for IE and legacy Edge
+          mouseListener.copyPointerToTargetTouches(ev, true);
+          mouseListener.touchEnded(ev);
         }
       },
       contextMenuDisplayed : function(ev) {
-        userActionsListener.contextMenuEventType = true;
+        mouseListener.contextMenuEventType = true;
       },
-      touchStarted : function(ev) {
-        // Prevent default behavior to avoid local zooming under iOS >= 15
+      touchStarted: function(ev) {
+        // Do not prevent default behavior to ensure focus events will be fired if focus changed after a touch event
+        // but track touch event types to avoid them to be managed also for mousedown and dblclick events
+        mouseListener.touchEventType = ev.pointerType === undefined;
+        // Prevent default behavior to ensure a second touchstart event will be received 
+        // for double taps under iOS >= 15
         ev.preventDefault(); 
-        if (document.activeElement != component3D.canvas3D.getHTMLElement()) {
+        if (document.activeElement !== component3D.canvas3D.getHTMLElement()) {
           // Request focus explicitly since default behavior is disabled
           component3D.canvas3D.getHTMLElement().focus();
+        } 
+        mouseListener.updateCoordinates(ev, "touchStarted");
+        if (mouseListener.longTouch != null) {
+          clearTimeout(mouseListener.longTouch);
+          mouseListener.longTouch = null;
+          component3D.stopLongTouchAnimation();
         }
-        userActionsListener.touchEventType = ev.pointerType === undefined;
-        this.actionStartedInComponent3D = true;
-        if (ev.targetTouches.length == 1) {
-          userActionsListener.xLastMove = ev.targetTouches [0].pageX;
-          userActionsListener.yLastMove = ev.targetTouches [0].pageY;
-          if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
-            userActionsListener.xLastMove = -userActionsListener.xLastMove;
-            userActionsListener.yLastMove = -userActionsListener.yLastMove;
+
+        if (ev.targetTouches.length === 1) {
+          var clickCount = 1;
+          if (mouseListener.initialPointerLocation != null
+              && mouseListener.distance(ev.canvasX, ev.canvasY,
+                  mouseListener.initialPointerLocation [0], mouseListener.initialPointerLocation [1]) < 5 
+              && ev.timeStamp - mouseListener.firstTouchStartedTimeStamp <= HomeComponent3D.DOUBLE_TOUCH_DELAY) { 
+            clickCount = 2;
+            mouseListener.firstTouchStartedTimeStamp = 0;
+            mouseListener.initialPointerLocation = null;
+          } else {
+            mouseListener.firstTouchStartedTimeStamp = ev.timeStamp;
+            mouseListener.initialPointerLocation = [ev.canvasX, ev.canvasY];
           }
-          userActionsListener.buttonPressed = 0;
-        } else if (ev.targetTouches.length == 2) {
-          userActionsListener.distanceLastPinch = userActionsListener.distance(
-              ev.targetTouches [0], ev.targetTouches [1]);
+                
+          mouseListener.longTouchActivated = false;
+          mouseListener.doubleLongTouchActivated = false;
+          mouseListener.distanceLastPinch = null;
+          mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+          mouseListener.actionStartedInComponent3D = true;
+          mouseListener.longTouchWhenDragged = false;
+          if (preferences.isEditingIn3DViewEnabled()
+              && clickCount == 1
+              && component3D.getClosestSelectableItemAt(ev.canvasX, ev.canvasY) !== null) {
+            mouseListener.longTouch = setTimeout(function() {
+              component3D.startLongTouchAnimation(ev.canvasX, ev.canvasY, 
+                  function() {
+                    // Simulate shift key press
+                    mouseListener.longTouchActivated = true;
+                    controller.setAlignmentActivated(true);
+                  });
+                }, HomeComponent3D.LONG_TOUCH_DELAY);
+            mouseListener.longTouchStartTime = Date.now();
+          }
+              
+          controller.pressMouse(ev.canvasX, ev.canvasY, 
+              clickCount, mouseListener.isShiftDown(ev), mouseListener.isAlignmentActivated(ev), 
+              mouseListener.isDuplicationActivated(ev), mouseListener.isMagnetismToggled(ev), View.PointerType.TOUCH);
+        } else {
+          if (mouseListener.longTouchActivated
+              && ev.targetTouches.length === 2) {
+            // Simulate alt + shift key press
+            mouseListener.doubleLongTouchActivated = true;
+            controller.setDuplicationActivated(true);
+          } else  {
+            // Additional touch allows to escape current modification 
+            controller.escape();
+          }
+            
+          if (ev.targetTouches.length === 2) {
+            mouseListener.actionStartedInComponent3D = true;
+            mouseListener.initialPointerLocation = null;
+            mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
+                ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
+          }
         }
       },
-      touchMoved : function(ev) {
-        if (this.actionStartedInComponent3D) {
+      touchMoved: function(ev) {
+        if (mouseListener.actionStartedInComponent3D) {
           ev.preventDefault();
-          if (ev.targetTouches.length == 1) {
-            if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
-              userActionsListener.moved(-ev.targetTouches [0].pageX, -ev.targetTouches [0].pageY, false, false);
-            } else {
-              userActionsListener.moved(ev.targetTouches [0].pageX,  ev.targetTouches [0].pageY, false, false);
+          ev.stopPropagation();
+          if (mouseListener.updateCoordinates(ev, "touchMoved")) {
+            mouseListener.initialPointerLocation = null;
+            
+            if (ev.targetTouches.length == 1) {
+              if (mouseListener.longTouch != null) {
+                // Cancel long touch animation only when pointer moved during the past 200 ms
+                clearTimeout(mouseListener.longTouch);
+                mouseListener.longTouch = null;
+                component3D.stopLongTouchAnimation();
+              }
+              
+              if (controller.isEditingState()) {
+                if (!mouseListener.doubleLongTouchActivated) {
+                  controller.moveMouse(ev.canvasX, ev.canvasY);
+                }
+              } else {
+                if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
+                  mouseListener.moveCamera(-ev.canvasX, -ev.canvasY, 
+                      -mouseListener.lastPointerLocation [0], -mouseListener.lastPointerLocation [1], ev.button, false, false);
+                } else {
+                  mouseListener.moveCamera(ev.canvasX, ev.canvasY, 
+                     mouseListener.lastPointerLocation [0], mouseListener.lastPointerLocation [1], ev.button, false, false);
+                }
+              }
+              mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+            } else if (ev.targetTouches.length == 2
+                       && mouseListener.distanceLastPinch != null) {
+              if (controller.isEditingState()) {
+                controller.moveMouse(ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
+              } else {
+                var newDistance = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
+                    ev.targetTouches[1].clientX, ev.targetTouches[1].clientY);
+                var scaleDifference = newDistance / mouseListener.distanceLastPinch;
+                mouseListener.zoomCamera((1 - scaleDifference) * 50, false);
+                mouseListener.distanceLastPinch = newDistance;
+              }
             }
-          } else if (ev.targetTouches.length == 2) {
-            var newDistance = userActionsListener.distance(ev.targetTouches [0], ev.targetTouches [1]);
-            var scaleDifference = newDistance / userActionsListener.distanceLastPinch;
-            userActionsListener.zoomed((1 - scaleDifference) * 50, false);
-            userActionsListener.distanceLastPinch = newDistance;
           }
         }
       },
-      touchEnded : function(ev) {
-        userActionsListener.buttonPressed = -1;
-        this.actionStartedInComponent3D = false;
-        // Reset mouseListener.touchEventType in windowMouseReleased call
+      touchEnded: function(ev) {
+        if (mouseListener.actionStartedInComponent3D) {
+          mouseListener.updateCoordinates(ev, "touchEnded");
+          if (ev.targetTouches.length == 0) {
+            if (mouseListener.longTouch != null) {
+              clearTimeout(mouseListener.longTouch);
+              mouseListener.longTouch = null;
+              component3D.stopLongTouchAnimation();
+            }
+          
+            controller.releaseMouse(mouseListener.lastPointerLocation [0], mouseListener.lastPointerLocation [1]);
+            
+            if (mouseListener.isLongTouch()) {
+              // Avoid firing contextmenu event
+              ev.preventDefault();
+            }
+            mouseListener.actionStartedInComponent3D = false;
+          } else if (ev.targetTouches.length == 1) {
+            mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
+          } else if (ev.targetTouches.length == 2
+                     && mouseListener.distanceLastPinch != null) {
+            // If the user keeps 2 finger on screen after releasing other fingers 
+            mouseListener.distanceLastPinch = mouseListener.distance(ev.targetTouches[0].clientX, ev.targetTouches[0].clientY, 
+                ev.targetTouches[1].clientX, ev.targetTouches[1].clientY)
+          }
+        }
       },
-      copyPointerToTargetTouches : function(ev) {
-        // Copy the IE and Edge pointer location to ev.targetTouches
-        userActionsListener.pointerTouches [ev.pointerId] = {pageX : ev.clientX, pageY : ev.clientY};
+      copyPointerToTargetTouches : function(ev, touchEnded) {
+        // Copy the IE and Edge pointer location to ev.targetTouches or ev.changedTouches
+        if (touchEnded) {
+          ev.changedTouches = [mouseListener.pointerTouches [ev.pointerId]];
+          delete mouseListener.pointerTouches [ev.pointerId];
+        } else {
+          mouseListener.pointerTouches [ev.pointerId] = {clientX : ev.clientX, clientY : ev.clientY};
+        }
         ev.targetTouches = [];
-        for (var attribute in userActionsListener.pointerTouches) {
-          if (userActionsListener.pointerTouches.hasOwnProperty(attribute)) {
-            ev.targetTouches.push(userActionsListener.pointerTouches [attribute]);
+        for (var attribute in mouseListener.pointerTouches) {
+          if (mouseListener.pointerTouches.hasOwnProperty(attribute)) {
+            ev.targetTouches.push(mouseListener.pointerTouches [attribute]);
           }
         }
       },
-      distance : function(p1, p2) {
-        return Math.sqrt(Math.pow(p2.pageX - p1.pageX, 2) + Math.pow(p2.pageY - p1.pageY, 2));
+      updateCoordinates : function(ev, type) {
+        // Updates canvasX and canvasY properties and return true if they changed
+        var rect = component3D.canvas3D.getHTMLElement().getBoundingClientRect();
+        var updated = true; 
+        if (type.indexOf("touch") === 0) {
+          var minDistance = mouseListener.lastEventType == "touchStarted"
+              ? 5 : 1.5;
+          var touches;
+          if (ev.targetTouches.length === 1
+                && type == "touchMoved" 
+                && mouseListener.distance(mouseListener.lastTargetTouches [0].clientX, mouseListener.lastTargetTouches [0].clientY,
+                    ev.targetTouches[0].clientX, ev.targetTouches[0].clientY) < minDistance
+              || ev.targetTouches.length === 0
+                     && type == "touchEnded" 
+                     && mouseListener.distance(mouseListener.lastTargetTouches [0].clientX, mouseListener.lastTargetTouches [0].clientY,
+                         ev.changedTouches[0].clientX, ev.changedTouches[0].clientY) < minDistance) {
+            touches = mouseListener.lastTargetTouches;
+            updated = false;
+          } else {
+            if (ev.targetTouches.length == 0) {
+              // touchend case
+              touches = ev.changedTouches;
+            } else {
+              touches = ev.targetTouches;
+            }
+            mouseListener.lastEventType = type;
+          }
+          
+          if (touches.length == 1) {
+            ev.canvasX = touches[0].clientX - rect.left;
+            ev.canvasY = touches[0].clientY - rect.top;
+            var rect = component3D.canvas3D.getHTMLElement().getBoundingClientRect();
+            ev.clientX = touches[0].clientX;
+            ev.clientY = touches[0].clientY;
+            ev.button = 0;
+          } 
+          ev.clickCount = 1;
+
+          if (updated) {
+            // Make a copy of touches because old iOS reuse the same ev.targetTouches array between events
+            mouseListener.lastTargetTouches = [];
+            for (var i = 0; touches[i] !== undefined; i++) {
+              mouseListener.lastTargetTouches.push({clientX: touches[i].clientX, clientY: touches[i].clientY});
+            }
+          }
+        } else {
+          ev.canvasX = ev.clientX - rect.left;
+          ev.canvasY = ev.clientY - rect.top;
+        }  
+        
+        if (ev.clickCount === undefined) {
+          if (type == "mouseDoubleClicked") {
+            ev.clickCount = 2;
+          } else if (type == "mousePressed" || type == "mouseReleased") {
+            ev.clickCount = 1;
+          } else {
+            ev.clickCount = 0;
+          }
+        }
+        if (type == "mouseWheelMoved") {
+          ev.wheelRotation = (ev.deltaY !== undefined 
+              ? ev.deltaX + ev.deltaY 
+              : -ev.wheelDelta) / 4;
+        }
+        
+        return updated;
       },
-      moved : function(x, y, altKey, shiftKey) {
-        if ((userActionsListener.xLastMove !== x
-              || userActionsListener.yLastMove !== y)
-            && userActionsListener.buttonPressed === 0) {
+      isLongTouch: function(dragging) {
+        return Date.now() - mouseListener.longTouchStartTime 
+            > ((dragging 
+                ? HomeComponent3D.LONG_TOUCH_DELAY_WHEN_DRAGGING 
+                : HomeComponent3D.LONG_TOUCH_DELAY) + HomeComponent3D.LONG_TOUCH_DURATION_AFTER_DELAY);
+      },
+      distance: function(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      },
+      isInCanvas: function(ev) {
+        return ev.canvasX >= 0 && ev.canvasX < component3D.canvas3D.getHTMLElement().clientWidth
+            && ev.canvasY >= 0 && ev.canvasY < component3D.canvas3D.getHTMLElement().clientHeight;
+      },
+      mouseScrolled : function(ev) {
+        mouseListener.zoomCamera(ev.detail, ev.shiftKey);
+      },
+      mouseWheelMoved : function(ev) {
+        ev.preventDefault();
+        if (!controller.isEditingState()) {
+          mouseListener.zoomCamera((ev.deltaY !== undefined ? ev.deltaY : -ev.wheelDelta) / 4, ev.shiftKey);
+        }
+      },        
+      zoomCamera : function(delta, shiftKey) {
+        // Mouse wheel changes camera location 
+        var delta = -2.5 * delta;
+        // Multiply delta by 10 if shift is down
+        if (shiftKey) {
+          delta *= 5;
+        } 
+        controller.moveCamera(delta);
+      },
+      moveCamera: function(x, y, lastX, lastY, button, altKey, shiftKey) {
+        if ((mouseListener.lastPointerLocation [0] !== x
+              || mouseListener.lastPointerLocation [1] !== y)
+            && button === 0) {
           if (altKey) {
             // Mouse move along Y axis while alt is down changes camera location
-            var delta = 1.25 * (userActionsListener.yLastMove - y);
+            var delta = 1.25 * (lastY - y);
             // Multiply delta by 5 if shift is down
             if (shiftKey) {
               delta *= 5;
@@ -1050,7 +1395,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
           } else {
             var ANGLE_FACTOR = 0.005;
             // Mouse move along X axis changes camera yaw 
-            var yawDelta = ANGLE_FACTOR * (x - userActionsListener.xLastMove);
+            var yawDelta = ANGLE_FACTOR * (x - lastX);
             // Multiply yaw delta by 5 if shift is down
             if (shiftKey) {
               yawDelta *= 5;
@@ -1058,28 +1403,10 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
             controller.rotateCameraYaw(yawDelta);
             
             // Mouse move along Y axis changes camera pitch 
-            var pitchDelta = ANGLE_FACTOR * (y - userActionsListener.yLastMove);
+            var pitchDelta = ANGLE_FACTOR * (y - lastY);
             controller.rotateCameraPitch(pitchDelta);
           }
-          userActionsListener.xLastMove = x;
-          userActionsListener.yLastMove = y;
         }
-      },
-      mouseScrolled : function(ev) {
-        userActionsListener.zoomed(ev.detail, ev.shiftKey);
-      },
-      mouseWheelMoved : function(ev) {
-        ev.preventDefault();
-        userActionsListener.zoomed((ev.deltaY !== undefined ? ev.deltaY : -ev.wheelDelta) / 4, ev.shiftKey);
-      },        
-      zoomed : function(delta, shiftKey) {
-        // Mouse wheel changes camera location 
-        var delta = -2.5 * delta;
-        // Multiply delta by 10 if shift is down
-        if (shiftKey) {
-          delta *= 5;
-        } 
-        controller.moveCamera(delta);
       }
     };
     
@@ -1087,25 +1414,81 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, canvas3D) {
       && window.PointerEvent) {
     // Multi touch support for IE and Edge
     // IE and Edge test from https://stackoverflow.com/questions/31757852/how-can-i-detect-internet-explorer-ie-and-microsoft-edge-using-javascript
-    canvas3D.getHTMLElement().addEventListener("pointerdown", userActionsListener.pointerPressed);
-    canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.pointerMousePressed);
+    canvas3D.getHTMLElement().addEventListener("pointerdown", mouseListener.pointerPressed);
+    canvas3D.getHTMLElement().addEventListener("mousedown", mouseListener.pointerMousePressed);
+    canvas3D.getHTMLElement().addEventListener("dblclick", mouseListener.mouseDoubleClicked);
     // Add pointermove and pointerup event listeners to window to capture pointer events out of the canvas 
-    window.addEventListener("pointermove", userActionsListener.windowPointerMoved);
-    window.addEventListener("pointerup", userActionsListener.windowPointerReleased);
+    window.addEventListener("pointermove", mouseListener.windowPointerMoved);
+    window.addEventListener("pointerup", mouseListener.windowPointerReleased);
   } else {
-    canvas3D.getHTMLElement().addEventListener("touchstart", userActionsListener.touchStarted);
-    canvas3D.getHTMLElement().addEventListener("touchmove", userActionsListener.touchMoved);
-    canvas3D.getHTMLElement().addEventListener("touchend", userActionsListener.touchEnded);
-    canvas3D.getHTMLElement().addEventListener("mousedown", userActionsListener.mousePressed);
+    canvas3D.getHTMLElement().addEventListener("touchstart", mouseListener.touchStarted);
+    canvas3D.getHTMLElement().addEventListener("touchmove", mouseListener.touchMoved);
+    canvas3D.getHTMLElement().addEventListener("touchend", mouseListener.touchEnded);
+    canvas3D.getHTMLElement().addEventListener("mousedown", mouseListener.mousePressed);
+    canvas3D.getHTMLElement().addEventListener("dblclick", mouseListener.mouseDoubleClicked);
     // Add mousemove and mouseup event listeners to window to capture mouse events out of the canvas 
-    window.addEventListener("mousemove", userActionsListener.windowMouseMoved);
-    window.addEventListener("mouseup", userActionsListener.windowMouseReleased);
+    window.addEventListener("mousemove", mouseListener.windowMouseMoved);
+    window.addEventListener("mouseup", mouseListener.windowMouseReleased);
   }
-  canvas3D.getHTMLElement().addEventListener("contextmenu", userActionsListener.contextMenuDisplayed);
-  canvas3D.getHTMLElement().addEventListener("DOMMouseScroll", userActionsListener.mouseScrolled);
-  canvas3D.getHTMLElement().addEventListener("mousewheel", userActionsListener.mouseWheelMoved);
+  canvas3D.getHTMLElement().addEventListener("contextmenu", mouseListener.contextMenuDisplayed);
+  canvas3D.getHTMLElement().addEventListener("DOMMouseScroll", mouseListener.mouseScrolled);
+  canvas3D.getHTMLElement().addEventListener("mousewheel", mouseListener.mouseWheelMoved);
 
-  this.userActionsListener = userActionsListener;
+  this.mouseListener = mouseListener;
+}
+
+/**
+ * @private 
+ */
+HomeComponent3D.prototype.startLongTouchAnimation = function(x, y, animationPostTask) {
+  if (this.touchOverlay === undefined) {
+    this.touchOverlay = document.createElement("div");
+    this.touchOverlay.id = "touch-overlay-timer";
+    this.touchOverlay.classList.add("touch-overlay-timer");
+    this.touchOverlay.style.position = "absolute";
+    this.touchOverlay.style.top = "0px";
+    this.touchOverlay.style.left = "0px";
+    this.touchOverlay.innerHTML = '<div class="touch-overlay-timer-content"></div><div class="touch-overlay-timer-bg"></div><div class="touch-overlay-timer-hidder"></div><div class="touch-overlay-timer-loader1"></div><div class="touch-overlay-timer-loader2"></div>';
+    document.body.appendChild(this.touchOverlay);
+    for (var i = 0; i < this.touchOverlay.children.length; i++) {
+      var item = this.touchOverlay.children.item(i);
+      if (item.classList.contains("overlay-timer-loader1")
+          || item.classList.contains("overlay-timer-loader2")) {
+        item.style.borderTopColor = "#0000B5";
+        item.style.borderRightColor = "#0000B5";
+      }
+      if (item.classList.contains("touch-overlay-timer-content")) {
+        item.style.color = "#000000";
+        item.innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
+      }
+      item.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
+    }
+  }
+  this.touchOverlay.style.visibility = "visible";
+  this.touchOverlay.style.left = (this.getHTMLElement().getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
+  this.touchOverlay.style.top = (this.getHTMLElement().getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.add("animated");
+  }
+  if (animationPostTask !== undefined) {
+    this.longTouchAnimationPostTask = setTimeout(animationPostTask, HomeComponent3D.LONG_TOUCH_DURATION_AFTER_DELAY);
+  }
+}
+
+/**
+ * @private 
+ */
+HomeComponent3D.prototype.stopLongTouchAnimation = function(x, y) {
+  if (this.touchOverlay !== undefined) {
+    this.touchOverlay.style.visibility = "hidden";
+    for (var i = 0; i < this.touchOverlay.children.length; i++) {
+      this.touchOverlay.children.item(i).classList.remove("animated");
+    }
+    if (this.longTouchAnimationPostTask !== undefined) {
+      clearTimeout(this.longTouchAnimationPostTask);
+      delete this.longTouchAnimationPostTask;
+    }
+  }
 }
 
 /**
@@ -1148,7 +1531,88 @@ HomeComponent3D.prototype.installKeyboardActions = function() {
       "pressed HOME" : "ELEVATE_CAMERA_UP",
       "shift pressed END" : "ELEVATE_CAMERA_FAST_DOWN",
       "pressed END" : "ELEVATE_CAMERA_DOWN",
-  };
+      "pressed ESCAPE" : "ESCAPE",
+      "shift pressed ESCAPE" : "ESCAPE"
+    };
+    
+  if (OperatingSystem.isMacOSX()) {
+    // Under Mac OS X, duplication with Alt key
+    this.inputMap["alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["released ALT"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["shift alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["shift released ALT"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["meta alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["meta released ALT"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["shift meta alt pressed ALT"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["shift meta released ALT"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["alt pressed ESCAPE"] = "ESCAPE";
+  } else {
+    // Under other systems, duplication with Ctrl key
+    this.inputMap["control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["released CONTROL"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["shift control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["shift released CONTROL"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["meta control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["meta released CONTROL"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["shift meta control pressed CONTROL"] = "ACTIVATE_DUPLICATION";
+    this.inputMap["shift meta released CONTROL"] = "DEACTIVATE_DUPLICATION";
+    this.inputMap["control pressed ESCAPE"] = "ESCAPE";
+  }
+  if (OperatingSystem.isWindows()) {
+    // Under Windows, magnetism toggled with Alt key
+    this.inputMap["alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["released ALT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["shift alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["shift released ALT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["control alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["control released ALT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["shift control alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["shift control released ALT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["alt pressed ESCAPE"] = "ESCAPE";
+  } else if (OperatingSystem.isMacOSX()) {
+    // Under Mac OS X, magnetism toggled with cmd key
+    this.inputMap["meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["released META"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["shift meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["shift released META"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["alt meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["alt released META"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["shift alt meta pressed META"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["shift alt released META"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["meta pressed ESCAPE"] = "ESCAPE";
+  } else {
+    // Under other Unix systems, magnetism toggled with Alt + Shift key
+    this.inputMap["shift alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["alt shift pressed SHIFT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["alt released SHIFT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["shift released ALT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["control shift alt pressed ALT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["control alt shift pressed SHIFT"] = "TOGGLE_MAGNETISM_ON";
+    this.inputMap["control alt released SHIFT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["control shift released ALT"] = "TOGGLE_MAGNETISM_OFF";
+    this.inputMap["alt shift ESCAPE"] = "ESCAPE";
+    this.inputMap["control alt shift pressed ESCAPE"] = "ESCAPE";
+  }
+
+  this.inputMap["shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+  this.inputMap["released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+  if (OperatingSystem.isWindows()) {
+    this.inputMap["control shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+    this.inputMap["control released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+    this.inputMap["alt shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+    this.inputMap["alt released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+  } else if (OperatingSystem.isMacOSX()) {
+    this.inputMap["alt shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+    this.inputMap["alt released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+    this.inputMap["meta shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+    this.inputMap["meta released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+  } else {
+    this.inputMap["control shift pressed SHIFT"] = "ACTIVATE_ALIGNMENT";
+    this.inputMap["control released SHIFT"] = "DEACTIVATE_ALIGNMENT";
+    this.inputMap["shift released ALT"] = "ACTIVATE_ALIGNMENT";
+    this.inputMap["control shift released ALT"] = "ACTIVATE_ALIGNMENT";
+  }
+  
   var component3D = this;
   this.canvas3D.getHTMLElement().addEventListener("keydown", 
       function(ev) {
@@ -1250,7 +1714,42 @@ HomeComponent3D.prototype.createActions = function(controller) {
       "ROTATE_CAMERA_PITCH_FAST_UP" : new RotateCameraPitchAction(-Math.PI / 24),
       "ROTATE_CAMERA_PITCH_DOWN" : new RotateCameraPitchAction(Math.PI / 120),
       "ROTATE_CAMERA_PITCH_FAST_DOWN" : new RotateCameraPitchAction(Math.PI / 24),
-  };
+      "ESCAPE": {
+          actionPerformed: function(ev) {
+            controller.escape();
+          }
+        },
+      "ACTIVATE_ALIGNMENT": {
+          actionPerformed: function(ev) {
+            controller.setAlignmentActivated(true);
+          }
+        },
+      "DEACTIVATE_ALIGNMENT": {
+          actionPerformed: function(ev) {
+            controller.setAlignmentActivated(false);
+          }
+        },
+      "TOGGLE_MAGNETISM_ON": {
+          actionPerformed: function(ev) {
+            controller.toggleMagnetism(true);
+          }
+        },
+      "TOGGLE_MAGNETISM_OFF": {
+          actionPerformed: function(ev) {
+            controller.toggleMagnetism(false);
+          }
+        },
+      "ACTIVATE_DUPLICATION": {
+          actionPerformed: function(ev) {
+            controller.setDuplicationActivated(true);
+          }
+        },
+      "DEACTIVATE_DUPLICATION": {
+          actionPerformed: function(ev) {
+            controller.setDuplicationActivated(false);
+          }
+        }
+    };
 }
 
 /**
@@ -1272,7 +1771,7 @@ HomeComponent3D.prototype.getInputMap = function() {
  * @param {number} x
  * @param {number} y
  * @return {Object}
- * @since 1.1
+ * @deprecated
  */
 HomeComponent3D.prototype.getClosestItemAt = function(x, y) {
   var node = this.canvas3D.getClosestShapeAt(x, y);
@@ -1286,6 +1785,70 @@ HomeComponent3D.prototype.getClosestItemAt = function(x, y) {
   } else {
     return null;
   }
+}
+
+/**
+ * Returns the closest home item displayed at component coordinates (x, y),
+ * or <code>null</code> if not found. 
+ * @param {number} x
+ * @param {number} y
+ * @return {Selectable}
+ */
+HomeComponent3D.prototype.getClosestSelectableItemAt = function(x, y) {
+  var rect = component3D.canvas3D.getHTMLElement().getBoundingClientRect();
+  return this.getClosestItemAt(x + rect.left, y + rect.top);
+}
+
+/**
+ * Returns the 3D point matching the point (x, y) in component coordinates space.
+ * @return {vec3}
+ * @private 
+ */
+HomeComponent3D.prototype.convertPixelLocationToVirtualWorldPoint = function(x, y) {
+  // See http://webglfactory.blogspot.com/2011/05/how-to-convert-world-to-screen.html
+  var transform = this.canvas3D.getVirtualWorldToImageTransform(mat4.create());
+  mat4.invert(transform, transform);
+  mat4.mul(transform, this.canvas3D.getViewPlatformTransform(mat4.create()), transform);
+  
+  var rect = this.getHTMLElement().getBoundingClientRect();
+  var point = vec3.fromValues((x / rect.width - 0.5) * 2, (0.5 - y / rect.height) * 2, 0);
+  vec3.transformMat4(point, point, transform);
+  return point;
+}
+
+/**
+ * Returns the 3D point matching the point (x, y) in component coordinates space.
+ * @return {Array}
+ */
+HomeComponent3D.prototype.convertPixelLocationToVirtualWorld = function(x, y) {
+  var point = this.convertPixelLocationToVirtualWorldPoint(x, y);
+  return [point [0], point [2], point [1]];
+}
+
+/**
+ * Returns the coordinates intersecting the floor of the selected level in the direction
+ * joining camera location and component coordinates (x, y).
+ */
+HomeComponent3D.prototype.getVirtualWorldPointAt = function(x, y, elevation) {
+  var point = this.convertPixelLocationToVirtualWorldPoint(x, y);
+  var camera = this.home.getCamera();
+  var eye = vec3.fromValues(camera.getX(), camera.getZ(), camera.getY());
+  var eyePointDirection = vec3.sub(vec3.fromValues(0, 0, 0), point, eye);
+  // If direction points to the sky, negate it to point to the ground
+  if (eyePointDirection [1] > 0) {
+    eyePointDirection [1] = -eyePointDirection [1];
+  }
+
+  // Compute coordinates of the intersection point between the line joining
+  // eye and the given point with the plan y = elevation
+  // Parametric equation of the line
+  // x = point.x + t . direction.x
+  // y = point.y + t . direction.y
+  // z = point.z + t . direction.z
+  var t = (elevation - point [1]) / eyePointDirection [1];
+  var xFloor = (point [0] + t * eyePointDirection [0]);
+  var zFloor = (point [2] + t * eyePointDirection [2]);
+  return [xFloor, zFloor, elevation];
 }
 
 /**
@@ -1595,10 +2158,14 @@ HomeComponent3D.prototype.updateLightColor = function(light) {
 HomeComponent3D.prototype.createHomeTree = function(listenToHomeUpdates, waitForLoading) {
   var homeRoot = new BranchGroup3D();
   homeRoot.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
-  // Add walls, pieces, rooms, polylines and labels already available
+  // Add walls, pieces, rooms, polylines, dimension lines and labels already available
   var labels = this.home.getLabels();
   for (var i = 0; i < labels.length; i++) {
     this.addObject(homeRoot, labels [i], listenToHomeUpdates, waitForLoading);
+  }
+  var dimensionLines = this.home.getDimensionLines();
+  for (var i = 0; i < dimensionLines.length; i++) {
+    this.addObject(homeRoot, dimensionLines [i], listenToHomeUpdates, waitForLoading);
   }
   var polylines = this.home.getPolylines();
   for (var i = 0; i < polylines.length; i++) {
@@ -1634,8 +2201,17 @@ HomeComponent3D.prototype.createHomeTree = function(listenToHomeUpdates, waitFor
     this.addFurnitureListener(homeRoot);
     this.addRoomListener(homeRoot);
     this.addPolylineListener(homeRoot);
+    this.addDimensionLineListener(homeRoot);
     this.addLabelListener(homeRoot);
     this.addEnvironmentListeners();
+    component3D = this;
+    this.selectionListener = {
+       selectionChanged: function(ev) {
+          component3D.updateObjectsAndFurnitureGroups(ev.getOldSelectedItems());
+          component3D.updateObjectsAndFurnitureGroups(ev.getSelectedItems());
+        }
+      };
+    this.home.addSelectionListener(this.selectionListener);
   }
   return homeRoot;
 }
@@ -2055,6 +2631,38 @@ HomeComponent3D.prototype.addPolylineListener = function(group) {
 }
 
 /**
+ * Adds a dimension line listener to home dimension lines that updates the children of the given
+ * <code>group</code>, each time a dimension line is added, updated or deleted.
+ * @param {Group3D} group
+ * @private
+ */
+HomeComponent3D.prototype.addDimensionLineListener = function(group) {
+  var component3D = this;
+  this.dimensionLineChangeListener = function(ev) {
+      var updatedDimensionLine = ev.getSource();
+      component3D.updateObjects([updatedDimensionLine]);
+    };
+  var dimensionLines = this.home.getDimensionLines();
+  for (var i = 0; i < dimensionLines.length; i++) {
+    dimensionLines [i].addPropertyChangeListener(this.dimensionLineChangeListener);
+  }
+  this.dimensionLineListener = function(ev) {
+      var dimensionLine = ev.getItem();
+      switch (ev.getType()) {
+        case CollectionEvent.Type.ADD :
+          component3D.addObject(group, dimensionLine, true, false);
+          dimensionLine.addPropertyChangeListener(component3D.dimensionLineChangeListener);
+          break;
+        case CollectionEvent.Type.DELETE :
+          component3D.deleteObject(dimensionLine);
+          dimensionLine.removePropertyChangeListener(component3D.dimensionLineChangeListener);
+          break;
+      }
+    };
+  this.home.addDimensionLinesListener(this.dimensionLineListener);
+}
+
+ /**
  * Adds a label listener to home labels that updates the children of the given
  * <code>group</code>, each time a label is added, updated or deleted.
  * @param {Group3D} group
@@ -2220,6 +2828,21 @@ HomeComponent3D.prototype.updateObjects = function(objects) {
 }
 
 /**
+ * Updates 3D objects and furniture groups children, if <code>objects</code> contains some groups.
+ * @param {Array} objects
+ * @private
+ */
+HomeComponent3D.prototype.updateObjectsAndFurnitureGroups = function(objects) {
+  this.updateObjects(objects);
+  for (var i = 0; i < objects.length; i++) {
+    var item = objects [i];
+    if (item instanceof HomeFurnitureGroup) {
+      this.updateObjects(item.getAllFurniture());
+    }
+  }
+}
+
+/**
  * Updates walls that may intersect from the given doors or window.
  * @param {Array} doorOrWindows
  * @private
@@ -2284,10 +2907,14 @@ HomeComponent3D.prototype.updateWall = function(wall) {
 
 /**
  * A factory able to create instances of {@link Object3DBranch} class.
+ * @param {UserPreferences} [preferences]
  * @constructor
  * @author Emmanuel Puybaret
  */
-function Object3DBranchFactory() {
+function Object3DBranchFactory(preferences) {
+  if (preferences !== undefined) {
+    this.preferences = preferences;
+  }
 }
 
 /**
@@ -2299,15 +2926,17 @@ function Object3DBranchFactory() {
  */
 Object3DBranchFactory.prototype.createObject3D = function(home, item, waitForLoading) {
   if (item instanceof HomePieceOfFurniture) {
-    return new HomePieceOfFurniture3D(item, home, waitForLoading);
+    return new HomePieceOfFurniture3D(item, home, this.preferences, waitForLoading);
   } else if (item instanceof Wall) {
-    return new Wall3D(item, home, waitForLoading);
+    return new Wall3D(item, home, this.preferences, waitForLoading);
   } else if (item instanceof Room) {
-    return new Room3D(item, home, false, waitForLoading);
+    return new Room3D(item, home, this.preferences, false, waitForLoading);
   } else if (item instanceof Polyline) {
-    return new Polyline3D(item, home);
-   } else if (item instanceof Label) {
-     return new Label3D(item, home, waitForLoading);
+    return new Polyline3D(item, home, this.preferences, waitForLoading);
+  } else if (item instanceof DimensionLine) {
+    return new DimensionLine3D(item, home, this.preferences, waitForLoading);
+  } else if (item instanceof Label) {
+     return new Label3D(item, home, this.preferences, waitForLoading);
   } else {
     return new Group3D();
   }  

@@ -26,14 +26,19 @@
  * Creates the 3D label matching the given home <code>label</code>.
  * @param {Label} label
  * @param {Home} home
+ * @param {UserPreferences} [preferences]
  * @param {boolean} waitModelAndTextureLoadingEnd
  * @constructor
  * @extends Object3DBranch
  * @author Emmanuel Puybaret
  */
-function Label3D(label, home, waitModelAndTextureLoadingEnd) {
-  Object3DBranch.call(this);
-  this.setUserData(label);
+function Label3D(label, home, preferences, waitModelAndTextureLoadingEnd) {
+  if (waitModelAndTextureLoadingEnd === undefined) {
+    // 3 parameters
+    waitModelAndTextureLoadingEnd = preferences;
+    preferences = null;
+  }
+  Object3DBranch.call(this, label, home, preferences);
   
   this.setCapability(Group3D.ALLOW_CHILDREN_EXTEND);
   
@@ -172,9 +177,11 @@ Label3D.prototype.update = function() {
       }
     }
     if (this.texture !== null) {
+      var transformGroup;
+      var selectionAppearance;
       if (this.getChildren().length === 0) {
         var group = new BranchGroup3D();
-        var transformGroup = new TransformGroup3D();
+        transformGroup = new TransformGroup3D();
         transformGroup.setCapability(TransformGroup3D.ALLOW_TRANSFORM_WRITE);
         group.addChild(transformGroup);
         
@@ -196,7 +203,21 @@ Label3D.prototype.update = function() {
                [vec3.fromValues(0., 1., 0.)],
                [0, 0, 0, 0, 0, 0]), appearance);
         transformGroup.addChild(shape);
+        
+        var selectionCoordinates = [vec3.fromValues(-0.5, 0, -0.5), vec3.fromValues(0.5, 0, -0.5),
+                                    vec3.fromValues(0.5, 0, 0.5),   vec3.fromValues(-0.5, 0, 0.5)];
+        var selectionGeometry = new IndexedLineArray3D(selectionCoordinates, [0, 1, 1, 2, 2, 3, 3, 0]);
+
+        selectionAppearance = this.getSelectionAppearance();
+        var selectionLinesShape = new Shape3D(selectionGeometry, selectionAppearance);
+        selectionLinesShape.setPickable(false);
+        transformGroup.addChild(selectionLinesShape);
+
         this.addChild(group);
+      } else {
+        transformGroup = this.getChild(0).getChild(0);
+        var selectionLinesShape = transformGroup.getChild(1);
+        selectionAppearance = selectionLinesShape.getAppearance();
       }
       
       var transformGroup = this.getChild(0).getChild(0);
@@ -211,6 +232,10 @@ Label3D.prototype.update = function() {
       mat4.mul(transform, transform, rotationY);
       transformGroup.setTransform(transform);
       transformGroup.getChild(0).getAppearance().setTextureImage(this.texture);
+      
+      selectionAppearance.setVisible(this.getUserPreferences() != null
+          && this.getUserPreferences().isEditingIn3DViewEnabled()
+          && this.getHome().isItemSelected(label));
     }
   } else {
     this.clear();

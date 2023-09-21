@@ -161,10 +161,10 @@ function HomePane(containerId, home, preferences, controller) {
     
   setTimeout(function() {
       // Give default focus to the plan or the 3D view
-	  if (planComponent != null) {
+      if (planComponent != null) {
         planComponent.getHTMLElement().focus();
-	  } else if (controller.getHomeController3D().getView() != null) {
-	    controller.getHomeController3D().getView().getHTMLElement().focus();
+      } else if (controller.getHomeController3D().getView() != null) {
+        controller.getHomeController3D().getView().getHTMLElement().focus();
       }
     });
 }
@@ -295,8 +295,12 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
       furnitureController, "toggleFurnitureSort", "CATALOG_ID");
   this.createAction(ActionType.SORT_HOME_FURNITURE_BY_NAME, preferences,
       furnitureController, "toggleFurnitureSort", "NAME");
+  this.createAction(ActionType.SORT_HOME_FURNITURE_BY_DESCRIPTION, preferences,
+      furnitureController, "toggleFurnitureSort", "DESCRIPTION");
   this.createAction(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, preferences,
       furnitureController, "toggleFurnitureSort", "CREATOR");
+  this.createAction(ActionType.SORT_HOME_FURNITURE_BY_LICENSE, preferences,
+      furnitureController, "toggleFurnitureSort", "LICENSE");
   this.createAction(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, preferences,
       furnitureController, "toggleFurnitureSort", "WIDTH");
   this.createAction(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, preferences,
@@ -339,8 +343,12 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
       furnitureController, "toggleFurnitureVisibleProperty", "CATALOG_ID");
   this.createAction(ActionType.DISPLAY_HOME_FURNITURE_NAME, preferences,
       furnitureController, "toggleFurnitureVisibleProperty", "NAME");
+  this.createAction(ActionType.DISPLAY_HOME_FURNITURE_DESCRIPTION, preferences,
+      furnitureController, "toggleFurnitureVisibleProperty", "DESCRIPTION");
   this.createAction(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, preferences,
       furnitureController, "toggleFurnitureVisibleProperty", "CREATOR");
+  this.createAction(ActionType.DISPLAY_HOME_FURNITURE_LICENSE, preferences,
+      furnitureController, "toggleFurnitureVisibleProperty", "LICENSE");
   this.createAction(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, preferences,
       furnitureController, "toggleFurnitureVisibleProperty", "WIDTH");
   this.createAction(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, preferences,
@@ -414,6 +422,7 @@ HomePane.prototype.createActions = function(home, preferences, controller) {
     this.createAction(ActionType.ADD_ROOM_POINT, preferences);
     this.createAction(ActionType.DELETE_ROOM_POINT, preferences);
     this.createAction(ActionType.MODIFY_POLYLINE, preferences, planController, "modifySelectedPolylines");
+    this.createAction(ActionType.MODIFY_DIMENSION_LINE, preferences, planController, "modifySelectedDimensionLines");
     this.createAction(ActionType.MODIFY_LABEL, preferences, planController, "modifySelectedLabels");
     this.createAction(ActionType.INCREASE_TEXT_SIZE, preferences, planController, "increaseTextSize");
     this.createAction(ActionType.DECREASE_TEXT_SIZE, preferences, planController, "decreaseTextSize");
@@ -731,7 +740,7 @@ HomePane.prototype.addPlanControllerListener = function(planController) {
 HomePane.prototype.addFocusListener = function() {
   var homePane = this; 
   this.focusListener = function(ev) {
-	  // Manage focus only for plan and component 3D to simplify actions choice proposed to the user
+      // Manage focus only for plan and component 3D to simplify actions choice proposed to the user
       var focusableViews = [// homePane.controller.getFurnitureCatalogController().getView(),
                             // homePane.controller.getFurnitureController().getView(),
                             homePane.controller.getPlanController().getView(),
@@ -806,7 +815,9 @@ HomePane.prototype.createFurnitureSortMenu = function(home, builder) {
   
         addItem(ActionType.SORT_HOME_FURNITURE_BY_CATALOG_ID, "CATALOG_ID");
         addItem(ActionType.SORT_HOME_FURNITURE_BY_NAME, "NAME");
+        addItem(ActionType.SORT_HOME_FURNITURE_BY_DESCRIPTION, "DESCRIPTION");
         addItem(ActionType.SORT_HOME_FURNITURE_BY_CREATOR, "CREATOR");
+        addItem(ActionType.SORT_HOME_FURNITURE_BY_LICENSE, "LICENSE");
         addItem(ActionType.SORT_HOME_FURNITURE_BY_WIDTH, "WIDTH");
         addItem(ActionType.SORT_HOME_FURNITURE_BY_DEPTH, "DEPTH");
         addItem(ActionType.SORT_HOME_FURNITURE_BY_HEIGHT, "HEIGHT");
@@ -859,7 +870,9 @@ HomePane.prototype.createFurnitureDisplayPropertyMenu = function(home, builder) 
   
         addItem(ActionType.DISPLAY_HOME_FURNITURE_CATALOG_ID, "CATALOG_ID");
         addItem(ActionType.DISPLAY_HOME_FURNITURE_NAME, "NAME");
+        addItem(ActionType.DISPLAY_HOME_FURNITURE_DESCRIPTION, "DESCRIPTION");
         addItem(ActionType.DISPLAY_HOME_FURNITURE_CREATOR, "CREATOR");
+        addItem(ActionType.DISPLAY_HOME_FURNITURE_LICENSE, "LICENSE");
         addItem(ActionType.DISPLAY_HOME_FURNITURE_WIDTH, "WIDTH");
         addItem(ActionType.DISPLAY_HOME_FURNITURE_DEPTH, "DEPTH");
         addItem(ActionType.DISPLAY_HOME_FURNITURE_HEIGHT, "HEIGHT");
@@ -1242,6 +1255,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
             homePane.addActionToMenu(ActionType.SPLIT_WALL, builder);
             homePane.addActionToMenu(ActionType.MODIFY_ROOM, builder);
             homePane.addActionToMenu(ActionType.MODIFY_POLYLINE, builder);
+            homePane.addActionToMenu(ActionType.MODIFY_DIMENSION_LINE, builder);
             homePane.addActionToMenu(ActionType.MODIFY_LABEL, builder);
             builder.addSeparator();
             builder.addSubMenu(homePane.getMenuAction(HomePane.MenuActionType.MODIFY_TEXT_STYLE), function(builder) {
@@ -1342,6 +1356,7 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
           homePane.addActionToMenu(ActionType.SPLIT_WALL, builder);
           homePane.addActionToMenu(ActionType.MODIFY_ROOM, builder);
           homePane.addActionToMenu(ActionType.MODIFY_POLYLINE, builder);
+          homePane.addActionToMenu(ActionType.MODIFY_DIMENSION_LINE, builder);
           homePane.addActionToMenu(ActionType.MODIFY_LABEL, builder);
           builder.addSeparator();
           homePane.addActionToMenu(ActionType.IMPORT_BACKGROUND_IMAGE, builder);
@@ -2037,6 +2052,20 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
         }
         return null;
       },
+      getPointInView3D: function(ev) {
+        var view3D = homePane.controller.getHomeController3D().getView();
+        if (view3D != null) {
+          var rect = view3D.getHTMLElement().getBoundingClientRect();
+          var coords = mouseListener.getCoordinates(ev);
+          if (coords.clientX >= rect.left 
+              && coords.clientX < rect.left + rect.width
+              && coords.clientY >= rect.top 
+              && coords.clientY < rect.top + rect.height) {
+            return [coords.clientX - rect.left, coords.clientY - rect.top];
+          }
+        }
+        return null;
+      },
       getCoordinates: function(ev) {
         if (ev.targetTouches) {
           if (ev.targetTouches.length === 1) {
@@ -2063,29 +2092,37 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
         mouseListener.contextMenuEventType = true;
       },
       windowMouseReleased: function(ev) {
-        if (mouseListener.draggedImage != null) {
-          document.body.removeChild(mouseListener.draggedImage);
-          mouseListener.draggedImage = null;
-        }
-        if (!mouseListener.contextMenuEventType
-            && mouseListener.actionStartedInFurnitureCatalog) {
-          if ((ev.button === 0 || ev.targetTouches) && mouseListener.selectedPiece != null) {
-            ev.preventDefault();
-            if (!mouseListener.escaped) {
-              var selectedLevel = homePane.home.getSelectedLevel();
-              if (selectedLevel == null || selectedLevel.isViewable()) {
-                var transferredFurniture = [homePane.controller.getFurnitureController().createHomePieceOfFurniture(mouseListener.selectedPiece)];
-                var view;
-                var pointInView = mouseListener.getPointInPlanView(ev, transferredFurniture);
-                if (pointInView != null) {
-                  homePane.controller.getPlanController().stopDraggedItems();
-                  view = homePane.controller.getPlanController().getView();
-                }
-                if (pointInView != null) {
-                  homePane.controller.drop(transferredFurniture, view, pointInView [0], pointInView [1]);
-                  var view = mouseListener.previousView;
-                  if (view && typeof view.setCursor === "function") {
-                    view.setCursor(this.previousCursor);
+        if (mouseListener.actionStartedInFurnitureCatalog) {
+          if (mouseListener.draggedImage != null) {
+            document.body.removeChild(mouseListener.draggedImage);
+            mouseListener.draggedImage = null;
+          }
+          if (!mouseListener.contextMenuEventType) {
+            if ((ev.button === 0 || ev.targetTouches) && mouseListener.selectedPiece != null) {
+              ev.preventDefault();
+              if (!mouseListener.escaped) {
+                var selectedLevel = homePane.home.getSelectedLevel();
+                if (selectedLevel == null || selectedLevel.isViewable()) {
+                  var transferredFurniture = [homePane.controller.getFurnitureController().createHomePieceOfFurniture(mouseListener.selectedPiece)];
+                  var view;
+                  var pointInView = mouseListener.getPointInPlanView(ev, transferredFurniture);
+                  if (pointInView != null) {
+                    homePane.controller.getPlanController().stopDraggedItems();
+                    view = homePane.controller.getPlanController().getView();
+                    homePane.controller.drop(transferredFurniture, view, pointInView [0], pointInView [1]);
+                    var view = mouseListener.previousView;
+                    if (view && typeof view.setCursor === "function") {
+                      view.setCursor(this.previousCursor);
+                    }
+                  } else {
+                    pointInView3D = mouseListener.getPointInView3D(ev);
+                    if (pointInView3D !== null) {
+                      view = homePane.controller.getHomeController3D().getView();
+                      var dropLevel = homePane.getDropModelLevel(view, pointInView3D);
+                      var dropLocation = homePane.getDropModelLocation(view, transferredFurniture, dropLevel, pointInView3D);
+                      homePane.controller.drop(transferredFurniture, view, dropLevel,
+                          dropLocation [0], dropLocation [1], dropLocation.length === 3 ? dropLocation [2] : null);
+                    }
                   }
                 }
               }
@@ -2132,28 +2169,166 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
       }
     };
   
-  var escapeAction = {
-    actionPerformed: function() {
-       if (!mouseListener.escaped) {
-         if (mouseListener.previousView != null) {
-           if (mouseListener.previousView === homePane.controller.getPlanController().getView()) {
-             homePane.controller.getPlanController().stopDraggedItems();
-           }
-           if (mouseListener.previousCursor != null && typeof mouseListener.previousView.setCursor === "function") {
-             mouseListener.previousView.setCursor(mouseListener.previousCursor);
-           }
-         }
-         mouseListener.escaped = true;
-         if (mouseListener.draggedImage != null) {
-           document.body.removeChild(mouseListener.draggedImage);
-           mouseListener.draggedImage = null;
-         }
-       }
-     }
-   };
- this.getActionMap() ["EscapeDragFromFurnitureCatalog"] = escapeAction;
+   var escapeAction = {
+     actionPerformed: function() {
+        if (!mouseListener.escaped) {
+          if (mouseListener.previousView != null) {
+            if (mouseListener.previousView === homePane.controller.getPlanController().getView()) {
+              homePane.controller.getPlanController().stopDraggedItems();
+            }
+            if (mouseListener.previousCursor != null && typeof mouseListener.previousView.setCursor === "function") {
+              mouseListener.previousView.setCursor(mouseListener.previousCursor);
+            }
+          }
+          mouseListener.escaped = true;
+          if (mouseListener.draggedImage != null) {
+            document.body.removeChild(mouseListener.draggedImage);
+            mouseListener.draggedImage = null;
+          }
+        }
+      }
+    };
+  this.getActionMap() ["EscapeDragFromFurnitureCatalog"] = escapeAction;
 
   return mouseListener;
+}
+
+/**
+ * Returns the level where drop location should occur.
+ * @private
+ */
+ HomePane.prototype.getDropModelLevel = function(destination, dropLocation) {
+  if (destination instanceof HomeComponent3D) {
+    var view3D = destination;
+    var closestItem = view3D.getClosestSelectableItemAt(dropLocation [0], dropLocation [1]);
+    var selectedLevel = this.home.getSelectedLevel();
+    if (closestItem != null
+        && typeof closestItem.isAtLevel === "function" // closestItem instanceof Elevatable
+        && !closestItem.isAtLevel(selectedLevel)) {
+      return closestItem.getLevel();
+    }
+  }
+  return this.home.getSelectedLevel();
+}
+  
+/**
+ * Returns the drop location converted in model coordinates space.
+ * @private
+ */
+ HomePane.prototype.getDropModelLocation = function(destination, transferedItems, dropLevel, dropLocation) {
+  var floorLocation = [0, 0, 0];
+  if (destination instanceof HomeComponent3D) {
+    var view3D = destination;
+    var closestItem = view3D.getClosestSelectableItemAt(dropLocation [0], dropLocation [1]);
+    var floorElevation = 0;
+    if (dropLevel != null) {
+      floorElevation = dropLevel.getElevation();
+    }
+    if (closestItem instanceof HomePieceOfFurniture) {
+      floorLocation = [closestItem.getX(), closestItem.getY()];
+      if (transferedItems.length === 1
+          && transferedItems [0] instanceof HomePieceOfFurniture) {
+        var pointOnFloor = view3D.getVirtualWorldPointAt(dropLocation [0], dropLocation [1], floorElevation);
+        var intersectionWithPieceMiddle = this.computeIntersection(pointOnFloor [0], pointOnFloor [1], this.home.getCamera().getX(), this.home.getCamera().getY(),
+            floorLocation [0], floorLocation [1], floorLocation [0] + Math.cos(closestItem.getAngle()), floorLocation [1] + Math.sin(closestItem.getAngle()));
+        if (java.awt.geom.Point2D.distance(intersectionWithPieceMiddle [0], intersectionWithPieceMiddle [1], closestItem.getX(), closestItem.getY()) < closestItem.getWidth() / 2) {
+          floorLocation = intersectionWithPieceMiddle;
+        }
+        var transferedPiece = transferedItems [0];
+        floorLocation [0] -= transferedPiece.getWidth() / 2;
+        floorLocation [1] -= transferedPiece.getDepth() / 2;
+        var elevation;
+        if (closestItem instanceof HomeShelfUnit) {
+          var camera = this.home.getCamera();
+          var distancePointOnFloorToCamera = java.awt.geom.Point2D.distance(pointOnFloor [0], pointOnFloor [1], camera.getX(), camera.getY());
+          var distancePointOnFloorToLocation = java.awt.geom.Point2D.distance(pointOnFloor [0], pointOnFloor [1], floorLocation [0], floorLocation [1]);
+          var elevation = (camera.getZ() - (this.home.getSelectedLevel() !== null ? this.home.getSelectedLevel().getElevation() : 0))
+              / distancePointOnFloorToCamera * distancePointOnFloorToLocation;
+        } else if (closestItem.isHorizontallyRotated()) {
+          elevation = closestItem.getElevation() + closestItem.getHeightInPlan();
+        } else if (closestItem.getDropOnTopElevation() >= 0) {
+          elevation = closestItem.getElevation() + closestItem.getHeight() * closestItem.getDropOnTopElevation();
+        } else {
+          elevation = 0;
+        }
+        floorLocation = [floorLocation [0], floorLocation [1], elevation];          
+      }
+    } else if (closestItem instanceof Wall
+                && closestItem.getArcExtent() === null
+                && transferedItems.length === 1) {
+      var pointOnFloor = view3D.getVirtualWorldPointAt(dropLocation [0], dropLocation [1], floorElevation);
+      // Compute intersection between camera - pointOnFloor line and left/right sides of the wall
+      var wall = closestItem;
+      var wallPoints = wall.getPoints();
+      var leftSideIntersection = this.computeIntersection(pointOnFloor [0], pointOnFloor [1], this.home.getCamera().getX(), this.home.getCamera().getY(),
+          wallPoints [0][0], wallPoints [0][1], wallPoints [1][0], wallPoints [1][1]);
+      var rightSideIntersection = this.computeIntersection(pointOnFloor [0], pointOnFloor [1], this.home.getCamera().getX(), this.home.getCamera().getY(),
+          wallPoints [3][0], wallPoints [3][1], wallPoints [2][0], wallPoints [2][1]);
+      if (java.awt.geom.Point2D.distanceSq(this.home.getCamera().getX(), this.home.getCamera().getY(), leftSideIntersection [0], leftSideIntersection [1])
+           < java.awt.geom.Point2D.distanceSq(this.home.getCamera().getX(), this.home.getCamera().getY(), rightSideIntersection [0], rightSideIntersection [1])) {
+        floorLocation = leftSideIntersection;
+      } else {
+        floorLocation = rightSideIntersection;
+      }
+      if (transferedItems [0] instanceof HomePieceOfFurniture) {
+        var transferedPiece = transferedItems [0];
+        var wallYawAngle = Math.atan((wall.getYEnd() - wall.getYStart()) / (wall.getXEnd() - wall.getXStart()));
+        floorLocation [0] -= transferedPiece.getWidth() / 2 * Math.cos(wallYawAngle);
+        floorLocation [1] -= transferedPiece.getWidth() / 2 * Math.sin(wallYawAngle);
+      }
+    } else if (!this.home.isEmpty()) {
+      floorLocation = view3D.getVirtualWorldPointAt(dropLocation [0], dropLocation [1], floorElevation);
+      floorLocation = [floorLocation [0], floorLocation [1]];
+      if (transferedItems.length === 1
+          && transferedItems [0] instanceof HomePieceOfFurniture) {
+        var transferedPiece = transferedItems [0];
+        floorLocation [0] -= transferedPiece.getWidth() / 2;
+        floorLocation [1] -= transferedPiece.getDepth() / 2;
+      }
+    }
+  }
+  return floorLocation;
+}
+
+/**
+ * Returns the intersection point between the line joining the first two points and
+ * the line joining the two last points.
+ * @private
+ */
+ HomePane.prototype.computeIntersection = function(xPoint1, yPoint1, xPoint2, yPoint2,
+                                                   xPoint3, yPoint3, xPoint4, yPoint4) {
+  var x = xPoint2;
+  var y = yPoint2;
+  var alpha1 = (yPoint2 - yPoint1) / (xPoint2 - xPoint1);
+  var alpha2 = (yPoint4 - yPoint3) / (xPoint4 - xPoint3);
+  // If the two lines are not parallel
+  if (alpha1 !== alpha2) {
+    // If first line is vertical
+    if (Math.abs(alpha1) > 4000)  {
+      if (Math.abs(alpha2) < 4000) {
+        x = xPoint1;
+        var beta2  = yPoint4 - alpha2 * xPoint4;
+        y = alpha2 * x + beta2;
+      }
+    // If second line is vertical
+    } else if (Math.abs(alpha2) > 4000) {
+      if (Math.abs(alpha1) < 4000) {
+        x = xPoint3;
+        var beta1  = yPoint2 - alpha1 * xPoint2;
+        y = alpha1 * x + beta1;
+      }
+    } else {
+      var sameSignum = alpha1 > 0 && alpha2 > 0 || alpha1 < 0 && alpha2 < 0;
+      if (Math.abs(alpha1 - alpha2) > 1E-5
+          && (!sameSignum || (Math.abs(alpha1) > Math.abs(alpha2)   ? alpha1 / alpha2   : alpha2 / alpha1) > 1.004)) {
+        var beta1  = yPoint2 - alpha1 * xPoint2;
+        var beta2  = yPoint4 - alpha2 * xPoint4;
+        x = (beta2 - beta1) / (alpha1 - alpha2);
+        y = alpha1 * x + beta1;
+      }
+    }
+  }
+  return [x, y];
 }
 
 /**

@@ -118,12 +118,12 @@ DefaultFurnitureCatalog.prototype.readFurniture = function(resource, furnitureCa
       }
     } else {
       // Read model contents to store its digests if they exist
-	  this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.ICON, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.ICON_DIGEST, index), 
-	      furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
-	  this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON_DIGEST, index), 
-	      furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
-	  this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL_DIGEST, index), 
-	      furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
+      this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.ICON, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.ICON_DIGEST, index), 
+          furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
+      this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.PLAN_ICON_DIGEST, index), 
+          furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
+      this.getContent(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL, index), this.getKey(DefaultFurnitureCatalog.PropertyKey.MODEL_DIGEST, index), 
+          furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
     }
   }
 }
@@ -136,6 +136,54 @@ DefaultFurnitureCatalog.prototype.readFurniture = function(resource, furnitureCa
  * @return {Object}
  */
 DefaultFurnitureCatalog.prototype.getAdditionalProperties = function(resource, index) {
+  var catalogAdditionalProperties = this.getCatalogAdditionalProperties(resource) [index.toString()];
+  if (catalogAdditionalProperties != null) {
+    var additionalProperties = {};
+    for (var key in catalogAdditionalProperties) {
+      var property = catalogAdditionalProperties[key];
+      if (property.getType() !== ObjectProperty.Type.CONTENT) {
+        additionalProperties[property.getName()] = CoreTools.getStringFromKey(resource, key);
+      }
+    }
+    return additionalProperties;
+  } else {
+    return {};
+  }
+}
+
+/**
+ * Returns the contents of the piece at the given <code>index</code>
+ * different from default properties.
+ * @param {Object[]} resource
+ * @param {number} index
+ * @param {string} [furnitureCatalogUrl]
+ * @param {string} [furnitureResourcesUrlBase]
+ * @return {Object}
+ */
+DefaultFurnitureCatalog.prototype.getAdditionalContents = function(resource, index, furnitureCatalogUrl, furnitureResourcesUrlBase) {
+  var catalogAdditionalProperties = this.getCatalogAdditionalProperties(resource) [index.toString()];
+  if (catalogAdditionalProperties != null) {
+    var additionalContents = {};
+    for (var key in catalogAdditionalProperties) {
+      var property = catalogAdditionalProperties[key];
+      if (property.getType() === ObjectProperty.Type.CONTENT) {
+        additionalContents[property.getName()] = 
+            this.getContent(resource, key, null, furnitureCatalogUrl, furnitureResourcesUrlBase, false, true);
+      }
+    }
+    return additionalContents;
+  } else {
+    return {};
+  }
+}
+
+/**
+ * Returns the additional properties defined in resource bundle.
+ * @param {Object[]} resource
+ * @return {Object}
+ * @private
+ */
+DefaultFurnitureCatalog.prototype.getCatalogAdditionalProperties = function(resource) {
   var catalogAdditionalKeys = CoreTools.getFromMap(DefaultFurnitureCatalog.furnitureAdditionalKeys, resource);
   if (catalogAdditionalKeys == null) {
     catalogAdditionalKeys = {};
@@ -145,43 +193,34 @@ DefaultFurnitureCatalog.prototype.getAdditionalProperties = function(resource, i
       var key = keys[i];
       var sharpIndex = key.lastIndexOf('#');
       if (sharpIndex !== -1 && sharpIndex + 1 < key.length) {
-        try {
-          var pieceIndex = parseInt(key.substring(sharpIndex + 1));
-          var propertyKey = key.substring(0, sharpIndex);
-          if (!this.isDefaultProperty(propertyKey)) {
-            var otherKeys = catalogAdditionalKeys[pieceIndex.toString()];
-            if (otherKeys == null) {
-              otherKeys = [];
-              catalogAdditionalKeys[pieceIndex.toString()] = otherKeys;
+        var colonIndex = key.indexOf(':', sharpIndex + 1);
+        var pieceIndex = parseInt(key.substring(sharpIndex + 1, colonIndex != -1 ? colonIndex : key.length).trim());
+        if (!isNaN(pieceIndex)) {
+          var propertyName = key.substring(0, sharpIndex);
+          if (!this.isDefaultProperty(propertyName)) {
+            var additionalKeys = catalogAdditionalKeys[pieceIndex.toString()];
+            if (additionalKeys == null) {
+              additionalKeys = {};
+              catalogAdditionalKeys[pieceIndex.toString()] = additionalKeys;
             }
-            otherKeys.push(propertyKey);
+            var type = null;
+            if (colonIndex > 0) {
+              var typeDescription = key.substring(colonIndex + 1);
+              if (typeDescription.length > 0) {
+                type = ObjectProperty.Type [typeDescription];
+                if (type === undefined) { 
+                  // Ignore type
+                  type = null;
+                }
+              }
+            }
+            additionalKeys [key] = new ObjectProperty(propertyName, type);
           }
-        } catch (ex) {
         }
       }
     }
   }
-  
-  var additionalKeys = catalogAdditionalKeys[index.toString()];
-  if (additionalKeys != null) {
-    var additionalProperties = null;
-    // additionalKeys.length is an array property to be ignored when counting
-    var propertiesCount = Object.getOwnPropertyNames(additionalKeys).length - 1;
-    if (propertiesCount === 1) {
-      var key = additionalKeys["0"];
-      additionalProperties = {};
-      additionalProperties[key] = CoreTools.getStringFromKey(resource, this.getKey(key, index));
-    } else {
-      additionalProperties = {};
-      for (var i = 0; i < propertiesCount; i++) {
-        var key = additionalKeys[i.toString()];
-        additionalProperties[key] = CoreTools.getStringFromKey(resource, this.getKey(key, index));
-      }
-    }
-    return additionalProperties;
-  } else {
-    return {};
-  }
+  return catalogAdditionalKeys;
 }  
 
 /**
@@ -221,6 +260,7 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
   var id = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.ID, index), null);
   var description = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DESCRIPTION, index), null);
   var information = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.INFORMATION, index), null);
+  var license = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LICENSE, index), null);
   var tagsString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.TAGS, index), null);
   var tags;
   if (tagsString != null) {
@@ -288,6 +328,8 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
   }
   var currency = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.CURRENCY, index), null);
   var additionalProperties = this.getAdditionalProperties(resource, index);
+  var additionalContents = this.getAdditionalContents(resource, index, furnitureCatalogUrl, furnitureResourcesUrlBase);
+  
   if (doorOrWindow) {
     var doorOrWindowCutOutShape = this.getOptionalString(
         resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_CUT_OUT_SHAPE, index), null);
@@ -300,25 +342,38 @@ DefaultFurnitureCatalog.prototype.readPieceOfFurniture = function(resource, inde
     var widthDepthDeformable = this.getOptionalBoolean(
         resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_WIDTH_DEPTH_DEFORMABLE, index), true);
     var sashes = this.getDoorOrWindowSashes(resource, index, width, depth);
-    return new CatalogDoorOrWindow(id, name, description, information, tags, creationDate, grade, 
+    return new CatalogDoorOrWindow(id, name, description, information, license, tags, creationDate, grade, 
         icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
         doorOrWindowCutOutShape, wallThicknessPercentage, wallDistancePercentage, wallCutOutOnBothSides, widthDepthDeformable, sashes, 
-        modelRotation, modelFlags, modelSize, creator, resizable, deformable, texturable, price, valueAddedTaxPercentage, currency, additionalProperties);
+        modelRotation, modelFlags, modelSize, creator, resizable, deformable, texturable, price, valueAddedTaxPercentage, currency, 
+        additionalProperties, additionalContents);
   } else {
     var lightSources = this.getLightSources(resource, index, width, depth, height);
     var lightSourceMaterialNamesString = this.getOptionalString(
         resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_MATERIAL_NAME, index), null);
-    var lightSourceMaterialNames = lightSourceMaterialNamesString != null ? lightSourceMaterialNamesString.split(" ") : null;
+    var lightSourceMaterialNames = lightSourceMaterialNamesString != null ? lightSourceMaterialNamesString.split(/ +/) : null;
     if (lightSources != null || lightSourceMaterialNames != null) {
-      return new CatalogLight(id, name, description, information, tags, creationDate, grade, 
+      return new CatalogLight(id, name, description, information, license, tags, creationDate, grade, 
           icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
           lightSources, lightSourceMaterialNames, staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
-          resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, additionalProperties);
+          resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, 
+          additionalProperties, additionalContents);
     } else {
-      return new CatalogPieceOfFurniture(id, name, description, information, tags, creationDate, grade, 
-          icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
-          staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
-          resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, additionalProperties);
+      var shelfElevations = this.getShelfElevations(resource, index, height);
+      var shelfBoxes = this.getShelfBoxes(resource, index, width, depth, height);
+      if (shelfElevations != null || shelfBoxes != null) {
+        return new CatalogShelfUnit(id, name, description, information, license, tags, creationDate, grade,
+            icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, shelfElevations, shelfBoxes,
+            movable, staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator,
+            resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency,
+            additionalProperties, additionalContents);
+      } else {
+        return new CatalogPieceOfFurniture(id, name, description, information, license, tags, creationDate, grade, 
+            icon, planIcon, model, width, depth, height, elevation, dropOnTopElevation, movable, 
+            staircaseCutOutShape, modelRotation, modelFlags, modelSize, creator, 
+            resizable, deformable, texturable, horizontallyRotatable, price, valueAddedTaxPercentage, currency, 
+            additionalProperties, additionalContents);
+      }
     }
   }
 }
@@ -388,7 +443,7 @@ DefaultFurnitureCatalog.prototype.readFurnitureCategory = function(resource, ind
  DefaultFurnitureCatalog.prototype.getModelRotation = function(resource, key) {
   try {
     var modelRotationString = CoreTools.getStringFromKey(resource, key);
-    var values = modelRotationString.split(" ", 9);
+    var values = modelRotationString.split(/ +/, 9);
     if (values.length === 9) {
       return [
         [parseFloat(values[0]), parseFloat(values[1]), parseFloat(values[2])], 
@@ -415,23 +470,23 @@ DefaultFurnitureCatalog.prototype.getDoorOrWindowSashes = function(resource, ind
   var sashes;
   var sashXAxisString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_X_AXIS, index), null);
   if (sashXAxisString != null) {
-    var sashXAxisValues = sashXAxisString.split(" ");
-    var sashYAxisValues = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS, index)).split(" ");
+    var sashXAxisValues = sashXAxisString.split(/ +/);
+    var sashYAxisValues = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS, index)).split(/ +/);
     if (sashYAxisValues.length !== sashXAxisValues.length) {
       throw new IllegalArgumentException(
           "Expected " + sashXAxisValues.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_Y_AXIS, index) + " key");
     }
-    var sashWidths = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH, index)).split(" ");
+    var sashWidths = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH, index)).split(/ +/);
     if (sashWidths.length !== sashXAxisValues.length) {
       throw new IllegalArgumentException(
           "Expected " + sashXAxisValues.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_WIDTH, index) + " key");
     }
-    var sashStartAngles = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE, index)).split(" ");
+    var sashStartAngles = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE, index)).split(/ +/);
     if (sashStartAngles.length !== sashXAxisValues.length) {
       throw new IllegalArgumentException(
           "Expected " + sashXAxisValues.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_START_ANGLE, index) + " key");
     }
-    var sashEndAngles = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE, index)).split(" ");
+    var sashEndAngles = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE, index)).split(/ +/);
     if (sashEndAngles.length !== sashXAxisValues.length) {
       throw new IllegalArgumentException(
           "Expected " + sashXAxisValues.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.DOOR_OR_WINDOW_SASH_END_ANGLE, index) + " key");
@@ -465,18 +520,18 @@ DefaultFurnitureCatalog.prototype.getLightSources = function(resource, index, li
   var lightSources = null;
   var lightSourceXString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_X, index), null);
   if (lightSourceXString != null) {
-    var lightSourceX = lightSourceXString.split(" ");
-    var lightSourceY = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y, index)).split(" ");
+    var lightSourceX = lightSourceXString.split(/ +/);
+    var lightSourceY = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y, index)).split(/ +/);
     if (lightSourceY.length !== lightSourceX.length) {
       throw new IllegalArgumentException(
           "Expected " + lightSourceX.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Y, index) + " key");
     }
-    var lightSourceZ = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z, index)).split(" ");
+    var lightSourceZ = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z, index)).split(/ +/);
     if (lightSourceZ.length !== lightSourceX.length) {
       throw new IllegalArgumentException(
           "Expected " + lightSourceX.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_Z, index) + " key");
     }
-    var lightSourceColors = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR, index)).split(" ");
+    var lightSourceColors = CoreTools.getStringFromKey(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR, index)).split(/ +/);
     if (lightSourceColors.length !== lightSourceX.length) {
       throw new IllegalArgumentException(
           "Expected " + lightSourceX.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_COLOR, index) + " key");
@@ -484,7 +539,7 @@ DefaultFurnitureCatalog.prototype.getLightSources = function(resource, index, li
     var lightSourceDiametersString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER, index), null);
     var lightSourceDiameters = null;
     if (lightSourceDiametersString != null) {
-      lightSourceDiameters = lightSourceDiametersString.split(" ");
+      lightSourceDiameters = lightSourceDiametersString.split(/ +/);
       if (lightSourceDiameters.length !== lightSourceX.length) {
         throw new IllegalArgumentException(
             "Expected " + lightSourceX.length + " values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.LIGHT_SOURCE_DIAMETER, index) + " key");
@@ -494,22 +549,75 @@ DefaultFurnitureCatalog.prototype.getLightSources = function(resource, index, li
     }
     
     lightSources = new Array(lightSourceX.length);
-      for (var i = 0; i < lightSources.length; i++) {
-        var color = lightSourceColors[i].indexOf("#") === 0 
-            ? parseInt(lightSourceColors[i].substring(1), 16) 
-            : parseInt(lightSourceColors[i]);
-        lightSources[i] = new LightSource(
-            parseFloat(lightSourceX[i]) / lightWidth, 
-            parseFloat(lightSourceY[i]) / lightDepth, 
-            parseFloat(lightSourceZ[i]) / lightHeight, 
-            color, 
-            lightSourceDiameters != null
-                ? parseFloat(lightSourceDiameters[i]) / lightWidth 
-                : null);
+    for (var i = 0; i < lightSources.length; i++) {
+      var color = lightSourceColors[i].indexOf("#") === 0 
+          ? parseInt(lightSourceColors[i].substring(1), 16) 
+          : parseInt(lightSourceColors[i]);
+      lightSources[i] = new LightSource(
+          parseFloat(lightSourceX[i]) / lightWidth, 
+          parseFloat(lightSourceY[i]) / lightDepth, 
+          parseFloat(lightSourceZ[i]) / lightHeight, 
+          color, 
+          lightSourceDiameters != null
+              ? parseFloat(lightSourceDiameters[i]) / lightWidth 
+              : null);
+      }
+  }
+  return lightSources;
+}
+
+/**
+ * Returns optional shelf elevations.
+ * @param {Object[]} resource
+ * @param {number} index
+ * @param {number} height
+ * @private
+ */
+DefaultFurnitureCatalog.prototype.getShelfElevations = function(resource, index, height) {
+  var shelfElevations = null;
+  var shelfElevationsString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.SHELF_ELEVATIONS, index), null);
+  if (shelfElevationsString != null) {
+    var values = shelfElevationsString.split(/ +/);
+    shelfElevations = new Array(values.length);
+    for (var i = 0; i < values.length; i++) {
+      shelfElevations [i] = parseFloat(values [i]) / height;
+    }
+  }
+  return shelfElevations;
+}
+
+/**
+ * Returns optional shelf boxes.
+ * @param {Object[]} resource
+ * @param {number} index
+ * @param {number} width
+ * @param {number} depth
+ * @param {number} height
+ * @private
+ */
+DefaultFurnitureCatalog.prototype.getShelfBoxes = function(resource, index, width, depth, height) {
+  var shelfBoxes = null;
+  var shelfBoxesString = this.getOptionalString(resource, this.getKey(DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES, index), null);
+  if (shelfBoxesString != null) {
+    var values = shelfBoxesString.split(/ +/);
+    if (values.length % 6 != 0) {
+      throw new IllegalArgumentException(
+          "Expected a multiple of 6 values in " + this.getKey(DefaultFurnitureCatalog.PropertyKey.SHELF_BOXES, index) + " key");
+    } else {
+      shelfBoxes = new Array(values.length / 6);
+      for (var i = 0; i < shelfBoxes.length; i++) {
+        shelfBoxes [i] = new BoxBounds(
+            parseFloat(values [i * 6]) / width,
+            parseFloat(values [i * 6 + 1]) / depth,
+            parseFloat(values [i * 6 + 2]) / height,
+            parseFloat(values [i * 6 + 3]) / width,
+            parseFloat(values [i * 6 + 4]) / depth,
+            parseFloat(values [i * 6 + 5]) / height);
       }
     }
-    return lightSources;
   }
+  return shelfBoxes;
+}
 
 /**
  * Returns the value of <code>propertyKey</code> in <code>resource</code>,
@@ -591,6 +699,8 @@ DefaultFurnitureCatalog.prototype.getKey = function(keyPrefix, pieceIndex) {
  * @property {DefaultFurnitureCatalog.PropertyKey} INFORMATION
  * The key for some additional information associated to a piece of furniture (optional).
  * This information may contain some HTML code or a link to an external web site.
+ * @property {DefaultFurnitureCatalog.PropertyKey} LICENSE
+ * The key for the license associated to a piece of furniture (optional).
  * @property {DefaultFurnitureCatalog.PropertyKey} TAGS
  * The key for the tags or keywords associated to a piece of furniture (optional).
  * Tags are separated by commas with possible heading or trailing spaces.
@@ -718,6 +828,13 @@ DefaultFurnitureCatalog.prototype.getKey = function(keyPrefix, pieceIndex) {
  * The key for the preferred elevation (from the bottom of a piece) at which should be placed
  * an object dropped on a piece (optional). A negative value means that the piece should be ignored
  * when an object is dropped on it. By default, this elevation is equal to its height.
+ * @property {DefaultFurnitureCatalog.PropertyKey} SHELF_ELEVATIONS
+ * The key for the shelf elevation(s) at which other objects can be placed on a piece of furniture
+ * from its bottom (optional).
+ * @property {DefaultFurnitureCatalog.PropertyKey} SHELF_BOXES
+ * The key for the shelf box(es) in which other objects can be placed in a piece of furniture (optional).
+ * Each box is defined by the 6 values of the x, y, z coordinates of its left front bottom corner and
+ * its right back top corner.
  * @property {DefaultFurnitureCatalog.PropertyKey} MODEL_ROTATION
  * The key for the transformation matrix values applied to a piece of furniture (optional).
  * If the 3D model of a piece of furniture isn't correctly oriented,
@@ -771,6 +888,10 @@ DefaultFurnitureCatalog.PropertyKey = {
    * This information may contain some HTML code or a link to an external web site.
    */
   INFORMATION: "information",
+  /**
+   * The key for the license associated to a piece of furniture (optional).
+   */
+  LICENSE: "license",
   /**
    * The key for the tags or keywords associated to a piece of furniture (optional). 
    * Tags are separated by commas with possible heading or trailing spaces. 
@@ -972,6 +1093,17 @@ DefaultFurnitureCatalog.PropertyKey = {
    * when an object is dropped on it. By default, this elevation is equal to its height. 
    */
   DROP_ON_TOP_ELEVATION: "dropOnTopElevation",
+  /**
+   * The key for the shelf elevation(s) at which other objects can be placed on a piece of furniture
+   * from its bottom (optional).
+   */
+  SHELF_ELEVATIONS: "shelfElevations",
+  /**
+   * The key for the shelf box(es) in which other objects can be placed in a piece of furniture (optional).
+   * Each box is defined by the 6 values of the x, y, z coordinates of its left front bottom corner and
+   * its right back top corner.
+   */
+  SHELF_BOXES: "shelfBoxes",
   /**
    * The key for the transformation matrix values applied to a piece of furniture (optional).
    * If the 3D model of a piece of furniture isn't correctly oriented, 

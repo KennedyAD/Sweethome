@@ -125,6 +125,11 @@ public class NoOperationViewFactory implements ViewFactory {
     return new NoOperationDialogView();
   }
 
+  public DialogView createDimensionLineView(boolean modification, UserPreferences preferences,
+                                            DimensionLineController dimensionLineController) {
+    return new NoOperationDialogView();
+  }
+
   public DialogView createLabelView(boolean modification, UserPreferences preferences,
                                     LabelController labelController) {
     return new NoOperationDialogView();
@@ -207,6 +212,9 @@ public class NoOperationViewFactory implements ViewFactory {
    */
   protected static class NoOperationHomeView implements HomeView {
     public void setEnabled(ActionType actionType, boolean enabled) {
+    }
+
+    public void setActionEnabled(String actionKey, boolean enabled) {
     }
 
     public void setUndoRedoName(String undoText, String redoText) {

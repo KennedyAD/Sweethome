@@ -15,9 +15,9 @@
 -->
 <project basedir="." default="viewerBuild" name="SweetHome3DJS">
   <!-- The current version of Sweet Home 3D JS -->
-  <property name="version" value="7.1.4"/>
+  <property name="version" value="7.2"/>
   <!-- The version of Sweet Home 3D on which Sweet Home 3D JS is based -->
-  <property name="SweetHome3D-version" value="7.1"/>
+  <property name="SweetHome3D-version" value="7.2"/>
   <!-- The version of JSweet transpiler (use version 3.1.0 to compile with Java 11) -->
   <property name="jsweet-version" value="3.2.0-SNAPSHOT"/>
 
@@ -194,6 +194,7 @@
         <file name="Room3D.js" />
         <file name="Ground3D.js" />
         <file name="Polyline3D.js" />
+        <file name="DimensionLine3D.js" />
         <file name="Label3D.js" />
         <file name="TextureManager.js" />
         <file name="LengthUnit.js" />
@@ -227,6 +228,7 @@
         <file name="Wall3D.js"/>
         <file name="Ground3D.js"/>
         <file name="Polyline3D.js"/>
+        <file name="DimensionLine3D.js" />
         <file name="Label3D.js"/>
         <file name="TextureManager.js"/>
         <file name="LengthUnit.js"/>

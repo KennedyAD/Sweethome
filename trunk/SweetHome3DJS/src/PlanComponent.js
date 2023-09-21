@@ -109,19 +109,20 @@ function PlanComponent(containerOrCanvasId, home, preferences, object3dFactory, 
   document.body.appendChild(this.tooltip);
 
   this.touchOverlay = document.createElement("div");
-  this.touchOverlay.id = "touch-overlay-timer";
+  this.touchOverlay.classList.add("touch-overlay-timer");
   this.touchOverlay.style.position = "absolute";
   this.touchOverlay.style.top = "0px";
   this.touchOverlay.style.left = "0px";
-  this.touchOverlay.innerHTML = '<div id="touch-overlay-timer-content"></div><div id="touch-overlay-timer-bg"></div><div id="touch-overlay-timer-hidder"></div><div id="touch-overlay-timer-loader1"></div><div id="touch-overlay-timer-loader2"></div>';
+  this.touchOverlay.innerHTML = '<div id="plan-touch-overlay-timer-content" class="touch-overlay-timer-content"></div><div class="touch-overlay-timer-bg"></div><div class="touch-overlay-timer-hidder"></div><div class="touch-overlay-timer-loader1"></div><div class="touch-overlay-timer-loader2"></div>';
   document.body.appendChild(this.touchOverlay);
   for (var i = 0; i < this.touchOverlay.children.length; i++) {
     var item = this.touchOverlay.children.item(i);
-    if (item.id.indexOf("loader") !== -1) {
+    if (item.classList.contains("overlay-timer-loader1")
+        || item.classList.contains("overlay-timer-loader2")) {
       item.style.borderTopColor = this.getSelectionColor();
       item.style.borderRightColor = this.getSelectionColor();
     }
-    if (item.id == "touch-overlay-timer-content") {
+    if (item.classList.contains("touch-overlay-timer-content")) {
       item.style.color = this.getForeground();
     }
     item.style.animationDuration = (PlanComponent.LONG_TOUCH_DURATION_AFTER_DELAY) + "ms";
@@ -214,7 +215,7 @@ PlanComponent.initStatics = function() {
   PlanComponent.ELEVATION_INDICATOR.lineTo(0, 4.5);
   PlanComponent.ELEVATION_INDICATOR.lineTo(1.2, 1.5);
   
-  PlanComponent.FURNITURE_HEIGHT_POINT_INDICATOR = new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0);
+  PlanComponent.HEIGHT_POINT_INDICATOR = new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0);
   
   PlanComponent.FURNITURE_HEIGHT_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.FURNITURE_HEIGHT_INDICATOR.moveTo(0, -6);
@@ -333,12 +334,18 @@ PlanComponent.initStatics = function() {
 
   PlanComponent.CAMERA_BUTTON = new java.awt.geom.Ellipse2D.Float(-0.37, -0.2, 0.15, 0.32);
 
-  PlanComponent.DIMENSION_LINE_END = new java.awt.geom.GeneralPath();
-  PlanComponent.DIMENSION_LINE_END.moveTo(-5, 5);
-  PlanComponent.DIMENSION_LINE_END.lineTo(5, -5);
-  PlanComponent.DIMENSION_LINE_END.moveTo(0, 5);
-  PlanComponent.DIMENSION_LINE_END.lineTo(0, -5);
+  PlanComponent.DIMENSION_LINE_MARK_END = new java.awt.geom.GeneralPath();
+  PlanComponent.DIMENSION_LINE_MARK_END.moveTo(-5, 5);
+  PlanComponent.DIMENSION_LINE_MARK_END.lineTo(5, -5);
+  PlanComponent.DIMENSION_LINE_MARK_END.moveTo(0, 5);
+  PlanComponent.DIMENSION_LINE_MARK_END.lineTo(0, -5);
   
+  PlanComponent.VERTICAL_DIMENSION_LINE_DISC = new java.awt.geom.Ellipse2D.Float(-1.5, -1.5, 3, 3);
+  PlanComponent.VERTICAL_DIMENSION_LINE = new java.awt.geom.GeneralPath();
+  PlanComponent.VERTICAL_DIMENSION_LINE.append(new java.awt.geom.Ellipse2D.Float(-5, -5, 10, 10), false);
+
+  PlanComponent.DIMENSION_LINE_HEIGHT_INDICATOR = PlanComponent.FURNITURE_HEIGHT_INDICATOR;
+
   PlanComponent.TEXT_LOCATION_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.TEXT_LOCATION_INDICATOR.append(new java.awt.geom.Arc2D.Float(-2, 0, 4, 4, 190, 160, java.awt.geom.Arc2D.CHORD), false);
   PlanComponent.TEXT_LOCATION_INDICATOR.moveTo(0, 4);
@@ -395,6 +402,10 @@ PlanComponent.initStatics = function() {
   PlanComponent.COMPASS_ROTATION_INDICATOR.moveTo(4.0, 5.66);
   PlanComponent.COMPASS_ROTATION_INDICATOR.lineTo(7.0, 5.66);
   PlanComponent.COMPASS_ROTATION_INDICATOR.lineTo(5.6, 8.3);
+  
+  transform = java.awt.geom.AffineTransform.getRotateInstance(Math.PI / 2);
+  PlanComponent.DIMENSION_LINE_HEIGHT_ROTATION_INDICATOR = PlanComponent.COMPASS_ROTATION_INDICATOR.createTransformedShape(transform);
+
   
   PlanComponent.COMPASS_RESIZE_INDICATOR = new java.awt.geom.GeneralPath();
   PlanComponent.COMPASS_RESIZE_INDICATOR.append(new java.awt.geom.Rectangle2D.Float(-1.5, -1.5, 3.0, 3.0), false);
@@ -742,7 +753,21 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       plan.revalidate();
     });
   var dimensionLineChangeListener = function(ev) { 
-      return plan.revalidate(); 
+      var propertyName = ev.getPropertyName();
+      if ("X_START" == propertyName 
+          || "X_END" == propertyName 
+          || "Y_START" == propertyName 
+          || "Y_END" == propertyName 
+          || "ELEVATION_START" == propertyName 
+          || "ELEVATION_END" == propertyName 
+          || "OFFSET" == propertyName 
+          || "END_MARK_SIZE" == propertyName 
+          || "PITCH" == propertyName 
+          || "LENGTH_STYLE" == propertyName) {
+        return plan.revalidate();
+      } else if ("COLOR" == propertyName) {
+        plan.repaint();
+      }
     };
   if (home.getDimensionLines() != null) {
     home.getDimensionLines().forEach(function(dimensionLine) { 
@@ -781,15 +806,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       } else if ("ELEVATION" == propertyName 
             || "ELEVATION_INDEX" == propertyName 
             || "VIEWABLE" == propertyName) {
-        plan.backgroundImageCache = null;
-        plan.otherLevelsWallAreaCache = null;
-        plan.otherLevelsWallsCache = null;
-        plan.otherLevelsRoomAreaCache = null;
-        plan.otherLevelsRoomsCache = null;
-        plan.wallAreasCache = null;
-        plan.doorOrWindowWallThicknessAreasCache = null;
-        plan.sortedLevelFurniture = null;
-        plan.sortedLevelRooms = null;
+        plan.clearLevelCache();        
         plan.repaint();
       }
     };
@@ -842,15 +859,7 @@ PlanComponent.prototype.addModelListeners = function(home, preferences, controll
       plan.repaint();
     });
   home.addPropertyChangeListener("SELECTED_LEVEL", function(ev) {
-      plan.backgroundImageCache = null;
-      plan.otherLevelsWallAreaCache = null;
-      plan.otherLevelsWallsCache = null;
-      plan.otherLevelsRoomAreaCache = null;
-      plan.otherLevelsRoomsCache = null;
-      plan.wallAreasCache = null;
-      plan.doorOrWindowWallThicknessAreasCache = null;
-      plan.sortedLevelRooms = null;
-      plan.sortedLevelFurniture = null;
+      plan.clearLevelCache();
       plan.repaint();
     });
   
@@ -941,6 +950,22 @@ PlanComponent.prototype.removeTopViewIconFromCache = function(piece) {
       }
     }
   }
+}
+
+/**
+ * Clears the cached information bound to level.
+ * @private 
+ */
+PlanComponent.prototype.clearLevelCache = function() {
+  this.backgroundImageCache = null;
+  this.otherLevelsWallAreaCache = null;
+  this.otherLevelsWallsCache = null;
+  this.otherLevelsRoomAreaCache = null;
+  this.otherLevelsRoomsCache = null;
+  this.wallAreasCache = null;
+  this.doorOrWindowWallThicknessAreasCache = null;
+  this.sortedLevelRooms = null;
+  this.sortedLevelFurniture = null;
 }
 
 /** 
@@ -1238,8 +1263,8 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
                       if (controller.getMode() === PlanController.Mode.SELECTION) {
                         // Simulate shift key press
                         controller.setAlignmentActivated(true);
-                      } else if (controller.getMode() === PlanController.Mode.POLYLINE_CREATION) {
-                        // Enable curved 
+                      } else if (controller.getMode() === PlanController.Mode.POLYLINE_CREATION) { 
+                        // Enable curved or elevation dimension creation 
                         controller.setDuplicationActivated(true);
                       }
                     });
@@ -1566,9 +1591,9 @@ PlanComponent.prototype.addMouseListeners = function(controller) {
 PlanComponent.prototype.startLongTouchAnimation = function(x, y, character, animationPostTask) {
   this.touchOverlay.style.visibility = "visible";
   if (character == '&#x21EA;') {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
+    document.getElementById("plan-touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif; font-size: 140%; line-height: 90%'>&#x21EA;</span>";
   } else {
-    document.getElementById("touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif'>" + character + "</span>";
+    document.getElementById("plan-touch-overlay-timer-content").innerHTML = "<span style='font-weight: bold; font-family: sans-serif'>" + character + "</span>";
   }
   this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
   this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
@@ -1588,27 +1613,12 @@ PlanComponent.prototype.startLongTouchAnimation = function(x, y, character, anim
 /** 
  * @private 
  */
-PlanComponent.prototype.stopLongTouchAnimation = function(x, y) {
-  this.touchOverlay.style.visibility = "hidden";
-  for (var i = 0; i < this.touchOverlay.children.length; i++) {
-    this.touchOverlay.children.item(i).classList.remove("animated");
-    this.touchOverlay.children.item(i).classList.remove("indicator");
-  }
-  if (this.longTouchAnimationPostTask !== undefined) {
-    clearTimeout(this.longTouchAnimationPostTask);
-    delete this.longTouchAnimationPostTask;
-  }
-}
-
-/** 
- * @private 
- */
 PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
   if (indicator == "default" || indicator == "selection") {
     this.touchOverlay.style.visibility = "hidden";
   } else {
     this.touchOverlay.style.visibility = "visible";
-    document.getElementById("touch-overlay-timer-content").innerHTML = '<img src="' + ZIPTools.getScriptFolder() + 'resources/cursors/' + indicator + '32x32.png"/>';
+    document.getElementById("plan-touch-overlay-timer-content").innerHTML = '<img src="' + ZIPTools.getScriptFolder() + 'resources/cursors/' + indicator + '32x32.png"/>';
     this.touchOverlay.style.left = (this.canvas.getBoundingClientRect().left + x - this.touchOverlay.clientWidth / 2) + "px";
     this.touchOverlay.style.top = (this.canvas.getBoundingClientRect().top + y - this.touchOverlay.clientHeight - 40) + "px";
     if (this.tooltip.style.visibility == "visible" 
@@ -1619,6 +1629,21 @@ PlanComponent.prototype.startIndicatorAnimation = function(x, y, indicator) {
       this.touchOverlay.children.item(i).classList.remove("animated");
       this.touchOverlay.children.item(i).classList.add("indicator");
     }
+  }
+}
+
+/** 
+ * @private 
+ */
+PlanComponent.prototype.stopLongTouchAnimation = function(x, y) {
+  this.touchOverlay.style.visibility = "hidden";
+  for (var i = 0; i < this.touchOverlay.children.length; i++) {
+    this.touchOverlay.children.item(i).classList.remove("animated");
+    this.touchOverlay.children.item(i).classList.remove("indicator");
+  }
+  if (this.longTouchAnimationPostTask !== undefined) {
+    clearTimeout(this.longTouchAnimationPostTask);
+    delete this.longTouchAnimationPostTask;
   }
 }
 
@@ -2136,36 +2161,39 @@ PlanComponent.prototype.getItemBounds = function(g, item) {
     if (lengthStyle == null) {
       lengthStyle = this.preferences.getDefaultTextStyle(dimensionLine.constructor);
     }
-    var lengthFontMetrics = this.getFontMetrics(componentFont, lengthStyle);
-    var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText);
-    var angle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(),
-        dimensionLine.getXEnd() - dimensionLine.getXStart());
     var transform = java.awt.geom.AffineTransform.getTranslateInstance(
         dimensionLine.getXStart(), dimensionLine.getYStart());
-    transform.rotate(angle);
-    transform.translate(0, dimensionLine.getOffset());
-    transform.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, 
-        dimensionLine.getOffset() <= 0 
-            ? -lengthFontMetrics.getDescent() - 1 
-            : lengthFontMetrics.getAscent() + 1);
-    var lengthTextBoundsPath = new java.awt.geom.GeneralPath(lengthTextBounds);
-    for (var it = lengthTextBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
-      var pathPoint = [0, 0];
-      if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
-        itemBounds.add(pathPoint[0], pathPoint[1]);
+    var angle = dimensionLine.isElevationDimensionLine()
+        ? (dimensionLine.getPitch() + 2 * Math.PI) % (2 * Math.PI)
+        : Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), dimensionLine.getXEnd() - dimensionLine.getXStart());
+    if (dimensionLine.getElevationStart() == dimensionLine.getElevationEnd()) {
+      var lengthFontMetrics = this.getFontMetrics(componentFont, lengthStyle);
+      var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText);
+      transform.rotate(angle);
+      transform.translate(0, dimensionLine.getOffset());
+      transform.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, 
+          dimensionLine.getOffset() <= 0 
+              ? -lengthFontMetrics.getDescent() - 1 
+              : lengthFontMetrics.getAscent() + 1);
+      var lengthTextBoundsPath = new java.awt.geom.GeneralPath(lengthTextBounds);
+      for (var it = lengthTextBoundsPath.getPathIterator(transform); !it.isDone(); it.next()) {
+        var pathPoint = [0, 0];
+        if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
+          itemBounds.add(pathPoint[0], pathPoint[1]);
+        }
       }
     }
     transform.setToTranslation(dimensionLine.getXStart(), dimensionLine.getYStart());
     transform.rotate(angle);
     transform.translate(0, dimensionLine.getOffset());
-    for (var it = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {
+    for (var it = PlanComponent.DIMENSION_LINE_MARK_END.getPathIterator(transform); !it.isDone(); it.next()) {
       var pathPoint = [0, 0];
       if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
         itemBounds.add(pathPoint[0], pathPoint[1]);
       }
     }
     transform.translate(dimensionLineLength, 0);
-    for (var it = PlanComponent.DIMENSION_LINE_END.getPathIterator(transform); !it.isDone(); it.next()) {
+    for (var it = PlanComponent.DIMENSION_LINE_MARK_END.getPathIterator(transform); !it.isDone(); it.next()) {
       var pathPoint = [0, 0];
       if (it.currentSegment(pathPoint) !== java.awt.geom.PathIterator.SEG_CLOSE) {
         itemBounds.add(pathPoint[0], pathPoint[1]);
@@ -2438,7 +2466,7 @@ PlanComponent.prototype.paintComponent = function(g2D) {
     g2D.setColor("#FF0000");
     g2D.draw(planBounds);
   }
-  this.paintContent(g2D, this.getScale(), PlanComponent.PaintMode.PAINT);
+  this.paintContent(g2D, this.home.getSelectedLevel(), this.getScale(), PlanComponent.PaintMode.PAINT);
   g2D.dispose();
 }
 
@@ -2553,23 +2581,24 @@ PlanComponent.prototype.setOpaque = function(opaque) {
 /**
  * Paints background image and returns <code>true</code> if an image is painted.
  * @param {Graphics2D} g2D
+ * @param {Level} level
  * @param {PlanComponent.PaintMode} paintMode
  * @return {boolean}
  * @private
  */
-PlanComponent.prototype.paintBackgroundImage = function(g2D, paintMode) {
+PlanComponent.prototype.paintBackgroundImage = function(g2D, level, paintMode) {
   var selectedLevel = this.home.getSelectedLevel();
   var backgroundImageLevel = null;
-  if (selectedLevel != null) {
+  if (level != null) {
     var levels = this.home.getLevels();
     for (var i = levels.length - 1; i >= 0; i--) {
-      var level = levels[i];
-      if (level.getElevation() === selectedLevel.getElevation() 
-          && level.getElevationIndex() <= selectedLevel.getElevationIndex() 
-          && level.isViewable() 
-          && level.getBackgroundImage() != null 
-          && level.getBackgroundImage().isVisible()) {
-        backgroundImageLevel = level;
+      var homeLevel = levels[i];
+      if (homeLevel.getElevation() === level.getElevation() 
+          && homeLevel.getElevationIndex() <= level.getElevationIndex() 
+          && homeLevel.isViewable() 
+          && homeLevel.getBackgroundImage() != null 
+          && homeLevel.getBackgroundImage().isVisible()) {
+        backgroundImageLevel = homeLevel;
         break;
       }
     }
@@ -2667,29 +2696,29 @@ PlanComponent.prototype.readBackgroundImage = function(imageContent) {
 }
 
 /**
- * Paints walls and rooms of lower levels or upper levels to help the user draw in the selected level.
+ * Paints walls and rooms of lower levels or upper levels to help the user draw in the given level.
  * @param {Graphics2D} g2D
+ * @param {Level} level
  * @param {number} planScale
  * @param {string} backgroundColor
  * @param {string} foregroundColor
  * @private
  */
-PlanComponent.prototype.paintOtherLevels = function(g2D, planScale, backgroundColor, foregroundColor) {
+PlanComponent.prototype.paintOtherLevels = function(g2D, level, planScale, backgroundColor, foregroundColor) {
   var plan = this;
   var levels = this.home.getLevels();
-  var selectedLevel = this.home.getSelectedLevel();
   if (levels.length 
-      && selectedLevel != null) {
-    var level0 = levels[0].getElevation() === selectedLevel.getElevation();
+      && level != null) {
+    var level0 = levels[0].getElevation() === level.getElevation();
     var otherLevels = null;
     if (this.otherLevelsRoomsCache == null 
         || this.otherLevelsWallsCache == null) {
-      var selectedLevelIndex = levels.indexOf(selectedLevel);
+      var selectedLevelIndex = levels.indexOf(level);
       otherLevels = [];
       if (level0) {
         var nextElevationLevelIndex = selectedLevelIndex;
         while (++nextElevationLevelIndex < levels.length 
-            && levels[nextElevationLevelIndex].getElevation() === selectedLevel.getElevation()) {
+            && levels[nextElevationLevelIndex].getElevation() === level.getElevation()) {
         }
         if (nextElevationLevelIndex < levels.length) {
           var nextLevel = levels[nextElevationLevelIndex];
@@ -2704,7 +2733,7 @@ PlanComponent.prototype.paintOtherLevels = function(g2D, planScale, backgroundCo
       } else {
         var previousElevationLevelIndex = selectedLevelIndex;
         while (--previousElevationLevelIndex >= 0 
-            && levels[previousElevationLevelIndex].getElevation() === selectedLevel.getElevation()) {
+            && levels[previousElevationLevelIndex].getElevation() === level.getElevation()) {
         }
         if (previousElevationLevelIndex >= 0) {
           var previousLevel = levels[previousElevationLevelIndex];
@@ -2742,7 +2771,7 @@ PlanComponent.prototype.paintOtherLevels = function(g2D, planScale, backgroundCo
         if (otherLevels.length !== 0) {
           var otherLevelswalls = [];
           this.home.getWalls().forEach(function(wall) {
-            if (!plan.isViewableAtSelectedLevel(wall)) {
+            if (!plan.isViewableAtLevel(wall, level)) {
               otherLevels.forEach(function(otherLevel) {
                   if (wall.getLevel() === otherLevel) {
                     otherLevelswalls.push(wall);
@@ -2904,27 +2933,35 @@ PlanComponent.prototype.getGridSize = function(gridScale) {
 }
 
 /**
- * Paints plan items.
+ * Paints plan items at the given <code>level</code>.
  * @throws InterruptedIOException if painting was interrupted (may happen only
  * if <code>paintMode</code> is equal to <code>PaintMode.EXPORT</code>).
  * @param {Graphics2D} g2D
+ * @param {Level} level
  * @param {number} gridScale
  * @param {PlanComponent.PaintMode} paintMode
  * @private
  */
-PlanComponent.prototype.paintContent = function(g2D, planScale, paintMode) {
+PlanComponent.prototype.paintContent = function(g2D, level, planScale, paintMode) {
   var backgroundColor = this.getBackgroundColor(paintMode);
   var foregroundColor = this.getForegroundColor(paintMode);
   if (this.backgroundPainted) {
-    this.paintBackgroundImage(g2D, paintMode);
+    this.paintBackgroundImage(g2D, level, paintMode);
     if (paintMode === PlanComponent.PaintMode.PAINT) {
-      this.paintOtherLevels(g2D, planScale, backgroundColor, foregroundColor);
+      this.paintOtherLevels(g2D, level, planScale, backgroundColor, foregroundColor);
       if (this.preferences.isGridVisible()) {
         this.paintGrid(g2D, planScale);
       }
     }
   }
-  this.paintHomeItems(g2D, planScale, backgroundColor, foregroundColor, paintMode);
+  
+  if (level == this.home.getSelectedLevel()) {
+    // Call deprecated implementation in case a subclass did override paintHomeItems
+    this.paintHomeItems(g2D, planScale, backgroundColor, foregroundColor, paintMode);
+  } else {
+    this.paintHomeItems(g2D, level, planScale, backgroundColor, foregroundColor, paintMode);
+  }
+
   if (paintMode === PlanComponent.PaintMode.PAINT) {
     var selectedItems = this.home.getSelectedItems();
     var selectionColor = this.getSelectionColor();
@@ -2943,11 +2980,11 @@ PlanComponent.prototype.paintContent = function(g2D, planScale, paintMode) {
     
     if (this.alignedObjectClass != null) {
       if (Wall === this.alignedObjectClass) {
-        this.paintWallAlignmentFeedback(g2D, this.alignedObjectFeedback, this.locationFeeback, this.showPointFeedback, 
+        this.paintWallAlignmentFeedback(g2D, this.alignedObjectFeedback, level, this.locationFeeback, this.showPointFeedback, 
             selectionColor, locationFeedbackStroke, planScale, 
             selectionOutlinePaint, selectionOutlineStroke);
       } else if (Room === this.alignedObjectClass) {
-        this.paintRoomAlignmentFeedback(g2D, this.alignedObjectFeedback, this.locationFeeback, this.showPointFeedback, 
+        this.paintRoomAlignmentFeedback(g2D, this.alignedObjectFeedback, level, this.locationFeeback, this.showPointFeedback, 
             selectionColor, locationFeedbackStroke, planScale, 
             selectionOutlinePaint, selectionOutlineStroke);
       } else if (Polyline === this.alignedObjectClass) {
@@ -2955,7 +2992,7 @@ PlanComponent.prototype.paintContent = function(g2D, planScale, paintMode) {
           this.paintPointFeedback(g2D, this.locationFeeback, selectionColor, planScale, selectionOutlinePaint, selectionOutlineStroke);
         }
       } else if (DimensionLine === this.alignedObjectClass) {
-        this.paintDimensionLineAlignmentFeedback(g2D, this.alignedObjectFeedback, this.locationFeeback, this.showPointFeedback, 
+        this.paintDimensionLineAlignmentFeedback(g2D, this.alignedObjectFeedback, level, this.locationFeeback, this.showPointFeedback, 
             selectionColor, locationFeedbackStroke, planScale, 
             selectionOutlinePaint, selectionOutlineStroke);
       }
@@ -2966,25 +3003,25 @@ PlanComponent.prototype.paintContent = function(g2D, planScale, paintMode) {
     }
     if (this.dimensionLinesFeedback != null) {
       var emptySelection = [];
-      this.paintDimensionLines(g2D, this.dimensionLinesFeedback, emptySelection, 
+      this.paintDimensionLines(g2D, this.dimensionLinesFeedback, emptySelection, level,
           null, null, null, locationFeedbackStroke, planScale, 
           backgroundColor, selectionColor, paintMode, true);
     }
     
     if (this.draggedItemsFeedback != null) {
-      this.paintDimensionLines(g2D, Home.getDimensionLinesSubList(this.draggedItemsFeedback), this.draggedItemsFeedback, 
+      this.paintDimensionLines(g2D, Home.getDimensionLinesSubList(this.draggedItemsFeedback), this.draggedItemsFeedback, level,
           selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, null, 
           locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
-      this.paintLabels(g2D, Home.getLabelsSubList(this.draggedItemsFeedback), this.draggedItemsFeedback, 
+      this.paintLabels(g2D, Home.getLabelsSubList(this.draggedItemsFeedback), this.draggedItemsFeedback, level,
           selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, null, 
           planScale, foregroundColor, paintMode);
-      this.paintRoomsOutline(g2D, this.draggedItemsFeedback, selectionOutlinePaint, selectionOutlineStroke, null, 
+      this.paintRoomsOutline(g2D, this.draggedItemsFeedback, level, selectionOutlinePaint, selectionOutlineStroke, null, 
           planScale, foregroundColor);
-      this.paintWallsOutline(g2D, this.draggedItemsFeedback, selectionOutlinePaint, selectionOutlineStroke, null, 
+      this.paintWallsOutline(g2D, this.draggedItemsFeedback, level, selectionOutlinePaint, selectionOutlineStroke, null, 
           planScale, foregroundColor);
-      this.paintFurniture(g2D, Home.getFurnitureSubList(this.draggedItemsFeedback), selectedItems, planScale, null, 
+      this.paintFurniture(g2D, Home.getFurnitureSubList(this.draggedItemsFeedback), selectedItems, level, planScale, null, 
           foregroundColor, furnitureOutlineColor, paintMode, false);
-      this.paintFurnitureOutline(g2D, this.draggedItemsFeedback, selectionOutlinePaint, selectionOutlineStroke, null, 
+      this.paintFurnitureOutline(g2D, this.draggedItemsFeedback, level, selectionOutlinePaint, selectionOutlineStroke, null, 
           planScale, foregroundColor);
     }
     
@@ -2996,18 +3033,27 @@ PlanComponent.prototype.paintContent = function(g2D, planScale, paintMode) {
  * Paints home items at the given scale, and with background and foreground colors.
  * Outline around selected items will be painted only under <code>PAINT</code> mode.
  * @param {Graphics2D} g
+ * @param {Level} level
  * @param {number} planScale
  * @param {string} backgroundColor
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
  */
-PlanComponent.prototype.paintHomeItems = function(g2D, planScale, backgroundColor, foregroundColor, paintMode) {
+PlanComponent.prototype.paintHomeItems = function(g2D, level, planScale, backgroundColor, foregroundColor, paintMode) {
+  if (paintMode === undefined) {
+    // 5 parameters
+    paintMode = foregroundColor;  
+    foregroundColor = backgroundColor; 
+    backgroundColor = planScale; 
+    planScale = level; 
+    level = this.home.getSelectedLevel(); 
+  }
   var plan = this;
   var selectedItems = this.home.getSelectedItems();
   if (this.sortedLevelFurniture == null) {
     this.sortedLevelFurniture = [];
     this.home.getFurniture().forEach(function(piece) {
-        if (plan.isViewableAtSelectedLevel(piece)) {
+        if (plan.isViewableAtLevel(piece, level)) {
           plan.sortedLevelFurniture.push(piece);
         }
       });
@@ -3029,17 +3075,17 @@ PlanComponent.prototype.paintHomeItems = function(g2D, planScale, backgroundColo
 
   this.paintCompass(g2D, selectedItems, planScale, foregroundColor, paintMode);
   
-  this.paintRooms(g2D, selectedItems, planScale, foregroundColor, paintMode);
+  this.paintRooms(g2D, selectedItems, level, planScale, foregroundColor, paintMode);
   
-  this.paintWalls(g2D, selectedItems, planScale, backgroundColor, foregroundColor, paintMode);
+  this.paintWalls(g2D, selectedItems, level, planScale, backgroundColor, foregroundColor, paintMode);
   
-  this.paintFurniture(g2D, this.sortedLevelFurniture, selectedItems, 
+  this.paintFurniture(g2D, this.sortedLevelFurniture, selectedItems, level,
       planScale, backgroundColor, foregroundColor, this.getFurnitureOutlineColor(), paintMode, true);
   
-  this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, selectionOutlinePaint, 
-      selectionColor, planScale, foregroundColor, paintMode);
+  this.paintPolylines(g2D, this.home.getPolylines(), selectedItems, level,
+      selectionOutlinePaint, selectionColor, planScale, foregroundColor, paintMode);
   
-  this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, 
+  this.paintDimensionLines(g2D, this.home.getDimensionLines(), selectedItems, level,
       selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, selectionColor, 
       locationFeedbackStroke, planScale, backgroundColor, foregroundColor, paintMode, false);
   
@@ -3047,18 +3093,19 @@ PlanComponent.prototype.paintHomeItems = function(g2D, planScale, backgroundColo
   
   this.paintFurnitureName(g2D, this.sortedLevelFurniture, selectedItems, planScale, foregroundColor, paintMode);
   
-  this.paintLabels(g2D, this.home.getLabels(), selectedItems, selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, 
+  this.paintLabels(g2D, this.home.getLabels(), selectedItems, level,
+      selectionOutlinePaint, dimensionLinesSelectionOutlineStroke, 
       selectionColor, planScale, foregroundColor, paintMode);
   
   if (paintMode === PlanComponent.PaintMode.PAINT 
       && this.selectedItemsOutlinePainted) {
     this.paintCompassOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
         planScale, foregroundColor);
-    this.paintRoomsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
+    this.paintRoomsOutline(g2D, selectedItems, level, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
         planScale, foregroundColor);
-    this.paintWallsOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
+    this.paintWallsOutline(g2D, selectedItems, level, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
         planScale, foregroundColor);
-    this.paintFurnitureOutline(g2D, selectedItems, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
+    this.paintFurnitureOutline(g2D, selectedItems, level, selectionOutlinePaint, selectionOutlineStroke, selectionColor, 
         planScale, foregroundColor);
   }
 }
@@ -3111,17 +3158,18 @@ PlanComponent.prototype.getFurnitureOutlineColor = function() {
  * Paints rooms.
  * @param {Graphics2D} g2D
  * @param {Object[]} selectedItems
+ * @param {Level} level
  * @param {number} planScale
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
  * @private
  */
-PlanComponent.prototype.paintRooms = function(g2D, selectedItems, planScale, foregroundColor, paintMode) {
+PlanComponent.prototype.paintRooms = function(g2D, selectedItems, level, planScale, foregroundColor, paintMode) {
   var plan = this;
   if (this.sortedLevelRooms == null) {
     this.sortedLevelRooms = [];
     this.home.getRooms().forEach(function(room) {
-        if (plan.isViewableAtSelectedLevel(room)) {
+        if (plan.isViewableAtLevel(room, level)) {
           plan.sortedLevelRooms.push(room);
         }
       });
@@ -3373,6 +3421,7 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
  * <code>items</code> contains only one room and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
  * @param {Object[]} items
+ * @param {Level} level
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -3380,13 +3429,13 @@ PlanComponent.prototype.paintText = function(g2D, selectableClass, text, style, 
  * @param {string} foregroundColor
  * @private
  */
-PlanComponent.prototype.paintRoomsOutline = function(g2D, items, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
+PlanComponent.prototype.paintRoomsOutline = function(g2D, items, level, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
   var rooms = Home.getRoomsSubList(items);
   var previousTransform = g2D.getTransform();
   var scaleInverse = 1 / planScale;
   for (var i = 0; i < rooms.length; i++) {
     var room = rooms[i];
-    if (this.isViewableAtSelectedLevel(room)) {
+    if (this.isViewableAtLevel(room, level)) {
       g2D.setPaint(selectionOutlinePaint);
       g2D.setStroke(selectionOutlineStroke);
       g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
@@ -3408,7 +3457,7 @@ PlanComponent.prototype.paintRoomsOutline = function(g2D, items, selectionOutlin
   g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Room, PlanComponent.PaintMode.PAINT) / planScale));
   for (var i = 0; i < rooms.length; i++) {
     var room = rooms[i];
-    if (this.isViewableAtSelectedLevel(room)) {
+    if (this.isViewableAtLevel(room, level)) {
       g2D.draw(ShapeTools.getShape(room.getPoints(), true, null));
     }
   }
@@ -3417,7 +3466,7 @@ PlanComponent.prototype.paintRoomsOutline = function(g2D, items, selectionOutlin
       && rooms.length === 1 
       && indicatorPaint != null) {
     var selectedRoom = rooms[0];
-    if (this.isViewableAtSelectedLevel(selectedRoom)) {
+    if (this.isViewableAtLevel(room, level)) {
       g2D.setPaint(indicatorPaint);
       this.paintPointsResizeIndicators(g2D, selectedRoom, indicatorPaint, planScale, true, 0, 0, true);
       this.paintRoomNameOffsetIndicator(g2D, selectedRoom, indicatorPaint, planScale);
@@ -3508,6 +3557,8 @@ PlanComponent.prototype.getIndicator = function(item, indicatorType) {
       return PlanComponent.COMPASS_ROTATION_INDICATOR;
     } else if (item instanceof Camera) {
       return PlanComponent.CAMERA_YAW_ROTATION_INDICATOR;
+    } else if (item instanceof DimensionLine) {
+      return PlanComponent.DIMENSION_LINE_HEIGHT_ROTATION_INDICATOR;
     }
   } else if (PlanComponent.IndicatorType.ELEVATE === indicatorType) {
     if (item instanceof Camera) {
@@ -3518,6 +3569,8 @@ PlanComponent.prototype.getIndicator = function(item, indicatorType) {
   } else if (PlanComponent.IndicatorType.RESIZE_HEIGHT === indicatorType) {
     if (item instanceof HomePieceOfFurniture) {
       return PlanComponent.FURNITURE_HEIGHT_INDICATOR;
+    } else if (item instanceof DimensionLine) {
+      return PlanComponent.DIMENSION_LINE_HEIGHT_INDICATOR;
     }
   } else if (PlanComponent.IndicatorType.CHANGE_POWER === indicatorType) {
     if (item instanceof HomeLight) {
@@ -3649,20 +3702,21 @@ PlanComponent.prototype.getLineCount = function(text) {
  * Paints walls.
  * @param {Graphics2D} g2D
  * @param {Object[]} selectedItems
+ * @param {Level}  level
  * @param {number} planScale
  * @param {string} backgroundColor
  * @param {string} foregroundColor
  * @param {PlanComponent.PaintMode} paintMode
  * @private
  */
-PlanComponent.prototype.paintWalls = function(g2D, selectedItems, planScale, backgroundColor, foregroundColor, paintMode) {
+PlanComponent.prototype.paintWalls = function(g2D, selectedItems, level, planScale, backgroundColor, foregroundColor, paintMode) {
   var paintedWalls;
   var wallAreas;
   if (paintMode !== PlanComponent.PaintMode.CLIPBOARD) {
-    wallAreas = this.getWallAreas();
+    wallAreas = this.getWallAreasAtLevel(level);
   } else {
     paintedWalls = Home.getWallsSubList(selectedItems);
-    wallAreas = this.getWallAreas(this.getDrawableWallsInSelectedLevel(paintedWalls));
+    wallAreas = this.getWallAreas(this.getDrawableWallsAtLevel(paintedWalls, level));
   }
   var wallPaintScale = paintMode === PlanComponent.PaintMode.PRINT 
       ? planScale / 72 * 150 
@@ -3716,6 +3770,7 @@ PlanComponent.prototype.fillAndDrawWallsArea = function(g2D, area, planScale, fi
  * <code>items</code> contains only one wall and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
  * @param {Object[]} items
+ * @param {Level} level
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -3723,13 +3778,13 @@ PlanComponent.prototype.fillAndDrawWallsArea = function(g2D, area, planScale, fi
  * @param {string} foregroundColor
  * @private
  */
-PlanComponent.prototype.paintWallsOutline = function(g2D, items, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
+PlanComponent.prototype.paintWallsOutline = function(g2D, items, level, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
   var scaleInverse = 1 / planScale;
   var walls = Home.getWallsSubList(items);
   var previousTransform = g2D.getTransform();
   for (var i = 0; i < walls.length; i++) {
     var wall = walls[i];
-    if (this.isViewableAtSelectedLevel(wall)) {
+    if (this.isViewableAtLevel(wall, level)) {
       g2D.setPaint(selectionOutlinePaint);
       g2D.setStroke(selectionOutlineStroke);
       g2D.draw(ShapeTools.getShape(wall.getPoints(), true, null));
@@ -3799,7 +3854,7 @@ PlanComponent.prototype.paintWallsOutline = function(g2D, items, selectionOutlin
   }
   g2D.setPaint(foregroundColor);
   g2D.setStroke(new java.awt.BasicStroke(this.getStrokeWidth(Wall, PlanComponent.PaintMode.PAINT) / planScale));
-  var areas = CoreTools.valuesFromMap(this.getWallAreas(this.getDrawableWallsInSelectedLevel(walls)));
+  var areas = CoreTools.valuesFromMap(this.getWallAreas(this.getDrawableWallsAtLevel(walls, level)));
   for (var i = 0; i < areas.length; i++) {
     g2D.draw(areas[i]);
   }
@@ -3807,22 +3862,33 @@ PlanComponent.prototype.paintWallsOutline = function(g2D, items, selectionOutlin
       && walls.length === 1 
       && indicatorPaint != null) {
     var wall = walls[0];
-    if (this.isViewableAtSelectedLevel(wall)) {
+    if (this.isViewableAtLevel(wall, level)) {
       this.paintWallResizeIndicators(g2D, wall, indicatorPaint, planScale);
     }
   }
 }
 
 /**
+ * Returns <code>true</code> if the given item can be viewed in the plan at a level.
+ * @param {Object} item
+ * @param {Level} level
+ * @return {boolean}
+ */
+PlanComponent.prototype.isViewableAtLevel = function(item, level) {
+  var itemLevel = item.getLevel();
+  return itemLevel == null
+      || (itemLevel.isViewable()
+          && item.isAtLevel(level));
+}
+  
+/**
  * Returns <code>true</code> if the given item can be viewed in the plan at the selected level.
+ * @deprecated Override {@link #isViewableAtLevel} if you want to print different levels
  * @param {Object} item
  * @return {boolean}
  */
 PlanComponent.prototype.isViewableAtSelectedLevel = function(item) {
-  var level = item.getLevel();
-  return level == null 
-      || (level.isViewable() 
-          && item.isAtLevel(this.home.getSelectedLevel()));
+  return this.isViewableAtLevel(item, this.home.getSelectedLevel());
 }
 
 /**
@@ -3886,74 +3952,80 @@ PlanComponent.prototype.paintWallResizeIndicators = function(g2D, wall, indicato
 }
 
 /**
- * Returns the walls that belong to the selected level in home.
+ * Returns areas matching the union of home wall shapes sorted by pattern.
+ * @param {Level} level
+ * @return {Object}
+ * @private
+ */
+PlanComponent.prototype.getWallAreasAtLevel = function(level) {
+  if (this.wallAreasCache == null) {
+    this.wallAreasCache = this.getWallAreas(this.getDrawableWallsAtLevel(this.home.getWalls(), level));
+  }
+  return this.wallAreasCache;
+}
+
+/**
+ * Returns the walls that belong to the given <code>level</code> in home.
  * @param {Wall[]} walls
+ * @param {Level} level
  * @return {Wall[]}
  * @private
  */
-PlanComponent.prototype.getDrawableWallsInSelectedLevel = function(walls) {
-  var wallsInSelectedLevel = [];
+PlanComponent.prototype.getDrawableWallsAtLevel = function(walls, level) {
+  var wallsAtLevel = [];
   for (var i = 0; i < walls.length; i++) {
     var wall = walls[i];
-    if (this.isViewableAtSelectedLevel(wall)) {
-      wallsInSelectedLevel.push(wall);
+    if (this.isViewableAtLevel(wall, level)) {
+      wallsAtLevel.push(wall);
     }
   }
-  return wallsInSelectedLevel;
+  return wallsAtLevel;
 }
 
 /**
  * Returns areas matching the union of <code>walls</code> shapes sorted by pattern.
- * @param {Wall[]} [walls]
+ * @param {Wall[]} walls
  * @return {Object} Map<Collection<Wall>, Area>
  * @private
  */
 PlanComponent.prototype.getWallAreas = function(walls) {
   var plan = this;
-  if (walls === undefined) {
-    if (this.wallAreasCache == null) {
-      return this.wallAreasCache = this.getWallAreas(this.getDrawableWallsInSelectedLevel(this.home.getWalls()));
-    } else {
-      return this.wallAreasCache;
-    }
-  } else {
-    if (walls.length === 0) {
-      return {};
-    }
-    var pattern = walls[0].getPattern();
-    var samePattern = true;
-    for (var i = 0; i < walls.length; i++) {
-      if (pattern !== walls[i].getPattern()) {
-        samePattern = false;
-        break;
-      }
-    }
-    var wallAreas = {};
-    if (samePattern) {
-      CoreTools.putToMap(wallAreas, walls, this.getItemsArea(walls));
-    } else {
-      var sortedWalls = {}; // LinkedHashMap
-      walls.forEach(function(wall) {
-          var wallPattern = wall.getPattern();
-          if (wallPattern == null) {
-            wallPattern = plan.preferences.getWallPattern();
-          }
-          var patternWalls = CoreTools.getFromMap(sortedWalls, wallPattern);
-          if (patternWalls == null) {
-            patternWalls = [];
-            CoreTools.putToMap(sortedWalls, wallPattern, patternWalls);
-          }
-          patternWalls.push(wall);
-        });
-      
-      var walls = CoreTools.valuesFromMap(sortedWalls);
-      for (var i = 0; i < walls.length; i++) {
-        var patternWalls = walls[i];
-        CoreTools.putToMap(wallAreas, patternWalls, this.getItemsArea(patternWalls));
-      }
-    }
-    return wallAreas;
+  if (walls.length === 0) {
+    return {};
   }
+  var pattern = walls[0].getPattern();
+  var samePattern = true;
+  for (var i = 0; i < walls.length; i++) {
+    if (pattern !== walls[i].getPattern()) {
+      samePattern = false;
+      break;
+    }
+  }
+  var wallAreas = {};
+  if (samePattern) {
+    CoreTools.putToMap(wallAreas, walls, this.getItemsArea(walls));
+  } else {
+    var sortedWalls = {}; // LinkedHashMap
+    walls.forEach(function(wall) {
+        var wallPattern = wall.getPattern();
+        if (wallPattern == null) {
+          wallPattern = plan.preferences.getWallPattern();
+        }
+        var patternWalls = CoreTools.getFromMap(sortedWalls, wallPattern);
+        if (patternWalls == null) {
+          patternWalls = [];
+          CoreTools.putToMap(sortedWalls, wallPattern, patternWalls);
+        }
+        patternWalls.push(wall);
+      });
+    
+    var walls = CoreTools.valuesFromMap(sortedWalls);
+    for (var i = 0; i < walls.length; i++) {
+      var patternWalls = walls[i];
+      CoreTools.putToMap(wallAreas, patternWalls, this.getItemsArea(patternWalls));
+    }
+  }
+  return wallAreas;
 }
 
 /**
@@ -4054,6 +4126,7 @@ PlanComponent.prototype.getWallPaint = function(g2D, planScale, backgroundColor,
  * @param {Graphics2D} g2D
  * @param {HomePieceOfFurniture[]} furniture
  * @param {Bound[]} selectedItems
+ * @param {Level}  level 
  * @param {number} planScale
  * @param {string} backgroundColor
  * @param {string} foregroundColor
@@ -4062,7 +4135,7 @@ PlanComponent.prototype.getWallPaint = function(g2D, planScale, backgroundColor,
  * @param {boolean} paintIcon
  * @private
  */
-PlanComponent.prototype.paintFurniture = function(g2D, furniture, selectedItems, planScale, backgroundColor, foregroundColor, furnitureOutlineColor, paintMode, paintIcon) {
+PlanComponent.prototype.paintFurniture = function(g2D, furniture, selectedItems, level, planScale, backgroundColor, foregroundColor, furnitureOutlineColor, paintMode, paintIcon) {
   if (!(furniture.length == 0)) {
     var pieceBorderStroke = new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, paintMode) / planScale);
     var allFurnitureViewedFromTop = null;
@@ -4076,7 +4149,7 @@ PlanComponent.prototype.paintFurniture = function(g2D, furniture, selectedItems,
           this.paintFurniture(g2D, groupFurniture, 
               selectedPiece 
                   ? groupFurniture 
-                  : emptyList, 
+                  : emptyList, level,
               planScale, backgroundColor, foregroundColor, 
               furnitureOutlineColor, paintMode, paintIcon);
         } else if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedPiece) {
@@ -4353,6 +4426,7 @@ PlanComponent.prototype.paintFurnitureName = function(g2D, furniture, selectedIt
  * <code>items</code> contains only one piece and indicator paint isn't <code>null</code>.
  * @param {Graphics2D} g2D
  * @param {Object[]} items
+ * @param {Level} level 
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4360,7 +4434,7 @@ PlanComponent.prototype.paintFurnitureName = function(g2D, furniture, selectedIt
  * @param {string} foregroundColor
  * @private
  */
-PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
+PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, level, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor) {
   var plan = this;
   var pieceBorderStroke = new java.awt.BasicStroke(this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale);
   var pieceFrontBorderStroke = new java.awt.BasicStroke(4 * this.getStrokeWidth(HomePieceOfFurniture, PlanComponent.PaintMode.PAINT) / planScale, 
@@ -4376,7 +4450,7 @@ PlanComponent.prototype.paintFurnitureOutline = function(g2D, items, selectionOu
   for (var i = 0; i < furniture.length; i++) {
     var piece = furniture [i];
     if (piece.isVisible() 
-        && this.isViewableAtSelectedLevel(piece)) {
+        && this.isViewableAtLevel(piece, level)) {
       var homePieceOfFurniture = this.getPieceOfFurnitureInHomeFurniture(piece, homeFurniture);
       if (homePieceOfFurniture !== piece) {
         var groupArea = null;
@@ -4641,7 +4715,7 @@ PlanComponent.prototype.paintPieceOfFurnitureIndicators = function(g2D, piece, i
     } else if (piece.isResizable() && !piece.isHorizontallyRotated()) {
       var heightIndicator = this.getIndicator(piece, PlanComponent.IndicatorType.RESIZE_HEIGHT);
       if (heightIndicator != null) {
-        g2D.draw(PlanComponent.FURNITURE_HEIGHT_POINT_INDICATOR);
+        g2D.draw(PlanComponent.HEIGHT_POINT_INDICATOR);
         g2D.translate(-7.5, 7.5);
         g2D.rotate(-pieceAngle);
         g2D.draw(heightIndicator);
@@ -4673,6 +4747,7 @@ PlanComponent.prototype.paintPieceOfFurnitureIndicators = function(g2D, piece, i
  * @param {Graphics2D} g2D
  * @param {Polyline[]} polylines
  * @param {Object[]} selectedItems
+ * @param {Level} level
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {string|CanvasPattern} indicatorPaint
  * @param {number} planScale
@@ -4680,10 +4755,10 @@ PlanComponent.prototype.paintPieceOfFurnitureIndicators = function(g2D, piece, i
  * @param {PlanComponent.PaintMode} paintMode
  * @private
  */
-PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems, selectionOutlinePaint, indicatorPaint, planScale, foregroundColor, paintMode) {
+PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems, level, selectionOutlinePaint, indicatorPaint, planScale, foregroundColor, paintMode) {
   for (var i = 0; i < polylines.length; i++) {
     var polyline = polylines[i];
-    if (this.isViewableAtSelectedLevel(polyline)) {
+    if (this.isViewableAtLevel(polyline, level)) {
       var selected = (selectedItems.indexOf((polyline)) >= 0);
       if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selected) {
         g2D.setPaint(ColorTools.integerToHexadecimalString(polyline.getColor()));
@@ -4730,7 +4805,7 @@ PlanComponent.prototype.paintPolylines = function(g2D, polylines, selectedItems,
           if (selectedItems.length === 1 
               && indicatorPaint != null) {
             var selectedPolyline = selectedItems[0];
-            if (this.isViewableAtSelectedLevel(selectedPolyline)) {
+            if (this.isViewableAtLevel(polyline, level)) {
               g2D.setPaint(indicatorPaint);
               this.paintPointsResizeIndicators(g2D, selectedPolyline, indicatorPaint, planScale, 
                   selectedPolyline.isClosedPath(), angleAtStart, angleAtEnd, false);
@@ -4786,6 +4861,7 @@ PlanComponent.prototype.paintArrow = function(g2D, point, angle, arrowStyle, thi
  * @param {Graphics2D} g2D
  * @param {DimensionLine[]} dimensionLines
  * @param {Object[]} selectedItems
+ * @param {Level} level
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4797,56 +4873,100 @@ PlanComponent.prototype.paintArrow = function(g2D, point, angle, arrowStyle, thi
  * @param {boolean} feedback
  * @private
  */
-PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, selectedItems, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, extensionLineStroke, planScale, backgroundColor, foregroundColor, paintMode, feedback) {
+PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, selectedItems, level, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, extensionLineStroke, planScale, backgroundColor, foregroundColor, paintMode, feedback) {
   var plan = this;
   if (paintMode === PlanComponent.PaintMode.CLIPBOARD) {
     dimensionLines = Home.getDimensionLinesSubList(selectedItems);
   }
-  g2D.setPaint(foregroundColor);
-  g2D.setColor(foregroundColor);
-  var dimensionLineStroke = new java.awt.BasicStroke(this.getStrokeWidth(DimensionLine, paintMode) / planScale);
+  var markEndWidth = PlanComponent.DIMENSION_LINE_MARK_END.getBounds2D().getWidth();
+  var selectedDimensionLineWithIndicators = selectedItems.length == 1
+         && selectedItems[0] instanceof DimensionLine
+         && paintMode === PlanComponent.PaintMode.PAINT
+         && indicatorPaint != null
+      ? selectedItems[0]
+      : null;
+
   var previousFont = g2D.getFont();
-  dimensionLines.forEach(function(dimensionLine) {
-      if (plan.isViewableAtSelectedLevel(dimensionLine)) {
-        var previousTransform = g2D.getTransform();
-        var angle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), 
-            dimensionLine.getXEnd() - dimensionLine.getXStart());
-        var dimensionLineLength = dimensionLine.getLength();
-        g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
-        g2D.rotate(angle);
-        g2D.translate(0, dimensionLine.getOffset());
+  for (var i = 0; i < dimensionLines.length; i++) {
+    var dimensionLine = dimensionLines[i];
+    if (plan.isViewableAtLevel(dimensionLine, level)) {
+      var dimensionLineColor = dimensionLine.getColor();
+      var markEndScale = dimensionLine.getEndMarkSize() / markEndWidth;
+      var dimensionLineStroke = new java.awt.BasicStroke(plan.getStrokeWidth(DimensionLine, paintMode) / markEndScale / planScale);
+      g2D.setPaint(dimensionLineColor != null ? ColorTools.integerToHexadecimalString(dimensionLineColor) : foregroundColor);
+      var previousTransform = g2D.getTransform();
+      var elevationDimensionLine = dimensionLine.isElevationDimensionLine();
+      var angle = elevationDimensionLine
+          ? (dimensionLine.getPitch() + 2 * Math.PI) % (2 * Math.PI)
+          : Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), dimensionLine.getXEnd() - dimensionLine.getXStart());
+      var dimensionLineOffset = dimensionLine.getOffset();
+      var dimensionLineLength = dimensionLine.getLength();
+      g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
+      g2D.rotate(angle);
+      g2D.translate(0, dimensionLineOffset);
         
-        if (paintMode === PlanComponent.PaintMode.PAINT 
-            && plan.selectedItemsOutlinePainted 
-            && (selectedItems.indexOf((dimensionLine)) >= 0)) {
-          g2D.setPaint(selectionOutlinePaint);
-          g2D.setStroke(selectionOutlineStroke);
+      var horizontalDimensionLine = dimensionLine.getElevationStart() == dimensionLine.getElevationEnd();
+      if (paintMode === PlanComponent.PaintMode.PAINT 
+          && plan.selectedItemsOutlinePainted 
+          && (selectedItems.indexOf((dimensionLine)) >= 0)) {
+        g2D.setPaint(selectionOutlinePaint);
+        g2D.setStroke(selectionOutlineStroke);
+        if (horizontalDimensionLine) {
           g2D.draw(new java.awt.geom.Line2D.Float(0, 0, dimensionLineLength, 0));
-          g2D.draw(PlanComponent.DIMENSION_LINE_END);
-          g2D.translate(dimensionLineLength, 0);
-          g2D.draw(PlanComponent.DIMENSION_LINE_END);
+          g2D.scale(markEndScale, markEndScale);
+          g2D.draw(PlanComponent.DIMENSION_LINE_MARK_END);
+          g2D.translate(dimensionLineLength / markEndScale, 0);
+          g2D.draw(PlanComponent.DIMENSION_LINE_MARK_END);
+          g2D.scale(1 / markEndScale, 1 / markEndScale);
           g2D.translate(-dimensionLineLength, 0);
-          g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLine.getOffset(), 0, -5));
-          g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLine.getOffset(), dimensionLineLength, -5));
-          g2D.setPaint(foregroundColor);
+          g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLineOffset, 0, 0));
+          g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLineOffset, dimensionLineLength, 0));
+        } else {
+          g2D.scale(markEndScale, markEndScale);
+          g2D.draw(PlanComponent.VERTICAL_DIMENSION_LINE);
+          g2D.scale(1 / markEndScale, 1 / markEndScale);
+          if (Math.abs(dimensionLineOffset) > dimensionLine.getEndMarkSize() / 2) {
+            g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLineOffset,
+                0, -dimensionLine.getEndMarkSize() / 2 * (dimensionLineOffset >= 0 ? (dimensionLineOffset == 0 ? 0 : 1) : -1)));
+          }
         }
+        g2D.setPaint(dimensionLineColor != null ? ColorTools.integerToHexadecimalString(dimensionLineColor) : foregroundColor);
+      }
         
-        g2D.setStroke(dimensionLineStroke);
+      g2D.setStroke(dimensionLineStroke);
+      if (horizontalDimensionLine) {
         g2D.draw(new java.awt.geom.Line2D.Float(0, 0, dimensionLineLength, 0));
-        g2D.draw(PlanComponent.DIMENSION_LINE_END);
-        g2D.translate(dimensionLineLength, 0);
-        g2D.draw(PlanComponent.DIMENSION_LINE_END);
+        g2D.scale(markEndScale, markEndScale);
+        g2D.draw(PlanComponent.DIMENSION_LINE_MARK_END);
+        g2D.translate(dimensionLineLength / markEndScale, 0);
+        g2D.draw(PlanComponent.DIMENSION_LINE_MARK_END);
+        g2D.scale(1 / markEndScale, 1 / markEndScale);
         g2D.translate(-dimensionLineLength, 0);
         g2D.setStroke(extensionLineStroke);
-        g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLine.getOffset(), 0, -5));
-        g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLine.getOffset(), dimensionLineLength, -5));
+        g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLineOffset, 0, 0));
+        g2D.draw(new java.awt.geom.Line2D.Float(dimensionLineLength, -dimensionLineOffset, dimensionLineLength, 0));
+      } else {
+        g2D.scale(markEndScale, markEndScale);
+        g2D.fill(PlanComponent.VERTICAL_DIMENSION_LINE_DISC);
+        g2D.draw(PlanComponent.VERTICAL_DIMENSION_LINE);
+        g2D.scale(1 / markEndScale, 1 / markEndScale);
+        g2D.setStroke(extensionLineStroke);
+        if (Math.abs(dimensionLineOffset) > dimensionLine.getEndMarkSize() / 2) {
+          g2D.draw(new java.awt.geom.Line2D.Float(0, -dimensionLineOffset,
+              0, -dimensionLine.getEndMarkSize() / 2 * (dimensionLineOffset >= 0 ? (dimensionLineOffset == 0 ? 0 : 1) : -1)));
+        }
+      }
         
+      if (horizontalDimensionLine
+          || dimensionLine === selectedDimensionLineWithIndicators) {
         var lengthText = plan.preferences.getLengthUnit().getFormat().format(dimensionLineLength);
         var lengthStyle = dimensionLine.getLengthStyle();
         if (lengthStyle == null) {
           lengthStyle = plan.preferences.getDefaultTextStyle(dimensionLine.constructor);
         }
-        if (feedback && plan.getFont() != null) {
+        if (feedback && plan.getFont() != null
+            || !horizontalDimensionLine
+                && dimensionLine == selectedDimensionLineWithIndicators) {
           // Call directly the overloaded deriveStyle method that takes a float parameter 
           // to avoid confusion with the one that takes a TextStyle.Alignment parameter
           lengthStyle = lengthStyle.deriveStyle$float(parseInt(new Font(plan.getFont()).size) / planScale);
@@ -4854,32 +4974,52 @@ PlanComponent.prototype.paintDimensionLines = function(g2D, dimensionLines, sele
         var font = plan.getFont(previousFont, lengthStyle);
         var lengthFontMetrics = plan.getFontMetrics(font, lengthStyle);
         var lengthTextBounds = lengthFontMetrics.getStringBounds(lengthText, g2D);
-        var fontAscent = lengthFontMetrics.getAscent();
-        g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2, dimensionLine.getOffset() <= 0 ? -lengthFontMetrics.getDescent() - 1 : fontAscent + 1);
         g2D.setFont(font);
-        if (feedback) {
+        if (!horizontalDimensionLine
+            && dimensionLine === selectedDimensionLineWithIndicators) {
+          g2D.rotate(angle > Math.PI ? Math.PI / 2 : -Math.PI / 2);
+          g2D.translate(dimensionLineOffset <= 0 ^ angle <= Math.PI
+                ? -lengthTextBounds.getWidth() - markEndWidth / 2 - 5 / planScale
+                : markEndWidth / 2 + 5 / planScale,
+              lengthFontMetrics.getAscent() / 2);
+          if (elevationDimensionLine
+              && this.resizeIndicatorVisible) {
+            // Add room for pitch rotation indicator
+            g2D.translate((dimensionLineOffset <= 0 ^ angle <= Math.PI ? -1 : 1) * 10 / planScale, 0);
+          }
+        } else {
+          g2D.translate((dimensionLineLength - lengthTextBounds.getWidth()) / 2,
+              dimensionLineOffset <= 0
+                  ? -lengthFontMetrics.getDescent() - 1
+                  : lengthFontMetrics.getAscent() + 1);
+        }
+        if (feedback
+            || !horizontalDimensionLine
+                && dimensionLine === selectedDimensionLineWithIndicators) {
           g2D.setColor(backgroundColor);
           var oldComposite = plan.setTransparency(g2D, 0.7);
           g2D.setStroke(new java.awt.BasicStroke(4 / planScale, java.awt.BasicStroke.CAP_SQUARE, java.awt.BasicStroke.CAP_ROUND));
           g2D.drawStringOutline(lengthText, 0, 0);
           g2D.setAlpha(oldComposite);
           g2D.setColor(foregroundColor);
+          if (!feedback) {
+            g2D.setPaint(indicatorPaint);
+          }
         }
+        g2D.setFont(font);
         g2D.drawString(lengthText, 0, 0);
-        g2D.setTransform(previousTransform);
       }
-    });
+      g2D.setTransform(previousTransform);
+    }
+  }
   g2D.setFont(previousFont);
-  if (selectedItems.length === 1 
-      && (selectedItems[0] instanceof DimensionLine) 
-      && paintMode === PlanComponent.PaintMode.PAINT 
-      && indicatorPaint != null) {
-    this.paintDimensionLineResizeIndicators(g2D, selectedItems[0], indicatorPaint, planScale);
+  if (selectedDimensionLineWithIndicators != null) {
+    this.paintDimensionLineResizeIndicators(g2D, selectedDimensionLineWithIndicators, indicatorPaint, planScale);
   }
 }
 
 /**
- * Paints resize indicator on a given dimension line.
+ * Paints resize indicators on a given dimension line.
  * @param {Graphics2D} g2D
  * @param {DimensionLine} dimensionLine
  * @param {string|CanvasPattern} indicatorPaint
@@ -4891,36 +5031,74 @@ PlanComponent.prototype.paintDimensionLineResizeIndicators = function(g2D, dimen
     g2D.setPaint(indicatorPaint);
     g2D.setStroke(PlanComponent.INDICATOR_STROKE);
     
-    var dimensionLineAngle = Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), 
-        dimensionLine.getXEnd() - dimensionLine.getXStart());
+    var dimensionLineAngle = dimensionLine.isElevationDimensionLine()
+        ? dimensionLine.getPitch()
+        : Math.atan2(dimensionLine.getYEnd() - dimensionLine.getYStart(), dimensionLine.getXEnd() - dimensionLine.getXStart());
+    var horizontalDimensionLine = dimensionLine.getElevationStart() === dimensionLine.getElevationEnd();
     
     var previousTransform = g2D.getTransform();
     var scaleInverse = 1 / planScale;
-    g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
-    g2D.rotate(dimensionLineAngle);
-    g2D.translate(0, dimensionLine.getOffset());
-    g2D.rotate(Math.PI);
-    g2D.scale(scaleInverse, scaleInverse);
     var resizeIndicator = this.getIndicator(dimensionLine, PlanComponent.IndicatorType.RESIZE);
-    g2D.draw(resizeIndicator);
-    g2D.setTransform(previousTransform);
+    if (horizontalDimensionLine) {
+      g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
+      g2D.rotate(dimensionLineAngle);
+      g2D.translate(0, dimensionLine.getOffset());
+      g2D.rotate(Math.PI);
+      g2D.scale(scaleInverse, scaleInverse);
+      g2D.draw(resizeIndicator);
+      g2D.setTransform(previousTransform);
     
-    g2D.translate(dimensionLine.getXEnd(), dimensionLine.getYEnd());
-    g2D.rotate(dimensionLineAngle);
-    g2D.translate(0, dimensionLine.getOffset());
-    g2D.scale(scaleInverse, scaleInverse);
-    g2D.draw(resizeIndicator);
-    g2D.setTransform(previousTransform);
+      g2D.translate(dimensionLine.getXEnd(), dimensionLine.getYEnd());
+      g2D.rotate(dimensionLineAngle);
+      g2D.translate(0, dimensionLine.getOffset());
+      g2D.scale(scaleInverse, scaleInverse);
+      g2D.draw(resizeIndicator);
+      g2D.setTransform(previousTransform);
     
-    g2D.translate((dimensionLine.getXStart() + dimensionLine.getXEnd()) / 2, 
-        (dimensionLine.getYStart() + dimensionLine.getYEnd()) / 2);
+      g2D.translate((dimensionLine.getXStart() + dimensionLine.getXEnd()) / 2, 
+          (dimensionLine.getYStart() + dimensionLine.getYEnd()) / 2);
+    } else {
+      g2D.translate(dimensionLine.getXStart(), dimensionLine.getYStart());
+    }
+    
     g2D.rotate(dimensionLineAngle);
-    g2D.translate(0, dimensionLine.getOffset());
+    var middlePointTransform = g2D.getTransform();
+    g2D.translate(0, dimensionLine.getOffset()
+        - (horizontalDimensionLine ? 0 : dimensionLine.getEndMarkSize() / 2 * (dimensionLine.getOffset() > 0 ? 1 : -1)));
     g2D.rotate(dimensionLine.getOffset() <= 0 
         ? Math.PI / 2 
         : -Math.PI / 2);
     g2D.scale(scaleInverse, scaleInverse);
     g2D.draw(resizeIndicator);
+
+    if (!horizontalDimensionLine) {
+      if (dimensionLine.isElevationDimensionLine()) {
+        g2D.setTransform(middlePointTransform);        
+        g2D.translate(0, dimensionLine.getOffset() + dimensionLine.getEndMarkSize() / 2 * (dimensionLine.getOffset() > 0 ? 1 : -1));
+        g2D.rotate(dimensionLine.getOffset() <= 0
+            ? Math.PI / 2
+            : -Math.PI / 2);
+        g2D.scale(scaleInverse, scaleInverse);
+        g2D.draw(this.getIndicator(dimensionLine, PlanComponent.IndicatorType.ROTATE));
+      }
+
+      g2D.setTransform(middlePointTransform);      
+      g2D.translate(-dimensionLine.getEndMarkSize() / 2, dimensionLine.getOffset());
+      g2D.scale(scaleInverse, scaleInverse);
+      g2D.draw(PlanComponent.ELEVATION_POINT_INDICATOR);
+      g2D.translate(-9, 0);
+      g2D.rotate(-dimensionLineAngle);
+      g2D.draw(this.getIndicator(dimensionLine, PlanComponent.IndicatorType.ELEVATE));
+
+      g2D.setTransform(middlePointTransform);
+      g2D.translate(5, dimensionLine.getOffset());
+      g2D.scale(scaleInverse, scaleInverse);
+      g2D.draw(PlanComponent.HEIGHT_POINT_INDICATOR);
+      g2D.translate(10, 0);
+      g2D.rotate(-dimensionLineAngle);
+      g2D.draw(this.getIndicator(dimensionLine, PlanComponent.IndicatorType.RESIZE_HEIGHT));
+    }
+    
     g2D.setTransform(previousTransform);
   }
 }
@@ -4930,6 +5108,7 @@ PlanComponent.prototype.paintDimensionLineResizeIndicators = function(g2D, dimen
  * @param {Graphics2D} g2D
  * @param {Label[]} labels
  * @param {Object[]} selectedItems
+ * @param {Level} level
  * @param {string|CanvasPattern} selectionOutlinePaint
  * @param {java.awt.BasicStroke} selectionOutlineStroke
  * @param {string|CanvasPattern} indicatorPaint
@@ -4938,11 +5117,11 @@ PlanComponent.prototype.paintDimensionLineResizeIndicators = function(g2D, dimen
  * @param {PlanComponent.PaintMode} paintMode
  * @private
  */
-PlanComponent.prototype.paintLabels = function(g2D, labels, selectedItems, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor, paintMode) {
+PlanComponent.prototype.paintLabels = function(g2D, labels, selectedItems, level, selectionOutlinePaint, selectionOutlineStroke, indicatorPaint, planScale, foregroundColor, paintMode) {
   var previousFont = g2D.getFont();
   for (var i = 0; i < labels.length; i++) {
     var label = labels[i];
-    if (this.isViewableAtSelectedLevel(label)) {
+    if (this.isViewableAtLevel(label, level)) {
       var selectedLabel = (selectedItems.indexOf((label)) >= 0);
       if (paintMode !== PlanComponent.PaintMode.CLIPBOARD || selectedLabel) {
         var labelText = label.getText();
@@ -5094,6 +5273,7 @@ PlanComponent.prototype.paintCompassIndicators = function(g2D, compass, indicato
  * Paints wall location feedback.
  * @param {Graphics2D} g2D
  * @param {Wall} alignedWall
+ * @param {Level} level
  * @param {java.awt.geom.Point2D} locationFeedback
  * @param {boolean} showPointFeedback
  * @param {string|CanvasPattern} feedbackPaint
@@ -5103,7 +5283,7 @@ PlanComponent.prototype.paintCompassIndicators = function(g2D, compass, indicato
  * @param {java.awt.BasicStroke} pointStroke
  * @private
  */
-PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
+PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, level, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
   var plan = this;
   if (locationFeedback != null) {
     var margin = 0.5 / planScale;
@@ -5111,7 +5291,7 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
     var y = locationFeedback.getY();
     var deltaXToClosestWall = Infinity;
     var deltaYToClosestWall = Infinity;
-    this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(function(wall) {
+    this.getViewedItems(this.home.getWalls(), level, this.otherLevelsWallsCache).forEach(function(wall) {
         if (wall !== alignedWall) {
           if (Math.abs(x - wall.getXStart()) < margin 
               && (alignedWall == null 
@@ -5194,20 +5374,21 @@ PlanComponent.prototype.paintWallAlignmentFeedback = function(g2D, alignedWall, 
 }
 
 /**
- * Returns the items viewed in the plan at the selected level.
+ * Returns the items viewed in the plan at the given <code>level</code>.
  * @param {Object[]} homeItems
+ * @param {Level} level
  * @param {Object[]} otherLevelItems
  * @return {Object[]}
  * @private
  */
-PlanComponent.prototype.getViewedItems = function(homeItems, otherLevelItems) {
+PlanComponent.prototype.getViewedItems = function(homeItems, level, otherLevelItems) {
   var viewedWalls = [];
   if (otherLevelItems != null) {
     viewedWalls.push.apply(viewedWalls, otherLevelItems);
   }
   for (var i = 0; i < homeItems.length; i++) {
     var wall = homeItems[i];
-    if (this.isViewableAtSelectedLevel(wall)) {
+    if (this.isViewableAtLevel(wall, level)) {
       viewedWalls.push(wall);
     }
   }
@@ -5262,6 +5443,7 @@ PlanComponent.prototype.equalsWallPoint = function(x, y, wall) {
  * Paints room location feedback.
  * @param {Graphics2D} g2D
  * @param {Room} alignedRoom
+ * @param {Level} level
  * @param {java.awt.geom.Point2D} locationFeedback
  * @param {boolean} showPointFeedback
  * @param {string|CanvasPattern} feedbackPaint
@@ -5271,14 +5453,14 @@ PlanComponent.prototype.equalsWallPoint = function(x, y, wall) {
  * @param {java.awt.BasicStroke} pointStroke
  * @private
  */
-PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
+PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, level, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
   if (locationFeedback != null) {
     var margin = 0.5 / planScale;
     var x = locationFeedback.getX();
     var y = locationFeedback.getY();
     var deltaXToClosestObject = Infinity;
     var deltaYToClosestObject = Infinity;
-    this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(function(room) {
+    this.getViewedItems(this.home.getRooms(), level, this.otherLevelsRoomsCache).forEach(function(room) {
         var roomPoints = room.getPoints();
         var editedPointIndex = -1;
         if (room === alignedRoom) {
@@ -5303,7 +5485,7 @@ PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, 
         }
       });
     
-    this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(function(wall) {
+    this.getViewedItems(this.home.getWalls(), level, this.otherLevelsWallsCache).forEach(function(wall) {
         var wallPoints = wall.getPoints();
         wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], 
                       wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
@@ -5352,6 +5534,7 @@ PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, 
  * Paints dimension line location feedback.
  * @param {Graphics2D} g2D
  * @param {DimensionLine} alignedDimensionLine
+ * @param {Level} level
  * @param {java.awt.geom.Point2D} locationFeedback
  * @param {boolean} showPointFeedback
  * @param {string|CanvasPattern} feedbackPaint
@@ -5361,7 +5544,7 @@ PlanComponent.prototype.paintRoomAlignmentFeedback = function(g2D, alignedRoom, 
  * @param {java.awt.BasicStroke} pointStroke
  * @private
  */
-PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alignedDimensionLine, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
+PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alignedDimensionLine, level, locationFeedback, showPointFeedback, feedbackPaint, feedbackStroke, planScale, pointPaint, pointStroke) {
   var plan = this;
   if (locationFeedback != null) {
     var margin = 0.5 / planScale;
@@ -5369,7 +5552,7 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
     var y = locationFeedback.getY();
     var deltaXToClosestObject = Infinity;
     var deltaYToClosestObject = Infinity;
-    this.getViewedItems(this.home.getRooms(), this.otherLevelsRoomsCache).forEach(function(room) {
+    this.getViewedItems(this.home.getRooms(), level, this.otherLevelsRoomsCache).forEach(function(room) {
         var roomPoints = room.getPoints();
         for (var i = 0; i < roomPoints.length; i++) {
           if (Math.abs(x - roomPoints[i][0]) < margin 
@@ -5384,7 +5567,8 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
       });
     
     this.home.getDimensionLines().forEach(function(dimensionLine) {
-        if (plan.isViewableAtSelectedLevel(dimensionLine) && dimensionLine !== alignedDimensionLine) {
+        if (plan.isViewableAtLevel(dimensionLine, level) 
+            && dimensionLine !== alignedDimensionLine) {
           if (Math.abs(x - dimensionLine.getXStart()) < margin 
               && (alignedDimensionLine == null 
                   || !plan.equalsDimensionLinePoint(dimensionLine.getXStart(), dimensionLine.getYStart(), 
@@ -5418,7 +5602,7 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
         }
       });
     
-    this.getViewedItems(this.home.getWalls(), this.otherLevelsWallsCache).forEach(function(wall) {
+    this.getViewedItems(this.home.getWalls(), level, this.otherLevelsWallsCache).forEach(function(wall) {
         var wallPoints = wall.getPoints();
         wallPoints = [wallPoints[0], wallPoints[(wallPoints.length / 2 | 0) - 1], 
                       wallPoints[(wallPoints.length / 2 | 0)], wallPoints[wallPoints.length - 1]];
@@ -5436,7 +5620,7 @@ PlanComponent.prototype.paintDimensionLineAlignmentFeedback = function(g2D, alig
     
     this.home.getFurniture().forEach(function(piece) {
         if (piece.isVisible() 
-            && plan.isViewableAtSelectedLevel(piece)) {
+            && plan.isViewableAtLevel(piece, level)) {
           var piecePoints = piece.getPoints();
           for (var i = 0; i < piecePoints.length; i++) {
             if (Math.abs(x - piecePoints[i][0]) < margin 
@@ -6348,13 +6532,13 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.getSceneRoot = function(iconSi
     }
     canvas3D.setScene(sceneRoot);
     if (!PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
-	  PlanComponent.PieceOfFurnitureModelIcon.canvas3D = {};
+      PlanComponent.PieceOfFurnitureModelIcon.canvas3D = {};
     }
     PlanComponent.PieceOfFurnitureModelIcon.canvas3D [iconSize] = canvas3D;
   }
   
   if (iconSize !== 128) {
-	// Keep only canvas for 128 (default) size and the requested icon size
+    // Keep only canvas for 128 (default) size and the requested icon size
     for (var key in PlanComponent.PieceOfFurnitureModelIcon.canvas3D) {
       if (key != 128
           && key != iconSize
@@ -6384,6 +6568,9 @@ PlanComponent.PieceOfFurnitureModelIcon.prototype.createIcon = function(pieceNod
   mat4.scale(scaleTransform, scaleTransform, vec3.fromValues(2 / pieceWidth, 2 / pieceHeight, 2 / pieceDepth));
   var modelTransformGroup = new TransformGroup3D();
   modelTransformGroup.setTransform(scaleTransform);
+  if (pieceNode.getParent() != null) {
+    pieceNode.getParent().removeChild(pieceNode);
+  }
   modelTransformGroup.addChild(pieceNode);
   var model = new BranchGroup3D();
   model.addChild(modelTransformGroup);

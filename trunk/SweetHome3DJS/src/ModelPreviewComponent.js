@@ -657,9 +657,10 @@ ModelPreviewComponent.prototype.setModelTransformations = function(transformatio
 }
 
 /**
- * @private
+ * @param {Array} transformations
+ * @ignored
  */
-ModelPreviewComponent.prototype.resetModelTransformations = function() {
+ModelPreviewComponent.prototype.setPresetModelTransformations = function(transformations) {
   if (this.previewedPiece != null) {
     var modelManager = ModelManager.getInstance();
     var oldBounds = modelManager.getBounds(this.getModelNode());
@@ -668,7 +669,7 @@ ModelPreviewComponent.prototype.resetModelTransformations = function() {
     var oldUpper = vec3.create();
     oldBounds.getUpper(oldUpper);
 
-    this.resetTransformations(this.getModelNode());
+    this.setNodeTransformations(this.getModelNode(), transformations);
 
     var newBounds = modelManager.getBounds(this.getModelNode());
     var newLower = vec3.create();
@@ -681,24 +682,49 @@ ModelPreviewComponent.prototype.resetModelTransformations = function() {
     this.previewedPiece.setWidth(newUpper [0] - newLower [0]);
     this.previewedPiece.setDepth(newUpper [2] - newLower [2]);
     this.previewedPiece.setHeight(newUpper [1] - newLower [1]);
-    this.previewedPiece.setModelTransformations(null);
+    this.previewedPiece.setModelTransformations(transformations);
   }
 }
 
 /**
+ * @ignored
+ */
+ModelPreviewComponent.prototype.resetModelTransformations = function() {
+  this.setPresetModelTransformations(null);
+}
+
+/**
  * @param {Node3D} node
+ * @param {Array} transformations
  * @private
  */
-ModelPreviewComponent.prototype.resetTransformations = function(node) {
+ModelPreviewComponent.prototype.setNodeTransformations = function(node, transformations) {
   if (node instanceof Group3D) {
     if (node instanceof TransformGroup3D
         && node.getName() !== null
         && node.getName().lastIndexOf(ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX) === node.getName().length - ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX.length) {
       node.setTransform(mat4.create());
+      if (transformations != null) {
+        var transformationName = node.getName();
+        transformationName = transformationName.substring(0, transformationName.length - ModelManager.DEFORMABLE_TRANSFORM_GROUP_SUFFIX.length);
+        for (var i = 0; i < transformations.length; i++) {
+          var transformation = transformations [i];
+          if (transformationName == transformation.getName()) {
+            var matrix = transformation.getMatrix();
+            var transformMatrix = mat4.create();
+            mat4.set(transformMatrix, 
+                matrix[0][0], matrix[1][0], matrix[2][0], 0,
+                matrix[0][1], matrix[1][1], matrix[2][1], 0,
+                matrix[0][2], matrix[1][2], matrix[2][2], 0,
+                matrix[0][3], matrix[1][3], matrix[2][3], 1);
+            node.setTransform(transformMatrix);
+          }
+        }
+      }
     }
     var children = node.getChildren();
     for (var i = 0; i < children.length; i++) {
-      this.resetTransformations(children [i]);
+      this.setNodeTransformations(children [i], transformations);
     }
   }
 }
