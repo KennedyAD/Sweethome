@@ -573,7 +573,7 @@
     <copy file="../SweetHome3D/install/SweetHome3D-${SweetHome3D-version}.jar" todir="deployIncrementalHomeRecorder/WEB-INF/lib" />
     <copy file="tools/json/lib/json-20190722.jar" todir="deployIncrementalHomeRecorder/WEB-INF/lib" />
     <copy file="test/resources/HomeTest.sh3d" todir="deployIncrementalHomeRecorder/homes" />
-    <javac srcdir="tools/deployIncrementalHomeRecorder/src" destdir="deployIncrementalHomeRecorder/WEB-INF/classes"
+    <javac srcdir="tools/deploy/src" destdir="deployIncrementalHomeRecorder/WEB-INF/classes"
            source="1.8" target="1.8" encoding="ISO-8859-1"
            debug="${debug}" debuglevel="lines,vars,source">
       <classpath>
