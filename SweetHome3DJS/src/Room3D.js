@@ -27,24 +27,36 @@
  * Creates the 3D room matching the given home <code>room</code>.
  * @param {Room} room
  * @param {Home} home
+ * @param {UserPreferences} [preferences]
  * @param {boolean} ignoreCeilingPart
  * @param {boolean} waitTextureLoadingEnd
  * @constructor
  * @extends Object3DBranch
  * @author Emmanuel Puybaret
  */
-function Room3D(room, home, ignoreCeilingPart, waitTextureLoadingEnd) {
-  Object3DBranch.call(this);
+function Room3D(room, home, preferences, ignoreCeilingPart, waitTextureLoadingEnd) {
+  if (waitTextureLoadingEnd === undefined) {
+    // 4 parameters
+    waitModelAndTextureLoadingEnd = ignoreCeilingPart;
+    ignoreCeilingPart = preferences;
+    preferences = null;
+  }
+  Object3DBranch.call(this, room, home, preferences);
   if (ignoreCeilingPart === undefined) {
     ignoreCeilingPart = false;
     waitTextureLoadingEnd = false;
   }
   
-  this.setUserData(room);      
-  this.home = home;
+  this.addChild(this.createRoomPartShape());
+  this.addChild(this.createRoomPartShape());
+  
+  // Add selection node
+  var roomSelectionShape = new Shape3D();
+  roomSelectionShape.setAppearance(this.getSelectionAppearance());
+  roomSelectionShape.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
+  roomSelectionShape.setPickable(false);
+  this.addChild(roomSelectionShape);
 
-  this.addChild(this.createRoomPartShape());
-  this.addChild(this.createRoomPartShape());
   this.updateRoomGeometry();
   this.updateRoomAppearance(waitTextureLoadingEnd);
   if (ignoreCeilingPart) {
@@ -85,7 +97,7 @@ Room3D.prototype.updateRoomGeometry = function() {
   this.updateRoomPartGeometry(Room3D.FLOOR_PART, this.getUserData().getFloorTexture());
   this.updateRoomPartGeometry(Room3D.CEILING_PART, this.getUserData().getCeilingTexture());
   var room = this.getUserData();
-  this.setPickable(this.home.getEnvironment().getWallsAlpha() == 0
+  this.setPickable(this.getHome().getEnvironment().getWallsAlpha() == 0
       || room.getLevel() == null 
       || room.getLevel().getElevation() <= 0);
 }
@@ -103,6 +115,12 @@ Room3D.prototype.updateRoomPartGeometry = function(roomPart, texture) {
   for (var i = currentGeometriesCount - 1; i >= 0; i--) {
     roomShape.removeGeometry(i);
   }
+  
+  var roomSelectionShape = this.getChild(2);
+  roomSelectionShape.addGeometry(this.createRoomSelectionGeometry());
+  if (roomSelectionShape.getGeometries().length > 1) {
+    roomSelectionShape.removeGeometry(0);
+  }
 }
 
 /**
@@ -119,7 +137,7 @@ Room3D.prototype.createRoomGeometries = function(roomPart, texture) {
         || roomPart === Room3D.CEILING_PART && room.isCeilingVisible()) 
       && points.length > 2) {
     var roomLevel = room.getLevel();
-    var levels = this.home.getLevels();
+    var levels = this.getHome().getLevels();
     var lastLevel = this.isLastLevel(roomLevel, levels);
     var floorBottomElevation;
     var roomElevation;
@@ -142,7 +160,7 @@ Room3D.prototype.createRoomGeometries = function(roomPart, texture) {
     
     var roomsAtSameElevation = [];
     var ceilingsAtSameFloorBottomElevation = [];
-    var rooms = this.home.getRooms();
+    var rooms = this.getHome().getRooms();
     for (var i = 0; i < rooms.length; i++) {
       var homeRoom = rooms[i];
       var homeRoomLevel = homeRoom.getLevel();
@@ -188,7 +206,7 @@ Room3D.prototype.createRoomGeometries = function(roomPart, texture) {
             && lastLevel) {
       visibleStaircases = [];
     } else {
-      visibleStaircases = this.getVisibleStaircases(this.home.getFurniture(), roomPart, roomLevel, 
+      visibleStaircases = this.getVisibleStaircases(this.getHome().getFurniture(), roomPart, roomLevel, 
           roomLevel.getElevation() === firstLevelElevation);
     }
     
@@ -232,7 +250,7 @@ Room3D.prototype.createRoomGeometries = function(roomPart, texture) {
     }
     
     var geometries = [];
-    var subpartSize = this.home.getEnvironment().getSubpartSizeUnderLight();
+    var subpartSize = this.getHome().getEnvironment().getSubpartSizeUnderLight();
     
     if (roomPointsWithoutHoles.length !== 0) {
       var roomPointElevations = [];
@@ -593,15 +611,16 @@ Room3D.prototype.getReversedArray = function (points) {
 Room3D.prototype.getRoomHeightAt = function (x, y) {
   var smallestDistance = Infinity;
   var room = this.getUserData();
+  var home = this.getHome();
   var roomLevel = room.getLevel();
   var roomElevation = roomLevel !== null 
       ? roomLevel.getElevation() 
       : 0;
   var roomHeight = roomElevation + 
-      (roomLevel == null ? this.home.getWallHeight() : roomLevel.getHeight());
-  var levels = this.home.getLevels();
+      (roomLevel == null ? home.getWallHeight() : roomLevel.getHeight());
+  var levels = home.getLevels();
   if (roomLevel == null || this.isLastLevel(roomLevel, levels)) {
-    var walls = this.home.getWalls();
+    var walls = home.getWalls();
     if (room.isCeilingFlat()) {
       // Search the highest wall at last level
       var roomHeightSet = false;
@@ -662,7 +681,7 @@ Room3D.prototype.getRoomHeightAt = function (x, y) {
         if (closestIndex === 0 || closestIndex === closestWallPoints.length - 1) {
           roomHeight += wallHeightAtStart != null 
               ? wallHeightAtStart 
-              : this.home.getWallHeight();
+              : home.getWallHeight();
         } else {
           if (closestWall.isTrapezoidal()) {
             var arcExtent = closestWall.getArcExtent();
@@ -688,7 +707,7 @@ Room3D.prototype.getRoomHeightAt = function (x, y) {
                   + (closestWall.getHeightAtEnd() - wallHeightAtStart) * arcExtentToClosestWallPoint / arcExtent;
             }
           } else {
-            roomHeight += (wallHeightAtStart != null ? wallHeightAtStart : this.home.getWallHeight());
+            roomHeight += (wallHeightAtStart != null ? wallHeightAtStart : home.getWallHeight());
           }
         }
       }
@@ -709,6 +728,90 @@ Room3D.prototype.isLastLevel = function(level, levels) {
 }
 
 /**
+ * Returns the selection geometry of this room.
+ * @return {IndexedGeometryArray3D}
+ * @private
+ */
+Room3D.prototype.createRoomSelectionGeometry = function() {
+  var room = this.getUserData();
+  var roomLevel = room.getLevel();
+  var levels = this.getHome().getLevels();
+  var floorBottomElevation;
+  var roomElevation;
+  if (roomLevel != null) {
+    roomElevation = roomLevel.getElevation();
+    floorBottomElevation = roomElevation - roomLevel.getFloorThickness();
+  } else {
+    roomElevation = 0;
+    floorBottomElevation = 0;
+  }
+  var firstLevelElevation;
+  if (levels.length == 0) {
+    firstLevelElevation = 0;
+  } else {
+    firstLevelElevation = levels [0].getElevation();
+  }
+  var floorVisible = room.isFloorVisible();
+  var floorBottomVisible = floorVisible
+      && roomLevel != null
+      && roomElevation != firstLevelElevation;
+
+  var roomPoints = room.getPoints();
+  var ceilingVisible = room.isCeilingVisible();
+  if (!floorVisible && !ceilingVisible) {
+    // If floor and ceiling not visible, draw at least floor contour for feedback
+    floorVisible = true;
+  }
+  var selectionCoordinates = new Array(roomPoints.length * ((floorVisible ? (floorBottomVisible ? 2 : 1) : 0)
+                                       + (ceilingVisible ? 1 : 0)));
+  var indices = new Array ((floorVisible ? (floorBottomVisible ? roomPoints.length * 6 : roomPoints.length * 2) : 0)
+                           + (ceilingVisible ? (roomPoints.length * 2) : 0));
+  var j = 0, k = 0;
+  if (floorVisible) {
+    // Contour at room elevation
+    for (var i = 0; i < roomPoints.length; i++, j++) {
+      selectionCoordinates [j] = vec3.fromValues(roomPoints [i][0], roomElevation, roomPoints [i][1]);
+      indices [k++] = j;
+      if (i > 0) {
+        indices [k++] = j;
+      }
+    }
+    indices [k++] = 0;
+
+    if (floorBottomVisible) {
+      // Contour at floor bottom
+      for (var i = 0; i < roomPoints.length; i++, j++) {
+        selectionCoordinates [j] = vec3.fromValues(roomPoints [i][0], floorBottomElevation, roomPoints [i][1]);
+        indices [k++] = j;
+        if (i > 0) {
+          indices [k++] = j;
+        }
+      }
+      indices [k++] = roomPoints.length;
+
+      for (var i = 0; i < roomPoints.length; i++) {
+        indices [k++] = i;
+        indices [k++] = i + roomPoints.length;
+      }
+    }
+  }
+
+  if (ceilingVisible) {
+    // Contour at room ceiling
+    for (var i = 0; i < roomPoints.length; i++, j++) {
+      selectionCoordinates [j] = vec3.fromValues(roomPoints [i][0], this.getRoomHeightAt(roomPoints [i][0], roomPoints [i][1]), roomPoints [i][1]);
+      indices [k++] = j;
+      if (i > 0) {
+        indices [k++] = j;
+      }
+    }
+    indices [k++] = selectionCoordinates.length - roomPoints.length;
+  }
+
+  return new IndexedLineArray3D(selectionCoordinates, indices);
+}
+
+/**
  * Sets room appearance with its color, texture.
  * @param {boolean} waitTextureLoadingEnd
  * @private
@@ -718,9 +821,16 @@ Room3D.prototype.updateRoomAppearance = function(waitTextureLoadingEnd) {
   var ignoreFloorTransparency = room.getLevel() == null || room.getLevel().getElevation() <= 0;
   this.updateRoomPartAppearance(this.getChild(Room3D.FLOOR_PART).getAppearance(), 
       room.getFloorTexture(), waitTextureLoadingEnd, room.getFloorColor(), room.getFloorShininess(), room.isFloorVisible(), ignoreFloorTransparency, true);
-  var ignoreCeillingTransparency = room.getLevel() == null;
-  this.updateRoomPartAppearance(this.getChild(Room3D.CEILING_PART).getAppearance(), 
-      room.getCeilingTexture(), waitTextureLoadingEnd, room.getCeilingColor(), room.getCeilingShininess(), room.isCeilingVisible(), ignoreCeillingTransparency, false);
+  var numChildren = this.getChildren().length;
+  if (numChildren > 2) {
+    var ignoreCeillingTransparency = room.getLevel() == null;
+    this.updateRoomPartAppearance(this.getChild(Room3D.CEILING_PART).getAppearance(), 
+        room.getCeilingTexture(), waitTextureLoadingEnd, room.getCeilingColor(), room.getCeilingShininess(), room.isCeilingVisible(), ignoreCeillingTransparency, false);
+  }
+  var selectionShapeAppearance = this.getChild(numChildren > 2 ? 2 : 1).getAppearance();
+  selectionShapeAppearance.setVisible(this.getUserPreferences() != null
+      && this.getUserPreferences().isEditingIn3DViewEnabled()
+      && this.getHome().isItemSelected(room));      
 }
 
 /**
@@ -756,7 +866,7 @@ Room3D.prototype.updateRoomPartAppearance = function(roomPartAppearance, roomPar
         }
       });
   }
-  var upperRoomsAlpha = this.home.getEnvironment().getWallsAlpha();
+  var upperRoomsAlpha = this.getHome().getEnvironment().getWallsAlpha();
   if (ignoreTransparency || upperRoomsAlpha === 0) {
     roomPartAppearance.setTransparency(0);
   } else {

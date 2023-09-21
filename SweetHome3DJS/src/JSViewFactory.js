@@ -97,56 +97,56 @@ JSViewFactory.prototype.createBackgroundImageWizardStepsView = function(backgrou
 
   function BackgroundImageWizardStepsView() {
     JSComponent.call(this, preferences,
-        '<div choiceStep>' +
-        '  <div description>@{BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>' +
-        '  <div class="buttons">' +
-        '    <button selectImage></button>' +
-        '    <input type="file" accept="image/*" style="display: none" /> ' +
-        '  </div>' +
-        '  <div preview>' +
-        '    <img />' +
-        '  </div>' +
-        '</div>' +
-        '<div scaleStep>' +
-        '  <div>@{BackgroundImageWizardStepsPanel.scaleLabel.text}</div>' +
-        '  <br />' +
-        '  <div>' +
-        '    <span data-name="scale-distance-label"></span>' +
-        '    <span data-name="scale-distance-input"></span>' +
-        '  </div>' +
-        '  <br />' +
-        '  <div class="preview-panel">' +
-        '    <div preview>' +
-        '      <canvas />' +
-        '    </div>' +
-        '    <div class="preview-controls" style="z-index:5">' +
-        '      <div previewZoomIn></div>' +
-        '      <br />' +
-        '      <div previewZoomOut></div>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>' +
-        '<div originStep>' +
-        '  <div>@{BackgroundImageWizardStepsPanel.originLabel.text}</div>' +
-        '  <br />' +
-        '  <div>' +
-          '    <span data-name="x-origin-label"></span>' +
-          '    <span data-name="x-origin-input"></span>' +
-          '    <span data-name="y-origin-label"></span>' +
-          '    <span data-name="y-origin-input"></span>' +
-        '  </div>' +
-        '  <br />' +
-        '  <div class="preview-panel">' +
-        '    <div preview>' +
-          '      <canvas />' +
-        '    </div>' +
-        '    <div class="preview-controls" style="z-index:5">' +
-        '      <div previewZoomIn></div>' +
-        '      <br />' +
-        '      <div previewZoomOut></div>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>');
+          "<div choiceStep>"
+        + "  <div description>@{BackgroundImageWizardStepsPanel.imageChangeLabel.text}</div>"
+        + "  <div class='buttons'>"
+        + "    <button selectImage></button>"
+        + "    <input type='file' accept='image/*' style='display: none' />"
+        + "  </div>"
+        + "  <div preview>"
+        + "    <img />"
+        + "  </div>"
+        + "</div>"
+        + "<div scaleStep>"
+        + "  <div>@{BackgroundImageWizardStepsPanel.scaleLabel.text}</div>"
+        + "  <br />"
+        + "  <div>"
+        + "    <span data-name='scale-distance-label'></span>"
+        + "    <span data-name='scale-distance-input'></span>"
+        + "  </div>"
+        + "  <br />"
+        + "  <div class='preview-panel'>"
+        + "    <div preview>"
+        + "      <canvas />"
+        + "    </div>"
+        + "    <div class='preview-controls' style='z-index:5'>"
+        + "      <div previewZoomIn></div>"
+        + "      <br />"
+        + "      <div previewZoomOut></div>"
+        + "    </div>"
+        + "  </div>"
+        + "</div>"
+        + "<div originStep>"
+        + "  <div>@{BackgroundImageWizardStepsPanel.originLabel.text}</div>"
+        + "  <br />"
+        + "  <div>"
+        + "    <span data-name='x-origin-label'></span>"
+        + "    <span data-name='x-origin-input'></span>"
+        + "    <span data-name='y-origin-label'></span>"
+        + "    <span data-name='y-origin-input'></span>"
+        + "  </div>"
+        + "  <br />"
+        + "  <div class='preview-panel'>"
+        + "    <div preview>"
+        + "      <canvas />"
+        + "    </div>"
+        + "    <div class='preview-controls' style='z-index:5'>"
+        + "      <div previewZoomIn></div>"
+        + "      <br />"
+        + "      <div previewZoomOut></div>"
+        + "    </div>"
+        + "  </div>"
+        + "</div>");
 
     this.controller = controller;
     this.getHTMLElement().classList.add("background-image-wizard");
@@ -755,45 +755,45 @@ JSViewFactory.prototype.createImportedTextureWizardStepsView = function(texture,
 
   function ImportedTextureWizardStepsView() {
     JSComponent.call(this, preferences,
-        '<div imageStep>' + 
-        '  <div description>@{ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>' +
-        '  <div class="buttons">' +
-        '    <button changeImage>@{ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>' +
-        '    <button findImage>@{ImportedTextureWizardStepsPanel.findImagesButton.text}</button>' +
-        '    <input type="file" accept="image/*" style="display: none" /> ' +
-        '  </div>' +
-        '  <div preview>' +
-        '    <img>' +
-        '  </div>' +
-        '</div>' +
-        '<div attributesStep>' +
-        '  <div description></div>' +
-        '  <div form> ' +
-        '    <div preview> ' +
-        '      <img /> ' +
-        '    </div> ' +
-        '    <div>@{ImportedTextureWizardStepsPanel.nameLabel.text}</div> ' +
-        '    <div>' +
-        '      <input type="text" name="name" />' +
-        '    </div> ' +
-        '    <div>@{ImportedTextureWizardStepsPanel.categoryLabel.text}</div> ' +
-        '    <div>' +
-        '      <select name="category"></select>' +
-        '    </div> ' +
-        '    <div>@{ImportedTextureWizardStepsPanel.creatorLabel.text}</div> ' +
-        '    <div>' +
-        '      <input type="text" name="creator" />' +
-        '    </div>' +
-        '    <div data-name="width-label" class="label-cell"></div>' +
-        '    <div> ' +
-        '      <span data-name="width-input"></span>' +
-        '    </div>' +
-        '    <div data-name="height-label" class="label-cell"></div>' +
-        '    <div>' +
-        '      <span data-name="height-input"></span>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>');
+          "<div imageStep>" 
+        + "  <div description>@{ImportedTextureWizardStepsPanel.imageChangeLabel.text}</div>"
+        + "  <div class='buttons'>"
+        + "    <button changeImage>@{ImportedTextureWizardStepsPanel.imageChangeButton.text}</button>"
+        + "    <button findImage>@{ImportedTextureWizardStepsPanel.findImagesButton.text}</button>"
+        + "    <input type='file' accept='image/*' style='display: none'/>"
+        + "  </div>"
+        + "  <div preview>"
+        + "    <img>"
+        + "  </div>"
+        + "</div>"
+        + "<div attributesStep>"
+        + "  <div description></div>"
+        + "  <div form>"
+        + "    <div preview>"
+        + "      <img />"
+        + "    </div>"
+        + "    <div>@{ImportedTextureWizardStepsPanel.nameLabel.text}</div>"
+        + "    <div>"
+        + "      <input type='text' name='name' />"
+        + "    </div>"
+        + "    <div>@{ImportedTextureWizardStepsPanel.categoryLabel.text}</div>"
+        + "    <div>"
+        + "      <select name='category'></select>"
+        + "    </div>"
+        + "    <div>@{ImportedTextureWizardStepsPanel.creatorLabel.text}</div>"
+        + "    <div>"
+        + "      <input type='text' name='creator' />"
+        + "    </div>"
+        + "    <div data-name='width-label' class='label-cell'></div>"
+        + "    <div>"
+        + "      <span data-name='width-input'></span>"
+        + "    </div>"
+        + "    <div data-name='height-label' class='label-cell'></div>"
+        + "    <div>"
+        + "      <span data-name='height-input'></span>"
+        + "    </div>"
+        + "  </div>"
+        + "</div>");
 
     this.controller = controller;
     this.userCategory = new TexturesCategory(
@@ -1219,6 +1219,9 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
           if (isElementVisible(dialog.navigationPanelCheckBox)) {
             controller.setNavigationPanelVisible(dialog.navigationPanelCheckBox.checked);
           }
+          if (isElementVisible(dialog.editingIn3DViewCheckBox)) {
+            controller.setEditingIn3DViewEnabled(dialog.editingIn3DViewCheckBox.checked);
+          }
           if (isElementVisible(dialog.aerialViewCenteredOnSelectionCheckBox)) {
             controller.setAerialViewCenteredOnSelectionEnabled(dialog.aerialViewCenteredOnSelectionCheckBox.checked);
           }
@@ -1351,163 +1354,163 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
   if (controller.isPropertyEditable("CURRENCY")) {
     dialog.currencySelect.appendChild(JSComponent.createOptionElement("", noCurrencyLabel, !controller.getCurrency()));
     var currencyDisplayNames = {
-        EUR: 'EUR €',
-        AED: 'AED AED',
-        AFN: 'AFN ؋',
-        ALL: 'ALL Lekë',
-        AMD: 'AMD ֏',
-        ANG: 'ANG NAf.',
-        AOA: 'AOA Kz',
-        ARS: 'ARS $',
-        AUD: 'AUD $',
-        AWG: 'AWG Afl.',
-        AZN: 'AZN ₼',
-        BAM: 'BAM KM',
-        BBD: 'BBD $',
-        BDT: 'BDT ৳',
-        BGN: 'BGN лв.',
-        BHD: 'BHD د.ب.‏',
-        BIF: 'BIF FBu',
-        BMD: 'BMD $',
-        BND: 'BND $',
-        BOB: 'BOB Bs',
-        BRL: 'BRL R$',
-        BSD: 'BSD $',
-        BTN: 'BTN Nu.',
-        BWP: 'BWP P',
-        BYN: 'BYN Br',
-        BZD: 'BZD $',
-        CAD: 'CAD $',
-        CDF: 'CDF FC',
-        CHF: 'CHF CHF',
-        CLP: 'CLP $',
-        CNY: 'CNY ￥',
-        COP: 'COP $',
-        CRC: 'CRC ₡',
-        CSD: 'CSD CSD',
-        CUP: 'CUP $',
-        CVE: 'CVE ​',
-        CZK: 'CZK Kč',
-        DJF: 'DJF Fdj',
-        DKK: 'DKK kr',
-        DOP: 'DOP RD$',
-        DZD: 'DZD DA',
-        EGP: 'EGP ج.م.‏',
-        ERN: 'ERN Nfk',
-        ETB: 'ETB Br',
-        EUR: 'EUR €',
-        FJD: 'FJD $',
-        FKP: 'FKP £',
-        GBP: 'GBP £',
-        GEL: 'GEL ₾',
-        GHS: 'GHS GH₵',
-        GIP: 'GIP £',
-        GMD: 'GMD D',
-        GNF: 'GNF FG',
-        GTQ: 'GTQ Q',
-        GYD: 'GYD $',
-        HKD: 'HKD HK$',
-        HNL: 'HNL L',
-        HRK: 'HRK HRK',
-        HTG: 'HTG G',
-        HUF: 'HUF Ft',
-        IDR: 'IDR Rp',
-        ILS: 'ILS ₪',
-        INR: 'INR ₹',
-        IQD: 'IQD د.ع.‏',
-        IRR: 'IRR IRR',
-        ISK: 'ISK ISK',
-        JMD: 'JMD $',
-        JOD: 'JOD د.أ.‏',
-        JPY: 'JPY ￥',
-        KES: 'KES Ksh',
-        KGS: 'KGS сом',
-        KHR: 'KHR ៛',
-        KMF: 'KMF CF',
-        KPW: 'KPW KPW',
-        KRW: 'KRW ₩',
-        KWD: 'KWD د.ك.‏',
-        KYD: 'KYD $',
-        KZT: 'KZT ₸',
-        LAK: 'LAK ₭',
-        LBP: 'LBP ل.ل.‏',
-        LKR: 'LKR Rs.',
-        LRD: 'LRD $',
-        LSL: 'LSL LSL',
-        LYD: 'LYD د.ل.‏',
-        MAD: 'MAD MAD',
-        MDL: 'MDL L',
-        MGA: 'MGA Ar',
-        MKD: 'MKD den',
-        MMK: 'MMK K',
-        MNT: 'MNT ₮',
-        MOP: 'MOP MOP$',
-        MRU: 'MRU UM',
-        MUR: 'MUR Rs',
-        MWK: 'MWK MK',
-        MXN: 'MXN $',
-        MYR: 'MYR RM',
-        MZN: 'MZN MTn',
-        NAD: 'NAD $',
-        NGN: 'NGN ₦',
-        NIO: 'NIO C$',
-        NOK: 'NOK kr',
-        NPR: 'NPR नेरू',
-        NZD: 'NZD $',
-        OMR: 'OMR ر.ع.‏',
-        PAB: 'PAB B/.',
-        PEN: 'PEN S/',
-        PGK: 'PGK K',
-        PHP: 'PHP ₱',
-        PKR: 'PKR ر',
-        PLN: 'PLN zł',
-        PYG: 'PYG Gs.',
-        QAR: 'QAR ر.ق.‏',
-        RON: 'RON RON',
-        RSD: 'RSD RSD',
-        RUB: 'RUB ₽',
-        RWF: 'RWF RF',
-        SAR: 'SAR ر.س.‏',
-        SBD: 'SBD $',
-        SCR: 'SCR SR',
-        SDG: 'SDG SDG',
-        SEK: 'SEK kr',
-        SGD: 'SGD $',
-        SHP: 'SHP £',
-        SLL: 'SLL Le',
-        SOS: 'SOS S',
-        SRD: 'SRD $',
-        SSP: 'SSP £',
-        STN: 'STN Db',
-        SVC: 'SVC C',
-        SYP: 'SYP LS',
-        SZL: 'SZL E',
-        THB: 'THB ฿',
-        TJS: 'TJS сом.',
-        TMT: 'TMT TMT',
-        TND: 'TND DT',
-        TOP: 'TOP T$',
-        TRY: 'TRY ₺',
-        TTD: 'TTD $',
-        TWD: 'TWD $',
-        TZS: 'TZS TSh',
-        UAH: 'UAH ₴',
-        UGX: 'UGX USh',
-        USD: 'USD $',
-        UYU: 'UYU $',
-        UZS: 'UZS сўм',
-        VES: 'VES Bs.S',
-        VND: 'VND ₫',
-        VUV: 'VUV VT',
-        WST: 'WST WS$',
-        XAF: 'XAF FCFA',
-        XCD: 'XCD $',
-        XOF: 'XOF CFA',
-        XPF: 'XPF FCFP',
-        YER: 'YER ر.ي.‏',
-        ZAR: 'ZAR R',
-        ZMW: 'ZMW K',
-        ZWL: 'ZWL ZWL'
+        EUR: "EUR €",
+        AED: "AED AED",
+        AFN: "AFN ؋",
+        ALL: "ALL Lekë",
+        AMD: "AMD ֏",
+        ANG: "ANG NAf.",
+        AOA: "AOA Kz",
+        ARS: "ARS $",
+        AUD: "AUD $",
+        AWG: "AWG Afl.",
+        AZN: "AZN ₼",
+        BAM: "BAM KM",
+        BBD: "BBD $",
+        BDT: "BDT ৳",
+        BGN: "BGN лв.",
+        BHD: "BHD د.ب.‏",
+        BIF: "BIF FBu",
+        BMD: "BMD $",
+        BND: "BND $",
+        BOB: "BOB Bs",
+        BRL: "BRL R$",
+        BSD: "BSD $",
+        BTN: "BTN Nu.",
+        BWP: "BWP P",
+        BYN: "BYN Br",
+        BZD: "BZD $",
+        CAD: "CAD $",
+        CDF: "CDF FC",
+        CHF: "CHF CHF",
+        CLP: "CLP $",
+        CNY: "CNY ￥",
+        COP: "COP $",
+        CRC: "CRC ₡",
+        CSD: "CSD CSD",
+        CUP: "CUP $",
+        CVE: "CVE ​",
+        CZK: "CZK Kč",
+        DJF: "DJF Fdj",
+        DKK: "DKK kr",
+        DOP: "DOP RD$",
+        DZD: "DZD DA",
+        EGP: "EGP ج.م.‏",
+        ERN: "ERN Nfk",
+        ETB: "ETB Br",
+        EUR: "EUR €",
+        FJD: "FJD $",
+        FKP: "FKP £",
+        GBP: "GBP £",
+        GEL: "GEL ₾",
+        GHS: "GHS GH₵",
+        GIP: "GIP £",
+        GMD: "GMD D",
+        GNF: "GNF FG",
+        GTQ: "GTQ Q",
+        GYD: "GYD $",
+        HKD: "HKD HK$",
+        HNL: "HNL L",
+        HRK: "HRK HRK",
+        HTG: "HTG G",
+        HUF: "HUF Ft",
+        IDR: "IDR Rp",
+        ILS: "ILS ₪",
+        INR: "INR ₹",
+        IQD: "IQD د.ع.‏",
+        IRR: "IRR IRR",
+        ISK: "ISK ISK",
+        JMD: "JMD $",
+        JOD: "JOD د.أ.‏",
+        JPY: "JPY ￥",
+        KES: "KES Ksh",
+        KGS: "KGS сом",
+        KHR: "KHR ៛",
+        KMF: "KMF CF",
+        KPW: "KPW KPW",
+        KRW: "KRW ₩",
+        KWD: "KWD د.ك.‏",
+        KYD: "KYD $",
+        KZT: "KZT ₸",
+        LAK: "LAK ₭",
+        LBP: "LBP ل.ل.‏",
+        LKR: "LKR Rs.",
+        LRD: "LRD $",
+        LSL: "LSL LSL",
+        LYD: "LYD د.ل.‏",
+        MAD: "MAD MAD",
+        MDL: "MDL L",
+        MGA: "MGA Ar",
+        MKD: "MKD den",
+        MMK: "MMK K",
+        MNT: "MNT ₮",
+        MOP: "MOP MOP$",
+        MRU: "MRU UM",
+        MUR: "MUR Rs",
+        MWK: "MWK MK",
+        MXN: "MXN $",
+        MYR: "MYR RM",
+        MZN: "MZN MTn",
+        NAD: "NAD $",
+        NGN: "NGN ₦",
+        NIO: "NIO C$",
+        NOK: "NOK kr",
+        NPR: "NPR नेरू",
+        NZD: "NZD $",
+        OMR: "OMR ر.ع.‏",
+        PAB: "PAB B/.",
+        PEN: "PEN S/",
+        PGK: "PGK K",
+        PHP: "PHP ₱",
+        PKR: "PKR ر",
+        PLN: "PLN zł",
+        PYG: "PYG Gs.",
+        QAR: "QAR ر.ق.‏",
+        RON: "RON RON",
+        RSD: "RSD RSD",
+        RUB: "RUB ₽",
+        RWF: "RWF RF",
+        SAR: "SAR ر.س.‏",
+        SBD: "SBD $",
+        SCR: "SCR SR",
+        SDG: "SDG SDG",
+        SEK: "SEK kr",
+        SGD: "SGD $",
+        SHP: "SHP £",
+        SLL: "SLL Le",
+        SOS: "SOS S",
+        SRD: "SRD $",
+        SSP: "SSP £",
+        STN: "STN Db",
+        SVC: "SVC C",
+        SYP: "SYP LS",
+        SZL: "SZL E",
+        THB: "THB ฿",
+        TJS: "TJS сом.",
+        TMT: "TMT TMT",
+        TND: "TND DT",
+        TOP: "TOP T$",
+        TRY: "TRY ₺",
+        TTD: "TTD $",
+        TWD: "TWD $",
+        TZS: "TZS TSh",
+        UAH: "UAH ₴",
+        UGX: "UGX USh",
+        USD: "USD $",
+        UYU: "UYU $",
+        UZS: "UZS сўм",
+        VES: "VES Bs.S",
+        VND: "VND ₫",
+        VUV: "VUV VT",
+        WST: "WST WS$",
+        XAF: "XAF FCFA",
+        XCD: "XCD $",
+        XOF: "XOF CFA",
+        XPF: "XPF FCFP",
+        YER: "YER ر.ي.‏",
+        ZAR: "ZAR R",
+        ZMW: "ZMW K",
+        ZWL: "ZWL ZWL"
       };
     var currencies = Object.keys(currencyDisplayNames);
     for (var i = 0; i < currencies.length; i++) {
@@ -1559,6 +1562,14 @@ JSViewFactory.prototype.createUserPreferencesView = function(preferences, contro
     dialog.navigationPanelCheckBox.checked = controller.isNavigationPanelVisible();
   } else {
     disablePreferenceRow(dialog.navigationPanelCheckBox);
+  }
+  
+  // EDITING_IN_3D_VIEW_ENABLED 
+  dialog.editingIn3DViewCheckBox = dialog.getElement("editing-in-3D-view-checkbox");
+  if (controller.isPropertyEditable("EDITING_IN_3D_VIEW_ENABLED")) {
+    dialog.editingIn3DViewCheckBox.checked = controller.isEditingIn3DViewEnabled();
+  } else {
+    disablePreferenceRow(dialog.editingIn3DViewCheckBox);
   }
   
   // AERIAL_VIEW_CENTERED_ON_SELECTION_ENABLED
@@ -1948,12 +1959,13 @@ JSViewFactory.prototype.createLevelView = function(preferences, controller) {
       for (var i = levels.length - 1; i >= 0; i--) {
         var level = levels[i];
         var disabledAttribute = level.isViewable() ? "" : "disabled";
-        bodyHtml += '<tr ' + disabledAttribute + '>' +
-            '  <td>' + level.getName() + '</td>' +
-            '  <td>' + lengthFormat.format(level.getElevation()) + '</td>' +
-            '  <td>' + (level.getElevation() == levels [0].getElevation() ? '' : lengthFormat.format(level.getFloorThickness())) + '</td>' +
-            '  <td>' + lengthFormat.format(level.getHeight()) + '</td>' +
-            '</tr>';
+        bodyHtml += 
+              "<tr " + disabledAttribute + ">"
+            + "  <td>" + level.getName() + "</td>"
+            + "  <td>" + lengthFormat.format(level.getElevation()) + "</td>"
+            + "  <td>" + (level.getElevation() == levels [0].getElevation() ? "" : lengthFormat.format(level.getFloorThickness())) + "</td>"
+            + "  <td>" + lengthFormat.format(level.getHeight()) + "</td>"
+            + "</tr>";
       }
   
       levelsTableBody.innerHTML = bodyHtml;
@@ -2710,22 +2722,25 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
    * @private
    */
   HomeFurnitureDialog.prototype.displayModelTransformationsView = function(preferences, controller) {
-    var view = controller.getView();
     var html = 
-      '<div data-name="label-panel">' +
-      '  <span>@{ModelTransformationsPanel.transformationsLabel.text}</span><br/>' +
-      '</div>' +
-      '<div data-name="preview-panel">' +
-      '  <canvas id="model-preview-canvas"></canvas>' +
-      '</div>' + 
-      '<div data-name="edit-panel">' +
-      '  <div>' +
-      '    <button name="reset-transformations-button">@{ModelTransformationsPanel.resetTransformationsButton.text}</button>' +
-      '    <button name="view-from-front-button">@{ModelTransformationsPanel.viewFromFrontButton.text}</button>' +
-      '    <button name="view-from-side-button">@{ModelTransformationsPanel.viewFromSideButton.text}</button>' +
-      '    <button name="view-from-top-button">@{ModelTransformationsPanel.viewFromTopButton.text}</button>' +
-      '  </div>' +
-      '</div>';
+        "<div data-name='label-panel'>"
+      + "  <span>@{ModelTransformationsPanel.transformationsLabel.text}</span><br/>"
+      + "</div>"
+      + "<div data-name='preview-panel'>" 
+      + "  <canvas id='model-preview-canvas'></canvas>" 
+      + "</div>"
+      + "<div data-name='edit-panel'>" 
+      + "  <div>"
+      + "    <button name='reset-transformations-button'>@{ModelTransformationsPanel.resetTransformationsButton.text}</button>" 
+      + "    <div name='presetTransformationsLabel'>@{ModelTransformationsPanel.presetTransformationsLabel.text}</div> "
+      + "    <div>" 
+      + "      <select name='presetTransformations'></select>"
+      + "    </div>"
+      + "    <button name='view-from-front-button'>@{ModelTransformationsPanel.viewFromFrontButton.text}</button>"
+      + "    <button name='view-from-side-button'>@{ModelTransformationsPanel.viewFromSideButton.text}</button>"
+      + "    <button name='view-from-top-button'>@{ModelTransformationsPanel.viewFromTopButton.text}</button>"
+      + "  </div>"
+      + "</div>";
     var dialog = new JSDialog(preferences, 
         preferences.getLocalizedString("ModelTransformationsPanel", "modelTransformations.title"),
         html, 
@@ -2768,6 +2783,28 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
     dialog.registerEventListener(resetTransformationsButton, "click", function(ev) {
         dialog.previewComponent.resetModelTransformations();
       });
+    var presetTransformationsSelect = dialog.getElement("presetTransformations");
+    var modelPresetTransformationsNames = controller.getModelPresetTransformationsNames();
+    if (modelPresetTransformationsNames.length > 0) {
+      var option = document.createElement("option");
+      option.value = -1;
+      option.textContent = preferences.getLocalizedString("ModelTransformationsPanel", "presetTransformationsComboBox.chooseTransformations.text");
+      presetTransformationsSelect.appendChild(option);    
+      for (var i = 0; i < modelPresetTransformationsNames.length; i++) {
+        var option = document.createElement("option");
+        option.value = i;
+        option.textContent = modelPresetTransformationsNames[i];
+        presetTransformationsSelect.appendChild(option);
+      }
+      dialog.registerEventListener(presetTransformationsSelect, "change", function(ev) {
+          if (presetTransformationsSelect.value >= 0)
+            dialog.previewComponent.setPresetModelTransformations(
+              controller.getModelPresetTransformations(presetTransformationsSelect.value));
+        });
+    } else {
+      dialog.getElement("presetTransformationsLabel").style.display = "none";
+      presetTransformationsSelect.style.display = "none";
+    }
     var viewFromFrontButton = dialog.getElement("view-from-front-button");
     dialog.registerEventListener(viewFromFrontButton, "click", function(ev) {
         dialog.previewComponent.setViewYaw(0);
@@ -2846,11 +2883,11 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
         });
 
     var unitName = preferences.getLengthUnit().getName();
-    xStartLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "xLabel.text", unitName)
-    xEndLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "xLabel.text", unitName)
-    yStartLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "yLabel.text", unitName)
-    yEndLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "yLabel.text", unitName)
-    distanceToEndPointLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "distanceToEndPointLabel.text", unitName)
+    xStartLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "xLabel.text", unitName);
+    xEndLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "xLabel.text", unitName);
+    yStartLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "yLabel.text", unitName);
+    yEndLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "yLabel.text", unitName);
+    distanceToEndPointLabel.textContent = dialog.getLocalizedLabelText("WallPanel", "distanceToEndPointLabel.text", unitName);
 
     dialog.registerPropertyChangeListener(controller, "X_START", function(ev) {
         xStartInput.setValue(ev.getNewValue());
@@ -2882,7 +2919,6 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
       });
     dialog.registerEventListener(distanceToEndPointInput, "input", function(ev) {
         controller.setDistanceToEndPoint(distanceToEndPointInput.getValue());
-        console.log("distance")
       });
   }
 
@@ -2984,7 +3020,7 @@ JSViewFactory.prototype.createWallView = function(preferences, controller) {
     dialog.rightSideTextureComponent = controller.getRightSideTextureController().getView();
     dialog.attachChildComponent("right-side-texture-component", dialog.rightSideTextureComponent);
 
-    // shininess
+    // Shininess
     var leftSideMattRadioButton = dialog.findElement("[name='left-side-shininess-choice'][value='0']");
     var leftSideShinyRadioButton = dialog.findElement("[name='left-side-shininess-choice'][value='0.25']");
     var rightSideMattRadioButton = dialog.findElement("[name='right-side-shininess-choice'][value='0']");
@@ -3873,9 +3909,276 @@ JSViewFactory.prototype.createPolylineView = function(preferences, controller) {
   return dialog;
 }
 
+JSViewFactory.prototype.createDimensionLineView = function(modification, preferences, controller) {
+  var dialog = new JSDialog(preferences, 
+    modification ? "@{DimensionLinePanel.dimensionLineModification.title}" : "@{DimensionLinePanel.dimensionLineCreation.title}",
+    document.getElementById("dimension-line-dialog-template"), 
+    {
+      applier: function(dialog) {
+        if (modification) {
+          controller.modifyDimensionLines();
+        } else {
+          controller.createDimensionLine();
+        }
+      },
+      disposer: function(dialog) {
+        dialog.colorButton.dispose();
+      },
+      size: "small"
+    });
+
+  var maximumLength = preferences.getLengthUnit().getMaximumLength();
+  var unitName = preferences.getLengthUnit().getName();
+  
+  // Spinner bound to X_START controller property
+  dialog.xStartLabel = dialog.getElement("x-start-label");
+  dialog.xStartLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "xLabel.text", unitName);
+  dialog.xStartInput = new JSSpinner(preferences, dialog.getElement("x-start-input"), 
+      {
+        nullable: controller.getXStart() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getXStart(),
+        minimum: -maximumLength,
+        maximum: maximumLength,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "X_START", function(ev) {
+      dialog.xStartInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.xStartInput, "input", function(ev) {
+      controller.setXStart(dialog.xStartInput.getValue());
+    });
+  
+  // Spinner bound to Y_START controller property
+  dialog.yStartLabel = dialog.getElement("y-start-label");
+  dialog.yStartLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "yLabel.text", unitName);
+  dialog.yStartInput = new JSSpinner(preferences, dialog.getElement("y-start-input"), 
+      {
+        nullable: controller.getYStart() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getYStart(),
+        minimum: -maximumLength,
+        maximum: maximumLength,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "Y_START", function(ev) {
+      dialog.yStartInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.yStartInput, "input", function(ev) {
+      controller.setYStart(dialog.yStartInput.getValue());
+    });
+  
+  // Spinner bound to ELEVATION_START controller property
+  dialog.elevationStartLabel = dialog.getElement("elevation-start-label");
+  dialog.elevationStartLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "elevationLabel.text", unitName);
+  dialog.elevationStartInput = new JSSpinner(preferences, dialog.getElement("elevation-start-input"), 
+      {
+        nullable: controller.getElevationStart() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getElevationStart(),
+        minimum: 0,
+        maximum: maximumLength,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "ELEVATION_START", function(ev) {
+      dialog.elevationStartInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.elevationStartInput, "input", function(ev) {
+      controller.setElevationStart(dialog.elevationStartInput.getValue());
+    });
+      
+  // Spinner bound to X_END controller property
+  dialog.xEndLabel = dialog.getElement("x-end-label");
+  dialog.xEndLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "xLabel.text", unitName);
+  dialog.xEndInput = new JSSpinner(preferences, dialog.getElement("x-end-input"), 
+      {
+        nullable: controller.getXEnd() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getXEnd(),
+        minimum: -maximumLength,
+        maximum: maximumLength,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "X_END", function(ev) {
+      dialog.xEndInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.xEndInput, "input", function(ev) {
+      controller.setXEnd(dialog.xEndInput.getValue());
+    });
+
+  // Spinner bound to Y_END controller property
+  dialog.yEndLabel = dialog.getElement("y-end-label");
+  dialog.yEndLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "yLabel.text", unitName);
+  dialog.yEndInput = new JSSpinner(preferences, dialog.getElement("y-end-input"), 
+      {
+        nullable: controller.getYEnd() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getYEnd(),
+        minimum: -maximumLength,
+        maximum: maximumLength,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "Y_END", function(ev) {
+      dialog.yEndInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.yEndInput, "input", function(ev) {
+      controller.setYEnd(dialog.yEndInput.getValue());
+    });
+
+  // Spinner bound to DISTANCE_TO_END_POINT controller property
+  dialog.distanceToEndPointLabel = dialog.getElement("distance-to-end-point-label");
+  dialog.distanceToEndPointLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "distanceToEndPointLabel.text", unitName);
+  dialog.distanceToEndPointInput = new JSSpinner(preferences, dialog.getElement("distance-to-end-point-input"), 
+      {
+        nullable: controller.getDistanceToEndPoint() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getDistanceToEndPoint(),
+        minimum: preferences.getLengthUnit().getMinimumLength(),
+        maximum: 2 * maximumLength * Math.sqrt(2),
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "DISTANCE_TO_END_POINT", function(ev) {
+      dialog.distanceToEndPointInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.distanceToEndPointInput, "input", function(ev) {
+      controller.setDistanceToEndPoint(dialog.distanceToEndPointInput.getValue());
+    });
+
+  // Spinner bound to OFFSET controller property
+  dialog.offsetLabel = dialog.getElement("offset-label");
+  dialog.offsetLabel.textContent = dialog.getLocalizedLabelText("DimensionLinePanel", "offsetLabel.text", unitName);
+  dialog.offsetInput = new JSSpinner(preferences, dialog.getElement("offset-input"), 
+      {
+        nullable: controller.getOffset() == null,
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getOffset(),
+        minimum: -10000,
+        maximum: 10000,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  dialog.registerPropertyChangeListener(controller, "OFFSET", function(ev) {
+      dialog.offsetInput.setValue(ev.getNewValue());
+    });
+  dialog.registerEventListener(dialog.offsetInput, "input", function(ev) {
+      controller.setOffset(dialog.offsetInput.getValue());
+    });
+  
+  // Radio buttons bound to ORIENTATION controller property
+  dialog.planDimensionLineRadioButton = dialog.findElement("[name='orientation-choice'][value='PLAN']");
+  dialog.registerEventListener(dialog.planDimensionLineRadioButton, "change", function(ev) {
+      if (dialog.planDimensionLineRadioButton.checked) {
+        controller.setOrientation(DimensionLineController.DimensionLineOrientation.PLAN);
+      }
+    });
+  dialog.elevationDimensionLineRadioButton = dialog.findElement("[name='orientation-choice'][value='ELEVATION']");
+  dialog.registerEventListener(dialog.elevationDimensionLineRadioButton, "change", function(ev) {
+      if (dialog.elevationDimensionLineRadioButton.checked) {
+        controller.setOrientation(DimensionLineController.DimensionLineOrientation.ELEVATION);
+      }
+    });
+  
+  dialog.registerPropertyChangeListener(controller, "ORIENTATION", function(ev) {
+      updateOrientationRadioButtons();
+    });
+
+  // Font size label and spinner bound to FONT_SIZE controller property
+  dialog.lengthFontSizeLabel = dialog.getElement("length-font-size-label");
+  dialog.lengthFontSizeLabel.textContent = dialog.getLocalizedLabelText(
+      "DimensionLinePanel", "lengthFontSizeLabel.text", dialog.preferences.getLengthUnit().getName());
+  dialog.lengthFontSizeInput = new JSSpinner(preferences, dialog.getElement("length-font-size-input"), 
+      {
+        format: preferences.getLengthUnit().getFormat(),
+        value: controller.getLengthFontSize(),
+        minimum: 5,
+        maximum: 999,
+        stepSize: preferences.getLengthUnit().getStepSize()
+      });
+  var lengthFontSizeChangeListener = function() {
+      var fontSize = controller.getLengthFontSize();
+      dialog.lengthFontSizeInput.setNullable(fontSize == null);
+      dialog.lengthFontSizeInput.setValue(fontSize);
+    };
+  lengthFontSizeChangeListener();
+  dialog.registerPropertyChangeListener(controller, "LENGTH_FONT_SIZE", lengthFontSizeChangeListener);
+  dialog.registerEventListener(dialog.lengthFontSizeInput, "input", function(ev) {
+      controller.setLengthFontSize(dialog.lengthFontSizeInput.getValue());
+    });
+    
+  // Color button bound to controller COLOR controller property
+  dialog.colorButton = new ColorButton(preferences,   
+      {
+        colorChanged: function(selectedColor) {
+          controller.setColor(dialog.colorButton.getColor());
+        }
+      });
+  dialog.attachChildComponent("color-button", dialog.colorButton);
+  dialog.colorButton.setColor(controller.getColor());
+  dialog.colorButton.setColorDialogTitle(preferences.getLocalizedString("DimensionLinePanel", "colorDialog.title"));
+  dialog.registerPropertyChangeListener(controller, "COLOR", function() {
+      dialog.colorButton.setColor(controller.getColor());
+    });
+
+  // Pitch components bound to PITCH controller property
+  var updateOrientationRadioButtons = function() {
+      if (controller.getOrientation() == DimensionLineController.DimensionLineOrientation.PLAN) {
+        dialog.planDimensionLineRadioButton.checked = true;
+      } else if (controller.getOrientation() == DimensionLineController.DimensionLineOrientation.ELEVATION) {
+        dialog.elevationDimensionLineRadioButton.checked = true;
+      }
+      orientable = controller.isEditableDistance();
+      dialog.planDimensionLineRadioButton.disabled = !orientable;
+      dialog.elevationDimensionLineRadioButton.disabled = !orientable;
+    
+      if (controller.getPitch() != null
+          && controller.getOrientation() != DimensionLineController.DimensionLineOrientation.ELEVATION) {
+        if (controller.getPitch() === 0) {
+          dialog.pitch0DegreeRadioButton.checked = true;
+        } else if (Math.abs(controller.getPitch()) === Math.PI / 2) {
+          dialog.pitch90DegreeRadioButton.checked = true;
+        }
+      }
+
+      var planOrientation = controller.getOrientation() == DimensionLineController.DimensionLineOrientation.PLAN;
+      var visibleIn3D = controller.isVisibleIn3D() === true;
+      dialog.pitch0DegreeRadioButton.disabled = !(visibleIn3D && planOrientation);
+      dialog.pitch90DegreeRadioButton.disabled = !(visibleIn3D && planOrientation);
+      
+      dialog.elevationStartInput.setEnabled(visibleIn3D
+          || controller.getOrientation() == DimensionLineController.DimensionLineOrientation.ELEVATION);
+      dialog.xEndInput.setEnabled(planOrientation);
+      dialog.yEndInput.setEnabled(planOrientation);
+    };
+    
+  dialog.visibleIn3DViewCheckBox = dialog.getElement("visible-in-3D-checkbox");
+  dialog.visibleIn3DViewCheckBox.checked = controller.isVisibleIn3D();
+  dialog.registerPropertyChangeListener(controller, "VISIBLE_IN_3D", function(ev) {
+      dialog.visibleIn3DViewCheckBox.checked = controller.isVisibleIn3D();
+    });
+  dialog.registerEventListener(dialog.visibleIn3DViewCheckBox, "change", function(ev) {
+      controller.setVisibleIn3D(dialog.visibleIn3DViewCheckBox.checked);
+      updateOrientationRadioButtons();
+    }); 
+
+  dialog.pitch0DegreeRadioButton = dialog.findElement("[name='label-pitch-radio'][value='0']");
+  dialog.pitch90DegreeRadioButton = dialog.findElement("[name='label-pitch-radio'][value='90']");
+  var pitchRadioButtonsChangeListener = function() {
+      if (dialog.pitch0DegreeRadioButton.checked) {
+        controller.setPitch(0);
+      } else if (dialog.pitch90DegreeRadioButton.checked) {
+        controller.setPitch(-Math.PI / 2);
+      }
+    };
+  dialog.registerEventListener([dialog.pitch0DegreeRadioButton, dialog.pitch90DegreeRadioButton], "change",
+      pitchRadioButtonsChangeListener);
+  dialog.registerPropertyChangeListener(controller, "PITCH", updateOrientationRadioButtons);
+
+  updateOrientationRadioButtons();
+  return dialog;
+}
+
 JSViewFactory.prototype.createLabelView = function(modification, preferences, controller) {
   var dialog = new JSDialog(preferences, 
-      "@{LabelPanel.labelModification.title}", 
+      modification ? "@{LabelPanel.labelModification.title}": "@{LabelPanel.labelCreation.title}", 
       document.getElementById("label-dialog-template"), 
       {
         applier: function(dialog) {
@@ -4594,43 +4897,40 @@ JSViewFactory.prototype.createTextureChoiceView = function(preferences, textureC
 JSViewFactory.prototype.createBaseboardChoiceView = function(preferences, controller) {
   function BaseboardChoiceComponent() {
     JSComponent.call(this, preferences,
-        '  <div class="whole-line">' +
-        '    <label>' +
-        '      <input name="baseboard-visible-checkbox" type="checkbox"/>' +
-        '      @{BaseboardChoiceComponent.visibleCheckBox.text}' +
-        '    </label>' +
-        '  </div>' +
-        '' +
-        '  <div class="whole-line">' +
-        '    <label>' +
-        '      <input type="radio" name="baseboard-color-and-texture-choice" value="sameColorAsWall"/>' +
-        '      @{BaseboardChoiceComponent.sameColorAsWallRadioButton.text}' +
-        '    </label>' +
-        '  </div>' +
-        '  <div>' +
-        '    <label>' +
-        '      <input type="radio" name="baseboard-color-and-texture-choice" value="COLORED">' +
-        '        @{BaseboardChoiceComponent.colorRadioButton.text}' +
-        '    </label>' +
-        '  </div>' +
-        '  <div data-name="baseboard-color-button"></div>' +
-        '' +
-        '  <div>' +
-        '    <label>' +
-        '      <input type="radio" name="baseboard-color-and-texture-choice" value="TEXTURED">' +
-        '        @{BaseboardChoiceComponent.textureRadioButton.text}' +
-        '    </label>' +
-        '  </div>' +
-        '  <div data-name="baseboard-texture-component"></div>' +
-        '' +
-        '  <div class="whole-line">' +
-        '    <hr/>' +
-        '  </div>' +
-        '' +
-        '  <div data-name="height-label" class="label-cell"></div>' +
-        '  <div><span data-name="height-input"></span></div>' +
-        '  <div data-name="thickness-label" class="label-cell"></div>' +
-        '  <div><span data-name="thickness-input"></span></div>');
+          "  <div class='whole-line'>"
+        + "    <label>"
+        + "      <input name='baseboard-visible-checkbox' type='checkbox'/>"
+        + "      @{BaseboardChoiceComponent.visibleCheckBox.text}"
+        + "    </label>"
+        + "  </div>"
+        + ""
+        + "  <div class='whole-line'>"
+        + "    <label>"
+        + "      <input type='radio' name='baseboard-color-and-texture-choice' value='sameColorAsWall'/>"
+        + "      @{BaseboardChoiceComponent.sameColorAsWallRadioButton.text}"
+        + "    </label>"
+        + "  </div>"
+        + "  <div>"
+        + "    <label>"
+        + "      <input type='radio' name='baseboard-color-and-texture-choice' value='COLORED'>"
+        + "        @{BaseboardChoiceComponent.colorRadioButton.text}"
+        + "    </label>"
+        + "  </div>"
+        + "  <div data-name='baseboard-color-button'></div>"
+        + "  <div>"
+        + "    <label>"
+        + "      <input type='radio' name='baseboard-color-and-texture-choice' value='TEXTURED'>"
+        + "        @{BaseboardChoiceComponent.textureRadioButton.text}"
+        + "    </label>"
+        + "  </div>"
+        + "  <div data-name='baseboard-texture-component'></div>"
+        + "  <div class='whole-line'>"
+        + "    <hr/>"
+        + "  </div>"
+        + "  <div data-name='height-label' class='label-cell'></div>"
+        + "  <div><span data-name='height-input'></span></div>"
+        + "  <div data-name='thickness-label' class='label-cell'></div>"
+        + "  <div><span data-name='thickness-input'></span></div>");
 
     this.initComponents(controller);
   }

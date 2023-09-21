@@ -60,6 +60,7 @@
 <script type="text/javascript" src="src/Wall3D.js"></script>
 <script type="text/javascript" src="src/Ground3D.js"></script>
 <script type="text/javascript" src="src/Polyline3D.js"></script>
+<script type="text/javascript" src="src/DimensionLine3D.js"></script>
 <script type="text/javascript" src="src/Label3D.js"></script>
 <script type="text/javascript" src="src/TextureManager.js"></script>
 <script type="text/javascript" src="src/LengthUnit.js"></script>
@@ -2558,8 +2559,7 @@ testHome();
   </div>
 </div>
 
-<div id="user-preferences-dialog-template" class="dialog-template">
-  
+<div id="user-preferences-dialog-template" class="dialog-template">  
   <div class="user-preferences-dialog label-input-grid">
     <div>@{UserPreferencesPanel.languageLabel.text}</div>
     <div>
@@ -2598,6 +2598,14 @@ testHome();
       <label>
         <input type="checkbox" name="navigation-panel-checkbox" />
         @{UserPreferencesPanel.navigationPanelCheckBox.text}
+      </label>
+    </div>
+    
+    <div>@{UserPreferencesPanel.editingIn3DViewLabel.text}</div>
+    <div>
+      <label>
+        <input type="checkbox" name="editing-in-3D-view-checkbox" />
+        @{UserPreferencesPanel.editingIn3DViewCheckBox.text}
       </label>
     </div>
     
@@ -2735,6 +2743,90 @@ testHome();
       </label>
     </div>
     <div></div>
+  </div>
+</div>
+
+<div id="dimension-line-dialog-template" class="dialog-template">
+  <div class="dimension-line-dialog">
+    <h3 class="card">@{DimensionLinePanel.startPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-start-label"></span>
+      <span data-name="x-start-input"></span>
+      <span data-name="y-start-label"></span>
+      <span data-name="y-start-input"></span>
+      <span data-name="elevation-start-label"></span>
+      <span data-name="elevation-start-input"></span>
+    </div>
+
+    <br />
+    <h3 class="card">@{DimensionLinePanel.endPointPanel.title}</h3>
+    <div class="card label-input-grid double">
+      <span data-name="x-end-label"></span>
+      <span data-name="x-end-input"></span>
+      <span data-name="y-end-label"></span>
+      <span data-name="y-end-input"></span>
+      <span class="whole-line end-point-addition">
+        <span data-name="distance-to-end-point-label"></span>
+        <span data-name="distance-to-end-point-input"></span>
+      </span>
+      <span class="whole-line end-point-addition">
+        <span data-name="offset-label"></span>
+        <span data-name="offset-input"></span>
+      </span>
+      <div class="whole-line">
+        <hr />
+      </div>
+      <span class="whole-line orientation">
+        <label>
+          <input type="radio" name="orientation-choice" value="PLAN">
+          @{DimensionLinePanel.planDimensionLineRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="orientation-choice" value="ELEVATION">
+          @{DimensionLinePanel.elevationDimensionLineRadioButton.text}
+         </label>
+      </span>
+    </div>
+    
+    <br />
+    <h3 class=card>@{DimensionLinePanel.stylePanel.title}</h3>
+    <div data-name="style-panel" class="card label-input-grid">
+      <div data-name="length-font-size-label">
+      </div>
+      <div data-name="length-font-size-input-container">
+        <span data-name="length-font-size-input"></span>
+      </div>
+
+      <div data-name="color-label">
+        @{DimensionLinePanel.colorLabel.text}
+      </div>
+      <div data-name="color-button"></div>
+    </div>
+
+    <br />
+    <h3 class=card>@{DimensionLinePanel.rendering3DPanel.title}</h3>
+    <div data-name="rendering-3D-panel" class="card label-input-grid">
+      <div class="whole-line">
+        <label>
+          <input type="checkbox" name="visible-in-3D-checkbox" />
+          @{DimensionLinePanel.visibleIn3DViewCheckBox.text}
+        </label>
+      </div>
+
+      <div>
+        @{DimensionLinePanel.pitchLabel.text}
+      </div>
+      <div>
+        <label>
+          <input type="radio" name="label-pitch-radio" value="0" />
+          @{DimensionLinePanel.pitch0DegreeRadioButton.text}
+        </label>
+        <label>
+          <input type="radio" name="label-pitch-radio" value="90" />
+          @{DimensionLinePanel.pitch90DegreeRadioButton.text}
+        </label>
+      </div>
+    </div>
   </div>
 </div>
 

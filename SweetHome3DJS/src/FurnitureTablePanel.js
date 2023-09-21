@@ -159,6 +159,11 @@ FurnitureTablePanel.prototype.createTableModel = function(home) {
         label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "nameColumn"),
         defaultWidth: "14rem"
       },
+      "DESCRIPTION": {
+        name: "DESCRIPTION", 
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "descriptionColumn"),
+        defaultWidth: "14rem"
+      },
       "WIDTH": {
         name: "WIDTH", 
         label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "widthColumn") 
@@ -214,6 +219,11 @@ FurnitureTablePanel.prototype.createTableModel = function(home) {
       "CREATOR": {
         name: "CREATOR",
         label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "creatorColumn")
+      },
+      "LICENSE": {
+        name: "LICENSE",
+        label: ResourceAction.getLocalizedLabelText(this.preferences, "FurnitureTable", "licenseColumn"),
+        defaultWidth: "5rem"
       },
       "PRICE": {
         name: "PRICE",
@@ -597,6 +607,15 @@ FurnitureTablePanel.prototype.renderCreatorCell = function(piece, cell) {
 }
 
 /**
+ * @param {string} value
+ * @param {HTMLTableCellElement} cell
+ * @private
+ */
+FurnitureTablePanel.prototype.renderTextCell = function(value, cell) {
+  cell.textContent = value;
+}
+
+/**
  * @param {HomePieceOfFurniture} piece
  * @param {string} columnName
  * @param {HTMLTableCellElement} cell
@@ -605,12 +624,15 @@ FurnitureTablePanel.prototype.renderCreatorCell = function(piece, cell) {
 FurnitureTablePanel.prototype.renderCell = function(piece, columnName, cell) {
   switch (columnName) {
     case "CATALOG_ID":
-      cell.textContent = piece.getCatalogId();
-      break;
+      return this.renderTextCell(piece.getCatalogId(), cell);
     case "NAME":
       return this.renderNameCell(piece, cell);
+    case "DESCRIPTION":
+      return this.renderTextCell(piece.getDescription(), cell);
     case "CREATOR":
       return this.renderCreatorCell(piece, cell);
+    case "LICENSE":
+      return this.renderTextCell(piece.getLicense(), cell);
     case "WIDTH":
       return this.renderSizeCellValue(piece.getWidth(), cell);
     case "DEPTH":

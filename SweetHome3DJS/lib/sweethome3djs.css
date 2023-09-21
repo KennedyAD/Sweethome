@@ -1,7 +1,7 @@
 /*
  * sweethome3djs.css 
  *  
- * Sweet Home 3D, Copyright (c) 2020-2021 Emmanuel PUYBARET / eTeks <info@eteks.com>
+ * Sweet Home 3D, Copyright (c) 2020-2023 Emmanuel PUYBARET / eTeks <info@eteks.com>
  *  
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,9 +65,9 @@ button:disabled {
 }
 
 /*
- * PlanComponent                
+ * Touch overlay                
  */
-#touch-overlay-timer {
+.touch-overlay-timer {
   position: relative;
   width: 20px;
   height: 20px;
@@ -76,20 +76,20 @@ button:disabled {
   pointer-events: none;
 }
 
-#touch-overlay-timer > div {
+.touch-overlay-timer > div {
   position: absolute;
   top: -2px;
   left: -2px;
   pointer-events: none;
 }
 
-#touch-overlay-timer > .animated {
+.touch-overlay-timer > .animated {
   animation-duration: 0.8s;
   animation-timing-function: linear;
   pointer-events: none;
 }
 
-#touch-overlay-timer-hidder.animated, #touch-overlay-timer-loader1.animated, #touch-overlay-timer-loader2.animated {
+.touch-overlay-timer-hidder.animated, .touch-overlay-timer-loader1.animated, .touch-overlay-timer-loader2.animated {
   border: 2px solid transparent;
   border-radius: 50%;
   border-top-color: #3498db;
@@ -98,7 +98,7 @@ button:disabled {
   height: 100%;
 }
 
-#touch-overlay-timer-content {
+.touch-overlay-timer-content {
   opacity: 0;
   font-size: 15px;
   text-align: center;
@@ -111,15 +111,15 @@ button:disabled {
   pointer-events: none;
 }
 
-#touch-overlay-timer-bg.animated, #touch-overlay-timer-hidder.animated {
+.touch-overlay-timer-bg.animated, .touch-overlay-timer-hidder.animated {
   border-color: #AAAAAA;
 }
 
-#touch-overlay-timer-bg.animated {
+.touch-overlay-timer-bg.animated {
   box-shadow: 2px 2px 4px #777777;
 }
 
-#touch-overlay-timer-bg.animated {
+.touch-overlay-timer-bg.animated {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -128,7 +128,7 @@ button:disabled {
   border-radius: 50%;
 }
 
-#touch-overlay-timer-hidder.animated {
+.touch-overlay-timer-hidder.animated {
   z-index: 101;
   visibility: hidden;
   border-bottom-color: transparent;
@@ -137,17 +137,17 @@ button:disabled {
   animation-name: hider;
 }
 
-#touch-overlay-timer-loader1.animated {
+.touch-overlay-timer-loader1.animated {
   transform: rotate(45deg);
   animation-name: spin1;
 }
 
-#touch-overlay-timer-loader2.animated {
+.touch-overlay-timer-loader2.animated {
   transform: rotate(225deg);
   animation-name: spin2;
 }
 
-#touch-overlay-timer-content.animated {
+.touch-overlay-timer-content.animated {
   opacity: 1;
   animation-name: showcontent;
 }
@@ -173,11 +173,11 @@ button:disabled {
   100% { opacity: 1; }
 }
 
-#touch-overlay-timer > .indicator {
+.touch-overlay-timer > .indicator {
   visibility: hidden;
 }
 
-#touch-overlay-timer-content.indicator {
+.touch-overlay-timer-content.indicator {
   opacity: 1;
   visibility: visible;
 }
@@ -1402,6 +1402,22 @@ label {
 }
 
 /*
+ * Dimension dialog                    
+ */
+.dimension-line-dialog .end-point-addition {
+  text-align: right;
+}
+
+.dimension-line-dialog .orientation {
+  text-align: center;
+}
+
+.dimension-line-dialog [name="orientation-choice"],
+.dimension-line-dialog [name="label-pitch-radio"] {
+  margin-left: 1em;
+}
+
+/*
  * Label dialog
  */
 .label-dialog [data-name="text-and-style-panel"] {
@@ -1948,6 +1964,11 @@ label {
   flex-direction: column;
 }
 
+.model-transformations-chooser-dialog [data-name="edit-panel"] select {
+  font-size: 1em;
+  margin-top: 5px;
+}
+
 .model-materials-chooser-dialog [data-name="materials-list"] {
   flex-grow: 1;
   overflow: auto;
@@ -2020,7 +2041,8 @@ label {
   right: 0;
 }
 
-.model-transformations-chooser-dialog button {
+.model-transformations-chooser-dialog button,
+.model-transformations-chooser-dialog select {
   margin-bottom: 5px;
 }
 

@@ -24,18 +24,42 @@
 
 /**
  * Root of a 3D branch that matches a home object. 
+ * @param {Object} [item] 
+ * @param {Home}   [home]
+ * @param {UserPreferences} [userPreferences]
  * @constructor
  * @extends BranchGroup3D
  * @author Emmanuel Puybaret
  */
-function Object3DBranch() {
+function Object3DBranch(item, home, userPreferences) {
   BranchGroup3D.call(this);
+  if (item !== undefined) {
+    this.setUserData(item);
+    this.home = home;
+    this.userPreferences = userPreferences
+  }
 }
 Object3DBranch.prototype = Object.create(BranchGroup3D.prototype);
 Object3DBranch.prototype.constructor = Object3DBranch;
 
 Object3DBranch.DEFAULT_COLOR         = 0xFFFFFF;
 Object3DBranch.DEFAULT_AMBIENT_COLOR = 0x333333;
+
+/**
+ * Returns home instance or <code>null</code>.
+ * @return {Home}
+ */
+Object3DBranch.prototype.getHome = function() {
+  return this.home !== undefined ? this.home : null;
+}
+
+/**
+ * Returns user preferences.
+ * @return {UserPreferences}
+ */
+Object3DBranch.prototype.getUserPreferences = function() {
+  return this.userPreferences !== undefined ? this.userPreferences : null;
+}
 
 /**
  * Returns the shape matching the coordinates in <code>points</code> array.
@@ -135,6 +159,19 @@ Object3DBranch.prototype.updateTextureTransformFittingArea = function(appearance
   mat3.scale(transform, transform, vec2.fromValues(1 / (maxX - minX),  1 / (maxY - minY)));
   mat3.mul(transform, transform, translation);
   appearance.setTextureTransform(transform);
+}
+
+/**
+ * Returns an appearance for selection shapes.
+ * @return {Appearance}
+ * @ignore
+ */
+Object3DBranch.prototype.getSelectionAppearance = function() {
+  var selectionAppearance = new Appearance3D();
+  selectionAppearance.setCullFace(Appearance3D.CULL_NONE);
+  selectionAppearance.setIllumination(0);
+  selectionAppearance.setDiffuseColor(vec3.fromValues(0, 0, 0.7102));
+  return selectionAppearance;
 }
 
 /**
