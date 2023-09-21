@@ -9,7 +9,8 @@
      - viewerDistribution      : Builds minified Javacript viewer files in dist directory
      - applicationDistribution : Builds minified Javacript application files in dist directory
      - viewerBuild             : Builds SweetHome3DJSViewer-version.zip file in install directory
-     - applicationBuild        : Builds SweetHome3DJS-version.war file in install directory
+     - applicationJspBuild     : Builds SweetHome3DJS-version.war file for JSP server in install directory
+     - applicationPhpBuild     : Builds SweetHome3DJS-version.zip file for PHP server in install directory
      - jsdoc                   : Builds SweetHome3DJS-version-jsdoc.zip file in install directory
      - sourceArchive           : Builds SweetHome3DJS-version-src.zip file in install directory
 -->
@@ -553,57 +554,57 @@
   </target>
 
   <property name="debug" value="false" />
-  <target name="applicationDeploy"
-          description="Copies server files in deploy directory">
+  <target name="applicationJspDeploy"
+          description="Copies server files in deployIncrementalHomeRecorder directory">
     <echo>WARNING: run 'applicationDistribution' task if source elements have been modified</echo>
-    <fail message="Please build SweetHome3D jar before deploy.">
+    <fail message="Please build SweetHome3D jar before deploy">
       <condition>
         <not>
           <available file="../SweetHome3D/install/SweetHome3D-${SweetHome3D-version}.jar" />
         </not>
       </condition>
     </fail>
-    <delete dir="deploy/WEB-INF/classes" />
-    <delete dir="deploy/WEB-INF/lib" />
-    <delete file="deploy/homes/HomeTest.sh3d" />
-    <mkdir dir="deploy/WEB-INF/classes" />
-    <mkdir dir="deploy/WEB-INF/lib" />
-    <mkdir dir="deploy/homes" />
-    <copy file="../SweetHome3D/install/SweetHome3D-${SweetHome3D-version}.jar" todir="deploy/WEB-INF/lib" />
-    <copy file="tools/json/lib/json-20190722.jar" todir="deploy/WEB-INF/lib" />
-    <copy file="test/resources/HomeTest.sh3d" todir="deploy/homes" />
-    <javac srcdir="tools/deploy/src" destdir="deploy/WEB-INF/classes"
+    <delete dir="deployIncrementalHomeRecorder/WEB-INF/classes" />
+    <delete dir="deployIncrementalHomeRecorder/WEB-INF/lib" />
+    <delete file="deployIncrementalHomeRecorder/homes/HomeTest.sh3d" />
+    <mkdir dir="deployIncrementalHomeRecorder/WEB-INF/classes" />
+    <mkdir dir="deployIncrementalHomeRecorder/WEB-INF/lib" />
+    <mkdir dir="deployIncrementalHomeRecorder/homes" />
+    <copy file="../SweetHome3D/install/SweetHome3D-${SweetHome3D-version}.jar" todir="deployIncrementalHomeRecorder/WEB-INF/lib" />
+    <copy file="tools/json/lib/json-20190722.jar" todir="deployIncrementalHomeRecorder/WEB-INF/lib" />
+    <copy file="test/resources/HomeTest.sh3d" todir="deployIncrementalHomeRecorder/homes" />
+    <javac srcdir="tools/deployIncrementalHomeRecorder/src" destdir="deployIncrementalHomeRecorder/WEB-INF/classes"
            source="1.8" target="1.8" encoding="ISO-8859-1"
            debug="${debug}" debuglevel="lines,vars,source">
       <classpath>
-        <fileset dir="deploy/WEB-INF/lib" />
+        <fileset dir="deployIncrementalHomeRecorder/WEB-INF/lib" />
       </classpath>
     </javac>
-    <copy todir="deploy/lib">
+    <copy todir="deployIncrementalHomeRecorder/lib">
       <fileset dir="lib" excludes="generated/**" />
       <fileset dir="dist" />
     </copy>
   </target>
 
-  <target name="applicationDeployTest"
-          description="Copies server and test files in deploy directory">
-    <antcall target="applicationDeploy">
+  <target name="applicationJspDeployTest"
+          description="Copies server and test files in deployIncrementalHomeRecorder directory">
+    <antcall target="applicationJspDeploy">
       <param name="debug" value="true"/>
     </antcall>
-    <copy todir="deploy/lib">
+    <copy todir="deployIncrementalHomeRecorder/lib">
       <fileset dir="lib" includes="generated/**" />
     </copy>
-    <copy todir="deploy/src">
+    <copy todir="deployIncrementalHomeRecorder/src">
       <fileset dir="src" />
     </copy>
-    <copy file="test/testHome.html" todir="deploy" />
+    <copy file="test/testHome.html" todir="deployIncrementalHomeRecorder" />
   </target>
 
   <!-- Builds install/SweetHome3DJS-version.war archive that contains
-       the files required for SweetHome3DJS -->
-  <target name="applicationBuild" depends="applicationDistribution"
+       the files required for SweetHome3DJS to run on a JSP server -->
+  <target name="applicationJspBuild" depends="applicationDistribution"
           description="Builds SweetHome3DJS-version.war in install directory">
-    <antcall target="applicationDeploy">
+    <antcall target="applicationJspDeploy">
       <param name="debug" value="false"/>
     </antcall>
     <mkdir dir="install/SweetHome3DJS-${version}/lib" />
@@ -612,11 +613,11 @@
       <fileset dir="dist"/>
     </copy>
     <copy todir="install/SweetHome3DJS-${version}">
-      <fileset dir="deploy" includes="*.jsp"/>
+      <fileset dir="deployIncrementalHomeRecorder" includes="*.jsp"/>
     </copy>
     <mkdir dir="install/SweetHome3DJS-${version}/WEB-INF" />
     <copy todir="install/SweetHome3DJS-${version}/WEB-INF">
-      <fileset dir="deploy/WEB-INF"/>
+      <fileset dir="deployIncrementalHomeRecorder/WEB-INF"/>
     </copy>
     <mkdir dir="install/SweetHome3DJS-${version}/homes" />
     <zip destfile="install/SweetHome3DJS-${version}.war">
@@ -637,6 +638,46 @@
     <delete dir="install/SweetHome3DJS-${version}" />
 
     <echo message="install/SweetHome3DJS-${version}.war ready"/>
+  </target>
+
+  <target name="applicationPhpDeploy" depends="applicationDistribution"
+          description="Copies server files in deployDirectHomeRecorder directory">
+    <copy todir="deployDirectHomeRecorder/lib">
+      <fileset dir="lib" excludes="generated/**" />
+      <fileset dir="dist" />
+    </copy>
+  </target>
+
+  <!-- Builds install/SweetHome3DJS-version.zip archive that contains
+       the files required for SweetHome3DJS to run on a PHP server -->
+  <target name="applicationPhpBuild" depends="applicationDistribution"
+          description="Builds SweetHome3DJS-version.zip in install directory">
+    <mkdir dir="install/SweetHome3DJS-${version}/lib" />
+    <copy todir="install/SweetHome3DJS-${version}/lib">
+      <fileset dir="lib" excludes="generated/**" />
+      <fileset dir="dist"/>
+    </copy>
+    <copy todir="install/SweetHome3DJS-${version}">
+      <fileset dir="deployDirectHomeRecorder" includes="index.html, *.php"/>
+    </copy>
+    <zip destfile="install/SweetHome3DJS-${version}.zip">
+      <zipfileset dir="install/SweetHome3DJS-${version}"/>
+      <zipfileset dir=".">
+        <include name="COPYING.TXT"/>
+        <include name="LICENSE.TXT"/>
+        <include name="THIRDPARTY-LICENSE-JAVA3D-UTILS.TXT"/>
+        <include name="THIRDPARTY-LICENSE-BATIK.TXT"/>
+        <include name="THIRDPARTY-LICENSE-BIG-JS.TXT"/>
+        <include name="THIRDPARTY-LICENSE-GLMATRIX.TXT"/>
+        <include name="THIRDPARTY-LICENSE-JSXMLSAXPARSER.TXT"/>
+        <include name="THIRDPARTY-LICENSE-JSZIP.TXT"/>
+        <include name="THIRDPARTY-LICENSE-JSON-ORG.TXT"/>
+        <include name="THIRDPARTY-LICENSE-OPEN-JDK.TXT"/>
+      </zipfileset>
+    </zip>
+    <delete dir="install/SweetHome3DJS-${version}" />
+
+    <echo message="install/SweetHome3DJS-${version}.zip ready"/>
   </target>
 
   <!-- Builds dist/SweetHome3DJS-version-jsdoc.zip archive that contains
@@ -685,11 +726,11 @@
         <include name="lib/**" />
         <include name="test/**" />
         <include name="install/viewer/*"/>
-        <include name="deploy/*.jsp" />
+        <include name="deployIncrementalHomeRecorder/*.jsp" />
         <include name="tools/JSweet/**" />
         <include name="tools/JSDocTemplate/**" />
         <include name="tools/json/**" />
-        <include name="tools/deploy/**" />
+        <include name="tools/deployIncrementalHomeRecorder/**" />
         <!-- Eclipse project files -->
         <include name=".settings/**" />
         <include name=".classpath" />
