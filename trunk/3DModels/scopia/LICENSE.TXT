@@ -53,6 +53,7 @@ for the icons and the 265 following models:
 - boston-fern
 - bowlWithFruits
 - bowlWithSalad
+- boy
 - break
 - broom
 - bus
@@ -157,7 +158,6 @@ for the icons and the 265 following models:
 - gant-textured
 - garage-door
 - garage-door2
-- garcon
 - garden-hut
 - gaz_water_heater
 - glass_door
