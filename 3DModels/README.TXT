@@ -1,5 +1,5 @@
-LIBRARY OF 3D MODELS FOR SWEET HOME 3D v 1.9
---------------------------------------------
+LIBRARY OF 3D MODELS FOR SWEET HOME 3D v 1.9.1
+----------------------------------------------
 
 This archive contains a SH3F file which describes a set of additional 3D models for Sweet Home 3D, 
 localized in the following languages:
