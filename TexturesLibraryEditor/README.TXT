@@ -1,18 +1,18 @@
-TEXTURES LIBRARY EDITOR v 1.9
+TEXTURES LIBRARY EDITOR v 2.0
 -----------------------------
 
 This archive contains source code of the Textures Library Editor for Sweet Home 3D.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_1_9/TexturesLibraryEditor TexturesLibraryEditor
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_2_0/TexturesLibraryEditor TexturesLibraryEditor
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code from 
-http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-7.1-src.zip 
+http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-7.2-src.zip 
 or with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_7_1/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_7_2/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
