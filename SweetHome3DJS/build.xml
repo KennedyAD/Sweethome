@@ -727,6 +727,8 @@
         <include name="test/**" />
         <include name="install/viewer/*"/>
         <include name="deployIncrementalHomeRecorder/*.jsp" />
+        <include name="deployDirectHomeRecorder/index.html" />
+        <include name="deployDirectHomeRecorder/*.php" />
         <include name="tools/JSweet/**" />
         <include name="tools/JSDocTemplate/**" />
         <include name="tools/json/**" />
