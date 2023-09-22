@@ -732,7 +732,7 @@
         <include name="tools/JSweet/**" />
         <include name="tools/JSDocTemplate/**" />
         <include name="tools/json/**" />
-        <include name="tools/deployIncrementalHomeRecorder/**" />
+        <include name="tools/deploy/**" />
         <!-- Eclipse project files -->
         <include name=".settings/**" />
         <include name=".classpath" />
@@ -754,5 +754,3 @@
     <echo message="install/SweetHome3DJS-${version}-src.zip ready for ftp" />
   </target>
 </project>
-
-
