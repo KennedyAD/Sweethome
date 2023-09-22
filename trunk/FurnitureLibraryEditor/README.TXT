@@ -1,18 +1,18 @@
-FURNITURE LIBRARY EDITOR v 1.31
--------------------------------
+FURNITURE LIBRARY EDITOR v 2.0
+------------------------------
 
 This archive contains source code of the Furniture Library Editor for Sweet Home 3D.
 
 You may also download this source code with the following SVN command:
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_1_31/FurnitureLibraryEditor FurnitureLibraryEditor
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_2_0/FurnitureLibraryEditor FurnitureLibraryEditor
 
 
 As this project depends on Sweet Home 3D, download and install also Sweet Home 3D source code from 
-http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-7.1-src.zip 
+http://prdownloads.sourceforge.net/sweethome3d/SweetHome3D-7.2-src.zip 
 or with the following SVN command: 
 
-svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_7_1/SweetHome3D SweetHome3D
+svn checkout https://svn.code.sf.net/p/sweethome3d/code/tags/V_7_2/SweetHome3D SweetHome3D
 
 
 HOW TO USE THIS SOURCE CODE
@@ -39,10 +39,8 @@ application included in this archive, with the Eclipse Run menu.
 As this application requires Java 3D, open Run Dialog in Eclipse, 
 select the Arguments tab of the target application, add to the VM arguments 
 text field the option:
--Djava.library.path=../SweetHome3D/lib/java3d-1.6/windows/i586
 -Djava.library.path=../SweetHome3D/lib/java3d-1.6/windows/amd64
 -Djava.library.path=../SweetHome3D/lib/java3d-1.6/macosx
--Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/i586 
 or -Djava.library.path=../SweetHome3D/lib/java3d-1.6/linux/amd64
 according to your system and its architecture.
 If you use Java 16 or above, you should add also the following VM arguments 
