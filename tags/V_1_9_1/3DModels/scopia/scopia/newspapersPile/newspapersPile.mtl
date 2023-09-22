@@ -1,0 +1,46 @@
+# Blender 3.3.1 MTL File: 'journaux.blend'
+# www.blender.org
+
+newmtl NewspaperBase
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.003817 0.003817 0.003817
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureSportNewspaper.jpg
+
+newmtl NewspaperSecond
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.003817 0.003817 0.003817
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureSportNewspaper.jpg
+
+newmtl NewspaperThird
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.003817 0.003817 0.003817
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureSportNewspaper.jpg
+
+newmtl NewspaperTop
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.003817 0.003817 0.003817
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureSportNewspaper.jpg

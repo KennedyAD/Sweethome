@@ -1,0 +1,22 @@
+# Blender MTL File: 'design_stolek_zidle.blend'
+# Material Count: 2
+
+newmtl Plastic
+Ns 40
+Ka 1.000000 1.000000 1.000000
+Kd 0.900000 0.900000 0.900000
+Ks 0.5 0.5 0.5
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Cushion
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.045452 0.219455 0.517323
+Ks 0.05 0.05 0.05
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

@@ -1,0 +1,90 @@
+# Blender MTL File: 'ArbreAChat-rope-sweethome3d.blend'
+# Material Count: 8
+
+newmtl Base
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd arbreAChatTexture.jpg
+
+newmtl Boite
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd arbreAChatTexture.jpg
+
+newmtl Colonne
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd arbreAChatTexture.jpg
+
+newmtl CordesColonne
+Ns 1
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd arbreAChatTexture.jpg
+
+newmtl CordesEchelle
+Ns 1
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd arbreAChatTexture.jpg
+
+newmtl Echelle
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd arbreAChatTexture.jpg
+
+newmtl PlateForme
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd arbreAChatTexture.jpg
+
+newmtl Refuge
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0 0 0
+Ke 0 0 0
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd arbreAChatTexture.jpg

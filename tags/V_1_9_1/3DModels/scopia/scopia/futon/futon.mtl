@@ -1,0 +1,54 @@
+# Blender MTL File: 'futon.blend'
+# Material Count: 5
+
+newmtl pinkBorder
+Ns 5
+Ka 0.658375 0.407240 0.396755
+Kd 0.658375 0.407240 0.396755
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl textureBase
+Ns 5
+Ka 0.800000 0.800000 0.800000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd wallpaper-chiyogami.jpg
+
+newmtl texturedCover
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd wallpaper-japanese-pink-flowers.jpg
+
+newmtl whiteCover
+Ns 5
+Ka 0.3 0.3 0.3
+Kd 0.85 0.85 0.85
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl whiteSheet
+Ns 5
+Ka 0.3 0.3 0.3
+Kd 0.85 0.85 0.85
+Ks 0.01 0.01 0.01
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

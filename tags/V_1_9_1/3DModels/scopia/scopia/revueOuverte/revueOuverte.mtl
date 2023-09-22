@@ -1,0 +1,13 @@
+# Blender 3.3.1 MTL File: 'RevueOuvert.blend'
+# www.blender.org
+
+newmtl Magazine
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.022124 0.022124 0.022124
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureRevueOuverte.jpg

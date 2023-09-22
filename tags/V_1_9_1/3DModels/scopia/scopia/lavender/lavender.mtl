@@ -1,0 +1,66 @@
+# Blender 3.3.1 MTL File: 'lavender-v2-joined.blend'
+# www.blender.org
+
+newmtl Buds
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.039823 0.039823 0.039823
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd budsTexture.jpg
+
+newmtl Chalice
+Ns 3
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.039823 0.039823 0.039823
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd chaliceAndStem.jpg
+
+newmtl Jar
+Ns 10
+Ka 0.313 0.066 0.229
+Kd 0.313 0.066 0.229
+Ks 0.119469 0.119469 0.119469
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Leaves
+Ns 3
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.011364 0.011364 0.011364
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureLeaf.jpg
+
+newmtl LilacChalices
+Ns 5
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.057522 0.057522 0.057522
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd budsTexture.jpg
+
+newmtl Stem
+Ns 5
+Ka 1.000000 1.000000 1.000000
+Ks 0.092920 0.092920 0.092920
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd chaliceAndStem.jpg

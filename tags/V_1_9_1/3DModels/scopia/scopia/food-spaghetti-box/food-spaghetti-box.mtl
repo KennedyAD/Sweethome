@@ -1,0 +1,12 @@
+# Blender 3.3.1 MTL File: 'food-spaghetti-box.blend'
+# www.blender.org
+
+newmtl SpaghettiBox
+Ns 2
+Ka 0.8 0.8 0.8
+Ka 0.8 0.8 0.8
+Ks 0.02 0.0 0.02
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textureSpaghettiBox.jpg

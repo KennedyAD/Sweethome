@@ -1,0 +1,23 @@
+# Blender MTL File: 'LATT_Children_s_table_w_2_chairs-sweethome3d.blend'
+# Material Count: 2
+
+newmtl Pine
+Ns 30
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.097015 0.097015 0.097015
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd pine.jpg
+
+newmtl WhiteWood
+Ns 20
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.089552 0.089552 0.089552
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

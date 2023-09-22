@@ -1,0 +1,145 @@
+# Blender MTL File: 'roads-with-final-lines.blend'
+# Material Count: 13
+
+newmtl rightTopLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl rightBottomLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl leftTopLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl leftBottomLine
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.247628 0.247628 0.247628
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd accotement.jpg
+
+newmtl rightTopBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl rightBottomBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl leftTopBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl leftBottomBorder
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl road
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd asphalte-fonce-4x4m.jpg
+
+newmtl rightTopSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl rightBottomSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl leftTopSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg
+
+newmtl leftBottomSidewalk
+Ns 1
+Ka 0.8 0.8 0.8
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd trottoirs.jpg

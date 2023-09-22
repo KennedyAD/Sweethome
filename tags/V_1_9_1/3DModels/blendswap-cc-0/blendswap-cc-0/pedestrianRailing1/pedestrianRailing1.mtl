@@ -1,0 +1,20 @@
+# pedestrianRailing1.mtl
+#
+# Created by colkaih
+# https://blendswap.com/blend/25813
+# Modified by Emmanuel Puybaret / eTeks to reduce vertices count
+#
+# This file is distributed under CC-0 Creative Commons Zero (Public Domain) license:
+# See http://creativecommons.org/choose/zero/
+# This means that you can use it for any purpose you see fit, even commercially,
+# with no requirements.
+
+newmtl PedestrianRailing
+Ns 60
+Ka 0.5 0.5 0.5
+Kd 0.5 0.5 0.5
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

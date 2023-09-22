@@ -1,0 +1,82 @@
+# Blender 3.3.1 MTL File: 'table-on-wheels.blend'
+# www.blender.org
+
+newmtl ConnectorWheels
+Ns 50
+Ka 0.7 0.7 0.7
+Kd 0.7 0.7 0.7
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl MetalBaseTable
+Ns 60
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl PlasticConnector
+Ns 10
+Ka 0.8 0.8 0.8
+Kd 0.8 0.8 0.8
+Ks 0.125000 0.125000 0.125000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl PlasticGear
+Ns 10
+Ka 0.7 0.7 0.7
+Kd 0.7 0.7 0.7
+Ks 0.170455 0.170455 0.170455
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl PlasticWheels
+Ns 20
+Ka 0.4 0.4 0.4
+Kd 0.4 0.4 0.4
+Ks 0.102273 0.102273 0.102273
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl TableBandProtection
+Ns 10
+Ka 0.65 0.65 0.65
+Kd 0.65 0.65 0.65
+Ks 0.1 0.1 0.1
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl TableTop
+Ns 10
+Ka 0.8 0.8 0.78
+Kd 0.8 0.8 0.78
+Ks 0.061069 0.061069 0.061069
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl TableBar
+Ns 80
+Ka 0.65 0.65 0.65
+Kd 0.65 0.65 0.65
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
