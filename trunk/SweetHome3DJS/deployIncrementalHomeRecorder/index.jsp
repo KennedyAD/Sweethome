@@ -29,7 +29,7 @@
 <meta name="viewport" content="minimal-ui, user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
 <meta name="format-detection" content="telephone=no">
 <meta name="msapplication-tap-highlight" content="no">
-<title>SweetHome3DJS Test</title>
+<title>Sweet Home 3D JS</title>
 <script type="text/javascript" src="lib/big.min.js"></script>
 <script type="text/javascript" src="lib/gl-matrix-min.js"></script>
 <script type="text/javascript" src="lib/jszip.min.js"></script>
