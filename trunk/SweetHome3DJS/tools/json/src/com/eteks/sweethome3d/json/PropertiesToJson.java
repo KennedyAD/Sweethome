@@ -126,8 +126,6 @@ public class PropertiesToJson {
               outputDirectory, "localization", localizationProperties, supportedLanguages);
         }
       }
-      convert(sourceRoot, new String[] {"com/eteks/sweethome3d/model/LengthUnit"},
-          outputDirectory, "LengthUnit", null, null, null, false, true, supportedLanguages);
       convert(sourceRoot, new String[] {"com/eteks/sweethome3d/io/DefaultFurnitureCatalog"},
           outputDirectory, "DefaultFurnitureCatalog", null, outputDirectory + "/models", null, true, true, supportedLanguages);
       convert(sourceRoot, new String[] {"com/eteks/sweethome3d/io/DefaultTexturesCatalog"},

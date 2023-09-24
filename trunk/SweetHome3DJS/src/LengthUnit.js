@@ -25,10 +25,126 @@
  */
 var LengthUnit = {};
 
+LengthUnit.UNITS_LOCALIZATION = {
+  "":   {"meterUnit": "m",
+         "centimeterUnit": "cm",
+         "millimeterUnit": "mm",
+         "inchUnit": "inch",
+         "footUnit": "ft",
+         "squareMeterUnit": "m\u00b2",
+         "squareFootUnit": "sq ft"},
+  "ar": {"meterUnit": "\u0645",
+         "centimeterUnit": "\u0633\u0645",
+         "millimeterUnit": "\u0645\u0645",
+         "inchUnit": "\u0627\u0646\u0634",
+         "squareMeterUnit": "\u0645\u062a\u0631 \u0645\u0631\u0628\u0639",
+         "squareFootUnit": "\u0642\u062f\u0645 \u0645\u0631\u0628\u0639"},
+  "bg": {"inchUnit": "inch"},
+  "cs": {"inchUnit": "palce",
+         "squareFootUnit": "ft\u00b2"},
+  "de": {"inchUnit": "inch",
+         "footUnit": "ft",
+         "squareFootUnit": "ft\u00b2"},
+  "el": {"inchUnit": "\u03af\u03bd\u03c4\u03c3\u03b1",
+         "squareMeterUnit": "m\u00b2",
+         "squareFootUnit": "\u03c4\u03b5\u03c4\u03c1\u03b1\u03b3\u03c9\u03bd\u03b9\u03ba\u03cc \u03c0\u03cc\u03b4\u03b9"},
+  "es": {"inchUnit": "pulgada",
+         "squareFootUnit": "ft\u00b2"},
+  "eu": {"inchUnit": "hazbete",
+         "squareFootUnit": "sq ft"},
+  "fi": {"inchUnit": "\"",
+         "squareFootUnit": "ft\u00b2"},
+  "fr": {"inchUnit": "pouce",
+         "footUnit": "pied",
+         "squareFootUnit": "ft\u00b2"},
+  "hu": {"inchUnit": "inch",
+         "squareFootUnit": "ft\u00b2"},
+  "in": {"inchUnit": "inci",
+         "squareFootUnit": "ft\u00b2"},
+  "it": {"inchUnit": "pollice",
+         "squareFootUnit": "ft\u00b2"},
+  "ja": {"inchUnit": "inch",
+         "squareFootUnit": "sq ft"},
+  "nl": {"inchUnit": "inch",
+         "squareFootUnit": "vt\u00b2"},
+  "pl": {"inchUnit": "cal",
+         "squareFootUnit": "ft\u00b2"},
+  "pt_BR": {"inchUnit": "pol",
+            "squareFootUnit": "ft\u00b2"},
+  "pt": {"inchUnit": "pol",
+         "squareFootUnit": "p\u00e9\u00b2"},
+  "ru": {"meterUnit": "\u043c",
+         "centimeterUnit": "\u0441\u043c",
+         "millimeterUnit": "\u043c\u043c",
+         "inchUnit": "\u0434\u044e\u0439\u043c",
+         "squareMeterUnit": "\u043c\u00b2",
+         "squareFootUnit": "ft\u00b2"},
+  "sl": {"inchUnit": "in\u010d",
+         "squareFootUnit": "kv \u010dl"},
+  "sr": {"inchUnit": "inch",
+         "squareFootUnit": "sq ft"},
+  "sv": {"inchUnit": "tum",
+         "squareFootUnit": "ft\u00b2"},
+  "th": {"meterUnit": "\u0e21.",
+          "centimeterUnit": "\u0e0b\u0e21.",
+          "millimeterUnit": "\u0e21\u0e21.",
+          "inchUnit": "\u0e19\u0e34\u0e49\u0e27",
+          "squareMeterUnit": "\u0e21.\u00b2",
+          "squareFootUnit": "\u0e15\u0e32\u0e23\u0e32\u0e07\u0e1f\u0e38\u0e15"},
+  "tr": {"inchUnit": "in\u00e7",
+         "squareFootUnit": "kare ft "},
+  "uk": {"meterUnit": "\u043c",
+         "centimeterUnit": "\u0441\u043c",
+         "millimeterUnit": "\u043c\u043c",
+         "inchUnit": "\u0434\u044e\u0439\u043c",
+         "squareMeterUnit": "\u043c\u00b2",
+         "squareFootUnit": "\u043a\u0432. \u0444\u0442"},
+  "vi": {"inchUnit": "inch",
+         "squareFootUnit": "sq ft"},
+  "zh_CN": {"centimeterUnit": "\u5398\u7c73",
+            "inchUnit": "\u82f1\u5bf8",
+            "millimeterUnit": "\u6beb\u7c73",
+            "meterUnit": "\u7c73",
+            "squareMeterUnit": "m\u00b2",
+            "squareFootUnit": "\u5e73\u65b9\u82f1\u5c3a"},
+  "zh_TW": {"centimeterUnit": "\u516c\u5206",
+            "inchUnit": "\u82f1\u540b",
+            "millimeterUnit": "\u516c\u91d0",
+            "meterUnit": "\u516c\u5c3a",
+            "squareMeterUnit": "m\u00b2",
+            "squareFootUnit": "ft\u00b2"}
+  };
+  
 /**
+ * Returns the unit name in default locale. 
+ * @param {string} unit
+ */
+LengthUnit.getLocalizedUnit = function(unit) {
+  var locale = Locale.getDefault();
+  var localizedUnits = LengthUnit.UNITS_LOCALIZATION [locale];
+  if (localizedUnits !== undefined) {
+	var localizedUnit = localizedUnits [unit];
+    if (localizedUnit !== undefined) {
+      return localizedUnit;
+	}
+  }
+  if (locale.indexOf("_") > 0) {
+    locale = locale.substring(0, locale.indexOf("_"));	
+    var localizedUnits = LengthUnit.UNITS_LOCALIZATION [locale];
+    if (localizedUnits !== undefined) {
+	  var localizedUnit = localizedUnits [unit];
+      if (localizedUnit !== undefined) {
+        return localizedUnit;
+	  }
+    }
+  }
+  return LengthUnit.UNITS_LOCALIZATION [""][unit];
+} 
+
+/**
+ * Returns the value close to the given length under magnetism for meter units.
  * @param {number} length
  * @param {number} maxDelta
- * Returns the value close to the given length under magnetism for meter units.
  * @private
  */
 LengthUnit.getMagnetizedMeterLength = function(length, maxDelta) {
@@ -55,9 +171,9 @@ LengthUnit.getMagnetizedMeterLength = function(length, maxDelta) {
 }
 
 /**
+ * Returns the value close to the given length under magnetism for inch units.
  * @param {number} length
  * @param {number} maxDelta
- * Returns the value close to the given length under magnetism for inch units.
  * @private
  */
 LengthUnit.getMagnetizedInchLength = function(length, maxDelta) {
@@ -192,11 +308,10 @@ LengthUnit.MILLIMETER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "millimeterUnit");
+    this.unitName = LengthUnit.getLocalizedUnit("millimeterUnit");
     this.lengthFormatWithUnit = new MeterFamilyFormat("0", 10, this.unitName);
     this.lengthFormat = new MeterFamilyFormat("0", 10);
-    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
+    var squareMeterUnit = LengthUnit.getLocalizedUnit("squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
   }
 }
@@ -275,11 +390,10 @@ LengthUnit.CENTIMETER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();  
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "centimeterUnit");
+    this.unitName = LengthUnit.getLocalizedUnit("centimeterUnit");
     this.lengthFormatWithUnit = new MeterFamilyFormat("0.#", 1, this.unitName);
     this.lengthFormat = new MeterFamilyFormat("0.#", 1);
-    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
+    var squareMeterUnit = LengthUnit.getLocalizedUnit("squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
   }
 }
@@ -359,11 +473,10 @@ LengthUnit.METER.checkLocaleChange = function() {
   // Instantiate formats if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "meterUnit");
+    this.unitName = LengthUnit.getLocalizedUnit("meterUnit");
     this.lengthFormatWithUnit = new MeterFamilyFormat("0.00#", 0.01, this.unitName);
     this.lengthFormat = new MeterFamilyFormat("0.00#", 0.01);
-    var squareMeterUnit = CoreTools.getStringFromKey(resource, "squareMeterUnit");
+    var squareMeterUnit = LengthUnit.getLocalizedUnit("squareMeterUnit");
     this.areaFormatWithUnit = new SquareMeterAreaFormatWithUnit(squareMeterUnit);
   }
 }
@@ -441,11 +554,10 @@ LengthUnit.INCH.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
-    var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
+    this.unitName = LengthUnit.getLocalizedUnit("inchUnit");
+    var footInchSeparator = "";
     this.lengthFormat = new InchFractionFormat(true, footInchSeparator);
-    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    var squareFootUnit = LengthUnit.getLocalizedUnit("squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0", squareFootUnit);
   }
 }
@@ -524,11 +636,10 @@ LengthUnit.INCH_FRACTION.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
-    var footInchSeparator = CoreTools.getStringFromKey(resource, "footInchSeparator");
+    this.unitName = LengthUnit.getLocalizedUnit("inchUnit");
+    var footInchSeparator = "";
     this.lengthFormat = new InchFractionFormat(false, footInchSeparator);
-    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    var squareFootUnit = LengthUnit.getLocalizedUnit("squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0", squareFootUnit);
   }
 }
@@ -604,11 +715,10 @@ LengthUnit.INCH_DECIMALS.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "inchUnit");
+    this.unitName = LengthUnit.getLocalizedUnit("inchUnit");
     this.lengthFormat = new InchDecimalsFormat("0.###");
     this.lengthFormatWithUnit = new InchDecimalsFormat("0.###", "\""); 
-    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    var squareFootUnit = LengthUnit.getLocalizedUnit("squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0.##", squareFootUnit);
   }
 }
@@ -688,11 +798,10 @@ LengthUnit.FOOT_DECIMALS.checkLocaleChange = function() {
   // Instantiate format if locale changed
   if (Locale.getDefault() != this.formatLocale) {
     this.formatLocale = Locale.getDefault();
-    var resource = CoreTools.loadResourceBundles("resources/LengthUnit", this.formatLocale);
-    this.unitName = CoreTools.getStringFromKey(resource, "footUnit");
+    this.unitName = LengthUnit.getLocalizedUnit("footUnit");
     this.lengthFormat = new FootDecimalsFormat("0.###");
     this.lengthFormatWithUnit = new FootDecimalsFormat("0.###", "\'"); 
-    var squareFootUnit = CoreTools.getStringFromKey(resource, "squareFootUnit");
+    var squareFootUnit = LengthUnit.getLocalizedUnit("squareFootUnit");
     this.areaFormatWithUnit = new SquareFootAreaFormatWithUnit("0.##", squareFootUnit);
   }
 }
