@@ -407,7 +407,7 @@
       <filterchain>
         <headfilter lines="19" />
         <tokenfilter>
-          <replacestring from="viewHome.js" to="viewhome.min.js  version ${version}" />
+          <replacestring from="viewHome.js" to="viewhome.min.js  version ${version}a" />
         </tokenfilter>
       </filterchain>
       <file file="dist/build/viewhome.min.js" />
