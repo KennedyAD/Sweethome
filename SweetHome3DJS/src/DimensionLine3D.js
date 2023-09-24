@@ -58,23 +58,19 @@ DimensionLine3D.prototype.update = function() {
     if (lengthStyle == null){
       lengthStyle = this.getUserPreferences().getDefaultTextStyle(DimensionLine);
     }
-    var fontStyle = "";
-    if (lengthStyle.isBold()) {
-      fontStyle = "bold ";
-    }
-    if (lengthStyle.isItalic()) {
-      fontStyle += "italic ";
-    }
     var fontName = lengthStyle.getFontName();
     if (fontName === null) {
       fontName = "sans-serif";
     }
-    var font = fontStyle + " " + lengthStyle.getFontSize() + "px " + fontName;
-    var lengthFontMetrics = new FontMetrics(font);
-    var fontAscent = lengthFontMetrics.getAscent();
+    var fontHeight = lengthStyle.getFontSize(); 
+    if (["Times", "Serif", "Helvetica"].indexOf(fontName) === -1) {
+      fontHeight *= 1.18;
+    }
+    var fontDescent = 0.23 * fontHeight;
+    var fontAscent = fontHeight - fontDescent;
     var offset = dimensionLine.getOffset();
     var zTranslation = offset <= 0 
-        ? -lengthFontMetrics.getDescent() - 1 
+        ? -fontDescent - 1 
         : fontAscent + 1;
     var transformGroup;
     var linesShape;
