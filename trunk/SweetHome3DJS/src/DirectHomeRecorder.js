@@ -416,6 +416,7 @@ DirectHomeRecorder.prototype.getAvailableHomes = function(observer) {
 
 /**
  * Deletes on server a home from its name.
+ * @param {string} homeName
  * @param {homeDeleted: function, homeError: function} observer
  * @return {abort: function} a function that will abort deletion 
  *                           or <code>null</code> if no deletion was performed  
