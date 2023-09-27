@@ -1061,7 +1061,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, preferences, 
             } else if (mouseListener.actionStartedInComponent3D
                        && document.activeElement === component3D.canvas3D.getHTMLElement()) {
               mouseListener.moveCamera(ev.canvasX, ev.canvasY, mouseListener.lastPointerLocation [0], mouseListener.lastPointerLocation [1], 
-                  ev.button, ev.altKey, ev.shiftKey);
+                  ev.altKey, ev.shiftKey);
             }
           }
           mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
@@ -1218,10 +1218,10 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, preferences, 
               } else {
                 if (component3D.home.getCamera() === component3D.home.getObserverCamera()) {
                   mouseListener.moveCamera(-ev.canvasX, -ev.canvasY, 
-                      -mouseListener.lastPointerLocation [0], -mouseListener.lastPointerLocation [1], ev.button, false, false);
+                      -mouseListener.lastPointerLocation [0], -mouseListener.lastPointerLocation [1], false, false);
                 } else {
                   mouseListener.moveCamera(ev.canvasX, ev.canvasY, 
-                     mouseListener.lastPointerLocation [0], mouseListener.lastPointerLocation [1], ev.button, false, false);
+                     mouseListener.lastPointerLocation [0], mouseListener.lastPointerLocation [1], false, false);
                 }
               }
               mouseListener.lastPointerLocation = [ev.canvasX, ev.canvasY];
@@ -1380,10 +1380,10 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, preferences, 
         } 
         controller.moveCamera(delta);
       },
-      moveCamera: function(x, y, lastX, lastY, button, altKey, shiftKey) {
-        if ((mouseListener.lastPointerLocation [0] !== x
-              || mouseListener.lastPointerLocation [1] !== y)
-            && button === 0) {
+      moveCamera: function(x, y, lastX, lastY, altKey, shiftKey) {
+        if (mouseListener.actionStartedInComponent3D
+            && (mouseListener.lastPointerLocation [0] !== x
+                || mouseListener.lastPointerLocation [1] !== y)) {
           if (altKey) {
             // Mouse move along Y axis while alt is down changes camera location
             var delta = 1.25 * (lastY - y);
