@@ -2114,7 +2114,7 @@ HomePane.prototype.createFurnitureCatalogMouseListener = function() {
                     if (view && typeof view.setCursor === "function") {
                       view.setCursor(this.previousCursor);
                     }
-                  } else {
+                  } else if (homePane.preferences.isEditingIn3DViewEnabled()) {
                     pointInView3D = mouseListener.getPointInView3D(ev);
                     if (pointInView3D !== null) {
                       view = homePane.controller.getHomeController3D().getView();
