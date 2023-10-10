@@ -500,7 +500,7 @@ label {
   }
 
   /* Small touch devices like smartphones */
-  @media (max-width: 767px), (max-height: 511px) {
+  @media (max-width: 743px), (max-height: 511px) {
     @media (orientation: portrait), (max-aspect-ratio: 5/4) {
       #furniture-category-select {
         display: none;
