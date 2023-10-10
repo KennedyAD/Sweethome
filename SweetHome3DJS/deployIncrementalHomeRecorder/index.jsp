@@ -274,7 +274,7 @@ body {
   }
   
   /* Small touch devices like smartphones */
-  @media (max-width: 767px), (max-height: 511px) {
+  @media (max-width: 743px), (max-height: 511px) {
     .pane-splitter { 
       display: none; 
     } 
