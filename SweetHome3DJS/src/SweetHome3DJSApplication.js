@@ -75,11 +75,11 @@ LocalFileHomeController.prototype.open = function() {
           preferences.getLocalizedString("HomeController", "openMessage"), { size: "small" });
       openingTaskDialog.findElement(".dialog-cancel-button").style = "display: none";
 
-      var fileInput = document.createElement('input');
+      var fileInput = document.createElement("input");
       fileInput.setAttribute("style", "display: none");
       fileInput.setAttribute("type", "file");
       document.body.appendChild(fileInput);  
-      fileInput.addEventListener("input", function(ev) {
+      fileInput.addEventListener("change", function(ev) {
           document.body.removeChild(fileInput);
           if (this.files[0]) {
             openingTaskDialog.displayView();
