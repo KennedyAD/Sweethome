@@ -2456,7 +2456,7 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         colorButton: colorButton,
         textureComponent: textureComponent};
 
-    var panelDisplay = controller.isPropertyEditable("PAINT") ? undefined : "none";
+    var panelDisplay = controller.isPropertyEditable("PAINT") && controller.isTexturable() ? undefined : "none";
     this.getElement("paint-panel").style.display = panelDisplay;
     this.getElement("paint-panel").previousElementSibling.style.display = panelDisplay;
 
@@ -2667,11 +2667,9 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         mattRadioButton: mattRadioButton,
         shinyRadioButton: shinyRadioButton};
 
-    var radiosDisplay = controller.isPropertyEditable("SHININESS") ? "initial" : "none";
-
-    defaultShininessRadioButton.parentElement.style.display = radiosDisplay;
-    mattRadioButton.parentElement.style.display = radiosDisplay;
-    shinyRadioButton.parentElement.style.display = radiosDisplay;
+    var panelDisplay = controller.isPropertyEditable("SHININESS") && controller.isTexturable() ? undefined : "none";
+    this.getElement("shininess-panel").style.display = panelDisplay;
+    this.getElement("shininess-panel").previousElementSibling.style.display = panelDisplay;
 
     if (controller.isPropertyEditable("SHININESS")) {
       // Create radio buttons bound to SHININESS controller properties
