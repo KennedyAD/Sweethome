@@ -392,8 +392,16 @@ public class HomeEditsDeserializer {
       }
     }
 
+    String redefinedFieldPrefix = "__" + type.getName().replace('.', '_') + '_';
     for (String key : jsonObject.keySet()) {
-      Object jsonValue = jsonObject.get(key);
+      // Check redefined fields with same name
+      String redefinedFieldName = redefinedFieldPrefix + key;
+      Object jsonValue;
+      if (jsonObject.has(redefinedFieldName)) {
+        jsonValue = jsonObject.get(redefinedFieldName);
+      } else {
+        jsonValue = jsonObject.get(key);
+      }
       Field field = getField(type, key);
       if (field != null && !jsonValue.equals(JSONObject.NULL)) {
         field.set(instance, deserialize(field.getGenericType(), jsonValue, undo));
