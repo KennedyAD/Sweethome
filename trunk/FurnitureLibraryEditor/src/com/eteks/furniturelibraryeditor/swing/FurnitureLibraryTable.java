@@ -754,6 +754,18 @@ public class FurnitureLibraryTable extends JTable implements View {
                       ? 0 : 1);
             }
           };
+      } else if (DefaultFurnitureCatalog.PropertyKey.MODEL_SIZE.getKeyPrefix().equals(propertyName)) {
+        furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
+            public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
+              if (piece1.getModelSize() == null) {
+                return -1;
+              } else if (piece2.getModelSize() == null) {
+                return 1;
+              } else {
+                return piece1.getModelSize().compareTo(piece2.getModelSize());
+              }
+            }
+          };
       } else if (DefaultFurnitureCatalog.PropertyKey.RESIZABLE.getKeyPrefix().equals(propertyName)) {
         furnitureComparator = new Comparator<CatalogPieceOfFurniture>() {
             public int compare(CatalogPieceOfFurniture piece1, CatalogPieceOfFurniture piece2) {
