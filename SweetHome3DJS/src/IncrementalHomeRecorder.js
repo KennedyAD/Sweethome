@@ -410,7 +410,7 @@ IncrementalHomeRecorder.prototype.sendUndoableEdits = function(home) {
     }
 
     // 2. Send edit
-    request = new XMLHttpRequest();
+    var request = new XMLHttpRequest();
     var writeHomeEditsUrl = this.configuration["writeHomeEditsURL"];
     request.open("POST", writeHomeEditsUrl, true);
     request.withCredentials = true;
