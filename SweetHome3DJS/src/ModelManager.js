@@ -970,20 +970,22 @@ ModelManager.prototype.updateDeformableModelSubTransformedHierarchy = function(g
                 }
                 var referenceNode = node.getParent();
                 var parent = referenceNode.getParent();
-                var nodeIndex = parent.getChildren().indexOf(referenceNode);
-                var pickableGroup = parent.getChild(++nodeIndex);
-                while (!(pickableGroup instanceof TransformGroup3D)) {
-                  pickableGroup = parent.getChild(++nodeIndex);
-                }
-                var lastDigitIndex = subTransformationIndex + subTransformationOpeningPrefixes [j].length;
-                while (lastDigitIndex < name.length && name.charAt(lastDigitIndex) >= '0' && name.charAt(lastDigitIndex) <= '9') {
-                  lastDigitIndex++;
-                }
-                // Remove node and its sibling group and attach it to parent transformation
-                if (this.attachNodesToPickableTransformGroup(group,
-                      referenceNodePrefixes [j] + name.substring(subTransformationIndex + subTransformationOpeningPrefixes [j].length, lastDigitIndex),
-                      [referenceNode, pickableGroup])) {
-                  return true;
+                if (parent !== null) {
+                  var nodeIndex = parent.getChildren().indexOf(referenceNode);
+                  var pickableGroup = parent.getChild(++nodeIndex);
+                  while (!(pickableGroup instanceof TransformGroup3D)) {
+                    pickableGroup = parent.getChild(++nodeIndex);
+                  }
+                  var lastDigitIndex = subTransformationIndex + subTransformationOpeningPrefixes [j].length;
+                  while (lastDigitIndex < name.length && name.charAt(lastDigitIndex) >= '0' && name.charAt(lastDigitIndex) <= '9') {
+                    lastDigitIndex++;
+                  }
+                  // Remove node and its sibling group and attach it to parent transformation
+                  if (this.attachNodesToPickableTransformGroup(group,
+                        referenceNodePrefixes [j] + name.substring(subTransformationIndex + subTransformationOpeningPrefixes [j].length, lastDigitIndex),
+                        [referenceNode, pickableGroup])) {
+                    return true;
+                  }
                 }
               }
             }
