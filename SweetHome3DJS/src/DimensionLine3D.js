@@ -58,6 +58,9 @@ DimensionLine3D.prototype.update = function() {
     if (lengthStyle == null){
       lengthStyle = this.getUserPreferences().getDefaultTextStyle(DimensionLine);
     }
+    if (lengthStyle.getFontName() == null) {
+      lengthStyle = lengthStyle.deriveStyle(this.getUserPreferences().getDefaultFontName());
+    }
     var fontName = lengthStyle.getFontName();
     if (fontName === null) {
       fontName = "sans-serif";
