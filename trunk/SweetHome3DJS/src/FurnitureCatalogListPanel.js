@@ -62,15 +62,22 @@ FurnitureCatalogListPanel.prototype.createComponents = function (catalog, prefer
   this.searchInput = searchInput;
   var filterChangeHandler = function() {
       var valueToSearch = CoreTools.removeAccents(searchInput.value.trim()).replace(/[.*+?^${}()|[\]\\]/g, ' ');
+      var wordsToSearch = valueToSearch.split(' ');
       furnitureCatalogListPanel.filterCatalog(categorySelector.selectedIndex, function(piece) {
           if (valueToSearch == "") {
             return true;
           } else {
-            var pieceDescriptor = piece.getName() + "|" + piece.getTags().join("|");
+            var pieceDescriptor = piece.getName() + "|" + piece.getCategory().getName() + "|" + piece.getTags().join("|");
             if (piece.getCreator() !== null) {
               pieceDescriptor += "|" + piece.getCreator();
             }
-            return RegExp(valueToSearch, "i").test(CoreTools.removeAccents(pieceDescriptor));
+            pieceDescriptor = CoreTools.removeAccents(pieceDescriptor);
+            for (var i = 1; i < wordsToSearch.length; i++) {
+              if (!RegExp(wordsToSearch [i], "i").test(pieceDescriptor)) {
+                return false;
+              };
+            }
+            return RegExp(wordsToSearch [0], "i").test(pieceDescriptor);
           }
         });
     };
