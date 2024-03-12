@@ -1041,7 +1041,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, preferences, 
       mouseDoubleClicked: function(ev) {
         mouseListener.updateCoordinates(ev, "mouseDoubleClicked");
         mouseListener.mousePressed(ev);
-        mouseListener.actionStartedInComponent3D = false;
+        actionStartedInComponent3D = false;
       },
       windowMouseMoved: function(ev) {
         if (!mouseListener.touchEventType
