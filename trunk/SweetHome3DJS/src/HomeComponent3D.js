@@ -98,19 +98,27 @@ HomeComponent3D.DOUBLE_TOUCH_DELAY = 500; // ms
 HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, controller) {
   this.canvas3D = new HTMLCanvas3D(canvasId);
   var component3D = this;
+  this.preferencesChangeListener = function(ev) {
+      switch (ev.getPropertyName()) {
+        case "DEFAULT_FONT_NAME" :
+        case "UNIT" :
+          component3D.updateObjects(component3D.home.getDimensionLines());
+          break;
+        case "EDITING_IN_3D_VIEW_ENABLED" :
+          component3D.updateObjectsAndFurnitureGroups(component3D.home.getSelectedItems());
+          break;
+        case "NAVIGATION_PANEL_VISIBLE" :
+          component3D.setNavigationPanelVisible(ev.getNewValue());
+          break;
+      }
+    };
   if (controller) {
     this.addMouseListeners(controller, preferences, this.canvas3D);
     if (preferences !== null) {
       this.navigationPanelId = this.createNavigationPanel(this.home, preferences, controller);
       this.setNavigationPanelVisible(preferences.isNavigationPanelVisible());
-      this.preferencesChangeListener = function(ev) {
-          component3D.setNavigationPanelVisible(ev.getNewValue());
-        };
       preferences.addPropertyChangeListener("NAVIGATION_PANEL_VISIBLE", this.preferencesChangeListener);
-      this.editingIn3DViewChangeListener = function(ev) {
-          component3D.updateObjectsAndFurnitureGroups(component3D.home.getSelectedItems());
-        };
-      preferences.addPropertyChangeListener("EDITING_IN_3D_VIEW_ENABLED", this.editingIn3DViewChangeListener);
+      preferences.addPropertyChangeListener("EDITING_IN_3D_VIEW_ENABLED", this.preferencesChangeListener);
     }
     this.createActions(controller);
     this.installKeyboardActions();
@@ -124,10 +132,11 @@ HomeComponent3D.prototype.createComponent3D = function(canvasId, preferences, co
   this.addCameraListeners();
   
   this.canvas3D.setScene(this.createSceneTree(true, false));
-  this.unitChangeListener = function(ev) {
-      component3D.updateObjects(component3D.home.getDimensionLines());
-    };
-  preferences.addPropertyChangeListener("UNIT", this.unitChangeListener);
+  
+  if (preferences !== null) {
+    preferences.addPropertyChangeListener("UNIT", this.preferencesChangeListener);
+    preferences.addPropertyChangeListener("DEFAULT_FONT_NAME", this.preferencesChangeListener);
+  }
 }
 
 /**
@@ -449,8 +458,11 @@ HomeComponent3D.prototype.dispose = function() {
     navigationPanel.parentElement.removeChild(navigationPanel);
     this.navigationPanelId = null;
   }
-  this.preferences.removePropertyChangeListener("EDITING_IN_3D_VIEW_ENABLED", this.editingIn3DViewChangeListener);
-  this.preferences.removePropertyChangeListener("UNIT", this.unitChangeListener);
+  if (this.preferences !== null) {
+    this.preferences.removePropertyChangeListener("EDITING_IN_3D_VIEW_ENABLED", this.preferencesChangeListener);
+    this.preferences.removePropertyChangeListener("UNIT", this.preferencesChangeListener);
+    this.preferences.removePropertyChangeListener("DEFAULT_FONT_NAME", this.preferencesChangeListener);
+  }
   this.canvas3D.clear();
 }
 
@@ -1041,7 +1053,7 @@ HomeComponent3D.prototype.addMouseListeners = function(controller, preferences, 
       mouseDoubleClicked: function(ev) {
         mouseListener.updateCoordinates(ev, "mouseDoubleClicked");
         mouseListener.mousePressed(ev);
-        actionStartedInComponent3D = false;
+        mouseListener.actionStartedInComponent3D = false;
       },
       windowMouseMoved: function(ev) {
         if (!mouseListener.touchEventType
