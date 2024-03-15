@@ -2745,7 +2745,9 @@ JSViewFactory.prototype.createHomeFurnitureView = function(preferences, controll
         {
           size: "medium",
           applier: function() {
-            var modelX = dialog.previewComponent.getModelX();
+            var modelX = controller.getModelMirrored()
+                ? -dialog.previewComponent.getModelX()
+                : dialog.previewComponent.getModelX();
             var modelY = dialog.previewComponent.getModelY();
             var pieceX = (controller.getX()
                 + modelX * Math.cos(controller.getAngle()) - modelY * Math.sin(controller.getAngle()));
