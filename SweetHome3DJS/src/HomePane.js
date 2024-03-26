@@ -1317,6 +1317,28 @@ HomePane.prototype.createPopupMenus = function(home, preferences) {
     // Menu button popup menu
     new JSPopupMenu(preferences, this.showApplicationMenuButton, 
         function(builder) {
+          var toolBar = document.getElementById("home-pane-toolbar"); 
+          this.toolBarDefaultChildren = Array.prototype.slice.call(toolBar.children);
+          var fileButton = false;
+          if (toolBar.classList.contains("new-home")) {
+            homePane.addActionToMenu(HomeView.ActionType.NEW_HOME, builder);
+            fileButton = true;
+          } 
+          if (toolBar.classList.contains("open")) {
+            homePane.addActionToMenu(HomeView.ActionType.OPEN, builder);
+            fileButton = true;
+          } 
+          if (toolBar.classList.contains("save")) {
+            homePane.addActionToMenu(HomeView.ActionType.SAVE, builder);
+            fileButton = true;
+          } 
+          if (toolBar.classList.contains("save-as")) {
+            homePane.addActionToMenu(HomeView.ActionType.SAVE_AS, builder);
+            fileButton = true;
+          } 
+          if (fileButton) {
+            builder.addSeparator(); 
+          }
           homePane.addActionToMenu(ActionType.DELETE_SELECTION, builder);
           homePane.addActionToMenu(ActionType.CUT, builder);
           homePane.addActionToMenu(ActionType.COPY, builder);
