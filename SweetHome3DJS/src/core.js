@@ -848,12 +848,15 @@ var UUID = {}
  * Returns a randomly generated Universally Unique IDentifier (v4).
  */
 UUID.randomUUID = function() {
-  // From https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  
+  if (self.crypto && typeof(self.crypto.randomUUID) === "function") {
+	return crypto.randomUUID();
+  } else {
+    // From https://stackoverflow.com/questions/105034/how-to-create-guid-uuid
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+  }
 }
 
 
